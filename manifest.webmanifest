@@ -1,0 +1,35 @@
+{
+  "name": "YKS Defterim",
+  "short_name": "YKS",
+  "description": "Kişisel YKS çalışma defteri: plan, konu takibi, deneme analizi, odak sayacı, video rehberi ve yanlış soru arşivi.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#EFF2F8",
+  "theme_color": "#EFF2F8",
+  "lang": "tr",
+  "dir": "ltr",
+  "categories": [
+    "education",
+    "productivity"
+  ],
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
