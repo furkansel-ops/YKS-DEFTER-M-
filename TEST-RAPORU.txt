@@ -1,0 +1,67 @@
+YKS DEFTERİM v1.7.0 — ALTYAPI TEST RAPORU
+Tarih: 2026-08-22
+
+SONUÇ: OTOMATİK TESTLER GEÇTİ
+
+1) JavaScript sözdizimi
+- Ana klasik script: PASS (node --check)
+- Firebase module script: PASS (node --check)
+- Service worker: PASS (node --check)
+
+2) Gerçek Chromium DOM testi (sayfa içeriği headless Chromium'da çalıştırıldı)
+- runInfrastructureSelfTest(): PASS
+- runBuiltInSelfTest(): YKS_SELFTEST_OK
+- Dinamik renderAll(): PASS
+- Fatal hata bannerı oluşmadı: PASS
+- Page error: 0
+- HTML ID benzersizliği: PASS
+- Sürüm etiketi: 1.7.0 · Kararlı
+- Veri şeması: 18
+
+3) Veri güvenliği VM testi
+- Bozuk JSON algılama: PASS
+- v1 -> şema 18 veri göçü: PASS
+- Bozuk ana kayıttan son-sağlam kopyaya kurtarma: PASS
+- Yerel save(): PASS
+- Çakışma yedeği oluşturma: PASS
+
+4) Kronometre regresyon testi
+- 65 sn çalışan kronometre durduruldu: PASS
+- run=false: PASS
+- start=0: PASS
+- durdurulduktan 10 dk sonra hesaplanan süre değişmedi: PASS
+- oturum geçmişine tek kayıt düştü: PASS
+
+5) Firebase senkronizasyon mock testi
+- Boş bulutu ilk yükleme -> format 3 / revision 1: PASS
+- Normal ikinci kayıt -> revision 2: PASS
+- İki cihaz aynı anda yazma yarışı: PASS
+  * Transaction çakışmayı yakaladı
+  * Yerel değişiklik çakışma yedeğine alındı
+  * Buluttaki kazanan sürüm uygulandı
+- Eski format v2 bulut kaydını okuma: PASS
+- v2 -> v3 bulut formatına yükseltme: PASS
+
+6) PWA service worker mock testi
+- Core dosyaları kurulum cache'ine alma: PASS
+- Activate/client claim: PASS
+- SKIP_WAITING mesajı: PASS
+- Navigation network-first yanıtı: PASS
+- version.json cache dışı tasarlandı: PASS
+
+7) İçerik/regresyon
+- 400 söz korunuyor ve benzersiz: PASS
+- Önceki 3-7-21 tekrar sistemi self-test içinde: PASS
+- Önceki kronometre geçmişi/rozet/güncelleme/tema özellikleri self-test içinde: PASS
+
+8) Statik paket kontrolü
+- index.html mevcut
+- sw.js mevcut
+- version.json mevcut ve v1.7.0
+- manifest + 4 ikon mevcut
+- .nojekyll mevcut
+- firestore.rules mevcut
+
+NOTLAR
+- Bu ortam gerçek Google hesabıyla Firebase oturumu açamadığı için canlı Firestore hesabına yazma/okuma testi yapılmadı. Bunun yerine senkronizasyon algoritması Firestore mock'u ile normal kayıt, eski format yükseltme ve eşzamanlı yazma çakışması senaryolarında test edildi.
+- firestore.rules dosyasının GitHub'a yüklenmesi Firebase kurallarını değiştirmez. Firebase Console > Firestore Database > Rules bölümüne içeriği yapıştırıp Publish yapılmalıdır.
