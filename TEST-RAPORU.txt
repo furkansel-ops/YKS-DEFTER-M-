@@ -1,0 +1,35 @@
+YKS Defterim v2.1.1 — Güncelleme Döngüsü Düzeltmesi
+Tarih: 2026-08-22
+
+SORUN
+- index.html sürümü 2.1.0-A iken mevcut version.json ve sw.js 2.0.0 bildiriyordu.
+- Eski kontrol mantığı sürümleri büyüklük sırasıyla karşılaştırmak yerine yalnız "farklı mı" diye kontrol ediyordu.
+- Bu nedenle daha eski 2.0.0 bile "yeni sürüm" kabul edilip uyarı tekrar gösterilebiliyordu.
+
+DÜZELTME
+- Uygulama, Service Worker ve version.json sürümü 2.1.1 olarak eşitlendi.
+- Sürüm kontrolü sayısal major.minor.patch karşılaştırmasına geçirildi.
+- Uyarı yalnız sunucu sürümü cihaz sürümünden gerçekten BÜYÜKSE gösteriliyor.
+- Eşit veya daha eski sunucu sürümünde güncelleme kutusu kapatılıyor.
+- reg.waiting tek başına artık güncelleme uyarısı göstermiyor; stale/eski worker döngüsü önlendi.
+- Service Worker cache adı yks-core-v2.1.1 olarak yenilendi.
+- version.json cache dışı kalmaya devam ediyor.
+
+TESTLER
+PASS - HTML parse edildi.
+PASS - 527 HTML id: 527 benzersiz, tekrar 0.
+PASS - Tüm inline JavaScript blokları node --check sözdizimi testinden geçti.
+PASS - sw.js node --check testinden geçti.
+PASS - Sürüm karşılaştırma: 2.0.0 < 2.1.1.
+PASS - Sürüm karşılaştırma: 2.1.1 = 2.1.1.
+PASS - Sürüm karşılaştırma: 2.1.2 > 2.1.1.
+PASS - Sürüm karşılaştırma: 2.2.0 > 2.1.1.
+PASS - Sürüm karşılaştırma: 3.0.0 > 2.9.9.
+PASS - index.html APP_VERSION = 2.1.1.
+PASS - sw.js APP_VERSION = 2.1.1.
+PASS - version.json version = 2.1.1.
+PASS - Veri şeması 19 korunuyor.
+
+NOT
+- Gerçek GitHub Pages/PWA güncelleme yaşam döngüsü ancak dosyalar canlıya yüklendikten sonra son kez cihaz üzerinde doğrulanabilir.
+- Bu düzeltmede üç dosya birlikte yüklenmelidir: index.html, sw.js, version.json.
