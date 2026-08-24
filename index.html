@@ -1193,21 +1193,27 @@ document.documentElement.setAttribute("data-theme",t);}catch(e){}})();
           <button id="v320TabTimeline" type="button" onclick="v320SetTab('timeline')">Tarih kronolojisi</button>
         </div>
         <div id="v320PanelParagraph">
+          <div class="v327-tool-intro"><div><span>Okuma çalışması</span><b>Hızını, süreyi ve anlama düzeyini birlikte izle</b></div><small>Metnin kendisi kaydedilmez; yalnız çalışma sonucu saklanır.</small></div>
           <div class="card v320-paragraph-card">
             <label>Başlık (isteğe bağlı)</label><input id="v320ParagraphTitle" type="text" maxlength="100" placeholder="Örn. Bilim ve toplum">
             <label>Çalışacağın metin</label><textarea id="v320ParagraphText" rows="8" placeholder="Kendi paragrafını buraya yapıştır. Metin yalnızca bu alanda kullanılır; çalışma kaydına metnin kendisi eklenmez." oninput="v320ParagraphPreview()"></textarea>
             <div class="v320-read-stats" id="v320ParagraphStats"></div>
+            <p class="v327-live-state" id="v327ParagraphState">En az 40 kelimelik bir metin ekleyerek başla.</p>
             <div class="rowtools"><button class="btn green small" id="v320ParagraphStart" type="button" onclick="v320StartParagraph()">Okumayı başlat</button><button class="btn ghost small" id="v320ParagraphFinish" type="button" onclick="v320FinishParagraph()" disabled>Tamamladım</button><button class="btn ghost tiny" type="button" onclick="v320ResetParagraph()">Sıfırla</button></div>
             <label>Anlama değerlendirmesi</label><select id="v320ParagraphScore"><option value="5">5 · Çok iyi</option><option value="4">4 · İyi</option><option value="3" selected>3 · Orta</option><option value="2">2 · Zorlandım</option><option value="1">1 · Yeniden okumalıyım</option></select>
           </div>
           <div class="card" id="v320ParagraphHistory"></div>
         </div>
         <div id="v320PanelPeriodic" hidden>
-          <div class="card flat v320-toolbar"><input type="search" id="v320ElementSearch" placeholder="Element ara: Fe, Demir, 26" oninput="v320FilterElements(this.value)"><label class="v320-only-fav"><input type="checkbox" id="v320ElementFavOnly" onchange="v320RenderElements()"> Yalnız favoriler</label></div>
+          <div class="v327-tool-intro"><div><span>Kimya hızlı tekrarı</span><b>118 elementi periyot ve sınıfına göre incele</b></div><small>Elemente dokunarak YKS odaklı kısa notunu aç.</small></div>
+          <div class="card flat v320-toolbar v327-toolbar"><input type="search" id="v320ElementSearch" placeholder="Element ara: Fe, Demir, 26" oninput="v320FilterElements(this.value)"><select id="v327ElementPeriod" onchange="v320RenderElements()" aria-label="Periyot filtresi"><option value="Tümü">Tüm periyotlar</option><option value="1">1. periyot</option><option value="2">2. periyot</option><option value="3">3. periyot</option><option value="4">4. periyot</option><option value="5">5. periyot</option><option value="6">6. periyot</option><option value="7">7. periyot</option></select><select id="v327ElementGroup" onchange="v320RenderElements()" aria-label="Element sınıfı filtresi"><option value="Tümü">Tüm sınıflar</option><option value="Metaller">Metaller</option><option value="Ametaller">Ametaller</option><option value="Yarı metal">Yarı metaller</option><option value="İç geçiş">Lantanit ve aktinit</option></select><label class="v320-only-fav"><input type="checkbox" id="v320ElementFavOnly" onchange="v320RenderElements()"> Yalnız favoriler</label><button class="btn ghost tiny" type="button" onclick="v327ResetElementFilters()">Temizle</button></div>
+          <p class="v327-result-meta" id="v327ElementResultMeta"></p>
           <div class="v320-periodic-layout"><div class="v320-element-grid" id="v320ElementGrid"></div><aside class="card v320-element-detail" id="v320ElementDetail"></aside></div>
         </div>
         <div id="v320PanelTimeline" hidden>
-          <div class="card flat v320-toolbar"><input type="search" id="v320TimelineSearch" placeholder="Olay, dönem veya yıl ara" oninput="v320FilterTimeline(this.value)"><select id="v320TimelineEra" onchange="v320RenderTimeline()"><option value="Tümü">Tüm dönemler</option><option>İlk Çağ</option><option>Türk-İslam</option><option>Osmanlı</option><option>Milli Mücadele</option><option>Cumhuriyet</option><option>Dünya</option></select><label class="v320-only-fav"><input type="checkbox" id="v320TimelineFavOnly" onchange="v320RenderTimeline()"> Yalnız favoriler</label></div>
+          <div class="v327-tool-intro"><div><span>Tarih hızlı tekrarı</span><b>Olayları kronoloji ve neden–sonuç bağıyla çalış</b></div><small>Hızlı tekrar modunda önce olayı hatırla, sonra cevabı aç.</small></div>
+          <div class="card flat v320-toolbar v327-toolbar"><input type="search" id="v320TimelineSearch" placeholder="Olay, dönem veya yıl ara" oninput="v320FilterTimeline(this.value)"><select id="v320TimelineEra" onchange="v320RenderTimeline()"><option value="Tümü">Tüm dönemler</option><option>İlk Çağ</option><option>Türk-İslam</option><option>Osmanlı</option><option>Milli Mücadele</option><option>Cumhuriyet</option><option>Dünya</option></select><select id="v327TimelineSort" onchange="v320RenderTimeline()" aria-label="Kronoloji sırası"><option value="old">Eskiden yeniye</option><option value="new">Yeniden eskiye</option></select><label class="v320-only-fav"><input type="checkbox" id="v327TimelinePractice" onchange="v327ToggleTimelinePractice(this.checked)"> Hızlı tekrar</label><label class="v320-only-fav"><input type="checkbox" id="v320TimelineFavOnly" onchange="v320RenderTimeline()"> Yalnız favoriler</label><button class="btn ghost tiny" type="button" onclick="v327ResetTimelineFilters()">Temizle</button></div>
+          <p class="v327-result-meta" id="v327TimelineResultMeta"></p>
           <div class="v320-timeline" id="v320Timeline"></div>
         </div>
       </details>

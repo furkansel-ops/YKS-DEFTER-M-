@@ -8,7 +8,7 @@ const root=path.resolve(__dirname,"..");
 function addDays(key,days){const d=new Date(key+"T12:00:00Z");d.setUTCDate(d.getUTCDate()+days);return d.toISOString().slice(0,10);}
 function context(extra={}){
   const window={},document={readyState:"complete",getElementById:()=>null,addEventListener:()=>{},createElement:()=>({})};
-  return Object.assign({window,document,console,setTimeout:()=>0,clearTimeout:()=>{},Date,Blob,URL,Intl,Math,JSON,Object,Array,Set,Map,String,Number,RegExp,File:class{},navigator:{},todayKey:()=>"2026-08-24",addDaysKey:addDays,esc:String,APP_VERSION:"3.2.6",toast:()=>{},save:()=>true},extra);
+  return Object.assign({window,document,console,setTimeout:()=>0,clearTimeout:()=>{},Date,Blob,URL,Intl,Math,JSON,Object,Array,Set,Map,String,Number,RegExp,File:class{},navigator:{},todayKey:()=>"2026-08-24",addDaysKey:addDays,esc:String,APP_VERSION:"3.2.7",toast:()=>{},save:()=>true},extra);
 }
 function run(file,ctx){vm.runInNewContext(fs.readFileSync(path.join(root,"modules",file),"utf8"),ctx,{filename:file});return ctx.window;}
 
@@ -17,6 +17,14 @@ test("Öğrenme Laboratuvarı verileri ve kelime sayacı çalışır",()=>{
   assert.equal(win.YKSLearningLab.elements.length,118);
   assert.ok(win.YKSLearningLab.timeline.length>=40);
   assert.equal(win.YKSLearningLab.wordCount("Bir iki, üç; dört-beş ve altı."),6);
+});
+
+test("Hazır laboratuvar araçlarının özet ve filtreleri doğru çalışır",()=>{
+  const ctx=context({S:{lab:{paragraphLog:[],elementFav:[],timelineFav:[]}}}),api=run("learning-lab.js",ctx).YKSLearningLab;
+  assert.deepEqual(JSON.parse(JSON.stringify(api.paragraphSummary([{wpm:180,score:4},{wpm:220,score:5},{wpm:200,score:3}]))),{count:3,avgWpm:200,bestWpm:220,avgScore:4});
+  const period1=api.filterElements({period:"1"}),metals=api.filterElements({group:"Metaller"}),favorites=api.filterElements({onlyFavorites:true,favorites:new Set([26,79])});
+  assert.deepEqual(period1.map(x=>x.symbol).join(","),"H,He");assert.ok(metals.length>50);assert.deepEqual(favorites.map(x=>x.symbol).join(","),"Fe,Au");
+  const osmanli=api.filterTimeline({era:"Osmanlı",sort:"old"}),reverse=api.filterTimeline({era:"Osmanlı",sort:"new"});assert.ok(osmanli.length>10);assert.equal(reverse[0].id,osmanli.at(-1).id);
 });
 
 test("Öğrenme Laboratuvarı bütün sınavları ders ve konulara ayırır",()=>{

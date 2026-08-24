@@ -1,4 +1,4 @@
-# YKS Defterim v3.2.6
+# YKS Defterim v3.2.7
 
 Bu paket doğrudan statik hosting için hazırlanmıştır. ZIP'i açtıktan sonra bu klasörün **içindeki dosyaları** GitHub deposunun kök dizinine yükleyin. GitHub Pages, Cloudflare Pages veya benzeri bir statik sunucuda çalışır.
 
@@ -12,6 +12,7 @@ Bu paket doğrudan statik hosting için hazırlanmıştır. ZIP'i açtıktan son
 - v3.2.4 Daha Sade Konular ve Odak: Akıllı Konu Koçu, Öğrenme Araçları ve ayrı Kronometre geçmişi görünümü kaldırıldı. Kronometrenin kendisi, odak kayıtları ve temel analizler korunur.
 - v3.2.5 Laboratuvar Düzeni: Öğrenme Laboratuvarı Konular ekranından Daha bölümüne taşındı; TYT, AYT ve YDT önce derslere, ardından o dersin konularına ayrıldı. Mevcut laboratuvar araçları korunarak sade bir açılır alan altında toplandı.
 - v3.2.6 Konu Rehberleri: 240 TYT, AYT ve YDT konu başlığının tamamına konuya özel önemli bilgiler, dikkat noktaları, sık hatalar ve ders türüne uygun çalışma adımları eklendi. MEB, OGM Materyal ve ÖSYM resmî kaynak bağlantıları doğrudan konu görünümüne yerleştirildi.
+- v3.2.7 Laboratuvar Araçları: Paragraf aracına kişisel rekor, gelişmiş özet ve güvenli geçmiş yönetimi; periyodik tabloya periyot/sınıf filtreleri ve YKS notları; tarih kronolojisine ters sıralama ve cevabı gizleyen hızlı tekrar modu eklendi.
 - 1000 sözlük havuz korunarak İngilizce olan 920 söz Türkçeleştirildi.
 
 ## Yayına alma

@@ -17,8 +17,8 @@ test("HTML kimlikleri benzersiz ve kritik alanlar mevcut",()=>{
 
 test("sürüm, şema ve PWA önbelleği tutarlı",()=>{
   const html=fs.readFileSync(path.join(root,"index.html"),"utf8"),app=fs.readFileSync(path.join(root,"app.js"),"utf8"),sw=fs.readFileSync(path.join(root,"sw.js"),"utf8"),version=JSON.parse(fs.readFileSync(path.join(root,"version.json"),"utf8"));
-  assert.match(html,/src="\.\/app\.js"/);assert.match(app,/const APP_VERSION="3\.2\.6"/);assert.match(app,/const DATA_SCHEMA=21/);
-  assert.equal(version.version,"3.2.6");assert.equal(version.schema,21);assert.match(sw,/yks-core-v3\.2\.6/);
+  assert.match(html,/src="\.\/app\.js"/);assert.match(app,/const APP_VERSION="3\.2\.7"/);assert.match(app,/const DATA_SCHEMA=21/);
+  assert.equal(version.version,"3.2.7");assert.equal(version.schema,21);assert.match(sw,/yks-core-v3\.2\.7/);
   ["app.css","app.js","modules/core-utils.js","modules/stability.js","modules/topic-guides.js","modules/learning-lab.js","modules/target-center.js","modules/export-center.js","modules/release-selftest.js"].forEach(asset=>assert.ok(sw.includes(asset),asset));
   assert.doesNotMatch(sw,/modules\/(topic-coach|learning-tools)\.js/);
 });
@@ -56,9 +56,11 @@ test("Öğrenme Laboratuvarı Daha içinde ve ders-konu düzeninde",()=>{
 });
 
 test("Öğrenme Laboratuvarı, hedef merkezi ve dışa aktarımlar pakette",()=>{
-  const lab=fs.readFileSync(path.join(root,"modules/learning-lab.js"),"utf8"),target=fs.readFileSync(path.join(root,"modules/target-center.js"),"utf8"),exports=fs.readFileSync(path.join(root,"modules/export-center.js"),"utf8");
+  const html=fs.readFileSync(path.join(root,"index.html"),"utf8"),lab=fs.readFileSync(path.join(root,"modules/learning-lab.js"),"utf8"),target=fs.readFileSync(path.join(root,"modules/target-center.js"),"utf8"),exports=fs.readFileSync(path.join(root,"modules/export-center.js"),"utf8");
   assert.equal(lab.match(/const SYMBOLS="([^"]+)"/)[1].split(" ").length,118);
   assert.match(lab,/v320StartParagraph/);assert.match(lab,/Tarih kronolojisi|TIMELINE/);
+  assert.match(html,/v327ElementPeriod/);assert.match(html,/v327ElementGroup/);assert.match(html,/v327TimelineSort/);assert.match(html,/v327TimelinePractice/);
+  assert.match(lab,/paragraphSummary/);assert.match(lab,/filterElements/);assert.match(lab,/filterTimeline/);assert.match(lab,/v327ClearParagraphHistory/);
   assert.match(target,/v321RenderTargetCenter/);assert.match(exports,/buildICS/);assert.match(exports,/buildAnki/);assert.match(exports,/buildMarkdown/);assert.match(exports,/shareCard/);
 });
 
