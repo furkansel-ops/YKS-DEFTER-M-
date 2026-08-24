@@ -8,7 +8,7 @@ const root=path.resolve(__dirname,"..");
 function addDays(key,days){const d=new Date(key+"T12:00:00Z");d.setUTCDate(d.getUTCDate()+days);return d.toISOString().slice(0,10);}
 function context(extra={}){
   const window={},document={readyState:"complete",getElementById:()=>null,addEventListener:()=>{},createElement:()=>({})};
-  return Object.assign({window,document,console,setTimeout:()=>0,clearTimeout:()=>{},Date,Blob,URL,Intl,Math,JSON,Object,Array,Set,Map,String,Number,RegExp,File:class{},navigator:{},todayKey:()=>"2026-08-24",addDaysKey:addDays,esc:String,APP_VERSION:"3.2.4",toast:()=>{},save:()=>true},extra);
+  return Object.assign({window,document,console,setTimeout:()=>0,clearTimeout:()=>{},Date,Blob,URL,Intl,Math,JSON,Object,Array,Set,Map,String,Number,RegExp,File:class{},navigator:{},todayKey:()=>"2026-08-24",addDaysKey:addDays,esc:String,APP_VERSION:"3.2.5",toast:()=>{},save:()=>true},extra);
 }
 function run(file,ctx){vm.runInNewContext(fs.readFileSync(path.join(root,"modules",file),"utf8"),ctx,{filename:file});return ctx.window;}
 
@@ -17,6 +17,13 @@ test("Öğrenme Laboratuvarı verileri ve kelime sayacı çalışır",()=>{
   assert.equal(win.YKSLearningLab.elements.length,118);
   assert.ok(win.YKSLearningLab.timeline.length>=40);
   assert.equal(win.YKSLearningLab.wordCount("Bir iki, üç; dört-beş ve altı."),6);
+});
+
+test("Öğrenme Laboratuvarı bütün sınavları ders ve konulara ayırır",()=>{
+  const app=fs.readFileSync(path.join(root,"app.js"),"utf8"),match=app.match(/const CURRICULUM=(\{[\s\S]*?\n\};)\nconst ALL_SUBJECTS/);assert.ok(match);
+  const CURRICULUM=vm.runInNewContext("("+match[1].replace(/;$/,'')+")"),ctx=context({CURRICULUM,S:{lab:{paragraphLog:[],elementFav:[],timelineFav:[]}}}),win=run("learning-lab.js",ctx),snapshot=win.YKSLearningLab.curriculum();
+  assert.deepEqual(Object.keys(snapshot),["TYT","AYT","YDT"]);
+  for(const exam of ["TYT","AYT","YDT"]){assert.equal(snapshot[exam].length,CURRICULUM[exam].length);assert.equal(snapshot[exam].reduce((n,x)=>n+x.topics.length,0),CURRICULUM[exam].reduce((n,x)=>n+x.topics.length,0));}
 });
 
 test("ICS, Anki ve Obsidian çıktıları gerçek içerik üretir",()=>{

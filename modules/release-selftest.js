@@ -3,11 +3,11 @@
   function runReleaseSelfTest(){
     const checks=[],add=(name,value)=>checks.push([name,!!value]);
     try{
-      add("version",typeof APP_VERSION!=="undefined"&&APP_VERSION==="3.2.4"&&DATA_SCHEMA===21);
+      add("version",typeof APP_VERSION!=="undefined"&&APP_VERSION==="3.2.5"&&DATA_SCHEMA===21);
       add("modular-assets",!!document.querySelector('link[href="./app.css"]')&&!!document.querySelector('script[src="./app.js"]'));
       add("stability",!!window.YKSStability&&!!document.getElementById("v311OfflineBanner"));
       add("removed-tools",!document.getElementById("v312Coach")&&!document.getElementById("v313Learning")&&!document.getElementById("swHistory"));
-      add("learning-lab",window.YKSLearningLab?.elements?.length===118&&window.YKSLearningLab?.timeline?.length>=40&&!!document.getElementById("v320LearningLab"));
+      add("learning-lab",window.YKSLearningLab?.elements?.length===118&&window.YKSLearningLab?.timeline?.length>=40&&window.YKSLearningLab?.curriculum?.().TYT?.length>0&&!!document.getElementById("mrp_lab")&&!!document.getElementById("v320LearningLab"));
       add("target-center",typeof window.v321RenderTargetCenter==="function"&&!!document.getElementById("v321TargetKpis"));
       add("exports",window.YKSExportCenter&&typeof window.YKSExportCenter.buildICS==="function"&&!!document.getElementById("v322ExportCenter"));
       const merged=window.YKSCore.mergeStates({denemeler:[{id:1}],topics:{},lab:{paragraphLog:[{id:7,at:1}]}},{denemeler:[{id:2}],topics:{},lab:{paragraphLog:[{id:8,at:2}]}},21);

@@ -425,33 +425,6 @@ document.documentElement.setAttribute("data-theme",t);}catch(e){}})();
   <div class="card" id="v26TopicOverview"></div>
   <div class="card" id="v26TopicAttention"></div>
 
-  <section class="v320-lab" id="v320LearningLab" aria-labelledby="v320LabTitle">
-    <div class="v320-head"><div><p class="eyebrow">Öğrenme Laboratuvarı</p><h2 id="v320LabTitle">Oku, keşfet, zaman içinde gör</h2><p class="hint">Paragraf pratiği, interaktif periyodik tablo ve YKS tarih kronolojisi.</p></div><div class="v320-lab-summary" id="v320LabSummary"></div></div>
-    <div class="seg tri v320-tabs" role="tablist" aria-label="Öğrenme laboratuvarı">
-      <button id="v320TabParagraph" class="on" type="button" onclick="v320SetTab('paragraph')">Paragraf</button>
-      <button id="v320TabPeriodic" type="button" onclick="v320SetTab('periodic')">Periyodik tablo</button>
-      <button id="v320TabTimeline" type="button" onclick="v320SetTab('timeline')">Tarih kronolojisi</button>
-    </div>
-    <div id="v320PanelParagraph">
-      <div class="card v320-paragraph-card">
-        <label>Başlık (isteğe bağlı)</label><input id="v320ParagraphTitle" type="text" maxlength="100" placeholder="Örn. Bilim ve toplum">
-        <label>Çalışacağın metin</label><textarea id="v320ParagraphText" rows="8" placeholder="Kendi paragrafını buraya yapıştır. Metin yalnızca bu alanda kullanılır; çalışma kaydına metnin kendisi eklenmez." oninput="v320ParagraphPreview()"></textarea>
-        <div class="v320-read-stats" id="v320ParagraphStats"></div>
-        <div class="rowtools"><button class="btn green small" id="v320ParagraphStart" type="button" onclick="v320StartParagraph()">Okumayı başlat</button><button class="btn ghost small" id="v320ParagraphFinish" type="button" onclick="v320FinishParagraph()" disabled>Tamamladım</button><button class="btn ghost tiny" type="button" onclick="v320ResetParagraph()">Sıfırla</button></div>
-        <label>Anlama değerlendirmesi</label><select id="v320ParagraphScore"><option value="5">5 · Çok iyi</option><option value="4">4 · İyi</option><option value="3" selected>3 · Orta</option><option value="2">2 · Zorlandım</option><option value="1">1 · Yeniden okumalıyım</option></select>
-      </div>
-      <div class="card" id="v320ParagraphHistory"></div>
-    </div>
-    <div id="v320PanelPeriodic" hidden>
-      <div class="card flat v320-toolbar"><input type="search" id="v320ElementSearch" placeholder="Element ara: Fe, Demir, 26" oninput="v320FilterElements(this.value)"><label class="v320-only-fav"><input type="checkbox" id="v320ElementFavOnly" onchange="v320RenderElements()"> Yalnız favoriler</label></div>
-      <div class="v320-periodic-layout"><div class="v320-element-grid" id="v320ElementGrid"></div><aside class="card v320-element-detail" id="v320ElementDetail"></aside></div>
-    </div>
-    <div id="v320PanelTimeline" hidden>
-      <div class="card flat v320-toolbar"><input type="search" id="v320TimelineSearch" placeholder="Olay, dönem veya yıl ara" oninput="v320FilterTimeline(this.value)"><select id="v320TimelineEra" onchange="v320RenderTimeline()"><option value="Tümü">Tüm dönemler</option><option>İlk Çağ</option><option>Türk-İslam</option><option>Osmanlı</option><option>Milli Mücadele</option><option>Cumhuriyet</option><option>Dünya</option></select><label class="v320-only-fav"><input type="checkbox" id="v320TimelineFavOnly" onchange="v320RenderTimeline()"> Yalnız favoriler</label></div>
-      <div class="v320-timeline" id="v320Timeline"></div>
-    </div>
-  </section>
-
   <h2>Müfredat projeksiyonu</h2>
   <div class="card" id="curBox"></div>
 
@@ -1167,6 +1140,7 @@ document.documentElement.setAttribute("data-theme",t);}catch(e){}})();
 
     <h2>Kütüphane ve çalışma</h2>
     <div class="v30-menu-grid">
+      <button class="v30-menu-card" type="button" onclick="v30Action('lab')"><span class="v30-menu-ico">⌁</span><span><b>Öğrenme Laboratuvarı</b><small>TYT, AYT ve YDT derslerini konu konu aç</small></span><i>›</i></button>
       <button class="v30-menu-card" type="button" onclick="v30Action('resources')"><span class="v30-menu-ico">▤</span><span><b>Kaynaklar & videolar</b><small>Kitaplar, hocalar, oynatma listeleri ve izleme geçmişi</small></span><i>›</i></button>
       <button class="v30-menu-card" type="button" onclick="v30Action('tactics')"><span class="v30-menu-ico">◎</span><span><b>Taktikler</b><small>Sana uyan taktikler ve tahmin hesaplayıcısı</small></span><i>›</i></button>
       <button class="v30-menu-card" type="button" onclick="v30Action('archive')"><span class="v30-menu-ico">▣</span><span><b>Yanlış soru arşivi</b><small>Fotoğraflı sorularını aç, filtrele ve tekrar et</small></span><i>›</i></button>
@@ -1186,6 +1160,58 @@ document.documentElement.setAttribute("data-theme",t);}catch(e){}})();
       <button class="v30-menu-card" type="button" onclick="v30Action('system')"><span class="v30-menu-ico">✓</span><span><b>Sistem durumu</b><small>PWA, depolama, veri şeması ve otomatik kontroller</small></span><i>›</i></button>
       <button class="v30-menu-card" type="button" onclick="v30Action('about')"><span class="v30-menu-ico">i</span><span><b>Hakkında</b><small>Sürüm, geliştirici ve uygulama bilgileri</small></span><i>›</i></button>
     </div>
+  </div>
+
+  <div id="mrp_lab" style="display:none;">
+    <div class="v30-subhead"><button class="v30-back" type="button" onclick="setMoreTab('home')">‹ Daha</button><div><h1>Öğrenme Laboratuvarı</h1><p>Bütün dersler ve konular tek düzen içinde</p></div></div>
+    <section class="v320-lab" id="v320LearningLab" aria-labelledby="v320LabTitle">
+      <div class="v320-head"><div><p class="eyebrow">Ders ve konu düzeni</p><h2 id="v320LabTitle">Önce dersini, sonra konunu seç</h2><p class="hint">TYT, AYT ve YDT müfredatı derslere; her ders de kendi konularına ayrılmıştır.</p></div><div class="v320-lab-summary" id="v320LabSummary"></div></div>
+      <div class="card v320-course-browser">
+        <div class="seg tri v320-exam-tabs" role="tablist" aria-label="Sınav türü">
+          <button id="v320ExamTYT" class="on" type="button" onclick="v320SetExam('TYT')">TYT</button>
+          <button id="v320ExamAYT" type="button" onclick="v320SetExam('AYT')">AYT</button>
+          <button id="v320ExamYDT" type="button" onclick="v320SetExam('YDT')">YDT</button>
+        </div>
+        <div id="v320CourseHome">
+          <div class="v320-browser-head"><div><b id="v320CourseTitle">TYT dersleri</b><small id="v320CourseMeta"></small></div></div>
+          <div class="v320-subject-grid" id="v320SubjectGrid"></div>
+        </div>
+        <div id="v320CourseTopics" hidden>
+          <button class="v320-browser-back" type="button" onclick="v320BackSubjects()">‹ Derslere dön</button>
+          <div class="v320-browser-head"><div><b id="v320SubjectTitle">Ders</b><small id="v320SubjectMeta"></small></div></div>
+          <input type="search" id="v320TopicSearch" placeholder="Bu derste konu ara" oninput="v320SearchTopics(this.value)">
+          <div class="v320-topic-grid" id="v320TopicGrid"></div>
+          <div class="v320-topic-selection" id="v320TopicSelection"></div>
+        </div>
+      </div>
+
+      <details class="v320-toolbox">
+        <summary>Hazır laboratuvar araçları</summary>
+        <div class="seg tri v320-tabs" role="tablist" aria-label="Öğrenme laboratuvarı araçları">
+          <button id="v320TabParagraph" class="on" type="button" onclick="v320SetTab('paragraph')">Paragraf</button>
+          <button id="v320TabPeriodic" type="button" onclick="v320SetTab('periodic')">Periyodik tablo</button>
+          <button id="v320TabTimeline" type="button" onclick="v320SetTab('timeline')">Tarih kronolojisi</button>
+        </div>
+        <div id="v320PanelParagraph">
+          <div class="card v320-paragraph-card">
+            <label>Başlık (isteğe bağlı)</label><input id="v320ParagraphTitle" type="text" maxlength="100" placeholder="Örn. Bilim ve toplum">
+            <label>Çalışacağın metin</label><textarea id="v320ParagraphText" rows="8" placeholder="Kendi paragrafını buraya yapıştır. Metin yalnızca bu alanda kullanılır; çalışma kaydına metnin kendisi eklenmez." oninput="v320ParagraphPreview()"></textarea>
+            <div class="v320-read-stats" id="v320ParagraphStats"></div>
+            <div class="rowtools"><button class="btn green small" id="v320ParagraphStart" type="button" onclick="v320StartParagraph()">Okumayı başlat</button><button class="btn ghost small" id="v320ParagraphFinish" type="button" onclick="v320FinishParagraph()" disabled>Tamamladım</button><button class="btn ghost tiny" type="button" onclick="v320ResetParagraph()">Sıfırla</button></div>
+            <label>Anlama değerlendirmesi</label><select id="v320ParagraphScore"><option value="5">5 · Çok iyi</option><option value="4">4 · İyi</option><option value="3" selected>3 · Orta</option><option value="2">2 · Zorlandım</option><option value="1">1 · Yeniden okumalıyım</option></select>
+          </div>
+          <div class="card" id="v320ParagraphHistory"></div>
+        </div>
+        <div id="v320PanelPeriodic" hidden>
+          <div class="card flat v320-toolbar"><input type="search" id="v320ElementSearch" placeholder="Element ara: Fe, Demir, 26" oninput="v320FilterElements(this.value)"><label class="v320-only-fav"><input type="checkbox" id="v320ElementFavOnly" onchange="v320RenderElements()"> Yalnız favoriler</label></div>
+          <div class="v320-periodic-layout"><div class="v320-element-grid" id="v320ElementGrid"></div><aside class="card v320-element-detail" id="v320ElementDetail"></aside></div>
+        </div>
+        <div id="v320PanelTimeline" hidden>
+          <div class="card flat v320-toolbar"><input type="search" id="v320TimelineSearch" placeholder="Olay, dönem veya yıl ara" oninput="v320FilterTimeline(this.value)"><select id="v320TimelineEra" onchange="v320RenderTimeline()"><option value="Tümü">Tüm dönemler</option><option>İlk Çağ</option><option>Türk-İslam</option><option>Osmanlı</option><option>Milli Mücadele</option><option>Cumhuriyet</option><option>Dünya</option></select><label class="v320-only-fav"><input type="checkbox" id="v320TimelineFavOnly" onchange="v320RenderTimeline()"> Yalnız favoriler</label></div>
+          <div class="v320-timeline" id="v320Timeline"></div>
+        </div>
+      </details>
+    </section>
   </div>
 
   <div id="mrp_kay" style="display:none;">

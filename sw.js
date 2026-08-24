@@ -1,6 +1,6 @@
-/* YKS Defterim — dayanıklı PWA katmanı | v3.2.4 */
-const APP_VERSION="3.2.4";
-const CACHE="yks-core-v3.2.4";
+/* YKS Defterim — dayanıklı PWA katmanı | v3.2.5 */
+const APP_VERSION="3.2.5";
+const CACHE="yks-core-v3.2.5";
 const CORE=["./","./index.html","./app.css","./app.js","./modules/core-utils.js","./modules/stability.js","./modules/learning-lab.js","./modules/target-center.js","./modules/export-center.js","./modules/release-selftest.js","./manifest.webmanifest","./icon-192.png","./icon-512.png","./icon-maskable-512.png","./apple-touch-icon.png"];
 const OFFLINE_TEXT="Çevrimdışı";
 

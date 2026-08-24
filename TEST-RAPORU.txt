@@ -1,9 +1,17 @@
-YKS DEFTERİM v3.2.4 — SON TEST RAPORU
+YKS DEFTERİM v3.2.5 — SON TEST RAPORU
 Tarih: 24 Ağustos 2026
 Veri şeması: 21
 Kanal: Kararlı
 
 1. YENİ GELİŞTİRMELER
+
+v3.2.5 — Laboratuvar Ders ve Konu Düzeni
+- Öğrenme Laboratuvarı Konular ekranından Daha bölümüne taşındı.
+- Laboratuvar ana görünümü TYT, AYT ve YDT sekmelerine ayrıldı.
+- Her sınav türünde bütün dersler ayrı kartlar olarak gösteriliyor.
+- Bir ders açıldığında o derse ait bütün konular ayrı ayrı listeleniyor ve aranabiliyor.
+- Konu seçimi için içerik yerleşimi hazırlandı; konu içeriği sonraki geliştirme adımına bırakıldı.
+- Mevcut paragraf, periyodik tablo ve tarih kronolojisi araçları açılır “Hazır laboratuvar araçları” alanında korundu.
 
 v3.2.4 — Daha Sade Konular ve Odak
 - Akıllı Konu Koçu arayüzü ve modülü kaldırıldı.
@@ -60,7 +68,7 @@ Söz havuzu
 
 3. OTOMATİK TEST SONUÇLARI
 
-- Node testleri: 18/18 başarılı, 0 başarısız.
+- Node testleri: 20/20 başarılı, 0 başarısız.
 - Öğrenme Laboratuvarı: 118 element, 40+ tarih olayı ve Unicode kelime sayacı doğrulandı.
 - Çıktı üretimi: ICS, Anki TXT ve Obsidian Markdown gerçek örnek veriyle doğrulandı.
 - Hedef merkezi: puan, sıra ve en yakın hedef görünüm verisi doğrulandı.
@@ -70,13 +78,13 @@ Söz havuzu
 - JavaScript: app.js, tüm modules/*.js ve sw.js sözdizimi kontrolünden geçti.
 - Firebase modülü: import satırları ayrıştırıldıktan sonra sözdizimi kontrolünden geçti.
 - CSS: süslü parantez dengesi doğru.
-- Sürüm/PWA: app, Service Worker ve version.json v3.2.4 / şema 21 olarak tutarlı.
+- Sürüm/PWA: app, Service Worker ve version.json v3.2.5 / şema 21 olarak tutarlı.
 - Güvenlik: gömülü YouTube API anahtarı, eski v30-legacy-tabs ve eval kullanımı bulunmadı.
 
 4. YAYIN NOTLARI
 
 - ZIP içindeki dosyalar GitHub depo köküne yüklenmelidir.
-- Service Worker önbellek adı v3.2.4'e yükseltildi; kaldırılan modüller çekirdek önbellekten çıkarıldı.
+- Service Worker önbellek adı v3.2.5'e yükseltildi.
 - Güncellemeden önce mevcut uygulamadan JSON yedeği alınması önerilir.
 - Firebase kullanılıyorsa yayın alan adı Firebase Authentication yetkili alan adlarında bulunmalıdır.
 - PDF düğmesi tarayıcının yazdırma ekranını açar; buradan “PDF olarak kaydet” seçilir.
