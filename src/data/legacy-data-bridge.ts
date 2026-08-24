@@ -1,4 +1,5 @@
 import {DATA_SCHEMA_VERSION,type YksStateCandidate} from "./contracts";
+import type {DomainStateAdapter} from "../domain/state-context";
 import {buildCloudPayload,type CloudPayloadResult} from "./cloud-state";
 import {DexieMigrationTarget,YksDatabase,type IndexedDatabaseSnapshot} from "./database";
 import {LocalStateRepository,type DataSnapshot,type RepositoryReadResult,type RepositoryWriteResult} from "./local-state-repository";
@@ -29,6 +30,11 @@ declare global{
   interface LegacyStateAdapter{
     readJSON():string;
     applyJSON(json:string):{ok:true;json:string}|{ok:false;message:string};
+    readState?:DomainStateAdapter["readState"];
+    save?:DomainStateAdapter["save"];
+    memo?:DomainStateAdapter["memo"];
+    subjects?:DomainStateAdapter["subjects"];
+    reviewGaps?:DomainStateAdapter["reviewGaps"];
   }
   interface Window{
     __YKS_DATA__?:LegacyDataBridgeApi;

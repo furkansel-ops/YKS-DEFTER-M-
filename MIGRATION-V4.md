@@ -86,8 +86,17 @@ npm run check
 - Eski yardımcılar açılış güvenlik yolu olarak korundu; kullanıcı arayüzü ve veri şeması değiştirilmedi.
 - Saf servisler eski sonuçlarla eşdeğerlik testlerine bağlandı.
 
-## Sıradaki adım 9
+## Tamamlanan adım 9 — Tür güvenli alan servisleri
 
-Ekranlardaki durum okuma ve güncelleme işlemlerini tür güvenli TypeScript alan servislerine ayırmak.
+- Konu anahtarı, konu durumu, güven seviyesi, ders ilerlemesi ve genel konu yüzdesi TypeScript konu servisine taşındı.
+- Aralıklı tekrar kuyruğu oluşturma ve tekrar tamamlama işlemleri aynı alan servisinde toplandı.
+- Toplam soru, toplam odak dakikası, tamamlanan konu/tekrar ve günlük odak oturumları TypeScript çalışma servisine taşındı.
+- Güncelleme işlemleri mevcut `save()` zincirini kullanarak Dexie ana kayda ve güvenli yerel aynaya yazılmaya devam ediyor.
+- Eski JavaScript çağrıları 15 tür güvenli alan yardımcısına bağlandı; geçersiz eski çağrılar için uyumluluk geri dönüşü korundu.
+- Veri şeması ve kullanıcı arayüzü değiştirilmedi.
+
+## Sıradaki adım 10
+
+Uygulama açılışı, ekran geçişleri, Dexie ve Firebase akışını uçtan uca doğrulayıp v4 sürüm adayını hazırlamak.
 
 Bu adıma kullanıcı onayı alınmadan geçilmez.
