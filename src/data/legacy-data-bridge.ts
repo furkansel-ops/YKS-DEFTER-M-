@@ -1,11 +1,12 @@
 import {DATA_SCHEMA_VERSION,type YksStateCandidate} from "./contracts";
+import {buildCloudPayload,type CloudPayloadResult} from "./cloud-state";
 import {DexieMigrationTarget,YksDatabase,type IndexedDatabaseSnapshot} from "./database";
 import {LocalStateRepository,type DataSnapshot,type RepositoryReadResult,type RepositoryWriteResult} from "./local-state-repository";
-import {PrimaryStateCoordinator,type PrimaryInitResult,type PrimaryWriteResult} from "./primary-store";
+import {PrimaryStateCoordinator,type ExternalApplyResult,type PrimaryInitResult,type PrimaryWriteResult} from "./primary-store";
 import {YKS_STORAGE_KEYS} from "./storage-keys";
 
 export interface LegacyDataBridgeApi{
-  readonly version:"4.0.0-alpha.5";
+  readonly version:"4.0.0-alpha.6";
   readonly storage:"localStorage";
   readonly indexedStorage:"Dexie";
   readonly schemaVersion:typeof DATA_SCHEMA_VERSION;
@@ -18,6 +19,8 @@ export interface LegacyDataBridgeApi{
   indexedSnapshot():Promise<IndexedDatabaseSnapshot>;
   initialize():Promise<PrimaryInitResult>;
   captureLegacyWrite(json?:string):Promise<PrimaryWriteResult>;
+  cloudPayload():Promise<CloudPayloadResult>;
+  applyCloudJSON(json:string):Promise<ExternalApplyResult>;
   flush():Promise<void>;
   validate():string[];
 }
@@ -49,15 +52,22 @@ export function installLegacyDataBridge():LegacyDataBridgeApi{
   const coordinator=new PrimaryStateCoordinator(repository,target,runtime);
   let initialization:Promise<PrimaryInitResult>|null=null;
   const initialize=()=>initialization??=coordinator.initialize();
-  let writeQueue:Promise<PrimaryWriteResult>|null=null;
-  const captureLegacyWrite=(json?:string):Promise<PrimaryWriteResult>=>{
-    const run=async()=>{await initialize();return coordinator.capture(json);};
-    writeQueue=writeQueue?writeQueue.then(run,run):run();
-    return writeQueue;
+  let writeTail:Promise<void>=Promise.resolve();
+  const enqueue=<T>(task:()=>Promise<T>):Promise<T>=>{
+    const result=writeTail.then(task,task);
+    writeTail=result.then(()=>undefined,()=>undefined);
+    return result;
   };
-  const flush=async()=>{if(writeQueue)await writeQueue.then(()=>undefined,()=>undefined);};
+  const captureLegacyWrite=(json?:string):Promise<PrimaryWriteResult>=>enqueue(async()=>{await initialize();return coordinator.capture(json);});
+  const applyCloudJSON=(json:string):Promise<ExternalApplyResult>=>enqueue(async()=>{await initialize();return coordinator.replaceFromExternal(json);});
+  const flush=async()=>{await writeTail;};
+  const cloudPayload=async():Promise<CloudPayloadResult>=>{
+    await initialize();await flush();
+    const primary=await coordinator.readPrimaryJSON();
+    return primary.ok?buildCloudPayload(primary.json,primary.source):primary;
+  };
   const api:LegacyDataBridgeApi={
-    version:"4.0.0-alpha.5",
+    version:"4.0.0-alpha.6",
     storage:"localStorage",
     indexedStorage:"Dexie",
     schemaVersion:DATA_SCHEMA_VERSION,
@@ -70,6 +80,8 @@ export function installLegacyDataBridge():LegacyDataBridgeApi{
     indexedSnapshot:()=>target.snapshot(),
     initialize,
     captureLegacyWrite,
+    cloudPayload,
+    applyCloudJSON,
     flush,
     validate:()=>repository.validate()
   };

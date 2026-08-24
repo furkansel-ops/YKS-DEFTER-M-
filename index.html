@@ -1955,18 +1955,24 @@ function status(x,state="signedout",sub=""){if(txt)txt.textContent=x;if(box)box.
 function markSynced(){lastSyncAt=Date.now();try{localStorage.setItem(LAST_SYNC_KEY,String(lastSyncAt));}catch(e){}status("Senkronize","synced",syncAgo(lastSyncAt));}
 setInterval(()=>{if(!document.hidden&&box&&box.dataset.state==="synced"&&meta)meta.textContent=syncAgo(lastSyncAt);},30000);
 function splitUtf8(str,max=240000){const out=[];let start=0;while(start<str.length){let end=Math.min(str.length,start+max);while(end>start&&new Blob([str.slice(start,end)]).size>280000)end-=Math.max(1000,Math.floor((end-start)/10));/* UTF-16 surrogate çiftini iki Firestore parçasına bölme; emoji/özel karakter bozulmasın. */if(end<str.length&&end>start){const a=str.charCodeAt(end-1),b=str.charCodeAt(end);if(a>=0xD800&&a<=0xDBFF&&b>=0xDC00&&b<=0xDFFF)end--;}out.push(str.slice(start,end));start=end;}return out;}
-function cloudJSON(){
+async function cloudJSON(){
   const epoch=Number(window.__YKS_STATE_EPOCH||0);
   if(cloudCacheJSON&&cloudCacheEpoch===epoch){try{PERF_STATE.lastCloudBuildMs=0;}catch(e){}return cloudCacheJSON;}
   const t0=(typeof performance!=="undefined"&&performance.now)?performance.now():Date.now();
-  const state=window.S||{};
-  const json=JSON.stringify(state,function(k,v){
-    if(this===state&&k==="v")return DATA_SCHEMA;
-    if(state.focus&&this===state.focus&&k==="sw")return {run:false,start:0,acc:0,cr:0};
-    if(state.focus&&this===state.focus&&k==="swLaps")return [];
-    if(state.yt&&this===state.yt&&k==="key")return "";
-    return v;
-  });
+  let json="";
+  try{
+    if(window.__YKS_DATA__?.cloudPayload){const payload=await window.__YKS_DATA__.cloudPayload();if(payload.ok)json=payload.json;else throw new Error(payload.message);}
+  }catch(e){try{infraError("dexie-cloud-read",e);}catch(_){}}
+  if(!json){
+    const state=window.S||{};
+    json=JSON.stringify(state,function(k,v){
+      if(this===state&&k==="v")return DATA_SCHEMA;
+      if(state.focus&&this===state.focus&&k==="sw")return {run:false,start:0,acc:0,cr:0};
+      if(state.focus&&this===state.focus&&k==="swLaps")return [];
+      if(state.yt&&this===state.yt&&k==="key")return "";
+      return v;
+    });
+  }
   cloudCacheEpoch=epoch;cloudCacheJSON=json;
   try{PERF_STATE.lastCloudBuildMs=((typeof performance!=="undefined"&&performance.now)?performance.now():Date.now())-t0;}catch(e){}
   return json;
@@ -1995,12 +2001,13 @@ async function applyRemote(remote,reason="remote"){
   try{if(typeof window.autoBackupRun==="function")window.autoBackupRun(true);}catch(e){}
   const localSw=window.S&&window.S.focus&&window.S.focus.sw?JSON.parse(JSON.stringify(window.S.focus.sw)):null;
   const localLaps=window.S&&window.S.focus&&Array.isArray(window.S.focus.swLaps)?JSON.parse(JSON.stringify(window.S.focus.swLaps)):[];
-  const next=normalize(Object.assign({},JSON.parse(JSON.stringify(DEF)),migrateState(remote.obj)));
+  let next=normalize(Object.assign({},JSON.parse(JSON.stringify(DEF)),migrateState(remote.obj)));
   if(localSw){next.focus.sw=localSw;next.focus.swLaps=localLaps;}
   /* Önce diske yaz; depolama doluysa çalışan yerel durumu yarıda değiştirme. */
-  const persisted=JSON.stringify(next);localStorage.setItem(STORAGE_KEY,persisted);if(window.__YKS_DATA__?.captureLegacyWrite)void window.__YKS_DATA__.captureLegacyWrite(persisted);
-  window.S=next;S=next;lastPersistedJSON=persisted;perfInvalidateState();persistStateHashMaybe(persisted,true);
-  setBaseRev(remote.rev); setDirty(false); lastJSON=cloudJSON();
+  let persisted=JSON.stringify(next);
+  if(window.__YKS_DATA__?.applyCloudJSON){const applied=await window.__YKS_DATA__.applyCloudJSON(persisted);if(!applied.ok)throw new Error(applied.message);persisted=applied.json||persisted;next=window.S||next;}
+  else{localStorage.setItem(STORAGE_KEY,persisted);window.S=next;S=next;lastPersistedJSON=persisted;perfInvalidateState();persistStateHashMaybe(persisted,true);}
+  setBaseRev(remote.rev); setDirty(false); lastJSON=await cloudJSON();
   if(typeof renderAfterExternalState==="function")renderAfterExternalState(); else if(typeof renderAll==="function")renderAll();
   if(typeof renderSw==="function")renderSw(); markSynced();
   return true;
@@ -2011,10 +2018,11 @@ async function applyMerged(remote,localObj){
   const localSw=window.S&&window.S.focus&&window.S.focus.sw?JSON.parse(JSON.stringify(window.S.focus.sw)):null;
   const localLaps=window.S&&window.S.focus&&Array.isArray(window.S.focus.swLaps)?JSON.parse(JSON.stringify(window.S.focus.swLaps)):[];
   const raw=window.YKSCore.mergeStates(remote.obj,localObj,DATA_SCHEMA);
-  const next=normalize(Object.assign({},JSON.parse(JSON.stringify(DEF)),migrateState(raw)));
+  let next=normalize(Object.assign({},JSON.parse(JSON.stringify(DEF)),migrateState(raw)));
   if(localSw){next.focus.sw=localSw;next.focus.swLaps=localLaps;}
-  const persisted=JSON.stringify(next);localStorage.setItem(STORAGE_KEY,persisted);if(window.__YKS_DATA__?.captureLegacyWrite)void window.__YKS_DATA__.captureLegacyWrite(persisted);
-  window.S=next;S=next;lastPersistedJSON=persisted;perfInvalidateState();persistStateHashMaybe(persisted,true);
+  let persisted=JSON.stringify(next);
+  if(window.__YKS_DATA__?.applyCloudJSON){const applied=await window.__YKS_DATA__.applyCloudJSON(persisted);if(!applied.ok)throw new Error(applied.message);persisted=applied.json||persisted;next=window.S||next;}
+  else{localStorage.setItem(STORAGE_KEY,persisted);window.S=next;S=next;lastPersistedJSON=persisted;perfInvalidateState();persistStateHashMaybe(persisted,true);}
   setBaseRev(remote.rev);setDirty(true);lastJSON="";
   if(typeof renderAfterExternalState==="function")renderAfterExternalState();else if(typeof renderAll==="function")renderAll();
   if(typeof renderSw==="function")renderSw();
@@ -2032,7 +2040,7 @@ async function safeCleanupOldRevisions(currentRev){
 async function upload(){
   if(!user||loading)return;
   if(uploading){uploadQueued=true;return;}
-  const json=cloudJSON();
+  const json=await cloudJSON();
   if(!dirty&&json===lastJSON){markSynced();return;}
   if(!navigator.onLine){status("Çevrimdışı","offline","Değişiklikler cihazda saklandı");return;}
   uploading=true;uploadQueued=false;status("Kaydediliyor…","syncing",lastSyncAt?syncAgo(lastSyncAt):"Buluta gönderiliyor");

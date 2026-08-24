@@ -32,6 +32,24 @@ export interface PrimaryWriteResult{
   updatedAt?:number;
 }
 
+export interface PrimaryJSONResult{
+  ok:true;
+  json:string;
+  hash:string;
+  schema:number;
+  source:"dexie"|"localStorage";
+  updatedAt:number;
+}
+
+export interface ExternalApplyResult{
+  ok:boolean;
+  status:"applied"|"invalid"|"failed";
+  message:string;
+  json?:string;
+  hash?:string;
+  updatedAt?:number;
+}
+
 function indexedState(record:IndexedStateRecord|undefined):StateDecodeResult|null{
   if(!record)return null;
   const decoded=decodeState(record.json);
@@ -108,12 +126,47 @@ export class PrimaryStateCoordinator{
     }
   }
 
-  async persistJSON(json:string,updatedAt=this.#now()):Promise<PrimaryWriteResult>{
+  async readPrimaryJSON():Promise<PrimaryJSONResult|{ok:false;message:string}>{
+    const local=this.#mirror.read(),mirrorMeta=this.#mirror.readMirrorMetadata();
+    let indexed:IndexedStateRecord|undefined;
+    try{indexed=await this.#target.readState();}catch{
+      if(local.ok)return {ok:true,json:local.json,hash:stateHash(local.json),schema:local.schema,source:"localStorage",updatedAt:mirrorMeta.updatedAt};
+      return {ok:false,message:"Ana kayıt okunamadı"};
+    }
+    const decoded=indexedState(indexed);
+    if(local.ok&&indexed&&decoded?.ok){
+      const localHash=stateHash(local.json);
+      if(localHash===indexed.sourceHash&&local.json===indexed.json)return {ok:true,json:indexed.json,hash:indexed.sourceHash,schema:indexed.schema,source:"dexie",updatedAt:indexed.updatedAt};
+      const tracked=mirrorMeta.hash===localHash&&mirrorMeta.updatedAt>0;
+      if(tracked&&mirrorMeta.updatedAt<indexed.updatedAt)return {ok:true,json:indexed.json,hash:indexed.sourceHash,schema:indexed.schema,source:"dexie",updatedAt:indexed.updatedAt};
+      return {ok:true,json:local.json,hash:localHash,schema:local.schema,source:"localStorage",updatedAt:mirrorMeta.updatedAt};
+    }
+    if(indexed&&decoded?.ok)return {ok:true,json:indexed.json,hash:indexed.sourceHash,schema:indexed.schema,source:"dexie",updatedAt:indexed.updatedAt};
+    if(local.ok)return {ok:true,json:local.json,hash:stateHash(local.json),schema:local.schema,source:"localStorage",updatedAt:mirrorMeta.updatedAt};
+    return {ok:false,message:"Geçerli ana kayıt bulunamadı"};
+  }
+
+  async replaceFromExternal(json:string,updatedAt=this.#now()):Promise<ExternalApplyResult>{
+    const decoded=decodeState(json);
+    if(!decoded.ok)return {ok:false,status:"invalid",message:decoded.message};
+    const written=await this.persistJSON(json,updatedAt,"firebase");
+    if(!written.ok)return {ok:false,status:"failed",message:written.message,hash:written.hash,updatedAt:written.updatedAt};
+    const applied=this.#runtime.applyJSON(json);
+    if(!applied.ok)return {ok:false,status:"failed",message:applied.message,hash:written.hash,updatedAt:written.updatedAt};
+    const appliedHash=stateHash(applied.json);
+    if(applied.json!==json){
+      const normalized=await this.persistJSON(applied.json,Math.max(updatedAt,this.#now()),"firebase");
+      if(!normalized.ok)return {ok:false,status:"failed",message:normalized.message,hash:normalized.hash,updatedAt:normalized.updatedAt};
+    }else this.#mirror.writeMirrorMetadata(appliedHash,written.updatedAt??updatedAt);
+    return {ok:true,status:"applied",message:"Bulut kaydı Dexie ana kaydına uygulandı",json:applied.json,hash:appliedHash,updatedAt:written.updatedAt};
+  }
+
+  async persistJSON(json:string,updatedAt=this.#now(),source:"localStorage"|"firebase"="localStorage"):Promise<PrimaryWriteResult>{
     const decoded=decodeState(json);
     if(!decoded.ok)return {ok:false,status:"invalid",message:decoded.message};
     const hash=stateHash(json),stamp=Math.max(1,Math.floor(updatedAt));
-    const state:IndexedStateRecord={key:PRIMARY_INDEXED_STATE_KEY,json,schema:decoded.schema,chars:decoded.chars,bytes:decoded.bytes,source:"localStorage",sourceHash:hash,updatedAt:stamp};
-    const meta:MigrationMetaRecord={key:LEGACY_IMPORT_META_KEY,migrationVersion:1,stateKey:PRIMARY_INDEXED_STATE_KEY,schema:decoded.schema,source:"localStorage",sourceHash:hash,sourceChars:decoded.chars,sourceBytes:decoded.bytes,updatedAt:stamp,primaryMode:"dexie-primary"};
+    const state:IndexedStateRecord={key:PRIMARY_INDEXED_STATE_KEY,json,schema:decoded.schema,chars:decoded.chars,bytes:decoded.bytes,source,sourceHash:hash,updatedAt:stamp};
+    const meta:MigrationMetaRecord={key:LEGACY_IMPORT_META_KEY,migrationVersion:1,stateKey:PRIMARY_INDEXED_STATE_KEY,schema:decoded.schema,source,sourceHash:hash,sourceChars:decoded.chars,sourceBytes:decoded.bytes,updatedAt:stamp,primaryMode:"dexie-primary"};
     try{
       await this.#target.commit(state,meta);
       const verified=await this.#target.readState();

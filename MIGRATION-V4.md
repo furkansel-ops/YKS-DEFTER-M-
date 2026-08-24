@@ -59,8 +59,17 @@ npm run check
 - Dexie kaydı daha yeniyse doğrulanıp çalışan `S` durumuna ve yerel aynaya uygulanıyor.
 - Firebase'den gelen doğrudan kayıtlar da Dexie write-through kuyruğuna bağlandı.
 
-## Sıradaki adım 6
+## Tamamlanan adım 6 — Firebase ve Dexie ana kayıt bağlantısı
 
-Firebase senkronizasyonunu doğrudan Dexie veri katmanına bağlamak ve cihazlar arası eşitlemede Dexie'yi kaynak yapmak.
+- Firebase yüklemesi bekleyen Dexie write-through kuyruğunu tamamladıktan sonra ana kaydı okuyor.
+- Buluta giden JSON doğrudan Dexie veri katmanında oluşturuluyor.
+- Yerel kronometre çalışma durumu ve YouTube anahtarı bulut verisinden ayrıştırılmaya devam ediyor.
+- Buluttan gelen kayıt önce Dexie'ye atomik ve doğrulanmış biçimde yazılıyor, ardından çalışan uygulama durumuna uygulanıyor.
+- IndexedDB kullanılamazsa bulut yüklemesi güvenli `localStorage` aynasına geri düşüyor.
+- Mevcut Firestore revision, transaction, parça ve hash çakışma korumaları korunuyor.
+
+## Sıradaki adım 7
+
+Eski JavaScript ekranlarını kullanıcı arayüzünü değiştirmeden ekran ekran TypeScript modüllerine taşımak.
 
 Bu adıma kullanıcı onayı alınmadan geçilmez.
