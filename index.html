@@ -1165,7 +1165,7 @@ document.documentElement.setAttribute("data-theme",t);}catch(e){}})();
   <div id="mrp_lab" style="display:none;">
     <div class="v30-subhead"><button class="v30-back" type="button" onclick="setMoreTab('home')">‹ Daha</button><div><h1>Öğrenme Laboratuvarı</h1><p>Bütün dersler ve konular tek düzen içinde</p></div></div>
     <section class="v320-lab" id="v320LearningLab" aria-labelledby="v320LabTitle">
-      <div class="v320-head"><div><p class="eyebrow">Ders ve konu düzeni</p><h2 id="v320LabTitle">Önce dersini, sonra konunu seç</h2><p class="hint">TYT, AYT ve YDT müfredatı derslere; her ders de kendi konularına ayrılmıştır.</p></div><div class="v320-lab-summary" id="v320LabSummary"></div></div>
+      <div class="v320-head"><div><p class="eyebrow">Ders ve konu düzeni</p><h2 id="v320LabTitle">Önce dersini, sonra konunu seç</h2><p class="hint">Konuyu açınca dikkat noktaları, önemli bilgiler, sık hatalar, çalışma yolu ve resmî kaynaklar görünür.</p></div><div class="v320-lab-summary" id="v320LabSummary"></div></div>
       <div class="card v320-course-browser">
         <div class="seg tri v320-exam-tabs" role="tablist" aria-label="Sınav türü">
           <button id="v320ExamTYT" class="on" type="button" onclick="v320SetExam('TYT')">TYT</button>
@@ -2134,6 +2134,7 @@ window.addEventListener("online",()=>{if(!user)return;status("Bağlantı geldi",
 
 <script src="./modules/core-utils.js"></script>
 <script src="./modules/stability.js"></script>
+<script src="./modules/topic-guides.js"></script>
 <script src="./modules/learning-lab.js"></script>
 <script src="./modules/target-center.js"></script>
 <script src="./modules/export-center.js"></script>

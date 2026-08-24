@@ -8,7 +8,7 @@ const root=path.resolve(__dirname,"..");
 function addDays(key,days){const d=new Date(key+"T12:00:00Z");d.setUTCDate(d.getUTCDate()+days);return d.toISOString().slice(0,10);}
 function context(extra={}){
   const window={},document={readyState:"complete",getElementById:()=>null,addEventListener:()=>{},createElement:()=>({})};
-  return Object.assign({window,document,console,setTimeout:()=>0,clearTimeout:()=>{},Date,Blob,URL,Intl,Math,JSON,Object,Array,Set,Map,String,Number,RegExp,File:class{},navigator:{},todayKey:()=>"2026-08-24",addDaysKey:addDays,esc:String,APP_VERSION:"3.2.5",toast:()=>{},save:()=>true},extra);
+  return Object.assign({window,document,console,setTimeout:()=>0,clearTimeout:()=>{},Date,Blob,URL,Intl,Math,JSON,Object,Array,Set,Map,String,Number,RegExp,File:class{},navigator:{},todayKey:()=>"2026-08-24",addDaysKey:addDays,esc:String,APP_VERSION:"3.2.6",toast:()=>{},save:()=>true},extra);
 }
 function run(file,ctx){vm.runInNewContext(fs.readFileSync(path.join(root,"modules",file),"utf8"),ctx,{filename:file});return ctx.window;}
 
@@ -24,6 +24,20 @@ test("Öğrenme Laboratuvarı bütün sınavları ders ve konulara ayırır",()=
   const CURRICULUM=vm.runInNewContext("("+match[1].replace(/;$/,'')+")"),ctx=context({CURRICULUM,S:{lab:{paragraphLog:[],elementFav:[],timelineFav:[]}}}),win=run("learning-lab.js",ctx),snapshot=win.YKSLearningLab.curriculum();
   assert.deepEqual(Object.keys(snapshot),["TYT","AYT","YDT"]);
   for(const exam of ["TYT","AYT","YDT"]){assert.equal(snapshot[exam].length,CURRICULUM[exam].length);assert.equal(snapshot[exam].reduce((n,x)=>n+x.topics.length,0),CURRICULUM[exam].reduce((n,x)=>n+x.topics.length,0));}
+});
+
+test("240 TYT, AYT ve YDT konusunun tamamında konuya özel rehber vardır",()=>{
+  const app=fs.readFileSync(path.join(root,"app.js"),"utf8"),match=app.match(/const CURRICULUM=(\{[\s\S]*?\n\};)\nconst ALL_SUBJECTS/);assert.ok(match);
+  const CURRICULUM=vm.runInNewContext("("+match[1].replace(/;$/,'')+")"),ctx=context();run("topic-guides.js",ctx);
+  const api=ctx.window.YKSTopicGuides,coverage=api.coverage(CURRICULUM);assert.equal(coverage.total,240);assert.equal(coverage.specific,240);assert.equal(coverage.missing.length,0);
+  for(const exam of ["TYT","AYT","YDT"])for(const subject of CURRICULUM[exam])for(const topic of subject.topics){const guide=api.guideFor(exam,subject.name,topic);assert.equal(guide.specific,true,exam+" "+subject.name+" "+topic);assert.equal(guide.important.length,2);assert.equal(guide.attention.length,2);assert.equal(guide.mistakes.length,2);assert.equal(guide.study.length,2);assert.ok(guide.sources.length>=3);assert.ok(guide.note.includes("çıkma garantisi değildir"));}
+});
+
+test("Konu rehberleri ders bağlamını ayırır ve resmî kaynaklara gider",()=>{
+  const ctx=context();run("topic-guides.js",ctx);const api=ctx.window.YKSTopicGuides;
+  const geometry=api.guideFor("TYT","Geometri","Temel Kavramlar"),math=api.guideFor("TYT","Matematik","Temel Kavramlar"),ydt=api.guideFor("YDT","Yabancı Dil","Paragraf");
+  assert.notEqual(geometry.important[0],math.important[0]);assert.match(ydt.important[0],/Ana fikir/);
+  assert.ok(Object.values(api.sources).every(source=>/^https:\/\/(?:www\.)?(?:osym\.gov\.tr|odsgm\.meb\.gov\.tr|ogmmateryal\.eba\.gov\.tr)\//.test(source.url)));
 });
 
 test("ICS, Anki ve Obsidian çıktıları gerçek içerik üretir",()=>{

@@ -66,6 +66,14 @@
   let courseExam="TYT",courseSubject=-1,courseTopic=-1,courseQuery="";
   const html=value=>typeof esc==="function"?esc(value):String(value||"").replace(/[&<>"']/g,s=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[s]));
   function curriculumSnapshot(){const source=typeof CURRICULUM!=="undefined"&&CURRICULUM&&typeof CURRICULUM==="object"?CURRICULUM:{};return ["TYT","AYT","YDT"].reduce((out,exam)=>{out[exam]=(Array.isArray(source[exam])?source[exam]:[]).map(subject=>({name:String(subject.name||"Ders"),topics:Array.isArray(subject.topics)?subject.topics.map(String):[]}));return out;},{});}
+  function renderTopicGuide(subject,topic){
+    const api=window.YKSTopicGuides,guide=api?.guideFor?.(courseExam,subject.name,topic);if(!guide)return '<p>Konu rehberi yüklenemedi. Sayfayı yenileyip yeniden dene.</p>';
+    const block=(icon,title,items)=>'<section class="v326-guide-block"><div class="v326-guide-title"><span aria-hidden="true">'+icon+'</span><h3>'+html(title)+'</h3></div><ul>'+items.map(item=>'<li>'+html(item)+'</li>').join("")+'</ul></section>';
+    return '<header class="v326-guide-head"><div><small>'+html(guide.exam+' · '+guide.subject)+'</small><h2>'+html(guide.topic)+'</h2><p>Bu konu için hızlı çalışma rehberi</p></div><span class="v326-guide-badge">Konuya özel</span></header>'+
+      '<div class="v326-guide-grid">'+block('!','Dikkat et',guide.attention)+block('◆','Önemli bilgiler',guide.important)+block('×','Sık yapılan hatalar',guide.mistakes)+block('→','Nasıl çalışmalı?',guide.study)+'</div>'+
+      '<section class="v326-guide-sources"><div><b>Resmî çalışma kaynakları</b><small>MEB ve ÖSYM bağlantıları yeni sekmede açılır.</small></div><div class="v326-source-links">'+guide.sources.map(source=>'<a href="'+html(source.url)+'" target="_blank" rel="noopener noreferrer">'+html(source.label)+' <span aria-hidden="true">↗</span></a>').join("")+'</div></section>'+
+      '<p class="v326-guide-note">'+html(guide.note)+'</p>';
+  }
   function renderCourses(){
     const home=document.getElementById("v320CourseHome"),topicsView=document.getElementById("v320CourseTopics"),grid=document.getElementById("v320SubjectGrid");if(!home||!topicsView||!grid)return false;
     const curriculum=curriculumSnapshot(),subjects=curriculum[courseExam]||[];
@@ -79,7 +87,7 @@
     if(subjectTitle)subjectTitle.textContent=subject.name;if(subjectMeta)subjectMeta.textContent=courseExam+" · "+subject.topics.length+" konu";
     const q=courseQuery.toLocaleLowerCase("tr"),filtered=subject.topics.map((name,index)=>({name,index})).filter(x=>!q||x.name.toLocaleLowerCase("tr").includes(q));
     if(topicGrid)topicGrid.innerHTML=filtered.length?filtered.map(x=>'<button class="v320-topic-card '+(courseTopic===x.index?'on':'')+'" type="button" onclick="v320SelectTopic('+x.index+')"><span>'+(x.index+1)+'</span><b>'+html(x.name)+'</b></button>').join(""):'<div class="empty">Aramana uyan konu bulunamadı.</div>';
-    const selected=subject.topics[courseTopic];if(selection){selection.hidden=!selected;selection.innerHTML=selected?'<small>'+html(courseExam+' · '+subject.name)+'</small><b>'+html(selected)+'</b><p>Bu konu için laboratuvar bölümü hazır. Konu içeriğini sonraki adımda buraya ekleyebiliriz.</p>':"";}
+    const selected=subject.topics[courseTopic];if(selection){selection.hidden=!selected;selection.innerHTML=selected?renderTopicGuide(subject,selected):"";}
     return true;
   }
   function state(){if(!S.lab||typeof S.lab!=="object")S.lab={};if(!Array.isArray(S.lab.paragraphLog))S.lab.paragraphLog=[];if(!Array.isArray(S.lab.elementFav))S.lab.elementFav=[];if(!Array.isArray(S.lab.timelineFav))S.lab.timelineFav=[];return S.lab;}
@@ -106,5 +114,5 @@
   window.v320FilterTimeline=value=>{timelineQuery=String(value||"").trim();renderTimeline();};window.v320RenderTimeline=renderTimeline;window.v320ToggleTimeline=id=>{const a=state().timelineFav,i=a.indexOf(id);if(i>=0)a.splice(i,1);else a.push(id);save();render();};window.v320RenderLearningLab=render;
   const previous=window.renderSubjects;if(typeof previous==="function")window.renderSubjects=function(){const result=previous.apply(this,arguments);window.YKSSafeRender?.("learning-lab",render,"v320LearningLab");return result;};
   const start=()=>window.YKSSafeRender?window.YKSSafeRender("learning-lab",render,"v320LearningLab"):render();if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>setTimeout(start,320),{once:true});else setTimeout(start,320);
-  window.YKSLearningLab={elements:ELEMENTS,timeline:TIMELINE,wordCount,curriculum:curriculumSnapshot};
+  window.YKSLearningLab={elements:ELEMENTS,timeline:TIMELINE,wordCount,curriculum:curriculumSnapshot,topicGuide:(exam,subject,topic)=>window.YKSTopicGuides?.guideFor?.(exam,subject,topic)};
 })();

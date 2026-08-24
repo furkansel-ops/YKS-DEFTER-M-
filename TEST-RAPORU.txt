@@ -1,9 +1,17 @@
-YKS DEFTERİM v3.2.5 — SON TEST RAPORU
+YKS DEFTERİM v3.2.6 — SON TEST RAPORU
 Tarih: 24 Ağustos 2026
 Veri şeması: 21
 Kanal: Kararlı
 
 1. YENİ GELİŞTİRMELER
+
+v3.2.6 — Konuya Özel Çalışma Rehberleri
+- TYT, AYT ve YDT müfredatındaki 240 konu başlığının tamamına ayrı içerik eklendi.
+- Her konu görünümünde “Dikkat et”, “Önemli bilgiler”, “Sık yapılan hatalar” ve “Nasıl çalışmalı?” bölümleri bulunuyor.
+- Aynı adlı ancak farklı ders bağlamındaki konular (ör. Matematik/Geometri Temel Kavramlar, Türkçe/YDT Paragraf) ayrı içerikle ele alındı.
+- Çalışma adımları ders türüne göre Matematik, Geometri, Fen, Türkçe, Edebiyat, Sosyal, Din Kültürü ve YDT için özelleştirildi.
+- MEB Kazanım Testleri, MEB YKS çalışma soruları, OGM Materyal ve ÖSYM YKS çıkmış sorularına resmî bağlantılar eklendi.
+- Rehberlerin soru tahmini veya çıkma garantisi olmadığı konu ekranında açıkça belirtildi.
 
 v3.2.5 — Laboratuvar Ders ve Konu Düzeni
 - Öğrenme Laboratuvarı Konular ekranından Daha bölümüne taşındı.
@@ -68,8 +76,9 @@ Söz havuzu
 
 3. OTOMATİK TEST SONUÇLARI
 
-- Node testleri: 20/20 başarılı, 0 başarısız.
+- Node testleri: 22/22 başarılı, 0 başarısız.
 - Öğrenme Laboratuvarı: 118 element, 40+ tarih olayı ve Unicode kelime sayacı doğrulandı.
+- Konu rehberleri: 240/240 başlıkta konuya özel içerik, dört rehber bölümü ve resmî kaynaklar doğrulandı.
 - Çıktı üretimi: ICS, Anki TXT ve Obsidian Markdown gerçek örnek veriyle doğrulandı.
 - Hedef merkezi: puan, sıra ve en yakın hedef görünüm verisi doğrulandı.
 - Söz havuzu: 1000 toplam kayıt, 920 Türkçeleştirilmiş İnsan Sözü kaydı ve 0 İngilizce şüpheli doğrulandı.
@@ -78,13 +87,13 @@ Söz havuzu
 - JavaScript: app.js, tüm modules/*.js ve sw.js sözdizimi kontrolünden geçti.
 - Firebase modülü: import satırları ayrıştırıldıktan sonra sözdizimi kontrolünden geçti.
 - CSS: süslü parantez dengesi doğru.
-- Sürüm/PWA: app, Service Worker ve version.json v3.2.5 / şema 21 olarak tutarlı.
+- Sürüm/PWA: app, Service Worker ve version.json v3.2.6 / şema 21 olarak tutarlı.
 - Güvenlik: gömülü YouTube API anahtarı, eski v30-legacy-tabs ve eval kullanımı bulunmadı.
 
 4. YAYIN NOTLARI
 
 - ZIP içindeki dosyalar GitHub depo köküne yüklenmelidir.
-- Service Worker önbellek adı v3.2.5'e yükseltildi.
+- Service Worker önbellek adı v3.2.6'ya yükseltildi.
 - Güncellemeden önce mevcut uygulamadan JSON yedeği alınması önerilir.
 - Firebase kullanılıyorsa yayın alan adı Firebase Authentication yetkili alan adlarında bulunmalıdır.
 - PDF düğmesi tarayıcının yazdırma ekranını açar; buradan “PDF olarak kaydet” seçilir.

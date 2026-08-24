@@ -5,7 +5,7 @@ const path=require("node:path");
 const root=path.resolve(__dirname,"..");
 
 test("paket zorunlu dosyaları içerir",()=>{
-  ["index.html","app.css","app.js","sw.js","version.json","manifest.webmanifest","modules/core-utils.js","modules/stability.js","modules/learning-lab.js","modules/target-center.js","modules/export-center.js","modules/release-selftest.js"].forEach(file=>assert.equal(fs.existsSync(path.join(root,file)),true,file));
+  ["index.html","app.css","app.js","sw.js","version.json","manifest.webmanifest","modules/core-utils.js","modules/stability.js","modules/topic-guides.js","modules/learning-lab.js","modules/target-center.js","modules/export-center.js","modules/release-selftest.js"].forEach(file=>assert.equal(fs.existsSync(path.join(root,file)),true,file));
   ["modules/topic-coach.js","modules/learning-tools.js"].forEach(file=>assert.equal(fs.existsSync(path.join(root,file)),false,file));
 });
 
@@ -17,9 +17,9 @@ test("HTML kimlikleri benzersiz ve kritik alanlar mevcut",()=>{
 
 test("sürüm, şema ve PWA önbelleği tutarlı",()=>{
   const html=fs.readFileSync(path.join(root,"index.html"),"utf8"),app=fs.readFileSync(path.join(root,"app.js"),"utf8"),sw=fs.readFileSync(path.join(root,"sw.js"),"utf8"),version=JSON.parse(fs.readFileSync(path.join(root,"version.json"),"utf8"));
-  assert.match(html,/src="\.\/app\.js"/);assert.match(app,/const APP_VERSION="3\.2\.5"/);assert.match(app,/const DATA_SCHEMA=21/);
-  assert.equal(version.version,"3.2.5");assert.equal(version.schema,21);assert.match(sw,/yks-core-v3\.2\.5/);
-  ["app.css","app.js","modules/core-utils.js","modules/stability.js","modules/learning-lab.js","modules/target-center.js","modules/export-center.js","modules/release-selftest.js"].forEach(asset=>assert.ok(sw.includes(asset),asset));
+  assert.match(html,/src="\.\/app\.js"/);assert.match(app,/const APP_VERSION="3\.2\.6"/);assert.match(app,/const DATA_SCHEMA=21/);
+  assert.equal(version.version,"3.2.6");assert.equal(version.schema,21);assert.match(sw,/yks-core-v3\.2\.6/);
+  ["app.css","app.js","modules/core-utils.js","modules/stability.js","modules/topic-guides.js","modules/learning-lab.js","modules/target-center.js","modules/export-center.js","modules/release-selftest.js"].forEach(asset=>assert.ok(sw.includes(asset),asset));
   assert.doesNotMatch(sw,/modules\/(topic-coach|learning-tools)\.js/);
 });
 
@@ -51,6 +51,8 @@ test("Öğrenme Laboratuvarı Daha içinde ve ders-konu düzeninde",()=>{
   assert.equal(html.slice(topics,more).includes('id="v320LearningLab"'),false);
   assert.match(html,/v30Action\('lab'\)/);assert.match(app,/if\(k==="lab"\)return v30OpenMore\("lab"\)/);
   assert.match(lab,/v320SetExam/);assert.match(lab,/v320OpenSubject/);assert.match(lab,/v320SelectTopic/);
+  assert.ok(html.indexOf('modules/topic-guides.js')<html.indexOf('modules/learning-lab.js'));
+  assert.match(lab,/Dikkat et/);assert.match(lab,/Önemli bilgiler/);assert.match(lab,/Sık yapılan hatalar/);assert.match(lab,/Resmî çalışma kaynakları/);
 });
 
 test("Öğrenme Laboratuvarı, hedef merkezi ve dışa aktarımlar pakette",()=>{
