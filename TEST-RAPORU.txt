@@ -1,63 +1,71 @@
-YKS DEFTERİM v3.1.13 — SON TEST RAPORU
+YKS DEFTERİM v3.2.2 — SON TEST RAPORU
 Tarih: 24 Ağustos 2026
-Veri şeması: 20
+Veri şeması: 21
 Kanal: Kararlı
 
-1. UYGULANAN AŞAMALAR
+1. YENİ GELİŞTİRMELER
 
-v3.1.11 — Sağlam Temel
-- Ana CSS app.css dosyasına, ana uygulama kodu app.js dosyasına ayrıldı.
-- Ortak algoritmalar ve yeni özellikler modules/ altında bağımsız dosyalara taşındı.
-- Çevrimdışı durum banner'ı ve bağlantı geri geldiğinde senkron akışı eklendi.
-- Çalışan/duraklatılmış odak oturumu sayfa yenilemesinden sonra kurtarılıyor.
-- Zaman hesabı mutlak bitiş zamanına dayandığı için arka plan sekmesi gecikmelerine dayanıklı.
-- Bölüm bazlı güvenli render/fallback katmanı eklendi.
-- Sayı alanlarının fare tekerleğiyle yanlışlıkla değişmesi engellendi; sekme çubuğuna ok tuşu navigasyonu eklendi.
-- Otomatik yedeklere sürüm, şema ve checksum eklendi; bozuk checksum'lı yedek geri yüklenmiyor.
-- Firebase çakışmalarında iki cihazın benzersiz kayıtlarını, konu ilerlemelerini, planlarını ve öğrenme verilerini koruyan birleştirme eklendi.
-- Gizli eski Daha sekmeleri DOM/CSS'ten kaldırıldı.
-- Gömülü YouTube API anahtarı kaldırıldı; kullanıcı anahtarı yalnız cihazda tutuluyor.
-- Service Worker çekirdek dosyaları önbelleğe alıyor, statik dosyalarda cache-first + arka planda yenileme kullanıyor.
+v3.2.0 — Öğrenme Laboratuvarı
+- Kullanıcının kendi metnini ekleyebildiği paragraf çalışma alanı eklendi.
+- Kelime sayısı, geçen süre, kelime/dakika hızı ve 1–5 anlama değerlendirmesi kaydediliyor.
+- Paragraf metninin kendisi kalıcı kayda alınmıyor; yalnız çalışma ölçümleri saklanıyor.
+- 118 elementin tamamını içeren aranabilir ve favorilenebilir interaktif periyodik tablo eklendi.
+- Atom numarası, periyot ve element sınıfı ayrıntı görünümü eklendi.
+- İlk Çağ'dan yakın döneme uzanan, dönem/arama/favori filtreli YKS tarih kronolojisi eklendi.
+- Kullanıcının isteği doğrultusunda YDT kelime defteri eklenmedi.
 
-v3.1.12 — Akıllı Konu Koçu
-- Yanlış, tekrar gecikmesi, konu durumu ve güven verilerinden günlük üç öneri üretiliyor.
-- Her öneride risk nedeni, tahmini süre, Başlat, Plana ekle ve Detay eylemleri var.
-- En güçlü görünen ve önce ele alınması gereken konu özeti eklendi.
+v3.2.1 — Hedef ve Puan Merkezi
+- Son TYT ve alan denemeleri tek KPI görünümünde birleştirildi.
+- Yaklaşık puan ve desteklenen puan türlerinde sıra aralığı gösteriliyor.
+- Son 10 TYT denemesinden haftalık regresyon eğilimi hesaplanıyor.
+- En yakın hedef bölüm ve kapatılması gereken sıra farkı gösteriliyor.
+- Son denemelerde en çok yükselen/gerileyen ders özeti eklendi.
+- Aynı yayınevinden en az iki kayıt olduğunda kişisel zorluk kalibrasyonu gösteriliyor.
+- Puan ve sıra sonuçlarının resmî olmadığı arayüzde açıkça belirtiliyor.
 
-v3.1.13 — Öğrenme Araçları
-- Kullanıcı tanımlı soru/cevap kartları eklendi.
-- Tekrar / Zor / İyi / Kolay değerlendirmeleriyle aralıklı tekrar planlaması eklendi.
-- Matematik, Geometri, Fizik ve Kimya için 50+ formüllük aranabilir ve favorilenebilir banka eklendi.
-- Son 30 günlük tekrar sayısı, başarı oranı ve ders bazlı sonuçlar eklendi.
-- Öğrenme analizi konu risk sistemiyle ilişkilendirildi.
+v3.2.2 — Rapor, Takvim ve Paylaşım
+- Son 30 gün, denemeler ve hedefleri içeren yazdırılabilir/PDF kaydedilebilir rapor eklendi.
+- Dolu haftalık plan hücrelerini 180 güne kadar takvime taşıyan ICS dışa aktarımı eklendi.
+- Tekrar kartlarını Anki uyumlu sekmeli TXT dosyasına aktarma eklendi.
+- İlerleme özetini Obsidian uyumlu Markdown dosyasına aktarma eklendi.
+- 1080×1920 PNG başarı kartı oluşturma, desteklenen cihazlarda paylaşma ve diğerlerinde indirme eklendi.
+- Başarı kartına kişisel günlük/not içerikleri dahil edilmiyor.
 
-2. OTOMATİK TEST SONUÇLARI
+Söz havuzu
+- Toplam 1000 söz ve yazar bilgileri korundu.
+- İnsan Sözü kategorisindeki 920 İngilizce kayıt Türkçeleştirildi.
+- İngilizce kalıntı taraması ve otomatik paket testi eklendi.
 
-- Node testleri: 10/10 başarılı, 0 başarısız.
-- Çakışma birleştirme: benzersiz kayıtlar, konu ilerlemesi ve farklı plan hücreleri korunuyor.
-- Aralıklı tekrar: değerlendirme derecesine göre tarih ve aralık doğru ilerliyor.
-- Paket yapısı: zorunlu HTML/CSS/JS/PWA/modül dosyaları mevcut.
+2. VERİ VE SENKRON
+
+- Veri şeması 20'den 21'e yükseltildi.
+- Yeni lab.paragraphLog, lab.elementFav ve lab.timelineFav alanları eski veride yoksa güvenli biçimde oluşturuluyor.
+- Paragraf kayıtları, element favorileri ve tarih favorileri Firebase çakışma birleştirmesine dahil edildi.
+- Eski öğrenme kartı, plan, deneme, konu, odak ve yedek verileri korunuyor.
+- Buluttaki daha yeni şema eski istemciyle açılmaya çalışılırsa işlem güvenli biçimde durduruluyor.
+
+3. OTOMATİK TEST SONUÇLARI
+
+- Node testleri: 17/17 başarılı, 0 başarısız.
+- Öğrenme Laboratuvarı: 118 element, 40+ tarih olayı ve Unicode kelime sayacı doğrulandı.
+- Çıktı üretimi: ICS, Anki TXT ve Obsidian Markdown gerçek örnek veriyle doğrulandı.
+- Hedef merkezi: puan, sıra ve en yakın hedef görünüm verisi doğrulandı.
+- Söz havuzu: 1000 toplam kayıt, 920 Türkçeleştirilmiş İnsan Sözü kaydı ve 0 İngilizce şüpheli doğrulandı.
+- Veri birleştirme: paragraf kayıtları ve favoriler iki cihaz arasında korunuyor.
 - HTML: yinelenen id bulunmadı; kritik yeni arayüz alanları mevcut.
 - JavaScript: app.js, tüm modules/*.js ve sw.js sözdizimi kontrolünden geçti.
 - Firebase modülü: import satırları ayrıştırıldıktan sonra sözdizimi kontrolünden geçti.
 - CSS: süslü parantez dengesi doğru.
-- Sürüm tutarlılığı: app, Service Worker ve version.json v3.1.13 / şema 20.
-- Güvenlik kontrolü: eski gömülü YouTube API anahtarı bulunmadı.
-- Temizlik kontrolü: v30-legacy-tabs bulunmadı; dinamik eval kullanımı bulunmadı.
-- Formül bankası: en az 50 kayıt testi başarılı.
-
-3. VERİ UYUMLULUĞU
-
-- Eski veri v3.1.13 açılışında şema 20'ye otomatik taşınır.
-- Yeni learning alanı yoksa cards, formulaFav ve reviewLog güvenli boş değerlerle oluşturulur.
-- Buluttaki daha yeni bir şema eski istemci tarafından açılmaya çalışılırsa işlem durdurulur.
-- Güncelleme öncesinde manuel JSON yedeği alınması yine de önerilir.
+- Sürüm/PWA: app, Service Worker ve version.json v3.2.2 / şema 21 olarak tutarlı.
+- Güvenlik: gömülü YouTube API anahtarı, eski v30-legacy-tabs ve eval kullanımı bulunmadı.
 
 4. YAYIN NOTLARI
 
-- ZIP içeriği GitHub depo köküne yüklenmelidir; dış klasörün kendisi yüklenmemelidir.
-- Firebase giriş/senkron için yayın alan adı Firebase Authentication yetkili alan adlarında olmalıdır.
-- YouTube araması anahtarsızken link yönlendirme modunda çalışır; API araması için kullanıcı kendi anahtarını girebilir.
-- Bu teslim statik PWA paketidir; sunucu tarafı gerektiren OCR, sosyal/grup özellikleri ve üçüncü taraf mesajlaşma entegrasyonları bu üç aşamalı sürümün kapsamına dahil değildir.
+- ZIP içindeki dosyalar GitHub depo köküne yüklenmelidir.
+- Service Worker önbellek adı v3.2.2'ye yükseltildi ve üç yeni modül çekirdek önbelleğe eklendi.
+- Güncellemeden önce mevcut uygulamadan JSON yedeği alınması önerilir.
+- Firebase kullanılıyorsa yayın alan adı Firebase Authentication yetkili alan adlarında bulunmalıdır.
+- PDF düğmesi tarayıcının yazdırma ekranını açar; buradan “PDF olarak kaydet” seçilir.
+- Puan ve sıra tahminleri yön göstergesidir, resmî ÖSYM sonucu değildir.
 
-SONUÇ: PAKETLEMEYE UYGUN
+SONUÇ: GITHUB PAKETLEMESİNE UYGUN

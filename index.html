@@ -473,6 +473,33 @@ document.documentElement.setAttribute("data-theme",t);}catch(e){}})();
     <div id="v313Panelanalysis" hidden><div class="card" id="v313Analysis"></div></div>
   </section>
 
+  <section class="v320-lab" id="v320LearningLab" aria-labelledby="v320LabTitle">
+    <div class="v320-head"><div><p class="eyebrow">Öğrenme Laboratuvarı</p><h2 id="v320LabTitle">Oku, keşfet, zaman içinde gör</h2><p class="hint">Paragraf pratiği, interaktif periyodik tablo ve YKS tarih kronolojisi.</p></div><div class="v320-lab-summary" id="v320LabSummary"></div></div>
+    <div class="seg tri v320-tabs" role="tablist" aria-label="Öğrenme laboratuvarı">
+      <button id="v320TabParagraph" class="on" type="button" onclick="v320SetTab('paragraph')">Paragraf</button>
+      <button id="v320TabPeriodic" type="button" onclick="v320SetTab('periodic')">Periyodik tablo</button>
+      <button id="v320TabTimeline" type="button" onclick="v320SetTab('timeline')">Tarih kronolojisi</button>
+    </div>
+    <div id="v320PanelParagraph">
+      <div class="card v320-paragraph-card">
+        <label>Başlık (isteğe bağlı)</label><input id="v320ParagraphTitle" type="text" maxlength="100" placeholder="Örn. Bilim ve toplum">
+        <label>Çalışacağın metin</label><textarea id="v320ParagraphText" rows="8" placeholder="Kendi paragrafını buraya yapıştır. Metin yalnızca bu alanda kullanılır; çalışma kaydına metnin kendisi eklenmez." oninput="v320ParagraphPreview()"></textarea>
+        <div class="v320-read-stats" id="v320ParagraphStats"></div>
+        <div class="rowtools"><button class="btn green small" id="v320ParagraphStart" type="button" onclick="v320StartParagraph()">Okumayı başlat</button><button class="btn ghost small" id="v320ParagraphFinish" type="button" onclick="v320FinishParagraph()" disabled>Tamamladım</button><button class="btn ghost tiny" type="button" onclick="v320ResetParagraph()">Sıfırla</button></div>
+        <label>Anlama değerlendirmesi</label><select id="v320ParagraphScore"><option value="5">5 · Çok iyi</option><option value="4">4 · İyi</option><option value="3" selected>3 · Orta</option><option value="2">2 · Zorlandım</option><option value="1">1 · Yeniden okumalıyım</option></select>
+      </div>
+      <div class="card" id="v320ParagraphHistory"></div>
+    </div>
+    <div id="v320PanelPeriodic" hidden>
+      <div class="card flat v320-toolbar"><input type="search" id="v320ElementSearch" placeholder="Element ara: Fe, Demir, 26" oninput="v320FilterElements(this.value)"><label class="v320-only-fav"><input type="checkbox" id="v320ElementFavOnly" onchange="v320RenderElements()"> Yalnız favoriler</label></div>
+      <div class="v320-periodic-layout"><div class="v320-element-grid" id="v320ElementGrid"></div><aside class="card v320-element-detail" id="v320ElementDetail"></aside></div>
+    </div>
+    <div id="v320PanelTimeline" hidden>
+      <div class="card flat v320-toolbar"><input type="search" id="v320TimelineSearch" placeholder="Olay, dönem veya yıl ara" oninput="v320FilterTimeline(this.value)"><select id="v320TimelineEra" onchange="v320RenderTimeline()"><option value="Tümü">Tüm dönemler</option><option>İlk Çağ</option><option>Türk-İslam</option><option>Osmanlı</option><option>Milli Mücadele</option><option>Cumhuriyet</option><option>Dünya</option></select><label class="v320-only-fav"><input type="checkbox" id="v320TimelineFavOnly" onchange="v320RenderTimeline()"> Yalnız favoriler</label></div>
+      <div class="v320-timeline" id="v320Timeline"></div>
+    </div>
+  </section>
+
   <h2>Müfredat projeksiyonu</h2>
   <div class="card" id="curBox"></div>
 
@@ -688,6 +715,12 @@ document.documentElement.setAttribute("data-theme",t);}catch(e){}})();
   </div>
 
   <div id="anp_puan" style="display:none;">
+    <section class="v321-target-center" aria-labelledby="v321TargetTitle">
+      <div class="v321-head"><div><p class="eyebrow">Hedef ve Puan Merkezi</p><h2 id="v321TargetTitle">Netten hedefe tek bakış</h2></div><button class="btn ghost tiny" type="button" onclick="v321RenderTargetCenter()">Yenile</button></div>
+      <div class="v321-kpis" id="v321TargetKpis"></div>
+      <div class="v321-grid"><div class="card" id="v321TrendInsight"></div><div class="card" id="v321TargetInsight"></div><div class="card" id="v321PublisherInsight"></div><div class="card" id="v321SubjectInsight"></div></div>
+      <p class="note">Puan ve sıralama değerleri yön göstergesidir. ÖSYM puanı, sınav yılına ait standart sapma ve aday dağılımı belli olmadan kesin hesaplanamaz.</p>
+    </section>
     <div class="card" id="scoreBox"></div>
     <h2>Sıralama tahmini</h2>
     <div class="card">
@@ -1414,6 +1447,19 @@ document.documentElement.setAttribute("data-theme",t);}catch(e){}})();
       <button class="btn red small" style="width:100%;" onclick="resetAll()">Tüm verileri sıfırla</button>
     </div>
 
+    <h2>Rapor ve dışa aktarma</h2>
+    <section class="card v322-export-center" id="v322ExportCenter">
+      <div class="v322-export-head"><div><p class="eyebrow">Taşınabilir çıktılar</p><b>Verini istediğin yerde kullan</b></div><span id="v322ExportSummary">—</span></div>
+      <div class="v322-export-grid">
+        <button type="button" onclick="v322PrintReport()"><span>PDF</span><b>Çalışma raporu</b><small>Yazdır / PDF olarak kaydet</small></button>
+        <button type="button" onclick="v322ExportICS()"><span>ICS</span><b>Takvime aktar</b><small>Dolu plan hücreleri</small></button>
+        <button type="button" onclick="v322ExportAnki()"><span>TXT</span><b>Anki kartları</b><small>Soru–cevap sekmeli dosya</small></button>
+        <button type="button" onclick="v322ExportObsidian()"><span>MD</span><b>Obsidian notu</b><small>İlerleme ve konu özeti</small></button>
+        <button type="button" onclick="v322ShareCard()"><span>PNG</span><b>Başarı kartı</b><small>İndir veya paylaş</small></button>
+      </div>
+      <p class="hint">Dışa aktarımlar cihazında hazırlanır. Not ve günlük metinleri başarı kartına eklenmez.</p>
+    </section>
+
     <h2>Ay raporu</h2>
     <div class="card">
       <div class="calnav">
@@ -1598,7 +1644,7 @@ document.documentElement.setAttribute("data-theme",t);}catch(e){}})();
     <div class="card">
       <div class="dayrow"><span class="k">Uygulama sürümü</span><span class="v" id="appVersionLabel">—</span></div>
       <div class="dayrow"><span class="k">Kanal</span><span class="v" id="v30AboutChannel">Kararlı</span></div>
-      <div class="dayrow"><span class="k">Veri şeması</span><span class="v" id="v30AboutSchema">20</span></div>
+      <div class="dayrow"><span class="k">Veri şeması</span><span class="v" id="v30AboutSchema">21</span></div>
       <div class="dayrow"><span class="k">Geliştiren</span><span class="v">Furkan Sel</span></div>
       <div class="dayrow"><span class="k">Telif</span><span class="v">© 2026 Furkan Sel</span></div>
     </div>
@@ -2163,6 +2209,9 @@ window.addEventListener("online",()=>{if(!user)return;status("Bağlantı geldi",
 <script src="./modules/stability.js"></script>
 <script src="./modules/topic-coach.js"></script>
 <script src="./modules/learning-tools.js"></script>
+<script src="./modules/learning-lab.js"></script>
+<script src="./modules/target-center.js"></script>
+<script src="./modules/export-center.js"></script>
 <script src="./modules/release-selftest.js"></script>
 </body>
 </html>

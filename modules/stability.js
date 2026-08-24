@@ -1,0 +1,109 @@
+(function(){
+  "use strict";
+  const RUNTIME_KEY="yks_focus_runtime_v1";
+  let recoveryBusy=false,lastRuntimeWrite=0;
+
+  window.YKSSafeRender=function(scope,fn,fallbackId){
+    try{return fn();}
+    catch(error){
+      try{if(typeof infraError==="function")infraError("section:"+scope,error);}catch(_){}
+      const box=document.getElementById(fallbackId||"");
+      if(box)box.innerHTML='<div class="v311-recovery"><b>Bu bölüm geçici olarak açılamadı.</b><span>Diğer verilerin güvende. Bölümü yeniden açmayı deneyebilirsin.</span><button class="btn ghost tiny" type="button" onclick="location.reload()">Yeniden yükle</button></div>';
+      return false;
+    }
+  };
+
+  function runtimeSnapshot(){
+    try{
+      return {version:1,app:APP_VERSION,state:pomoState,isWork:!!pomoIsWork,endAt:Number(pomoEndAt)||0,
+        left:Math.max(0,Number(pomoLeft)||0),total:Math.max(1,Number(pomoTotal)||1),
+        startedAt:Number(pomoStartedAt)||0,credited:Math.max(0,Number(pomoCredited)||0),
+        subject:String(pomoSubject||"").slice(0,80),topic:String(typeof pomoTopic!=="undefined"?pomoTopic:"").slice(0,100),
+        task:String(pomoTask||"").slice(0,100),savedAt:Date.now()};
+    }catch(e){return null;}
+  }
+  function persistRuntime(force){
+    const now=Date.now();if(!force&&now-lastRuntimeWrite<12000)return true;lastRuntimeWrite=now;
+    try{
+      const snap=runtimeSnapshot();
+      if(!snap||snap.state==="idle")localStorage.removeItem(RUNTIME_KEY);
+      else localStorage.setItem(RUNTIME_KEY,JSON.stringify(snap));
+      return true;
+    }catch(e){try{infraError("focus-runtime-save",e);}catch(_){}return false;}
+  }
+  function clearRuntime(){try{localStorage.removeItem(RUNTIME_KEY);}catch(e){}return true;}
+  function readRuntime(){
+    try{
+      const x=JSON.parse(localStorage.getItem(RUNTIME_KEY)||"null");
+      if(!x||x.version!==1||!["running","paused"].includes(x.state))return null;
+      if(!Number.isFinite(+x.savedAt)||Date.now()-x.savedAt>12*60*60*1000)return null;
+      if(!Number.isFinite(+x.total)||x.total<1||x.total>12*60*60)return null;
+      return x;
+    }catch(e){return null;}
+  }
+  function restoreRuntime(){
+    if(recoveryBusy)return false;recoveryBusy=true;
+    const x=readRuntime();if(!x){clearRuntime();recoveryBusy=false;return false;}
+    try{
+      clearInterval(pomoTimer);pomoTimer=null;
+      pomoIsWork=!!x.isWork;pomoTotal=Math.max(1,+x.total||1);pomoStartedAt=Math.max(0,+x.startedAt||0);pomoCredited=Math.max(0,+x.credited||0);
+      pomoSubject=x.subject||pomoSubject;pomoTask=x.task||"";if(typeof pomoTopic!=="undefined")pomoTopic=x.topic||"";
+      const sameDay=pomoStartedAt&&typeof keyOf==="function"&&keyOf(new Date(pomoStartedAt))===todayKey();
+      if(x.state==="running"&&+x.endAt>Date.now()){
+        pomoState="running";pomoEndAt=+x.endAt;pomoLeft=Math.max(1,Math.round((pomoEndAt-Date.now())/1000));
+        pomoTimer=setInterval(pomoTick,1000);try{requestWake();}catch(e){}
+        renderPomo();toast("Odak oturumu kaldığı yerden devam ediyor");
+      }else if(x.state==="running"&&sameDay&&Date.now()-(+x.endAt||0)<6*60*60*1000){
+        pomoState="running";pomoEndAt=Date.now();pomoLeft=0;renderPomo();setTimeout(()=>{try{finishPhase();}catch(e){infraError("focus-runtime-finish",e);}},80);
+      }else{
+        pomoState="paused";pomoEndAt=0;pomoLeft=Math.max(1,Math.min(pomoTotal,+x.left||1));renderPomo();
+        toast("Önceki odak oturumu duraklatılmış olarak kurtarıldı");
+      }
+      return true;
+    }catch(e){clearRuntime();try{infraError("focus-runtime-restore",e);}catch(_){}return false;}
+    finally{recoveryBusy=false;}
+  }
+
+  function wrapTimerFunction(name,mode){
+    const original=window[name];if(typeof original!=="function")return;
+    window[name]=function(){
+      const result=original.apply(this,arguments);
+      if(mode==="clear")clearRuntime();else persistRuntime(true);
+      return result;
+    };
+  }
+
+  function updateOnlineBanner(){
+    const banner=document.getElementById("v311OfflineBanner");if(!banner)return;
+    const offline=navigator.onLine===false;
+    banner.hidden=!offline;banner.setAttribute("aria-hidden",offline?"false":"true");
+    banner.textContent=offline?"Çevrimdışısın · değişiklikler cihazda saklanıyor ve bağlantı gelince eşitlenecek":"";
+    document.documentElement.classList.toggle("is-offline",offline);
+  }
+
+  function bindAccessibility(){
+    document.addEventListener("wheel",event=>{
+      const target=event.target;
+      if(target&&target.matches&&target.matches('input[type="number"]')&&document.activeElement===target)target.blur();
+    },{passive:true});
+    const nav=document.querySelector('.tabbar[role="tablist"]');
+    nav?.addEventListener("keydown",event=>{
+      if(!["ArrowLeft","ArrowRight","Home","End"].includes(event.key))return;
+      const tabs=[...nav.querySelectorAll('[role="tab"]')].filter(x=>x.offsetParent!==null);if(!tabs.length)return;
+      let index=Math.max(0,tabs.indexOf(document.activeElement));
+      if(event.key==="Home")index=0;else if(event.key==="End")index=tabs.length-1;else index=(index+(event.key==="ArrowRight"?1:-1)+tabs.length)%tabs.length;
+      event.preventDefault();tabs[index].focus();
+    });
+  }
+
+  function start(){
+    wrapTimerFunction("startPomo","save");wrapTimerFunction("pausePomo","save");wrapTimerFunction("resetPomo","clear");wrapTimerFunction("finishPhase","clear");wrapTimerFunction("skipPhase","save");
+    window.addEventListener("offline",updateOnlineBanner);window.addEventListener("online",updateOnlineBanner);
+    document.addEventListener("visibilitychange",()=>{if(document.hidden)persistRuntime(true);});
+    window.addEventListener("pagehide",()=>persistRuntime(true));
+    setInterval(()=>{try{if(pomoState==="running")persistRuntime(false);}catch(e){}},15000);
+    bindAccessibility();updateOnlineBanner();setTimeout(restoreRuntime,180);
+  }
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",start,{once:true});else start();
+  window.YKSStability={persistRuntime,restoreRuntime,clearRuntime,updateOnlineBanner};
+})();
