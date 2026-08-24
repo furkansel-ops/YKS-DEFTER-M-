@@ -81,7 +81,7 @@ test("şema 20 verisi Öğrenme Laboratuvarı için şema 21'e taşınır",()=>{
 test("v4 Vite ve TypeScript geçiş altyapısı güvenli biçimde hazır",()=>{
   const pkg=JSON.parse(fs.readFileSync(path.join(root,"package.json"),"utf8")),ts=JSON.parse(fs.readFileSync(path.join(root,"tsconfig.json"),"utf8")),html=fs.readFileSync(path.join(root,"index.html"),"utf8"),entry=fs.readFileSync(path.join(root,"src/main.ts"),"utf8"),copy=fs.readFileSync(path.join(root,"scripts/copy-legacy-assets.mjs"),"utf8");
   ["package-lock.json","vite.config.mts","src/main.ts","src/vite-env.d.ts","scripts/copy-legacy-assets.mjs","scripts/verify-dist.mjs","MIGRATION-V4.md"].forEach(file=>assert.equal(fs.existsSync(path.join(root,file)),true,file));
-  assert.equal(pkg.private,true);assert.equal(pkg.version,"4.0.0-alpha.7");assert.match(pkg.scripts.check,/typecheck/);assert.match(pkg.scripts.build,/vite build/);assert.match(pkg.scripts.build,/verify-dist/);assert.ok(pkg.devDependencies.vite);assert.ok(pkg.devDependencies.typescript);
+  assert.equal(pkg.private,true);assert.equal(pkg.version,"4.0.0-alpha.8");assert.match(pkg.scripts.check,/typecheck/);assert.match(pkg.scripts.build,/vite build/);assert.match(pkg.scripts.build,/verify-dist/);assert.ok(pkg.devDependencies.vite);assert.ok(pkg.devDependencies.typescript);
   assert.equal(ts.compilerOptions.strict,true);assert.equal(ts.compilerOptions.noUncheckedIndexedAccess,true);assert.equal(ts.compilerOptions.noEmit,true);
   assert.match(html,/type="module" src="\.\/src\/main\.ts"/);assert.match(entry,/legacyRuntime:true/);assert.match(copy,/"modules"/);assert.equal(pkg.devDependencies.dexie,undefined);
 });
@@ -133,4 +133,11 @@ test("v4 ana ekranların çizim sırası TypeScript modüllerinden yönetilir",(
   assert.match(source,/class ScreenRuntime/);assert.match(source,/renderCurrent/);assert.match(source,/yks:screen-render-after/);assert.match(source,/program-secondary/);assert.match(source,/deneme-secondary/);
   assert.match(navigation,/#screenRuntime\.render\(value,source\)/);assert.match(navigation,/#activateShell/);assert.match(entry,/installScreenRuntime\(\)/);assert.match(entry,/screenRuntime:true/);
   assert.doesNotMatch(source,/localStorage\.(?:setItem|removeItem|clear)/);assert.doesNotMatch(source,/\.innerHTML\s*=/);
+});
+
+test("v4 ortak hesaplama ve biçimlendirme servisleri TypeScript'e taşınır",()=>{
+  const files=["src/services/date-service.ts","src/services/number-service.ts","src/services/format-service.ts","src/services/legacy-service-bridge.ts"],source=files.map(file=>{assert.equal(fs.existsSync(path.join(root,file)),true,file);return fs.readFileSync(path.join(root,file),"utf8");}).join("\n"),entry=fs.readFileSync(path.join(root,"src/main.ts"),"utf8");
+  assert.match(source,/dateService/);assert.match(source,/numberService/);assert.match(source,/formatService/);assert.match(source,/installLegacyServiceBridge/);assert.match(source,/__YKS_SERVICES__/);
+  ["keyOf","todayKey","validDateKey","parseKey","addDaysKey","dowOf","mondayOf","daysUntil","diffKeys","net","r2","sumVals","fmtHM","esc","hueOf"].forEach(name=>assert.match(source,new RegExp(`${name}:`),name));
+  assert.match(entry,/installLegacyServiceBridge\(\)/);assert.match(entry,/commonServices:true/);assert.doesNotMatch(source,/localStorage\.(?:setItem|removeItem|clear)/);
 });

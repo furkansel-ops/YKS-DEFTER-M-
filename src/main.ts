@@ -1,14 +1,16 @@
 import {installLegacyUiBridge} from "./ui/legacy-bridge";
 import {installLegacyDataBridge} from "./data/legacy-data-bridge";
 import {installScreenRuntime} from "./ui/screen-runtime";
+import {installLegacyServiceBridge} from "./services/legacy-service-bridge";
 
 type BootstrapState={
-  version:"4.0.0-alpha.7";
+  version:"4.0.0-alpha.8";
   stack:"vite-typescript";
   legacyRuntime:true;
   uiBridge:true;
   dataBridge:true;
   screenRuntime:true;
+  commonServices:true;
   startedAt:number;
 };
 
@@ -19,15 +21,17 @@ declare global{
 }
 
 const bootstrap:BootstrapState={
-  version:"4.0.0-alpha.7",
+  version:"4.0.0-alpha.8",
   stack:"vite-typescript",
   legacyRuntime:true,
   uiBridge:true,
   dataBridge:true,
   screenRuntime:true,
+  commonServices:true,
   startedAt:Date.now()
 };
 
+const services=installLegacyServiceBridge();
 const data=installLegacyDataBridge();
 const screens=installScreenRuntime();
 const ui=installLegacyUiBridge(screens);
@@ -36,6 +40,7 @@ document.documentElement.dataset.v4Runtime="ready";
 document.documentElement.dataset.v4UiErrors=String(ui.validate().length);
 document.documentElement.dataset.v4DataErrors=String(data.validate().length);
 document.documentElement.dataset.v4ScreenErrors=String(screens.validate().length);
+document.documentElement.dataset.v4ServiceErrors=String(services.validate().length);
 window.dispatchEvent(new CustomEvent<BootstrapState>("yks:v4-bootstrap",{detail:bootstrap}));
 
 export {};

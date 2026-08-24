@@ -77,8 +77,17 @@ npm run check
 - Bulut veya IndexedDB kaydı uygulandığında aktif ekran TypeScript çalışma zamanı üzerinden yeniden çiziliyor.
 - HTML, CSS, kullanıcı arayüzü ve veri şeması değiştirilmedi.
 
-## Sıradaki adım 8
+## Tamamlanan adım 8 — Ortak TypeScript servisleri
 
-Ekranların ortak hesaplama ve biçimlendirme işlevlerini test edilebilir TypeScript servislerine ayırmak.
+- Tarih anahtarı, tarih doğrulama, gün ekleme, haftanın pazartesini bulma ve gün farkı hesapları saf TypeScript tarih servisine taşındı.
+- Deneme neti, iki ondalık yuvarlama ve kayıt toplamları saf TypeScript sayı servisine taşındı.
+- Çalışma süresi, güvenli HTML metni ve sabit renk tonu üretimi saf TypeScript biçimlendirme servisine taşındı.
+- Mevcut JavaScript ekranlarının kullandığı 15 global yardımcı TypeScript servislerine bağlandı.
+- Eski yardımcılar açılış güvenlik yolu olarak korundu; kullanıcı arayüzü ve veri şeması değiştirilmedi.
+- Saf servisler eski sonuçlarla eşdeğerlik testlerine bağlandı.
+
+## Sıradaki adım 9
+
+Ekranlardaki durum okuma ve güncelleme işlemlerini tür güvenli TypeScript alan servislerine ayırmak.
 
 Bu adıma kullanıcı onayı alınmadan geçilmez.
