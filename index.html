@@ -1,0 +1,2168 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="auto">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="referrer" content="no-referrer">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="YKS">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+
+
+
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" id="metaTheme" content="#EFF2F8">
+<title>YKS Defterim</title>
+<script>
+(function(){try{var s=JSON.parse(localStorage.getItem("yks")||"{}");
+var t=s.theme||"auto";
+if(t==="light")t="paper";
+if(t==="dark")t="night";
+if(["auto","paper","night","forest"].indexOf(t)<0)t="auto";
+document.documentElement.setAttribute("data-theme",t);}catch(e){}})();
+</script>
+<link rel="stylesheet" href="./app.css" id="themes20260821">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head><body>
+<div class="v311-offline" id="v311OfflineBanner" role="status" aria-live="polite" aria-hidden="true" hidden></div>
+<div id="cloudSyncBox" data-state="signedout" aria-live="polite" title="Bulut senkronizasyon durumu">
+  <span class="cloudSyncDot" id="cloudSyncDot" aria-hidden="true"></span>
+  <span class="cloudSyncCopy">
+    <span id="cloudSyncText">Giriş yapılmadı</span>
+    <small id="cloudSyncMeta">Bulut senkronu kapalı</small>
+  </span>
+  <button id="cloudLoginBtn" type="button">Google ile giriş</button>
+  <button id="cloudLogoutBtn" class="secondary" type="button" style="display:none">Çıkış</button>
+</div>
+
+
+<svg class="svgdefs" aria-hidden="true" focusable="false">
+  <defs>
+    <linearGradient id="gIcon" x1="0" y1="0" x2="0" y2="1">
+      <stop class="gs-a" offset="0%"/><stop class="gs-b" offset="100%"/>
+    </linearGradient>
+    <linearGradient id="gGloss" x1="0" y1="0" x2="0" y2="1">
+      <stop class="gl-a" offset="0%"/><stop class="gl-b" offset="60%"/>
+    </linearGradient>
+    <linearGradient id="gRingWork" x1="0" y1="0" x2="1" y2="1">
+      <stop class="rw-a" offset="0%"/><stop class="rw-b" offset="100%"/>
+    </linearGradient>
+    <linearGradient id="gRingBreak" x1="0" y1="0" x2="1" y2="1">
+      <stop class="rb-a" offset="0%"/><stop class="rb-b" offset="100%"/>
+    </linearGradient>
+    <filter id="ringGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="6" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+</svg>
+
+<header class="navbar">
+  <span class="nt" id="navTitle">Bugün</span>
+  <span class="navtools"><button class="themebtn searchbtn" type="button" onclick="openGlobalSearch()" aria-label="Uygulamada ara">⌕</button>
+  <button class="themebtn" id="themeBtn" onclick="cycleTheme()" aria-label="Tema değiştir"></button></span>
+</header>
+
+<div class="wrap" id="mainWrap">
+
+<!-- ============================== BUGÜN ============================== -->
+<section id="home" class="screen active">
+  <div class="home-head">
+    <div>
+      <h1 id="greeting">Merhaba</h1>
+      <p class="home-kicker">Bugünkü odağın net olsun; gerisi sırayla gelir.</p>
+    </div>
+  </div>
+
+  <div class="sozbox" id="sozBox"></div>
+
+  <div class="home-overview">
+    <div class="hero">
+      <p class="eyebrow">YKS'ye kalan</p>
+      <div><span class="count" id="countdown">–</span><span class="u">gün</span></div>
+      <div class="timeline"><i id="timeline" style="width:0%"></i></div>
+      <p class="date" id="examDateLabel"></p>
+      <p class="date" id="effDays" style="margin-top:2px;color:var(--label-3);"></p>
+      <div class="phase"><div class="pt" id="phaseTitle"></div><div class="ps" id="phaseSub"></div></div>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="v" id="stQ">0</div><div class="t">soru bugün</div></div>
+      <div class="stat"><div class="v" id="stMin">0</div><div class="t">dakika</div></div>
+      <div class="stat"><div class="v" id="stPomo">0</div><div class="t">pomodoro</div></div>
+    </div>
+
+    <div class="streaks">
+      <div class="sk"><span class="fl">🔥</span><div><div class="sv" id="streakPlan">0</div><div class="st2">plan serisi</div></div></div>
+      <div class="sk"><span class="fl">🎯</span><div><div class="sv" id="streakTarget">0</div><div class="st2">hedef serisi</div></div></div>
+    </div>
+  </div>
+
+  <section class="card v319-home-reward" id="v319HomeReward" data-student-only aria-label="Başarı özeti">
+    <div class="v319-home-reward-main">
+      <div><span class="v319-kicker">Başarı seviyesi</span><b id="v319HomeLevel">Seviye 1</b><small id="v319HomeTier">Başlangıç</small></div>
+      <div class="v319-xp-line"><span id="v319HomeXP">0 XP</span><span id="v319HomeXPNext">0 / 180</span></div>
+      <div class="v319-xp-bar"><i id="v319HomeXPBar"></i></div>
+    </div>
+    <div class="v319-home-reward-kpis">
+      <div><b id="v319HomeBadges">0</b><span>rozet</span></div>
+      <div><b id="v319HomeRewardStreak">0</b><span>gün seri</span></div>
+      <div><b id="v319HomeDecor">0</b><span>dekor</span></div>
+    </div>
+    <button class="btn ghost tiny" type="button" onclick="go('more');setMoreTab('roz')">Ödül merkezini aç</button>
+  </section>
+
+  <div class="home-actions" data-student-only>
+    <button class="btn ghost tiny" onclick="openBrief(true)">Günün özeti</button>
+    <button class="btn green tiny" id="gunBtn" onclick="openGun()">Gün ekranını aç</button>
+  </div>
+
+  <section class="today-hub" id="todayHub" data-student-only aria-label="Bugün kontrol merkezi">
+    <div class="today-hub-head">
+      <div><div class="eyebrow" id="todayHubEyebrow">Şu ana kadar</div><h2 id="todayHubTitle">Bugün</h2></div>
+      <span class="today-done-badge" id="todayDoneBadge" style="display:none;">Bugün tamamlandı ✓</span>
+    </div>
+    <div class="today-summary-grid">
+      <div class="today-summary"><span>Soru</span><b id="todayHubQ">0</b><small id="todayHubQSub">—</small></div>
+      <div class="today-summary"><span>Odak</span><b id="todayHubMin">0 dk</b><small id="todayHubMinSub">—</small></div>
+      <div class="today-summary"><span>Program</span><b id="todayHubPlan">—</b><small id="todayHubPlanSub">—</small></div>
+      <div class="today-summary"><span>Tekrar</span><b id="todayHubReview">0</b><small id="todayHubReviewSub">bekleyen</small></div>
+    </div>
+    <div class="today-remaining" id="todayRemaining"></div>
+    <div class="today-next" id="todayNext"></div>
+    <div class="today-review-wrap" id="todayReviewWrap">
+      <div class="today-section-head"><b>Bugünkü tekrarlar</b><button type="button" onclick="go('topics')">Tüm tekrarlar</button></div>
+      <div id="todayReviews"></div>
+    </div>
+    <div class="today-detail-grid">
+      <div class="today-panel"><div class="today-section-head"><b>Ders dağılımı</b><span>bugün</span></div><div id="todaySubjectDist"></div></div>
+      <div class="today-panel"><div class="today-section-head"><b>Son çalışma</b><span id="todayLastWhen">—</span></div><div id="todayLastSession"></div></div>
+    </div>
+    <div class="today-panel today-timeline-panel"><div class="today-section-head"><b>Günün akışı</b><span>odak oturumları</span></div><div id="todayTimeline"></div></div>
+    <div class="today-close" id="todayClose">
+      <div class="today-section-head"><b id="todayCloseTitle">Gün sonu</b><span id="todayCloseHint">Akşam doldurabilirsin</span></div>
+      <div class="today-moods" role="group" aria-label="Bugün nasıldı?">
+        <button type="button" id="todayMoodGood" onclick="setTodayMood('good')">İyi</button>
+        <button type="button" id="todayMoodMid" onclick="setTodayMood('mid')">Orta</button>
+        <button type="button" id="todayMoodHard" onclick="setTodayMood('hard')">Zor</button>
+      </div>
+      <div class="today-note-row"><input type="text" id="todayReflectionInput" maxlength="220" placeholder="Bugünden tek cümle…"><button class="btn ghost tiny" type="button" onclick="saveTodayReflection()">Kaydet</button></div>
+    </div>
+  </section>
+
+  <div class="morning" id="morningBox" style="display:none;"></div>
+  <div class="restcard" id="dgBanner" style="display:none;"></div>
+
+  <div id="coachBoard" style="display:none;"></div>
+
+  <div id="cnWrap" style="display:none;">
+    <h2>Koç notları<span class="cnt" id="cnCount" style="display:none;"></span></h2>
+    <div class="card" id="cnList"></div>
+  </div>
+  <div class="card" id="noteBoxWrap" data-coach-only>
+    <label>Öğrencine not bırak</label>
+    <input type="text" id="cnInput" placeholder="Tek cümle yeter">
+    <select id="cnKind">
+      <option value="genel">Genel</option>
+      <option value="plan">Plan hakkında</option>
+      <option value="deneme">Deneme hakkında</option>
+      <option value="konu">Konu hakkında</option>
+    </select>
+    <button class="btn green small" style="width:100%;margin-top:12px;" onclick="addCoachNote()">Notu bırak</button>
+  </div>
+
+  <div class="restcard" id="restBanner" style="display:none;"></div>
+
+  <div class="banner" id="backupBanner">
+    Uzun süredir yedek almadın. Tarayıcı verisi silinirse her şey kaybolur —
+    <b onclick="v30OpenMore('veri','v30DataTop')">şimdi yedek al</b>.
+  </div>
+
+
+
+  <div class="home-goals" id="homeGoals" data-student-only>
+    <div class="home-goals-head"><div class="section-label">Kişisel özet</div><button class="home-goals-edit" onclick="go('more');setMoreTab('ayar')">Hedefleri düzenle</button></div>
+    <div class="home-goals-grid">
+      <div class="goalmini" id="goalQCard"><div class="gl">Soru hedefi</div><div class="gv" id="homeGoalQ">0 / 0</div><div class="gs" id="homeGoalQSub">Bugün</div><div class="gbar"><i id="homeGoalQBar" style="width:0%"></i></div></div>
+      <div class="goalmini" id="goalMinCard"><div class="gl">Odak</div><div class="gv" id="homeGoalMin">0 dk</div><div class="gs" id="homeGoalMinSub">Bugün</div><div class="gbar"><i id="homeGoalMinBar" style="width:0%"></i></div></div>
+      <div class="goalmini net"><div class="gl">Net hedefi</div><div class="gv" id="homeGoalNet">—</div><div class="gs" id="homeGoalNetSub">Deneme verisi bekleniyor</div></div>
+      <div class="goalmini review"><div class="gl">Tekrar</div><div class="gv" id="homeGoalRev">0</div><div class="gs" id="homeGoalRevSub">Bekleyen yok</div></div>
+    </div>
+  </div>
+
+  <h2>Bugün ne çalışayım?</h2>
+  <div class="card" id="suggestBox"></div>
+
+  <h2>Akıllı analiz</h2>
+  <div class="card" id="smartInsightBox" data-student-only></div>
+
+  <h2>Analiz özeti</h2>
+  <div class="card" id="homeDeepAnalysis" data-student-only></div>
+
+
+  <h2>Deneme sonrası görevler</h2>
+  <div class="card" id="examTasksBox" data-student-only></div>
+
+  <h2 id="todayPlanTitle">Bugünün programı</h2>
+  <div class="card" id="todayPlan"></div>
+
+
+
+  <button class="foldhead compact-fold" id="fh_soz" onclick="toggleFold('soz')" data-student-only>
+    <span class="ft">Haftalık hedef</span>
+    <span class="fi"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
+  </button>
+  <div class="foldbody" id="fb_soz" data-student-only>
+    <div class="card" id="ctForm" style="display:none;">
+      <p class="lead" style="font-size:14.5px;margin:0 0 12px;">Haftanın başında gerçekçi bir hedef belirle; hafta sonunda ne kadarını tuttuğunu gör.</p>
+      <div class="row2">
+        <div><label>Çalışma (saat)</label><input type="number" id="ctSaat" step="0.5" min="0" placeholder="28"></div>
+        <div><label>Soru</label><input type="number" id="ctSoru" min="0" placeholder="700"></div>
+      </div>
+      <label>Deneme sayısı</label>
+      <input type="number" id="ctDeneme" min="0" placeholder="1">
+      <label>Not (isteğe bağlı)</label>
+      <input type="text" id="ctNot" placeholder="Bu hafta matematiğe ağırlık">
+      <button class="btn green small" style="width:100%;margin-top:14px;" onclick="saveContract()">Hedefi kaydet</button>
+    </div>
+    <div class="card" id="ctBox"></div>
+  </div>
+
+  <div class="card quick-entry" data-student-only>
+    <div class="section-label">Hızlı soru girişi</div>
+    <label>Bugün çözdüğün toplam soru</label>
+    <div class="row2">
+      <input type="number" id="solvedInput" min="0" placeholder="0">
+      <button class="btn green small" style="flex:0 0 auto;" onclick="saveSolved()">Kaydet</button>
+    </div>
+    <p class="lead" id="targetLabel" style="margin:14px 0 0;font-size:14.5px;"></p>
+  </div>
+
+  <button class="foldhead" id="fh_konu" onclick="toggleFold('konu')">
+    <span class="ft">Konu bazlı soru</span>
+    <span class="fi"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
+  </button>
+  <div class="foldbody" id="fb_konu">
+    <div class="card">
+      <div class="row2">
+        <div><label>Ders</label><select id="tsSubject" onchange="fillTopicDatalist('tsSubject','tsTopics')"></select></div>
+        <div><label>Adet</label><input type="number" id="tsCount" min="1" placeholder="20"></div>
+      </div>
+      <label>Konu</label>
+      <input type="text" id="tsTopic" list="tsTopics" placeholder="Önce ders seç">
+      <datalist id="tsTopics"></datalist>
+      <button class="btn green small" style="width:100%;margin-top:16px;" onclick="addTopicSolved()">Ekle</button>
+      <p class="hint">Buradan girdiğin soru günlük toplamına da eklenir ve konu "soru çözdüm" kademesine geçer.</p>
+    </div>
+    <div class="card" id="tsBox"></div>
+  </div>
+
+  <button class="foldhead" id="fh_ozet" onclick="toggleFold('ozet')">
+    <span class="ft">Haftalık özet ve hedef</span>
+    <span class="fi"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
+  </button>
+  <div class="foldbody" id="fb_ozet">
+    <div class="card">
+      <div id="weekSummary"></div>
+      <p class="hint" id="pastSelf"></p>
+    </div>
+    <div class="card" id="projBox"></div>
+    <div class="card ring-row">
+      <svg width="70" height="70" viewBox="0 0 72 72">
+        <circle cx="36" cy="36" r="30" fill="none" stroke="var(--fill-2)" stroke-width="8"/>
+        <circle id="homeRing" cx="36" cy="36" r="30" fill="none" stroke="var(--green)" stroke-width="8"
+          stroke-linecap="round" stroke-dasharray="188" stroke-dashoffset="188" transform="rotate(-90 36 36)"/>
+        <text id="homeRingTxt" x="36" y="41" text-anchor="middle" font-size="16" font-weight="700"
+          fill="var(--ink)" font-family="-apple-system,sans-serif">%0</text>
+      </svg>
+      <p class="quote" id="quote"></p>
+    </div>
+  </div>
+
+  <button class="foldhead" id="fh_gunluk" onclick="toggleFold('gunluk')">
+    <span class="ft">Günün notu ve rozetler</span>
+    <span class="fi"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
+  </button>
+  <div class="foldbody" id="fb_gunluk">
+    <div class="card">
+      <textarea id="journalInput" placeholder="Bugün nasıl geçti? Tek cümle yeter."></textarea>
+      <button class="btn ghost small" style="width:100%;margin-top:12px;" onclick="saveJournal()">Günlüğü kaydet</button>
+    </div>
+    <div class="card">
+      <div id="homeBadges"></div>
+      <button class="btn ghost small" style="width:100%;margin-top:12px;" onclick="shareCard()" data-student-only>Günün kartını indir</button>
+      <p class="hint">Tümü için <b onclick="go('more');setMoreTab('roz')" style="cursor:pointer;text-decoration:underline">Daha › Rozetler</b>.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== PROGRAM ============================== -->
+<section id="program" class="screen">
+  <div class="seg">
+    <button id="pSegWeek" class="on" onclick="setProgTab('week')">Haftalık plan</button>
+    <button id="pSegCal" onclick="setProgTab('cal')">Takvim</button>
+  </div>
+
+  <button class="foldhead" id="fh_kamp" onclick="toggleFold('kamp')">
+    <span class="ft">Hazır kamp programları</span>
+    <span class="fi"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
+  </button>
+  <div class="foldbody" id="fb_kamp">
+    <div class="card" id="campDurum" style="display:none;"></div>
+    <div class="chips" id="campChips"></div>
+    <div class="card" id="campBox"></div>
+  </div>
+
+  <button class="foldhead" id="fh_sablon" onclick="toggleFold('sablon')">
+    <span class="ft">Plan şablonları</span>
+    <span class="fi"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
+  </button>
+  <div class="foldbody" id="fb_sablon">
+    <div class="card">
+      <p class="lead" style="font-size:14.5px;margin:0 0 12px;">Görünen haftayı şablon olarak kaydet, sonraki haftalara tek dokunuşla uygula.</p>
+      <div class="row2">
+        <input type="text" id="tplName" placeholder="Yoğun hafta">
+        <button class="btn ghost small" style="flex:0 0 auto;" onclick="saveTemplate()">Kaydet</button>
+      </div>
+      <div id="tplBox" style="margin-top:12px;"></div>
+    </div>
+  </div>
+
+
+  <div id="progWeek">
+    <div class="plantitle">Haftalık plan · Klasik+</div>
+    <div class="weeknav">
+      <button onclick="shiftWeek(-1)">‹</button>
+      <div class="wk" onclick="thisWeek()"><span id="wkLabel"></span><small id="wkSub"></small></div>
+      <button onclick="shiftWeek(1)">›</button>
+    </div>
+
+    <div class="program-week-overview" id="programWeekOverview"></div>
+
+    <div class="scroller"><div class="gtable" id="gridR"></div></div>
+    <div class="rowtools">
+      <button class="btn ghost tiny" onclick="addRow('r')">+ Rutin satırı</button>
+      <button class="btn ghost tiny" onclick="delRow('r')">− Son satırı sil</button>
+    </div>
+
+    <div class="scroller"><div class="gtable" id="gridS"></div></div>
+    <div class="rowtools">
+      <button class="btn ghost tiny" onclick="addRow('s')">+ Ders satırı</button>
+      <button class="btn ghost tiny" onclick="delRow('s')">− Son satırı sil</button>
+    </div>
+
+    <div class="fidbar" id="weekFid"></div>
+
+    <div class="rowtools">
+      <button class="btn ghost tiny" onclick="copyPrevWeek()">Geçen haftayı kopyala</button>
+      <button class="btn ghost tiny" onclick="copyThisWeekToNext()">Bu haftayı gelecek haftaya kopyala</button>
+      <button class="btn ghost tiny" onclick="clearWeek()">Haftayı temizle</button>
+      <button class="btn ghost tiny" onclick="printPlan()">Yazdır / PDF</button>
+    </div>
+    <p class="hint" style="padding:0 4px;">Hücreye doğrudan yaz — anında kaydedilir. Dolu bir hücreye <b>uzun bas</b>: Düzenle, Kopyala, Yarına taşı veya Sil. Bugünün sütunu vurgulanır; üstte günlük ve haftalık ilerlemeyi görebilirsin.</p>
+  </div>
+
+  <div id="progCal" style="display:none;">
+    <div class="card">
+      <div class="calnav">
+        <button onclick="shiftMonth(-1)">‹</button>
+        <span class="mo" id="calMonth"></span>
+        <button onclick="shiftMonth(1)">›</button>
+      </div>
+      <div class="cal" id="calHead"></div>
+      <div class="cal" id="calGrid" style="margin-top:6px;"></div>
+      <div class="legend">az<i style="background:var(--fill)"></i><i style="background:var(--g1)"></i>
+        <i style="background:var(--g2)"></i><i style="background:var(--g3)"></i><i style="background:var(--g4)"></i>çok</div>
+    </div>
+    <h2 id="dayTitle">Gün dökümü</h2>
+    <div class="card" id="dayDetail"></div>
+    <h2>Erteleme analizi</h2>
+    <div class="card" id="procBox"></div>
+  </div>
+</section>
+
+<!-- ============================== KONULAR ============================== -->
+<section id="topics" class="screen">
+  <div class="card flat v26-topic-tools">
+    <div class="row2">
+      <input type="text" id="topicSearch" placeholder="Konu ara — örn. türev" oninput="setTopicQuery(this.value)">
+      <button class="btn ghost small" style="flex:0 0 auto;" onclick="clearTopicQuery()">Temizle</button>
+    </div>
+    <div class="topic-filter-row" aria-label="Konu filtreleri">
+      <button class="topic-filter on" id="tfAll" onclick="setTopicFilter('all')">Tümü</button>
+      <button class="topic-filter" id="tfWork" onclick="setTopicFilter('work')">Çalışılıyor</button>
+      <button class="topic-filter" id="tfReview" onclick="setTopicFilter('review')">Tekrar bekleyen</button>
+      <button class="topic-filter" id="tfRisk" onclick="setTopicFilter('risk')">Riskli</button>
+      <button class="topic-filter" id="tfDone" onclick="setTopicFilter('done')">Tamamlanan</button>
+    </div>
+    <p class="hint" id="searchInfo" style="margin-bottom:0;"></p>
+  </div>
+
+  <h2>Konular özeti</h2>
+  <div class="card" id="v26TopicOverview"></div>
+  <div class="card" id="v26TopicAttention"></div>
+
+  <section class="v312-coach-shell" aria-labelledby="v312CoachTitle">
+    <div class="v312-head">
+      <div><p class="eyebrow">Akıllı Konu Koçu</p><h2 id="v312CoachTitle">Bugün ne çalışmalısın?</h2><p class="hint">Yanlış, tekrar, güven, deneme performansı ve son çalışma tarihine göre sıralanır.</p></div>
+      <button class="btn ghost tiny" type="button" onclick="v312PlanAll()">Üçünü plana ekle</button>
+    </div>
+    <div class="v312-metrics" id="v312CoachMetrics"></div>
+    <div class="card v312-coach" id="v312Coach"></div>
+    <div class="v312-insight" id="v312CoachInsight"></div>
+  </section>
+
+  <section class="v313-learning" id="v313Learning" aria-labelledby="v313LearningTitle">
+    <div class="v313-head"><div><p class="eyebrow">Öğrenme Araçları</p><h2 id="v313LearningTitle">Tekrar ve formül merkezi</h2></div><div class="v313-summary"><span><b id="v313DueCount">0</b> bugün</span><span><b id="v313CardCount">0</b> kart</span><span><b id="v313Success">—</b> başarı</span></div></div>
+    <div class="seg tri v313-tabs" role="tablist" aria-label="Öğrenme araçları">
+      <button id="v313Tabcards" class="on" type="button" onclick="v313SetTab('cards')">Tekrar kartları</button>
+      <button id="v313Tabformulas" type="button" onclick="v313SetTab('formulas')">Formül bankası</button>
+      <button id="v313Tabanalysis" type="button" onclick="v313SetTab('analysis')">Analiz</button>
+    </div>
+    <div id="v313Panelcards">
+      <div class="card v313-review" id="v313CardReview"></div>
+      <details class="card v313-add-card"><summary>Yeni tekrar kartı ekle</summary><label>Ders</label><input id="v313CardSubject" type="text" placeholder="Örn. Biyoloji"><label>Soru veya ön yüz</label><textarea id="v313CardQ" rows="3" maxlength="500" placeholder="Hatırlamak istediğin soru"></textarea><label>Cevap veya arka yüz</label><textarea id="v313CardA" rows="4" maxlength="1200" placeholder="Kısa ve net cevap"></textarea><button class="btn green small" type="button" onclick="v313AddCard()">Kartı ekle</button></details>
+      <div id="v313CardList"></div>
+    </div>
+    <div id="v313Panelformulas" hidden>
+      <div class="card flat"><input type="search" placeholder="Formül ara" oninput="v313FormulaSearch(this.value)"><div class="chips v313-cats"><button id="v313CatTümü" class="chip on" type="button" onclick="v313FormulaCategory('Tümü')">Tümü</button><button id="v313CatMatematik" class="chip" type="button" onclick="v313FormulaCategory('Matematik')">Matematik</button><button id="v313CatGeometri" class="chip" type="button" onclick="v313FormulaCategory('Geometri')">Geometri</button><button id="v313CatFizik" class="chip" type="button" onclick="v313FormulaCategory('Fizik')">Fizik</button><button id="v313CatKimya" class="chip" type="button" onclick="v313FormulaCategory('Kimya')">Kimya</button></div></div>
+      <div class="v313-formula-grid" id="v313FormulaList"></div>
+      <p class="note">Formüller hızlı tekrar içindir; sembollerin anlamını ve geçerlilik koşullarını konu kaynağından kontrol et.</p>
+    </div>
+    <div id="v313Panelanalysis" hidden><div class="card" id="v313Analysis"></div></div>
+  </section>
+
+  <h2>Müfredat projeksiyonu</h2>
+  <div class="card" id="curBox"></div>
+
+  <h2>Tekrar zamanı<span class="cnt" id="revCount">0</span></h2>
+  <div class="card" id="reviewBox"></div>
+
+  <div class="seg">
+    <button id="segTYT" class="on" onclick="setExamTab('TYT')">TYT</button>
+    <button id="segAYT" onclick="setExamTab('AYT')">AYT</button>
+    <button id="segYDT" onclick="setExamTab('YDT')">YDT</button>
+  </div>
+  <div id="subjectList"></div>
+  <p class="note">Yıldızlar güven puanın (1–5). Bir konuyu 3. kademeye aldığında 3., 7. ve 21. günlerde tekrar listesine düşer. Risk etiketi; yanlış, tekrar, konu durumu, ders deneme performansı ve çalışma verisini birlikte değerlendirir.</p>
+
+  <div class="v26-topic-modal" id="v26TopicModal" aria-hidden="true" onclick="if(event.target===this)closeTopicDetail()">
+    <div class="v26-topic-sheet" role="dialog" aria-modal="true" aria-labelledby="v26TopicTitle">
+      <div id="v26TopicDetail"></div>
+    </div>
+  </div>
+
+  <button class="foldhead" id="fh_kaynak" onclick="toggleFold('kaynak')" data-adv>
+    <span class="ft">Konu kaynakları</span>
+    <span class="fi"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
+  </button>
+  <div class="foldbody" id="fb_kaynak" data-adv>
+    <div class="card">
+      <div class="row2">
+        <div><label>Ders</label><select id="trSubject" onchange="fillTopicDatalist('trSubject','trTopics')"></select></div>
+        <div><label>Konu</label><input type="text" id="trTopic" list="trTopics" placeholder="Önce ders seç"></div>
+      </div>
+      <datalist id="trTopics"></datalist>
+      <label>Bağlantı, sayfa ya da not</label>
+      <input type="text" id="trValue" placeholder="https://... veya 'Palme s.142'">
+      <button class="btn green small" style="width:100%;margin-top:14px;" onclick="addTopicRes()">Kaydet</button>
+    </div>
+    <div class="card" id="trBox"></div>
+  </div>
+
+  <button class="foldhead" id="fh_hedef" onclick="toggleFold('hedef')">
+    <span class="ft">Konu bitiş hedefleri</span>
+    <span class="fi"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
+  </button>
+  <div class="foldbody" id="fb_hedef">
+    <div class="card">
+      <div class="row2">
+        <div><label>Ders</label><select id="dlSubject" onchange="fillTopicDatalist('dlSubject','dlTopics')"></select></div>
+        <div><label>Tarih</label><input type="date" id="dlDate"></div>
+      </div>
+      <label>Konu</label>
+      <input type="text" id="dlTopic" list="dlTopics" placeholder="Önce ders seç">
+      <datalist id="dlTopics"></datalist>
+      <button class="btn green small" style="width:100%;margin-top:16px;" onclick="addTopicDeadline()">Hedef tarih ver</button>
+    </div>
+    <div class="card" id="dlBox"></div>
+  </div>
+</section>
+
+<!-- ============================== DENEMELER ============================== -->
+<section id="deneme" class="screen">
+  <div class="v315-dashboard" id="v315Dashboard">
+    <div class="card">
+      <div class="v315-dash-head">
+        <div class="v315-dash-title">
+          <p class="eyebrow" style="margin:0">Deneme Analiz Merkezi</p>
+          <h2>Performansın tek ekranda</h2>
+          <p class="hint">Net trendi, en çok yanlış yaptığın konular ve ders değişimleri ilk bakışta burada.</p>
+        </div>
+        <button class="btn green v315-add-btn" id="v315AddExamBtn" type="button" aria-expanded="false" onclick="toggleV315ExamForm()">+ Deneme Ekle</button>
+      </div>
+      <div class="v315-filterbar">
+        <div class="seg v315-type-seg" aria-label="Deneme türü filtresi">
+          <button id="v315tTYT" class="on" onclick="setV315DashType('TYT')">TYT</button>
+          <button id="v315tAYT" onclick="setV315DashType('AYT')">AYT</button>
+          <button id="v315tYDT" onclick="setV315DashType('YDT')">YDT</button>
+          <button id="v315tBRANS" onclick="setV315DashType('BRANS')">Branş</button>
+        </div>
+        <div class="seg v315-window-seg" aria-label="Analiz aralığı">
+          <button id="v315w5" onclick="setV315DashWindow(5)">Son 5</button>
+          <button id="v315w10" class="on" onclick="setV315DashWindow(10)">Son 10</button>
+          <button id="v315wAll" onclick="setV315DashWindow(0)">Tümü</button>
+        </div>
+      </div>
+      <div class="v315-kpis" id="v315Kpis"></div>
+      <div class="v315-dash-grid">
+        <div class="card v315-trend-card">
+          <div class="v315-card-head"><b>Net trendi</b><small id="v315TrendMeta">—</small></div>
+          <div id="v315Trend"></div>
+        </div>
+        <div class="card v315-wrong-card">
+          <div class="v315-card-head"><b>En çok yanlış yaptığın konular</b><small>Denemeye bağlanan ilk 5</small></div>
+          <div id="v315WrongTopics"></div>
+        </div>
+        <div class="card v315-subject-card">
+          <div class="v315-card-head"><b>Ders bazlı performans</b><small>Son denemeye göre değişim</small></div>
+          <div id="v315SubjectPerformance"></div>
+        </div>
+        <div class="card v315-balance-card">
+          <div class="v315-card-head"><b>Doğru / yanlış / boş</b><small id="v315BalanceMeta">—</small></div>
+          <div id="v315Balance"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card v315-exam-form-card" id="v315ExamFormCard">
+    <div class="seg">
+      <button id="dSegTYT" class="on" onclick="setDenemeType('TYT')">TYT</button>
+      <button id="dSegAYT" onclick="setDenemeType('AYT')">AYT</button>
+      <button id="dSegYDT" onclick="setDenemeType('YDT')">YDT</button>
+      <button id="dSegBRANS" onclick="setDenemeType('BRANS')">Branş</button>
+    </div>
+    <label>Deneme adı</label>
+    <input type="text" id="denemeName" placeholder="Örn. 3D Yayınları TYT-4">
+    <div class="row2">
+      <div><label>Tarih</label><input type="date" id="denemeDate"></div>
+      <div><label>Süre (dk)</label><input type="number" id="denemeDur" min="0" placeholder="135"></div>
+    </div>
+    <label>Yayınevi</label>
+    <input type="text" id="denemePub" list="pubList" placeholder="Örn. 3D, Palme, Bilgi Sarmal">
+    <datalist id="pubList"></datalist>
+    <div class="row2">
+      <div><label>Zorluk</label><select id="denemeDiff"><option value="normal">Normal</option><option value="kolay">Kolay</option><option value="zor">Zor</option></select></div>
+      <div><label>Kısa not</label><input type="text" id="denemeNote" maxlength="240" placeholder="Örn. Fen sona kaldı"></div>
+    </div>
+    <div id="bransWrap" style="display:none;">
+      <div class="row2">
+        <div><label>Branş dersi</label><select id="brSubject" onchange="brSubjChanged()"></select></div>
+        <div><label>Soru sayısı</label><input type="number" id="brTotal" min="1" placeholder="30" value="30"></div>
+      </div>
+    </div>
+    <label>Ders bazında doğru / yanlış / boş</label>
+    <div id="subjGrid">
+      <div class="dyb-grid dyb-head" id="dybHead"><div>Ders</div><div>D</div><div>Y</div><div>B</div></div>
+      <div id="dybRows"></div>
+      <p class="preview" id="livePreview">Toplam net: 0</p>
+    </div>
+    <div id="netQuick" style="display:none;"></div>
+    <div class="rowtools" style="margin:10px 0;">
+      <button class="btn ghost tiny" id="netModeBtn" onclick="toggleNetMode()">Doğrudan net gir</button>
+      <button class="btn ghost tiny" onclick="copyLastDeneme()">Son denemeyi kopyala</button>
+      <button class="btn ghost tiny" onclick="openOptik()">Optikten gir</button>
+    </div>
+    <button class="btn green" onclick="netMode?addDenemeByNet():addDeneme()">Denemeyi kaydet</button>
+  </div>
+
+  <div class="card" id="reflBox" style="display:none;">
+    <p class="eyebrow" style="color:var(--time);">Deneme sonrası · 3 kısa soru</p>
+    <label>En çok hangi derste zorlandın?</label>
+    <input type="text" id="rfHard" placeholder="Örn. Fen Bilimleri">
+    <label>Süre yetti mi?</label>
+    <select id="rfTime">
+      <option value="yetti">Yetti</option>
+      <option value="zor">Zor yetti</option>
+      <option value="yetmedi">Yetmedi</option>
+    </select>
+    <label>Bir dahakine neyi farklı yapacaksın?</label>
+    <input type="text" id="rfChange" placeholder="Tek cümle yeter">
+    <div class="row2" style="margin-top:16px;">
+      <button class="btn green small" onclick="saveRefl()">Kaydet</button>
+      <button class="btn ghost small" onclick="skipRefl()">Şimdi değil</button>
+    </div>
+  </div>
+
+  <h2>Son deneme detayı</h2>
+  <div class="card">
+    <div class="seg" style="margin-bottom:12px;"><button id="v27w5" class="on" onclick="setV27Window(5)">Son 5</button><button id="v27w10" onclick="setV27Window(10)">Son 10</button></div>
+    <div id="v27Overview"></div>
+  </div>
+  <div class="card" id="v27Latest"></div>
+
+  <h2>Analiz</h2>
+  <div class="seg pent">
+    <button id="an_trend" class="on" onclick="setAnaTab('trend')">Trend</button>
+    <button id="an_ders" onclick="setAnaTab('ders')">Ders</button>
+    <button id="an_kar" onclick="setAnaTab('kar')">Karşılaştır</button>
+    <button id="an_puan" onclick="setAnaTab('puan')">Puan</button>
+    <button id="an_verim" onclick="setAnaTab('verim')">Verim</button>
+  </div>
+
+  <div id="anp_trend">
+    <div class="card"><div class="chart-wrap"><canvas id="chart"></canvas></div>
+      <p class="hint">Kesikli turuncu çizgi hedef netin (Ayarlar'dan girilir).</p></div>
+    <h2>Doğru / yanlış / boş</h2>
+    <div class="card" id="bwBox"></div>
+    <h2>Son denemelerin özeti</h2>
+    <div class="card" id="v22ExamSummary"></div>
+    <h2>Ders trendleri</h2>
+    <div class="card" id="v22SubjectTrend"></div>
+    <h2>Gelişmiş net trendi</h2>
+    <div class="card"><div class="seg tri"><button id="v24w5" onclick="setV24ExamWindow(5)">Son 5</button><button id="v24w10" class="on" onclick="setV24ExamWindow(10)">Son 10</button><button id="v24w20" onclick="setV24ExamWindow(20)">Son 20</button></div><div class="v24-chart"><canvas id="v24TrendChart"></canvas></div><div id="v24TrendStats"></div></div>
+    <h2>Hedef ve veri desteği</h2><div class="v24-grid"><div class="card" id="v24TargetGap"></div><div class="card" id="v24Confidence"></div></div>
+    <h2>Deneme dayanıklılığı</h2><div class="card" id="v24Endurance"></div>
+  </div>
+
+  <div id="anp_ders" style="display:none;">
+    <div class="card">
+      <p class="eyebrow" id="subjType"></p>
+      <div class="chips" id="subjPick"></div>
+      <div class="chart-wrap"><canvas id="subjChart"></canvas></div>
+      <p class="hint" id="subjInfo"></p>
+    </div>
+    <h2>Ders bazlı gelişim özeti</h2><div class="card v24-table" id="v24SubjectGrowth"></div>
+  </div>
+
+  <div id="anp_kar" style="display:none;">
+    <div class="card">
+      <div class="row2">
+        <div><label>Önceki</label><select id="anaCmpA" onchange="renderAnaCompare()"></select></div>
+        <div><label>Sonraki</label><select id="anaCmpB" onchange="renderAnaCompare()"></select></div>
+      </div>
+      <div id="anaCmpBox" style="margin-top:14px;"></div>
+    </div>
+  </div>
+
+  <div id="anp_puan" style="display:none;">
+    <div class="card" id="scoreBox"></div>
+    <h2>Sıralama tahmini</h2>
+    <div class="card">
+      <div class="row2">
+        <div><label>Hedef sıralama</label><input type="number" id="hedefSira" min="1" placeholder="10000" onchange="saveRankSettings()"></div>
+        <div><label>Puan türü</label>
+          <div class="segsel" id="puanTuruSeg">
+            <button id="pt_SAY" onclick="setPuanTuru('SAY')">Sayısal</button>
+            <button id="pt_EA" onclick="setPuanTuru('EA')">Eşit Ağırlık</button>
+            <button id="pt_SOZ" onclick="setPuanTuru('SOZ')">Sözel</button>
+            <button id="pt_DIL" onclick="setPuanTuru('DIL')">Dil</button>
+          </div>
+        </div>
+      </div>
+      <div id="rankBox" style="margin-top:14px;"></div>
+    </div>
+
+    <h2>Hedef puandan geriye</h2>
+    <div class="card">
+      <div class="row2">
+        <div><label>Hedef puan</label><input type="number" id="rtScore" min="100" step="0.1" placeholder="420" oninput="renderReverse()"></div>
+        <div><label>Hangi puan</label>
+          <div class="segsel" id="rtKindSeg">
+            <button id="rt_tyt" onclick="setRtKind('tyt')">TYT</button>
+            <button id="rt_ayt" onclick="setRtKind('ayt')">Alan</button>
+          </div>
+          <input type="hidden" id="rtKind" value="tyt"></div>
+      </div>
+      <div id="rtBox" style="margin-top:14px;"></div>
+    </div>
+    <button class="foldhead" id="fh_hedefbol" onclick="toggleFold('hedefbol')">
+      <span class="ft">Hedef bölümler</span>
+      <span class="fi"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
+    </button>
+    <div class="foldbody" id="fb_hedefbol">
+      <div class="card">
+        <label>Bölüm</label>
+        <input type="text" id="tgName" placeholder="Bilgisayar Mühendisliği">
+        <div class="row2">
+          <div><label>Üniversite</label><input type="text" id="tgUni" placeholder="İTÜ"></div>
+          <div><label>Taban sıralama</label><input type="number" id="tgRank" min="1" placeholder="12000"></div>
+        </div>
+        <button class="btn green small" style="width:100%;margin-top:14px;" onclick="addTarget()">Hedef ekle</button>
+      </div>
+      <div class="card" id="tgBox"></div>
+    </div>
+
+    <button class="foldhead" id="fh_verim" onclick="toggleFold('verim')">
+      <span class="ft">Verimlilik</span>
+      <span class="fi"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
+    </button>
+    <div class="foldbody" id="fb_verim">
+    <div class="card" id="effBox"></div>
+
+    </div>
+
+    <button class="foldhead" id="fh_yayin" onclick="toggleFold('yayin')">
+      <span class="ft">Yayınevi karşılaştırması</span>
+      <span class="fi"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
+    </button>
+    <div class="foldbody" id="fb_yayin">
+    <div class="card" id="pubBox"></div>
+  </div>
+
+    </div>
+
+    <button class="foldhead" id="fh_kalib" onclick="toggleFold('kalib')">
+      <span class="ft">Gerçek sonuçla ayarla</span>
+      <span class="fi"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
+    </button>
+    <div class="foldbody" id="fb_kalib">
+      <div class="card">
+        <p class="lead" style="font-size:14.5px;margin:0 0 12px;">Elindeki gerçek ÖSYM sonucunu gir; formülü senin sonucuna göre çözeyim.</p>
+        <div class="row2">
+          <div><label>Sonuç türü</label>
+            <div class="segsel" id="cbTypeSeg">
+              <button id="cb_tyt" onclick="setCbType('tyt')">TYT</button>
+              <button id="cb_alan" onclick="setCbType('alan')">Alan</button>
+            </div>
+            <input type="hidden" id="cbType" value="tyt"></div>
+          <div><label>TYT net</label><input type="number" id="cbNet" step="0.25" min="0" placeholder="72.5"></div>
+        </div>
+        <div class="row2">
+          <div><label>AYT net (alan için)</label><input type="number" id="cbAyt" step="0.25" min="0" placeholder="48"></div>
+          <div><label>Gerçek puan</label><input type="number" id="cbScore" step="0.001" min="0" placeholder="358.412"></div>
+        </div>
+        <button class="btn green small" style="width:100%;margin-top:14px;" onclick="addCalib()">Sonucu ekle</button>
+      </div>
+      <div class="card" id="cbBox"></div>
+    </div>
+
+    <button class="foldhead" id="fh_kat" onclick="toggleFold('kat')">
+      <span class="ft">Katsayılar</span>
+      <span class="fi"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
+    </button>
+    <div class="foldbody" id="fb_kat">
+      <div class="card">
+        <div class="row2">
+          <div><label>TYT taban</label><input type="number" step="0.01" id="cf_tytBase"></div>
+          <div><label>TYT × net</label><input type="number" step="0.01" id="cf_tytK"></div>
+        </div>
+        <div class="row2">
+          <div><label>Alan taban</label><input type="number" step="0.01" id="cf_ayBase"></div>
+          <div><label>Alan × TYT net</label><input type="number" step="0.01" id="cf_ayTyt"></div>
+        </div>
+        <div class="row2">
+          <div><label>Alan × AYT net</label><input type="number" step="0.01" id="cf_ayAyt"></div>
+          <div><label>OBP çarpanı</label><input type="number" step="0.01" id="cf_obpK"></div>
+        </div>
+        <button class="btn ghost small" style="width:100%;margin-top:16px;" onclick="saveCoef()">Katsayıları kaydet</button>
+      </div>
+    </div>
+
+  <div id="anp_verim" style="display:none;">
+    <h2>İki denemeyi karşılaştır</h2>
+    <div class="card">
+      <div class="row2">
+        <div><label>Önceki</label><select id="cmpA" onchange="setCmp('a',this.value)"></select></div>
+        <div><label>Sonraki</label><select id="cmpB" onchange="setCmp('b',this.value)"></select></div>
+      </div>
+      <div id="cmpBox" style="margin-top:14px;"></div>
+    </div>
+
+    <h2>Yanlışlar hangi konudan</h2>
+    <div class="card">
+      <div class="chips" id="wdChips"></div>
+      <div id="wdBox" style="margin-top:10px;"></div>
+    </div>
+
+    <h2>Tekrar eden hatalar</h2>
+    <div class="card" id="repBox"></div>
+
+    <h2>Yanlış sağlığı</h2>
+    <div class="card" id="v22WrongHealth"></div>
+    <h2>Konu risk puanı</h2><div class="card" id="v24TopicRisk"></div>
+    <h2>Yanlış nedenlerinin değişimi</h2><div class="card" id="v24WrongCauses"></div>
+    <h2>Çalışma ↔ sonuç ilişkisi</h2><div class="card" id="v24StudyResult"></div>
+    <h2>Soru verimliliği</h2><div class="card v24-table" id="v24QuestionEfficiency"></div>
+
+    <h2>Zayıf konu takibi</h2>
+    <div class="card" id="weakBox"></div>
+
+    <h2>Isı haritası</h2>
+    <div class="card" id="heatBox"></div>
+
+    <h2>Nereye çalışmalıyım?</h2>
+    <div class="card" id="ngBox"></div>
+    <div class="card" id="mgBox"></div>
+  </div>
+
+  <h2>Yanlış konu defteri</h2>
+  <div class="card">
+    <div class="row2">
+      <div><label>Ders</label><select id="wtSubject" onchange="fillWrongTopicList()"></select></div>
+      <div><label>Adet</label><input type="number" id="wtCount" min="1" placeholder="1"></div>
+    </div>
+    <label>Konu</label>
+    <input type="text" id="wtTopic" list="wtTopics" placeholder="Önce ders seç, sonra konu yaz">
+    <datalist id="wtTopics"></datalist>
+    <label>Sebep</label>
+    <div class="segsel quad" id="wtKindSeg">
+      <button id="wk_" class="on" onclick="setWrongKind('')">Belirtme</button>
+      <button id="wk_bilmiyordum" onclick="setWrongKind('bilmiyordum')">Bilmiyordum</button>
+      <button id="wk_dikkat" onclick="setWrongKind('dikkat')">Dikkat</button>
+      <button id="wk_sure" onclick="setWrongKind('sure')">Süre</button>
+    </div>
+    <button class="btn green small" style="width:100%;margin-top:16px;" onclick="addWrong()">Yanlışı ekle</button>
+  </div>
+  <div class="card" id="wtBox"></div>
+  <div class="card">
+    <p class="eyebrow">Yanlış sebepleri (son 60 gün)</p>
+    <div id="wkBox" style="margin-top:10px;"></div>
+  </div>
+
+  <h2>Deneme günü</h2>
+  <div class="card">
+    <label>Deneme günü</label>
+    <select id="denemeGun" onchange="setDenemeGun()">
+      <option value="0">Pazartesi</option><option value="1">Salı</option>
+      <option value="2">Çarşamba</option><option value="3">Perşembe</option>
+      <option value="4">Cuma</option><option value="5">Cumartesi</option>
+      <option value="6">Pazar</option><option value="7">Belirleme</option>
+    </select>
+    <div id="dgBox" style="margin-top:14px;"></div>
+  </div>
+
+  <button class="foldhead" id="fh_arsiv" onclick="toggleFold('arsiv')">
+    <span class="ft">Yanlış soru arşivi</span>
+    <span class="fi"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
+  </button>
+  <div class="foldbody" id="fb_arsiv">
+    <div class="card">
+      <input type="file" id="qaFile" accept="image/*" capture="environment" style="display:none" onchange="qaPickFile(this)">
+      <button class="btn ghost small" style="width:100%;" onclick="document.getElementById('qaFile').click()">Sorunun fotoğrafını çek / seç</button>
+      <div class="qapreview" id="qaPreview" style="display:none;"></div>
+      <div class="row2" style="margin-top:12px;">
+        <div><label>Ders</label><select id="qaSubject" onchange="fillTopicDatalist('qaSubject','qaTopics')"></select></div>
+        <div><label>Konu</label><input type="text" id="qaTopic" list="qaTopics" placeholder="İsteğe bağlı"></div>
+      </div>
+      <datalist id="qaTopics"></datalist>
+      <label>Not</label>
+      <input type="text" id="qaNote" placeholder="Neden yanlış yaptın? Tek cümle.">
+      <button class="btn green small" id="qaSaveBtn" style="width:100%;margin-top:14px;" disabled onclick="qaAdd()">Arşive ekle</button>
+      <p class="hint">Konu yazarsan yanlış defterine de işlenir ve o konunun güven puanı düşer. Fotoğraflar cihazda küçültülerek saklanır.</p>
+    </div>
+    <div class="card">
+      <div class="row2">
+        <div><select id="qaFilter" onchange="renderQbank()"><option value="">Tüm dersler</option></select></div>
+        <div><select id="qaOnly" onchange="renderQbank()">
+          <option value="acik">Açık olanlar</option>
+          <option value="cozdum">Çözdüklerim</option>
+          <option value="hepsi">Hepsi</option>
+        </select></div>
+      </div>
+      <p class="hint" id="qaStats" style="margin:12px 0 0;"></p>
+      <button class="btn ghost small" style="width:100%;margin-top:12px;" onclick="qaReviewMode()">Sınav öncesi tekrar (karışık)</button>
+      <div class="qagrid" id="qaGrid" style="margin-top:14px;"></div>
+    </div>
+  </div>
+
+  <button class="foldhead" id="fh_gecmis" onclick="toggleFold('gecmis')">
+    <span class="ft">Geçmiş denemeler ve notlar</span>
+    <span class="fi"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
+  </button>
+  <div class="foldbody" id="fb_gecmis">
+    <div class="card" id="denemeHistory"></div>
+    <div class="card" id="reflList"></div>
+  </div>
+</section>
+
+<!-- ============================== ODAK ============================== -->
+<section id="pomo" class="screen">
+  <div class="seg">
+    <button id="segPomo" class="on" onclick="setFocusMode('pomo')">Sayaç</button>
+    <button id="segStop" onclick="setFocusMode('sw')">Kronometre</button>
+  </div>
+
+  <div class="v29-focus-dashboard" id="v29Dashboard"></div>
+
+  <section class="card v317-garden" id="v317Garden" aria-label="Odak Bahçesi">
+    <div class="v317-garden-head">
+      <div>
+        <p class="eyebrow" style="margin:0">Odak Bahçesi</p>
+        <h2>Çalıştıkça büyüyen bahçen</h2>
+        <p class="hint">10+ dakika tamamlanan her odak oturumu bir bitki büyütür. Kesintisiz ve kaliteli oturumlar daha çok yaprak kazandırır.</p>
+      </div>
+      <div class="v317-level-pill"><span>Bahçe seviyesi</span><b id="v317GardenLevel">Tohum</b></div>
+    </div>
+    <div class="v317-garden-layout">
+      <div class="v317-plot" id="v317GardenPlot">
+        <div class="v317-plot-sun" aria-hidden="true"></div>
+        <div class="v319-garden-decor" id="v319GardenDecor" aria-hidden="true"></div>
+        <div class="v317-plants" id="v317GardenPlants"></div>
+        <div class="v317-ground" aria-hidden="true"></div>
+        <div class="v317-garden-empty" id="v317GardenEmpty">İlk 10+ dakikalık tamamlanmış oturumunda burada ilk filizin çıkacak 🌱</div>
+      </div>
+      <div class="v317-reward-panel">
+        <div class="v317-reward-kpis">
+          <div><b id="v317Leaves">0</b><span>yaprak</span></div>
+          <div><b id="v317Trees">0</b><span>bitki</span></div>
+          <div><b id="v317GardenStreak">0</b><span>gün serisi</span></div>
+        </div>
+        <div class="v317-next-head"><span id="v317NextReward">İlk seviye hazırlanıyor</span><b id="v317NextPct">0%</b></div>
+        <div class="v317-levelbar"><i id="v317LevelBar"></i></div>
+        <div class="v317-unlocks" id="v317Unlocks"></div>
+        <p class="v317-reward-note" id="v317RewardNote">Bitki türü oturum sürene göre değişir; 90+ odak puanı ve sıfır kesinti özel bir ağaç verir.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="card flat v29-session-setup">
+    <div class="v29-setup-head"><div><p class="eyebrow" style="margin:0">Oturumu hazırla</p><p class="hint" style="margin:4px 0 0">Ders, konu ve çıktıyı seç; süre kadar ne ürettiğini de takip et.</p></div><button class="btn ghost tiny" onclick="v29ToggleMinimal()">Minimal mod</button></div>
+    <p class="eyebrow" style="margin-top:14px">Ders</p>
+    <div class="chips" id="pomoSubjPick"></div>
+    <select id="pomoTopic" onchange="setPomoTopic(this.value)" aria-label="Konu seç"></select>
+    <select id="pomoTask" onchange="setPomoTask(this.value)"></select>
+    <div class="row2 v29-goal-fields">
+      <div><label>Oturum amacı</label><input type="text" id="v29GoalText" maxlength="140" placeholder="Örn. Problemler karışık test" oninput="v29SetGoal(this.value)"></div>
+      <div><label>Soru hedefi</label><input type="number" id="v29GoalQ" min="0" max="1000" placeholder="30" oninput="v29SetGoalQ(this.value)"></div>
+    </div>
+    <p class="v29-setup-line" id="v29SetupLine"></p>
+  </div>
+
+  <div id="focusPomo">
+  <div class="focuscard" id="focusCard" data-phase="work" data-run="idle">
+    <div class="fcglow"></div>
+
+    <div class="fchead">
+      <span class="phasepill" id="pomoMode">Çalışma</span>
+      <span class="fcends" id="pomoEnds"></span>
+    </div>
+
+    <div class="pomo-ring">
+      <svg width="228" height="228" viewBox="0 0 228 228">
+        <circle class="rtrack" cx="114" cy="114" r="92" fill="none" stroke-width="13"/>
+        <circle id="pomoRing" class="rprog" cx="114" cy="114" r="92" fill="none" stroke-width="13"
+          stroke-linecap="round" stroke-dasharray="578" stroke-dashoffset="0"
+          transform="rotate(-90 114 114)" filter="url(#ringGlow)"/>
+        <circle id="pomoDot" class="rdot" cx="114" cy="22" r="6"/>
+        <text id="pomoTime" x="114" y="126" text-anchor="middle" font-size="50" font-weight="700"
+          letter-spacing="-3" fill="var(--ink)" font-family="-apple-system,sans-serif">25:00</text>
+      </svg>
+    </div>
+
+    <div class="dots" id="pomoDots"></div>
+    <p class="cyclenote" id="pomoCycle"></p>
+
+    <div class="fcctl">
+      <button class="ctlbtn" onclick="resetPomo()" aria-label="Sıfırla">
+        <svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 109-9 9 9 0 00-6.4 2.6L3 8"/><path d="M3 3v5h5"/></svg>
+      </button>
+      <button class="playbtn" id="pomoStartBtn" onclick="togglePomo()">
+        <svg id="pomoBtnIcon" viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z"/></svg>
+        <span id="pomoBtnLabel">Başlat</span>
+      </button>
+      <button class="ctlbtn" onclick="skipPhase()" aria-label="Aşamayı atla">
+        <svg viewBox="0 0 24 24"><path d="M5 5.5v13l10-6.5z"/><path d="M18 5v14"/></svg>
+      </button>
+    </div>
+
+    <div class="askbox col" id="pauseBox" style="display:none;">
+      <span>Neden ara verdin?</span>
+      <div class="v29-reason-grid">
+        <button class="btn ghost tiny" onclick="setPauseReason('phone')">📱 Telefon</button>
+        <button class="btn ghost tiny" onclick="setPauseReason('attention')">↯ Dikkat dağıldı</button>
+        <button class="btn ghost tiny" onclick="setPauseReason('need')">☕ İhtiyaç</button>
+        <button class="btn ghost tiny" onclick="setPauseReason('other')">… Diğer</button>
+        <button class="btn ghost tiny" onclick="setPauseReason('break')">Normal ara</button>
+      </div>
+    </div>
+    <div class="askbox col v29-finish-box" id="noteBox" style="display:none;">
+      <span>Oturumu kapat</span>
+      <div class="row2">
+        <div><label>Çözülen soru</label><input type="number" id="v29ActualQ" min="0" max="1000" placeholder="0"></div>
+        <div><label>Odak kalitesi</label><select id="v29Quality"><option value="0">Seçmedim</option><option value="2">Dağınık</option><option value="3">Orta</option><option value="4">İyi</option><option value="5">Çok iyi</option></select></div>
+      </div>
+      <input type="text" id="noteInput" maxlength="140" placeholder="Tek cümle not · isteğe bağlı">
+      <p class="v29-finish-preview" id="v29FinishPreview"></p>
+      <div class="row2">
+        <button class="btn green small" onclick="saveSessionNote()">Kaydet</button>
+        <button class="btn ghost small" onclick="v29SkipSessionReview()">Geç</button>
+      </div>
+    </div>
+
+    <div class="quickwrap" id="quickWrap">
+      <div class="quickhead">
+        <span id="quickLabel">Çalışma süresi</span>
+        <span class="qadj">
+          <button class="qstep" onclick="adjustPhaseMin(-5)" aria-label="5 dakika azalt">−5</button>
+          <button class="qstep" onclick="adjustPhaseMin(5)" aria-label="5 dakika artır">+5</button>
+        </span>
+      </div>
+      <div class="quickmins" id="quickMins"></div>
+    </div>
+
+    <div id="goalWrap" style="display:none;">
+      <div class="goalrow">
+        <div class="bar"><i id="goalBar" style="width:0%"></i></div>
+      </div>
+      <p class="hint" id="goalTxt"></p>
+    </div>
+  </div>
+
+  </div><!-- /focusPomo -->
+
+  <div id="focusStop" style="display:none;">
+    <div class="focuscard" id="swCard" data-phase="stop" data-run="idle">
+      <div class="fcglow"></div>
+      <div class="fchead">
+        <span class="phasepill">Kronometre</span>
+        <span class="fcends" id="swInfo"></span>
+      </div>
+      <div class="swface">
+        <div class="swmain"><span id="swTime">00:00</span><span class="swcs" id="swCs">.00</span></div>
+      </div>
+      <p class="cyclenote">Geçen süre dakikası doldukça bugünün çalışmasına yazılır.</p>
+      <div class="fcctl">
+        <button class="ctlbtn" onclick="swReset()" aria-label="Sıfırla">
+          <svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 109-9 9 9 0 00-6.4 2.6L3 8"/><path d="M3 3v5h5"/></svg>
+        </button>
+        <button class="playbtn" id="swStartBtn" onclick="swToggle()">
+          <svg id="swBtnIcon" viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z"/></svg>
+          <span id="swBtnLabel">Başlat</span>
+        </button>
+        <button class="ctlbtn" onclick="swLap()" aria-label="Tur al">
+          <svg viewBox="0 0 24 24"><path d="M12 3v9l6 3"/><circle cx="12" cy="12" r="9"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <h2>Turlar</h2>
+    <div class="card" id="swLaps"></div>
+
+    <h2>Kronometre geçmişi</h2>
+    <div class="card" id="swHistory"></div>
+    <button class="btn ghost tiny" style="width:100%;margin-top:-2px;margin-bottom:10px;" onclick="clearSwHistory()">Kronometre geçmişini temizle</button>
+  </div>
+
+
+  <div class="stats">
+    <div class="stat"><div class="v" id="pomoTodayMin">0</div><div class="t">dakika bugün</div></div>
+    <div class="stat"><div class="v" id="pomoPause">0</div><div class="t">bölünme</div></div>
+    <div class="stat"><div class="v" id="pomoTotalAll">0</div><div class="t">saat toplam</div></div>
+  </div>
+
+  <p class="hint" id="pauseStat" style="text-align:center;margin:-4px 0 12px;"></p>
+
+  <h2>Bugünün oturumları</h2>
+  <div class="card" id="sessionList"></div>
+
+  <h2>Gün sonu özeti</h2>
+  <div class="card" id="v29DaySummary"></div>
+
+  <button class="foldhead" id="fh_odak2" onclick="toggleFold('odak2')">
+    <span class="ft">Odak geçmişi ve analiz</span>
+    <span class="fi"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
+  </button>
+  <div class="foldbody" id="fb_odak2">
+    <h2>Odak zaman çizelgesi</h2><div class="card" id="v29Timeline"></div>
+    <h2>Birleşik oturum geçmişi</h2><div class="card" id="v29UnifiedHistory"></div>
+    <h2>Ders ve konu süreleri</h2>
+    <div class="seg tri v29-period"><button id="v29Pd1" class="on" onclick="v29SetPeriod(1)">Bugün</button><button id="v29Pd7" onclick="v29SetPeriod(7)">Bu hafta</button><button id="v29Pd30" onclick="v29SetPeriod(30)">Bu ay</button></div>
+    <div class="card" id="v29SubjectTopic"></div>
+    <h2>En verimli saatler</h2><div class="card" id="v29ProductiveHours"></div>
+    <h2>Oturum uzunluğu karşılaştırması</h2><div class="card" id="v29LengthCompare"></div>
+    <h2>Odak serileri</h2><div class="card" id="v29Streaks"></div>
+  </div>
+
+  <h2>Nefes egzersizi</h2>
+  <div class="card">
+    <p class="lead" style="font-size:14.5px;margin:0 0 12px;">Deneme öncesi ya da tıkandığında iki dakika. Dörtlü ritim: al · tut · ver · tut.</p>
+    <div class="rowtools" style="margin:0;">
+      <button class="btn ghost tiny" onclick="startBreath(60)">1 dakika</button>
+      <button class="btn ghost tiny" onclick="startBreath(120)">2 dakika</button>
+      <button class="btn ghost tiny" onclick="startBreath(300)">5 dakika</button>
+    </div>
+  </div>
+
+  <h2>Sınav simülasyonu</h2>
+  <div class="card">
+    <p class="lead" style="font-size:14.5px;margin:0 0 14px;">Gerçek sınav süresiyle tam ekran geri sayım.</p>
+    <div class="rowtools" style="margin:0 0 12px;">
+      <button class="btn ghost tiny" onclick="startSim(165)">TYT · 165 dk</button>
+      <button class="btn ghost tiny" onclick="startSim(180)">AYT · 180 dk</button>
+      <button class="btn ghost tiny" onclick="startSim(80)">YDT · 80 dk</button>
+    </div>
+    <div class="row2">
+      <div><label>Özel süre (dk)</label><input type="number" id="simMin" min="1" placeholder="165"></div>
+      <div style="display:flex;align-items:flex-end;"><button class="btn green small" style="width:100%;" onclick="simCustom()">Başlat</button></div>
+    </div>
+    <p class="hint">TYT, AYT ve YDT sürelerinde bölüm bölüm süre takibi yapılır: her bölümün süresi dolunca uyarı verir. Özel sürelerde tek geri sayım çalışır.</p>
+  </div>
+
+  <button class="foldhead" id="fh_odakayar" onclick="toggleFold('odakayar')">
+    <span class="ft">Odak ayarları</span>
+    <span class="fi"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
+  </button>
+  <div class="foldbody" id="fb_odakayar">
+    <div class="card">
+      <div class="row2">
+        <div><label>Çalışma (dk)</label><input type="number" id="workMin" value="25" min="1" onchange="applyPomoSettings()"></div>
+        <div><label>Mola (dk)</label><input type="number" id="breakMin" value="5" min="1" onchange="applyPomoSettings()"></div>
+      </div>
+      <div class="row2">
+        <div><label>Uzun mola (dk)</label><input type="number" id="longBreak" value="15" min="1" onchange="applyPomoSettings()"></div>
+        <div><label>Kaç turda bir</label><input type="number" id="cycleCount" value="4" min="2" max="12" onchange="applyPomoSettings()"></div>
+      </div>
+      <label>Günlük odak hedefi (dk · 0 = kapalı)</label>
+      <input type="number" id="focusGoal" min="0" placeholder="180" onchange="applyPomoSettings()">
+      <div class="switch"><span>Aşama bitince kendiliğinden devam et</span><div class="tg" id="autoNextToggle" onclick="toggleAutoNext()"></div></div>
+      <div class="switch"><span>Çalışırken ekran kapanmasın</span><div class="tg" id="keepAwakeToggle" onclick="toggleKeepAwake()"></div></div>
+      <p class="hint">Ekranı açık tutma, destekleyen tarayıcılarda çalışır. Sayaç arka planda da doğru ilerler.</p>
+    </div>
+    <div class="card">
+      <div class="switch"><span>Bitiş sesi</span><div class="tg" id="soundToggle" onclick="toggleSound()"></div></div>
+      <p class="eyebrow" style="margin:10px 0 8px;">Odak sesi</p>
+      <div class="seg tri">
+        <button id="fs_none" class="on" onclick="setFocusSound('none')">Kapalı</button>
+        <button id="fs_white" onclick="setFocusSound('white')">Beyaz</button>
+        <button id="fs_brown" onclick="setFocusSound('brown')">Yağmur</button>
+      </div>
+      <p class="hint">Sesler cihazda üretilir, internet gerekmez.</p>
+    </div>
+  </div>
+
+  <h2>Derse göre zaman</h2>
+  <div class="card">
+    <label>Aralık</label>
+    <select id="tdRange" onchange="renderTimeDist()">
+      <option value="7">Son 7 gün</option>
+      <option value="14">Son 14 gün</option>
+      <option value="30">Son 30 gün</option>
+      <option value="90">Son 90 gün</option>
+    </select>
+    <div id="timeDist" style="margin-top:16px;"></div>
+  </div>
+</section>
+
+<div class="v29-minimal-overlay" id="v29MinimalOverlay" aria-hidden="true">
+  <div class="v29-minimal-top"><div><b id="v29MinimalSubject">Odak</b><span id="v29MinimalGoal"></span></div><button class="btn ghost tiny" onclick="v29ToggleMinimal(false)">Çık</button></div>
+  <div class="v29-minimal-clock" id="v29MinimalClock">25:00</div>
+  <p id="v29MinimalState">Hazır</p>
+  <div class="v29-minimal-actions"><button class="btn green" id="v29MinimalToggle" onclick="v29MinimalToggleTimer()">Başlat</button><button class="btn ghost" onclick="v29QuickBreak()">Hızlı ara</button></div>
+</div>
+
+<!-- ============================== TAKTİKLER ============================== -->
+<section id="more" class="screen v30-more-screen">
+  <div class="v30-more-title">
+    <div><h1>Daha</h1><p class="lead">Yardımcı araçlar, geçmiş, ayarlar ve veri yönetimi tek merkezde.</p></div>
+    <button class="btn ghost tiny" type="button" onclick="v30RenderHome()">Yenile</button>
+  </div>
+
+  <div class="card flat v30-search-card">
+    <div class="row2">
+      <input type="search" id="gsInput" placeholder="Her şeyde ara — konu, deneme, plan, not" oninput="runSearch()">
+      <button class="btn ghost small" style="flex:0 0 auto;" onclick="document.getElementById('gsInput').value='';runSearch()">Temizle</button>
+    </div>
+    <div id="gsBox" style="margin-top:12px;"></div>
+  </div>
+
+  <div id="v30MoreHome">
+    <div class="v30-status" id="v30MoreStatus"></div>
+
+    <h2>Sık kullandıkların</h2>
+    <div class="v30-quick-grid" id="v30QuickGrid"></div>
+
+    <h2>Kütüphane ve çalışma</h2>
+    <div class="v30-menu-grid">
+      <button class="v30-menu-card" type="button" onclick="v30Action('resources')"><span class="v30-menu-ico">▤</span><span><b>Kaynaklar & videolar</b><small>Kitaplar, hocalar, oynatma listeleri ve izleme geçmişi</small></span><i>›</i></button>
+      <button class="v30-menu-card" type="button" onclick="v30Action('tactics')"><span class="v30-menu-ico">◎</span><span><b>Taktikler</b><small>Sana uyan taktikler ve tahmin hesaplayıcısı</small></span><i>›</i></button>
+      <button class="v30-menu-card" type="button" onclick="v30Action('archive')"><span class="v30-menu-ico">▣</span><span><b>Yanlış soru arşivi</b><small>Fotoğraflı sorularını aç, filtrele ve tekrar et</small></span><i>›</i></button>
+    </div>
+
+    <h2>Geçmiş ve başarı</h2>
+    <div class="v30-menu-grid">
+      <button class="v30-menu-card" type="button" onclick="v30Action('reports')"><span class="v30-menu-ico">↗</span><span><b>Raporlar & geçmiş</b><small>Ay raporu, retrospektif ve çalışma geçmişi</small></span><i>›</i></button>
+      <button class="v30-menu-card" type="button" onclick="v30Action('success')"><span class="v30-menu-ico">◇</span><span><b>Rozetler & rekorlar</b><small>Haftalık karne, kilometre taşları ve başarıların</small></span><i>›</i></button>
+      <button class="v30-menu-card" type="button" onclick="v30Action('log')"><span class="v30-menu-ico">≡</span><span><b>Değişiklik günlüğü</b><small>Son ekleme ve silmeleri gör, uygun olanları geri al</small></span><i>›</i></button>
+    </div>
+
+    <h2>Uygulama</h2>
+    <div class="v30-menu-grid">
+      <button class="v30-menu-card" type="button" onclick="v30Action('settings')"><span class="v30-menu-ico">⚙</span><span><b>Ayarlar</b><small>Görünüm, hedefler, bildirimler ve video seçenekleri</small></span><i>›</i></button>
+      <button class="v30-menu-card" type="button" onclick="v30Action('data')"><span class="v30-menu-ico">⇅</span><span><b>Veri & senkron</b><small>Bulut durumu, JSON yedekleri, CSV ve ham veri</small></span><i>›</i></button>
+      <button class="v30-menu-card" type="button" onclick="v30Action('system')"><span class="v30-menu-ico">✓</span><span><b>Sistem durumu</b><small>PWA, depolama, veri şeması ve otomatik kontroller</small></span><i>›</i></button>
+      <button class="v30-menu-card" type="button" onclick="v30Action('about')"><span class="v30-menu-ico">i</span><span><b>Hakkında</b><small>Sürüm, geliştirici ve uygulama bilgileri</small></span><i>›</i></button>
+    </div>
+  </div>
+
+  <div id="mrp_kay" style="display:none;">
+    <div class="v30-subhead"><button class="v30-back" type="button" onclick="setMoreTab('home')">‹ Daha</button><div><h1>Kaynaklar</h1><p>Kitaplar, videolar ve hocalar</p></div></div>
+    <div class="card">
+      <p class="eyebrow">Yeni kaynak</p>
+      <label>Ad</label><input type="text" id="bkName" placeholder="Örn. Palme TYT Matematik">
+      <div class="row2">
+        <div><label>Ders</label><select id="bkSubject"></select></div>
+        <div><label>Toplam test</label><input type="number" id="bkTotal" min="1" placeholder="40"></div>
+      </div>
+      <button class="btn green small" style="width:100%;margin-top:16px;" onclick="addBook()">Kaynağı ekle</button>
+    </div>
+    <div class="card" id="bookList"></div>
+  
+    <h2>Videolar ve hocalar</h2>
+  <div class="card">
+    <p class="eyebrow">Anahtarsız oynatma listesi</p>
+    <p class="lead" style="font-size:14.5px;margin:0 0 12px;">YouTube oynatma listesi bağlantısını yapıştır. Listeyi uygulama içinde izleyebilir veya haftalık programına ekleyebilirsin; API anahtarı gerekmez.</p>
+    <label>Oynatma listesi bağlantısı</label>
+    <input type="url" id="directPlaylistUrl" placeholder="https://www.youtube.com/playlist?list=PL...">
+    <label>Programda görünecek ad</label>
+    <input type="text" id="directPlaylistName" maxlength="80" placeholder="Örn. TYT Matematik kampı">
+    <div class="row2" style="margin-top:14px;">
+      <button class="btn green small" onclick="openDirectPlaylist()">Uygulamada izle</button>
+      <button class="btn ghost small" onclick="planDirectPlaylist()">Programa ekle</button>
+    </div>
+    <p class="hint" id="directPlaylistHint">Bağlantının içinde <b>list=PL…</b> bölümü bulunmalıdır.</p>
+  </div>
+<div class="card flat">
+    <p class="lead" style="font-size:14.5px;margin:0 0 10px;">Ders ve seviyeye göre YouTube hocaları. Bir isme dokunduğunda o hocanın videolarını YouTube'da açan düğmeler çıkar.</p>
+    <input type="search" id="thSearch" placeholder="Hoca ara" oninput="v31TeacherSearch()">
+    <div class="chips" id="thSubjChips" style="margin-top:12px;"></div>
+    <div class="chips" id="thLvlChips"></div>
+    <p class="hint" id="thInfo" style="margin:0;"></p>
+  </div>
+
+  <div id="thList"></div>
+
+  <h2>Konuya göre video ara</h2>
+  <div class="card">
+    <div class="row2">
+      <div><label>Ders</label><select id="tvSubject" onchange="fillTopicDatalist('tvSubject','tvTopics')"></select></div>
+      <div><label>Konu</label><input type="text" id="tvTopic" list="tvTopics" placeholder="İsteğe bağlı"></div>
+    </div>
+    <datalist id="tvTopics"></datalist>
+    <div class="rowtools" style="margin:14px 0 0;">
+      <button class="btn ghost tiny" onclick="searchTopicVideo('konu')">Konu anlatımı</button>
+      <button class="btn ghost tiny" onclick="searchTopicVideo('soru')">Soru çözümü</button>
+      <button class="btn ghost tiny" onclick="searchTopicVideo('ozet')">Hızlı tekrar</button>
+    </div>
+  </div>
+
+  <h2>Şunu izlemen iyi olur</h2>
+  <div class="card" id="tvSuggest"></div>
+
+  <h2>İzlediklerim<span class="cnt" id="watchCount"></span></h2>
+  <div class="card" id="watchList"></div>
+
+  <h2>İzleme geçmişi</h2>
+  <div class="card" id="wsBox"></div>
+
+  <button class="foldhead" id="fh_hocaekle" onclick="toggleFold('hocaekle')">
+    <span class="ft">Kendi hocanı ekle</span>
+    <span class="fi"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
+  </button>
+  <div class="foldbody" id="fb_hocaekle">
+    <div class="card">
+      <label>Hoca ya da kanal adı</label>
+      <input type="text" id="thName" placeholder="Örn. Ali Hoca Matematik">
+      <div class="row2">
+        <div><label>Ders</label><select id="thSubject"></select></div>
+        <div><label>Seviye</label><select id="thLevel">
+          <option value="baslangic">Başlangıç</option>
+          <option value="orta">Orta</option>
+          <option value="ileri">İleri</option>
+          <option value="hepsi" selected>Her seviye</option>
+        </select></div>
+      </div>
+      <label>Not</label>
+      <input type="text" id="thNote" placeholder="Neden iyi? Tek cümle.">
+      <button class="btn green small" style="width:100%;margin-top:14px;" onclick="addTeacher()">Listeye ekle</button>
+    </div>
+  </div>
+
+  <p class="note">Bağlantısını bildiğin oynatma listeleri yukarıdaki anahtarsız alanla doğrudan izlenebilir. Hoca veya konu adına göre YouTube içinde otomatik arama yapmak için Ayarlar'daki <b>Uygulama içi video</b> bölümüne kendi API anahtarını girebilirsin; girmezsen arama düğmeleri YouTube'u açar.<br><br>Hoca listesi öneri niteliğindedir, eksiksiz değildir ve bir onay anlamına gelmez.</p>
+  </div>
+
+  <div id="mrp_tak" style="display:none;">
+    <div class="v30-subhead"><button class="v30-back" type="button" onclick="setMoreTab('home')">‹ Daha</button><div><h1>Taktikler</h1><p>Çalışma ve sınav stratejileri</p></div></div>
+<h2>Sana şu an uyanlar</h2>
+  <div id="tacHot"></div>
+
+  <h2>Tahmin hesaplayıcısı</h2>
+  <div class="card">
+    <p class="eyebrow">Kaç şık eleyebiliyorsun?</p>
+    <div class="chips" id="guessChips"></div>
+    <label>Kaç soruda</label>
+    <input type="number" id="guessCount" min="1" value="20" oninput="renderGuess()">
+    <div id="guessBox" style="margin-top:14px;"></div>
+  </div>
+
+  <h2>Tüm taktikler</h2>
+  <div class="chips" id="tacCats"></div>
+  <div id="tacList"></div>
+  <p class="note">Bir taktiğe dokunarak açabilirsin. Üstteki bölüm, senin deneme ve çalışma verine göre şu an en çok işine yarayacakları öne çıkarır.</p>
+  </div>
+
+  <div id="mrp_roz" style="display:none;">
+    <div class="v30-subhead"><button class="v30-back" type="button" onclick="setMoreTab('home')">‹ Daha</button><div><h1>Geçmiş & başarı</h1><p>Karne, kilometre taşları ve rozetler</p></div></div>
+    <h2>Haftalık karne</h2>
+    <div class="card">
+      <div class="calnav">
+        <button onclick="shiftKarne(-1)" aria-label="Önceki hafta">‹</button>
+        <span class="mo" id="karneLabel"></span>
+        <button id="karneNext" onclick="shiftKarne(1)" aria-label="Sonraki hafta">›</button>
+      </div>
+      <div id="karneBox" style="margin-top:10px;"></div>
+    </div>
+
+    <h2>Haftalık ısınma</h2>
+    <div class="card" id="rampBox"></div>
+
+    <h2>Verim saati</h2>
+    <div class="card" id="hourBox"></div>
+
+    <h2>Güne başlama saati</h2>
+    <div class="card" id="stBox"></div>
+
+    <h2>Kilometre taşları</h2>
+    <div class="card" id="msBox"></div>
+
+    <h2>Geçen seneki sen</h2>
+    <div class="card" id="lyBox"></div>
+
+    <h2>Başarı & ödül merkezi</h2>
+    <section class="card v319-reward-center" id="v319RewardCenter">
+      <div class="v319-level-head">
+        <div><span class="v319-kicker">Toplam seviye</span><b id="v319LevelTitle">Seviye 1 · Başlangıç</b><small id="v319LevelSub">0 XP</small></div>
+        <div class="v319-level-orb" id="v319LevelOrb"><b id="v319LevelNo">1</b><span>seviye</span></div>
+      </div>
+      <div class="v319-xp-line"><span id="v319XpNow">0 XP</span><span id="v319XpNext">Sonraki seviye</span></div>
+      <div class="v319-xp-bar big"><i id="v319XpBar"></i></div>
+      <div class="v319-reward-breakdown" id="v319RewardBreakdown"></div>
+    </section>
+
+    <h2>365 günlük çalışma haritası</h2>
+    <section class="card v319-year-card">
+      <div class="v319-year-head"><div><b>Çalışma ısı haritası</b><small>Odak süresi + soru sayısı</small></div><div id="v319YearStats"></div></div>
+      <div class="v319-year-scroll"><div class="v319-year-heat" id="v319YearHeat" aria-label="Son 365 gün çalışma ısı haritası"></div></div>
+      <div class="v319-heat-legend"><span>Az</span><i class="l0"></i><i class="l1"></i><i class="l2"></i><i class="l3"></i><i class="l4"></i><span>Çok</span></div>
+    </section>
+
+    <h2>Bahçe dekorasyonları</h2>
+    <section class="card v319-decor-card" id="v319Decorations"></section>
+
+
+    <h2>Başarı rozetleri</h2>
+    <div class="card" id="badgeList"></div>
+  </div>
+
+  <div id="mrp_veri" style="display:none;">
+    <div class="v30-subhead"><button class="v30-back" type="button" onclick="setMoreTab('home')">‹ Daha</button><div><h1>Veri & sistem</h1><p>Yedek, senkron, rapor ve sistem sağlığı</p></div></div>
+    <div class="card" id="v30DataTop">
+      <p class="eyebrow">Veri, yedek ve senkron</p>
+      <div id="v30DataSyncSummary"></div>
+      <p class="lead" style="margin:12px 0 12px;font-size:14.5px;">Verilerin cihazda tutulur; Google ile giriş yaptıysan Firebase ile de eşitlenir. JSON yedeği ise bunlardan bağımsız geri dönüş güvencesidir.</p>
+      <p class="hint" id="lastBackup" style="margin:0 0 14px;"></p>
+      <button class="btn ghost small" style="width:100%;margin-bottom:9px;" onclick="exportData()">JSON yedek al</button>
+      <div class="rowtools" style="margin:0 0 9px;">
+        <button class="btn ghost tiny" onclick="exportCSV('gun')">Günlük CSV</button>
+        <button class="btn ghost tiny" onclick="exportCSV('deneme')">Deneme CSV</button>
+        <button class="btn ghost tiny" onclick="exportCSV('konu')">Konu CSV</button>
+      </div>
+      <button class="btn ghost small" style="width:100%;margin-bottom:9px;" onclick="document.getElementById('importFile').click()">Yedekten geri yükle</button>
+      <input type="file" id="importFile" accept="application/json" style="display:none" onchange="importData(this)">
+      <button class="btn red small" style="width:100%;" onclick="resetAll()">Tüm verileri sıfırla</button>
+    </div>
+
+    <h2>Ay raporu</h2>
+    <div class="card">
+      <div class="calnav">
+        <button onclick="shiftReport(-1)" aria-label="Önceki ay">‹</button>
+        <span class="mo" id="repMonth"></span>
+        <button onclick="shiftReport(1)" aria-label="Sonraki ay">›</button>
+      </div>
+      <div id="monthReportBox" style="margin-top:10px;"></div>
+    </div>
+
+    <h2>Otomatik yedek</h2>
+    <div class="card" id="abBox"></div>
+
+    <h2>Ay sonu retrospektifi</h2>
+    <div class="card">
+      <div class="calnav">
+        <button onclick="shiftRetro(-1)" aria-label="Önceki ay">‹</button>
+        <span class="mo" id="retroMonth"></span>
+        <button onclick="shiftRetro(1)" aria-label="Sonraki ay">›</button>
+      </div>
+      <div id="retroBox" style="margin-top:10px;"></div>
+    </div>
+
+    <h2>Değişiklik günlüğü</h2>
+    <div class="card flat">
+      <p class="lead" style="font-size:14.5px;margin:0 0 10px;">Silme ve ekleme işlemleri burada tutulur. Ortak kullanımda karşı taraftan gelen bir silmeyi buradan geri alabilirsin.</p>
+      <div class="chips" id="logChips"></div>
+      <div id="logBox" style="margin-top:10px;"></div>
+      <button class="btn ghost tiny" style="width:100%;margin-top:12px;" onclick="clearLog()">Günlüğü temizle</button>
+    </div>
+
+    <h2>Tutarlılık kontrolü</h2>
+    <div class="card" id="consBox"></div>
+
+    <h2>Sistem sağlığı</h2>
+    <div class="card" id="infraBox"></div>
+    <div class="card" id="v2DiagBox" style="display:none;margin-top:10px;"></div>
+
+    <h2>Ham veri</h2>
+    <div class="card" id="dataBox"></div>
+    <p class="note">Buradaki sayıları doğrudan düzeltebilirsin.</p>
+  </div>
+
+  <div id="mrp_ayar" style="display:none;">
+    <div class="v30-subhead"><button class="v30-back" type="button" onclick="setMoreTab('home')">‹ Daha</button><div><h1>Ayarlar</h1><p>Görünüm, hedefler ve uygulama seçenekleri</p></div></div>
+    <div class="card">
+      <p class="eyebrow">Görünüm</p>
+      <div class="theme-grid" id="themeGrid">
+        <button class="theme-card" id="thAuto" onclick="setTheme('auto')" type="button">
+          <span class="theme-swatch sw-system"><i></i><i></i></span>
+          <span><b>Sistem</b><small>Cihaza uyum sağlar</small></span>
+        </button>
+        <button class="theme-card" id="thPaper" onclick="setTheme('paper')" type="button">
+          <span class="theme-swatch sw-paper"><i></i><i></i></span>
+          <span><b>Defter</b><small>Sıcak ve kağıt hissi</small></span>
+        </button>
+        <button class="theme-card" id="thNight" onclick="setTheme('night')" type="button">
+          <span class="theme-swatch sw-night"><i></i><i></i></span>
+          <span><b>Gece</b><small>Loş çalışma için</small></span>
+        </button>
+        <button class="theme-card" id="thForest" onclick="setTheme('forest')" type="button">
+          <span class="theme-swatch sw-forest"><i></i><i></i></span>
+          <span><b>Orman</b><small>Sakin yeşil tonlar</small></span>
+        </button>
+        <button class="theme-card" id="thOcean" onclick="setTheme('ocean')" type="button">
+          <span class="theme-swatch sw-ocean"><i></i><i></i></span>
+          <span><b>Okyanus</b><small>Ferah mavi tonlar</small></span>
+        </button>
+        <button class="theme-card" id="thLavender" onclick="setTheme('lavender')" type="button">
+          <span class="theme-swatch sw-lavender"><i></i><i></i></span>
+          <span><b>Lavanta</b><small>Yumuşak mor tonlar</small></span>
+        </button>
+        <button class="theme-card" id="thSunset" onclick="setTheme('sunset')" type="button">
+          <span class="theme-swatch sw-sunset"><i></i><i></i></span>
+          <span><b>Günbatımı</b><small>Sıcak turuncu tonlar</small></span>
+        </button>
+        <button class="theme-card" id="thGraphite" onclick="setTheme('graphite')" type="button">
+          <span class="theme-swatch sw-graphite"><i></i><i></i></span>
+          <span><b>Grafit</b><small>Sade koyu ve nötr</small></span>
+        </button>
+      </div>
+      <p class="hint" id="themeHint"></p>
+      <p class="eyebrow" style="margin:18px 0 8px;">Yazı boyutu</p>
+      <div class="seg quad" style="margin-bottom:0;">
+        <button id="fz0" onclick="setFontScale(0.9)">Küçük</button>
+        <button id="fz1" onclick="setFontScale(1)">Normal</button>
+        <button id="fz2" onclick="setFontScale(1.15)">Büyük</button>
+        <button id="fz3" onclick="setFontScale(1.3)">Daha büyük</button>
+      </div>
+      <p class="hint" id="fzHint"></p>
+      <label>Bu cihazı kim kullanıyor</label>
+      <div class="segsel" id="roleSeg">
+        <button id="role_ogrenci" onclick="setRole('ogrenci')">Öğrenci</button>
+        <button id="role_koc" onclick="setRole('koc')">Koç</button>
+      </div>
+      <p class="hint" id="roleHint"></p>
+      <div class="switch" style="margin-top:6px;"><span>Basit görünüm</span><div class="tg" id="simpleToggle" onclick="toggleSimple()"></div></div>
+      <p class="hint" id="simpleHint"></p>
+    </div>
+
+    <div class="card">
+      <p class="eyebrow">Deneme sürüşü</p>
+      <p class="lead" style="font-size:14.5px;margin:0 0 12px;">Boş uygulamada grafikler anlam ifade etmiyor. Örnek veriyle her şeyi dolu görebilir, sonra tek dokunuşla temizleyebilirsin.</p>
+      <div class="rowtools" style="margin:0;">
+        <button class="btn ghost tiny" onclick="loadDemo()">Örnek veriyi yükle</button>
+        <button class="btn ghost tiny" onclick="clearDemo()">Örnek veriyi temizle</button>
+        <button class="btn ghost tiny" onclick="openWizard()">Kurulumu tekrar aç</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <label>Adın</label><input type="text" id="nameInput" placeholder="Adın">
+      <label>Sınav tarihi</label><input type="date" id="examDateInput">
+      <div class="row2">
+        <div><label>Günlük soru hedefi</label><input type="number" id="targetInput" min="0" placeholder="150"></div>
+        <div><label>Hedef net</label><input type="number" id="targetNetInput" min="0" step="0.25" placeholder="90"></div>
+      </div>
+      <label>OBP (0–100)</label><input type="number" id="obpInput" min="0" max="100" step="0.01" placeholder="85">
+      <label>Haftada çalışma günü</label><input type="number" id="workdaysInput" min="1" max="7" placeholder="6">
+      <button class="btn green" style="margin-top:20px;" onclick="saveSettings()">Kaydet</button>
+    </div>
+
+    <div class="card">
+      <p class="eyebrow">Uygulama içi video</p>
+      <p class="lead" style="font-size:14.5px;margin:0 0 12px;">Hoca ve konu düğmeleri, kendi YouTube Data API anahtarını girersen videoları uygulama içinde listeler. Anahtar girmezsen güvenli biçimde YouTube aramasını açar.</p>
+      <label>Kaynak</label>
+      <select id="ytSrc" onchange="saveYtKey()">
+        <option value="auto">Otomatik (anahtar varsa uygulama içinde)</option>
+        <option value="key">Kendi API anahtarım</option>
+        <option value="link">Kapalı — YouTube'da aç</option>
+      </select>
+      <label>YouTube API anahtarı</label>
+      <input type="text" id="ytKey" placeholder="AIza... (isteğe bağlı)">
+      <button class="btn ghost small" style="width:100%;margin-top:12px;" onclick="saveYtKey()">Kaydet</button>
+      <p class="hint" id="ytStatus"></p>
+      <div class="rowtools" style="margin:10px 0 0;">
+        <button class="btn ghost tiny" onclick="ytTest()">Bağlantıyı test et</button>
+        <button class="btn ghost tiny" onclick="ytCopyDiag()">Tanıyı kopyala</button>
+      </div>
+      <pre class="diag" id="ytDiag">Henüz test edilmedi.</pre>
+      <p class="hint"><b>file:// notu:</b> dosyayı doğrudan açtığında tarayıcı normal ağ isteklerini engelleyebiliyor. Uygulama bu durumu algılayıp isteği JSONP yöntemiyle gönderiyor; ek bir şey yapman gerekmez.</p>
+      <p class="hint"><b>Güvenlik:</b> API anahtarı uygulama dosyasına gömülü değildir. Kendi anahtarını girersen yalnız bu cihazda tutulur, JSON yedeğine ve bulut senkronuna eklenmez. Anahtarı Google Cloud tarafında alan adı ve API ile sınırlandırman önerilir.</p>
+    </div>
+
+    <div class="card">
+      <p class="eyebrow">Görünüm</p>
+      <div class="switch"><span>Ana ekranda günün sözü</span><div class="tg" id="sozToggle" onclick="toggleSoz()"></div></div>
+      <p class="hint">Her gün değişen kısa bir cümle. Beğenmezsen ↻ ile başkasına geçebilir, buradan tamamen kapatabilirsin.</p>
+    </div>
+
+    <div class="card">
+      <p class="eyebrow">Bildirimler</p>
+      <p class="lead" style="font-size:14.5px;margin:0 0 12px;">Pomodoro bitişi, tekrar zamanı ve akşam hatırlatması. Uygulama açıkken ya da arka planda dururken çalışır.</p>
+      <button class="btn ghost small" style="width:100%;" onclick="askNotif()">Bildirimlere izin ver</button>
+      <p class="hint" id="notifStatus" style="margin-top:10px;"></p>
+      <div class="switch"><span>Pomodoro bitişi</span><div class="tg" id="notifPomo" onclick="toggleNotif('pomo')"></div></div>
+      <div class="switch"><span>Tekrar zamanı</span><div class="tg" id="notifReview" onclick="toggleNotif('review')"></div></div>
+      <div class="switch"><span>Akşam "günü işaretle"</span><div class="tg" id="notifEvening" onclick="toggleNotif('evening')"></div></div>
+      <label>Akşam hatırlatma saati</label>
+      <div class="row2">
+        <input type="time" id="notifTime" value="21:00">
+        <button class="btn ghost small" style="flex:0 0 auto;" onclick="saveEveningAt()">Kaydet</button>
+      </div>
+      <div class="rowtools" style="margin:10px 0 0;">
+        <button class="btn ghost tiny" onclick="testNotif()">Deneme bildirimi</button>
+        <button class="btn ghost tiny" onclick="notifDiag()">Durumu yenile</button>
+      </div>
+      <pre class="diag" id="notifDiag">—</pre>
+      <p class="hint"><b>Sınır:</b> uygulama tamamen kapalıyken tarayıcı bildirim gönderemez; bunun için bir sunucu gerekir. Uygulamayı ana ekrana ekleyip arka planda bırakırsan hatırlatmalar gelir.</p>
+    </div>
+
+
+    <p class="note">YKS 2027 tarihi ÖSYM açıklayana kadar tahminî 19 Haziran 2027 kabul edilir.</p>
+  </div>
+
+  <div id="v30AboutPanel" style="display:none;">
+    <div class="v30-subhead"><button class="v30-back" type="button" onclick="setMoreTab('home')">‹ Daha</button><div><h1>Hakkında</h1><p>YKS Defterim uygulama bilgileri</p></div></div>
+    <div class="card v30-about-card">
+      <div class="v30-about-mark">YD</div>
+      <div><h2 style="margin:0 0 4px;">YKS Defterim</h2><p class="lead" style="margin:0;">Kişisel çalışma, deneme, konu, ilerleme ve odak takip uygulaması.</p></div>
+    </div>
+    <div class="card">
+      <div class="dayrow"><span class="k">Uygulama sürümü</span><span class="v" id="appVersionLabel">—</span></div>
+      <div class="dayrow"><span class="k">Kanal</span><span class="v" id="v30AboutChannel">Kararlı</span></div>
+      <div class="dayrow"><span class="k">Veri şeması</span><span class="v" id="v30AboutSchema">20</span></div>
+      <div class="dayrow"><span class="k">Geliştiren</span><span class="v">Furkan Sel</span></div>
+      <div class="dayrow"><span class="k">Telif</span><span class="v">© 2026 Furkan Sel</span></div>
+    </div>
+    <div class="card">
+      <p class="eyebrow">Veri yaklaşımı</p>
+      <p class="lead" style="font-size:14.5px;margin:0;">Ana çalışma verisi cihazda tutulur. Google ile giriş açıksa Firebase senkronu kullanılabilir; JSON yedeği ise bağımsız geri dönüş kopyasıdır.</p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============================== İLERLEME ============================== -->
+<section id="progress" class="screen">
+  <div class="progress-head">
+    <div><h1>İlerleme</h1><p class="lead">Ne kadar yol aldığını, önceki döneme göre hızını ve hedeflere yaklaşımını tek bakışta gör.</p></div>
+    <button class="btn ghost tiny" onclick="renderProgress()">Yenile</button>
+  </div>
+  <div class="seg tri" id="progressRangeSeg">
+    <button id="pr7" onclick="setProgressRange(7)">7 gün</button>
+    <button id="pr30" class="on" onclick="setProgressRange(30)">30 gün</button>
+    <button id="pr90" onclick="setProgressRange(90)">90 gün</button>
+  </div>
+  <div class="stats progress-stats">
+    <div class="stat"><div class="v" id="prMin">0</div><div class="t">çalışma</div></div>
+    <div class="stat"><div class="v" id="prQ">0</div><div class="t">soru</div></div>
+    <div class="stat"><div class="v" id="prDays">0</div><div class="t">aktif gün</div></div>
+  </div>
+
+  <div class="card v28-score-card" id="v28Score"></div>
+
+  <h2>Dönem karşılaştırması</h2><div class="card" id="progressCompare"></div>
+  <h2>Haftalık gelişim</h2><div class="card" id="v28Weekly"></div>
+  <h2>Ders bazlı ilerleme</h2><div class="card" id="v28SubjectProgress"></div>
+  <h2>Konu ilerlemesi</h2><div class="card" id="v28Topics"></div>
+  <h2>Tekrar başarısı</h2><div class="card" id="v28Reviews"></div>
+  <h2>Hedefe gidiş</h2><div class="card" id="v28Goals"></div>
+  <h2>İstikrar takvimi</h2><div class="card" id="v28Calendar"></div>
+  <h2>Net eğilimi</h2><div class="card" id="progressNet"></div>
+  <h2>Ders dengesi</h2><div class="card" id="progressSubjects"></div>
+  <h2>İlerleme hızı</h2><div class="card" id="v28Pace"></div>
+  <h2>Kilometre taşları</h2><div class="card" id="v28Milestones"></div>
+  <h2>Başlangıçtan bugüne</h2><div class="card" id="v28Lifetime"></div>
+  <h2>Bu ayın özeti</h2><div class="card" id="v28MonthSummary"></div>
+  <h2>Kişisel rekorlar</h2><div class="card" id="v24Records"></div>
+  <h2>Haftalık akıllı rapor</h2><div class="card" id="v24WeeklyReport"></div>
+  <h2>Çalışma ritmi</h2><div class="card" id="progressRhythm"></div>
+
+  <details class="v28-more">
+    <summary>Ek analiz göstergeleri</summary>
+    <div class="v28-more-body">
+      <h2>Tekrarlayan yanlışlar</h2><div class="card" id="progressWrong"></div>
+      <h2>4 haftalık hedef tahmini</h2><div class="card" id="progressForecast"></div>
+    </div>
+  </details>
+  <div id="progressSubjectChange" hidden></div>
+  <div id="v24Consistency" hidden></div>
+</section>
+
+</div>
+
+<nav class="tabbar" role="tablist" aria-label="Ana bölümler">
+  <button class="tab active" data-s="home" onclick="go('home')" role="tab" aria-label="Bugün" aria-selected="true">
+    <span class="ic"><svg viewBox="0 0 24 24"><path d="M3 10.5L12 3l9 7.5"/><path d="M5 9.5V20h5v-6h4v6h5V9.5"/></svg></span>
+    <span class="tl">Bugün</span></button>
+  <button class="tab" data-s="program" onclick="go('program')" role="tab" aria-label="Program" aria-selected="false">
+    <span class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span>
+    <span class="tl">Program</span></button>
+  <button class="tab" data-s="topics" onclick="go('topics')" role="tab" aria-label="Konular" aria-selected="false">
+    <span class="ic"><svg viewBox="0 0 24 24"><path d="M4 6h11M4 12h11M4 18h11"/><path d="M19 5l1.5 1.5L19 8M19 11l1.5 1.5L19 14M19 17l1.5 1.5L19 20"/></svg></span>
+    <span class="tl">Konular</span></button>
+  <button class="tab" data-s="deneme" onclick="go('deneme')" role="tab" aria-label="Deneme" aria-selected="false">
+    <span class="ic"><svg viewBox="0 0 24 24"><path d="M4 19V5M4 19h16"/><path d="M8 15l3-4 3 2 4-6"/></svg></span>
+    <span class="tl">Deneme</span></button>
+  <button class="tab" data-s="progress" onclick="go('progress')" role="tab" aria-label="İlerleme" aria-selected="false" data-student-only>
+    <span class="ic"><svg viewBox="0 0 24 24"><path d="M4 19V5M4 19h16"/><path d="M7 15l4-4 3 2 5-7"/><path d="M16 6h3v3"/></svg></span>
+    <span class="tl">İlerleme</span></button>
+  <button class="tab" data-s="pomo" onclick="go('pomo')" role="tab" aria-label="Odak" aria-selected="false" data-student-only>
+    <span class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 13V9M12 5V3M10 3h4"/></svg></span>
+    <span class="tl">Odak</span></button>
+  <button class="tab" data-s="more" onclick="go('more');setMoreTab('home')" role="tab" aria-label="Daha" aria-selected="false">
+    <span class="ic"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="19" cy="12" r="1.7"/></svg></span>
+    <span class="tl">Daha</span></button>
+</nav>
+
+<div class="simov" id="simOverlay">
+  <div class="simbox">
+    <p class="eyebrow" style="color:var(--time);">Sınav simülasyonu</p>
+    <div class="simtime" id="simTime">00:00</div>
+    <div class="simbar"><i id="simBar" style="width:0%"></i></div>
+    <p class="simhint" id="simHint"></p>
+    <div class="row2" style="margin-top:20px;">
+      <button class="btn green small" onclick="finishSim()">Bitir ve net gir</button>
+      <button class="btn ghost small" onclick="stopSim()">Kapat</button>
+    </div>
+  </div>
+</div>
+<div class="qaviewer" id="qaViewer" style="display:none;">
+  <div class="qvtop">
+    <span id="qaCount">1 / 1</span>
+    <button class="btn ghost tiny" onclick="qaCloseViewer()">Kapat</button>
+  </div>
+  <div class="qvimg"><img id="qaImg" alt="yanlış soru"></div>
+  <p class="qvinfo" id="qaInfo"></p>
+  <p class="qvnote" id="qaNoteView"></p>
+  <div class="qvnav">
+    <button class="btn ghost small" onclick="qaNext(-1)">‹ Önceki</button>
+    <button class="btn green small" id="qaDoneBtn" onclick="qaViewerDone()">Çözdüm</button>
+    <button class="btn ghost small" onclick="qaNext(1)">Sonraki ›</button>
+  </div>
+  <button class="btn ghost tiny" style="margin-top:12px;color:var(--danger)" onclick="qaViewerDelete()">Bu soruyu sil</button>
+</div>
+<div class="vidov" id="vidOverlay" style="display:none;">
+  <div class="vidhead">
+    <div style="flex:1;min-width:0">
+      <div class="vh1" id="vidTitle"></div>
+      <div class="vh2" id="vidSub"></div>
+    </div>
+    <button class="btn ghost tiny" onclick="openVidOnYt()">YouTube'da aç</button>
+    <button class="btn ghost tiny" onclick="closeVideos()">Kapat</button>
+  </div>
+  <div class="vidmodes" id="vidModes"></div>
+  <div class="chips" id="vidChips" style="margin-bottom:6px;"></div>
+  <p class="hint" style="margin:0 0 10px;">Kartın sağ altındaki <b>+</b> ile videoyu ya da oynatma listesini bugünün planına ekleyebilirsin.</p>
+  <div class="vidlist" id="vidList"></div>
+</div>
+
+<div class="playov" id="playOverlay" style="display:none;">
+  <div class="playbox">
+    <div class="playframe"><iframe id="playFrame" src="" title="video" frameborder="0"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      allowfullscreen></iframe></div>
+    <div class="playmeta">
+      <div class="pm1" id="playTitle"></div>
+      <div class="pm2"><span id="playCh"></span> · <span id="playCount"></span></div>
+      <div class="pm3" id="playHint"></div>
+    </div>
+    <div class="rowtools" style="margin:12px 0 0;">
+      <button class="btn ghost tiny" onclick="playNext(-1)">‹ Önceki</button>
+      <button class="btn ghost tiny" onclick="playNext(1)">Sonraki ›</button>
+      <button class="btn ghost tiny" onclick="openPlayerOnYt()">YouTube'da aç</button>
+      <button class="btn ghost tiny" onclick="closePlayer()">Kapat</button>
+    </div>
+  </div>
+</div>
+
+<div class="brov" id="brOverlay" style="display:none;">
+  <div class="brbox">
+    <div class="brcircle" id="brCircle" data-ph="0"><span id="brCount">4</span></div>
+    <p class="brphase" id="brPhase">Nefes al</p>
+    <p class="brtime" id="brTime">02:00</p>
+    <button class="btn ghost small" style="margin-top:18px;" onclick="stopBreath()">Bitir</button>
+  </div>
+</div>
+
+<div class="gunov" id="gunOverlay" style="display:none;">
+  <div class="gunhead">
+    <span id="gunCount">0 / 0</span>
+    <button class="btn ghost tiny" onclick="closeGun()">Kapat</button>
+  </div>
+  <div class="gunbar"><i id="gunProg" style="width:0%"></i></div>
+  <div class="gunbody" id="gunBody"></div>
+  <div class="gundots" id="gunDots"></div>
+  <div class="gunnav">
+    <button class="btn ghost small" id="gunPrev" onclick="gunNext(-1)">‹ Önceki</button>
+    <button class="btn green small" onclick="gunDoneNext()">Bitti, sıradaki</button>
+    <button class="btn ghost small" id="gunNext" onclick="gunNext(1)">Sonraki ›</button>
+  </div>
+</div>
+
+<div class="optikov" id="optikOverlay" style="display:none;">
+  <div class="gunhead">
+    <span id="optikTotal">0 net</span>
+    <button class="btn ghost tiny" onclick="closeOptik()">Kapat</button>
+  </div>
+  <div class="chips" id="optikTabs"></div>
+  <p class="hint" id="optikInfo" style="margin:0 0 8px;"></p>
+  <div class="optikgrid" id="optikGrid"></div>
+  <div class="card flat" style="margin-top:10px;">
+    <div class="row2">
+      <div><label>Deneme adı</label><input type="text" id="optikName" placeholder="3D TYT-5"></div>
+      <div><label>Süre (dk)</label><input type="number" id="optikDur" min="0" placeholder="135"></div>
+    </div>
+    <button class="btn green small" style="width:100%;margin-top:12px;" onclick="optikSave()">Kaydet</button>
+  </div>
+</div>
+
+<div class="anaov" id="anaOverlay" style="display:none;">
+  <div class="anabox">
+    <div class="ah1" id="anaTitle"></div>
+    <div class="ah2" id="anaSub"></div>
+    <div class="card flat" style="margin-top:14px;">
+      <div class="row2">
+        <div><label>Ders</label><select id="anaSubject" onchange="fillTopicDatalist('anaSubject','anaTopics')"></select></div>
+        <div><label>Adet</label><input type="number" id="anaCount" min="1" placeholder="1"></div>
+      </div>
+      <label>Konu</label>
+      <input type="text" id="anaTopic" list="anaTopics" placeholder="Hangi konuydu?">
+      <datalist id="anaTopics"></datalist>
+      <label>Yanlışın sebebi</label>
+      <select id="anaKind"><option value="">Sebep seçmedim</option><option value="bilmiyordum">Bilmiyordum</option><option value="dikkat">Dikkatsizlik</option><option value="sure">Süre yetmedi</option></select>
+      <button class="btn ghost small" style="width:100%;margin-top:12px;" onclick="anaAdd()">Ekle</button>
+    </div>
+    <div id="anaList" style="margin-top:14px;"></div>
+    <div class="row2" style="margin-top:14px;">
+      <button class="btn ghost small" onclick="skipAnalysis()">Atla</button>
+      <button class="btn green small" id="anaClose" onclick="closeAnalysis()">Bitir</button>
+    </div>
+  </div>
+</div>
+
+<div class="anaov" id="examDetailOverlay" style="display:none;">
+  <div class="anabox" style="max-width:620px;">
+    <div id="v27DetailView">
+      <div class="v27-detail-head"><div><div class="ah1" id="v27DetailTitle"></div><div class="ah2" id="v27DetailSub"></div></div><div class="v27-detail-net" id="v27DetailNet"></div></div>
+      <div id="v27DetailBody" style="margin-top:14px;"></div>
+      <div class="v27-actions" style="margin-top:14px;">
+        <button class="btn ghost tiny" onclick="v27StartEdit()">Düzelt</button>
+        <button class="btn ghost tiny" onclick="v27CopyToForm()">Kopyala</button>
+        <button class="btn ghost tiny" onclick="v27AnalyzeCurrent()">Yanlışları işle</button>
+        <button class="btn ghost tiny" onclick="v27DeleteCurrent()">Sil</button>
+        <button class="btn green tiny" onclick="closeExamDetail()">Kapat</button>
+      </div>
+    </div>
+    <div id="v27EditView" style="display:none;">
+      <div class="ah1">Denemeyi düzelt</div><div class="ah2" id="v27EditSub"></div>
+      <div class="card flat" style="margin-top:14px;">
+        <label>Deneme adı</label><input type="text" id="v27EditName">
+        <div class="row2"><div><label>Tarih</label><input type="date" id="v27EditDate"></div><div><label>Süre (dk)</label><input type="number" min="0" id="v27EditDur"></div></div>
+        <div class="row2"><div><label>Yayınevi</label><input type="text" id="v27EditPub"></div><div><label>Zorluk</label><select id="v27EditDiff"><option value="normal">Normal</option><option value="kolay">Kolay</option><option value="zor">Zor</option></select></div></div>
+        <label>Kısa not</label><input type="text" id="v27EditNote" maxlength="240">
+        <div id="v27EditSubjects" style="margin-top:12px;"></div>
+      </div>
+      <div class="row2" style="margin-top:14px;"><button class="btn ghost small" onclick="v27CancelEdit()">Vazgeç</button><button class="btn green small" onclick="v27SaveEdit()">Değişiklikleri kaydet</button></div>
+    </div>
+  </div>
+</div>
+
+<div class="anaov" id="resOverlay" style="display:none;">
+  <div class="anabox">
+    <div class="ah1" id="resTitle"></div>
+    <div class="ah2">Bu konuya bağlı kaynaklar</div>
+    <div class="card flat" style="margin-top:14px;">
+      <div class="row2">
+        <div><label>Tür</label><select id="resTur">
+          <option value="video">Video</option>
+          <option value="kitap">Kitap / sayfa</option>
+          <option value="not">Not</option>
+          <option value="link">Bağlantı</option>
+        </select></div>
+        <div><label>Kaynak adı</label><input type="text" id="resAd" placeholder="Şenol Hoca türev"></div>
+      </div>
+      <label>Adres / sayfa / açıklama</label>
+      <input type="text" id="resDeger" placeholder="https://... ya da 'Palme s.142'">
+      <button class="btn ghost small" style="width:100%;margin-top:12px;" onclick="saveRes()">Ekle</button>
+    </div>
+    <div id="resList" style="margin-top:14px;"></div>
+    <button class="btn green small" style="width:100%;margin-top:14px;" onclick="closeRes()">Kapat</button>
+  </div>
+</div>
+
+<div class="anaov" id="dayPick" style="display:none;">
+  <div class="anabox">
+    <div class="ah1">Hangi güne eklensin?</div>
+    <div class="ah2" id="dayPickText"></div>
+    <div class="weeknav" id="dayPickWeek">
+      <button id="dayPickPrev" onclick="shiftDayPickWeek(-1)" aria-label="Önceki hafta">‹</button>
+      <span class="wn">
+        <b id="dayPickWeekName">Bu hafta</b>
+        <small id="dayPickWeekRange"></small>
+      </span>
+      <button id="dayPickNext" onclick="shiftDayPickWeek(1)" aria-label="Sonraki hafta">›</button>
+    </div>
+    <button class="btn ghost tiny" id="dayPickToday" style="display:none;margin-top:8px;" onclick="setDayPickWeek(0)">Bu haftaya dön</button>
+    <div class="daygrid" id="dayPickGrid"></div>
+    <button class="btn ghost small" style="width:100%;margin-top:14px;" onclick="closeDayPick()">Vazgeç</button>
+  </div>
+</div>
+
+<div class="anaov" id="briefOverlay" style="display:none;">
+  <div class="anabox">
+    <div id="briefBody"></div>
+    <div class="row2" style="margin-top:16px;">
+      <button class="btn ghost small" onclick="briefGoPlan()">Programa git</button>
+      <button class="btn green small" onclick="briefGoGun()">Başla</button>
+    </div>
+    <button class="btn ghost tiny" style="width:100%;margin-top:8px;" onclick="closeBrief()">Kapat</button>
+  </div>
+</div>
+
+<div class="depouyari" id="depoUyari" style="display:none;"></div>
+
+<div class="undobar" id="undoBar"></div>
+
+<div class="wizov" id="wizOverlay" style="display:none;">
+  <div class="wizbox">
+    <div class="dots" id="wizDots"></div>
+    <div id="wiz1">
+      <p class="eyebrow">1 / 4</p>
+      <h3 class="wizt">Hoş geldin</h3>
+      <p class="wizp">Bu defter yalnızca senin cihazında çalışır. Birkaç soruyla başlayalım.</p>
+      <label>Adın</label>
+      <input type="text" id="wizName" placeholder="Adın">
+    </div>
+    <div id="wiz2" style="display:none;">
+      <p class="eyebrow">2 / 4</p>
+      <h3 class="wizt">Sınav tarihin</h3>
+      <p class="wizp">ÖSYM kesin tarihi açıklayınca buradan güncellersin.</p>
+      <label>Sınav tarihi</label>
+      <input type="date" id="wizDate">
+    </div>
+    <div id="wiz3" style="display:none;">
+      <p class="eyebrow">3 / 4</p>
+      <h3 class="wizt">Hedeflerin</h3>
+      <p class="wizp">Sonradan değiştirebilirsin; şimdilik kaba bir sayı yeter.</p>
+      <label>Günlük soru hedefi</label>
+      <input type="number" id="wizTarget" min="0" placeholder="150">
+      <label>Hedef net (isteğe bağlı)</label>
+      <input type="number" id="wizNet" min="0" step="0.25" placeholder="90">
+    </div>
+    <div id="wiz4" style="display:none;">
+      <p class="eyebrow">4 / 4</p>
+      <h3 class="wizt">Tempon</h3>
+      <p class="wizp">Haftada kaç gün çalışmayı planlıyorsun? Dinlenme günü bırakmak geri sayımı gerçekçi yapar.</p>
+      <label>Haftada çalışma günü</label>
+      <input type="number" id="wizDays" min="1" max="7" value="6">
+    </div>
+    <div class="row2" style="margin-top:20px;">
+      <button class="btn ghost small" id="wizBack" onclick="wizBack()">Geri</button>
+      <button class="btn green small" id="wizNext" onclick="wizNext()">Devam</button>
+    </div>
+    <button class="btn ghost tiny" style="width:100%;margin-top:10px;" onclick="skipWizard()">Şimdilik geç</button>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div><script src="./app.js"></script>
+
+<script type="module" id="firebaseSyncModule">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
+import { getFirestore, doc, getDoc, collection, getDocs, writeBatch, runTransaction, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
+
+const firebaseConfig={
+ apiKey:"AIzaSyA0UMRKwah3Ji9Z8Sd3ZvgLJUKiC40fVSc",
+ authDomain:"yks-uygulamam.firebaseapp.com",
+ projectId:"yks-uygulamam",
+ storageBucket:"yks-uygulamam.firebasestorage.app",
+ messagingSenderId:"156401606126",
+ appId:"1:156401606126:web:451e6d6ac42f14f2c5c2ff",
+ measurementId:"G-E0BG5MMDNV"
+};
+const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app),provider=new GoogleAuthProvider();
+const box=document.getElementById("cloudSyncBox"),txt=document.getElementById("cloudSyncText"),meta=document.getElementById("cloudSyncMeta"),login=document.getElementById("cloudLoginBtn"),logout=document.getElementById("cloudLogoutBtn");
+const CLOUD_FORMAT=3, LAST_SYNC_KEY="yks_last_sync_at", BASE_REV_KEY="yks_cloud_base_rev", DIRTY_KEY="yks_cloud_dirty", DEVICE_KEY="yks_device_id";
+let user=null,timer=null,loading=false,lastJSON="",uploading=false,uploadQueued=false,stopRealtime=null;
+let cloudCacheEpoch=-1,cloudCacheJSON="";
+let lastSyncAt=Number(localStorage.getItem(LAST_SYNC_KEY)||0)||0;
+let baseRev=Number(localStorage.getItem(BASE_REV_KEY)||0)||0;
+let dirty=localStorage.getItem(DIRTY_KEY)==="1";
+let deviceId=localStorage.getItem(DEVICE_KEY)||"";
+if(!deviceId){deviceId=(crypto&&crypto.randomUUID?crypto.randomUUID():"dev-"+Date.now()+"-"+Math.random().toString(36).slice(2));try{localStorage.setItem(DEVICE_KEY,deviceId);}catch(e){}}
+const metaRef=uid=>doc(db,"users",uid,"sync","meta");
+const chunksCol=uid=>collection(db,"users",uid,"chunks");
+const chunkRef=(uid,id)=>doc(db,"users",uid,"chunks",id);
+function setDirty(v){dirty=!!v;try{localStorage.setItem(DIRTY_KEY,dirty?"1":"0");}catch(e){}}
+function setBaseRev(v){baseRev=Math.max(0,Number(v)||0);try{localStorage.setItem(BASE_REV_KEY,String(baseRev));}catch(e){}}
+function syncAgo(ts){
+  if(!ts)return ""; const d=Math.max(0,Date.now()-ts),s=Math.floor(d/1000);
+  if(s<10)return "Son senkron: az önce"; if(s<60)return "Son senkron: "+s+" sn önce";
+  const m=Math.floor(s/60); if(m<60)return "Son senkron: "+m+" dk önce";
+  const dt=new Date(ts),now=new Date();
+  if(dt.toDateString()===now.toDateString())return "Son senkron: "+dt.toLocaleTimeString("tr-TR",{hour:"2-digit",minute:"2-digit"});
+  return "Son senkron: "+dt.toLocaleDateString("tr-TR",{day:"numeric",month:"short"})+" "+dt.toLocaleTimeString("tr-TR",{hour:"2-digit",minute:"2-digit"});
+}
+function status(x,state="signedout",sub=""){if(txt)txt.textContent=x;if(box)box.dataset.state=state;if(meta)meta.textContent=sub||(lastSyncAt?syncAgo(lastSyncAt):"");}
+function markSynced(){lastSyncAt=Date.now();try{localStorage.setItem(LAST_SYNC_KEY,String(lastSyncAt));}catch(e){}status("Senkronize","synced",syncAgo(lastSyncAt));}
+setInterval(()=>{if(!document.hidden&&box&&box.dataset.state==="synced"&&meta)meta.textContent=syncAgo(lastSyncAt);},30000);
+function splitUtf8(str,max=240000){const out=[];let start=0;while(start<str.length){let end=Math.min(str.length,start+max);while(end>start&&new Blob([str.slice(start,end)]).size>280000)end-=Math.max(1000,Math.floor((end-start)/10));/* UTF-16 surrogate çiftini iki Firestore parçasına bölme; emoji/özel karakter bozulmasın. */if(end<str.length&&end>start){const a=str.charCodeAt(end-1),b=str.charCodeAt(end);if(a>=0xD800&&a<=0xDBFF&&b>=0xDC00&&b<=0xDFFF)end--;}out.push(str.slice(start,end));start=end;}return out;}
+function cloudJSON(){
+  const epoch=Number(window.__YKS_STATE_EPOCH||0);
+  if(cloudCacheJSON&&cloudCacheEpoch===epoch){try{PERF_STATE.lastCloudBuildMs=0;}catch(e){}return cloudCacheJSON;}
+  const t0=(typeof performance!=="undefined"&&performance.now)?performance.now():Date.now();
+  const state=window.S||{};
+  const json=JSON.stringify(state,function(k,v){
+    if(this===state&&k==="v")return DATA_SCHEMA;
+    if(state.focus&&this===state.focus&&k==="sw")return {run:false,start:0,acc:0,cr:0};
+    if(state.focus&&this===state.focus&&k==="swLaps")return [];
+    if(state.yt&&this===state.yt&&k==="key")return "";
+    return v;
+  });
+  cloudCacheEpoch=epoch;cloudCacheJSON=json;
+  try{PERF_STATE.lastCloudBuildMs=((typeof performance!=="undefined"&&performance.now)?performance.now():Date.now())-t0;}catch(e){}
+  return json;
+}
+function revPrefix(rev){return String(Math.max(0,rev|0)).padStart(10,"0")+"_";}
+async function readRemote(metaSnap){
+  const m=metaSnap&&metaSnap.exists()?metaSnap:await getDoc(metaRef(user.uid));
+  if(!m.exists())return null;
+  const md=m.data()||{},format=Number(md.format||md.version||2),rev=Number(md.revision||0),rawCount=Number(md.count||0);
+  if(!Number.isFinite(rawCount)||rawCount<0||(format>=3&&rawCount>32)||(format<3&&rawCount>100))throw new Error("Bulut meta parça sayısı geçersiz");
+  const count=Math.floor(rawCount);
+  const snap=await getDocs(chunksCol(user.uid)); let docs=snap.docs;
+  if(format>=3&&rev>0){const p=revPrefix(rev);docs=docs.filter(d=>d.id.startsWith(p)).sort((a,b)=>a.id.localeCompare(b.id)).slice(0,count);}
+  else docs=docs.filter(d=>/^\d{4}$/.test(d.id)).sort((a,b)=>a.id.localeCompare(b.id)).slice(0,count);
+  if(count&&docs.length!==count)throw new Error("Bulut kaydı eksik parça içeriyor");
+  if(format>=3){docs.forEach((d,i)=>{const x=d.data()||{};if(Number(x.revision)!==rev||Number(x.index)!==i)throw new Error("Bulut parça sırası/tutarlılığı bozuk")});}
+  const json=docs.map(d=>String((d.data()||{}).data||"")).join("");
+  if(!json)return {meta:md,rev:rev,json:"",obj:null};
+  if(format>=3&&md.hash&&String(md.hash)!==infraHash(json))throw new Error("Bulut veri bütünlüğü doğrulanamadı");
+  const obj=JSON.parse(json);
+  if(obj&&Number(obj.v||1)>DATA_SCHEMA)throw new Error("Buluttaki veri daha yeni uygulama sürümüne ait");
+  return {meta:md,rev:rev,json:json,obj:obj};
+}
+async function applyRemote(remote,reason="remote"){
+  if(!remote||!remote.obj)return false;
+  try{if(typeof window.autoBackupRun==="function")window.autoBackupRun(true);}catch(e){}
+  const localSw=window.S&&window.S.focus&&window.S.focus.sw?JSON.parse(JSON.stringify(window.S.focus.sw)):null;
+  const localLaps=window.S&&window.S.focus&&Array.isArray(window.S.focus.swLaps)?JSON.parse(JSON.stringify(window.S.focus.swLaps)):[];
+  const next=normalize(Object.assign({},JSON.parse(JSON.stringify(DEF)),migrateState(remote.obj)));
+  if(localSw){next.focus.sw=localSw;next.focus.swLaps=localLaps;}
+  /* Önce diske yaz; depolama doluysa çalışan yerel durumu yarıda değiştirme. */
+  const persisted=JSON.stringify(next);localStorage.setItem(STORAGE_KEY,persisted);
+  window.S=next;S=next;lastPersistedJSON=persisted;perfInvalidateState();persistStateHashMaybe(persisted,true);
+  setBaseRev(remote.rev); setDirty(false); lastJSON=cloudJSON();
+  if(typeof renderAfterExternalState==="function")renderAfterExternalState(); else if(typeof renderAll==="function")renderAll();
+  if(typeof renderSw==="function")renderSw(); markSynced();
+  return true;
+}
+async function applyMerged(remote,localObj){
+  if(!remote||!remote.obj||!window.YKSCore||typeof window.YKSCore.mergeStates!=="function")return applyRemote(remote,"merge-fallback");
+  try{if(typeof window.autoBackupRun==="function")window.autoBackupRun(true);}catch(e){}
+  const localSw=window.S&&window.S.focus&&window.S.focus.sw?JSON.parse(JSON.stringify(window.S.focus.sw)):null;
+  const localLaps=window.S&&window.S.focus&&Array.isArray(window.S.focus.swLaps)?JSON.parse(JSON.stringify(window.S.focus.swLaps)):[];
+  const raw=window.YKSCore.mergeStates(remote.obj,localObj,DATA_SCHEMA);
+  const next=normalize(Object.assign({},JSON.parse(JSON.stringify(DEF)),migrateState(raw)));
+  if(localSw){next.focus.sw=localSw;next.focus.swLaps=localLaps;}
+  const persisted=JSON.stringify(next);localStorage.setItem(STORAGE_KEY,persisted);
+  window.S=next;S=next;lastPersistedJSON=persisted;perfInvalidateState();persistStateHashMaybe(persisted,true);
+  setBaseRev(remote.rev);setDirty(true);lastJSON="";
+  if(typeof renderAfterExternalState==="function")renderAfterExternalState();else if(typeof renderAll==="function")renderAll();
+  if(typeof renderSw==="function")renderSw();
+  status("Çakışma birleştirildi","syncing","İki cihazdaki benzersiz kayıtlar korunuyor");
+  return true;
+}
+async function safeCleanupOldRevisions(currentRev){
+  try{
+    const again=await getDoc(metaRef(user.uid)); if(!again.exists()||Number((again.data()||{}).revision||0)!==currentRev)return;
+    const snap=await getDocs(chunksCol(user.uid)),cut=currentRev-2,del=[];
+    for(const d of snap.docs){const mm=d.id.match(/^(\d{10})_/);if(mm&&Number(mm[1])<cut)del.push(d.ref);}
+    for(let p=0;p<del.length;p+=400){const b=writeBatch(db);del.slice(p,p+400).forEach(r=>b.delete(r));await b.commit();}
+  }catch(e){console.warn("Eski bulut parçaları temizlenemedi",e);}
+}
+async function upload(){
+  if(!user||loading)return;
+  if(uploading){uploadQueued=true;return;}
+  const json=cloudJSON();
+  if(!dirty&&json===lastJSON){markSynced();return;}
+  if(!navigator.onLine){status("Çevrimdışı","offline","Değişiklikler cihazda saklandı");return;}
+  uploading=true;uploadQueued=false;status("Kaydediliyor…","syncing",lastSyncAt?syncAgo(lastSyncAt):"Buluta gönderiliyor");
+  try{
+    const m=await getDoc(metaRef(user.uid)),md=m.exists()?(m.data()||{}):{};
+    const remoteFormat=Number(md.format||md.version||2),remoteRev=Number(md.revision||0);
+    const remoteStamp=md.updatedAt&&typeof md.updatedAt.toMillis==="function"?md.updatedAt.toMillis():0;
+    /* Başka cihaz bizden sonra yazdıysa veya yeni biçimi görmüş bu cihazın
+       karşısına eski istemci tekrar legacy meta yazdıysa sessizce üzerine basma. */
+    const remoteChanged=(remoteFormat>=3&&remoteRev>baseRev)||(remoteFormat<3&&baseRev>0);
+    if(m.exists()&&remoteChanged){
+      const hadDirty=dirty&&json!==lastJSON;
+      if(hadDirty)conflictBackupAdd(json,remoteRev);
+      const r=await readRemote(m);
+      if(hadDirty){await applyMerged(r,safeJSONParse(json));uploadQueued=true;}
+      else await applyRemote(r,"conflict");
+      if(!hadDirty)status("Senkronize","synced",syncAgo(lastSyncAt));
+      return;
+    }
+    const parts=splitUtf8(json); if(parts.length>32)throw new Error("Bulut verisi çok büyük (güvenli işlem sınırı aşıldı)");
+    const expectedRev=remoteRev,expectedFormat=remoteFormat,expectedStamp=remoteStamp,hash=infraHash(json);
+    let targetRev=0;
+    await runTransaction(db,async tx=>{
+      const current=await tx.get(metaRef(user.uid)); const cd=current.exists()?(current.data()||{}):{};
+      const cf=Number(cd.format||cd.version||2),cr=Number(cd.revision||0);
+      const cs=cd.updatedAt&&typeof cd.updatedAt.toMillis==="function"?cd.updatedAt.toMillis():0;
+      if(current.exists()){
+        if(expectedFormat>=3&&(cf<3||cr!==expectedRev)){const er=new Error("SYNC_CONFLICT");er.syncConflict=true;throw er;}
+        if(expectedFormat<3&&(cf>=3||cr!==expectedRev||(expectedStamp&&cs&&cs!==expectedStamp))){const er=new Error("SYNC_CONFLICT");er.syncConflict=true;throw er;}
+      }else if(m.exists()){const er=new Error("SYNC_CONFLICT");er.syncConflict=true;throw er;}
+      targetRev=Math.max(cr,baseRev)+1; const prefix=revPrefix(targetRev);
+      parts.forEach((part,i)=>tx.set(chunkRef(user.uid,prefix+String(i).padStart(4,"0")),{data:part,revision:targetRev,index:i}));
+      tx.set(metaRef(user.uid),{format:CLOUD_FORMAT,revision:targetRev,count:parts.length,hash:hash,clientId:deviceId,appVersion:APP_VERSION,schemaVersion:DATA_SCHEMA,updatedAt:serverTimestamp()});
+    });
+    lastJSON=json;setBaseRev(targetRev);setDirty(false);markSynced();safeCleanupOldRevisions(targetRev);
+  }catch(e){
+    if(e&&e.syncConflict){
+      try{conflictBackupAdd(json,baseRev);const latest=await getDoc(metaRef(user.uid));const r=await readRemote(latest);await applyMerged(r,safeJSONParse(json));uploadQueued=true;}
+      catch(x){console.error(x);infraError("firebase-conflict",x);status("Senkron hatası","error",String(x.code||x.message||"hata").slice(0,100));}
+    }else{console.error(e);infraError("firebase-upload",e);status("Senkron hatası","error",String(e.code||e.message||"hata").slice(0,100));}
+  }
+  finally{uploading=false;if(uploadQueued||(!loading&&user&&dirty)){uploadQueued=false;clearTimeout(timer);timer=setTimeout(upload,120);}}
+}
+window.yksCloudSchedule=()=>{setDirty(true);if(!user||loading)return;if(!navigator.onLine){status("Çevrimdışı","offline","Değişiklikler cihazda saklandı");return;}clearTimeout(timer);timer=setTimeout(upload,900);};
+window.yksCloudForceDirty=()=>{setDirty(true);if(user&&navigator.onLine){clearTimeout(timer);timer=setTimeout(upload,100);}};
+async function downloadOrSeed(){
+  loading=true;status("Veriler alınıyor…","connecting",lastSyncAt?syncAgo(lastSyncAt):"Buluta bağlanıyor");
+  try{
+    const m=await getDoc(metaRef(user.uid));
+    if(!m.exists()){loading=false;setDirty(true);await upload();return;}
+    const r=await readRemote(m);
+    if(r&&r.obj){await applyRemote(r,"login");}
+    else{loading=false;setDirty(true);await upload();return;}
+  }catch(e){console.error(e);infraError("firebase-download",e);status("Senkron hatası","error",String(e.code||e.message||"hata").slice(0,100));}
+  finally{loading=false;}
+}
+function authErrorText(e){
+  const c=(e&&e.code)||"";
+  if(c==="auth/unauthorized-domain")return "Firebase Authorized domains içine furkansel-ops.github.io eklenmeli";
+  if(c==="auth/popup-blocked")return "Giriş penceresi engellendi — Chrome site ayarlarından pop-up izni ver";
+  if(c==="auth/popup-closed-by-user")return "Google giriş penceresi kapatıldı";
+  if(c==="auth/cancelled-popup-request")return "Giriş isteği iptal edildi — tekrar dene";
+  return String(c||e?.message||"bilinmeyen hata");
+}
+login?.addEventListener("click",async()=>{try{status("Google açılıyor…","connecting","Hesap seçimi bekleniyor");await setPersistence(auth,browserLocalPersistence);await signInWithPopup(auth,provider);}catch(e){console.error(e);infraError("firebase-login",e);status("Giriş hatası","error",authErrorText(e));}});
+logout?.addEventListener("click",()=>signOut(auth));
+onAuthStateChanged(auth,async u=>{
+  if(stopRealtime){try{stopRealtime();}catch(e){}stopRealtime=null;}
+  user=u;
+  if(u){
+    login.style.display="none";logout.style.display="inline-block";status("Bağlanıyor…","connecting",u.email||u.displayName||"Google hesabı");
+    if(navigator.onLine)await downloadOrSeed();else status("Çevrimdışı","offline","Değişiklikler cihazda saklanır");
+    let first=true;
+    stopRealtime=onSnapshot(metaRef(u.uid),async snap=>{
+      if(first){first=false;return;} if(!snap.exists()||loading)return;
+      const sd=snap.data()||{},sf=Number(sd.format||sd.version||2),rr=Number(sd.revision||0);
+      if(sf>=3&&rr<=baseRev)return;
+      /* Eski istemci meta'yı v2 biçiminde yazarsa da değişikliği fark et. */
+      try{if(dirty){clearTimeout(timer);timer=setTimeout(upload,80);}else{loading=true;const r=await readRemote(snap);await applyRemote(r,"realtime");}}catch(e){console.error(e);infraError("firebase-realtime",e);status("Bağlantı hatası","error",String(e.code||e.message||"hata").slice(0,100));}finally{loading=false;}
+    },e=>{console.error(e);infraError("firebase-listener",e);status("Bağlantı hatası","error",String(e.code||"hata"));});
+  }else{login.style.display="inline-block";logout.style.display="none";status("Giriş yapılmadı","signedout","Bulut senkronu kapalı");}
+});
+window.addEventListener("offline",()=>{if(user)status("Çevrimdışı","offline","Değişiklikler cihazda saklanır");});
+window.addEventListener("online",()=>{if(!user)return;status("Bağlantı geldi","connecting",lastSyncAt?syncAgo(lastSyncAt):"Bulut kontrol ediliyor");clearTimeout(timer);timer=setTimeout(()=>dirty?upload():downloadOrSeed(),180);});
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script src="./modules/core-utils.js"></script>
+<script src="./modules/stability.js"></script>
+<script src="./modules/topic-coach.js"></script>
+<script src="./modules/learning-tools.js"></script>
+<script src="./modules/release-selftest.js"></script>
+</body>
+</html>

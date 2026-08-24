@@ -1,0 +1,63 @@
+YKS DEFTERİM v3.1.13 — SON TEST RAPORU
+Tarih: 24 Ağustos 2026
+Veri şeması: 20
+Kanal: Kararlı
+
+1. UYGULANAN AŞAMALAR
+
+v3.1.11 — Sağlam Temel
+- Ana CSS app.css dosyasına, ana uygulama kodu app.js dosyasına ayrıldı.
+- Ortak algoritmalar ve yeni özellikler modules/ altında bağımsız dosyalara taşındı.
+- Çevrimdışı durum banner'ı ve bağlantı geri geldiğinde senkron akışı eklendi.
+- Çalışan/duraklatılmış odak oturumu sayfa yenilemesinden sonra kurtarılıyor.
+- Zaman hesabı mutlak bitiş zamanına dayandığı için arka plan sekmesi gecikmelerine dayanıklı.
+- Bölüm bazlı güvenli render/fallback katmanı eklendi.
+- Sayı alanlarının fare tekerleğiyle yanlışlıkla değişmesi engellendi; sekme çubuğuna ok tuşu navigasyonu eklendi.
+- Otomatik yedeklere sürüm, şema ve checksum eklendi; bozuk checksum'lı yedek geri yüklenmiyor.
+- Firebase çakışmalarında iki cihazın benzersiz kayıtlarını, konu ilerlemelerini, planlarını ve öğrenme verilerini koruyan birleştirme eklendi.
+- Gizli eski Daha sekmeleri DOM/CSS'ten kaldırıldı.
+- Gömülü YouTube API anahtarı kaldırıldı; kullanıcı anahtarı yalnız cihazda tutuluyor.
+- Service Worker çekirdek dosyaları önbelleğe alıyor, statik dosyalarda cache-first + arka planda yenileme kullanıyor.
+
+v3.1.12 — Akıllı Konu Koçu
+- Yanlış, tekrar gecikmesi, konu durumu ve güven verilerinden günlük üç öneri üretiliyor.
+- Her öneride risk nedeni, tahmini süre, Başlat, Plana ekle ve Detay eylemleri var.
+- En güçlü görünen ve önce ele alınması gereken konu özeti eklendi.
+
+v3.1.13 — Öğrenme Araçları
+- Kullanıcı tanımlı soru/cevap kartları eklendi.
+- Tekrar / Zor / İyi / Kolay değerlendirmeleriyle aralıklı tekrar planlaması eklendi.
+- Matematik, Geometri, Fizik ve Kimya için 50+ formüllük aranabilir ve favorilenebilir banka eklendi.
+- Son 30 günlük tekrar sayısı, başarı oranı ve ders bazlı sonuçlar eklendi.
+- Öğrenme analizi konu risk sistemiyle ilişkilendirildi.
+
+2. OTOMATİK TEST SONUÇLARI
+
+- Node testleri: 10/10 başarılı, 0 başarısız.
+- Çakışma birleştirme: benzersiz kayıtlar, konu ilerlemesi ve farklı plan hücreleri korunuyor.
+- Aralıklı tekrar: değerlendirme derecesine göre tarih ve aralık doğru ilerliyor.
+- Paket yapısı: zorunlu HTML/CSS/JS/PWA/modül dosyaları mevcut.
+- HTML: yinelenen id bulunmadı; kritik yeni arayüz alanları mevcut.
+- JavaScript: app.js, tüm modules/*.js ve sw.js sözdizimi kontrolünden geçti.
+- Firebase modülü: import satırları ayrıştırıldıktan sonra sözdizimi kontrolünden geçti.
+- CSS: süslü parantez dengesi doğru.
+- Sürüm tutarlılığı: app, Service Worker ve version.json v3.1.13 / şema 20.
+- Güvenlik kontrolü: eski gömülü YouTube API anahtarı bulunmadı.
+- Temizlik kontrolü: v30-legacy-tabs bulunmadı; dinamik eval kullanımı bulunmadı.
+- Formül bankası: en az 50 kayıt testi başarılı.
+
+3. VERİ UYUMLULUĞU
+
+- Eski veri v3.1.13 açılışında şema 20'ye otomatik taşınır.
+- Yeni learning alanı yoksa cards, formulaFav ve reviewLog güvenli boş değerlerle oluşturulur.
+- Buluttaki daha yeni bir şema eski istemci tarafından açılmaya çalışılırsa işlem durdurulur.
+- Güncelleme öncesinde manuel JSON yedeği alınması yine de önerilir.
+
+4. YAYIN NOTLARI
+
+- ZIP içeriği GitHub depo köküne yüklenmelidir; dış klasörün kendisi yüklenmemelidir.
+- Firebase giriş/senkron için yayın alan adı Firebase Authentication yetkili alan adlarında olmalıdır.
+- YouTube araması anahtarsızken link yönlendirme modunda çalışır; API araması için kullanıcı kendi anahtarını girebilir.
+- Bu teslim statik PWA paketidir; sunucu tarafı gerektiren OCR, sosyal/grup özellikleri ve üçüncü taraf mesajlaşma entegrasyonları bu üç aşamalı sürümün kapsamına dahil değildir.
+
+SONUÇ: PAKETLEMEYE UYGUN
