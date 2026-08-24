@@ -425,36 +425,6 @@ document.documentElement.setAttribute("data-theme",t);}catch(e){}})();
   <div class="card" id="v26TopicOverview"></div>
   <div class="card" id="v26TopicAttention"></div>
 
-  <section class="v312-coach-shell" aria-labelledby="v312CoachTitle">
-    <div class="v312-head">
-      <div><p class="eyebrow">Akıllı Konu Koçu</p><h2 id="v312CoachTitle">Bugün ne çalışmalısın?</h2><p class="hint">Yanlış, tekrar, güven, deneme performansı ve son çalışma tarihine göre sıralanır.</p></div>
-      <button class="btn ghost tiny" type="button" onclick="v312PlanAll()">Üçünü plana ekle</button>
-    </div>
-    <div class="v312-metrics" id="v312CoachMetrics"></div>
-    <div class="card v312-coach" id="v312Coach"></div>
-    <div class="v312-insight" id="v312CoachInsight"></div>
-  </section>
-
-  <section class="v313-learning" id="v313Learning" aria-labelledby="v313LearningTitle">
-    <div class="v313-head"><div><p class="eyebrow">Öğrenme Araçları</p><h2 id="v313LearningTitle">Tekrar ve formül merkezi</h2></div><div class="v313-summary"><span><b id="v313DueCount">0</b> bugün</span><span><b id="v313CardCount">0</b> kart</span><span><b id="v313Success">—</b> başarı</span></div></div>
-    <div class="seg tri v313-tabs" role="tablist" aria-label="Öğrenme araçları">
-      <button id="v313Tabcards" class="on" type="button" onclick="v313SetTab('cards')">Tekrar kartları</button>
-      <button id="v313Tabformulas" type="button" onclick="v313SetTab('formulas')">Formül bankası</button>
-      <button id="v313Tabanalysis" type="button" onclick="v313SetTab('analysis')">Analiz</button>
-    </div>
-    <div id="v313Panelcards">
-      <div class="card v313-review" id="v313CardReview"></div>
-      <details class="card v313-add-card"><summary>Yeni tekrar kartı ekle</summary><label>Ders</label><input id="v313CardSubject" type="text" placeholder="Örn. Biyoloji"><label>Soru veya ön yüz</label><textarea id="v313CardQ" rows="3" maxlength="500" placeholder="Hatırlamak istediğin soru"></textarea><label>Cevap veya arka yüz</label><textarea id="v313CardA" rows="4" maxlength="1200" placeholder="Kısa ve net cevap"></textarea><button class="btn green small" type="button" onclick="v313AddCard()">Kartı ekle</button></details>
-      <div id="v313CardList"></div>
-    </div>
-    <div id="v313Panelformulas" hidden>
-      <div class="card flat"><input type="search" placeholder="Formül ara" oninput="v313FormulaSearch(this.value)"><div class="chips v313-cats"><button id="v313CatTümü" class="chip on" type="button" onclick="v313FormulaCategory('Tümü')">Tümü</button><button id="v313CatMatematik" class="chip" type="button" onclick="v313FormulaCategory('Matematik')">Matematik</button><button id="v313CatGeometri" class="chip" type="button" onclick="v313FormulaCategory('Geometri')">Geometri</button><button id="v313CatFizik" class="chip" type="button" onclick="v313FormulaCategory('Fizik')">Fizik</button><button id="v313CatKimya" class="chip" type="button" onclick="v313FormulaCategory('Kimya')">Kimya</button></div></div>
-      <div class="v313-formula-grid" id="v313FormulaList"></div>
-      <p class="note">Formüller hızlı tekrar içindir; sembollerin anlamını ve geçerlilik koşullarını konu kaynağından kontrol et.</p>
-    </div>
-    <div id="v313Panelanalysis" hidden><div class="card" id="v313Analysis"></div></div>
-  </section>
-
   <section class="v320-lab" id="v320LearningLab" aria-labelledby="v320LabTitle">
     <div class="v320-head"><div><p class="eyebrow">Öğrenme Laboratuvarı</p><h2 id="v320LabTitle">Oku, keşfet, zaman içinde gör</h2><p class="hint">Paragraf pratiği, interaktif periyodik tablo ve YKS tarih kronolojisi.</p></div><div class="v320-lab-summary" id="v320LabSummary"></div></div>
     <div class="seg tri v320-tabs" role="tablist" aria-label="Öğrenme laboratuvarı">
@@ -1065,9 +1035,6 @@ document.documentElement.setAttribute("data-theme",t);}catch(e){}})();
     <h2>Turlar</h2>
     <div class="card" id="swLaps"></div>
 
-    <h2>Kronometre geçmişi</h2>
-    <div class="card" id="swHistory"></div>
-    <button class="btn ghost tiny" style="width:100%;margin-top:-2px;margin-bottom:10px;" onclick="clearSwHistory()">Kronometre geçmişini temizle</button>
   </div>
 
 
@@ -2141,8 +2108,6 @@ window.addEventListener("online",()=>{if(!user)return;status("Bağlantı geldi",
 
 <script src="./modules/core-utils.js"></script>
 <script src="./modules/stability.js"></script>
-<script src="./modules/topic-coach.js"></script>
-<script src="./modules/learning-tools.js"></script>
 <script src="./modules/learning-lab.js"></script>
 <script src="./modules/target-center.js"></script>
 <script src="./modules/export-center.js"></script>

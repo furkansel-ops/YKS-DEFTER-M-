@@ -1,16 +1,15 @@
-# YKS Defterim v3.2.3
+# YKS Defterim v3.2.4
 
 Bu paket doğrudan statik hosting için hazırlanmıştır. ZIP'i açtıktan sonra bu klasörün **içindeki dosyaları** GitHub deposunun kök dizinine yükleyin. GitHub Pages, Cloudflare Pages veya benzeri bir statik sunucuda çalışır.
 
 ## Bu sürümde gelenler
 
 - v3.1.11 Sağlam Temel: CSS/JS modülerleştirme, çevrimdışı göstergesi, zamanlayıcı kurtarma, checksum'lı otomatik yedek, bölüm bazlı hata kurtarma, klavye iyileştirmeleri, çakışma birleştirme ve güvenlik temizliği.
-- v3.1.12 Akıllı Konu Koçu: günlük üç konu önerisi, risk nedenleri, çalışma süresi, doğrudan başlatma ve plana ekleme.
-- v3.1.13 Öğrenme Araçları: kişisel tekrar kartları, aralıklı tekrar, 50+ formüllük aranabilir/favorilenebilir banka ve 30 günlük tekrar analizi.
 - v3.2.0 Öğrenme Laboratuvarı: paragraf hız/anlama çalışması, 118 elementlik etkileşimli periyodik tablo ve favorilenebilir YKS tarih kronolojisi. YDT kelime defteri özellikle eklenmemiştir.
 - v3.2.1 Hedef ve Puan Merkezi: TYT/alan netleri, yaklaşık puan ve sıra, regresyon eğilimi, hedef bölüm mesafesi, ders hareketi ve kişisel yayınevi zorluğu tek görünümde.
 - v3.2.2 Dışa Aktarma: yazdırılabilir PDF raporu, ICS takvim, Anki TXT, Obsidian Markdown ve PNG çalışma kartı.
 - v3.2.3 Sade Arayüz: ana sayfadaki ödül/XP alanları, rozet görünümü ve Odak Bahçesi kaldırıldı; karne ve yararlı çalışma geçmişi “Çalışma özeti” altında korundu.
+- v3.2.4 Daha Sade Konular ve Odak: Akıllı Konu Koçu, Öğrenme Araçları ve ayrı Kronometre geçmişi görünümü kaldırıldı. Kronometrenin kendisi, odak kayıtları ve temel analizler korunur.
 - 1000 sözlük havuz korunarak İngilizce olan 920 söz Türkçeleştirildi.
 
 ## Yayına alma

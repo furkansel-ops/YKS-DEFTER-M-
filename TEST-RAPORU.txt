@@ -1,9 +1,16 @@
-YKS DEFTERİM v3.2.3 — SON TEST RAPORU
+YKS DEFTERİM v3.2.4 — SON TEST RAPORU
 Tarih: 24 Ağustos 2026
 Veri şeması: 21
 Kanal: Kararlı
 
 1. YENİ GELİŞTİRMELER
+
+v3.2.4 — Daha Sade Konular ve Odak
+- Akıllı Konu Koçu arayüzü ve modülü kaldırıldı.
+- Öğrenme Araçları arayüzü ve modülü kaldırıldı; eski yedeklerdeki kullanıcı verileri korunur.
+- Odak ekranındaki ayrı Kronometre geçmişi kartı ve temizleme düğmesi kaldırıldı.
+- Kronometre, Pomodoro, odak dakikaları ve temel odak analizleri çalışmaya devam eder.
+- Kaldırılan iki modül Service Worker önbellek listesinden çıkarıldı.
 
 v3.2.3 — Sade Arayüz
 - Ana sayfadaki seviye, XP, rozet ve dekor özeti kaldırıldı.
@@ -63,13 +70,13 @@ Söz havuzu
 - JavaScript: app.js, tüm modules/*.js ve sw.js sözdizimi kontrolünden geçti.
 - Firebase modülü: import satırları ayrıştırıldıktan sonra sözdizimi kontrolünden geçti.
 - CSS: süslü parantez dengesi doğru.
-- Sürüm/PWA: app, Service Worker ve version.json v3.2.3 / şema 21 olarak tutarlı.
+- Sürüm/PWA: app, Service Worker ve version.json v3.2.4 / şema 21 olarak tutarlı.
 - Güvenlik: gömülü YouTube API anahtarı, eski v30-legacy-tabs ve eval kullanımı bulunmadı.
 
 4. YAYIN NOTLARI
 
 - ZIP içindeki dosyalar GitHub depo köküne yüklenmelidir.
-- Service Worker önbellek adı v3.2.3'ye yükseltildi ve üç yeni modül çekirdek önbelleğe eklendi.
+- Service Worker önbellek adı v3.2.4'e yükseltildi; kaldırılan modüller çekirdek önbellekten çıkarıldı.
 - Güncellemeden önce mevcut uygulamadan JSON yedeği alınması önerilir.
 - Firebase kullanılıyorsa yayın alan adı Firebase Authentication yetkili alan adlarında bulunmalıdır.
 - PDF düğmesi tarayıcının yazdırma ekranını açar; buradan “PDF olarak kaydet” seçilir.

@@ -5,32 +5,34 @@ const path=require("node:path");
 const root=path.resolve(__dirname,"..");
 
 test("paket zorunlu dosyaları içerir",()=>{
-  ["index.html","app.css","app.js","sw.js","version.json","manifest.webmanifest","modules/core-utils.js","modules/stability.js","modules/topic-coach.js","modules/learning-tools.js","modules/learning-lab.js","modules/target-center.js","modules/export-center.js","modules/release-selftest.js"].forEach(file=>assert.equal(fs.existsSync(path.join(root,file)),true,file));
+  ["index.html","app.css","app.js","sw.js","version.json","manifest.webmanifest","modules/core-utils.js","modules/stability.js","modules/learning-lab.js","modules/target-center.js","modules/export-center.js","modules/release-selftest.js"].forEach(file=>assert.equal(fs.existsSync(path.join(root,file)),true,file));
+  ["modules/topic-coach.js","modules/learning-tools.js"].forEach(file=>assert.equal(fs.existsSync(path.join(root,file)),false,file));
 });
 
 test("HTML kimlikleri benzersiz ve kritik alanlar mevcut",()=>{
   const html=fs.readFileSync(path.join(root,"index.html"),"utf8"),ids=[...html.matchAll(/\bid=["']([^"']+)["']/g)].map(x=>x[1]);
   assert.equal(new Set(ids).size,ids.length);
-  ["v311OfflineBanner","v312Coach","v313Learning","v313CardReview","v313FormulaList","v320LearningLab","v320ElementGrid","v320Timeline","v321TargetKpis","v322ExportCenter"].forEach(id=>assert.ok(ids.includes(id),id));
+  ["v311OfflineBanner","v320LearningLab","v320ElementGrid","v320Timeline","v321TargetKpis","v322ExportCenter"].forEach(id=>assert.ok(ids.includes(id),id));
 });
 
 test("sürüm, şema ve PWA önbelleği tutarlı",()=>{
   const html=fs.readFileSync(path.join(root,"index.html"),"utf8"),app=fs.readFileSync(path.join(root,"app.js"),"utf8"),sw=fs.readFileSync(path.join(root,"sw.js"),"utf8"),version=JSON.parse(fs.readFileSync(path.join(root,"version.json"),"utf8"));
-  assert.match(html,/src="\.\/app\.js"/);assert.match(app,/const APP_VERSION="3\.2\.3"/);assert.match(app,/const DATA_SCHEMA=21/);
-  assert.equal(version.version,"3.2.3");assert.equal(version.schema,21);assert.match(sw,/yks-core-v3\.2\.3/);
-  ["app.css","app.js","modules/core-utils.js","modules/stability.js","modules/topic-coach.js","modules/learning-tools.js","modules/learning-lab.js","modules/target-center.js","modules/export-center.js","modules/release-selftest.js"].forEach(asset=>assert.ok(sw.includes(asset),asset));
+  assert.match(html,/src="\.\/app\.js"/);assert.match(app,/const APP_VERSION="3\.2\.4"/);assert.match(app,/const DATA_SCHEMA=21/);
+  assert.equal(version.version,"3.2.4");assert.equal(version.schema,21);assert.match(sw,/yks-core-v3\.2\.4/);
+  ["app.css","app.js","modules/core-utils.js","modules/stability.js","modules/learning-lab.js","modules/target-center.js","modules/export-center.js","modules/release-selftest.js"].forEach(asset=>assert.ok(sw.includes(asset),asset));
+  assert.doesNotMatch(sw,/modules\/(topic-coach|learning-tools)\.js/);
 });
 
 test("dağıtım paketinde gömülü YouTube anahtarı yok",()=>{
-  const all=["index.html","app.js","modules/stability.js","modules/topic-coach.js","modules/learning-tools.js"].map(file=>fs.readFileSync(path.join(root,file),"utf8")).join("\n");
+  const all=["index.html","app.js","modules/stability.js","modules/learning-lab.js"].map(file=>fs.readFileSync(path.join(root,file),"utf8")).join("\n");
   assert.doesNotMatch(all,/AIzaSyALxmrdmd2UnoZcxN7HjWNKeS3g7B_o9LU/);
   assert.match(all,/const YT_BUILTIN_KEY=""/);
 });
 
-test("öğrenme araçları ve eski arayüz temizliği pakette",()=>{
-  const html=fs.readFileSync(path.join(root,"index.html"),"utf8"),learning=fs.readFileSync(path.join(root,"modules/learning-tools.js"),"utf8"),stability=fs.readFileSync(path.join(root,"modules/stability.js"),"utf8");
-  assert.ok((learning.match(/\{id:"[mpgc]-/g)||[]).length>=50,"formül bankası en az 50 kayıt içermeli");
+test("eski arayüz ve kaldırılan araçlar pakette yok",()=>{
+  const html=fs.readFileSync(path.join(root,"index.html"),"utf8"),stability=fs.readFileSync(path.join(root,"modules/stability.js"),"utf8");
   assert.doesNotMatch(html,/v30-legacy-tabs/);
+  assert.doesNotMatch(html,/Akıllı Konu Koçu|Öğrenme Araçları|Kronometre geçmişi|id="swHistory"/);
   assert.doesNotMatch(stability,/\beval\s*\(/);
   assert.match(html,/href="\.\/app\.css"/);
 });
