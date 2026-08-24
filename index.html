@@ -1998,7 +1998,7 @@ async function applyRemote(remote,reason="remote"){
   const next=normalize(Object.assign({},JSON.parse(JSON.stringify(DEF)),migrateState(remote.obj)));
   if(localSw){next.focus.sw=localSw;next.focus.swLaps=localLaps;}
   /* Önce diske yaz; depolama doluysa çalışan yerel durumu yarıda değiştirme. */
-  const persisted=JSON.stringify(next);localStorage.setItem(STORAGE_KEY,persisted);
+  const persisted=JSON.stringify(next);localStorage.setItem(STORAGE_KEY,persisted);if(window.__YKS_DATA__?.captureLegacyWrite)void window.__YKS_DATA__.captureLegacyWrite(persisted);
   window.S=next;S=next;lastPersistedJSON=persisted;perfInvalidateState();persistStateHashMaybe(persisted,true);
   setBaseRev(remote.rev); setDirty(false); lastJSON=cloudJSON();
   if(typeof renderAfterExternalState==="function")renderAfterExternalState(); else if(typeof renderAll==="function")renderAll();
@@ -2013,7 +2013,7 @@ async function applyMerged(remote,localObj){
   const raw=window.YKSCore.mergeStates(remote.obj,localObj,DATA_SCHEMA);
   const next=normalize(Object.assign({},JSON.parse(JSON.stringify(DEF)),migrateState(raw)));
   if(localSw){next.focus.sw=localSw;next.focus.swLaps=localLaps;}
-  const persisted=JSON.stringify(next);localStorage.setItem(STORAGE_KEY,persisted);
+  const persisted=JSON.stringify(next);localStorage.setItem(STORAGE_KEY,persisted);if(window.__YKS_DATA__?.captureLegacyWrite)void window.__YKS_DATA__.captureLegacyWrite(persisted);
   window.S=next;S=next;lastPersistedJSON=persisted;perfInvalidateState();persistStateHashMaybe(persisted,true);
   setBaseRev(remote.rev);setDirty(true);lastJSON="";
   if(typeof renderAfterExternalState==="function")renderAfterExternalState();else if(typeof renderAll==="function")renderAll();

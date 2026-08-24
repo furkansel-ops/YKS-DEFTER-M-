@@ -2,7 +2,7 @@ import {installLegacyUiBridge} from "./ui/legacy-bridge";
 import {installLegacyDataBridge} from "./data/legacy-data-bridge";
 
 type BootstrapState={
-  version:"4.0.0-alpha.4";
+  version:"4.0.0-alpha.5";
   stack:"vite-typescript";
   legacyRuntime:true;
   uiBridge:true;
@@ -17,7 +17,7 @@ declare global{
 }
 
 const bootstrap:BootstrapState={
-  version:"4.0.0-alpha.4",
+  version:"4.0.0-alpha.5",
   stack:"vite-typescript",
   legacyRuntime:true,
   uiBridge:true,

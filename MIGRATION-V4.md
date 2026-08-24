@@ -49,8 +49,18 @@ npm run check
 - Bozuk JSON veya daha yeni şemadaki kayıt IndexedDB'nin üzerine yazılmıyor.
 - Eski `localStorage` verisi silinmiyor ve uygulamanın çalışan kayıt yolu bu adımda değiştirilmedi.
 
-## Sıradaki adım 5
+## Tamamlanan adım 5 — Dexie ana kayıt ve güvenli yerel ayna
 
-Uygulamanın ana veri erişimini Dexie'ye alırken `localStorage` kaydını güvenli geri dönüş yolu olarak korumak.
+- Dexie kalıcı ana kayıt haline getirildi; `localStorage` senkron uyumluluk aynası olarak korunuyor.
+- Mevcut `save()` akışı write-through köprüsüyle sıralı olarak Dexie'ye yazılıyor.
+- Dexie ve yerel ayna farklıysa hash ve güvenilir zaman damgasıyla daha yeni kayıt seçiliyor.
+- İzlenmeyen eski `localStorage` değişikliklerinde veri kaybını önlemek için yerel kayıt öncelikli kabul ediliyor.
+- IndexedDB açılamazsa uygulama `localStorage` aynasından çalışmayı sürdürüyor.
+- Dexie kaydı daha yeniyse doğrulanıp çalışan `S` durumuna ve yerel aynaya uygulanıyor.
+- Firebase'den gelen doğrudan kayıtlar da Dexie write-through kuyruğuna bağlandı.
+
+## Sıradaki adım 6
+
+Firebase senkronizasyonunu doğrudan Dexie veri katmanına bağlamak ve cihazlar arası eşitlemede Dexie'yi kaynak yapmak.
 
 Bu adıma kullanıcı onayı alınmadan geçilmez.

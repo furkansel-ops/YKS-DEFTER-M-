@@ -25,6 +25,7 @@ export interface MigrationMetaRecord{
   sourceChars:number;
   sourceBytes:number;
   updatedAt:number;
+  primaryMode?:"migration"|"dexie-primary";
 }
 
 export interface LegacyStateSource{
@@ -72,7 +73,7 @@ export async function migrateLegacyState(source:LegacyStateSource,target:Migrati
     };
     const marker:MigrationMetaRecord={
       key:LEGACY_IMPORT_META_KEY,migrationVersion:1,stateKey:PRIMARY_INDEXED_STATE_KEY,schema:legacy.schema,
-      source:"localStorage",sourceHash:hash,sourceChars:legacy.chars,sourceBytes:legacy.bytes,updatedAt
+      source:"localStorage",sourceHash:hash,sourceChars:legacy.chars,sourceBytes:legacy.bytes,updatedAt,primaryMode:"migration"
     };
     await target.commit(record,marker);
     const verified=await target.readState();

@@ -17,6 +17,11 @@ export interface DataSnapshot{
   keyCount:number;
 }
 
+export interface MirrorMetadata{
+  hash:string;
+  updatedAt:number;
+}
+
 export class LocalStateRepository{
   readonly #provider:StorageProvider;
 
@@ -54,6 +59,20 @@ export class LocalStateRepository{
 
   remove():{ok:true}|{ok:false;message:string}{
     return this.removeText(YKS_STORAGE_KEYS.primary);
+  }
+
+  readMirrorMetadata():MirrorMetadata{
+    const hash=this.readText(YKS_STORAGE_KEYS.legacyMirrorHash),updated=this.readText(YKS_STORAGE_KEYS.legacyMirrorUpdatedAt);
+    return {
+      hash:hash.ok&&typeof hash.value==="string"?hash.value:"",
+      updatedAt:updated.ok?Math.max(0,Number(updated.value)||0):0
+    };
+  }
+
+  writeMirrorMetadata(hash:string,updatedAt:number):{ok:true}|{ok:false;message:string}{
+    const savedHash=this.writeText(YKS_STORAGE_KEYS.legacyMirrorHash,String(hash||""));
+    if(!savedHash.ok)return savedHash;
+    return this.writeText(YKS_STORAGE_KEYS.legacyMirrorUpdatedAt,String(Math.max(0,Math.floor(updatedAt))));
   }
 
   snapshot():DataSnapshot{
