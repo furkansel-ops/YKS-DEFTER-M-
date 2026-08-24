@@ -3,7 +3,7 @@
   function runReleaseSelfTest(){
     const checks=[],add=(name,value)=>checks.push([name,!!value]);
     try{
-      add("version",typeof APP_VERSION!=="undefined"&&APP_VERSION==="3.2.2"&&DATA_SCHEMA===21);
+      add("version",typeof APP_VERSION!=="undefined"&&APP_VERSION==="3.2.3"&&DATA_SCHEMA===21);
       add("modular-assets",!!document.querySelector('link[href="./app.css"]')&&!!document.querySelector('script[src="./app.js"]'));
       add("stability",!!window.YKSStability&&!!document.getElementById("v311OfflineBanner"));
       add("topic-coach",typeof window.v312RenderCoach==="function"&&!!document.getElementById("v312Coach"));

@@ -16,8 +16,8 @@ test("HTML kimlikleri benzersiz ve kritik alanlar mevcut",()=>{
 
 test("sürüm, şema ve PWA önbelleği tutarlı",()=>{
   const html=fs.readFileSync(path.join(root,"index.html"),"utf8"),app=fs.readFileSync(path.join(root,"app.js"),"utf8"),sw=fs.readFileSync(path.join(root,"sw.js"),"utf8"),version=JSON.parse(fs.readFileSync(path.join(root,"version.json"),"utf8"));
-  assert.match(html,/src="\.\/app\.js"/);assert.match(app,/const APP_VERSION="3\.2\.2"/);assert.match(app,/const DATA_SCHEMA=21/);
-  assert.equal(version.version,"3.2.2");assert.equal(version.schema,21);assert.match(sw,/yks-core-v3\.2\.2/);
+  assert.match(html,/src="\.\/app\.js"/);assert.match(app,/const APP_VERSION="3\.2\.3"/);assert.match(app,/const DATA_SCHEMA=21/);
+  assert.equal(version.version,"3.2.3");assert.equal(version.schema,21);assert.match(sw,/yks-core-v3\.2\.3/);
   ["app.css","app.js","modules/core-utils.js","modules/stability.js","modules/topic-coach.js","modules/learning-tools.js","modules/learning-lab.js","modules/target-center.js","modules/export-center.js","modules/release-selftest.js"].forEach(asset=>assert.ok(sw.includes(asset),asset));
 });
 
@@ -33,6 +33,13 @@ test("öğrenme araçları ve eski arayüz temizliği pakette",()=>{
   assert.doesNotMatch(html,/v30-legacy-tabs/);
   assert.doesNotMatch(stability,/\beval\s*\(/);
   assert.match(html,/href="\.\/app\.css"/);
+});
+
+test("sade arayüzde ödül alanları ve Odak Bahçesi yok",()=>{
+  const html=fs.readFileSync(path.join(root,"index.html"),"utf8");
+  ["v319HomeReward","v317Garden","v319RewardCenter","v319Decorations","badgeList","homeBadges"].forEach(id=>assert.equal(html.includes(`id="${id}"`),false,id));
+  assert.doesNotMatch(html,/Ödül merkezini aç|Rozetler & rekorlar|Odak Bahçesi|Başarı rozetleri/);
+  assert.match(html,/Çalışma özeti/);
 });
 
 test("Öğrenme Laboratuvarı, hedef merkezi ve dışa aktarımlar pakette",()=>{

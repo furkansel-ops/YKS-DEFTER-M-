@@ -139,20 +139,6 @@ document.documentElement.setAttribute("data-theme",t);}catch(e){}})();
     </div>
   </div>
 
-  <section class="card v319-home-reward" id="v319HomeReward" data-student-only aria-label="Başarı özeti">
-    <div class="v319-home-reward-main">
-      <div><span class="v319-kicker">Başarı seviyesi</span><b id="v319HomeLevel">Seviye 1</b><small id="v319HomeTier">Başlangıç</small></div>
-      <div class="v319-xp-line"><span id="v319HomeXP">0 XP</span><span id="v319HomeXPNext">0 / 180</span></div>
-      <div class="v319-xp-bar"><i id="v319HomeXPBar"></i></div>
-    </div>
-    <div class="v319-home-reward-kpis">
-      <div><b id="v319HomeBadges">0</b><span>rozet</span></div>
-      <div><b id="v319HomeRewardStreak">0</b><span>gün seri</span></div>
-      <div><b id="v319HomeDecor">0</b><span>dekor</span></div>
-    </div>
-    <button class="btn ghost tiny" type="button" onclick="go('more');setMoreTab('roz')">Ödül merkezini aç</button>
-  </section>
-
   <div class="home-actions" data-student-only>
     <button class="btn ghost tiny" onclick="openBrief(true)">Günün özeti</button>
     <button class="btn green tiny" id="gunBtn" onclick="openGun()">Gün ekranını aç</button>
@@ -321,18 +307,14 @@ document.documentElement.setAttribute("data-theme",t);}catch(e){}})();
   </div>
 
   <button class="foldhead" id="fh_gunluk" onclick="toggleFold('gunluk')">
-    <span class="ft">Günün notu ve rozetler</span>
+    <span class="ft">Günün notu</span>
     <span class="fi"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
   </button>
   <div class="foldbody" id="fb_gunluk">
     <div class="card">
       <textarea id="journalInput" placeholder="Bugün nasıl geçti? Tek cümle yeter."></textarea>
       <button class="btn ghost small" style="width:100%;margin-top:12px;" onclick="saveJournal()">Günlüğü kaydet</button>
-    </div>
-    <div class="card">
-      <div id="homeBadges"></div>
       <button class="btn ghost small" style="width:100%;margin-top:12px;" onclick="shareCard()" data-student-only>Günün kartını indir</button>
-      <p class="hint">Tümü için <b onclick="go('more');setMoreTab('roz')" style="cursor:pointer;text-decoration:underline">Daha › Rozetler</b>.</p>
     </div>
   </div>
 </section>
@@ -960,37 +942,6 @@ document.documentElement.setAttribute("data-theme",t);}catch(e){}})();
 
   <div class="v29-focus-dashboard" id="v29Dashboard"></div>
 
-  <section class="card v317-garden" id="v317Garden" aria-label="Odak Bahçesi">
-    <div class="v317-garden-head">
-      <div>
-        <p class="eyebrow" style="margin:0">Odak Bahçesi</p>
-        <h2>Çalıştıkça büyüyen bahçen</h2>
-        <p class="hint">10+ dakika tamamlanan her odak oturumu bir bitki büyütür. Kesintisiz ve kaliteli oturumlar daha çok yaprak kazandırır.</p>
-      </div>
-      <div class="v317-level-pill"><span>Bahçe seviyesi</span><b id="v317GardenLevel">Tohum</b></div>
-    </div>
-    <div class="v317-garden-layout">
-      <div class="v317-plot" id="v317GardenPlot">
-        <div class="v317-plot-sun" aria-hidden="true"></div>
-        <div class="v319-garden-decor" id="v319GardenDecor" aria-hidden="true"></div>
-        <div class="v317-plants" id="v317GardenPlants"></div>
-        <div class="v317-ground" aria-hidden="true"></div>
-        <div class="v317-garden-empty" id="v317GardenEmpty">İlk 10+ dakikalık tamamlanmış oturumunda burada ilk filizin çıkacak 🌱</div>
-      </div>
-      <div class="v317-reward-panel">
-        <div class="v317-reward-kpis">
-          <div><b id="v317Leaves">0</b><span>yaprak</span></div>
-          <div><b id="v317Trees">0</b><span>bitki</span></div>
-          <div><b id="v317GardenStreak">0</b><span>gün serisi</span></div>
-        </div>
-        <div class="v317-next-head"><span id="v317NextReward">İlk seviye hazırlanıyor</span><b id="v317NextPct">0%</b></div>
-        <div class="v317-levelbar"><i id="v317LevelBar"></i></div>
-        <div class="v317-unlocks" id="v317Unlocks"></div>
-        <p class="v317-reward-note" id="v317RewardNote">Bitki türü oturum sürene göre değişir; 90+ odak puanı ve sıfır kesinti özel bir ağaç verir.</p>
-      </div>
-    </div>
-  </section>
-
   <div class="card flat v29-session-setup">
     <div class="v29-setup-head"><div><p class="eyebrow" style="margin:0">Oturumu hazırla</p><p class="hint" style="margin:4px 0 0">Ders, konu ve çıktıyı seç; süre kadar ne ürettiğini de takip et.</p></div><button class="btn ghost tiny" onclick="v29ToggleMinimal()">Minimal mod</button></div>
     <p class="eyebrow" style="margin-top:14px">Ders</p>
@@ -1254,10 +1205,10 @@ document.documentElement.setAttribute("data-theme",t);}catch(e){}})();
       <button class="v30-menu-card" type="button" onclick="v30Action('archive')"><span class="v30-menu-ico">▣</span><span><b>Yanlış soru arşivi</b><small>Fotoğraflı sorularını aç, filtrele ve tekrar et</small></span><i>›</i></button>
     </div>
 
-    <h2>Geçmiş ve başarı</h2>
+    <h2>Geçmiş ve raporlar</h2>
     <div class="v30-menu-grid">
       <button class="v30-menu-card" type="button" onclick="v30Action('reports')"><span class="v30-menu-ico">↗</span><span><b>Raporlar & geçmiş</b><small>Ay raporu, retrospektif ve çalışma geçmişi</small></span><i>›</i></button>
-      <button class="v30-menu-card" type="button" onclick="v30Action('success')"><span class="v30-menu-ico">◇</span><span><b>Rozetler & rekorlar</b><small>Haftalık karne, kilometre taşları ve başarıların</small></span><i>›</i></button>
+      <button class="v30-menu-card" type="button" onclick="v30Action('success')"><span class="v30-menu-ico">▦</span><span><b>Çalışma özeti</b><small>Haftalık karne, çalışma düzeni ve ilerleme geçmişi</small></span><i>›</i></button>
       <button class="v30-menu-card" type="button" onclick="v30Action('log')"><span class="v30-menu-ico">≡</span><span><b>Değişiklik günlüğü</b><small>Son ekleme ve silmeleri gör, uygun olanları geri al</small></span><i>›</i></button>
     </div>
 
@@ -1377,7 +1328,7 @@ document.documentElement.setAttribute("data-theme",t);}catch(e){}})();
   </div>
 
   <div id="mrp_roz" style="display:none;">
-    <div class="v30-subhead"><button class="v30-back" type="button" onclick="setMoreTab('home')">‹ Daha</button><div><h1>Geçmiş & başarı</h1><p>Karne, kilometre taşları ve rozetler</p></div></div>
+    <div class="v30-subhead"><button class="v30-back" type="button" onclick="setMoreTab('home')">‹ Daha</button><div><h1>Çalışma özeti</h1><p>Karne, çalışma düzeni ve ilerleme geçmişi</p></div></div>
     <h2>Haftalık karne</h2>
     <div class="card">
       <div class="calnav">
@@ -1403,17 +1354,6 @@ document.documentElement.setAttribute("data-theme",t);}catch(e){}})();
     <h2>Geçen seneki sen</h2>
     <div class="card" id="lyBox"></div>
 
-    <h2>Başarı & ödül merkezi</h2>
-    <section class="card v319-reward-center" id="v319RewardCenter">
-      <div class="v319-level-head">
-        <div><span class="v319-kicker">Toplam seviye</span><b id="v319LevelTitle">Seviye 1 · Başlangıç</b><small id="v319LevelSub">0 XP</small></div>
-        <div class="v319-level-orb" id="v319LevelOrb"><b id="v319LevelNo">1</b><span>seviye</span></div>
-      </div>
-      <div class="v319-xp-line"><span id="v319XpNow">0 XP</span><span id="v319XpNext">Sonraki seviye</span></div>
-      <div class="v319-xp-bar big"><i id="v319XpBar"></i></div>
-      <div class="v319-reward-breakdown" id="v319RewardBreakdown"></div>
-    </section>
-
     <h2>365 günlük çalışma haritası</h2>
     <section class="card v319-year-card">
       <div class="v319-year-head"><div><b>Çalışma ısı haritası</b><small>Odak süresi + soru sayısı</small></div><div id="v319YearStats"></div></div>
@@ -1421,12 +1361,6 @@ document.documentElement.setAttribute("data-theme",t);}catch(e){}})();
       <div class="v319-heat-legend"><span>Az</span><i class="l0"></i><i class="l1"></i><i class="l2"></i><i class="l3"></i><i class="l4"></i><span>Çok</span></div>
     </section>
 
-    <h2>Bahçe dekorasyonları</h2>
-    <section class="card v319-decor-card" id="v319Decorations"></section>
-
-
-    <h2>Başarı rozetleri</h2>
-    <div class="card" id="badgeList"></div>
   </div>
 
   <div id="mrp_veri" style="display:none;">
@@ -1455,9 +1389,9 @@ document.documentElement.setAttribute("data-theme",t);}catch(e){}})();
         <button type="button" onclick="v322ExportICS()"><span>ICS</span><b>Takvime aktar</b><small>Dolu plan hücreleri</small></button>
         <button type="button" onclick="v322ExportAnki()"><span>TXT</span><b>Anki kartları</b><small>Soru–cevap sekmeli dosya</small></button>
         <button type="button" onclick="v322ExportObsidian()"><span>MD</span><b>Obsidian notu</b><small>İlerleme ve konu özeti</small></button>
-        <button type="button" onclick="v322ShareCard()"><span>PNG</span><b>Başarı kartı</b><small>İndir veya paylaş</small></button>
+        <button type="button" onclick="v322ShareCard()"><span>PNG</span><b>Çalışma kartı</b><small>İndir veya paylaş</small></button>
       </div>
-      <p class="hint">Dışa aktarımlar cihazında hazırlanır. Not ve günlük metinleri başarı kartına eklenmez.</p>
+      <p class="hint">Dışa aktarımlar cihazında hazırlanır. Not ve günlük metinleri çalışma kartına eklenmez.</p>
     </section>
 
     <h2>Ay raporu</h2>

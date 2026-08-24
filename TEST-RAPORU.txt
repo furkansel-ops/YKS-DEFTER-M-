@@ -1,9 +1,16 @@
-YKS DEFTERİM v3.2.2 — SON TEST RAPORU
+YKS DEFTERİM v3.2.3 — SON TEST RAPORU
 Tarih: 24 Ağustos 2026
 Veri şeması: 21
 Kanal: Kararlı
 
 1. YENİ GELİŞTİRMELER
+
+v3.2.3 — Sade Arayüz
+- Ana sayfadaki seviye, XP, rozet ve dekor özeti kaldırıldı.
+- Odak ekranındaki ağaç/bahçe ve buna bağlı ödül görünümü kaldırıldı.
+- Rozet açılma bildirimleri ve yeni rozet üretimi devre dışı bırakıldı; eski yedek verileri silinmedi.
+- Faydalı karne, verim saati, kilometre taşları ve 365 günlük çalışma haritası “Çalışma özeti” altında korundu.
+- PWA önbelleği yükseltilerek eski arayüzün cihazda takılı kalması önlendi.
 
 v3.2.0 — Öğrenme Laboratuvarı
 - Kullanıcının kendi metnini ekleyebildiği paragraf çalışma alanı eklendi.
@@ -28,8 +35,8 @@ v3.2.2 — Rapor, Takvim ve Paylaşım
 - Dolu haftalık plan hücrelerini 180 güne kadar takvime taşıyan ICS dışa aktarımı eklendi.
 - Tekrar kartlarını Anki uyumlu sekmeli TXT dosyasına aktarma eklendi.
 - İlerleme özetini Obsidian uyumlu Markdown dosyasına aktarma eklendi.
-- 1080×1920 PNG başarı kartı oluşturma, desteklenen cihazlarda paylaşma ve diğerlerinde indirme eklendi.
-- Başarı kartına kişisel günlük/not içerikleri dahil edilmiyor.
+- 1080×1920 PNG çalışma kartı oluşturma, desteklenen cihazlarda paylaşma ve diğerlerinde indirme eklendi.
+- Çalışma kartına kişisel günlük/not içerikleri dahil edilmiyor.
 
 Söz havuzu
 - Toplam 1000 söz ve yazar bilgileri korundu.
@@ -46,7 +53,7 @@ Söz havuzu
 
 3. OTOMATİK TEST SONUÇLARI
 
-- Node testleri: 17/17 başarılı, 0 başarısız.
+- Node testleri: 18/18 başarılı, 0 başarısız.
 - Öğrenme Laboratuvarı: 118 element, 40+ tarih olayı ve Unicode kelime sayacı doğrulandı.
 - Çıktı üretimi: ICS, Anki TXT ve Obsidian Markdown gerçek örnek veriyle doğrulandı.
 - Hedef merkezi: puan, sıra ve en yakın hedef görünüm verisi doğrulandı.
@@ -56,13 +63,13 @@ Söz havuzu
 - JavaScript: app.js, tüm modules/*.js ve sw.js sözdizimi kontrolünden geçti.
 - Firebase modülü: import satırları ayrıştırıldıktan sonra sözdizimi kontrolünden geçti.
 - CSS: süslü parantez dengesi doğru.
-- Sürüm/PWA: app, Service Worker ve version.json v3.2.2 / şema 21 olarak tutarlı.
+- Sürüm/PWA: app, Service Worker ve version.json v3.2.3 / şema 21 olarak tutarlı.
 - Güvenlik: gömülü YouTube API anahtarı, eski v30-legacy-tabs ve eval kullanımı bulunmadı.
 
 4. YAYIN NOTLARI
 
 - ZIP içindeki dosyalar GitHub depo köküne yüklenmelidir.
-- Service Worker önbellek adı v3.2.2'ye yükseltildi ve üç yeni modül çekirdek önbelleğe eklendi.
+- Service Worker önbellek adı v3.2.3'ye yükseltildi ve üç yeni modül çekirdek önbelleğe eklendi.
 - Güncellemeden önce mevcut uygulamadan JSON yedeği alınması önerilir.
 - Firebase kullanılıyorsa yayın alan adı Firebase Authentication yetkili alan adlarında bulunmalıdır.
 - PDF düğmesi tarayıcının yazdırma ekranını açar; buradan “PDF olarak kaydet” seçilir.
