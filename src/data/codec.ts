@@ -18,6 +18,15 @@ export function textBytes(text:string):number{
   return new TextEncoder().encode(text).byteLength;
 }
 
+export function stateHash(text:string):string{
+  let hash=2166136261;
+  for(let index=0;index<text.length;index++){
+    hash^=text.charCodeAt(index);
+    hash=Math.imul(hash,16777619);
+  }
+  return (hash>>>0).toString(16).padStart(8,"0");
+}
+
 export function stateSchema(value:YksStateCandidate):number{
   const schema=Number(value.v??1);
   return Number.isFinite(schema)&&schema>0?Math.floor(schema):1;

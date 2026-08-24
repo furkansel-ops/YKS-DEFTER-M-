@@ -81,7 +81,7 @@ test("şema 20 verisi Öğrenme Laboratuvarı için şema 21'e taşınır",()=>{
 test("v4 Vite ve TypeScript geçiş altyapısı güvenli biçimde hazır",()=>{
   const pkg=JSON.parse(fs.readFileSync(path.join(root,"package.json"),"utf8")),ts=JSON.parse(fs.readFileSync(path.join(root,"tsconfig.json"),"utf8")),html=fs.readFileSync(path.join(root,"index.html"),"utf8"),entry=fs.readFileSync(path.join(root,"src/main.ts"),"utf8"),copy=fs.readFileSync(path.join(root,"scripts/copy-legacy-assets.mjs"),"utf8");
   ["package-lock.json","vite.config.mts","src/main.ts","src/vite-env.d.ts","scripts/copy-legacy-assets.mjs","scripts/verify-dist.mjs","MIGRATION-V4.md"].forEach(file=>assert.equal(fs.existsSync(path.join(root,file)),true,file));
-  assert.equal(pkg.private,true);assert.equal(pkg.version,"4.0.0-alpha.3");assert.match(pkg.scripts.check,/typecheck/);assert.match(pkg.scripts.build,/vite build/);assert.match(pkg.scripts.build,/verify-dist/);assert.ok(pkg.devDependencies.vite);assert.ok(pkg.devDependencies.typescript);
+  assert.equal(pkg.private,true);assert.equal(pkg.version,"4.0.0-alpha.4");assert.match(pkg.scripts.check,/typecheck/);assert.match(pkg.scripts.build,/vite build/);assert.match(pkg.scripts.build,/verify-dist/);assert.ok(pkg.devDependencies.vite);assert.ok(pkg.devDependencies.typescript);
   assert.equal(ts.compilerOptions.strict,true);assert.equal(ts.compilerOptions.noUncheckedIndexedAccess,true);assert.equal(ts.compilerOptions.noEmit,true);
   assert.match(html,/type="module" src="\.\/src\/main\.ts"/);assert.match(entry,/legacyRuntime:true/);assert.match(copy,/"modules"/);assert.equal(pkg.devDependencies.dexie,undefined);
 });
@@ -99,5 +99,13 @@ test("v4 TypeScript veri katmanı şema 21 sözleşmesini kayıpsız korur",()=>
   ["yks","yks_last_good","yks_yedek","yks_cloud_dirty","yks_focus_runtime_v1"].forEach(key=>assert.ok(source.includes(`\"${key}\"`),key));
   assert.match(source,/class LocalStateRepository/);assert.match(source,/decodeState/);assert.match(source,/encodeState/);assert.match(source,/MAX_REASONABLE_STATE_CHARS/);
   assert.match(source,/__YKS_DATA__/);assert.match(entry,/installLegacyDataBridge\(\)/);assert.match(entry,/dataBridge:true/);
-  assert.equal(pkg.devDependencies.dexie,undefined);assert.doesNotMatch(source,/\bDexie\b|indexedDB/);
+  assert.equal(pkg.devDependencies.dexie,undefined);
+});
+
+test("v4 Dexie taşıması localStorage kaydını silmeden IndexedDB kopyası oluşturur",()=>{
+  const files=["src/data/database.ts","src/data/migration.ts"],source=files.map(file=>{assert.equal(fs.existsSync(path.join(root,file)),true,file);return fs.readFileSync(path.join(root,file),"utf8");}).join("\n"),bridge=fs.readFileSync(path.join(root,"src/data/legacy-data-bridge.ts"),"utf8"),pkg=JSON.parse(fs.readFileSync(path.join(root,"package.json"),"utf8"));
+  assert.ok(pkg.dependencies.dexie);assert.match(source,/class YksDatabase extends Dexie/);assert.match(source,/yks-defterim-v4/);assert.match(source,/transaction\("rw"/);
+  assert.match(source,/migrateLegacyState/);assert.match(source,/sourceHash/);assert.match(source,/verified\.json!==legacy\.json/);assert.match(source,/already-current/);
+  assert.match(bridge,/ready:migrate\(\)/);assert.match(bridge,/yks:data-migration/);assert.match(bridge,/indexedSnapshot/);
+  assert.doesNotMatch(source,/localStorage\.(?:removeItem|clear)/);assert.doesNotMatch(source,/\.delete\(|\.clear\(/);
 });

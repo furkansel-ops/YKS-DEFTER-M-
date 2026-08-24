@@ -1,7 +1,7 @@
 {
   "name": "yks-defterim",
   "private": true,
-  "version": "4.0.0-alpha.3",
+  "version": "4.0.0-alpha.4",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
     "typecheck": "tsc --noEmit",
@@ -13,5 +13,8 @@
   "devDependencies": {
     "typescript": "^7.0.2",
     "vite": "^8.2.2"
+  },
+  "dependencies": {
+    "dexie": "^4.4.5"
   }
 }

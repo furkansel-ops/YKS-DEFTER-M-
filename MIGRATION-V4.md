@@ -40,8 +40,17 @@ npm run check
 - `window.__YKS_DATA__` uyumluluk köprüsü eklendi; mevcut `localStorage` kayıt biçimi ve kullanıcı verisi değiştirilmedi.
 - Dexie veya IndexedDB henüz etkinleştirilmedi.
 
-## Sıradaki adım 4
+## Tamamlanan adım 4 — Dexie ve otomatik IndexedDB taşıması
 
-Mevcut `localStorage` verisini Dexie/IndexedDB'ye tek seferlik ve otomatik olarak taşımak.
+- Dexie 4 ve `yks-defterim-v4` IndexedDB veritabanı eklendi.
+- Şema 21 ana JSON kaydı uygulama açılışında otomatik olarak IndexedDB'ye kopyalanıyor.
+- Taşıma işlemi atomik transaction içinde yapılıyor ve yazılan JSON/hash tekrar okunarak doğrulanıyor.
+- Aynı veri yeniden yazılmıyor; `localStorage` değişmişse IndexedDB kopyası güvenle yenileniyor.
+- Bozuk JSON veya daha yeni şemadaki kayıt IndexedDB'nin üzerine yazılmıyor.
+- Eski `localStorage` verisi silinmiyor ve uygulamanın çalışan kayıt yolu bu adımda değiştirilmedi.
+
+## Sıradaki adım 5
+
+Uygulamanın ana veri erişimini Dexie'ye alırken `localStorage` kaydını güvenli geri dönüş yolu olarak korumak.
 
 Bu adıma kullanıcı onayı alınmadan geçilmez.
