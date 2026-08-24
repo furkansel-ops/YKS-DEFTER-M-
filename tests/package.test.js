@@ -80,8 +80,15 @@ test("şema 20 verisi Öğrenme Laboratuvarı için şema 21'e taşınır",()=>{
 
 test("v4 Vite ve TypeScript geçiş altyapısı güvenli biçimde hazır",()=>{
   const pkg=JSON.parse(fs.readFileSync(path.join(root,"package.json"),"utf8")),ts=JSON.parse(fs.readFileSync(path.join(root,"tsconfig.json"),"utf8")),html=fs.readFileSync(path.join(root,"index.html"),"utf8"),entry=fs.readFileSync(path.join(root,"src/main.ts"),"utf8"),copy=fs.readFileSync(path.join(root,"scripts/copy-legacy-assets.mjs"),"utf8");
-  ["package-lock.json","vite.config.mts","src/main.ts","src/vite-env.d.ts","scripts/copy-legacy-assets.mjs","MIGRATION-V4.md"].forEach(file=>assert.equal(fs.existsSync(path.join(root,file)),true,file));
-  assert.equal(pkg.private,true);assert.match(pkg.scripts.check,/typecheck/);assert.match(pkg.scripts.build,/vite build/);assert.ok(pkg.devDependencies.vite);assert.ok(pkg.devDependencies.typescript);
+  ["package-lock.json","vite.config.mts","src/main.ts","src/vite-env.d.ts","scripts/copy-legacy-assets.mjs","scripts/verify-dist.mjs","MIGRATION-V4.md"].forEach(file=>assert.equal(fs.existsSync(path.join(root,file)),true,file));
+  assert.equal(pkg.private,true);assert.equal(pkg.version,"4.0.0-alpha.2");assert.match(pkg.scripts.check,/typecheck/);assert.match(pkg.scripts.build,/vite build/);assert.match(pkg.scripts.build,/verify-dist/);assert.ok(pkg.devDependencies.vite);assert.ok(pkg.devDependencies.typescript);
   assert.equal(ts.compilerOptions.strict,true);assert.equal(ts.compilerOptions.noUncheckedIndexedAccess,true);assert.equal(ts.compilerOptions.noEmit,true);
   assert.match(html,/type="module" src="\.\/src\/main\.ts"/);assert.match(entry,/legacyRuntime:true/);assert.match(copy,/"modules"/);assert.equal(pkg.devDependencies.dexie,undefined);
+});
+
+test("v4 TypeScript arayüz köprüsü ekranları görünüşü değiştirmeden yönetir",()=>{
+  const files=["src/ui/types.ts","src/ui/dom.ts","src/ui/navigation.ts","src/ui/more-panels.ts","src/ui/legacy-bridge.ts"],source=files.map(file=>{assert.equal(fs.existsSync(path.join(root,file)),true,file);return fs.readFileSync(path.join(root,file),"utf8");}).join("\n"),entry=fs.readFileSync(path.join(root,"src/main.ts"),"utf8");
+  assert.match(source,/SCREEN_IDS/);assert.match(source,/MORE_PANEL_IDS/);assert.match(source,/class NavigationController/);assert.match(source,/class MorePanelsController/);assert.match(source,/installLegacyUiBridge/);
+  assert.match(source,/window\.go=/);assert.match(source,/window\.setMoreTab=/);assert.match(source,/__YKS_UI__/);assert.match(source,/yks:navigation-after/);assert.match(entry,/installLegacyUiBridge\(\)/);
+  assert.doesNotMatch(source,/localStorage\.(?:setItem|removeItem|clear)/);assert.doesNotMatch(source,/\.innerHTML\s*=/);
 });

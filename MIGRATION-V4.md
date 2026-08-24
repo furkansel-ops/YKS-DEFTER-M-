@@ -22,8 +22,17 @@ npm run build
 npm run check
 ```
 
-## Sıradaki adım 2
+## Tamamlanan adım 2 — TypeScript arayüz köprüsü
 
-Mevcut arayüzü görünüş ve davranışı değiştirmeden TypeScript modüllerine taşımaya başlamak.
+- Ana ekran kimlikleri ve Daha alt panelleri sabit TypeScript türlerine taşındı.
+- `go(...)` ve `setMoreTab(...)` çağrıları doğrulanan TypeScript yöneticilerinden geçiyor.
+- Mevcut render işlevleri uyumluluk köprüsüyle korunuyor; görünüş ve kullanıcı verisi değişmedi.
+- Ekran ve sekme bütünlüğü açılışta otomatik doğrulanıyor.
+- Arayüz geçişleri izlenebilir özel olaylar yayımlıyor.
+- Üretim paketinin TypeScript ve eski çalışma zamanı dosyalarını birlikte içerdiği otomatik denetleniyor.
+
+## Sıradaki adım 3
+
+Veri işlemlerini TypeScript veri katmanında toplamak ve mevcut kayıt sözleşmesini tiplerle güvenceye almak.
 
 Bu adıma kullanıcı onayı alınmadan geçilmez.
