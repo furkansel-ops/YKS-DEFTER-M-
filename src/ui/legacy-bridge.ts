@@ -1,6 +1,7 @@
 import {NavigationController} from "./navigation";
 import {MorePanelsController} from "./more-panels";
 import {isMorePanelId,type MorePanelId,type ScreenId,type UiBridgeApi} from "./types";
+import type {ScreenRuntimeApi} from "./screens/contracts";
 
 declare global{
   interface Window{
@@ -10,16 +11,16 @@ declare global{
   }
 }
 
-export function installLegacyUiBridge():UiBridgeApi{
+export function installLegacyUiBridge(screenRuntime?:ScreenRuntimeApi):UiBridgeApi{
   const legacyGo=window.go;
   const legacySetMoreTab=window.setMoreTab;
   if(typeof legacyGo!=="function")throw new Error("Eski ekran yöneticisi bulunamadı");
   if(typeof legacySetMoreTab!=="function")throw new Error("Eski Daha panel yöneticisi bulunamadı");
 
   const more=new MorePanelsController(legacySetMoreTab.bind(window));
-  const navigation=new NavigationController(legacyGo.bind(window));
+  const navigation=new NavigationController(legacyGo.bind(window),screenRuntime);
   const api:UiBridgeApi={
-    version:"4.0.0-alpha.2",
+    version:"4.0.0-alpha.7",
     navigate:(screen:ScreenId)=>navigation.open(screen,"api"),
     openMore:(panel:MorePanelId)=>more.open(panel),
     snapshot:()=>navigation.snapshot(more.current()),

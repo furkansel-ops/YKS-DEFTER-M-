@@ -68,8 +68,17 @@ npm run check
 - IndexedDB kullanılamazsa bulut yüklemesi güvenli `localStorage` aynasına geri düşüyor.
 - Mevcut Firestore revision, transaction, parça ve hash çakışma korumaları korunuyor.
 
-## Sıradaki adım 7
+## Tamamlanan adım 7 — TypeScript ekran modülleri
 
-Eski JavaScript ekranlarını kullanıcı arayüzünü değiştirmeden ekran ekran TypeScript modüllerine taşımak.
+- Bugün, Program, Konular, Denemeler, İlerleme, Odak ve Daha ekranlarının açılış/yenileme sırası ayrı TypeScript modüllerine taşındı.
+- Ekran seçimi, sekme durumu, geniş Program görünümü ve ekran başlığı TypeScript yöneticisinden çalışıyor.
+- Program ve Denemeler ekranlarının ağır ikincil çizimleri mevcut gecikmeli çalışma düzenini koruyor.
+- Eski çizim işlevleri güvenli uyumluluk katmanı olarak tutuldu; bir TypeScript ekranı hata verirse eski ekran yolu devreye giriyor.
+- Bulut veya IndexedDB kaydı uygulandığında aktif ekran TypeScript çalışma zamanı üzerinden yeniden çiziliyor.
+- HTML, CSS, kullanıcı arayüzü ve veri şeması değiştirilmedi.
+
+## Sıradaki adım 8
+
+Ekranların ortak hesaplama ve biçimlendirme işlevlerini test edilebilir TypeScript servislerine ayırmak.
 
 Bu adıma kullanıcı onayı alınmadan geçilmez.

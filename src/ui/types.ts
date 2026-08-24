@@ -21,7 +21,7 @@ export interface UiSnapshot{
 }
 
 export interface UiBridgeApi{
-  readonly version:"4.0.0-alpha.2";
+  readonly version:"4.0.0-alpha.7";
   navigate(screen:ScreenId):unknown;
   openMore(panel:MorePanelId):unknown;
   snapshot():UiSnapshot;

@@ -1,5 +1,6 @@
 import {activeId,all,byId,emit} from "./dom";
 import {isScreenId,type NavigationDetail,type NavigationSource,type ScreenId,type UiSnapshot} from "./types";
+import type {ScreenRuntimeApi} from "./screens/contracts";
 
 type LegacyGo=(screen:string)=>unknown;
 
@@ -15,9 +16,11 @@ const TITLES:Record<ScreenId,string>={
 
 export class NavigationController{
   readonly #legacyGo:LegacyGo;
+  readonly #screenRuntime:ScreenRuntimeApi|undefined;
 
-  constructor(legacyGo:LegacyGo){
+  constructor(legacyGo:LegacyGo,screenRuntime?:ScreenRuntimeApi){
     this.#legacyGo=legacyGo;
+    this.#screenRuntime=screenRuntime;
   }
 
   current():ScreenId|null{
@@ -32,10 +35,23 @@ export class NavigationController{
     }
     const from=this.current(),detail:NavigationDetail={from,to:value,source,at:Date.now()};
     emit("yks:navigation-before",detail);
-    const result=this.#legacyGo(value);
+    let result:unknown;
+    if(this.#screenRuntime){
+      this.#activateShell(value);
+      if(!this.#screenRuntime.render(value,source))result=this.#legacyGo(value);
+    }else result=this.#legacyGo(value);
     this.#syncShell(value);
     emit("yks:navigation-after",detail);
     return result;
+  }
+
+  #activateShell(screen:ScreenId):void{
+    for(const node of all<HTMLElement>(".screen"))node.classList.toggle("active",node.id===screen);
+    for(const tab of all<HTMLButtonElement>(".tab[data-s]"))tab.classList.toggle("active",tab.dataset.s===screen);
+    byId("mainWrap")?.classList.toggle("wide",screen==="program");
+    const updateNav=(window as unknown as Window&Record<string,unknown>)["updateNav"];
+    if(typeof updateNav==="function")(updateNav as (id:string)=>unknown)(screen);
+    window.scrollTo(0,0);
   }
 
   snapshot(activeMorePanel:UiSnapshot["activeMorePanel"]):UiSnapshot{
