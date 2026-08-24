@@ -81,7 +81,7 @@ test("şema 20 verisi Öğrenme Laboratuvarı için şema 21'e taşınır",()=>{
 test("v4 Vite ve TypeScript geçiş altyapısı güvenli biçimde hazır",()=>{
   const pkg=JSON.parse(fs.readFileSync(path.join(root,"package.json"),"utf8")),ts=JSON.parse(fs.readFileSync(path.join(root,"tsconfig.json"),"utf8")),html=fs.readFileSync(path.join(root,"index.html"),"utf8"),entry=fs.readFileSync(path.join(root,"src/main.ts"),"utf8"),copy=fs.readFileSync(path.join(root,"scripts/copy-legacy-assets.mjs"),"utf8");
   ["package-lock.json","vite.config.mts","src/main.ts","src/vite-env.d.ts","scripts/copy-legacy-assets.mjs","scripts/verify-dist.mjs","MIGRATION-V4.md"].forEach(file=>assert.equal(fs.existsSync(path.join(root,file)),true,file));
-  assert.equal(pkg.private,true);assert.equal(pkg.version,"4.0.0-alpha.2");assert.match(pkg.scripts.check,/typecheck/);assert.match(pkg.scripts.build,/vite build/);assert.match(pkg.scripts.build,/verify-dist/);assert.ok(pkg.devDependencies.vite);assert.ok(pkg.devDependencies.typescript);
+  assert.equal(pkg.private,true);assert.equal(pkg.version,"4.0.0-alpha.3");assert.match(pkg.scripts.check,/typecheck/);assert.match(pkg.scripts.build,/vite build/);assert.match(pkg.scripts.build,/verify-dist/);assert.ok(pkg.devDependencies.vite);assert.ok(pkg.devDependencies.typescript);
   assert.equal(ts.compilerOptions.strict,true);assert.equal(ts.compilerOptions.noUncheckedIndexedAccess,true);assert.equal(ts.compilerOptions.noEmit,true);
   assert.match(html,/type="module" src="\.\/src\/main\.ts"/);assert.match(entry,/legacyRuntime:true/);assert.match(copy,/"modules"/);assert.equal(pkg.devDependencies.dexie,undefined);
 });
@@ -91,4 +91,13 @@ test("v4 TypeScript arayüz köprüsü ekranları görünüşü değiştirmeden 
   assert.match(source,/SCREEN_IDS/);assert.match(source,/MORE_PANEL_IDS/);assert.match(source,/class NavigationController/);assert.match(source,/class MorePanelsController/);assert.match(source,/installLegacyUiBridge/);
   assert.match(source,/window\.go=/);assert.match(source,/window\.setMoreTab=/);assert.match(source,/__YKS_UI__/);assert.match(source,/yks:navigation-after/);assert.match(entry,/installLegacyUiBridge\(\)/);
   assert.doesNotMatch(source,/localStorage\.(?:setItem|removeItem|clear)/);assert.doesNotMatch(source,/\.innerHTML\s*=/);
+});
+
+test("v4 TypeScript veri katmanı şema 21 sözleşmesini kayıpsız korur",()=>{
+  const files=["src/data/contracts.ts","src/data/storage-keys.ts","src/data/codec.ts","src/data/local-state-repository.ts","src/data/legacy-data-bridge.ts"],source=files.map(file=>{assert.equal(fs.existsSync(path.join(root,file)),true,file);return fs.readFileSync(path.join(root,file),"utf8");}).join("\n"),entry=fs.readFileSync(path.join(root,"src/main.ts"),"utf8"),pkg=JSON.parse(fs.readFileSync(path.join(root,"package.json"),"utf8"));
+  assert.match(source,/DATA_SCHEMA_VERSION=21/);assert.match(source,/interface YksState/);assert.match(source,/interface FocusSession/);assert.match(source,/interface LearningLabState/);
+  ["yks","yks_last_good","yks_yedek","yks_cloud_dirty","yks_focus_runtime_v1"].forEach(key=>assert.ok(source.includes(`\"${key}\"`),key));
+  assert.match(source,/class LocalStateRepository/);assert.match(source,/decodeState/);assert.match(source,/encodeState/);assert.match(source,/MAX_REASONABLE_STATE_CHARS/);
+  assert.match(source,/__YKS_DATA__/);assert.match(entry,/installLegacyDataBridge\(\)/);assert.match(entry,/dataBridge:true/);
+  assert.equal(pkg.devDependencies.dexie,undefined);assert.doesNotMatch(source,/\bDexie\b|indexedDB/);
 });

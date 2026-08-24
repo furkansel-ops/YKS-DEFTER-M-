@@ -31,8 +31,17 @@ npm run check
 - Arayüz geçişleri izlenebilir özel olaylar yayımlıyor.
 - Üretim paketinin TypeScript ve eski çalışma zamanı dosyalarını birlikte içerdiği otomatik denetleniyor.
 
-## Sıradaki adım 3
+## Tamamlanan adım 3 — TypeScript veri sözleşmesi
 
-Veri işlemlerini TypeScript veri katmanında toplamak ve mevcut kayıt sözleşmesini tiplerle güvenceye almak.
+- Şema 21 ana kayıt sözleşmesi TypeScript tipleriyle belgelendi.
+- Konular, denemeler, odak oturumları, soru bankası, öğrenme kartları ve laboratuvar kayıtları tür güvenli hale getirildi.
+- Kullanılan yerel kayıt anahtarları tek bir sabit listede toplandı.
+- JSON okuma/yazma, boyut sınırı ve gelecek şema koruması tek bir veri katmanında toplandı.
+- `window.__YKS_DATA__` uyumluluk köprüsü eklendi; mevcut `localStorage` kayıt biçimi ve kullanıcı verisi değiştirilmedi.
+- Dexie veya IndexedDB henüz etkinleştirilmedi.
+
+## Sıradaki adım 4
+
+Mevcut `localStorage` verisini Dexie/IndexedDB'ye tek seferlik ve otomatik olarak taşımak.
 
 Bu adıma kullanıcı onayı alınmadan geçilmez.
