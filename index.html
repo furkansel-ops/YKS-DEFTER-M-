@@ -1607,30 +1607,48 @@ document.documentElement.setAttribute("data-theme",t);}catch(e){}})();
     <div class="stat"><div class="v" id="prDays">0</div><div class="t">aktif gün</div></div>
   </div>
 
-  <div class="card v28-score-card" id="v28Score"></div>
+  <div class="card v4-progress-overview" id="v4ProgressOverview"></div>
 
-  <h2>Dönem karşılaştırması</h2><div class="card" id="progressCompare"></div>
-  <h2>Haftalık gelişim</h2><div class="card" id="v28Weekly"></div>
-  <h2>Ders bazlı ilerleme</h2><div class="card" id="v28SubjectProgress"></div>
-  <h2>Konu ilerlemesi</h2><div class="card" id="v28Topics"></div>
-  <h2>Tekrar başarısı</h2><div class="card" id="v28Reviews"></div>
-  <h2>Hedefe gidiş</h2><div class="card" id="v28Goals"></div>
-  <h2>İstikrar takvimi</h2><div class="card" id="v28Calendar"></div>
-  <h2>Net eğilimi</h2><div class="card" id="progressNet"></div>
-  <h2>Ders dengesi</h2><div class="card" id="progressSubjects"></div>
-  <h2>İlerleme hızı</h2><div class="card" id="v28Pace"></div>
-  <h2>Kilometre taşları</h2><div class="card" id="v28Milestones"></div>
-  <h2>Başlangıçtan bugüne</h2><div class="card" id="v28Lifetime"></div>
-  <h2>Bu ayın özeti</h2><div class="card" id="v28MonthSummary"></div>
-  <h2>Kişisel rekorlar</h2><div class="card" id="v24Records"></div>
-  <h2>Haftalık akıllı rapor</h2><div class="card" id="v24WeeklyReport"></div>
-  <h2>Çalışma ritmi</h2><div class="card" id="progressRhythm"></div>
+  <div class="desktop-progress-grid v4-progress-core-grid" id="v4ProgressCoreGrid">
+    <section class="desktop-progress-section">
+      <h2>Net değişimi</h2><div class="card" id="progressNet"></div>
+    </section>
+    <section class="desktop-progress-section">
+      <h2>Ders bazlı durum</h2><div class="card" id="v4SubjectInsights"></div>
+    </section>
+    <section class="desktop-progress-section">
+      <h2>Çalışma düzeni</h2><div class="card" id="v4ProgressRhythm"></div>
+    </section>
+    <section class="desktop-progress-section">
+      <h2>Konu ve tekrar</h2><div class="card" id="v4TopicsReviews"></div>
+    </section>
+    <section class="desktop-progress-section">
+      <h2>Dönem karşılaştırması</h2><div class="card" id="progressCompare"></div>
+    </section>
+    <section class="desktop-progress-section">
+      <h2>Hedefe gidiş</h2><div class="card" id="v28Goals"></div>
+    </section>
+  </div>
 
-  <details class="v28-more">
-    <summary>Ek analiz göstergeleri</summary>
-    <div class="v28-more-body">
-      <h2>Tekrarlayan yanlışlar</h2><div class="card" id="progressWrong"></div>
-      <h2>4 haftalık hedef tahmini</h2><div class="card" id="progressForecast"></div>
+  <details class="v28-more v4-progress-details">
+    <summary>Ayrıntılı analizleri göster</summary>
+    <div class="v28-more-body v4-progress-detail-grid">
+      <section><h2>İlerleme skoru</h2><div class="card v28-score-card" id="v28Score"></div></section>
+      <section class="wide"><h2>Haftalık gelişim</h2><div class="card" id="v28Weekly"></div></section>
+      <section><h2>Ders bazlı ilerleme</h2><div class="card" id="v28SubjectProgress"></div></section>
+      <section><h2>Konu ilerlemesi</h2><div class="card" id="v28Topics"></div></section>
+      <section><h2>Tekrar başarısı</h2><div class="card" id="v28Reviews"></div></section>
+      <section><h2>İstikrar takvimi</h2><div class="card" id="v28Calendar"></div></section>
+      <section><h2>Ders dengesi</h2><div class="card" id="progressSubjects"></div></section>
+      <section><h2>İlerleme hızı</h2><div class="card" id="v28Pace"></div></section>
+      <section><h2>Kilometre taşları</h2><div class="card" id="v28Milestones"></div></section>
+      <section><h2>Başlangıçtan bugüne</h2><div class="card" id="v28Lifetime"></div></section>
+      <section><h2>Bu ayın özeti</h2><div class="card" id="v28MonthSummary"></div></section>
+      <section><h2>Kişisel rekorlar</h2><div class="card" id="v24Records"></div></section>
+      <section class="wide"><h2>Haftalık rapor</h2><div class="card" id="v24WeeklyReport"></div></section>
+      <section><h2>Eski çalışma ritmi</h2><div class="card" id="progressRhythm"></div></section>
+      <section><h2>Tekrarlayan yanlışlar</h2><div class="card" id="progressWrong"></div></section>
+      <section><h2>4 haftalık hedef tahmini</h2><div class="card" id="progressForecast"></div></section>
     </div>
   </details>
   <div id="progressSubjectChange" hidden></div>
@@ -1913,7 +1931,7 @@ document.documentElement.setAttribute("data-theme",t);}catch(e){}})();
   </div>
 </div>
 
-<div class="toast" id="toast" role="status" aria-live="polite"></div><script vite-ignore src="./app.js?v=4.0.0-r13"></script>
+<div class="toast" id="toast" role="status" aria-live="polite"></div><script vite-ignore src="./app.js?v=4.0.0-r14"></script>
 
 <script type="module" id="firebaseSyncModule">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
@@ -2147,13 +2165,13 @@ window.addEventListener("online",()=>{if(!user)return;status("Bağlantı geldi",
 
 
 
-<script vite-ignore src="./modules/core-utils.js?v=4.0.0-r13"></script>
-<script vite-ignore src="./modules/stability.js?v=4.0.0-r13"></script>
-<script vite-ignore src="./modules/topic-guides.js?v=4.0.0-r13"></script>
-<script vite-ignore src="./modules/learning-lab.js?v=4.0.0-r13"></script>
-<script vite-ignore src="./modules/target-center.js?v=4.0.0-r13"></script>
-<script vite-ignore src="./modules/export-center.js?v=4.0.0-r13"></script>
-<script vite-ignore src="./modules/release-selftest.js?v=4.0.0-r13"></script>
+<script vite-ignore src="./modules/core-utils.js?v=4.0.0-r14"></script>
+<script vite-ignore src="./modules/stability.js?v=4.0.0-r14"></script>
+<script vite-ignore src="./modules/topic-guides.js?v=4.0.0-r14"></script>
+<script vite-ignore src="./modules/learning-lab.js?v=4.0.0-r14"></script>
+<script vite-ignore src="./modules/target-center.js?v=4.0.0-r14"></script>
+<script vite-ignore src="./modules/export-center.js?v=4.0.0-r14"></script>
+<script vite-ignore src="./modules/release-selftest.js?v=4.0.0-r14"></script>
 <script type="module" src="./src/main.ts"></script>
 </body>
 </html>

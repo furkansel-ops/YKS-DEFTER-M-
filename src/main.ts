@@ -5,6 +5,7 @@ import {installLegacyServiceBridge} from "./services/legacy-service-bridge";
 import {installLegacyDomainBridge} from "./domain/legacy-domain-bridge";
 import {installReleaseRuntime} from "./release/release";
 import {installLegacyBackupBridge} from "./data/legacy-backup-bridge";
+import {installLegacyProgressAnalysisBridge} from "./domain/legacy-progress-analysis-bridge";
 
 type BootstrapState={
   version:"4.0.0";
@@ -18,6 +19,7 @@ type BootstrapState={
   domainServices:true;
   stableRelease:true;
   backupBridge:true;
+  progressAnalysis:true;
   startedAt:number;
 };
 
@@ -39,6 +41,7 @@ const bootstrap:BootstrapState={
   domainServices:true,
   stableRelease:true,
   backupBridge:true,
+  progressAnalysis:true,
   startedAt:Date.now()
 };
 
@@ -46,6 +49,7 @@ const services=installLegacyServiceBridge();
 const data=installLegacyDataBridge();
 installLegacyBackupBridge(data,bootstrap.version);
 const domain=installLegacyDomainBridge();
+const progressAnalysis=installLegacyProgressAnalysisBridge();
 const screens=installScreenRuntime();
 const ui=installLegacyUiBridge(screens);
 const release=installReleaseRuntime();
@@ -56,6 +60,7 @@ document.documentElement.dataset.v4DataErrors=String(data.validate().length);
 document.documentElement.dataset.v4ScreenErrors=String(screens.validate().length);
 document.documentElement.dataset.v4ServiceErrors=String(services.validate().length);
 document.documentElement.dataset.v4DomainErrors=String(domain.validate().length);
+document.documentElement.dataset.v4ProgressAnalysisErrors=String(progressAnalysis.validate().length);
 document.documentElement.dataset.v4ReleaseVersion=release.version;
 window.dispatchEvent(new CustomEvent<BootstrapState>("yks:v4-bootstrap",{detail:bootstrap}));
 

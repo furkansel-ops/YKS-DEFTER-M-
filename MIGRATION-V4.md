@@ -2,6 +2,12 @@
 
 Bu dal, çalışan v3 uygulamasını bozmadan yeni altyapıya kademeli geçiş için kullanılır.
 
+## Tamamlanan adım 14 — İlerleme analizi
+
+- Dönem, net, ders, konu, tekrar ve çalışma ritmi hesapları tür güvenli `progress-analysis-service` içinde birleştirildi.
+- Boş veya sınırlı veride kesin güçlü/zayıf ders yorumu yapılmıyor; yorumlar kayıt kanıtlarını gösteriyor.
+- İlk görünüm altı temel alana indirildi, önceki ayrıntılı göstergeler veri kaybı olmadan açılır bölüme taşındı.
+
 ## Tamamlanan adım 1 — Vite + Vanilla TypeScript
 
 - Vite geliştirme ve üretim derleme düzeni kuruldu.

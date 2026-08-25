@@ -17,9 +17,9 @@ test("HTML kimlikleri benzersiz ve kritik alanlar mevcut",()=>{
 
 test("sürüm, şema ve PWA önbelleği tutarlı",()=>{
   const html=fs.readFileSync(path.join(root,"index.html"),"utf8"),app=fs.readFileSync(path.join(root,"app.js"),"utf8"),sw=fs.readFileSync(path.join(root,"sw.js"),"utf8"),version=JSON.parse(fs.readFileSync(path.join(root,"version.json"),"utf8"));
-  assert.match(html,/src="\.\/app\.js\?v=4\.0\.0-r13"/);assert.match(app,/const APP_VERSION="4\.0\.0"/);assert.match(app,/const DATA_SCHEMA=21/);
-  assert.equal(version.version,"4.0.0");assert.equal(version.schema,21);assert.match(sw,/yks-core-v4\.0\.0-r13/);
-  ["app.css","app.js?v=4.0.0-r13","modules/core-utils.js?v=4.0.0-r13","modules/stability.js?v=4.0.0-r13","modules/topic-guides.js?v=4.0.0-r13","modules/learning-lab.js?v=4.0.0-r13","modules/target-center.js?v=4.0.0-r13","modules/export-center.js?v=4.0.0-r13","modules/release-selftest.js?v=4.0.0-r13"].forEach(asset=>assert.ok(sw.includes(asset),asset));
+  assert.match(html,/src="\.\/app\.js\?v=4\.0\.0-r14"/);assert.match(app,/const APP_VERSION="4\.0\.0"/);assert.match(app,/const DATA_SCHEMA=21/);
+  assert.equal(version.version,"4.0.0");assert.equal(version.schema,21);assert.match(sw,/yks-core-v4\.0\.0-r14/);
+  ["app.css","app.js?v=4.0.0-r14","modules/core-utils.js?v=4.0.0-r14","modules/stability.js?v=4.0.0-r14","modules/topic-guides.js?v=4.0.0-r14","modules/learning-lab.js?v=4.0.0-r14","modules/target-center.js?v=4.0.0-r14","modules/export-center.js?v=4.0.0-r14","modules/release-selftest.js?v=4.0.0-r14"].forEach(asset=>assert.ok(sw.includes(asset),asset));
   assert.doesNotMatch(sw,/modules\/(topic-coach|learning-tools)\.js/);
 });
 
@@ -153,6 +153,15 @@ test("v4 konu ve çalışma state işlemleri tür güvenli alan servislerini kul
   assert.match(source,/TopicStatus/);assert.match(source,/class DomainStateContext/);assert.match(source,/topicService/);assert.match(source,/activityService/);assert.match(source,/installLegacyDomainBridge/);assert.match(source,/__YKS_DOMAIN__/);
   ["tkey","tget","tsetStatus","tsetConf","subjStat","overallPct","reviewQueue","markReview","totalSolved","totalMinutes","fullTopicCount","completedReviewCount","todaySessions","workCyclesToday","isLongBreakNext"].forEach(name=>assert.ok(source.includes(`\"${name}\"`),name));
   assert.match(app,/readState:\(\)=>S/);assert.match(app,/subjects:\(\)=>ALL_SUBJECTS/);assert.match(entry,/installLegacyDomainBridge\(\)/);assert.match(entry,/domainServices:true/);assert.doesNotMatch(source,/localStorage\.(?:setItem|removeItem|clear)/);
+});
+
+test("v4 ilerleme ekranı tür güvenli analiz ve sade tek bakış dashboard'u kullanır",()=>{
+  const files=["src/domain/progress-analysis-service.ts","src/domain/legacy-progress-analysis-bridge.ts","src/ui/progress-dashboard.ts"],source=files.map(file=>{assert.equal(fs.existsSync(path.join(root,file)),true,file);return fs.readFileSync(path.join(root,file),"utf8");}).join("\n"),entry=fs.readFileSync(path.join(root,"src/main.ts"),"utf8"),html=fs.readFileSync(path.join(root,"index.html"),"utf8"),css=fs.readFileSync(path.join(root,"app.css"),"utf8");
+  assert.match(source,/analyzeProgress/);assert.match(source,/__YKS_PROGRESS_ANALYSIS__/);assert.match(source,/renderProgressDashboard/);assert.match(source,/dataLevel/);
+  assert.match(entry,/installLegacyProgressAnalysisBridge\(\)/);assert.match(entry,/progressAnalysis:true/);
+  ["v4ProgressOverview","v4SubjectInsights","v4ProgressRhythm","v4TopicsReviews","v4ProgressCoreGrid"].forEach(id=>assert.match(html,new RegExp(`id="${id}"`),id));
+  assert.match(html,/Ayrıntılı analizleri göster/);assert.match(css,/v4-progress-core-grid/);assert.match(css,/v4-progress-detail-grid/);
+  assert.doesNotMatch(source,/localStorage\.(?:setItem|removeItem|clear)/);
 });
 
 test("v4 kararlı sürümü tarayıcı ve üretim paketi kontrollerini içerir",()=>{
