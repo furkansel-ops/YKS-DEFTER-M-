@@ -17,7 +17,7 @@ test("HTML kimlikleri benzersiz ve kritik alanlar mevcut",()=>{
 
 test("sürüm, şema ve PWA önbelleği tutarlı",()=>{
   const html=fs.readFileSync(path.join(root,"index.html"),"utf8"),app=fs.readFileSync(path.join(root,"app.js"),"utf8"),sw=fs.readFileSync(path.join(root,"sw.js"),"utf8"),version=JSON.parse(fs.readFileSync(path.join(root,"version.json"),"utf8"));
-  assert.match(html,/src="\.\/app\.js"/);assert.match(app,/const APP_VERSION="3\.2\.7"/);assert.match(app,/const DATA_SCHEMA=21/);
+  assert.match(html,/src="\.\/app\.js\?v=3\.2\.7-hotfix1"/);assert.match(app,/const APP_VERSION="3\.2\.7"/);assert.match(app,/const DATA_SCHEMA=21/);
   assert.equal(version.version,"3.2.7");assert.equal(version.schema,21);assert.match(sw,/yks-core-v3\.2\.7/);
   ["app.css","app.js","modules/core-utils.js","modules/stability.js","modules/topic-guides.js","modules/learning-lab.js","modules/target-center.js","modules/export-center.js","modules/release-selftest.js"].forEach(asset=>assert.ok(sw.includes(asset),asset));
   assert.doesNotMatch(sw,/modules\/(topic-coach|learning-tools)\.js/);
