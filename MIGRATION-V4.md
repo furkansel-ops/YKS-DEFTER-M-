@@ -117,6 +117,7 @@ npm run check
 - Paket ve çalışma zamanı sürümü `4.0.0` olarak sabitlendi.
 - Geçici sürüm adayı API adları kararlı sürüm adlarıyla değiştirildi.
 - Kararlı kanal işareti bootstrap, üretim paketi ve canlı yayın kontrollerine eklendi.
+- Uygulama sürümü, PWA önbelleği ve eski modül URL'leri `4.0.0` olarak yenilendi.
 - Veri şeması 21 ve kullanıcı verileri değişmeden korundu.
 
 ## Sıradaki işlem

@@ -1,7 +1,7 @@
 import {pathToFileURL} from "node:url";
 
 const RELEASE_MARKER="4.0.0";
-const LEGACY_VERSION="3.2.7";
+const LEGACY_VERSION="4.0.0";
 
 export function extractBundlePath(index){
   return index.match(/(?:src|href)=["'](?:\.\/)?(assets\/index-[^"']+\.js)["']/)?.[1]??null;
@@ -10,11 +10,11 @@ export function extractBundlePath(index){
 export function verifyLiveAssets({index,bundle,legacyApp}){
   const bundlePath=extractBundlePath(index);
   if(!bundlePath)throw new Error("Canlı sayfada Vite JavaScript paketi bulunamadı");
-  if(!index.includes('./app.js?v=3.2.7-hotfix1'))throw new Error("Canlı sayfada beklenen eski çalışma zamanı bağlı değil");
+  if(!index.includes('./app.js?v=4.0.0')||!index.includes('./modules/release-selftest.js?v=4.0.0'))throw new Error("Canlı sayfada beklenen çalışma zamanı dosyaları bağlı değil");
   if(/src=["']\.\/src\/main\.ts["']/.test(index))throw new Error("Canlı sayfa üretim paketi yerine TypeScript kaynak dosyasını kullanıyor");
   if(!bundle.includes("YKS_V4_RELEASE_OK")||!bundle.includes(RELEASE_MARKER)||!bundle.includes("stable"))throw new Error("Canlı Vite paketi beklenen kararlı sürüm işaretlerini taşımıyor");
-  if(!legacyApp.includes(`const APP_VERSION="${LEGACY_VERSION}"`))throw new Error("Canlı eski çalışma zamanı sürümü beklenen değerle eşleşmiyor");
-  if(legacyApp.includes("\uFFFD"))throw new Error("Canlı eski çalışma zamanı bozuk UTF-8 karakteri içeriyor");
+  if(!legacyApp.includes(`const APP_VERSION="${LEGACY_VERSION}"`))throw new Error("Canlı çalışma zamanı sürümü beklenen değerle eşleşmiyor");
+  if(legacyApp.includes("\uFFFD"))throw new Error("Canlı çalışma zamanı bozuk UTF-8 karakteri içeriyor");
   return {bundlePath,release:RELEASE_MARKER,legacyVersion:LEGACY_VERSION};
 }
 
@@ -45,7 +45,7 @@ export async function verifyLivePages(baseUrl,{attempts=12,delayMs=5000}={}){
       if(!bundlePath)throw new Error("Canlı sayfada Vite JavaScript paketi bulunamadı");
       const [bundle,legacyApp]=await Promise.all([
         fetchText(new URL(bundlePath,base),token),
-        fetchText(new URL("app.js?v=3.2.7-hotfix1",base),token)
+        fetchText(new URL("app.js?v=4.0.0",base),token)
       ]);
       return verifyLiveAssets({index,bundle,legacyApp});
     }catch(error){
@@ -61,5 +61,5 @@ if(import.meta.url===invokedPath){
   const liveUrl=process.env.LIVE_URL||process.argv[2];
   if(!liveUrl)throw new Error("LIVE_URL ortam değişkeni veya URL argümanı gerekli");
   const result=await verifyLivePages(liveUrl);
-  console.log(`Canlı GitHub Pages doğrulandı: ${result.release}, eski çalışma zamanı ${result.legacyVersion}, ${result.bundlePath}`);
+  console.log(`Canlı GitHub Pages doğrulandı: ${result.release}, çalışma zamanı ${result.legacyVersion}, ${result.bundlePath}`);
 }

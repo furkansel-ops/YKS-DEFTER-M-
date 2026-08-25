@@ -3,8 +3,8 @@
   function runReleaseSelfTest(){
     const checks=[],add=(name,value)=>checks.push([name,!!value]);
     try{
-      add("version",typeof APP_VERSION!=="undefined"&&APP_VERSION==="3.2.7"&&DATA_SCHEMA===21);
-      add("modular-assets",!!document.querySelector('link[href="./app.css"]')&&!!document.querySelector('script[src="./app.js"]'));
+      add("version",typeof APP_VERSION!=="undefined"&&APP_VERSION==="4.0.0"&&DATA_SCHEMA===21);
+      add("modular-assets",!!document.querySelector('link[href="./app.css"]')&&!!document.querySelector('script[src^="./app.js"]'));
       add("stability",!!window.YKSStability&&!!document.getElementById("v311OfflineBanner"));
       add("removed-tools",!document.getElementById("v312Coach")&&!document.getElementById("v313Learning")&&!document.getElementById("swHistory"));
       const labCurriculum=window.YKSLearningLab?.curriculum?.(),guideCoverage=window.YKSTopicGuides?.coverage?.(labCurriculum);
