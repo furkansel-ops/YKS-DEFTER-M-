@@ -105,8 +105,20 @@ npm run check
 - Eski v3 release self-test katmanı yeni v4 kontrolleriyle birleştirildi.
 - Tek komutluk `release:check` doğrulaması ve sürüm adayı raporu eklendi.
 
+## Tamamlanan adım 11 — altyapı sağlamlaştırma
+
+- Dexie kayıt yakalamasında doğrulanmamış eşitleme damgası güncellemesi engellendi.
+- Hata ve değişmeyen kayıt yolları regresyon testlerine bağlandı.
+- GitHub Actions sürümleri güncellendi; bağımsız CI, zaman aşımı ve canlı Pages doğrulaması eklendi.
+- Eski dinamik Pages yayını başarısız olursa Vite yayınının devam etmesi engellendi.
+
+## Tamamlanan adım 12 — v4 kararlı sürüm
+
+- Paket ve çalışma zamanı sürümü `4.0.0` olarak sabitlendi.
+- Geçici sürüm adayı API adları kararlı sürüm adlarıyla değiştirildi.
+- Kararlı kanal işareti bootstrap, üretim paketi ve canlı yayın kontrollerine eklendi.
+- Veri şeması 21 ve kullanıcı verileri değişmeden korundu.
+
 ## Sıradaki işlem
 
-Kullanıcı onayıyla `v4-migration` dalını `main` dalına birleştirmek ve canlı sürümü yayınlamak.
-
-Bu adıma kullanıcı onayı alınmadan geçilmez.
+Kullanıcı onayıyla v4 sonrası özellik geliştirme aşamasına geçmek.

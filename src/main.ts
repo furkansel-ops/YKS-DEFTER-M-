@@ -3,10 +3,11 @@ import {installLegacyDataBridge} from "./data/legacy-data-bridge";
 import {installScreenRuntime} from "./ui/screen-runtime";
 import {installLegacyServiceBridge} from "./services/legacy-service-bridge";
 import {installLegacyDomainBridge} from "./domain/legacy-domain-bridge";
-import {installReleaseCandidate} from "./release/release-candidate";
+import {installReleaseRuntime} from "./release/release";
 
 type BootstrapState={
-  version:"4.0.0-rc.1";
+  version:"4.0.0";
+  channel:"stable";
   stack:"vite-typescript";
   legacyRuntime:true;
   uiBridge:true;
@@ -14,7 +15,7 @@ type BootstrapState={
   screenRuntime:true;
   commonServices:true;
   domainServices:true;
-  releaseCandidate:true;
+  stableRelease:true;
   startedAt:number;
 };
 
@@ -25,7 +26,8 @@ declare global{
 }
 
 const bootstrap:BootstrapState={
-  version:"4.0.0-rc.1",
+  version:"4.0.0",
+  channel:"stable",
   stack:"vite-typescript",
   legacyRuntime:true,
   uiBridge:true,
@@ -33,7 +35,7 @@ const bootstrap:BootstrapState={
   screenRuntime:true,
   commonServices:true,
   domainServices:true,
-  releaseCandidate:true,
+  stableRelease:true,
   startedAt:Date.now()
 };
 
@@ -42,7 +44,7 @@ const data=installLegacyDataBridge();
 const domain=installLegacyDomainBridge();
 const screens=installScreenRuntime();
 const ui=installLegacyUiBridge(screens);
-const release=installReleaseCandidate();
+const release=installReleaseRuntime();
 window.__YKS_V4_BOOTSTRAP__=bootstrap;
 document.documentElement.dataset.v4Runtime="ready";
 document.documentElement.dataset.v4UiErrors=String(ui.validate().length);

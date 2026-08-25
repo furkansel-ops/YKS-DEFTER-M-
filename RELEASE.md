@@ -1,8 +1,8 @@
-# YKS Defterim v4.0.0-rc.1
+# YKS Defterim v4.0.0
 
-Bu sürüm adayı, çalışan v3 arayüzünü değiştirmeden Vite + TypeScript + Dexie altyapısına yapılan kademeli geçişin sonucudur.
+Bu kararlı sürüm, çalışan v3 arayüzünü değiştirmeden Vite + TypeScript + Dexie altyapısına yapılan kademeli geçişin sonucudur.
 
-## Sürüm adayı kontrolü
+## Kararlı sürüm kontrolü
 
 ```bash
 npm install
@@ -22,4 +22,4 @@ Kontrol edilen akışlar:
 - Firestore transaction, revision, conflict ve hash korumalarının üretim paketinde bulunması
 - eski v3 release self-test katmanının v4 ile birlikte geçmesi
 
-`main` dalına birleştirme ve canlı yayın bu dosyanın hazır olmasıyla otomatik yapılmaz; ayrıca onay gerekir.
+GitHub Pages yayını, derleme kontrollerinden sonra canlı dosya doğrulamasını da otomatik çalıştırır.

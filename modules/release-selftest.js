@@ -20,11 +20,11 @@
       add("quotes-turkish",Array.isArray(window.SOZLER)&&window.SOZLER.length===1000&&!window.SOZLER.some(x=>x.c==="İnsan Sözü"&&/\b(the|and|with|from|that|this|your|which)\b/i.test(x.q)));
       add("render-lab",window.v320RenderLearningLab()!==false);
       add("render-target",window.v321RenderTargetCenter()!==false);
-      add("v4-bootstrap",window.__YKS_V4_BOOTSTRAP__?.version==="4.0.0-rc.1"&&window.__YKS_V4_BOOTSTRAP__?.releaseCandidate===true);
+      add("v4-bootstrap",window.__YKS_V4_BOOTSTRAP__?.version==="4.0.0"&&window.__YKS_V4_BOOTSTRAP__?.channel==="stable"&&window.__YKS_V4_BOOTSTRAP__?.stableRelease===true);
       add("v4-services",window.__YKS_SERVICES__?.validate?.().length===0&&window.__YKS_DOMAIN__?.validate?.().length===0);
       add("v4-screens",window.__YKS_SCREEN_RUNTIME__?.validate?.().length===0&&window.__YKS_UI__?.validate?.().length===0);
       add("v4-data",window.__YKS_DATA__?.schemaVersion===21&&window.__YKS_DATA__?.validate?.().length===0);
-      add("v4-release",window.__YKS_RELEASE__?.version==="4.0.0-rc.1"&&typeof window.__YKS_RELEASE__?.run==="function");
+      add("v4-release",window.__YKS_RELEASE__?.version==="4.0.0"&&typeof window.__YKS_RELEASE__?.run==="function");
     }catch(error){checks.push(["exception",false]);try{infraError("release-selftest",error);}catch(_){}}
     const ok=checks.every(x=>x[1]);document.documentElement.setAttribute("data-release-selftest",ok?"ok":"fail");
     let output=document.getElementById("releaseSelfTestResult");if(!output){output=document.createElement("pre");output.id="releaseSelfTestResult";output.hidden=true;document.body.appendChild(output);}

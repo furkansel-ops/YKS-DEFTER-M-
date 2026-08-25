@@ -1,6 +1,6 @@
 import {pathToFileURL} from "node:url";
 
-const RELEASE_MARKER="4.0.0-rc.1";
+const RELEASE_MARKER="4.0.0";
 const LEGACY_VERSION="3.2.7";
 
 export function extractBundlePath(index){
@@ -12,7 +12,7 @@ export function verifyLiveAssets({index,bundle,legacyApp}){
   if(!bundlePath)throw new Error("Canlı sayfada Vite JavaScript paketi bulunamadı");
   if(!index.includes('./app.js?v=3.2.7-hotfix1'))throw new Error("Canlı sayfada beklenen eski çalışma zamanı bağlı değil");
   if(/src=["']\.\/src\/main\.ts["']/.test(index))throw new Error("Canlı sayfa üretim paketi yerine TypeScript kaynak dosyasını kullanıyor");
-  if(!bundle.includes("YKS_V4_RELEASE_OK")||!bundle.includes(RELEASE_MARKER))throw new Error("Canlı Vite paketi beklenen sürüm adayı işaretlerini taşımıyor");
+  if(!bundle.includes("YKS_V4_RELEASE_OK")||!bundle.includes(RELEASE_MARKER)||!bundle.includes("stable"))throw new Error("Canlı Vite paketi beklenen kararlı sürüm işaretlerini taşımıyor");
   if(!legacyApp.includes(`const APP_VERSION="${LEGACY_VERSION}"`))throw new Error("Canlı eski çalışma zamanı sürümü beklenen değerle eşleşmiyor");
   if(legacyApp.includes("\uFFFD"))throw new Error("Canlı eski çalışma zamanı bozuk UTF-8 karakteri içeriyor");
   return {bundlePath,release:RELEASE_MARKER,legacyVersion:LEGACY_VERSION};

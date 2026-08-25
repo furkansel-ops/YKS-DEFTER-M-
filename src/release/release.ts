@@ -7,7 +7,7 @@ export interface ReleaseCheck{
 }
 
 export interface ReleaseReport{
-  version:"4.0.0-rc.1";
+  version:"4.0.0";
   ok:boolean;
   startedAt:number;
   finishedAt:number;
@@ -19,8 +19,8 @@ export interface ReleaseRunOptions{
   persistRoundTrip?:boolean;
 }
 
-export interface ReleaseCandidateApi{
-  readonly version:"4.0.0-rc.1";
+export interface ReleaseApi{
+  readonly version:"4.0.0";
   run(options?:ReleaseRunOptions):Promise<ReleaseReport>;
   latest():ReleaseReport|null;
 }
@@ -29,7 +29,7 @@ type LegacyReleaseResult={ok:boolean;checks?:unknown[]};
 
 declare global{
   interface Window{
-    __YKS_RELEASE__?:ReleaseCandidateApi;
+    __YKS_RELEASE__?:ReleaseApi;
     runReleaseSelfTest?:()=>LegacyReleaseResult;
   }
 }
@@ -49,7 +49,7 @@ function publish(documentRef:Document,report:ReleaseReport):void{
   output.textContent=(report.ok?"YKS_V4_RELEASE_OK":"YKS_V4_RELEASE_FAIL")+" "+report.checks.map(check=>`${check.name}:${check.ok?"ok":"fail"}`).join(",");
 }
 
-export function createReleaseCandidateRuntime(host:Window,documentRef:Document):ReleaseCandidateApi{
+export function createReleaseRuntime(host:Window,documentRef:Document):ReleaseApi{
   let lastReport:ReleaseReport|null=null,running:Promise<ReleaseReport>|null=null;
   const run=(options:ReleaseRunOptions={}):Promise<ReleaseReport>=>running??=runChecks(options).finally(()=>{running=null;});
 
@@ -61,7 +61,7 @@ export function createReleaseCandidateRuntime(host:Window,documentRef:Document):
       catch(error){checks.push({name,ok:false,message:error instanceof Error?error.message:String(error)});}
     };
 
-    await add("bootstrap",()=>host.__YKS_V4_BOOTSTRAP__?.version==="4.0.0-rc.1"&&host.__YKS_V4_BOOTSTRAP__?.legacyRuntime===true);
+    await add("bootstrap",()=>host.__YKS_V4_BOOTSTRAP__?.version==="4.0.0"&&host.__YKS_V4_BOOTSTRAP__?.channel==="stable"&&host.__YKS_V4_BOOTSTRAP__?.legacyRuntime===true);
     await add("common-services",()=>host.__YKS_SERVICES__?.validate().length===0);
     await add("domain-services",()=>host.__YKS_DOMAIN__?.validate().length===0);
     await add("screen-runtime",()=>host.__YKS_SCREEN_RUNTIME__?.validate().length===0);
@@ -120,20 +120,20 @@ export function createReleaseCandidateRuntime(host:Window,documentRef:Document):
       if(raw)await add("state-restored",async()=>!!data&&(await data.applyCloudJSON(raw)).ok);
     }
 
-    const report:ReleaseReport={version:"4.0.0-rc.1",ok:checks.every(check=>check.ok),startedAt,finishedAt:Date.now(),checks};
+    const report:ReleaseReport={version:"4.0.0",ok:checks.every(check=>check.ok),startedAt,finishedAt:Date.now(),checks};
     lastReport=report;publish(documentRef,report);
     host.dispatchEvent(new CustomEvent<ReleaseReport>("yks:release-check",{detail:report}));
     return report;
   }
 
-  return {version:"4.0.0-rc.1",run,latest:()=>lastReport};
+  return {version:"4.0.0",run,latest:()=>lastReport};
 }
 
-export function installReleaseCandidate():ReleaseCandidateApi{
-  const api=createReleaseCandidateRuntime(window,document);
+export function installReleaseRuntime():ReleaseApi{
+  const api=createReleaseRuntime(window,document);
   window.__YKS_RELEASE__=api;
   try{
     if(new URLSearchParams(location.search).get("selftest")==="v4")window.setTimeout(()=>void api.run({exerciseScreens:true,persistRoundTrip:true}),1_200);
-  }catch(error){console.warn("v4 sürüm adayı kontrolü başlatılamadı",error);}
+  }catch(error){console.warn("v4 kararlı sürüm kontrolü başlatılamadı",error);}
   return api;
 }

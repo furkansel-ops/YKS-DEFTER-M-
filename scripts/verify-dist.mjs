@@ -16,5 +16,5 @@ if(!index.includes('./app.js?v=3.2.7-hotfix1')||!index.includes('./modules/learn
 const bundlePath=index.match(/(?:src|href)="\.\/(assets\/index-[^"']+\.js)"/)?.[1];
 if(!bundlePath)throw new Error("Sürüm adayı JavaScript paketi bulunamadı");
 const bundle=await readFile(resolve(dist,bundlePath),"utf8");
-if(!bundle.includes("YKS_V4_RELEASE_OK")||!bundle.includes("4.0.0-rc.1"))throw new Error("v4 sürüm adayı denetimi üretim paketine girmedi");
+if(!bundle.includes("YKS_V4_RELEASE_OK")||!bundle.includes("4.0.0")||!bundle.includes("stable"))throw new Error("v4 kararlı sürüm denetimi üretim paketine girmedi");
 console.log(`Üretim paketi doğrulandı: ${required.length} geçiş dosyası + TypeScript paketi`);
