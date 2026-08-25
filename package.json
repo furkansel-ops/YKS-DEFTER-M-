@@ -1,14 +1,15 @@
 {
   "name": "yks-defterim",
   "private": true,
-  "version": "4.0.0-alpha.9",
+  "version": "4.0.0-rc.1",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
     "typecheck": "tsc --noEmit",
     "build": "tsc --noEmit && vite build && node scripts/copy-legacy-assets.mjs && node scripts/verify-dist.mjs",
     "preview": "vite preview --host 0.0.0.0",
     "test": "node --test tests/*.test.js",
-    "check": "npm run typecheck && npm test && npm run build"
+    "check": "npm run typecheck && npm test && npm run build",
+    "release:check": "npm run check && node scripts/verify-release-candidate.mjs"
   },
   "devDependencies": {
     "typescript": "^7.0.2",

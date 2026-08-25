@@ -81,7 +81,7 @@ test("şema 20 verisi Öğrenme Laboratuvarı için şema 21'e taşınır",()=>{
 test("v4 Vite ve TypeScript geçiş altyapısı güvenli biçimde hazır",()=>{
   const pkg=JSON.parse(fs.readFileSync(path.join(root,"package.json"),"utf8")),ts=JSON.parse(fs.readFileSync(path.join(root,"tsconfig.json"),"utf8")),html=fs.readFileSync(path.join(root,"index.html"),"utf8"),entry=fs.readFileSync(path.join(root,"src/main.ts"),"utf8"),copy=fs.readFileSync(path.join(root,"scripts/copy-legacy-assets.mjs"),"utf8");
   ["package-lock.json","vite.config.mts","src/main.ts","src/vite-env.d.ts","scripts/copy-legacy-assets.mjs","scripts/verify-dist.mjs","MIGRATION-V4.md"].forEach(file=>assert.equal(fs.existsSync(path.join(root,file)),true,file));
-  assert.equal(pkg.private,true);assert.equal(pkg.version,"4.0.0-alpha.9");assert.match(pkg.scripts.check,/typecheck/);assert.match(pkg.scripts.build,/vite build/);assert.match(pkg.scripts.build,/verify-dist/);assert.ok(pkg.devDependencies.vite);assert.ok(pkg.devDependencies.typescript);
+  assert.equal(pkg.private,true);assert.equal(pkg.version,"4.0.0-rc.1");assert.match(pkg.scripts.check,/typecheck/);assert.match(pkg.scripts.build,/vite build/);assert.match(pkg.scripts.build,/verify-dist/);assert.match(pkg.scripts["release:check"],/verify-release-candidate/);assert.ok(pkg.devDependencies.vite);assert.ok(pkg.devDependencies.typescript);
   assert.equal(ts.compilerOptions.strict,true);assert.equal(ts.compilerOptions.noUncheckedIndexedAccess,true);assert.equal(ts.compilerOptions.noEmit,true);
   assert.match(html,/type="module" src="\.\/src\/main\.ts"/);assert.match(entry,/legacyRuntime:true/);assert.match(copy,/"modules"/);assert.equal(pkg.devDependencies.dexie,undefined);
 });
@@ -147,4 +147,10 @@ test("v4 konu ve çalışma state işlemleri tür güvenli alan servislerini kul
   assert.match(source,/TopicStatus/);assert.match(source,/class DomainStateContext/);assert.match(source,/topicService/);assert.match(source,/activityService/);assert.match(source,/installLegacyDomainBridge/);assert.match(source,/__YKS_DOMAIN__/);
   ["tkey","tget","tsetStatus","tsetConf","subjStat","overallPct","reviewQueue","markReview","totalSolved","totalMinutes","fullTopicCount","completedReviewCount","todaySessions","workCyclesToday","isLongBreakNext"].forEach(name=>assert.ok(source.includes(`\"${name}\"`),name));
   assert.match(app,/readState:\(\)=>S/);assert.match(app,/subjects:\(\)=>ALL_SUBJECTS/);assert.match(entry,/installLegacyDomainBridge\(\)/);assert.match(entry,/domainServices:true/);assert.doesNotMatch(source,/localStorage\.(?:setItem|removeItem|clear)/);
+});
+
+test("v4 sürüm adayı tarayıcı ve üretim paketi kontrollerini içerir",()=>{
+  const release=fs.readFileSync(path.join(root,"src/release/release-candidate.ts"),"utf8"),entry=fs.readFileSync(path.join(root,"src/main.ts"),"utf8"),legacy=fs.readFileSync(path.join(root,"modules/release-selftest.js"),"utf8"),verify=fs.readFileSync(path.join(root,"scripts/verify-release-candidate.mjs"),"utf8"),report=fs.readFileSync(path.join(root,"RELEASE-CANDIDATE.md"),"utf8");
+  assert.match(release,/4\.0\.0-rc\.1/);assert.match(release,/SCREEN_IDS/);assert.match(release,/dexie-write-through/);assert.match(release,/firebase-payload/);assert.match(release,/firebase-download-path/);assert.match(release,/screen-transitions/);assert.match(release,/YKS_V4_RELEASE_OK/);
+  assert.match(entry,/installReleaseCandidate\(\)/);assert.match(entry,/releaseCandidate:true/);assert.match(legacy,/v4-bootstrap/);assert.match(verify,/runTransaction as/);assert.match(report,/\?selftest=v4/);
 });

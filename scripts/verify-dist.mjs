@@ -13,4 +13,8 @@ for(const file of required)await access(resolve(dist,file));
 const index=await readFile(resolve(dist,"index.html"),"utf8");
 if(!/assets\/index-[^"']+\.js/.test(index))throw new Error("TypeScript üretim paketi index.html içine bağlanmadı");
 if(!index.includes('./app.js')||!index.includes('./modules/learning-lab.js'))throw new Error("Eski çalışma zamanı üretim paketinde bağlı değil");
+const bundlePath=index.match(/(?:src|href)="\.\/(assets\/index-[^"']+\.js)"/)?.[1];
+if(!bundlePath)throw new Error("Sürüm adayı JavaScript paketi bulunamadı");
+const bundle=await readFile(resolve(dist,bundlePath),"utf8");
+if(!bundle.includes("YKS_V4_RELEASE_OK")||!bundle.includes("4.0.0-rc.1"))throw new Error("v4 sürüm adayı denetimi üretim paketine girmedi");
 console.log(`Üretim paketi doğrulandı: ${required.length} geçiş dosyası + TypeScript paketi`);

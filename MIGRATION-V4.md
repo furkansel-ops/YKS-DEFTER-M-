@@ -95,8 +95,18 @@ npm run check
 - Eski JavaScript çağrıları 15 tür güvenli alan yardımcısına bağlandı; geçersiz eski çağrılar için uyumluluk geri dönüşü korundu.
 - Veri şeması ve kullanıcı arayüzü değiştirilmedi.
 
-## Sıradaki adım 10
+## Tamamlanan adım 10 — v4 sürüm adayı
 
-Uygulama açılışı, ekran geçişleri, Dexie ve Firebase akışını uçtan uca doğrulayıp v4 sürüm adayını hazırlamak.
+- Paket sürümü `4.0.0-rc.1` olarak hazırlandı.
+- Tarayıcı içi kontrol; bootstrap, bütün TypeScript köprüleri ve yedi ana ekran geçişini doğruluyor.
+- Mevcut şema 21 kaydı Dexie'ye yazılıp tekrar okunuyor; IndexedDB kaydı ve hash bilgisi denetleniyor.
+- Firebase yükleme verisi ve Dexie-first indirme yolu mevcut kaydın güvenli kopyasıyla sınanıyor.
+- Firestore transaction, revision, conflict, parça ve hash korumalarının üretim paketinde kaldığı doğrulanıyor.
+- Eski v3 release self-test katmanı yeni v4 kontrolleriyle birleştirildi.
+- Tek komutluk `release:check` doğrulaması ve sürüm adayı raporu eklendi.
+
+## Sıradaki işlem
+
+Kullanıcı onayıyla `v4-migration` dalını `main` dalına birleştirmek ve canlı sürümü yayınlamak.
 
 Bu adıma kullanıcı onayı alınmadan geçilmez.
