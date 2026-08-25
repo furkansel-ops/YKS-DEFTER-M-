@@ -12,7 +12,7 @@ const required=[
 for(const file of required)await access(resolve(dist,file));
 const index=await readFile(resolve(dist,"index.html"),"utf8");
 if(!/assets\/index-[^"']+\.js/.test(index))throw new Error("TypeScript üretim paketi index.html içine bağlanmadı");
-if(!index.includes('./app.js?v=4.0.0')||!index.includes('./modules/learning-lab.js?v=4.0.0'))throw new Error("Eski çalışma zamanı üretim paketinde bağlı değil");
+if(!index.includes('./app.js?v=4.0.0-final')||!index.includes('./modules/learning-lab.js?v=4.0.0-final'))throw new Error("Uygulama çalışma zamanı üretim paketinde bağlı değil");
 const bundlePath=index.match(/(?:src|href)="\.\/(assets\/index-[^"']+\.js)"/)?.[1];
 if(!bundlePath)throw new Error("Kararlı sürüm JavaScript paketi bulunamadı");
 const bundle=await readFile(resolve(dist,bundlePath),"utf8");

@@ -17,9 +17,9 @@ test("HTML kimlikleri benzersiz ve kritik alanlar mevcut",()=>{
 
 test("sürüm, şema ve PWA önbelleği tutarlı",()=>{
   const html=fs.readFileSync(path.join(root,"index.html"),"utf8"),app=fs.readFileSync(path.join(root,"app.js"),"utf8"),sw=fs.readFileSync(path.join(root,"sw.js"),"utf8"),version=JSON.parse(fs.readFileSync(path.join(root,"version.json"),"utf8"));
-  assert.match(html,/src="\.\/app\.js\?v=4\.0\.0"/);assert.match(app,/const APP_VERSION="4\.0\.0"/);assert.match(app,/const DATA_SCHEMA=21/);
-  assert.equal(version.version,"4.0.0");assert.equal(version.schema,21);assert.match(sw,/yks-core-v4\.0\.0/);
-  ["app.css","app.js?v=4.0.0","modules/core-utils.js?v=4.0.0","modules/stability.js?v=4.0.0","modules/topic-guides.js?v=4.0.0","modules/learning-lab.js?v=4.0.0","modules/target-center.js?v=4.0.0","modules/export-center.js?v=4.0.0","modules/release-selftest.js?v=4.0.0"].forEach(asset=>assert.ok(sw.includes(asset),asset));
+  assert.match(html,/src="\.\/app\.js\?v=4\.0\.0-final"/);assert.match(app,/const APP_VERSION="4\.0\.0"/);assert.match(app,/const DATA_SCHEMA=21/);
+  assert.equal(version.version,"4.0.0");assert.equal(version.schema,21);assert.match(sw,/yks-core-v4\.0\.0-final/);
+  ["app.css","app.js?v=4.0.0-final","modules/core-utils.js?v=4.0.0-final","modules/stability.js?v=4.0.0-final","modules/topic-guides.js?v=4.0.0-final","modules/learning-lab.js?v=4.0.0-final","modules/target-center.js?v=4.0.0-final","modules/export-center.js?v=4.0.0-final","modules/release-selftest.js?v=4.0.0-final"].forEach(asset=>assert.ok(sw.includes(asset),asset));
   assert.doesNotMatch(sw,/modules\/(topic-coach|learning-tools)\.js/);
 });
 
