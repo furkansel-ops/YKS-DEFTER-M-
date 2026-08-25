@@ -53,3 +53,15 @@ test("başarılı save yakalaması Dexie'ye yazılır ve ayna damgası güncelle
   const result=await x.coordinator.capture(json,777);
   assert.equal(result.status,"written");assert.equal(x.target.state.json,json);assert.equal(x.target.meta.primaryMode,"dexie-primary");assert.equal(x.mirror.meta.updatedAt,777);assert.equal(x.mirror.meta.hash,x.stateHash(json));
 });
+
+test("Dexie okunamazsa save yakalaması ayna damgasını yanlışlıkla ilerletmez",async()=>{
+  const json='{"v":21,"name":"Kaydedilemeyen"}',x=await setup(json,null,0,250),before={...x.mirror.meta};x.target.fail=true;
+  const result=await x.coordinator.capture(json,777);
+  assert.equal(result.ok,false);assert.equal(result.status,"failed");assert.deepEqual(x.mirror.meta,before);assert.equal(x.target.commits,0);
+});
+
+test("değişmeyen Dexie kaydı doğrulandıktan sonra ayna damgası güncellenir",async()=>{
+  const json='{"v":21,"name":"Aynı kayıt"}',x=await setup(json,json,500,100);
+  const result=await x.coordinator.capture(json,777);
+  assert.equal(result.ok,true);assert.equal(result.status,"unchanged");assert.equal(result.updatedAt,500);assert.equal(x.target.commits,0);assert.equal(x.mirror.meta.hash,x.stateHash(json));assert.equal(x.mirror.meta.updatedAt,777);
+});

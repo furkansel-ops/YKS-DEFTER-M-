@@ -1,0 +1,35 @@
+name: Kod kalitesi ve sürüm adayı denetimi
+
+on:
+  pull_request:
+  push:
+    branches:
+      - v4-migration
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Kaynak kodu al
+        uses: actions/checkout@v7
+
+      - name: Node.js ortamını hazırla
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Bağımlılıkları kur
+        run: npm ci
+
+      - name: Türleri, testleri ve üretim paketini doğrula
+        run: npm run release:check

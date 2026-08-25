@@ -154,3 +154,11 @@ test("v4 sürüm adayı tarayıcı ve üretim paketi kontrollerini içerir",()=>
   assert.match(release,/4\.0\.0-rc\.1/);assert.match(release,/SCREEN_IDS/);assert.match(release,/dexie-write-through/);assert.match(release,/firebase-payload/);assert.match(release,/firebase-download-path/);assert.match(release,/screen-transitions/);assert.match(release,/YKS_V4_RELEASE_OK/);
   assert.match(entry,/installReleaseCandidate\(\)/);assert.match(entry,/releaseCandidate:true/);assert.match(legacy,/v4-bootstrap/);assert.match(verify,/runTransaction as/);assert.match(report,/\?selftest=v4/);
 });
+
+test("CI ve Pages dağıtımı güncel eylemler, zaman aşımı ve canlı doğrulama kullanır",()=>{
+  const ci=fs.readFileSync(path.join(root,".github/workflows/ci.yml"),"utf8"),deploy=fs.readFileSync(path.join(root,".github/workflows/deploy-pages.yml"),"utf8"),live=fs.readFileSync(path.join(root,"scripts/verify-live-pages.mjs"),"utf8");
+  assert.match(ci,/pull_request:/);assert.match(ci,/cancel-in-progress: true/);assert.match(ci,/timeout-minutes: 10/);assert.match(ci,/npm run release:check/);
+  [ci,deploy].forEach(workflow=>{assert.match(workflow,/actions\/checkout@v7/);assert.match(workflow,/actions\/setup-node@v7/);});
+  assert.match(deploy,/actions\/configure-pages@v6/);assert.match(deploy,/actions\/upload-pages-artifact@v5/);assert.match(deploy,/actions\/deploy-pages@v5/);assert.match(deploy,/conclusion/);assert.match(deploy,/node scripts\/verify-live-pages\.mjs/);
+  assert.match(live,/verifyLivePages/);assert.match(live,/YKS_V4_RELEASE_OK/);assert.match(live,/AbortSignal\.timeout/);
+});

@@ -19,12 +19,13 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Kaynak kodu al
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Node.js ortamını hazırla
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
@@ -36,10 +37,10 @@ jobs:
         run: npm run release:check
 
       - name: GitHub Pages'i hazırla
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6
 
       - name: Üretim paketini yükle
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
         with:
           path: ./dist
 
@@ -48,17 +49,31 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     needs: build
     steps:
+      - name: Kaynak kodu al
+        uses: actions/checkout@v7
+
+      - name: Node.js ortamını hazırla
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
       - name: Eski Pages dağıtımının tamamlanmasını bekle
         if: github.event_name == 'push'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          set -euo pipefail
           for attempt in {1..30}; do
-            status="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?head_sha=${GITHUB_SHA}&per_page=20" --jq '[.workflow_runs[] | select(.name == "pages build and deployment")][0].status // "missing"')"
+            read -r status conclusion < <(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?head_sha=${GITHUB_SHA}&per_page=20" --jq '([.workflow_runs[] | select(.name == "pages build and deployment")][0] // {}) | [.status // "missing", .conclusion // "none"] | @tsv')
             if [ "$status" = "completed" ]; then
-              exit 0
+              if [ "$conclusion" = "success" ]; then
+                exit 0
+              fi
+              echo "Eski GitHub Pages dağıtımı başarısız sonuçlandı: ${conclusion}" >&2
+              exit 1
             fi
             sleep 5
           done
@@ -67,4 +82,9 @@ jobs:
 
       - name: GitHub Pages'e dağıt
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
+
+      - name: Canlı sürümü doğrula
+        env:
+          LIVE_URL: ${{ steps.deployment.outputs.page_url }}
+        run: node scripts/verify-live-pages.mjs

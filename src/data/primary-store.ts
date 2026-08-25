@@ -114,10 +114,10 @@ export class PrimaryStateCoordinator{
     const source=typeof json==="string"?decodeState(json):this.#mirror.read();
     if(!source.ok)return {ok:false,status:"invalid",message:source.message};
     const hash=stateHash(source.json),stamp=Math.max(1,Math.floor(updatedAt));
-    this.#mirror.writeMirrorMetadata(hash,stamp);
     try{
       const existing=await this.#target.readState();
       if(existing?.sourceHash===hash&&existing.json===source.json){
+        this.#mirror.writeMirrorMetadata(hash,Math.max(stamp,existing.updatedAt));
         return {ok:true,status:"unchanged",message:"Dexie ana kaydı zaten güncel",hash,updatedAt:existing.updatedAt};
       }
       return this.persistJSON(source.json,stamp);
