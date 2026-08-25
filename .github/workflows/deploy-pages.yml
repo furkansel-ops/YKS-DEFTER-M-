@@ -1,7 +1,11 @@
 name: Vite uygulamasını GitHub Pages'e dağıt
 
 on:
-  push:
+  workflow_run:
+    workflows:
+      - pages build and deployment
+    types:
+      - completed
     branches:
       - main
   workflow_dispatch:
