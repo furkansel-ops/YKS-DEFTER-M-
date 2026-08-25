@@ -33,7 +33,7 @@ jobs:
       - name: Bağımlılıkları kur
         run: npm ci
 
-      - name: Sürüm adayını doğrula ve derle
+      - name: Kararlı sürümü doğrula ve derle
         run: npm run release:check
 
       - name: GitHub Pages'i hazırla

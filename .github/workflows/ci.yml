@@ -1,4 +1,4 @@
-name: Kod kalitesi ve sürüm adayı denetimi
+name: Kod kalitesi ve kararlı sürüm denetimi
 
 on:
   pull_request:
