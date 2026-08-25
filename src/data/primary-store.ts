@@ -1,6 +1,6 @@
 import {decodeState,stateHash,type StateDecodeResult} from "./codec.ts";
 import type {MirrorMetadata,RepositoryReadResult} from "./local-state-repository.ts";
-import {LEGACY_IMPORT_META_KEY,PRIMARY_INDEXED_STATE_KEY,type IndexedStateRecord,type MigrationMetaRecord,type MigrationTarget} from "./migration.ts";
+import {LEGACY_IMPORT_META_KEY,PRIMARY_INDEXED_STATE_KEY,type IndexedStateRecord,type MigrationMetaRecord,type MigrationTarget,type StateWriteSource} from "./migration.ts";
 
 export interface PrimaryMirror{
   read():RepositoryReadResult;
@@ -146,22 +146,22 @@ export class PrimaryStateCoordinator{
     return {ok:false,message:"Geçerli ana kayıt bulunamadı"};
   }
 
-  async replaceFromExternal(json:string,updatedAt=this.#now()):Promise<ExternalApplyResult>{
+  async replaceFromExternal(json:string,updatedAt=this.#now(),source:Extract<StateWriteSource,"firebase"|"backup">="firebase"):Promise<ExternalApplyResult>{
     const decoded=decodeState(json);
     if(!decoded.ok)return {ok:false,status:"invalid",message:decoded.message};
-    const written=await this.persistJSON(json,updatedAt,"firebase");
+    const written=await this.persistJSON(json,updatedAt,source);
     if(!written.ok)return {ok:false,status:"failed",message:written.message,hash:written.hash,updatedAt:written.updatedAt};
     const applied=this.#runtime.applyJSON(json);
     if(!applied.ok)return {ok:false,status:"failed",message:applied.message,hash:written.hash,updatedAt:written.updatedAt};
     const appliedHash=stateHash(applied.json);
     if(applied.json!==json){
-      const normalized=await this.persistJSON(applied.json,Math.max(updatedAt,this.#now()),"firebase");
+      const normalized=await this.persistJSON(applied.json,Math.max(updatedAt,this.#now()),source);
       if(!normalized.ok)return {ok:false,status:"failed",message:normalized.message,hash:normalized.hash,updatedAt:normalized.updatedAt};
     }else this.#mirror.writeMirrorMetadata(appliedHash,written.updatedAt??updatedAt);
-    return {ok:true,status:"applied",message:"Bulut kaydı Dexie ana kaydına uygulandı",json:applied.json,hash:appliedHash,updatedAt:written.updatedAt};
+    return {ok:true,status:"applied",message:source==="backup"?"Yedek Dexie ana kaydına uygulandı":"Bulut kaydı Dexie ana kaydına uygulandı",json:applied.json,hash:appliedHash,updatedAt:written.updatedAt};
   }
 
-  async persistJSON(json:string,updatedAt=this.#now(),source:"localStorage"|"firebase"="localStorage"):Promise<PrimaryWriteResult>{
+  async persistJSON(json:string,updatedAt=this.#now(),source:StateWriteSource="localStorage"):Promise<PrimaryWriteResult>{
     const decoded=decodeState(json);
     if(!decoded.ok)return {ok:false,status:"invalid",message:decoded.message};
     const hash=stateHash(json),stamp=Math.max(1,Math.floor(updatedAt));

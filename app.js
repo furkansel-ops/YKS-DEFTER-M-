@@ -2594,9 +2594,16 @@ function backupFileStamp(){
   const d=new Date();
   return todayKey()+"-"+String(d.getHours()).padStart(2,"0")+String(d.getMinutes()).padStart(2,"0");
 }
-function exportData(){
-  const payload=backupPayload();
-  const b=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});
+async function exportData(){
+  let text="";
+  try{
+    if(window.__YKS_BACKUP__){
+      const built=await window.__YKS_BACKUP__.build();
+      if(!built.ok)throw new Error(built.message);
+      text=built.text;
+    }else text=JSON.stringify(backupPayload(),null,2);
+  }catch(error){infraError("backup-export",error);toast("Yedek hazırlanamadı: "+String(error&&error.message||"bilinmeyen hata"));return false;}
+  const b=new Blob([text],{type:"application/json"});
   const a=document.createElement("a");
   a.href=URL.createObjectURL(b);
   a.download="yks-defterim-yedek-"+backupFileStamp()+".json";
@@ -2605,7 +2612,8 @@ function exportData(){
   S.lastBackup=todayKey(); S.lastExport=Date.now(); save();
   renderSettings(); renderHome();
   if(typeof renderAutoBackup==="function")renderAutoBackup();
-  toast("JSON yedeği hazırlandı ✓");
+  toast("Bütünlük kontrollü JSON yedeği hazırlandı ✓");
+  return true;
 }
 function parseBackupPayload(raw){
   const parsed=typeof raw==="string"?JSON.parse(raw):raw;
@@ -2615,24 +2623,42 @@ function parseBackupPayload(raw){
   if(!data||typeof data!=="object"||Array.isArray(data))throw new Error("data");
   if(data.v!==undefined&&(!Number.isFinite(+data.v)||+data.v<1))throw new Error("version");
   if(data.v!==undefined&&+data.v>DATA_SCHEMA)throw new Error("future-version");
+  if(+parsed.format>=3){
+    if(parsed.app!=="YKS Defterim"||!parsed.integrity||parsed.integrity.algorithm!=="fnv1a-32")throw new Error("integrity-missing");
+    if(parsed.integrity.hash!==infraHash(JSON.stringify(data)))throw new Error("integrity-failed");
+  }
   return data;
 }
 function importData(inp){
   const f=inp.files[0]; if(!f)return;
   if(f.size>25*1024*1024){ toast("Yedek dosyası çok büyük (en fazla 25 MB)"); inp.value=""; return; }
-  if(!confirm("Bu yedek mevcut verilerin üzerine yazılacak. Devam edilsin mi?")){ inp.value=""; return; }
   const r=new FileReader();
-  r.onload=e=>{
+  r.onload=async e=>{
     try{
+      const text=String(e.target.result||"");
+      const inspected=window.__YKS_BACKUP__?window.__YKS_BACKUP__.inspect(text):null;
+      if(inspected&&!inspected.ok)throw new Error(inspected.message);
+      const summary=inspected&&inspected.ok?inspected.summary:null;
+      const tarih=summary&&summary.exportedAt?new Date(summary.exportedAt).toLocaleString("tr-TR"):"Eski yedek";
+      const onay=summary
+        ?"Yedek doğrulandı ✓\n\nTarih: "+tarih+"\nSürüm: "+summary.appVersion+" · şema "+summary.schema+"\nİçerik: "+summary.days+" çalışma günü, "+summary.exams+" deneme, "+summary.topics+" konu\nBütünlük: "+(summary.integrity==="verified"?"Doğrulandı":"Eski biçim — temel kontrol yapıldı")+"\n\nMevcut durum önce güvenlik kopyasına alınacak. Geri yüklensin mi?"
+        :"Yedek temel kontrollerden geçti. Mevcut durum önce güvenlik kopyasına alınacak. Geri yüklensin mi?";
+      if(!confirm(onay))return;
       /* Geri yüklemeden hemen önce mevcut halin sessiz güvenlik kopyasını al. */
       if(typeof autoBackupRun==="function")autoBackupRun(true);
-      const data=parseBackupPayload(e.target.result);
-      S=normalize(Object.assign({},JSON.parse(JSON.stringify(DEF)),migrateState(data)));
-      if(!save())throw new Error("save");
+      if(window.__YKS_BACKUP__){
+        const restored=await window.__YKS_BACKUP__.restore(text);
+        if(!restored.ok)throw new Error(restored.message);
+      }else{
+        const data=parseBackupPayload(text);
+        S=normalize(Object.assign({},JSON.parse(JSON.stringify(DEF)),migrateState(data)));
+        if(!save())throw new Error("save");
+      }
       applyTheme(); renderAll(); toast("Yedek geri yüklendi ✓"); go("home");
-    }catch(x){ console.error(x); toast("Dosya okunamadı veya geçerli bir YKS yedeği değil"); }
+    }catch(x){ infraError("backup-import",x);toast(String(x&&x.message||"").includes("bütünlük")?String(x.message):"Dosya okunamadı veya geçerli bir YKS yedeği değil"); }
+    finally{inp.value="";}
   };
-  r.readAsText(f); inp.value="";
+  r.readAsText(f);
 }
 function resetAll(){
   if(!confirm("Tüm verilerin kalıcı olarak silinecek. Emin misin?"))return;
@@ -8452,7 +8478,7 @@ function boot18(){
    unutsan bile bir gün öncesine dönebilirsin.
    ================================================================== */
 const AUTO_BACKUP_KEY="yks_yedek";
-const AUTO_BACKUP_GUN=7;
+const AUTO_BACKUP_GUN=14;
 
 function autoBackups(){
   try{
@@ -8549,14 +8575,16 @@ function renderAutoBackup(){
     const d=parseKey(b.gun);
     const ad=d.toLocaleDateString("tr-TR",{day:"numeric",month:"short"});
     const kb=Math.round(b.boyut/1024);
+    const saglam=!b.hash||b.hash===infraHash(b.veri);
     return '<div class="dayrow"><span class="k">'+ad+'<br><small>'+kb+' KB</small></span>'+
-      '<span class="v"><button class="btn ghost tiny" onclick="autoBackupRestore(\''+b.gun+'\')">Bu güne dön</button></span></div>';
+      '<span class="v">'+(saglam?'<button class="btn ghost tiny" onclick="autoBackupRestore(\''+b.gun+'\')">Bu güne dön</button>':'<b style="color:var(--danger)">Bozuk kopya</b>')+'</span></div>';
   }).join("");
   h+='<p class="hint"><b>'+list.length+' güvenlik kopyası var.</b> Son '+AUTO_BACKUP_GUN+' günün fotoğraflar hariç kopyası bu tarayıcıda saklanır. '+
      'Yedek geri yükleme, tüm verileri sıfırlama ve buluttan veri alma öncesinde de mevcut durum korunur. Tarayıcı verilerini temizlersen bunlar da gider — bağımsız güvence JSON yedeğidir.</p>'+
      '<button class="btn ghost tiny" style="width:100%;margin-top:8px;" onclick="autoBackupClear()">Otomatik yedekleri sil</button>';
   w.innerHTML=h;
 }
+
 
 /* ==================================================================
    2) SABAH BRİFİNGİ

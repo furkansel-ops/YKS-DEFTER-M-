@@ -1,7 +1,7 @@
 /* YKS Defterim — dayanıklı PWA katmanı | v4.0.0 */
 const APP_VERSION="4.0.0";
-const CACHE="yks-core-v4.0.0-final";
-const CORE=["./","./index.html","./app.css","./app.js?v=4.0.0-final","./modules/core-utils.js?v=4.0.0-final","./modules/stability.js?v=4.0.0-final","./modules/topic-guides.js?v=4.0.0-final","./modules/learning-lab.js?v=4.0.0-final","./modules/target-center.js?v=4.0.0-final","./modules/export-center.js?v=4.0.0-final","./modules/release-selftest.js?v=4.0.0-final","./manifest.webmanifest","./icon-192.png","./icon-512.png","./icon-maskable-512.png","./apple-touch-icon.png"];
+const CACHE="yks-core-v4.0.0-r13";
+const CORE=["./","./index.html","./app.css","./app.js?v=4.0.0-r13","./modules/core-utils.js?v=4.0.0-r13","./modules/stability.js?v=4.0.0-r13","./modules/topic-guides.js?v=4.0.0-r13","./modules/learning-lab.js?v=4.0.0-r13","./modules/target-center.js?v=4.0.0-r13","./modules/export-center.js?v=4.0.0-r13","./modules/release-selftest.js?v=4.0.0-r13","./manifest.webmanifest","./icon-192.png","./icon-512.png","./icon-maskable-512.png","./apple-touch-icon.png"];
 const OFFLINE_TEXT="Çevrimdışı";
 
 async function fetchWithTimeout(request,options={},timeoutMs=4500){

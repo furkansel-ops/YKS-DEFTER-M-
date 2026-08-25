@@ -3,7 +3,7 @@ import type {DomainStateAdapter} from "../domain/state-context";
 import {buildCloudPayload,type CloudPayloadResult} from "./cloud-state";
 import {DexieMigrationTarget,YksDatabase,type IndexedDatabaseSnapshot} from "./database";
 import {LocalStateRepository,type DataSnapshot,type RepositoryReadResult,type RepositoryWriteResult} from "./local-state-repository";
-import {PrimaryStateCoordinator,type ExternalApplyResult,type PrimaryInitResult,type PrimaryWriteResult} from "./primary-store";
+import {PrimaryStateCoordinator,type ExternalApplyResult,type PrimaryInitResult,type PrimaryJSONResult,type PrimaryWriteResult} from "./primary-store";
 import {YKS_STORAGE_KEYS} from "./storage-keys";
 
 export interface LegacyDataBridgeApi{
@@ -21,7 +21,9 @@ export interface LegacyDataBridgeApi{
   initialize():Promise<PrimaryInitResult>;
   captureLegacyWrite(json?:string):Promise<PrimaryWriteResult>;
   cloudPayload():Promise<CloudPayloadResult>;
+  primaryJSON():Promise<PrimaryJSONResult|{ok:false;message:string}>;
   applyCloudJSON(json:string):Promise<ExternalApplyResult>;
+  applyBackupJSON(json:string):Promise<ExternalApplyResult>;
   flush():Promise<void>;
   validate():string[];
 }
@@ -66,6 +68,7 @@ export function installLegacyDataBridge():LegacyDataBridgeApi{
   };
   const captureLegacyWrite=(json?:string):Promise<PrimaryWriteResult>=>enqueue(async()=>{await initialize();return coordinator.capture(json);});
   const applyCloudJSON=(json:string):Promise<ExternalApplyResult>=>enqueue(async()=>{await initialize();return coordinator.replaceFromExternal(json);});
+  const applyBackupJSON=(json:string):Promise<ExternalApplyResult>=>enqueue(async()=>{await initialize();return coordinator.replaceFromExternal(json,Date.now(),"backup");});
   const flush=async()=>{await writeTail;};
   const cloudPayload=async():Promise<CloudPayloadResult>=>{
     await initialize();await flush();
@@ -87,7 +90,9 @@ export function installLegacyDataBridge():LegacyDataBridgeApi{
     initialize,
     captureLegacyWrite,
     cloudPayload,
+    primaryJSON:async()=>{await initialize();await flush();return coordinator.readPrimaryJSON();},
     applyCloudJSON,
+    applyBackupJSON,
     flush,
     validate:()=>repository.validate()
   };

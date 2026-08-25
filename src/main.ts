@@ -4,6 +4,7 @@ import {installScreenRuntime} from "./ui/screen-runtime";
 import {installLegacyServiceBridge} from "./services/legacy-service-bridge";
 import {installLegacyDomainBridge} from "./domain/legacy-domain-bridge";
 import {installReleaseRuntime} from "./release/release";
+import {installLegacyBackupBridge} from "./data/legacy-backup-bridge";
 
 type BootstrapState={
   version:"4.0.0";
@@ -16,6 +17,7 @@ type BootstrapState={
   commonServices:true;
   domainServices:true;
   stableRelease:true;
+  backupBridge:true;
   startedAt:number;
 };
 
@@ -36,11 +38,13 @@ const bootstrap:BootstrapState={
   commonServices:true,
   domainServices:true,
   stableRelease:true,
+  backupBridge:true,
   startedAt:Date.now()
 };
 
 const services=installLegacyServiceBridge();
 const data=installLegacyDataBridge();
+installLegacyBackupBridge(data,bootstrap.version);
 const domain=installLegacyDomainBridge();
 const screens=installScreenRuntime();
 const ui=installLegacyUiBridge(screens);

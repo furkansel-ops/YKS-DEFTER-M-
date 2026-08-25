@@ -1369,13 +1369,14 @@ document.documentElement.setAttribute("data-theme",t);}catch(e){}})();
       <div id="v30DataSyncSummary"></div>
       <p class="lead" style="margin:12px 0 12px;font-size:14.5px;">Verilerin cihazda tutulur; Google ile giriş yaptıysan Firebase ile de eşitlenir. JSON yedeği ise bunlardan bağımsız geri dönüş güvencesidir.</p>
       <p class="hint" id="lastBackup" style="margin:0 0 14px;"></p>
-      <button class="btn ghost small" style="width:100%;margin-bottom:9px;" onclick="exportData()">JSON yedek al</button>
+      <div class="v4-backup-shield" id="v4BackupShield"><span aria-hidden="true">✓</span><div><b>Güvenli yedekleme etkin</b><small>Dosya bütünlüğü doğrulanır · Geri yüklemeden önce içerik gösterilir · Mevcut durum korunur</small></div></div>
+      <button class="btn green small" style="width:100%;margin-bottom:9px;" onclick="exportData()">Güvenli JSON yedeği indir</button>
       <div class="rowtools" style="margin:0 0 9px;">
         <button class="btn ghost tiny" onclick="exportCSV('gun')">Günlük CSV</button>
         <button class="btn ghost tiny" onclick="exportCSV('deneme')">Deneme CSV</button>
         <button class="btn ghost tiny" onclick="exportCSV('konu')">Konu CSV</button>
       </div>
-      <button class="btn ghost small" style="width:100%;margin-bottom:9px;" onclick="document.getElementById('importFile').click()">Yedekten geri yükle</button>
+      <button class="btn ghost small" style="width:100%;margin-bottom:9px;" onclick="document.getElementById('importFile').click()">Yedeği kontrol et ve geri yükle</button>
       <input type="file" id="importFile" accept="application/json" style="display:none" onchange="importData(this)">
       <button class="btn red small" style="width:100%;" onclick="resetAll()">Tüm verileri sıfırla</button>
     </div>
@@ -1912,7 +1913,7 @@ document.documentElement.setAttribute("data-theme",t);}catch(e){}})();
   </div>
 </div>
 
-<div class="toast" id="toast" role="status" aria-live="polite"></div><script vite-ignore src="./app.js?v=4.0.0-final"></script>
+<div class="toast" id="toast" role="status" aria-live="polite"></div><script vite-ignore src="./app.js?v=4.0.0-r13"></script>
 
 <script type="module" id="firebaseSyncModule">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
@@ -2146,13 +2147,13 @@ window.addEventListener("online",()=>{if(!user)return;status("Bağlantı geldi",
 
 
 
-<script vite-ignore src="./modules/core-utils.js?v=4.0.0-final"></script>
-<script vite-ignore src="./modules/stability.js?v=4.0.0-final"></script>
-<script vite-ignore src="./modules/topic-guides.js?v=4.0.0-final"></script>
-<script vite-ignore src="./modules/learning-lab.js?v=4.0.0-final"></script>
-<script vite-ignore src="./modules/target-center.js?v=4.0.0-final"></script>
-<script vite-ignore src="./modules/export-center.js?v=4.0.0-final"></script>
-<script vite-ignore src="./modules/release-selftest.js?v=4.0.0-final"></script>
+<script vite-ignore src="./modules/core-utils.js?v=4.0.0-r13"></script>
+<script vite-ignore src="./modules/stability.js?v=4.0.0-r13"></script>
+<script vite-ignore src="./modules/topic-guides.js?v=4.0.0-r13"></script>
+<script vite-ignore src="./modules/learning-lab.js?v=4.0.0-r13"></script>
+<script vite-ignore src="./modules/target-center.js?v=4.0.0-r13"></script>
+<script vite-ignore src="./modules/export-center.js?v=4.0.0-r13"></script>
+<script vite-ignore src="./modules/release-selftest.js?v=4.0.0-r13"></script>
 <script type="module" src="./src/main.ts"></script>
 </body>
 </html>

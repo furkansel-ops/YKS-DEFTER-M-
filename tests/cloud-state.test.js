@@ -33,3 +33,12 @@ test("gelecek şemadaki bulut kaydı Dexie'ye ve çalışan duruma uygulanmaz",a
   const result=await new PrimaryStateCoordinator(mirror,target,runtime).replaceFromExternal('{"v":22}');
   assert.equal(result.ok,false);assert.equal(result.status,"invalid");assert.equal(commits,0);assert.equal(applies,0);
 });
+
+test("doğrulanmış dosya yedeği çalışan duruma geçmeden önce Dexie'ye yazılır",async()=>{
+  const [{decodeState},{PrimaryStateCoordinator}]=await Promise.all([import(dataUrl("codec.ts")),import(dataUrl("primary-store.ts"))]),order=[];
+  const mirror={read:()=>decodeState('{"v":21}'),readMirrorMetadata:()=>({hash:"",updatedAt:0}),writeMirrorMetadata:()=>({ok:true})};
+  const target={state:undefined,readState:async function(){return this.state;},readMeta:async()=>undefined,commit:async function(state){order.push("dexie");this.state=state;}};
+  const runtime={applyJSON:json=>{order.push("runtime");return {ok:true,json};}};
+  const result=await new PrimaryStateCoordinator(mirror,target,runtime,()=>700).replaceFromExternal('{"v":21,"name":"Yedek"}',700,"backup");
+  assert.equal(result.ok,true);assert.deepEqual(order,["dexie","runtime"]);assert.equal(target.state.source,"backup");assert.match(result.message,/Yedek/);
+});

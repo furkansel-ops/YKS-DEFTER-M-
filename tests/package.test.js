@@ -17,9 +17,9 @@ test("HTML kimlikleri benzersiz ve kritik alanlar mevcut",()=>{
 
 test("sürüm, şema ve PWA önbelleği tutarlı",()=>{
   const html=fs.readFileSync(path.join(root,"index.html"),"utf8"),app=fs.readFileSync(path.join(root,"app.js"),"utf8"),sw=fs.readFileSync(path.join(root,"sw.js"),"utf8"),version=JSON.parse(fs.readFileSync(path.join(root,"version.json"),"utf8"));
-  assert.match(html,/src="\.\/app\.js\?v=4\.0\.0-final"/);assert.match(app,/const APP_VERSION="4\.0\.0"/);assert.match(app,/const DATA_SCHEMA=21/);
-  assert.equal(version.version,"4.0.0");assert.equal(version.schema,21);assert.match(sw,/yks-core-v4\.0\.0-final/);
-  ["app.css","app.js?v=4.0.0-final","modules/core-utils.js?v=4.0.0-final","modules/stability.js?v=4.0.0-final","modules/topic-guides.js?v=4.0.0-final","modules/learning-lab.js?v=4.0.0-final","modules/target-center.js?v=4.0.0-final","modules/export-center.js?v=4.0.0-final","modules/release-selftest.js?v=4.0.0-final"].forEach(asset=>assert.ok(sw.includes(asset),asset));
+  assert.match(html,/src="\.\/app\.js\?v=4\.0\.0-r13"/);assert.match(app,/const APP_VERSION="4\.0\.0"/);assert.match(app,/const DATA_SCHEMA=21/);
+  assert.equal(version.version,"4.0.0");assert.equal(version.schema,21);assert.match(sw,/yks-core-v4\.0\.0-r13/);
+  ["app.css","app.js?v=4.0.0-r13","modules/core-utils.js?v=4.0.0-r13","modules/stability.js?v=4.0.0-r13","modules/topic-guides.js?v=4.0.0-r13","modules/learning-lab.js?v=4.0.0-r13","modules/target-center.js?v=4.0.0-r13","modules/export-center.js?v=4.0.0-r13","modules/release-selftest.js?v=4.0.0-r13"].forEach(asset=>assert.ok(sw.includes(asset),asset));
   assert.doesNotMatch(sw,/modules\/(topic-coach|learning-tools)\.js/);
 });
 
@@ -102,6 +102,12 @@ test("v4 TypeScript veri katmanı şema 21 sözleşmesini kayıpsız korur",()=>
   assert.equal(pkg.devDependencies.dexie,undefined);
 });
 
+test("v4 güvenli yedek köprüsü imza, önizleme ve Dexie geri yükleme akışını paketler",()=>{
+  const files=["src/data/backup-service.ts","src/data/legacy-backup-bridge.ts"],source=files.map(file=>{assert.equal(fs.existsSync(path.join(root,file)),true,file);return fs.readFileSync(path.join(root,file),"utf8");}).join("\n"),entry=fs.readFileSync(path.join(root,"src/main.ts"),"utf8"),app=fs.readFileSync(path.join(root,"app.js"),"utf8"),html=fs.readFileSync(path.join(root,"index.html"),"utf8");
+  assert.match(source,/BACKUP_FORMAT_VERSION=3/);assert.match(source,/fnv1a-32/);assert.match(source,/inspectBackupPackage/);assert.match(source,/applyBackupJSON/);
+  assert.match(entry,/installLegacyBackupBridge/);assert.match(app,/Yedek doğrulandı/);assert.match(app,/AUTO_BACKUP_GUN=14/);assert.match(html,/Güvenli yedekleme etkin/);assert.match(html,/Yedeği kontrol et ve geri yükle/);
+});
+
 test("v4 Dexie taşıması localStorage kaydını silmeden IndexedDB kopyası oluşturur",()=>{
   const files=["src/data/database.ts","src/data/migration.ts"],source=files.map(file=>{assert.equal(fs.existsSync(path.join(root,file)),true,file);return fs.readFileSync(path.join(root,file),"utf8");}).join("\n"),bridge=fs.readFileSync(path.join(root,"src/data/legacy-data-bridge.ts"),"utf8"),pkg=JSON.parse(fs.readFileSync(path.join(root,"package.json"),"utf8"));
   assert.ok(pkg.dependencies.dexie);assert.match(source,/class YksDatabase extends Dexie/);assert.match(source,/yks-defterim-v4/);assert.match(source,/transaction\("rw"/);
@@ -121,7 +127,7 @@ test("v4 Dexie ana kayıt localStorage güvenli aynasıyla write-through çalı�
 test("v4 Firebase senkronu Dexie ana kayıt katmanını kullanır",()=>{
   const cloud=fs.readFileSync(path.join(root,"src/data/cloud-state.ts"),"utf8"),primary=fs.readFileSync(path.join(root,"src/data/primary-store.ts"),"utf8"),bridge=fs.readFileSync(path.join(root,"src/data/legacy-data-bridge.ts"),"utf8"),html=fs.readFileSync(path.join(root,"index.html"),"utf8");
   assert.match(cloud,/buildCloudPayload/);assert.match(cloud,/state\.focus/);assert.match(cloud,/state\.yt/);assert.match(cloud,/stateHash\(json\)/);
-  assert.match(primary,/replaceFromExternal/);assert.match(primary,/persistJSON\(json,updatedAt,"firebase"\)/);assert.match(primary,/readPrimaryJSON/);
+  assert.match(primary,/replaceFromExternal/);assert.match(primary,/source:Extract<StateWriteSource,"firebase"\|"backup">="firebase"/);assert.match(primary,/persistJSON\(json,updatedAt,source\)/);assert.match(primary,/readPrimaryJSON/);
   assert.match(bridge,/cloudPayload/);assert.match(bridge,/applyCloudJSON/);assert.match(bridge,/await flush\(\)/);
   assert.match(html,/async function cloudJSON/);assert.match(html,/await window\.__YKS_DATA__\.cloudPayload\(\)/);assert.match(html,/await window\.__YKS_DATA__\.applyCloudJSON\(persisted\)/);assert.match(html,/const json=await cloudJSON\(\)/);
   assert.match(html,/runTransaction\(db/);assert.match(html,/SYNC_CONFLICT/);assert.match(html,/infraHash\(json\)/);

@@ -3,6 +3,7 @@ import type {RepositoryReadResult} from "./local-state-repository.ts";
 
 export const PRIMARY_INDEXED_STATE_KEY="primary" as const;
 export const LEGACY_IMPORT_META_KEY="legacy-localstorage-import-v1" as const;
+export type StateWriteSource="localStorage"|"firebase"|"backup";
 
 export interface IndexedStateRecord{
   key:typeof PRIMARY_INDEXED_STATE_KEY;
@@ -10,7 +11,7 @@ export interface IndexedStateRecord{
   schema:number;
   chars:number;
   bytes:number;
-  source:"localStorage"|"firebase";
+  source:StateWriteSource;
   sourceHash:string;
   updatedAt:number;
 }
@@ -20,7 +21,7 @@ export interface MigrationMetaRecord{
   migrationVersion:1;
   stateKey:typeof PRIMARY_INDEXED_STATE_KEY;
   schema:number;
-  source:"localStorage"|"firebase";
+  source:StateWriteSource;
   sourceHash:string;
   sourceChars:number;
   sourceBytes:number;

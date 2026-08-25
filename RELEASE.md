@@ -21,6 +21,6 @@ Kontrol edilen akışlar:
 - buluttan indirme yolunun aynı kayıtla Dexie-first uygulanması
 - Firestore transaction, revision, conflict ve hash korumalarının üretim paketinde bulunması
 - eski v3 release self-test katmanının v4 ile birlikte geçmesi
-- PWA önbelleğinin `v4.0.0-final` yapı anahtarıyla yenilenmesi ve eski modüllerin sürümlü URL'lerle aşılması
+- PWA önbelleğinin `v4.0.0-r13` yapı anahtarıyla yenilenmesi ve eski modüllerin sürümlü URL'lerle aşılması
 
 GitHub Pages yayını, derleme kontrollerinden sonra canlı dosya doğrulamasını da otomatik çalıştırır.
