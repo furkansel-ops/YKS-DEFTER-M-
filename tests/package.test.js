@@ -170,3 +170,8 @@ test("v4.0.0 kararlı sürümü geçici aday dosyası bırakmaz ve veri şeması
   ["src/release/release.ts","scripts/verify-release.mjs","tests/release.test.js","RELEASE.md"].forEach(file=>assert.equal(fs.existsSync(path.join(root,file)),true,file));
   assert.match(entry,/version:"4\.0\.0"/);assert.match(entry,/channel:"stable"/);assert.match(app,/const DATA_SCHEMA=21/);
 });
+
+test("kararlı tarayıcı self-test'i Vite'ın hash'li CSS paketini kabul eder",()=>{
+  const selftest=fs.readFileSync(path.join(root,"modules/release-selftest.js"),"utf8");
+  assert.match(selftest,/assets\/index-/);assert.match(selftest,/href\$="\.css"/);assert.match(selftest,/script\[src\^="\.\/app\.js"\]/);
+});
