@@ -29,12 +29,13 @@ export function setTopicConfidence(state:TopicStateSlice,key:string,confidence:T
 
 export function subjectProgress(state:TopicStateSlice,exam:string,subject:Pick<SubjectDefinition,"name"|"topics">):SubjectProgressSummary{
   let sum=0,full=0;
+  const total=subject.topics.length;
   for(const topic of subject.topics){
     const progress=topicFor(state,topicKey(exam,subject.name,topic));
     sum+=progress.st;
     if(progress.st===3)full++;
   }
-  return {pct:Math.round(sum/(3*subject.topics.length)*100),full,total:subject.topics.length};
+  return {pct:total?Math.round(sum/(3*total)*100):0,full,total};
 }
 
 export function overallTopicProgress(state:TopicStateSlice,subjects:readonly SubjectDefinition[]):number{
@@ -84,8 +85,8 @@ export function reviewQueue(state:TopicStateSlice,today:IsoDateKey|string,gaps:r
       if(topic.rev.includes(index))return;
       const due=addDaysToKey(topic.ts as string,gap);
       if(due>today)return;
-      const parts=key.split("|");
-      queue.push({key,gi:index,gap,due,exam:parts[0]??"",subj:parts[1]??"",topic:parts[2]??"",late:daysBetweenKeys(due,today)});
+      const [exam="",subj="",...topicParts]=key.split("|");
+      queue.push({key,gi:index,gap,due,exam,subj,topic:topicParts.join("|"),late:daysBetweenKeys(due,today)});
     });
   }
   return queue.sort((left,right)=>right.late-left.late);

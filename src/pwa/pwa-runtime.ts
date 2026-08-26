@@ -86,6 +86,11 @@ export function installPwaRuntime(build:string,windowRef:Window=window,documentR
   windowRef.addEventListener("beforeinstallprompt",event=>{event.preventDefault();installPrompt=event as BeforeInstallPromptEvent;void render();});
   windowRef.addEventListener("appinstalled",()=>{installPrompt=null;void render();});
   windowRef.addEventListener("online",()=>void render());windowRef.addEventListener("offline",()=>void render());
+  if("serviceWorker" in windowRef.navigator){
+    const workers=windowRef.navigator.serviceWorker;
+    workers.addEventListener("controllerchange",()=>void render());
+    void workers.ready.then(()=>render()).catch(()=>undefined);
+  }
   const api:PwaRuntimeApi={build,promptInstall,refresh:render,installState:state};
   windowRef.__YKS_PWA__=api;windowRef.v4InstallApp=promptInstall;windowRef.v4RefreshPwaStatus=render;
   if(documentRef.readyState==="loading")documentRef.addEventListener("DOMContentLoaded",()=>void render(),{once:true});else void render();

@@ -58,7 +58,8 @@ function summarize(state:YksStateCandidate,format:number,appVersion:string,expor
 }
 
 function sanitizedState(source:YksStateCandidate):YksStateCandidate{
-  const state=structuredClone(source);
+  /* decodeState kaynağı saf JSON'dur; bu klon eski WebView/Safari sürümlerinde de structuredClone gerektirmez. */
+  const state=JSON.parse(JSON.stringify(source)) as YksStateCandidate;
   if(isRecord(state.yt))state.yt.key="";
   if(isRecord(state.focus)&&isRecord(state.focus.sw)){
     state.focus.sw.run=false;

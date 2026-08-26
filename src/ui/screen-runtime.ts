@@ -39,20 +39,32 @@ class BrowserScreenEnvironment implements ScreenEnvironment{
     return this.has(name)?this.call(name,...args):undefined;
   }
 
+  #safeDeferred(key:string,callback:()=>void):()=>void{
+    return ()=>{
+      try{callback();}
+      catch(error){
+        try{this.optional("infraError",`screen-deferred:${key}`,error);}catch{}
+        console.error(`Ertelenmiş ekran işi başarısız: ${key}`,error);
+      }
+    };
+  }
+
   afterPaint(key:string,callback:()=>void):void{
+    const safe=this.#safeDeferred(key,callback);
     if(this.has("perfAfterPaint")){
-      this.call("perfAfterPaint",key,callback);
+      this.call("perfAfterPaint",key,safe);
       return;
     }
-    requestAnimationFrame(()=>callback());
+    requestAnimationFrame(safe);
   }
 
   idle(key:string,callback:()=>void,timeout:number):void{
+    const safe=this.#safeDeferred(key,callback);
     if(this.has("perfIdle")){
-      this.call("perfIdle",key,callback,timeout);
+      this.call("perfIdle",key,safe,timeout);
       return;
     }
-    window.setTimeout(callback,Math.min(timeout,120));
+    window.setTimeout(safe,Math.min(timeout,120));
   }
 
   isVisible(id:string):boolean{
