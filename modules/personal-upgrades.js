@@ -1,10 +1,37 @@
-/* YKS Defterim — kişisel kullanım iyileştirmeleri | Program + Bugün v2 */
+/* YKS Defterim — kişisel kullanım iyileştirmeleri | Program + Bugün v2 + tek kullanıcı */
 (function(){
   "use strict";
   if(window.__YKS_PERSONAL_UPGRADES__)return;
   window.__YKS_PERSONAL_UPGRADES__=true;
   const $=id=>document.getElementById(id);
   const sel=(blk,i,d)=>document.querySelector('.gtx[data-blk="'+blk+'"][data-i="'+i+'"][data-d="'+d+'"]');
+
+  function persistPersonal(delay=100){
+    try{if(typeof perfInvalidateState==="function")perfInvalidateState();if(typeof saveSoon==="function")saveSoon(delay);else if(typeof save==="function")save();}catch(e){try{if(typeof infraError==="function")infraError("personal-upgrades-save",e);}catch(_){} }
+  }
+  function enforceSingleUser(){
+    let changed=false;
+    try{
+      if(typeof S==="object"&&S&&S.role!=="ogrenci"){S.role="ogrenci";changed=true;}
+      document.body&&document.body.classList.remove("koc","mode-coach");
+      ["coachBoard","cnWrap","noteBoxWrap"].forEach(id=>{const n=$(id);if(n)n.remove();});
+      document.querySelectorAll("[data-coach-only],[data-student-only]").forEach(n=>{n.removeAttribute("data-coach-only");n.removeAttribute("data-student-only");});
+      const seg=$("roleSeg");
+      if(seg){
+        const label=seg.previousElementSibling;
+        if(label&&label.tagName==="LABEL")label.textContent="Kullanım modu";
+        seg.remove();
+      }
+      const hint=$("roleHint");if(hint){hint.textContent="Kişisel kullanım · tek kullanıcı";hint.style.display="block";}
+      window.isCoach=function(){return false;};
+      window.coachBlock=function(){return false;};
+      window.setRole=function(){if(typeof S==="object"&&S&&S.role!=="ogrenci"){S.role="ogrenci";persistPersonal();}document.body&&document.body.classList.remove("koc","mode-coach");return false;};
+      window.applyRole=function(){if(typeof S==="object"&&S)S.role="ogrenci";document.body&&document.body.classList.remove("koc","mode-coach");return false;};
+      ["addCoachNote","renderCoachNotes","renderCoachBoard"].forEach(name=>{window[name]=function(){return false;};});
+      if(changed)persistPersonal(140);
+    }catch(e){try{if(typeof infraError==="function")infraError("single-user",e);}catch(_){} }
+    return true;
+  }
 
   function focusCell(node){
     if(!node)return false;node.focus();
@@ -77,8 +104,8 @@
     const rt=window.renderTodayPlan;if(typeof rt==="function"&&!rt.__personalV2){const f=function(){const out=rt.apply(this,arguments);setTimeout(()=>{enhanceTodayPlan();bindTodayKeyboard();},0);return out;};f.__personalV2=true;window.renderTodayPlan=f;}
     const v25=window.renderV25Today;if(typeof v25==="function"&&!v25.__personalV2){const f=function(){const out=v25.apply(this,arguments);setTimeout(enhanceTodayPlan,0);return out;};f.__personalV2=true;window.renderV25Today=f;}
   }
-  function start(){injectStyle();bindProgramGrid();addProgramHint();enhanceTodayPlan();bindTodayKeyboard();patchRenders();setTimeout(()=>{patchRenders();bindProgramGrid();addProgramHint();enhanceTodayPlan();},180);}
-  document.addEventListener("yks:navigation-after",e=>{const screen=e&&e.detail&&e.detail.screen;if(screen==="program")setTimeout(()=>{bindProgramGrid();addProgramHint();},0);if(screen==="home")setTimeout(()=>{enhanceTodayPlan();bindTodayKeyboard();},0);});
+  function start(){enforceSingleUser();injectStyle();bindProgramGrid();addProgramHint();enhanceTodayPlan();bindTodayKeyboard();patchRenders();setTimeout(()=>{enforceSingleUser();patchRenders();bindProgramGrid();addProgramHint();enhanceTodayPlan();},180);}
+  document.addEventListener("yks:navigation-after",e=>{enforceSingleUser();const screen=e&&e.detail&&e.detail.screen;if(screen==="program")setTimeout(()=>{bindProgramGrid();addProgramHint();},0);if(screen==="home")setTimeout(()=>{enhanceTodayPlan();bindTodayKeyboard();},0);});
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",start,{once:true});else start();
-  window.YKSPersonalUpgrades={version:"2.0.0",bindProgramGrid,enhanceTodayPlan};
+  window.YKSPersonalUpgrades={version:"2.1.0",enforceSingleUser,bindProgramGrid,enhanceTodayPlan};
 })();
