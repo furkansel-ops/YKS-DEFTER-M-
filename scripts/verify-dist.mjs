@@ -17,5 +17,5 @@ const bundlePath=index.match(/(?:src|href)="\.\/(assets\/index-[^"']+\.js)"/)?.[
 if(!bundlePath)throw new Error("Kararlı sürüm JavaScript paketi bulunamadı");
 const bundle=await readFile(resolve(dist,bundlePath),"utf8");
 if(!bundle.includes("YKS_V4_RELEASE_OK")||!bundle.includes("4.1.0")||!bundle.includes("stable"))throw new Error("v4 kararlı sürüm denetimi üretim paketine girmedi");
-if(!bundle.includes("4.1.0-r20")||!/(?:assets\/manifest-[^"']+|manifest\.webmanifest)\?v=4\.1\.0-r20/.test(index))throw new Error("r19 PWA çalışma zamanı üretim paketine girmedi");
+if(!bundle.includes("4.1.0-r20")||!/(?:assets\/manifest-[^"']+|manifest\.webmanifest)\?v=4\.1\.0-r20/.test(index))throw new Error("r20 PWA çalışma zamanı üretim paketine girmedi");
 console.log(`Üretim paketi doğrulandı: ${required.length} geçiş dosyası + TypeScript paketi`);
