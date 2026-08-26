@@ -1,6 +1,6 @@
 /* YKS Defterim — dayanıklı PWA katmanı | v4.1.0 */
 const APP_VERSION="4.1.0";
-const APP_BUILD="4.1.0-r21";
+const APP_BUILD="4.1.0-r20";
 const CACHE="yks-core-v4.1.0-r21";
 /* Önceki çekirdek cache: yks-core-v4.1.0-r20; activate aşamasında temizlenir. */
 const READY_KEY="./__offline_ready__";
