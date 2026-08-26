@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   release:
-    if: "${{ github.event.head_commit.message == 'chore: preserve historical css marker in v4.1.0 release' }}"
+    if: "${{ github.event.head_commit.message == 'chore: align v4.1.0 release test' }}"
     runs-on: ubuntu-latest
     steps:
       - name: Kaynak kodu al
@@ -34,7 +34,7 @@ jobs:
           const fs=require('node:fs');
           const path=require('node:path');
           const root=process.cwd();
-          const files=['package.json','package-lock.json','version.json','index.html','app.js','sw.js','src/main.ts','src/release/release.ts','src/pwa/pwa-runtime.ts','scripts/verify-dist.mjs','scripts/verify-release.mjs','tests/package.test.js','RELEASE.md'];
+          const files=['package.json','package-lock.json','version.json','index.html','app.js','sw.js','src/main.ts','src/release/release.ts','src/pwa/pwa-runtime.ts','scripts/verify-dist.mjs','scripts/verify-release.mjs','tests/package.test.js','tests/release.test.js','RELEASE.md'];
           const read=file=>fs.readFileSync(path.join(root,file),'utf8');
           const write=(file,text)=>fs.writeFileSync(path.join(root,file),text,'utf8');
           for(const file of files)if(!fs.existsSync(path.join(root,file)))throw new Error(`Eksik release dosyası: ${file}`);
@@ -68,9 +68,15 @@ jobs:
           packageTest=packageTest.split('v4\\.1\\.0-r18 — tablet \\+ PC son görünüm cilası').join('v4\\.0\\.0-r18 — tablet \\+ PC son görünüm cilası');
           write('tests/package.test.js',packageTest);
 
+          // Release testinde yalnız kararlı uygulama sürümünü değiştir; UI köprüsünün alpha API kimliği bağımsızdır.
+          let releaseTest=read('tests/release.test.js');
+          releaseTest=releaseTest.replace('__YKS_V4_BOOTSTRAP__:{version:"4.0.0",channel:"stable"','__YKS_V4_BOOTSTRAP__:{version:"4.1.0",channel:"stable"');
+          releaseTest=releaseTest.replace('assert.equal(result.version,"4.0.0")','assert.equal(result.version,"4.1.0")');
+          write('tests/release.test.js',releaseTest);
+
           let app=read('app.js');app=app.replace('const APP_BUILD="2026-08-24";','const APP_BUILD="2026-08-26";');write('app.js',app);
           const sw=read('sw.js'),html=read('index.html'),main=read('src/main.ts');
-          const checks=[[sw.includes('const APP_VERSION="4.1.0"'),'sw APP_VERSION'],[sw.includes('const APP_BUILD="4.1.0-r20"'),'sw APP_BUILD'],[sw.includes('yks-core-v4.1.0-r20'),'sw cache'],[html.includes('app.js?v=4.1.0-r20'),'index app build'],[app.includes('const APP_VERSION="4.1.0"'),'app APP_VERSION'],[main.includes('version:"4.1.0"'),'TypeScript bootstrap version']];
+          const checks=[[sw.includes('const APP_VERSION="4.1.0"'),'sw APP_VERSION'],[sw.includes('const APP_BUILD="4.1.0-r20"'),'sw APP_BUILD'],[sw.includes('yks-core-v4.1.0-r20'),'sw cache'],[html.includes('app.js?v=4.1.0-r20'),'index app build'],[app.includes('const APP_VERSION="4.1.0"'),'app APP_VERSION'],[main.includes('version:"4.1.0"'),'TypeScript bootstrap version'],[releaseTest.includes('__YKS_V4_BOOTSTRAP__:{version:"4.1.0"'),'release test bootstrap']];
           for(const [ok,name] of checks)if(!ok)throw new Error(`Release kimliği tutarsız: ${name}`);
           NODE
 
@@ -116,7 +122,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add package.json package-lock.json version.json index.html app.js sw.js src/main.ts src/release/release.ts src/pwa/pwa-runtime.ts scripts/verify-dist.mjs scripts/verify-release.mjs tests/package.test.js RELEASE.md
+          git add package.json package-lock.json version.json index.html app.js sw.js src/main.ts src/release/release.ts src/pwa/pwa-runtime.ts scripts/verify-dist.mjs scripts/verify-release.mjs tests/package.test.js tests/release.test.js RELEASE.md
           git diff --cached --check
           git commit -m "v4.1.0 kararlı: güvenlik, PWA ve performans kapanışı"
           git push origin HEAD:main
