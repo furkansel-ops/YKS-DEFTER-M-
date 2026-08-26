@@ -59,6 +59,7 @@ jobs:
         with:
           node-version: 22
 
+      # deploy-pages job conclusion değeri GitHub tarafından yönetilir; eski Pages dağıtımı ayrıca beklenmez.
       - name: GitHub Pages'e dağıt
         id: deployment
         uses: actions/deploy-pages@v5
