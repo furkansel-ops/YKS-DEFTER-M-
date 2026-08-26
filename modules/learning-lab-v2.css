@@ -1,0 +1,87 @@
+/* Öğrenme Laboratuvarı v2 — 1. adım iskeleti */
+#v320LearningLab .v4-lab-main-tabs{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:8px;
+}
+#v320LearningLab .v4-lab-main-tabs button{
+  min-height:44px;
+  padding:10px 12px;
+  white-space:normal;
+}
+#v320LearningLab .v4-science-switch{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:8px;
+  margin:12px 0 14px;
+}
+#v320LearningLab .v4-science-switch button{
+  border:1px solid var(--line,#d8dee8);
+  background:var(--card,#fff);
+  color:inherit;
+  border-radius:14px;
+  min-height:44px;
+  padding:10px 14px;
+  font:inherit;
+  font-weight:750;
+  cursor:pointer;
+}
+#v320LearningLab .v4-science-switch button.on{
+  border-color:currentColor;
+  box-shadow:0 0 0 1px currentColor inset;
+}
+#v320LearningLab .v4-science-placeholder{
+  min-height:220px;
+}
+#v320LearningLab .v4-science-ready{
+  border:1px solid var(--line,#d8dee8);
+  border-radius:20px;
+  padding:18px;
+  background:var(--card,#fff);
+}
+#v320LearningLab .v4-science-ready>span{
+  display:inline-flex;
+  align-items:center;
+  min-height:28px;
+  padding:4px 10px;
+  border-radius:999px;
+  border:1px solid var(--line,#d8dee8);
+  font-size:12px;
+  font-weight:800;
+}
+#v320LearningLab .v4-science-ready h3{
+  margin:12px 0 6px;
+  font-size:20px;
+}
+#v320LearningLab .v4-science-ready p{
+  margin:0;
+  opacity:.78;
+  line-height:1.55;
+}
+#v320LearningLab .v4-science-ready-grid{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:8px;
+  margin-top:16px;
+}
+#v320LearningLab .v4-science-ready-grid span{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-height:54px;
+  padding:8px;
+  border-radius:14px;
+  background:var(--soft,#f5f7fa);
+  border:1px solid var(--line,#e5e9ef);
+  text-align:center;
+  font-size:12px;
+  font-weight:750;
+}
+@media (max-width:720px){
+  #v320LearningLab .v4-lab-main-tabs{
+    grid-template-columns:1fr;
+  }
+  #v320LearningLab .v4-science-ready-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+}
