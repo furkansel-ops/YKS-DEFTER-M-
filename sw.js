@@ -2,7 +2,7 @@
 const APP_VERSION="4.1.0";
 const APP_BUILD="4.1.0-r20";
 const CACHE="yks-core-v4.1.0-r22";
-/* Önceki çekirdek cache: yks-core-v4.1.0-r21; activate aşamasında temizlenir. */
+const CACHE_LINEAGE=["yks-core-v4.1.0-r20","yks-core-v4.1.0-r21"];
 const READY_KEY="./__offline_ready__";
 const CORE=["./","./index.html","./app.css","./app.js?v=4.1.0-r20","./modules/core-utils.js?v=4.1.0-r20","./modules/stability.js?v=4.1.0-r20","./modules/topic-guides.js?v=4.1.0-r20","./modules/learning-lab.js?v=4.1.0-r20","./modules/learning-lab-v2.js?v=4.1.0-r20","./modules/learning-lab-v3.js?v=4.1.0-r22","./modules/target-center.js?v=4.1.0-r20","./modules/export-center.js?v=4.1.0-r20","./modules/error-journal.js?v=4.1.0-r20","./modules/personal-upgrades.js?v=4.1.0-r20","./modules/progress-v2.js?v=4.1.0-r20","./modules/release-selftest.js?v=4.1.0-r20","./manifest.webmanifest?v=4.1.0-r20","./icon-192.png","./icon-512.png","./icon-maskable-512.png","./apple-touch-icon.png"];
 const OFFLINE_TEXT="Çevrimdışı";
@@ -78,8 +78,8 @@ self.addEventListener("install",event=>{
 });
 self.addEventListener("activate",event=>{
   event.waitUntil(caches.keys().then(keys=>Promise.all(
-    /* Yalnız bu uygulamanın çekirdek cache'lerini temizle; başka yks-* cache'lerine dokunma. */
-    keys.filter(k=>k.startsWith("yks-core-")&&k!==CACHE).map(k=>caches.delete(k))
+    /* Güncel çekirdek dışında kalan önceki r20/r21 cache'leri ve aynı ailedeki eski çekirdekler temizlenir. */
+    keys.filter(k=>k!==CACHE&&(CACHE_LINEAGE.includes(k)||k.startsWith("yks-core-"))).map(k=>caches.delete(k))
   )).then(()=>self.clients.claim()));
 });
 self.addEventListener("message",event=>{
@@ -118,9 +118,9 @@ self.addEventListener("fetch",event=>{
 });
 self.addEventListener("notificationclick",event=>{
   event.notification.close();
-  const target=event.notification?.data?.url||"./";
   event.waitUntil(clients.matchAll({type:"window",includeUncontrolled:true}).then(list=>{
-    const client=list.find(c=>"focus" in c);if(client){client.navigate?.(target);return client.focus();}
-    if(clients.openWindow)return clients.openWindow(target);
+    const client=list.find(c=>"focus" in c);
+    if(client){client.navigate?.(appRootUrl());return client.focus();}
+    if(clients.openWindow)return clients.openWindow(appRootUrl());
   }));
 });
