@@ -1,8 +1,8 @@
 import {pathToFileURL} from "node:url";
 
-const RELEASE_MARKER="4.0.0";
-const LEGACY_VERSION="4.0.0";
-const BUILD_MARKER="4.0.0-r19";
+const RELEASE_MARKER="4.1.0";
+const LEGACY_VERSION="4.1.0";
+const BUILD_MARKER="4.1.0-r20";
 
 export function extractBundlePath(index){
   return index.match(/(?:src|href)=["'](?:\.\/)?(assets\/index-[^"']+\.js)["']/)?.[1]??null;
@@ -11,7 +11,7 @@ export function extractBundlePath(index){
 export function verifyLiveAssets({index,bundle,legacyApp}){
   const bundlePath=extractBundlePath(index);
   if(!bundlePath)throw new Error("Canlı sayfada Vite JavaScript paketi bulunamadı");
-  if(!index.includes('./app.js?v=4.0.0-r19')||!index.includes('./modules/release-selftest.js?v=4.0.0-r19'))throw new Error("Canlı sayfada beklenen çalışma zamanı dosyaları bağlı değil");
+  if(!index.includes('./app.js?v=4.1.0-r20')||!index.includes('./modules/release-selftest.js?v=4.1.0-r20'))throw new Error("Canlı sayfada beklenen çalışma zamanı dosyaları bağlı değil");
   if(/src=["']\.\/src\/main\.ts["']/.test(index))throw new Error("Canlı sayfa üretim paketi yerine TypeScript kaynak dosyasını kullanıyor");
   if(!bundle.includes("YKS_V4_RELEASE_OK")||!bundle.includes(RELEASE_MARKER)||!bundle.includes("stable"))throw new Error("Canlı Vite paketi beklenen kararlı sürüm işaretlerini taşımıyor");
   if(!legacyApp.includes(`const APP_VERSION="${LEGACY_VERSION}"`))throw new Error("Canlı çalışma zamanı sürümü beklenen değerle eşleşmiyor");
@@ -47,7 +47,7 @@ export async function verifyLivePages(baseUrl,{attempts=12,delayMs=5000}={}){
       if(!bundlePath)throw new Error("Canlı sayfada Vite JavaScript paketi bulunamadı");
       const [bundle,legacyApp]=await Promise.all([
         fetchText(new URL(bundlePath,base),token),
-        fetchText(new URL("app.js?v=4.0.0-r19",base),token)
+        fetchText(new URL("app.js?v=4.1.0-r20",base),token)
       ]);
       return verifyLiveAssets({index,bundle,legacyApp});
     }catch(error){
