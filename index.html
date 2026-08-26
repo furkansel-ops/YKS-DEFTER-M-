@@ -874,6 +874,27 @@ document.documentElement.setAttribute("data-theme",t);}catch(e){}})();
     </div>
   </div>
 
+  <button class="foldhead" id="fh_deneme_kaynak" onclick="toggleFold('deneme_kaynak')">
+    <span class="ft">Deneme Arşivi</span>
+    <span class="fi"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
+  </button>
+  <div class="foldbody" id="fb_deneme_kaynak">
+    <section id="v4TrialArchive" class="v4-trial-archive" aria-labelledby="v4TrialArchiveTitle">
+      <div class="v4-trial-head"><div><p class="eyebrow">21. aşama</p><h2 id="v4TrialArchiveTitle">Deneme Arşivi</h2><p class="hint">TYT/AYT deneme kaynaklarını ara, favorile, çözdüklerini işaretle ve Telegram kaynağında aç.</p></div><button class="btn ghost tiny" type="button" onclick="v4TrialArchiveRender()">Yenile</button></div>
+      <div class="card flat v4-trial-toolbar">
+        <input type="search" id="v4TrialSearch" placeholder="Deneme, yayın veya yıl ara" oninput="v4TrialArchiveRender()">
+        <select id="v4TrialExam" onchange="v4TrialArchiveRender()" aria-label="Sınav türü"><option>Tümü</option><option>TYT</option><option>AYT</option></select>
+        <select id="v4TrialYear" onchange="v4TrialArchiveRender()" aria-label="Yıl"><option>Tümü</option><option>2026</option><option>2025</option></select>
+        <label><input type="checkbox" id="v4TrialFavOnly" onchange="v4TrialArchiveRender()"> Favoriler</label>
+        <label><input type="checkbox" id="v4TrialDoneOnly" onchange="v4TrialArchiveRender()"> Çözdüklerim</label>
+        <button class="btn ghost tiny" type="button" onclick="v4TrialResetFilters()">Temizle</button>
+      </div>
+      <p class="hint" id="v4TrialArchiveMeta"></p>
+      <div class="v4-trial-grid" id="v4TrialArchiveGrid"></div>
+      <p class="note">PDF dosyaları uygulamanın içine kopyalanmaz; kaynak bağlantısı Telegram'da açılır. Böylece site hafif kalır ve arşiv tek yerden takip edilir.</p>
+    </section>
+  </div>
+
   <button class="foldhead" id="fh_gecmis" onclick="toggleFold('gecmis')">
     <span class="ft">Geçmiş denemeler ve notlar</span>
     <span class="fi"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
@@ -2191,6 +2212,7 @@ window.addEventListener("online",()=>{if(!user)return;status("Bağlantı geldi",
 <script vite-ignore src="./modules/learning-lab.js?v=4.1.0-r20"></script>
 <script vite-ignore src="./modules/target-center.js?v=4.1.0-r20"></script>
 <script vite-ignore src="./modules/export-center.js?v=4.1.0-r20"></script>
+<script vite-ignore src="./modules/trial-archive.js?v=4.1.0-r21"></script>
 <script vite-ignore src="./modules/release-selftest.js?v=4.1.0-r20"></script>
 <script type="module" src="./src/main.ts"></script>
 </body>

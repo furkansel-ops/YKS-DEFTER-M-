@@ -217,3 +217,11 @@ test("kararlı tarayıcı self-test'i Vite'ın hash'li CSS paketini kabul eder",
   const selftest=fs.readFileSync(path.join(root,"modules/release-selftest.js"),"utf8");
   assert.match(selftest,/assets\/index-/);assert.match(selftest,/href\$="\.css"/);assert.match(selftest,/script\[src\^="\.\/app\.js"\]/);
 });
+
+
+test("v4 Deneme Arşivi Telegram kaynaklarını filtrelenebilir ve yerel durumlu gösterir",()=>{
+  const html=fs.readFileSync(path.join(root,"index.html"),"utf8"),mod=fs.readFileSync(path.join(root,"modules/trial-archive.js"),"utf8"),css=fs.readFileSync(path.join(root,"app.css"),"utf8");
+  ["v4TrialArchive","v4TrialSearch","v4TrialExam","v4TrialYear","v4TrialArchiveGrid"].forEach(id=>assert.match(html,new RegExp(`id="${id}"`),id));
+  assert.match(html,/modules\/trial-archive\.js\?v=4\.1\.0-r21/);assert.match(mod,/yks_trial_archive_v1/);assert.match(mod,/yks_kpss_pdf_kanal/);assert.match(mod,/v4TrialToggleFav/);assert.match(mod,/v4TrialToggleDone/);assert.match(css,/v4\.1\.0-r21 — Deneme Arşivi/);
+  assert.doesNotMatch(mod,/\.pdf["']/i);
+});
