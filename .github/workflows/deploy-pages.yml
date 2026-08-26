@@ -7,7 +7,6 @@ on:
   workflow_dispatch:
 
 permissions:
-  actions: read
   contents: read
   pages: write
   id-token: write
@@ -59,26 +58,6 @@ jobs:
         uses: actions/setup-node@v7
         with:
           node-version: 22
-
-      - name: Eski Pages dağıtımının tamamlanmasını bekle
-        if: github.event_name == 'push'
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-          for attempt in {1..30}; do
-            read -r status conclusion < <(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?head_sha=${GITHUB_SHA}&per_page=20" --jq '([.workflow_runs[] | select(.name == "pages build and deployment")][0] // {}) | [.status // "missing", .conclusion // "none"] | @tsv')
-            if [ "$status" = "completed" ]; then
-              if [ "$conclusion" = "success" ]; then
-                exit 0
-              fi
-              echo "Eski GitHub Pages dağıtımı başarısız sonuçlandı: ${conclusion}" >&2
-              exit 1
-            fi
-            sleep 5
-          done
-          echo "Eski GitHub Pages dağıtımı zamanında tamamlanmadı." >&2
-          exit 1
 
       - name: GitHub Pages'e dağıt
         id: deployment
