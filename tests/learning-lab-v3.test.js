@@ -4,7 +4,7 @@ const fs=require('node:fs');
 const path=require('node:path');
 const root=path.resolve(__dirname,'..');
 
-test('Öğrenme Laboratuvarı v3 paragraf aracını kaldırır ve üç ana aracı kurar',()=>{
+test('Öğrenme Laboratuvarı v3 paragraf aracını kaldırır, üç ana aracı ve YKS periyodik katmanını kurar',()=>{
   const file=path.join(root,'modules/learning-lab-v3.js');
   assert.equal(fs.existsSync(file),true);
   const s=fs.readFileSync(file,'utf8');
@@ -21,7 +21,18 @@ test('Öğrenme Laboratuvarı v3 paragraf aracını kaldırır ve üç ana arac�
   assert.match(s,/deepDives/);
   assert.match(s,/Sık hata/);
   assert.match(s,/YKS taktiği/);
-  assert.match(stability,/learning-lab-v3\.js\?v=4\.1\.0-r21/);
-  assert.match(sw,/learning-lab-v3\.js\?v=4\.1\.0-r21/);
-  assert.match(sw,/yks-core-v4\.1\.0-r21/);
+  assert.match(s,/Atom çapı/);
+  assert.match(s,/İyonlaşma enerjisi/);
+  assert.match(s,/Elektronegatiflik/);
+  assert.match(s,/Metalik karakter/);
+  assert.match(s,/Ametalik karakter/);
+  assert.match(s,/YKS trend paneli/);
+  assert.match(s,/v4PeriodicSetType/);
+  assert.match(s,/v4PeriodicToggleYks/);
+  assert.match(s,/v4PeriodicToggleFavorites/);
+  assert.match(s,/v4ElementYksDetail/);
+  assert.match(s,/version:"3\.1\.0"/);
+  assert.match(stability,/learning-lab-v3\.js\?v=4\.1\.0-r22/);
+  assert.match(sw,/learning-lab-v3\.js\?v=4\.1\.0-r22/);
+  assert.match(sw,/yks-core-v4\.1\.0-r22/);
 });
