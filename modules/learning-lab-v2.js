@@ -4,7 +4,7 @@
   if(window.__YKS_LEARNING_LAB_V2__)return;
   window.__YKS_LEARNING_LAB_V2__=true;
   const $=id=>document.getElementById(id);
-  const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;","&gt;":">",'"':"&quot;","'":"&#39;"}[c])||c);
+  const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])||c);
   const tr=v=>String(v||"").toLocaleLowerCase("tr-TR");
 
   const WORDS=[
@@ -81,8 +81,7 @@
     ["Cümle yerleştirme","Eklenecek cümledeki anahtar sözcüğün önce nerede tanıtıldığını ve sonra nasıl sürdürüldüğünü kontrol et.","Sadece konu benzerliğine değil bağın iki yönüne de bak."],
     ["Akışı bozan cümle","Her cümleyi önceki ve sonrakiyle aynı alt başlıkta sınamaya çalış.","Ana konu aynı olsa bile bakış açısı değişen cümle akışı bozabilir."],
     ["Paragrafı ikiye bölme","Yeni özne, yeni alt konu, zaman/mekân değişimi veya “öte yandan” dönüşünü ara.","Cümle sayısını eşit bölmeye çalışma."],
-    ["Paragraf tamamlama","Son cümlenin yönüne bak: sonuç mu, örnek mi, karşıtlık mı bekliyor?
-","Seçeneğin yalnız önceki cümleye değil bütün paragrafın tonuna uymasını kontrol et."],
+    ["Paragraf tamamlama","Son cümlenin yönüne bak: sonuç mu, örnek mi, karşıtlık mı bekliyor?","Seçeneğin yalnız önceki cümleye değil bütün paragrafın tonuna uymasını kontrol et."],
     ["Anlatım biçimi","Olay akışı varsa öyküleme; görüntü/özellik baskınsa betimleme; bilgi veriyorsa açıklama; karşı görüşle mücadele ediyorsa tartışma.","Tek bir betimleyici sözcük gördün diye tüm paragrafı betimleme sayma."],
     ["Düşünceyi geliştirme","Tanım, örnek, karşılaştırma, sayısal veri ve tanık gösterme işaretlerini tek tek ara.","Bir paragrafta birden fazla yöntem bulunabileceğini unutma."],
     ["Soru çözme sırası","Önce soru kökünü oku, ne aradığını belirle; sonra paragrafı amaçlı oku.","Uzun paragraf = zor soru değildir; seçenekleri metin kanıtıyla ele."],
