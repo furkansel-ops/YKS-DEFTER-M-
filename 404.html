@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#EFF2F8">
+  <title>YKS Defterim</title>
+  <script>
+  (function(){
+    var APP_PATH="/YKS-DEFTER-M-/";
+    if(location.pathname===APP_PATH)return;
+    var target=new URL(APP_PATH,location.origin);
+    target.searchParams.set("recover","pwa-404");
+    if(location.hash)target.hash=location.hash;
+    location.replace(target.href);
+  })();
+  </script>
+  <noscript><meta http-equiv="refresh" content="0; url=/YKS-DEFTER-M-/"></noscript>
+</head>
+<body>
+  <p>YKS Defterim açılıyor…</p>
+  <p><a href="/YKS-DEFTER-M-/">Uygulamayı aç</a></p>
+</body>
+</html>
