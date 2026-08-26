@@ -40,8 +40,17 @@ function isAppEntry(url){
     return url.href===root.href||url.href===entry.href||url.pathname===root.pathname||url.pathname===entry.pathname;
   }catch(e){return false;}
 }
+function isLegacyIndexEntry(url){
+  try{
+    const root=new URL(appRootUrl()),entry=new URL("index.html",root);
+    return url.origin===root.origin&&url.pathname===entry.pathname;
+  }catch(e){return false;}
+}
 async function navigationResponse(req){
   const url=new URL(req.url);
+  /* Eski Android/iOS ana ekran kurulumları ./index.html adresini saklamış olabilir.
+     Uygulama kimliğini bozmadan bu eski giriş noktasını kanonik klasör köküne taşı. */
+  if(isLegacyIndexEntry(url))return Response.redirect(appRootUrl(),302);
   try{
     const res=await fetchWithTimeout(req,{cache:"no-store"},4500);
     if(res&&res.ok)return res;
