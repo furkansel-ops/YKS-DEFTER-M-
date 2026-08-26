@@ -1384,22 +1384,33 @@ function renderPlan(){
       [5,6].map(d=>doneHtml(d,w,wk)).join("");
   el("gridS").innerHTML=hS;
 
-  document.querySelectorAll("#gridR [data-blk],#gridS [data-blk]").forEach(e=>{
+  let programSummaryTimer=null;
+function programSummaryRefreshNow(){
+  if(programSummaryTimer){clearTimeout(programSummaryTimer);programSummaryTimer=null;}
+  const wkLive=keyOf(curWeek),wLive=getWeek(wkLive,false);
+  if(wLive)renderProgramSummary(wkLive,wLive);
+}
+function programSummarySchedule(){
+  if(programSummaryTimer)clearTimeout(programSummaryTimer);
+  programSummaryTimer=setTimeout(()=>{programSummaryTimer=null;programSummaryRefreshNow();},320);
+}
+
+document.querySelectorAll("#gridR [data-blk],#gridS [data-blk]").forEach(e=>{
     e.addEventListener("input",()=>{
       const wkNow=keyOf(curWeek),ww=getWeek(wkNow,true);
       const bi=e.dataset.blk,ii=+e.dataset.i,dd=+e.dataset.d,cid=bi+"-"+ii+"-"+dd;
       ww[bi][ii][dd]=e.textContent;
       if(!String(e.textContent||"").trim()&&ww.mv)delete ww.mv[cid];
-      saveSoon(180);perfRAF("program-summary",()=>{const wkLive=keyOf(curWeek),wLive=getWeek(wkLive,false);if(wLive)renderProgramSummary(wkLive,wLive);});
+      saveSoon(220);programSummarySchedule();
     });
-    e.addEventListener("blur",()=>flushSaveSoon());
+    e.addEventListener("blur",()=>{flushSaveSoon();programSummaryRefreshNow();});
   });
   document.querySelectorAll("#gridS [data-lbl]").forEach(e=>{
     e.addEventListener("input",()=>{
       S.rowLabels[e.dataset.lbl][+e.dataset.i]=e.textContent;
       saveSoon(220);
     });
-    e.addEventListener("blur",()=>flushSaveSoon());
+    e.addEventListener("blur",()=>{flushSaveSoon();programSummaryRefreshNow();});
   });
 
   renderProgramSummary(wk,w);
