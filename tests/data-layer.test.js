@@ -10,9 +10,11 @@ test("TypeScript veri çözücüsü geçerli şema 21 kaydını aynen okur",asyn
   assert.equal(result.ok,true);assert.equal(result.schema,21);assert.equal(result.json,json);assert.deepEqual(result.state.bilinmeyenAlan,{koru:true});
 });
 
-test("TypeScript veri çözücüsü bozuk ve gelecek şema kayıtlarını engeller",async()=>{
-  const {decodeState}=await import(codecUrl);
+test("TypeScript veri çözücüsü bozuk, aşırı büyük ve gelecek şema kayıtlarını engeller",async()=>{
+  const {decodeState,MAX_REASONABLE_STATE_CHARS}=await import(codecUrl);
   assert.equal(decodeState("{").kind,"invalid-json");assert.equal(decodeState("[]").kind,"invalid-shape");assert.equal(decodeState('{"v":22}').kind,"future-schema");
+  const huge='{"v":21,"pad":"'+"x".repeat(MAX_REASONABLE_STATE_CHARS)+'"}';
+  assert.equal(decodeState(huge).kind,"too-large");
 });
 
 test("TypeScript veri kodlayıcısı bilinmeyen eski alanları silmez",async()=>{
