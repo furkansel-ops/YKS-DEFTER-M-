@@ -37,9 +37,22 @@ test('Öğrenme Laboratuvarı v3 paragraf aracını kaldırır, YKS periyodik ka
   assert.match(s,/decorateTimeline/);
   assert.match(s,/v4-history-timeline/);
   assert.match(s,/Sonuç \/ etkisi/);
-  assert.match(s,/version:"3\.2\.0"/);
-  assert.match(stability,/learning-lab-v3\.js\?v=4\.1\.0-r23/);
-  assert.match(sw,/learning-lab-v3\.js\?v=4\.1\.0-r23/);
+  assert.match(s,/bindMainTabs/);
+  assert.match(s,/removeAttribute\("onclick"\)/);
+  assert.match(s,/addEventListener\("click",\(\)=>setTab\(key\)\)/);
+  assert.match(s,/version:"3\.2\.1"/);
+  assert.match(stability,/learning-lab-v2\.js\?v=4\.1\.0-r24/);
+  assert.match(stability,/learning-lab-v3\.js\?v=4\.1\.0-r24/);
+  assert.match(sw,/learning-lab-v2\.js\?v=4\.1\.0-r24/);
+  assert.match(sw,/learning-lab-v3\.js\?v=4\.1\.0-r24/);
+  assert.match(sw,/yks-core-v4\.1\.0-r24/);
   assert.match(sw,/yks-core-v4\.1\.0-r23/);
   assert.match(sw,/yks-core-v4\.1\.0-r22/);
+});
+
+test('Öğrenme Laboratuvarı v2 element blok hesabında sabit değişkene yeniden atama yapmaz',()=>{
+  const s=fs.readFileSync(path.join(root,'modules/learning-lab-v2.js'),'utf8');
+  assert.match(s,/function blockOf\(z\)\{const group=groupOf\(z\)/);
+  assert.match(s,/const g=Number\(group\)/);
+  assert.doesNotMatch(s,/const g=groupOf\(z\)[^}]*g=Number\(g\)/);
 });

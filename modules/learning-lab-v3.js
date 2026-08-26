@@ -136,12 +136,19 @@
     if(active==="science")renderScience();return true;
   }
 
+  function bindMainTabs(){
+    [["v320TabPeriodic","periodic"],["v320TabTimeline","timeline"],["v320TabScience","science"]].forEach(([id,key])=>{
+      const button=$(id);if(!button||button.dataset.v4TabBound==="1")return;
+      button.dataset.v4TabBound="1";button.removeAttribute("onclick");button.addEventListener("click",()=>setTab(key));
+    });
+  }
+
   function ensureStructure(){
     injectStyle();const lab=$("v320LearningLab"),toolbox=lab?.querySelector?.(".v320-toolbox");if(!lab||!toolbox)return false;
     $("v320TabParagraph")?.remove();$("v320PanelParagraph")?.remove();$("v4TurkishUpgrade")?.remove();
     const tabs=toolbox.querySelector(".v320-tabs");if(tabs&&!$("v320TabScience")){tabs.className="seg v320-tabs v4lab-main-tabs";tabs.setAttribute("role","tablist");tabs.setAttribute("aria-label","Öğrenme laboratuvarı araçları");tabs.innerHTML='<button id="v320TabPeriodic" type="button" onclick="v320SetTab(\'periodic\')">Periyodik Tablo</button><button id="v320TabTimeline" type="button" onclick="v320SetTab(\'timeline\')">Kronoloji</button><button id="v320TabScience" type="button" onclick="v320SetTab(\'science\')">Bilim Kartları</button>';}
     if(!$("v320PanelScience")){const panel=document.createElement("div");panel.id="v320PanelScience";panel.hidden=true;panel.innerHTML='<div class="v4-science-head"><div><small>Hızlı fen tekrarı</small><b>Biyoloji / Fizik kartları</b><p>Temel yapı, sık hata ve YKS taktiğini aynı kartta gör.</p></div><div class="v4-science-switch" role="tablist" aria-label="Bilim kartı dersi"><button id="v4ScienceBiology" class="on" type="button" onclick="v4SetScienceSubject(\'Biyoloji\')">Biyoloji</button><button id="v4SciencePhysics" type="button" onclick="v4SetScienceSubject(\'Fizik\')">Fizik</button></div></div><div id="v4ScienceCards"></div>';toolbox.appendChild(panel);}
-    wrapPeriodicReset();wrapTimelineRendering();window.v320SetTab=setTab;if(active==="periodic")ensurePeriodicStudy();else if(active==="timeline"){ensureTimelineExperience();decorateTimeline();}else if(active==="science")renderScience();return true;
+    wrapPeriodicReset();wrapTimelineRendering();window.v320SetTab=setTab;bindMainTabs();if(active==="periodic")ensurePeriodicStudy();else if(active==="timeline"){ensureTimelineExperience();decorateTimeline();}else if(active==="science")renderScience();return true;
   }
 
   function schedule(){if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;ensureStructure();});}
@@ -156,5 +163,5 @@
   window.v4TimelineReset=()=>{try{window.v327ResetTimelineFilters?.();}catch(e){const select=$("v320TimelineEra");if(select)select.value="Tümü";try{window.v320RenderTimeline?.();}catch(_){}}requestAnimationFrame(()=>{renderTimelineOverview();decorateTimeline();});return true;};
   document.addEventListener("yks:navigation-after",()=>setTimeout(ensureStructure,70));
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",start,{once:true});else start();
-  window.YKSLearningLabV3={version:"3.2.0",setTab,renderScience,ensureStructure,applyPeriodicFilters,enhancePeriodicDetail,ensureTimelineExperience,decorateTimeline,yksFocus:YKS_FOCUS};
+  window.YKSLearningLabV3={version:"3.2.1",setTab,renderScience,ensureStructure,applyPeriodicFilters,enhancePeriodicDetail,ensureTimelineExperience,decorateTimeline,yksFocus:YKS_FOCUS};
 })();
