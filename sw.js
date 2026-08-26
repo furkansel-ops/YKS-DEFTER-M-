@@ -30,15 +30,29 @@ async function cacheCore(){
     await cache.put(READY_KEY,new Response(APP_BUILD,{headers:{"Content-Type":"text/plain;charset=utf-8"}}));
   }catch(error){await caches.delete(CACHE);throw error;}
 }
+function appRootUrl(){
+  try{return self.registration&&self.registration.scope?self.registration.scope:new URL("./",self.location.href).href;}
+  catch(e){return "./";}
+}
+function isAppEntry(url){
+  try{
+    const root=new URL(appRootUrl()),entry=new URL("index.html",root);
+    return url.href===root.href||url.href===entry.href||url.pathname===root.pathname||url.pathname===entry.pathname;
+  }catch(e){return false;}
+}
 async function navigationResponse(req){
+  const url=new URL(req.url);
   try{
     const res=await fetchWithTimeout(req,{cache:"no-store"},4500);
-    if(!res||!res.ok){
-      if(res&&res.status<500)return res;
-      throw new Error("navigation-network");
-    }
-    return res;
+    if(res&&res.ok)return res;
+    /* Eski ana ekran kısayolu proje içinde artık var olmayan bir yola gidiyorsa
+       404 sayfasını göstermek yerine kanonik uygulama köküne dön. */
+    if(res&&(res.status===404||res.status===410)&&!isAppEntry(url))return Response.redirect(appRootUrl(),302);
+    if(res&&res.status<500)return res;
+    throw new Error("navigation-network");
   }catch(e){
+    /* Çevrimdışıyken de eski/derin bir başlangıç yolu göreli asset yollarını bozmasın. */
+    if(!isAppEntry(url))return Response.redirect(appRootUrl(),302);
     return (await currentCacheMatch("./index.html"))||(await currentCacheMatch("./"))||
       new Response(OFFLINE_TEXT,{status:503,headers:{"Content-Type":"text/plain;charset=utf-8","Cache-Control":"no-store"}});
   }
@@ -96,6 +110,6 @@ self.addEventListener("notificationclick",event=>{
   event.notification.close();
   event.waitUntil(self.clients.matchAll({type:"window",includeUncontrolled:true}).then(list=>{
     for(const c of list){if("focus" in c)return c.focus();}
-    if(self.clients.openWindow)return self.clients.openWindow("./index.html");
+    if(self.clients.openWindow)return self.clients.openWindow(appRootUrl());
   }));
 });
