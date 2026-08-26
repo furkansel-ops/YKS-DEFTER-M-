@@ -43,5 +43,5 @@ test("kalıcı CI ana dalı denetler, tek Pages deploy kullanır ve eski tek-sef
   assert.match(ci,/branches:\s*\n\s*- main/);assert.match(ci,/npm run release:check/);
   assert.doesNotMatch(deploy,/Eski GitHub Pages dağıtımı|workflow_runs|gh api/);assert.match(deploy,/path: \.\/dist/);assert.match(deploy,/actions\/deploy-pages@v5/);
   for(const file of ["fix-personal-cleanup-test.yml","personal-cleanup-stage2.yml","personal-cleanup-stage2b.yml","personal-cleanup-stage2c.yml","personal-cleanup-stage2d.yml","release-v4.1.0.yml"])assert.equal(fs.existsSync(path.join(root,".github/workflows",file)),false,file);
-  assert.match(verify,/APP_BUILD=\"4\.1\.0-r20\"/);assert.match(verify,/yks-core-v4\.1\.0-r22/);assert.match(verify,/version\.json kararlı sürümle eşleşmiyor/);
+  assert.match(verify,/APP_BUILD=\"4\.1\.0-r20\"/);assert.match(verify,/yks-core-v4\.1\.0-r23/);assert.match(verify,/version\.json kararlı sürümle eşleşmiyor/);
 });
