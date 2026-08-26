@@ -17,9 +17,9 @@ test("HTML kimlikleri benzersiz ve kritik alanlar mevcut",()=>{
 
 test("sürüm, şema ve PWA önbelleği tutarlı",()=>{
   const html=fs.readFileSync(path.join(root,"index.html"),"utf8"),app=fs.readFileSync(path.join(root,"app.js"),"utf8"),sw=fs.readFileSync(path.join(root,"sw.js"),"utf8"),version=JSON.parse(fs.readFileSync(path.join(root,"version.json"),"utf8"));
-  assert.match(html,/src="\.\/app\.js\?v=4\.0\.0-r15"/);assert.match(app,/const APP_VERSION="4\.0\.0"/);assert.match(app,/const DATA_SCHEMA=21/);
-  assert.equal(version.version,"4.0.0");assert.equal(version.schema,21);assert.match(sw,/yks-core-v4\.0\.0-r15/);
-  ["app.css","app.js?v=4.0.0-r15","modules/core-utils.js?v=4.0.0-r15","modules/stability.js?v=4.0.0-r15","modules/topic-guides.js?v=4.0.0-r15","modules/learning-lab.js?v=4.0.0-r15","modules/target-center.js?v=4.0.0-r15","modules/export-center.js?v=4.0.0-r15","modules/release-selftest.js?v=4.0.0-r15"].forEach(asset=>assert.ok(sw.includes(asset),asset));
+  assert.match(html,/src="\.\/app\.js\?v=4\.0\.0-r16"/);assert.match(app,/const APP_VERSION="4\.0\.0"/);assert.match(app,/const DATA_SCHEMA=21/);
+  assert.equal(version.version,"4.0.0");assert.equal(version.schema,21);assert.match(sw,/yks-core-v4\.0\.0-r16/);
+  ["app.css","app.js?v=4.0.0-r16","modules/core-utils.js?v=4.0.0-r16","modules/stability.js?v=4.0.0-r16","modules/topic-guides.js?v=4.0.0-r16","modules/learning-lab.js?v=4.0.0-r16","modules/target-center.js?v=4.0.0-r16","modules/export-center.js?v=4.0.0-r16","modules/release-selftest.js?v=4.0.0-r16"].forEach(asset=>assert.ok(sw.includes(asset),asset));
   assert.doesNotMatch(sw,/modules\/(topic-coach|learning-tools)\.js/);
 });
 
@@ -74,7 +74,7 @@ test("1000 sözün İnsan Sözü bölümünde İngilizce kayıt kalmadı",()=>{
 test("şema 20 verisi Öğrenme Laboratuvarı için şema 21'e taşınır",()=>{
   const app=fs.readFileSync(path.join(root,"app.js"),"utf8");
   assert.match(app,/if\(!Number\.isFinite\(v\)\|\|v<21\)o\.v=21/);
-  assert.match(app,/lab:\{paragraphLog:\[\],elementFav:\[\],timelineFav:\[\]\}/);
+  assert.match(app,/lab:\{paragraphLog:\[\],elementFav:\[\],timelineFav:\[\],topicFav:\[\]\}/);
   assert.match(app,/if\(!o\.lab\|\|typeof o\.lab!=="object"/);
 });
 

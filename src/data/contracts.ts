@@ -150,6 +150,7 @@ export interface LearningLabState extends UnknownRecord{
   paragraphLog:ParagraphLog[];
   elementFav:number[];
   timelineFav:string[];
+  topicFav:string[];
 }
 
 export interface FocusState extends UnknownRecord{

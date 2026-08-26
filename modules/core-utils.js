@@ -105,7 +105,8 @@
     return {
       paragraphLog:mergeArray(r.paragraphLog,l.paragraphLog).sort((a,b)=>stamp(a)-stamp(b)).slice(-500),
       elementFav:[...new Set([...(Array.isArray(r.elementFav)?r.elementFav:[]),...(Array.isArray(l.elementFav)?l.elementFav:[])])],
-      timelineFav:[...new Set([...(Array.isArray(r.timelineFav)?r.timelineFav:[]),...(Array.isArray(l.timelineFav)?l.timelineFav:[])])]
+      timelineFav:[...new Set([...(Array.isArray(r.timelineFav)?r.timelineFav:[]),...(Array.isArray(l.timelineFav)?l.timelineFav:[])])],
+      topicFav:[...new Set([...(Array.isArray(r.topicFav)?r.topicFav:[]),...(Array.isArray(l.topicFav)?l.topicFav:[])])]
     };
   }
 

@@ -5,7 +5,7 @@
     mebTests:{label:"MEB Kazanım Testleri",url:"https://odsgm.meb.gov.tr/www/kazanim-testleri/kategori/107"},
     mebYks:{label:"MEB TYT–AYT–YDT Çalışma Soruları",url:"https://odsgm.meb.gov.tr/www/yuksekogretim-kurumlari-sinavi039na-yonelik-temel-yeterlilik-testi-tyt-alan-yeterlilik-testi-ayt-ve-yabanci-dil-testi-ydt-calisma-sorulari-mart-2022/icerik/804"},
     osym:{label:"ÖSYM YKS Çıkmış Soruları",url:"https://www.osym.gov.tr/SinavGrubu/Menu/323"},
-    ogm:{label:"OGM Materyal",url:"https://ogmmateryal.eba.gov.tr/"}
+    ogm:{label:"OGM YKS Hazırlık",url:"https://ogmmateryal.eba.gov.tr/YKSHazirlik"}
   };
 
   const PROFILES={
@@ -292,6 +292,11 @@
       attention:[watch,p.attention],
       mistakes:[mistake,p.mistake],
       study:["Bugün "+topic+" için 10 dakikalık özet çıkar; bir kolay, bir orta ve bir zor örnekte aynı kuralın nasıl değiştiğini yaz.",p.study],
+      checklist:[
+        topic+" konusunu bir örneğe bakmadan üç cümlede açıklayabiliyor musun?",
+        "Bir soruda verilen bilgi, istenen ve çözüm koşulunu birbirinden ayırabiliyor musun?",
+        "Yanlış seçenekteki hatayı veya eksik koşulu adlandırabiliyor musun?"
+      ],
       sources:resourcesFor(exam),
       note:"Bu rehber MEB konu/kazanım çerçevesi ve yayımlanmış resmî YKS sorularındaki beceri türleri temel alınarak hazırlanmış kısa çalışma özetidir; soru tahmini veya çıkma garantisi değildir."
     };

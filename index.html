@@ -1179,12 +1179,18 @@ document.documentElement.setAttribute("data-theme",t);}catch(e){}})();
         </div>
         <div id="v320CourseHome">
           <div class="v320-browser-head"><div><b id="v320CourseTitle">TYT dersleri</b><small id="v320CourseMeta"></small></div></div>
+          <div class="v4-lab-course-tools">
+            <input type="search" id="v4LabSearch" placeholder="Bütün TYT konularında ara" oninput="v4SearchLabTopics(this.value)">
+            <label class="v320-only-fav"><input type="checkbox" id="v4LabFavOnly" onchange="v4RenderLabTopics()"> Yalnız favoriler</label>
+          </div>
+          <p class="v327-result-meta" id="v4LabResultMeta"></p>
           <div class="v320-subject-grid" id="v320SubjectGrid"></div>
+          <div class="v4-lab-search-results" id="v4LabSearchResults" hidden></div>
         </div>
         <div id="v320CourseTopics" hidden>
           <button class="v320-browser-back" type="button" onclick="v320BackSubjects()">‹ Derslere dön</button>
           <div class="v320-browser-head"><div><b id="v320SubjectTitle">Ders</b><small id="v320SubjectMeta"></small></div></div>
-          <input type="search" id="v320TopicSearch" placeholder="Bu derste konu ara" oninput="v320SearchTopics(this.value)">
+          <div class="v4-lab-course-tools"><input type="search" id="v320TopicSearch" placeholder="Bu derste konu veya önemli bilgi ara" oninput="v320SearchTopics(this.value)"><label class="v320-only-fav"><input type="checkbox" id="v4LabSubjectFavOnly" onchange="v4RenderLabTopics()"> Yalnız favoriler</label></div>
           <div class="v320-topic-grid" id="v320TopicGrid"></div>
           <div class="v320-topic-selection" id="v320TopicSelection"></div>
         </div>
@@ -1936,7 +1942,7 @@ document.documentElement.setAttribute("data-theme",t);}catch(e){}})();
   </div>
 </div>
 
-<div class="toast" id="toast" role="status" aria-live="polite"></div><script vite-ignore src="./app.js?v=4.0.0-r15"></script>
+<div class="toast" id="toast" role="status" aria-live="polite"></div><script vite-ignore src="./app.js?v=4.0.0-r16"></script>
 
 <script type="module" id="firebaseSyncModule">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
@@ -2170,13 +2176,13 @@ window.addEventListener("online",()=>{if(!user)return;status("Bağlantı geldi",
 
 
 
-<script vite-ignore src="./modules/core-utils.js?v=4.0.0-r15"></script>
-<script vite-ignore src="./modules/stability.js?v=4.0.0-r15"></script>
-<script vite-ignore src="./modules/topic-guides.js?v=4.0.0-r15"></script>
-<script vite-ignore src="./modules/learning-lab.js?v=4.0.0-r15"></script>
-<script vite-ignore src="./modules/target-center.js?v=4.0.0-r15"></script>
-<script vite-ignore src="./modules/export-center.js?v=4.0.0-r15"></script>
-<script vite-ignore src="./modules/release-selftest.js?v=4.0.0-r15"></script>
+<script vite-ignore src="./modules/core-utils.js?v=4.0.0-r16"></script>
+<script vite-ignore src="./modules/stability.js?v=4.0.0-r16"></script>
+<script vite-ignore src="./modules/topic-guides.js?v=4.0.0-r16"></script>
+<script vite-ignore src="./modules/learning-lab.js?v=4.0.0-r16"></script>
+<script vite-ignore src="./modules/target-center.js?v=4.0.0-r16"></script>
+<script vite-ignore src="./modules/export-center.js?v=4.0.0-r16"></script>
+<script vite-ignore src="./modules/release-selftest.js?v=4.0.0-r16"></script>
 <script type="module" src="./src/main.ts"></script>
 </body>
 </html>

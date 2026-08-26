@@ -1,7 +1,7 @@
 /* YKS Defterim — dayanıklı PWA katmanı | v4.0.0 */
 const APP_VERSION="4.0.0";
-const CACHE="yks-core-v4.0.0-r15";
-const CORE=["./","./index.html","./app.css","./app.js?v=4.0.0-r15","./modules/core-utils.js?v=4.0.0-r15","./modules/stability.js?v=4.0.0-r15","./modules/topic-guides.js?v=4.0.0-r15","./modules/learning-lab.js?v=4.0.0-r15","./modules/target-center.js?v=4.0.0-r15","./modules/export-center.js?v=4.0.0-r15","./modules/release-selftest.js?v=4.0.0-r15","./manifest.webmanifest","./icon-192.png","./icon-512.png","./icon-maskable-512.png","./apple-touch-icon.png"];
+const CACHE="yks-core-v4.0.0-r16";
+const CORE=["./","./index.html","./app.css","./app.js?v=4.0.0-r16","./modules/core-utils.js?v=4.0.0-r16","./modules/stability.js?v=4.0.0-r16","./modules/topic-guides.js?v=4.0.0-r16","./modules/learning-lab.js?v=4.0.0-r16","./modules/target-center.js?v=4.0.0-r16","./modules/export-center.js?v=4.0.0-r16","./modules/release-selftest.js?v=4.0.0-r16","./manifest.webmanifest","./icon-192.png","./icon-512.png","./icon-maskable-512.png","./apple-touch-icon.png"];
 const OFFLINE_TEXT="Çevrimdışı";
 
 async function fetchWithTimeout(request,options={},timeoutMs=4500){

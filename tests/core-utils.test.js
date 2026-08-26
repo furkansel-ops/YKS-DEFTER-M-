@@ -55,10 +55,11 @@ test("aralıklı tekrar aralıkları nota göre büyür",()=>{
 });
 
 test("Öğrenme Laboratuvarı kayıtları cihazlar arasında birleşir",()=>{
-  const remote={lab:{paragraphLog:[{id:1,at:10,wpm:180}],elementFav:[26],timelineFav:["t1"]}};
-  const local={lab:{paragraphLog:[{id:2,at:20,wpm:220}],elementFav:[8,26],timelineFav:["t2"]}};
+  const remote={lab:{paragraphLog:[{id:1,at:10,wpm:180}],elementFav:[26],timelineFav:["t1"],topicFav:["TYT|Matematik|Problemler"]}};
+  const local={lab:{paragraphLog:[{id:2,at:20,wpm:220}],elementFav:[8,26],timelineFav:["t2"],topicFav:["AYT|Fizik (AYT)|Dalgalar"]}};
   const lab=core.mergeStates(remote,local,21).lab;
   assert.deepEqual(lab.paragraphLog.map(x=>x.id),[1,2]);
   assert.deepEqual(new Set(lab.elementFav),new Set([8,26]));
   assert.deepEqual(new Set(lab.timelineFav),new Set(["t1","t2"]));
+  assert.deepEqual(new Set(lab.topicFav),new Set(["TYT|Matematik|Problemler","AYT|Fizik (AYT)|Dalgalar"]));
 });
