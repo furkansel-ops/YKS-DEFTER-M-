@@ -12,3 +12,4 @@ test('Öğrenme Laboratuvarı v2 Türkçe, periyodik, tarih ve ders atlasını p
   assert.match(s,/ERA_CARDS/);assert.match(s,/Milli Mücadele/);assert.match(s,/DEEP_DIVES/);assert.match(s,/Kalp/);assert.match(s,/Böbrek/);assert.match(s,/Dalak/);assert.match(s,/Fizik/);assert.match(s,/Kimya/);
   assert.match(s,/YKSTopicGuides/);assert.match(s,/curriculum/);assert.match(stability,/learning-lab-v2\.js\?v=4\.1\.0-r20/);assert.match(sw,/learning-lab-v2\.js\?v=4\.1\.0-r20/);
 });
+// Normal kullanıcı push'u CI ve Vite Pages hattını son kez tetiklemek için tutulur.
