@@ -1,9 +1,9 @@
 /* YKS Defterim — dayanıklı PWA katmanı | v4.1.0 */
 const APP_VERSION="4.1.0";
-const APP_BUILD="4.1.0-r20";
-const CACHE="yks-core-v4.1.0-r20";
+const APP_BUILD="4.1.0-r21";
+const CACHE="yks-core-v4.1.0-r21";
 const READY_KEY="./__offline_ready__";
-const CORE=["./","./index.html","./app.css","./app.js?v=4.1.0-r20","./modules/core-utils.js?v=4.1.0-r20","./modules/stability.js?v=4.1.0-r20","./modules/topic-guides.js?v=4.1.0-r20","./modules/learning-lab.js?v=4.1.0-r20","./modules/learning-lab-v2.js?v=4.1.0-r20","./modules/target-center.js?v=4.1.0-r20","./modules/export-center.js?v=4.1.0-r20","./modules/error-journal.js?v=4.1.0-r20","./modules/personal-upgrades.js?v=4.1.0-r20","./modules/progress-v2.js?v=4.1.0-r20","./modules/release-selftest.js?v=4.1.0-r20","./manifest.webmanifest?v=4.1.0-r20","./icon-192.png","./icon-512.png","./icon-maskable-512.png","./apple-touch-icon.png"];
+const CORE=["./","./index.html","./app.css","./app.js?v=4.1.0-r20","./modules/core-utils.js?v=4.1.0-r20","./modules/stability.js?v=4.1.0-r20","./modules/topic-guides.js?v=4.1.0-r20","./modules/learning-lab.js?v=4.1.0-r20","./modules/learning-lab-v2.js?v=4.1.0-r20","./modules/learning-lab-v3.js?v=4.1.0-r21","./modules/target-center.js?v=4.1.0-r20","./modules/export-center.js?v=4.1.0-r20","./modules/error-journal.js?v=4.1.0-r20","./modules/personal-upgrades.js?v=4.1.0-r20","./modules/progress-v2.js?v=4.1.0-r20","./modules/release-selftest.js?v=4.1.0-r20","./manifest.webmanifest?v=4.1.0-r20","./icon-192.png","./icon-512.png","./icon-maskable-512.png","./apple-touch-icon.png"];
 const OFFLINE_TEXT="Çevrimdışı";
 
 async function fetchWithTimeout(request,options={},timeoutMs=4500){
