@@ -6,11 +6,13 @@
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone"],
   "orientation": "any",
   "background_color": "#EFF2F8",
   "theme_color": "#EFF2F8",
   "lang": "tr",
   "dir": "ltr",
+  "prefer_related_applications": false,
   "categories": [
     "education",
     "productivity"

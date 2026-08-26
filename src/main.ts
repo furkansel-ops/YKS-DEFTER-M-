@@ -7,6 +7,7 @@ import {installReleaseRuntime} from "./release/release";
 import {installLegacyBackupBridge} from "./data/legacy-backup-bridge";
 import {installLegacyProgressAnalysisBridge} from "./domain/legacy-progress-analysis-bridge";
 import {installLegacyExamAnalysisBridge} from "./domain/legacy-exam-analysis-bridge";
+import {installPwaRuntime} from "./pwa/pwa-runtime";
 
 type BootstrapState={
   version:"4.0.0";
@@ -22,6 +23,7 @@ type BootstrapState={
   backupBridge:true;
   progressAnalysis:true;
   examAnalysis:true;
+  pwaRuntime:true;
   startedAt:number;
 };
 
@@ -45,6 +47,7 @@ const bootstrap:BootstrapState={
   backupBridge:true,
   progressAnalysis:true,
   examAnalysis:true,
+  pwaRuntime:true,
   startedAt:Date.now()
 };
 
@@ -54,6 +57,7 @@ installLegacyBackupBridge(data,bootstrap.version);
 const domain=installLegacyDomainBridge();
 const progressAnalysis=installLegacyProgressAnalysisBridge();
 const examAnalysis=installLegacyExamAnalysisBridge();
+const pwa=installPwaRuntime("4.0.0-r19");
 const screens=installScreenRuntime();
 const ui=installLegacyUiBridge(screens);
 const release=installReleaseRuntime();
@@ -66,6 +70,7 @@ document.documentElement.dataset.v4ServiceErrors=String(services.validate().leng
 document.documentElement.dataset.v4DomainErrors=String(domain.validate().length);
 document.documentElement.dataset.v4ProgressAnalysisErrors=String(progressAnalysis.validate().length);
 document.documentElement.dataset.v4ExamAnalysisErrors=String(examAnalysis.validate().length);
+document.documentElement.dataset.v4PwaBuild=pwa.build;
 document.documentElement.dataset.v4ReleaseVersion=release.version;
 window.dispatchEvent(new CustomEvent<BootstrapState>("yks:v4-bootstrap",{detail:bootstrap}));
 

@@ -17,9 +17,9 @@ test("HTML kimlikleri benzersiz ve kritik alanlar mevcut",()=>{
 
 test("sürüm, şema ve PWA önbelleği tutarlı",()=>{
   const html=fs.readFileSync(path.join(root,"index.html"),"utf8"),app=fs.readFileSync(path.join(root,"app.js"),"utf8"),sw=fs.readFileSync(path.join(root,"sw.js"),"utf8"),version=JSON.parse(fs.readFileSync(path.join(root,"version.json"),"utf8"));
-  assert.match(html,/src="\.\/app\.js\?v=4\.0\.0-r18"/);assert.match(app,/const APP_VERSION="4\.0\.0"/);assert.match(app,/const DATA_SCHEMA=21/);
-  assert.equal(version.version,"4.0.0");assert.equal(version.schema,21);assert.match(sw,/yks-core-v4\.0\.0-r18/);
-  ["app.css","app.js?v=4.0.0-r18","modules/core-utils.js?v=4.0.0-r18","modules/stability.js?v=4.0.0-r18","modules/topic-guides.js?v=4.0.0-r18","modules/learning-lab.js?v=4.0.0-r18","modules/target-center.js?v=4.0.0-r18","modules/export-center.js?v=4.0.0-r18","modules/release-selftest.js?v=4.0.0-r18"].forEach(asset=>assert.ok(sw.includes(asset),asset));
+  assert.match(html,/src="\.\/app\.js\?v=4\.0\.0-r19"/);assert.match(app,/const APP_VERSION="4\.0\.0"/);assert.match(app,/const APP_BUILD="4\.0\.0-r19"/);assert.match(app,/const DATA_SCHEMA=21/);
+  assert.equal(version.version,"4.0.0");assert.equal(version.schema,21);assert.equal(version.build,"4.0.0-r19");assert.match(sw,/yks-core-v4\.0\.0-r19/);
+  ["app.css","app.js?v=4.0.0-r19","modules/core-utils.js?v=4.0.0-r19","modules/stability.js?v=4.0.0-r19","modules/topic-guides.js?v=4.0.0-r19","modules/learning-lab.js?v=4.0.0-r19","modules/target-center.js?v=4.0.0-r19","modules/export-center.js?v=4.0.0-r19","modules/release-selftest.js?v=4.0.0-r19"].forEach(asset=>assert.ok(sw.includes(asset),asset));
   assert.doesNotMatch(sw,/modules\/(topic-coach|learning-tools)\.js/);
 });
 
@@ -165,6 +165,14 @@ test("v4 tablet ve PC görünümü ortak genişlik, dengeli kartlar ve dokunma h
   assert.match(css,/v4\.0\.0-r18 — tablet \+ PC son görünüm cilası/);assert.match(css,/--app-content-max:1560px/);assert.match(css,/@media \(pointer:coarse\)/);assert.match(css,/min-width:44px;min-height:44px/);
   assert.match(app,/desktop-topic-summary-section/);assert.match(app,/desktopTopic===key/);assert.match(app,/desktop-topic-overview #v4TopicGoals/);
   assert.doesNotMatch(`${html}\n${app}`,/initGestures|swipe(?:Left|Right)|addEventListener\(["']touchend["']/i);
+});
+
+test("v4 PWA çevrimdışı paketi atomik hazırlanır ve yapı numarasıyla güncellenir",()=>{
+  const html=fs.readFileSync(path.join(root,"index.html"),"utf8"),app=fs.readFileSync(path.join(root,"app.js"),"utf8"),sw=fs.readFileSync(path.join(root,"sw.js"),"utf8"),manifest=JSON.parse(fs.readFileSync(path.join(root,"manifest.webmanifest"),"utf8")),entry=fs.readFileSync(path.join(root,"src/main.ts"),"utf8"),pwa=fs.readFileSync(path.join(root,"src/pwa/pwa-runtime.ts"),"utf8");
+  ["v4PwaCard","v4PwaBadge","v4InstallBtn","v4OfflineState"].forEach(id=>assert.match(html,new RegExp(`id="${id}"`),id));
+  assert.match(sw,/function buildAssets/);assert.match(sw,/matchAll/);assert.match(sw,/Promise\.all\(required/);assert.match(sw,/await caches\.delete\(CACHE\)/);assert.match(sw,/GET_CACHE_STATUS/);assert.match(sw,/READY_KEY/);
+  assert.doesNotMatch(sw,/cache\.put\("\.\/index\.html",res\.clone\(\)\)/);assert.match(app,/j\.build\|\|j\.version/);assert.match(app,/await window\.__YKS_DATA__\.flush\(\)/);assert.match(app,/!appUpdateApplying\|\|appUpdateReloading/);
+  assert.equal(manifest.prefer_related_applications,false);assert.deepEqual(manifest.display_override,["window-controls-overlay","standalone"]);assert.match(entry,/installPwaRuntime\("4\.0\.0-r19"\)/);assert.match(pwa,/beforeinstallprompt/);assert.match(pwa,/Ana ekrana ekle/);
 });
 
 test("v4 ilerleme ekranı tür güvenli analiz ve sade tek bakış dashboard'u kullanır",()=>{

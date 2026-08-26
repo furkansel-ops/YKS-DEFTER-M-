@@ -1,7 +1,9 @@
 /* YKS Defterim — dayanıklı PWA katmanı | v4.0.0 */
 const APP_VERSION="4.0.0";
-const CACHE="yks-core-v4.0.0-r18";
-const CORE=["./","./index.html","./app.css","./app.js?v=4.0.0-r18","./modules/core-utils.js?v=4.0.0-r18","./modules/stability.js?v=4.0.0-r18","./modules/topic-guides.js?v=4.0.0-r18","./modules/learning-lab.js?v=4.0.0-r18","./modules/target-center.js?v=4.0.0-r18","./modules/export-center.js?v=4.0.0-r18","./modules/release-selftest.js?v=4.0.0-r18","./manifest.webmanifest","./icon-192.png","./icon-512.png","./icon-maskable-512.png","./apple-touch-icon.png"];
+const APP_BUILD="4.0.0-r19";
+const CACHE="yks-core-v4.0.0-r19";
+const READY_KEY="./__offline_ready__";
+const CORE=["./","./index.html","./app.css","./app.js?v=4.0.0-r19","./modules/core-utils.js?v=4.0.0-r19","./modules/stability.js?v=4.0.0-r19","./modules/topic-guides.js?v=4.0.0-r19","./modules/learning-lab.js?v=4.0.0-r19","./modules/target-center.js?v=4.0.0-r19","./modules/export-center.js?v=4.0.0-r19","./modules/release-selftest.js?v=4.0.0-r19","./manifest.webmanifest?v=4.0.0-r19","./icon-192.png","./icon-512.png","./icon-maskable-512.png","./apple-touch-icon.png"];
 const OFFLINE_TEXT="Çevrimdışı";
 
 async function fetchWithTimeout(request,options={},timeoutMs=4500){
@@ -10,15 +12,23 @@ async function fetchWithTimeout(request,options={},timeoutMs=4500){
   try{return await fetch(request,Object.assign({},options,{signal:ctl.signal}));}
   finally{clearTimeout(timer);}
 }
+function buildAssets(html){
+  const out=[];for(const match of String(html||"").matchAll(/(?:src|href)=["'](?:\.\/)?(assets\/[^"']+)["']/g))out.push("./"+match[1]);
+  return [...new Set(out)];
+}
 async function cacheCore(){
   const cache=await caches.open(CACHE);
-  await Promise.allSettled(CORE.map(async u=>{
-    const r=await fetchWithTimeout(u,{cache:"no-store"},6500);
-    if(r&&r.ok)await cache.put(u,r.clone());
-  }));
-  /* Eksik/yarım yeni sürüm eski sağlam worker'ın yerini almasın. */
-  const shell=await cache.match("./index.html");
-  if(!shell)throw new Error("Uygulama kabuğu önbelleğe alınamadı");
+  try{
+    const shell=await fetchWithTimeout("./index.html",{cache:"no-store"},6500);
+    if(!shell||!shell.ok)throw new Error("Uygulama kabuğu indirilemedi");
+    const html=await shell.clone().text(),required=[...new Set(CORE.concat(buildAssets(html)))];
+    await Promise.all(required.map(async u=>{
+      const r=u==="./index.html"?shell.clone():await fetchWithTimeout(u,{cache:"no-store"},6500);
+      if(!r||!r.ok)throw new Error("Çevrimdışı dosya alınamadı: "+u);
+      await cache.put(u,r.clone());
+    }));
+    await cache.put(READY_KEY,new Response(APP_BUILD,{headers:{"Content-Type":"text/plain;charset=utf-8"}}));
+  }catch(error){await caches.delete(CACHE);throw error;}
 }
 async function navigationResponse(req){
   try{
@@ -27,7 +37,6 @@ async function navigationResponse(req){
       if(res&&res.status<500)return res;
       throw new Error("navigation-network");
     }
-    try{const cache=await caches.open(CACHE);await cache.put("./index.html",res.clone());}catch(e){}
     return res;
   }catch(e){
     return (await currentCacheMatch("./index.html"))||(await currentCacheMatch("./"))||
@@ -53,9 +62,15 @@ self.addEventListener("message",event=>{
   const t=event.data&&event.data.type;
   if(t==="SKIP_WAITING")self.skipWaiting();
   if(t==="GET_VERSION"){
-    const msg={type:"APP_VERSION",version:APP_VERSION};
+    const msg={type:"APP_VERSION",version:APP_VERSION,build:APP_BUILD};
     if(event.ports&&event.ports[0])event.ports[0].postMessage(msg);
     else if(event.source)event.source.postMessage(msg);
+  }
+  if(t==="GET_CACHE_STATUS"){
+    event.waitUntil(caches.open(CACHE).then(cache=>cache.match(READY_KEY)).then(marker=>{
+      const msg={type:"CACHE_STATUS",ready:!!marker,version:APP_VERSION,build:APP_BUILD,cache:CACHE};
+      if(event.ports&&event.ports[0])event.ports[0].postMessage(msg);else if(event.source)event.source.postMessage(msg);
+    }).catch(()=>{}));
   }
 });
 self.addEventListener("fetch",event=>{

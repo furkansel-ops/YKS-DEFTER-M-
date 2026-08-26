@@ -46,8 +46,9 @@ const DENEME_SUBJECTS={
 
 /* ================= SÜRÜM / KARARLI YAPI ================= */
 const APP_VERSION="4.0.0";
+const APP_BUILD="4.0.0-r19";
 const APP_CHANNEL="Kararlı";
-const APP_BUILD="2026-08-24";
+const APP_RELEASE_DATE="2026-08-26";
 const DATA_SCHEMA=21;
 
 /* ================= PERFORMANS KATMANI · v1.8 =================
@@ -6217,28 +6218,28 @@ function addListVideos(n){
 /* ---------- çevrimdışı çalışma ----------
    Yalnız bir adresten (https) açıldığında geçerli; dosyadan
    açıldığında sessizce atlanır. */
-let appUpdateReg=null,appUpdateReloading=false,appUpdateCheckTimer=null,appUpdateRemoteVersion="";
+let appUpdateReg=null,appUpdateReloading=false,appUpdateApplying=false,appUpdateCheckTimer=null,appUpdateRemoteVersion="";
 function updateBox(){
   let b=el("appUpdateBox"); if(b)return b;
   b=document.createElement("div");b.id="appUpdateBox";
-  b.innerHTML='<span class="uicon">↻</span><span class="utxt"><b>Yeni sürüm hazır</b><small id="appUpdateDetail">Güncelleme birkaç saniye sürer.</small></span><button class="btn small" onclick="applyAppUpdate()">Güncelle</button>';
+  b.innerHTML='<span class="uicon">↻</span><span class="utxt"><b>Yeni sürüm hazır</b><small id="appUpdateDetail">Güncelleme birkaç saniye sürer.</small></span><span class="uactions"><button class="btn ghost small" onclick="hideAppUpdate()">Sonra</button><button class="btn small" onclick="applyAppUpdate()">Güncelle</button></span>';
   document.body.appendChild(b);return b;
 }
 function versionNums(v){
-  const m=String(v||"").trim().match(/^(\d+)(?:\.(\d+))?(?:\.(\d+))?/);
-  return m?[Number(m[1])||0,Number(m[2])||0,Number(m[3])||0]:[0,0,0];
+  const m=String(v||"").trim().match(/^(\d+)(?:\.(\d+))?(?:\.(\d+))?(?:-r(\d+))?/i);
+  return m?[Number(m[1])||0,Number(m[2])||0,Number(m[3])||0,Number(m[4])||0]:[0,0,0,0];
 }
 function compareAppVersions(a,b){
   const A=versionNums(a),B=versionNums(b);
-  for(let i=0;i<3;i++){if(A[i]!==B[i])return A[i]>B[i]?1:-1;}
+  for(let i=0;i<4;i++){if(A[i]!==B[i])return A[i]>B[i]?1:-1;}
   return 0;
 }
-function remoteVersionIsNewer(v){return !!v&&compareAppVersions(v,APP_VERSION)>0;}
+function remoteVersionIsNewer(v){return !!v&&compareAppVersions(v,APP_BUILD)>0;}
 function showAppUpdate(reg,ver){
   if(ver&&!remoteVersionIsNewer(ver)){hideAppUpdate();return false;}
   appUpdateReg=reg||appUpdateReg;if(ver)appUpdateRemoteVersion=ver;
   const b=updateBox(),d=el("appUpdateDetail");
-  if(d)d.textContent=appUpdateRemoteVersion?("v"+appUpdateRemoteVersion+" hazır · mevcut v"+APP_VERSION):"Güncelleme birkaç saniye sürer.";
+  if(d)d.textContent=appUpdateRemoteVersion?(appUpdateRemoteVersion+" hazır · mevcut "+APP_BUILD):"Güncelleme birkaç saniye sürer.";
   if(b)b.classList.add("show");return true;
 }
 function hideAppUpdate(){const b=el("appUpdateBox");if(b)b.classList.remove("show");}
@@ -6246,29 +6247,31 @@ async function checkRemoteVersion(){
   if(location.protocol!=="https:"&&location.hostname!=="localhost"&&location.hostname!=="127.0.0.1")return false;
   try{
     const r=await fetch("version.json?t="+Date.now(),{cache:"no-store"});if(!r.ok)return false;
-    const j=await r.json(),v=String(j&&j.version||"");
+    const j=await r.json(),v=String(j&&(j.build||j.version)||"");
     if(remoteVersionIsNewer(v)){showAppUpdate(appUpdateReg,v);return true;}
     appUpdateRemoteVersion="";hideAppUpdate();return false;
   }catch(e){return false;}
 }
 async function applyAppUpdate(){
-  const reg=appUpdateReg,b=updateBox(),btn=b&&b.querySelector("button");if(btn){btn.disabled=true;btn.textContent="Güncelleniyor…";}
+  const reg=appUpdateReg,b=updateBox(),btn=b&&b.querySelector(".uactions .btn:last-child");if(btn){btn.disabled=true;btn.textContent="Güncelleniyor…";}
   try{
+    appUpdateApplying=true;
+    if(typeof flushSaveSoon==="function")flushSaveSoon();
+    if(window.__YKS_DATA__&&typeof window.__YKS_DATA__.flush==="function")await window.__YKS_DATA__.flush();
     /* Bekleyen worker yalnız sunucuda GERÇEKTEN daha yeni sürüm varsa etkinleşsin.
        Böylece eski/stale bir worker tekrar tekrar güncelleme uyarısı üretemez. */
     const newer=remoteVersionIsNewer(appUpdateRemoteVersion);
     if(newer&&reg&&reg.waiting){reg.waiting.postMessage({type:"SKIP_WAITING"});return;}
-    if("caches" in window){const keys=await caches.keys();await Promise.all(keys.filter(k=>k.startsWith("yks-")).map(k=>caches.delete(k)));}
-    if(reg)await reg.update().catch(()=>{});
-  }catch(e){infraError("app-update",e);}finally{
-    const u=new URL(location.href);u.searchParams.set("appv",appUpdateRemoteVersion||APP_VERSION);location.replace(u.toString());
-  }
+    if(reg)await reg.update();
+    const waiting=reg&&reg.waiting;if(waiting){waiting.postMessage({type:"SKIP_WAITING"});return;}
+    throw new Error("Güncelleme paketi henüz hazır değil");
+  }catch(e){appUpdateApplying=false;infraError("app-update",e);toast("Güncelleme hazırlanamadı · bağlantıyı kontrol edip tekrar dene");if(btn){btn.disabled=false;btn.textContent="Güncelle";}}
 }
 function registerSW(){
   try{
     if(!("serviceWorker" in navigator))return;
     if(location.protocol!=="https:"&&location.hostname!=="localhost"&&location.hostname!=="127.0.0.1")return;
-    navigator.serviceWorker.addEventListener("controllerchange",()=>{if(appUpdateReloading)return;appUpdateReloading=true;location.reload();});
+    navigator.serviceWorker.addEventListener("controllerchange",()=>{if(!appUpdateApplying||appUpdateReloading)return;appUpdateReloading=true;const u=new URL(location.href);u.searchParams.set("appv",appUpdateRemoteVersion||APP_BUILD);location.replace(u.toString());});
     navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(reg=>{
       appUpdateReg=reg;
       /* reg.waiting tek başına güncelleme kanıtı değildir. Eski worker bekliyor olabilir.

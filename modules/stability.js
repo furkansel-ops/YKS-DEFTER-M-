@@ -77,7 +77,8 @@
     const banner=document.getElementById("v311OfflineBanner");if(!banner)return;
     const offline=navigator.onLine===false;
     banner.hidden=!offline;banner.setAttribute("aria-hidden",offline?"false":"true");
-    banner.textContent=offline?"Çevrimdışısın · değişiklikler cihazda saklanıyor ve bağlantı gelince eşitlenecek":"";
+    const cloud=document.getElementById("cloudSyncBox"),signedIn=cloud&&cloud.dataset.state!=="signedout";
+    banner.textContent=offline?("Çevrimdışısın · değişiklikler bu cihazda güvenle saklanıyor"+(signedIn?" ve bağlantı gelince bulut senkronu sürecek":"")):"";
     document.documentElement.classList.toggle("is-offline",offline);
   }
 

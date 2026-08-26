@@ -21,11 +21,12 @@ Kontrol edilen akışlar:
 - buluttan indirme yolunun aynı kayıtla Dexie-first uygulanması
 - Firestore transaction, revision, conflict ve hash korumalarının üretim paketinde bulunması
 - eski v3 release self-test katmanının v4 ile birlikte geçmesi
-- PWA önbelleğinin `v4.0.0-r18` yapı anahtarıyla yenilenmesi ve eski modüllerin sürümlü URL'lerle aşılması
+- PWA önbelleğinin `v4.0.0-r19` yapı anahtarıyla atomik yenilenmesi, Vite paketlerinin çevrimdışı saklanması ve eski modüllerin sürümlü URL'lerle aşılması
 - Öğrenme Laboratuvarı için içerik araması, konu favorileri, favori filtresi ve konu bazlı kendini kontrol listeleri
 - Konular ekranı için sınav bazlı tamamlanma yüzdesi, görünür konu hedefleri ve önümüzdeki 7 günlük tekrar planı
 - İlerleme ekranının tek bakışta özet, kanıta dayalı ders durumu ve sade ayrıntı düzenine geçirilmesi
 - Deneme ekranına dönem karşılaştırması, yanlış yoğunluğu ve kanıta dayalı ders analizi eklenmesi
 - Tablet ve PC ekranlarında ortak genişlik, dengeli Konular kartları, taşma koruması ve geniş dokunma hedefleri
+- Tablet/PC kurulum kartı, Android için ana ekrana ekleme yönlendirmesi ve kayıtları yazdıktan sonra etkinleşen yapı numaralı güncelleme akışı
 
 GitHub Pages yayını, derleme kontrollerinden sonra canlı dosya doğrulamasını da otomatik çalıştırır.
