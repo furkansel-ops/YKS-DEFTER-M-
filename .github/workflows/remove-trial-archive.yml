@@ -1,0 +1,66 @@
+name: Remove trial archive
+
+on:
+  push:
+    paths:
+      - '.github/workflows/remove-trial-archive.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  remove:
+    if: "${{ github.event.head_commit.message == 'chore: prepare trial archive removal' }}"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Remove only the added trial archive
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs=require('node:fs');
+          let html=fs.readFileSync('index.html','utf8');
+          const start=html.indexOf('  <button class="foldhead" id="fh_deneme_kaynak"');
+          const end=html.indexOf('  <button class="foldhead" id="fh_gecmis"',start);
+          if(start<0||end<0)throw new Error('Deneme Arşivi HTML bloğu bulunamadı');
+          html=html.slice(0,start)+html.slice(end);
+          html=html.replace(/<script vite-ignore src="\.\/modules\/trial-archive\.js\?v=4\.1\.0-r21"><\/script>\s*/,'');
+          fs.writeFileSync('index.html',html);
+
+          let css=fs.readFileSync('app.css','utf8');
+          const cssStart=css.indexOf('/* v4.1.0-r21 — Deneme Arşivi */');
+          if(cssStart>=0)css=css.slice(0,cssStart).replace(/\s+$/,'')+'\n';
+          fs.writeFileSync('app.css',css);
+
+          let test=fs.readFileSync('tests/package.test.js','utf8');
+          const testStart=test.indexOf('test("v4 Deneme Arşivi Telegram kaynaklarını');
+          if(testStart>=0)test=test.slice(0,testStart).replace(/\s+$/,'')+'\n';
+          fs.writeFileSync('tests/package.test.js',test);
+          NODE
+          rm -f modules/trial-archive.js
+      - name: Ensure archive is completely gone
+        shell: bash
+        run: |
+          ! grep -q 'v4TrialArchive\|fh_deneme_kaynak\|trial-archive.js' index.html
+          ! grep -q 'v4.1.0-r21 — Deneme Arşivi' app.css
+          ! grep -q 'Deneme Arşivi Telegram kaynaklarını' tests/package.test.js
+          test ! -e modules/trial-archive.js
+      - name: Full release check
+        run: npm run release:check
+      - name: Commit removal
+        shell: bash
+        run: |
+          rm -f .github/workflows/remove-trial-archive.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --check
+          git commit -m "revert: Deneme Arşivi alanını kaldır"
+          git push origin HEAD:main
