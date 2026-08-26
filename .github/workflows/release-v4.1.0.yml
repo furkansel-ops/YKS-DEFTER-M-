@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   release:
-    if: "${{ github.event.head_commit.message == 'chore: fix v4.1.0 version assertions' }}"
+    if: "${{ github.event.head_commit.message == 'chore: preserve historical css marker in v4.1.0 release' }}"
     runs-on: ubuntu-latest
     steps:
       - name: Kaynak kodu al
@@ -62,6 +62,12 @@ jobs:
             text=text.split('4\\.0\\.0').join('4\\.1\\.0');
             write(file,text);
           }
+
+          // 18. aşamanın CSS dosyasındaki tarihsel etiket release sürümü değildir.
+          let packageTest=read('tests/package.test.js');
+          packageTest=packageTest.split('v4\\.1\\.0-r18 — tablet \\+ PC son görünüm cilası').join('v4\\.0\\.0-r18 — tablet \\+ PC son görünüm cilası');
+          write('tests/package.test.js',packageTest);
+
           let app=read('app.js');app=app.replace('const APP_BUILD="2026-08-24";','const APP_BUILD="2026-08-26";');write('app.js',app);
           const sw=read('sw.js'),html=read('index.html'),main=read('src/main.ts');
           const checks=[[sw.includes('const APP_VERSION="4.1.0"'),'sw APP_VERSION'],[sw.includes('const APP_BUILD="4.1.0-r20"'),'sw APP_BUILD'],[sw.includes('yks-core-v4.1.0-r20'),'sw cache'],[html.includes('app.js?v=4.1.0-r20'),'index app build'],[app.includes('const APP_VERSION="4.1.0"'),'app APP_VERSION'],[main.includes('version:"4.1.0"'),'TypeScript bootstrap version']];
