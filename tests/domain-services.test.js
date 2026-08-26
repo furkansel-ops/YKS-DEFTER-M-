@@ -28,6 +28,15 @@ test("konu servisi ders ilerlemesi ve tekrar kuyruğunu doğru hesaplar",async()
   assert.equal(topics.completeReview(s,"yok",0,"2026-08-25"),false);
 });
 
+test("konu servisi sınav yüzdesi, hedefler ve yaklaşan tekrar planını üretir",async()=>{
+  const topics=await import(topicUrl),s=state(),a=topics.topicKey("TYT","Matematik","Problemler"),b=topics.topicKey("TYT","Matematik","Kümeler"),c=topics.topicKey("AYT","Fizik","Dalgalar");
+  s.topics[a]={st:3,conf:4,ts:"2026-08-20",rev:[],dl:"2026-08-24"};s.topics[b]={st:1,conf:2,ts:null,rev:[],dl:"2026-08-30"};s.topics[c]={st:2,conf:3,ts:null,rev:[]};
+  const subjects=[{exam:"TYT",name:"Matematik",topics:["Problemler","Kümeler"]},{exam:"AYT",name:"Fizik",topics:["Dalgalar"]}];
+  assert.deepEqual(topics.examTopicProgress(s,subjects,"TYT"),{exam:"TYT",pct:67,done:1,working:1,untouched:0,total:2,remainingSteps:2});
+  const goals=topics.topicGoals(s,"2026-08-26");assert.equal(goals.total,2);assert.equal(goals.completed,1);assert.equal(goals.upcoming,1);assert.equal(goals.overdue,0);
+  const plan=topics.upcomingReviewPlan(s,"2026-08-26",[3,7,21],7);assert.equal(plan.length,1);assert.equal(plan[0].topic,"Problemler");assert.equal(plan[0].status,"overdue");assert.equal(plan[0].gi,0);
+});
+
 test("çalışma servisi toplamları ve günlük oturumları doğru yönetir",async()=>{
   const activity=await import(activityUrl),s=state();s.solved={a:40,b:60};s.pomoMin={a:25,b:35};s.topics={a:{st:3,conf:1,rev:[0,1]},b:{st:2,conf:2,rev:[]}};
   assert.equal(activity.totalSolved(s),100);assert.equal(activity.totalMinutes(s),60);assert.equal(activity.completedTopicCount(s),1);assert.equal(activity.completedReviewCount(s),2);

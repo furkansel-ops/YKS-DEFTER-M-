@@ -1,6 +1,6 @@
 import {addDaysToKey,daysBetweenKeys} from "../services/date-service.ts";
 import type {IsoDateKey} from "../data/contracts";
-import type {ReviewQueueEntry,SubjectDefinition,SubjectProgressSummary,TopicConfidence,TopicRecord,TopicStateSlice,TopicStatus} from "./contracts";
+import type {ReviewQueueEntry,SubjectDefinition,SubjectProgressSummary,TopicConfidence,TopicGoalEntry,TopicGoalSummary,TopicProgressSnapshot,TopicRecord,TopicStateSlice,TopicStatus,UpcomingReviewEntry} from "./contracts";
 
 export function topicKey(exam:string,subject:string,topic:string):string{
   return `${exam}|${subject}|${topic}`;
@@ -45,6 +45,37 @@ export function overallTopicProgress(state:TopicStateSlice,subjects:readonly Sub
   return total?Math.round(sum/total*100):0;
 }
 
+export function examTopicProgress(state:TopicStateSlice,subjects:readonly SubjectDefinition[],exam:string):TopicProgressSnapshot{
+  const rows=subjects.filter(subject=>subject.exam===exam).flatMap(subject=>subject.topics.map(topic=>topicFor(state,topicKey(exam,subject.name,topic))));
+  const total=rows.length,done=rows.filter(topic=>topic.st===3).length,working=rows.filter(topic=>topic.st===1||topic.st===2).length;
+  const steps=rows.reduce((sum,topic)=>sum+Math.max(0,Math.min(3,Number(topic.st)||0)),0);
+  return {exam,pct:total?Math.round(steps/(total*3)*100):0,done,working,untouched:Math.max(0,total-done-working),total,remainingSteps:Math.max(0,total*3-steps)};
+}
+
+export function topicGoals(state:TopicStateSlice,today:IsoDateKey|string):TopicGoalSummary{
+  const entries:TopicGoalEntry[]=Object.entries(state.topics).flatMap(([key,record])=>{
+    if(!record.dl)return [];
+    const [exam="",subject="",...topicParts]=key.split("|"),topic=topicParts.join("|"),daysLeft=daysBetweenKeys(today,record.dl),done=record.st===3;
+    const status=done?"completed":daysLeft<0?"overdue":daysLeft===0?"today":"upcoming";
+    return [{key,exam,subject,topic,date:record.dl,daysLeft,done,status} as TopicGoalEntry];
+  }).sort((left,right)=>left.done===right.done?String(left.date).localeCompare(String(right.date)):left.done?1:-1);
+  return {total:entries.length,active:entries.filter(entry=>!entry.done).length,overdue:entries.filter(entry=>entry.status==="overdue").length,upcoming:entries.filter(entry=>entry.status==="today"||entry.status==="upcoming").length,completed:entries.filter(entry=>entry.done).length,entries};
+}
+
+export function upcomingReviewPlan(state:TopicStateSlice,today:IsoDateKey|string,gaps:readonly number[],horizonDays=7):UpcomingReviewEntry[]{
+  const plan:UpcomingReviewEntry[]=[];
+  for(const [key,topicRecord] of Object.entries(state.topics)){
+    if(topicRecord.st!==3||!topicRecord.ts)continue;
+    const nextIndex=gaps.findIndex((_gap,index)=>!topicRecord.rev.includes(index));
+    if(nextIndex<0)continue;
+    const gap=gaps[nextIndex]??0,due=addDaysToKey(topicRecord.ts as string,gap),daysLeft=daysBetweenKeys(today,due);
+    if(daysLeft>Math.max(0,horizonDays))continue;
+    const [exam="",subj="",...topicParts]=key.split("|");
+    plan.push({key,gi:nextIndex,gap,due,exam,subj,topic:topicParts.join("|"),late:Math.max(0,-daysLeft),status:daysLeft<0?"overdue":daysLeft===0?"today":"upcoming"});
+  }
+  return plan.sort((left,right)=>String(left.due).localeCompare(String(right.due))||left.subj.localeCompare(right.subj,"tr"));
+}
+
 export function reviewQueue(state:TopicStateSlice,today:IsoDateKey|string,gaps:readonly number[]):ReviewQueueEntry[]{
   const queue:ReviewQueueEntry[]=[];
   for(const [key,topic] of Object.entries(state.topics)){
@@ -77,4 +108,4 @@ export function isTopicConfidence(value:unknown):value is TopicConfidence{
   return value===0||value===1||value===2||value===3||value===4||value===5;
 }
 
-export const topicService={topicKey,topicFor,setTopicStatus,setTopicConfidence,subjectProgress,overallTopicProgress,reviewQueue,completeReview} as const;
+export const topicService={topicKey,topicFor,setTopicStatus,setTopicConfidence,subjectProgress,overallTopicProgress,examTopicProgress,topicGoals,reviewQueue,upcomingReviewPlan,completeReview} as const;

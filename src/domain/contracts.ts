@@ -47,3 +47,39 @@ export interface ReviewQueueEntry{
   topic:string;
   late:number;
 }
+
+export interface TopicProgressSnapshot{
+  exam:string;
+  pct:number;
+  done:number;
+  working:number;
+  untouched:number;
+  total:number;
+  remainingSteps:number;
+}
+
+export type TopicGoalStatus="completed"|"overdue"|"today"|"upcoming";
+
+export interface TopicGoalEntry{
+  key:string;
+  exam:string;
+  subject:string;
+  topic:string;
+  date:IsoDateKey|string;
+  daysLeft:number;
+  done:boolean;
+  status:TopicGoalStatus;
+}
+
+export interface TopicGoalSummary{
+  total:number;
+  active:number;
+  overdue:number;
+  upcoming:number;
+  completed:number;
+  entries:TopicGoalEntry[];
+}
+
+export interface UpcomingReviewEntry extends ReviewQueueEntry{
+  status:"overdue"|"today"|"upcoming";
+}
