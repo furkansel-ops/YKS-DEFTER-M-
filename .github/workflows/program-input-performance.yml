@@ -1,0 +1,99 @@
+name: Program input performance fix
+
+on:
+  push:
+    paths:
+      - '.github/workflows/program-input-performance.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  optimize:
+    if: "${{ github.event.head_commit.message == 'chore: optimize program input performance' }}"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Program yazma akışını hafiflet
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs=require('node:fs');
+          let s=fs.readFileSync('app.js','utf8');
+          if(s.includes('function programInputScheduleSave(')) throw new Error('Program input optimizasyonu zaten mevcut');
+
+          const marker='document.querySelectorAll("#gridR [data-blk],#gridS [data-blk]").forEach(e=>{';
+          const start=s.indexOf(marker);
+          if(start<0) throw new Error('Program hücre binding bloğu bulunamadı');
+
+          const helper=`let programInputSaveTimer=null,programInputSavePending=false;\nfunction programInputFlushSave(){\n  if(programInputSaveTimer){clearTimeout(programInputSaveTimer);programInputSaveTimer=null;}\n  if(!programInputSavePending)return;\n  programInputSavePending=false;\n  save();\n}\nfunction programInputScheduleSave(){\n  programInputSavePending=true;\n  if(programInputSaveTimer)clearTimeout(programInputSaveTimer);\n  programInputSaveTimer=setTimeout(programInputFlushSave,260);\n}\nfunction programInputBindFlush(node){\n  if(!node||node.dataset.programFlushBound)return;\n  node.dataset.programFlushBound="1";\n  node.addEventListener("blur",programInputFlushSave);\n}\n\n`;
+          s=s.slice(0,start)+helper+s.slice(start);
+
+          // Sadece program grid'inin contenteditable input handler'larındaki doğrudan save() çağrılarını geciktir.
+          const bindStart=s.indexOf(marker);
+          const longPress=s.indexOf('function bindPlanLongPress()',bindStart);
+          if(longPress<0) throw new Error('Program binding sınırı bulunamadı');
+          let block=s.slice(bindStart,longPress);
+          const inputRx=/e\.addEventListener\("input",\(\)=>\{([\s\S]*?)\n\s*\}\);/g;
+          let changed=0;
+          block=block.replace(inputRx,(full,body)=>{
+            if(!body.includes('save();'))return full;
+            changed++;
+            const next=body.replace(/\bsave\(\);/g,'programInputScheduleSave();');
+            return `e.addEventListener("input",()=>{${next}\n    });\n    programInputBindFlush(e);`;
+          });
+          if(changed<1||changed>4) throw new Error(`Beklenmeyen program input handler sayısı: ${changed}`);
+          s=s.slice(0,bindStart)+block+s.slice(longPress);
+
+          // Ekrandan ayrılırken / sekme kapanırken bekleyen kaydı hemen tamamla.
+          const anchor='window.addEventListener("offline",';
+          const pos=s.lastIndexOf(anchor);
+          if(pos<0) throw new Error('Global event anchor bulunamadı');
+          const flushHooks='window.addEventListener("pagehide",programInputFlushSave);\nwindow.addEventListener("beforeunload",programInputFlushSave);\ndocument.addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden")programInputFlushSave();});\n';
+          s=s.slice(0,pos)+flushHooks+s.slice(pos);
+
+          fs.writeFileSync('app.js',s,'utf8');
+          NODE
+      - name: Program performans regresyon testi ekle
+        shell: bash
+        run: |
+          cat > tests/program-performance.test.js <<'EOF'
+          const test=require('node:test');
+          const assert=require('node:assert/strict');
+          const fs=require('node:fs');
+          const app=fs.readFileSync('app.js','utf8');
+          test('program hücre yazıları debounce ile kaydedilir ve blur/pagehide flush eder',()=>{
+            assert.match(app,/function programInputScheduleSave\(/);
+            assert.match(app,/setTimeout\(programInputFlushSave,260\)/);
+            assert.match(app,/programInputBindFlush\(e\)/);
+            assert.match(app,/addEventListener\("blur",programInputFlushSave\)/);
+            assert.match(app,/addEventListener\("pagehide",programInputFlushSave\)/);
+            assert.match(app,/visibilitychange/);
+            const start=app.indexOf('document.querySelectorAll("#gridR [data-blk],#gridS [data-blk]")');
+            const end=app.indexOf('function bindPlanLongPress()',start);
+            const block=app.slice(start,end);
+            assert.match(block,/programInputScheduleSave\(\)/);
+          });
+          EOF
+      - name: Kontroller
+        run: |
+          node --check app.js
+          node --test tests/program-performance.test.js
+          npm run release:check
+      - name: Düzeltmeyi commit et
+        shell: bash
+        run: |
+          rm .github/workflows/program-input-performance.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app.js tests/program-performance.test.js .github/workflows/program-input-performance.yml
+          git diff --cached --check
+          git commit -m "perf: program tablosunda yazma gecikmesini azalt"
+          git push origin HEAD:main
