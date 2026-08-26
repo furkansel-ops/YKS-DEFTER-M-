@@ -10,7 +10,7 @@ import {installLegacyExamAnalysisBridge} from "./domain/legacy-exam-analysis-bri
 import {installPwaRuntime} from "./pwa/pwa-runtime";
 
 type BootstrapState={
-  version:"4.0.0";
+  version:"4.1.0";
   channel:"stable";
   stack:"vite-typescript";
   legacyRuntime:true;
@@ -34,7 +34,7 @@ declare global{
 }
 
 const bootstrap:BootstrapState={
-  version:"4.0.0",
+  version:"4.1.0",
   channel:"stable",
   stack:"vite-typescript",
   legacyRuntime:true,
@@ -57,7 +57,7 @@ installLegacyBackupBridge(data,bootstrap.version);
 const domain=installLegacyDomainBridge();
 const progressAnalysis=installLegacyProgressAnalysisBridge();
 const examAnalysis=installLegacyExamAnalysisBridge();
-const pwa=installPwaRuntime("4.0.0-r19");
+const pwa=installPwaRuntime("4.1.0-r20");
 const screens=installScreenRuntime();
 const ui=installLegacyUiBridge(screens);
 const release=installReleaseRuntime();

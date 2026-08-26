@@ -1,4 +1,4 @@
-# YKS Defterim v4.0.0
+# YKS Defterim v4.1.0
 
 Bu kararlı sürüm, çalışan v3 arayüzünü değiştirmeden Vite + TypeScript + Dexie altyapısına yapılan kademeli geçişin sonucudur.
 
@@ -21,7 +21,7 @@ Kontrol edilen akışlar:
 - buluttan indirme yolunun aynı kayıtla Dexie-first uygulanması
 - Firestore transaction, revision, conflict ve hash korumalarının üretim paketinde bulunması
 - eski v3 release self-test katmanının v4 ile birlikte geçmesi
-- PWA önbelleğinin `v4.0.0-r19` yapı anahtarıyla atomik yenilenmesi, Vite paketlerinin çevrimdışı saklanması ve eski modüllerin sürümlü URL'lerle aşılması
+- PWA önbelleğinin `v4.1.0-r20` yapı anahtarıyla atomik yenilenmesi, Vite paketlerinin çevrimdışı saklanması ve eski modüllerin sürümlü URL'lerle aşılması
 - Öğrenme Laboratuvarı için içerik araması, konu favorileri, favori filtresi ve konu bazlı kendini kontrol listeleri
 - Konular ekranı için sınav bazlı tamamlanma yüzdesi, görünür konu hedefleri ve önümüzdeki 7 günlük tekrar planı
 - İlerleme ekranının tek bakışta özet, kanıta dayalı ders durumu ve sade ayrıntı düzenine geçirilmesi

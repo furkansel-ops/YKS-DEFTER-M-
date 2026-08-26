@@ -7,7 +7,7 @@ export interface ReleaseCheck{
 }
 
 export interface ReleaseReport{
-  version:"4.0.0";
+  version:"4.1.0";
   ok:boolean;
   startedAt:number;
   finishedAt:number;
@@ -20,7 +20,7 @@ export interface ReleaseRunOptions{
 }
 
 export interface ReleaseApi{
-  readonly version:"4.0.0";
+  readonly version:"4.1.0";
   run(options?:ReleaseRunOptions):Promise<ReleaseReport>;
   latest():ReleaseReport|null;
 }
@@ -61,7 +61,7 @@ export function createReleaseRuntime(host:Window,documentRef:Document):ReleaseAp
       catch(error){checks.push({name,ok:false,message:error instanceof Error?error.message:String(error)});}
     };
 
-    await add("bootstrap",()=>host.__YKS_V4_BOOTSTRAP__?.version==="4.0.0"&&host.__YKS_V4_BOOTSTRAP__?.channel==="stable"&&host.__YKS_V4_BOOTSTRAP__?.legacyRuntime===true);
+    await add("bootstrap",()=>host.__YKS_V4_BOOTSTRAP__?.version==="4.1.0"&&host.__YKS_V4_BOOTSTRAP__?.channel==="stable"&&host.__YKS_V4_BOOTSTRAP__?.legacyRuntime===true);
     await add("common-services",()=>host.__YKS_SERVICES__?.validate().length===0);
     await add("domain-services",()=>host.__YKS_DOMAIN__?.validate().length===0);
     await add("screen-runtime",()=>host.__YKS_SCREEN_RUNTIME__?.validate().length===0);
@@ -120,13 +120,13 @@ export function createReleaseRuntime(host:Window,documentRef:Document):ReleaseAp
       if(raw)await add("state-restored",async()=>!!data&&(await data.applyCloudJSON(raw)).ok);
     }
 
-    const report:ReleaseReport={version:"4.0.0",ok:checks.every(check=>check.ok),startedAt,finishedAt:Date.now(),checks};
+    const report:ReleaseReport={version:"4.1.0",ok:checks.every(check=>check.ok),startedAt,finishedAt:Date.now(),checks};
     lastReport=report;publish(documentRef,report);
     host.dispatchEvent(new CustomEvent<ReleaseReport>("yks:release-check",{detail:report}));
     return report;
   }
 
-  return {version:"4.0.0",run,latest:()=>lastReport};
+  return {version:"4.1.0",run,latest:()=>lastReport};
 }
 
 export function installReleaseRuntime():ReleaseApi{

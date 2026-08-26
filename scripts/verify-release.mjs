@@ -3,12 +3,12 @@ import {resolve} from "node:path";
 
 const root=resolve(import.meta.dirname,".."),dist=resolve(root,"dist");
 const pkg=JSON.parse(await readFile(resolve(root,"package.json"),"utf8"));
-if(pkg.version!=="4.0.0")throw new Error(`Beklenmeyen paket sürümü: ${pkg.version}`);
+if(pkg.version!=="4.1.0")throw new Error(`Beklenmeyen paket sürümü: ${pkg.version}`);
 const index=await readFile(resolve(dist,"index.html"),"utf8"),asset=index.match(/(?:src|href)="\.\/(assets\/index-[^"']+\.js)"/)?.[1];
 if(!asset)throw new Error("Derlenmiş v4 paketi bulunamadı");
 const bundle=await readFile(resolve(dist,asset),"utf8"),legacy=await readFile(resolve(dist,"modules/release-selftest.js"),"utf8");
 const checks={
-  version:bundle.includes("4.0.0"),stable:bundle.includes("stable"),runtime:bundle.includes("YKS_V4_RELEASE_OK"),legacy:legacy.includes("v4-bootstrap"),
+  version:bundle.includes("4.1.0"),stable:bundle.includes("stable"),runtime:bundle.includes("YKS_V4_RELEASE_OK"),legacy:legacy.includes("v4-bootstrap"),
   transaction:bundle.includes("runTransaction as"),conflict:bundle.includes("SYNC_CONFLICT"),hash:bundle.includes("infraHash("),
   dexie:bundle.includes("yks-defterim-v4"),screens:bundle.includes("screen-transitions")
 };

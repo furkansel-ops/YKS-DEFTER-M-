@@ -17,9 +17,9 @@ test("HTML kimlikleri benzersiz ve kritik alanlar mevcut",()=>{
 
 test("sürüm, şema ve PWA önbelleği tutarlı",()=>{
   const html=fs.readFileSync(path.join(root,"index.html"),"utf8"),app=fs.readFileSync(path.join(root,"app.js"),"utf8"),sw=fs.readFileSync(path.join(root,"sw.js"),"utf8"),version=JSON.parse(fs.readFileSync(path.join(root,"version.json"),"utf8"));
-  assert.match(html,/src="\.\/app\.js\?v=4\.0\.0-r19"/);assert.match(app,/const APP_VERSION="4\.0\.0"/);assert.match(app,/const APP_BUILD="4\.0\.0-r19"/);assert.match(app,/const DATA_SCHEMA=21/);
-  assert.equal(version.version,"4.0.0");assert.equal(version.schema,21);assert.equal(version.build,"4.0.0-r19");assert.match(sw,/yks-core-v4\.0\.0-r19/);
-  ["app.css","app.js?v=4.0.0-r19","modules/core-utils.js?v=4.0.0-r19","modules/stability.js?v=4.0.0-r19","modules/topic-guides.js?v=4.0.0-r19","modules/learning-lab.js?v=4.0.0-r19","modules/target-center.js?v=4.0.0-r19","modules/export-center.js?v=4.0.0-r19","modules/release-selftest.js?v=4.0.0-r19"].forEach(asset=>assert.ok(sw.includes(asset),asset));
+  assert.match(html,/src="\.\/app\.js\?v=4\.1\.0-r20"/);assert.match(app,/const APP_VERSION="4\.1\.0"/);assert.match(app,/const APP_BUILD="4\.1\.0-r20"/);assert.match(app,/const DATA_SCHEMA=21/);
+  assert.equal(version.version,"4.1.0");assert.equal(version.schema,21);assert.equal(version.build,"4.1.0-r20");assert.match(sw,/yks-core-v4\.1\.0-r20/);
+  ["app.css","app.js?v=4.1.0-r20","modules/core-utils.js?v=4.1.0-r20","modules/stability.js?v=4.1.0-r20","modules/topic-guides.js?v=4.1.0-r20","modules/learning-lab.js?v=4.1.0-r20","modules/target-center.js?v=4.1.0-r20","modules/export-center.js?v=4.1.0-r20","modules/release-selftest.js?v=4.1.0-r20"].forEach(asset=>assert.ok(sw.includes(asset),asset));
   assert.doesNotMatch(sw,/modules\/(topic-coach|learning-tools)\.js/);
 });
 
@@ -81,7 +81,7 @@ test("şema 20 verisi Öğrenme Laboratuvarı için şema 21'e taşınır",()=>{
 test("v4 Vite ve TypeScript geçiş altyapısı güvenli biçimde hazır",()=>{
   const pkg=JSON.parse(fs.readFileSync(path.join(root,"package.json"),"utf8")),ts=JSON.parse(fs.readFileSync(path.join(root,"tsconfig.json"),"utf8")),html=fs.readFileSync(path.join(root,"index.html"),"utf8"),entry=fs.readFileSync(path.join(root,"src/main.ts"),"utf8"),copy=fs.readFileSync(path.join(root,"scripts/copy-legacy-assets.mjs"),"utf8");
   ["package-lock.json","vite.config.mts","src/main.ts","src/vite-env.d.ts","scripts/copy-legacy-assets.mjs","scripts/verify-dist.mjs","MIGRATION-V4.md"].forEach(file=>assert.equal(fs.existsSync(path.join(root,file)),true,file));
-  assert.equal(pkg.private,true);assert.equal(pkg.version,"4.0.0");assert.match(pkg.scripts.check,/typecheck/);assert.match(pkg.scripts.build,/vite build/);assert.match(pkg.scripts.build,/verify-dist/);assert.match(pkg.scripts["release:check"],/verify-release/);assert.ok(pkg.devDependencies.vite);assert.ok(pkg.devDependencies.typescript);
+  assert.equal(pkg.private,true);assert.equal(pkg.version,"4.1.0");assert.match(pkg.scripts.check,/typecheck/);assert.match(pkg.scripts.build,/vite build/);assert.match(pkg.scripts.build,/verify-dist/);assert.match(pkg.scripts["release:check"],/verify-release/);assert.ok(pkg.devDependencies.vite);assert.ok(pkg.devDependencies.typescript);
   assert.equal(ts.compilerOptions.strict,true);assert.equal(ts.compilerOptions.noUncheckedIndexedAccess,true);assert.equal(ts.compilerOptions.noEmit,true);
   assert.match(html,/type="module" src="\.\/src\/main\.ts"/);assert.match(entry,/legacyRuntime:true/);assert.match(copy,/"modules"/);assert.equal(pkg.devDependencies.dexie,undefined);
 });
@@ -172,7 +172,7 @@ test("v4 PWA çevrimdışı paketi atomik hazırlanır ve yapı numarasıyla gü
   ["v4PwaCard","v4PwaBadge","v4InstallBtn","v4OfflineState"].forEach(id=>assert.match(html,new RegExp(`id="${id}"`),id));
   assert.match(sw,/function buildAssets/);assert.match(sw,/matchAll/);assert.match(sw,/Promise\.all\(required/);assert.match(sw,/await caches\.delete\(CACHE\)/);assert.match(sw,/GET_CACHE_STATUS/);assert.match(sw,/READY_KEY/);
   assert.doesNotMatch(sw,/cache\.put\("\.\/index\.html",res\.clone\(\)\)/);assert.match(app,/j\.build\|\|j\.version/);assert.match(app,/await window\.__YKS_DATA__\.flush\(\)/);assert.match(app,/!appUpdateApplying\|\|appUpdateReloading/);
-  assert.equal(manifest.prefer_related_applications,false);assert.deepEqual(manifest.display_override,["window-controls-overlay","standalone"]);assert.match(entry,/installPwaRuntime\("4\.0\.0-r19"\)/);assert.match(pwa,/beforeinstallprompt/);assert.match(pwa,/Ana ekrana ekle/);
+  assert.equal(manifest.prefer_related_applications,false);assert.deepEqual(manifest.display_override,["window-controls-overlay","standalone"]);assert.match(entry,/installPwaRuntime\("4\.1\.0-r20"\)/);assert.match(pwa,/beforeinstallprompt/);assert.match(pwa,/Ana ekrana ekle/);
 });
 
 test("v4 ilerleme ekranı tür güvenli analiz ve sade tek bakış dashboard'u kullanır",()=>{
@@ -193,7 +193,7 @@ test("v4 deneme ekranı dönem, yanlış yoğunluğu ve son iki denemeyi tür g�
 
 test("v4 kararlı sürümü tarayıcı ve üretim paketi kontrollerini içerir",()=>{
   const release=fs.readFileSync(path.join(root,"src/release/release.ts"),"utf8"),entry=fs.readFileSync(path.join(root,"src/main.ts"),"utf8"),legacy=fs.readFileSync(path.join(root,"modules/release-selftest.js"),"utf8"),verify=fs.readFileSync(path.join(root,"scripts/verify-release.mjs"),"utf8"),report=fs.readFileSync(path.join(root,"RELEASE.md"),"utf8");
-  assert.match(release,/4\.0\.0/);assert.match(release,/SCREEN_IDS/);assert.match(release,/dexie-write-through/);assert.match(release,/firebase-payload/);assert.match(release,/firebase-download-path/);assert.match(release,/screen-transitions/);assert.match(release,/YKS_V4_RELEASE_OK/);
+  assert.match(release,/4\.1\.0/);assert.match(release,/SCREEN_IDS/);assert.match(release,/dexie-write-through/);assert.match(release,/firebase-payload/);assert.match(release,/firebase-download-path/);assert.match(release,/screen-transitions/);assert.match(release,/YKS_V4_RELEASE_OK/);
   assert.match(entry,/installReleaseRuntime\(\)/);assert.match(entry,/channel:"stable"/);assert.match(entry,/stableRelease:true/);assert.match(legacy,/v4-bootstrap/);assert.match(verify,/runTransaction as/);assert.match(report,/\?selftest=v4/);
 });
 
@@ -205,12 +205,12 @@ test("CI ve Pages dağıtımı güncel eylemler, zaman aşımı ve canlı doğru
   assert.match(live,/verifyLivePages/);assert.match(live,/YKS_V4_RELEASE_OK/);assert.match(live,/AbortSignal\.timeout/);
 });
 
-test("v4.0.0 kararlı sürümü geçici aday dosyası bırakmaz ve veri şemasını korur",()=>{
+test("v4.1.0 kararlı sürümü geçici aday dosyası bırakmaz ve veri şemasını korur",()=>{
   const pkg=JSON.parse(fs.readFileSync(path.join(root,"package.json"),"utf8")),lock=JSON.parse(fs.readFileSync(path.join(root,"package-lock.json"),"utf8")),entry=fs.readFileSync(path.join(root,"src/main.ts"),"utf8"),app=fs.readFileSync(path.join(root,"app.js"),"utf8");
-  assert.equal(pkg.version,"4.0.0");assert.equal(lock.version,"4.0.0");assert.equal(lock.packages[""].version,"4.0.0");
+  assert.equal(pkg.version,"4.1.0");assert.equal(lock.version,"4.1.0");assert.equal(lock.packages[""].version,"4.1.0");
   ["src/release/release-candidate.ts","scripts/verify-release-candidate.mjs","tests/release-candidate.test.js","RELEASE-CANDIDATE.md"].forEach(file=>assert.equal(fs.existsSync(path.join(root,file)),false,file));
   ["src/release/release.ts","scripts/verify-release.mjs","tests/release.test.js","RELEASE.md"].forEach(file=>assert.equal(fs.existsSync(path.join(root,file)),true,file));
-  assert.match(entry,/version:"4\.0\.0"/);assert.match(entry,/channel:"stable"/);assert.match(app,/const DATA_SCHEMA=21/);
+  assert.match(entry,/version:"4\.1\.0"/);assert.match(entry,/channel:"stable"/);assert.match(app,/const DATA_SCHEMA=21/);
 });
 
 test("kararlı tarayıcı self-test'i Vite'ın hash'li CSS paketini kabul eder",()=>{
