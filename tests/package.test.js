@@ -217,3 +217,12 @@ test("kararlı tarayıcı self-test'i Vite'ın hash'li CSS paketini kabul eder",
   const selftest=fs.readFileSync(path.join(root,"modules/release-selftest.js"),"utf8");
   assert.match(selftest,/assets\/index-/);assert.match(selftest,/href\$="\.css"/);assert.match(selftest,/script\[src\^="\.\/app\.js"\]/);
 });
+
+
+test("tek kullanıcı ve Hata Defteri kişisel çalışma akışına bağlı",()=>{
+  const html=fs.readFileSync(path.join(root,"index.html"),"utf8"),mod=fs.readFileSync(path.join(root,"modules/error-journal.js"),"utf8"),css=fs.readFileSync(path.join(root,"app.css"),"utf8");
+  assert.doesNotMatch(html,/Koç notları|Öğrencine not bırak|data-coach-only|data-student-only/);
+  ["errorJournal","errorJournalSubject","errorJournalTopic","errorJournalType","errorJournalList"].forEach(id=>assert.match(html,new RegExp('id="'+id+'"')));
+  assert.match(html,/modules\/error-journal\.js/);
+  assert.match(mod,/S\.errorJournal/);assert.match(mod,/saveSoon/);assert.match(mod,/manualReviews/);assert.match(mod,/Bilgi eksiği/);assert.match(mod,/Dikkat/);assert.match(css,/Kişisel Hata Defteri/);
+});

@@ -139,12 +139,12 @@ document.documentElement.setAttribute("data-theme",t);}catch(e){}})();
     </div>
   </div>
 
-  <div class="home-actions" data-student-only>
+  <div class="home-actions">
     <button class="btn ghost tiny" onclick="openBrief(true)">Günün özeti</button>
     <button class="btn green tiny" id="gunBtn" onclick="openGun()">Gün ekranını aç</button>
   </div>
 
-  <section class="today-hub" id="todayHub" data-student-only aria-label="Bugün kontrol merkezi">
+  <section class="today-hub" id="todayHub" aria-label="Bugün kontrol merkezi">
     <div class="today-hub-head">
       <div><div class="eyebrow" id="todayHubEyebrow">Şu ana kadar</div><h2 id="todayHubTitle">Bugün</h2></div>
       <span class="today-done-badge" id="todayDoneBadge" style="display:none;">Bugün tamamlandı ✓</span>
@@ -180,24 +180,6 @@ document.documentElement.setAttribute("data-theme",t);}catch(e){}})();
   <div class="morning" id="morningBox" style="display:none;"></div>
   <div class="restcard" id="dgBanner" style="display:none;"></div>
 
-  <div id="coachBoard" style="display:none;"></div>
-
-  <div id="cnWrap" style="display:none;">
-    <h2>Koç notları<span class="cnt" id="cnCount" style="display:none;"></span></h2>
-    <div class="card" id="cnList"></div>
-  </div>
-  <div class="card" id="noteBoxWrap" data-coach-only>
-    <label>Öğrencine not bırak</label>
-    <input type="text" id="cnInput" placeholder="Tek cümle yeter">
-    <select id="cnKind">
-      <option value="genel">Genel</option>
-      <option value="plan">Plan hakkında</option>
-      <option value="deneme">Deneme hakkında</option>
-      <option value="konu">Konu hakkında</option>
-    </select>
-    <button class="btn green small" style="width:100%;margin-top:12px;" onclick="addCoachNote()">Notu bırak</button>
-  </div>
-
   <div class="restcard" id="restBanner" style="display:none;"></div>
 
   <div class="banner" id="backupBanner">
@@ -207,7 +189,7 @@ document.documentElement.setAttribute("data-theme",t);}catch(e){}})();
 
 
 
-  <div class="home-goals" id="homeGoals" data-student-only>
+  <div class="home-goals" id="homeGoals">
     <div class="home-goals-head"><div class="section-label">Kişisel özet</div><button class="home-goals-edit" onclick="go('more');setMoreTab('ayar')">Hedefleri düzenle</button></div>
     <div class="home-goals-grid">
       <div class="goalmini" id="goalQCard"><div class="gl">Soru hedefi</div><div class="gv" id="homeGoalQ">0 / 0</div><div class="gs" id="homeGoalQSub">Bugün</div><div class="gbar"><i id="homeGoalQBar" style="width:0%"></i></div></div>
@@ -221,25 +203,25 @@ document.documentElement.setAttribute("data-theme",t);}catch(e){}})();
   <div class="card" id="suggestBox"></div>
 
   <h2>Akıllı analiz</h2>
-  <div class="card" id="smartInsightBox" data-student-only></div>
+  <div class="card" id="smartInsightBox"></div>
 
   <h2>Analiz özeti</h2>
-  <div class="card" id="homeDeepAnalysis" data-student-only></div>
+  <div class="card" id="homeDeepAnalysis"></div>
 
 
   <h2>Deneme sonrası görevler</h2>
-  <div class="card" id="examTasksBox" data-student-only></div>
+  <div class="card" id="examTasksBox"></div>
 
   <h2 id="todayPlanTitle">Bugünün programı</h2>
   <div class="card" id="todayPlan"></div>
 
 
 
-  <button class="foldhead compact-fold" id="fh_soz" onclick="toggleFold('soz')" data-student-only>
+  <button class="foldhead compact-fold" id="fh_soz" onclick="toggleFold('soz')">
     <span class="ft">Haftalık hedef</span>
     <span class="fi"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
   </button>
-  <div class="foldbody" id="fb_soz" data-student-only>
+  <div class="foldbody" id="fb_soz">
     <div class="card" id="ctForm" style="display:none;">
       <p class="lead" style="font-size:14.5px;margin:0 0 12px;">Haftanın başında gerçekçi bir hedef belirle; hafta sonunda ne kadarını tuttuğunu gör.</p>
       <div class="row2">
@@ -255,7 +237,7 @@ document.documentElement.setAttribute("data-theme",t);}catch(e){}})();
     <div class="card" id="ctBox"></div>
   </div>
 
-  <div class="card quick-entry" data-student-only>
+  <div class="card quick-entry">
     <div class="section-label">Hızlı soru girişi</div>
     <label>Bugün çözdüğün toplam soru</label>
     <div class="row2">
@@ -314,7 +296,7 @@ document.documentElement.setAttribute("data-theme",t);}catch(e){}})();
     <div class="card">
       <textarea id="journalInput" placeholder="Bugün nasıl geçti? Tek cümle yeter."></textarea>
       <button class="btn ghost small" style="width:100%;margin-top:12px;" onclick="saveJournal()">Günlüğü kaydet</button>
-      <button class="btn ghost small" style="width:100%;margin-top:12px;" onclick="shareCard()" data-student-only>Günün kartını indir</button>
+      <button class="btn ghost small" style="width:100%;margin-top:12px;" onclick="shareCard()">Günün kartını indir</button>
     </div>
   </div>
 </section>
@@ -487,6 +469,23 @@ document.documentElement.setAttribute("data-theme",t);}catch(e){}})();
 
 <!-- ============================== DENEMELER ============================== -->
 <section id="deneme" class="screen">
+<section id="errorJournal" class="error-journal" aria-labelledby="errorJournalTitle">
+  <div class="error-journal-head">
+    <div><p class="eyebrow">Kişisel kayıt</p><h2 id="errorJournalTitle">Hata Defteri</h2><p class="hint">Yanlış yaptığın soruları nedenleriyle kaydet. Programına dokunmaz; sadece hatalarını görünür hale getirir.</p></div>
+  </div>
+  <div class="card error-journal-form">
+    <div class="row2"><div><label>Ders</label><input id="errorJournalSubject" type="text" maxlength="60" placeholder="Matematik"></div><div><label>Konu</label><input id="errorJournalTopic" type="text" maxlength="80" placeholder="Problemler"></div></div>
+    <label>Hata türü</label>
+    <select id="errorJournalType"><option>Bilgi eksiği</option><option>Dikkat</option><option>İşlem</option><option>Yorum</option><option>Süre</option></select>
+    <label>Kısa not</label><textarea id="errorJournalNote" maxlength="400" rows="3" placeholder="Nerede hata yaptım? Doğrusu neydi?"></textarea>
+    <div class="error-journal-form-actions"><label class="error-journal-review"><input id="errorJournalReview" type="checkbox"> Tekrar listeme ekle</label><button class="btn green small" type="button" onclick="errorJournalAdd()">Hatayı kaydet</button></div>
+  </div>
+  <div class="error-journal-kpis" id="errorJournalKpis"></div>
+  <div class="card flat error-journal-tools"><input id="errorJournalSearch" type="search" placeholder="Ders, konu veya not ara" oninput="errorJournalRender()"><select id="errorJournalFilter" onchange="errorJournalRender()"><option value="all">Tüm hata türleri</option><option>Bilgi eksiği</option><option>Dikkat</option><option>İşlem</option><option>Yorum</option><option>Süre</option></select></div>
+  <div id="errorJournalList" class="error-journal-list"></div>
+</section>
+
+
   <div class="v315-dashboard" id="v315Dashboard">
     <div class="card">
       <div class="v315-dash-head">
@@ -1690,10 +1689,10 @@ document.documentElement.setAttribute("data-theme",t);}catch(e){}})();
   <button class="tab" data-s="deneme" onclick="go('deneme')" role="tab" aria-label="Deneme" aria-selected="false">
     <span class="ic"><svg viewBox="0 0 24 24"><path d="M4 19V5M4 19h16"/><path d="M8 15l3-4 3 2 4-6"/></svg></span>
     <span class="tl">Deneme</span></button>
-  <button class="tab" data-s="progress" onclick="go('progress')" role="tab" aria-label="İlerleme" aria-selected="false" data-student-only>
+  <button class="tab" data-s="progress" onclick="go('progress')" role="tab" aria-label="İlerleme" aria-selected="false">
     <span class="ic"><svg viewBox="0 0 24 24"><path d="M4 19V5M4 19h16"/><path d="M7 15l4-4 3 2 5-7"/><path d="M16 6h3v3"/></svg></span>
     <span class="tl">İlerleme</span></button>
-  <button class="tab" data-s="pomo" onclick="go('pomo')" role="tab" aria-label="Odak" aria-selected="false" data-student-only>
+  <button class="tab" data-s="pomo" onclick="go('pomo')" role="tab" aria-label="Odak" aria-selected="false">
     <span class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 13V9M12 5V3M10 3h4"/></svg></span>
     <span class="tl">Odak</span></button>
   <button class="tab" data-s="more" onclick="go('more');setMoreTab('home')" role="tab" aria-label="Daha" aria-selected="false">
@@ -2191,6 +2190,7 @@ window.addEventListener("online",()=>{if(!user)return;status("Bağlantı geldi",
 <script vite-ignore src="./modules/learning-lab.js?v=4.1.0-r20"></script>
 <script vite-ignore src="./modules/target-center.js?v=4.1.0-r20"></script>
 <script vite-ignore src="./modules/export-center.js?v=4.1.0-r20"></script>
+<script vite-ignore src="./modules/error-journal.js?v=4.1.0-r20"></script>
 <script vite-ignore src="./modules/release-selftest.js?v=4.1.0-r20"></script>
 <script type="module" src="./src/main.ts"></script>
 </body>
