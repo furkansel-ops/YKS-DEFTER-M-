@@ -4,7 +4,7 @@ export const MAX_REASONABLE_STATE_CHARS=20*1024*1024;
 
 export type StateDecodeResult=
   |{ok:true;kind:"state";state:YksStateCandidate;json:string;schema:number;chars:number;bytes:number}
-  |{ok:false;kind:"missing"|"invalid-json"|"invalid-shape"|"future-schema";message:string;schema?:number};
+  |{ok:false;kind:"missing"|"too-large"|"invalid-json"|"invalid-shape"|"future-schema";message:string;schema?:number};
 
 export type StateEncodeResult=
   |{ok:true;json:string;schema:number;chars:number;bytes:number}
@@ -34,6 +34,8 @@ export function stateSchema(value:YksStateCandidate):number{
 
 export function decodeState(text:string|null,currentSchema=DATA_SCHEMA_VERSION):StateDecodeResult{
   if(typeof text!=="string"||!text.trim())return {ok:false,kind:"missing",message:"Ana kayıt bulunamadı"};
+  /* JSON.parse öncesi sınırla: aşırı büyük bulut/yedek/localStorage girdisi belleği gereksiz zorlamasın. */
+  if(text.length>MAX_REASONABLE_STATE_CHARS)return {ok:false,kind:"too-large",message:"Ana kayıt güvenli boyut sınırını aştı"};
   let value:unknown;
   try{value=JSON.parse(text);}catch{return {ok:false,kind:"invalid-json",message:"Ana kayıt geçerli JSON değil"};}
   if(!isRecord(value))return {ok:false,kind:"invalid-shape",message:"Ana kayıt bir nesne olmalı"};
