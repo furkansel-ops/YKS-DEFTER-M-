@@ -2946,3 +2946,47 @@ input,select,textarea{transition:border-color .2s,box-shadow .2s,background .2s,
 .v4-backup-shield{display:flex;align-items:center;gap:11px;padding:12px 13px;margin:0 0 12px;border:1px solid color-mix(in srgb,var(--green) 35%,var(--line));border-radius:14px;background:color-mix(in srgb,var(--green) 8%,var(--card));}
 .v4-backup-shield>span{display:grid;place-items:center;flex:0 0 30px;height:30px;border-radius:10px;background:var(--green);color:#fff;font-weight:900;}
 .v4-backup-shield div{min-width:0;display:grid;gap:3px}.v4-backup-shield b{font-size:13.5px}.v4-backup-shield small{color:var(--label-2);font-size:11.5px;line-height:1.35}
+
+/* v4.0.0-r18 — tablet + PC son görünüm cilası */
+:root{--app-content-max:1560px;--desktop-gap:clamp(14px,1.45vw,22px)}
+.screen,.screen>*,.card,.desktop-section,.desktop-progress-section,.desktop-topic-summary-section{min-inline-size:0}
+.desktop-home-grid>*,.desktop-program-tools>*,.desktop-topic-overview>*,.desktop-deneme-top>*,.desktop-focus-workspace>*,.desktop-progress-grid>*{min-width:0}
+.scroller,.topic-filter-row,.seg{max-width:100%;overscroll-behavior-inline:contain;scrollbar-width:thin}
+.card p,.card small,.card b,.hint,.note{overflow-wrap:anywhere}
+
+@media (min-width:760px){
+  .wrap{width:calc(100% - clamp(28px,3vw,52px));padding-inline:clamp(20px,2.2vw,34px)}
+  .desktop-topic-overview{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .desktop-topic-summary-section{display:grid;grid-template-rows:auto 1fr;align-self:stretch}
+  .desktop-topic-summary-section>h2{margin:0 0 10px}
+  .desktop-topic-summary-section>.card{height:100%;margin:0}
+  .desktop-topic-summary-section:last-child{grid-column:1/-1;padding-top:2px}
+  #home .desktop-home-grid,#program .desktop-program-tools,#progress .desktop-progress-grid{gap:var(--desktop-gap)}
+  #more .v30-quick-grid,#more .v30-home-grid,#more .v30-more-grid{gap:var(--desktop-gap)}
+  .v320-course-browser,.v320-topic-selection,.v320-toolbox{max-width:100%}
+}
+
+@media (min-width:760px) and (max-width:979px){
+  #topics .v26-topic-tools{position:static}
+}
+
+@media (min-width:1100px){
+  .desktop-topic-overview{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .desktop-topic-summary-section:last-child{grid-column:auto;padding-top:38px}
+  #more .v320-subject-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+
+@media (pointer:coarse){
+  .themebtn,.topic-open,.v26-close,.v4-topic-fav,.weeknav button,.calnav button{min-width:44px;min-height:44px}
+  .btn,.seg button,.topic-filter,.v4-guide-actions>button,.v320-browser-back{min-height:44px}
+  .tabbar .tab{min-height:52px}
+  .tabbar .tab .ic{min-width:44px;min-height:40px}
+  .pill{width:40px;height:40px}
+  .star{display:grid;place-items:center;min-width:28px;min-height:40px}
+  .v320-subject-card,.v320-topic-card,.v4-topic-goal-row{touch-action:manipulation}
+}
+
+@media (max-width:759px){
+  .desktop-topic-summary-section{margin-bottom:10px}
+  .desktop-topic-summary-section>h2{margin-top:18px}
+}

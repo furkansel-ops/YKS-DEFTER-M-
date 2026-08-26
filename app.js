@@ -10522,12 +10522,20 @@ try{const q=new URLSearchParams(location.search).get("selftest");if(q==="v31")se
     return true;
   }
   function buildTopics(){
-    const root=by('topics'),ovCard=by('v26TopicOverview'),att=by('v26TopicAttention');
-    if(!root||!ovCard||!att)return false;
-    let title=ovCard.previousElementSibling;
-    const w=ensureWrap(root,'desktop-topic-overview',(title&&title.parentNode===root)?title:ovCard);
-    if(title&&title.tagName==='H2')move(w,title);
-    move(w,ovCard);move(w,att);return true;
+    const root=by('topics'),ovCard=by('v26TopicOverview'),goals=by('v4TopicGoals'),att=by('v26TopicAttention');
+    if(!root||!ovCard||!goals||!att)return false;
+    const overviewTitle=ovCard.previousElementSibling,goalTitle=goals.previousElementSibling;
+    const w=ensureWrap(root,'desktop-topic-overview',(overviewTitle&&overviewTitle.parentNode===root)?overviewTitle:ovCard);
+    const section=(key,title,body)=>{
+      let box=Array.from(w.children).find(x=>x.dataset&&x.dataset.desktopTopic===key);
+      if(!box){box=mk('section','desktop-topic-summary-section');box.dataset.desktopTopic=key;w.appendChild(box)}
+      if(title&&title.tagName==='H2')move(box,title);
+      move(box,body);
+    };
+    section('overview',overviewTitle,ovCard);
+    section('goals',goalTitle,goals);
+    section('attention',null,att);
+    return true;
   }
   function buildFocus(){
     const root=by('pomo'),setup=root&&root.querySelector('.v29-session-setup'),pomo=by('focusPomo'),stop=by('focusStop');
@@ -10583,7 +10591,7 @@ try{const q=new URLSearchParams(location.search).get("selftest");if(q==="v31")se
   function audit(){
     const checks={
       deneme:by('v315Dashboard')?!!by('v315ExamFormCard'):(!!D.querySelector('#deneme > .desktop-deneme-top #denemeName')&&!!D.querySelector('#deneme > .desktop-deneme-top #v27Latest')),
-      topics:!!D.querySelector('#topics > .desktop-topic-overview #v26TopicOverview')&&!!D.querySelector('#topics > .desktop-topic-overview #v26TopicAttention'),
+      topics:!!D.querySelector('#topics > .desktop-topic-overview #v26TopicOverview')&&!!D.querySelector('#topics > .desktop-topic-overview #v4TopicGoals')&&!!D.querySelector('#topics > .desktop-topic-overview #v26TopicAttention'),
       focus:!!D.querySelector('#pomo > .desktop-focus-workspace .v29-session-setup')&&!!D.querySelector('#pomo > .desktop-focus-workspace #focusPomo'),
       program:!!D.querySelector('#program > .desktop-program-tools #fh_kamp')&&!!D.querySelector('#program > .desktop-program-tools #fh_sablon'),
       progress:!!D.querySelector('#progress > .desktop-progress-grid #progressCompare')&&!!D.querySelector('#progress > .desktop-progress-grid #progressNet'),

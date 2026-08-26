@@ -17,9 +17,9 @@ test("HTML kimlikleri benzersiz ve kritik alanlar mevcut",()=>{
 
 test("sürüm, şema ve PWA önbelleği tutarlı",()=>{
   const html=fs.readFileSync(path.join(root,"index.html"),"utf8"),app=fs.readFileSync(path.join(root,"app.js"),"utf8"),sw=fs.readFileSync(path.join(root,"sw.js"),"utf8"),version=JSON.parse(fs.readFileSync(path.join(root,"version.json"),"utf8"));
-  assert.match(html,/src="\.\/app\.js\?v=4\.0\.0-r17"/);assert.match(app,/const APP_VERSION="4\.0\.0"/);assert.match(app,/const DATA_SCHEMA=21/);
-  assert.equal(version.version,"4.0.0");assert.equal(version.schema,21);assert.match(sw,/yks-core-v4\.0\.0-r17/);
-  ["app.css","app.js?v=4.0.0-r17","modules/core-utils.js?v=4.0.0-r17","modules/stability.js?v=4.0.0-r17","modules/topic-guides.js?v=4.0.0-r17","modules/learning-lab.js?v=4.0.0-r17","modules/target-center.js?v=4.0.0-r17","modules/export-center.js?v=4.0.0-r17","modules/release-selftest.js?v=4.0.0-r17"].forEach(asset=>assert.ok(sw.includes(asset),asset));
+  assert.match(html,/src="\.\/app\.js\?v=4\.0\.0-r18"/);assert.match(app,/const APP_VERSION="4\.0\.0"/);assert.match(app,/const DATA_SCHEMA=21/);
+  assert.equal(version.version,"4.0.0");assert.equal(version.schema,21);assert.match(sw,/yks-core-v4\.0\.0-r18/);
+  ["app.css","app.js?v=4.0.0-r18","modules/core-utils.js?v=4.0.0-r18","modules/stability.js?v=4.0.0-r18","modules/topic-guides.js?v=4.0.0-r18","modules/learning-lab.js?v=4.0.0-r18","modules/target-center.js?v=4.0.0-r18","modules/export-center.js?v=4.0.0-r18","modules/release-selftest.js?v=4.0.0-r18"].forEach(asset=>assert.ok(sw.includes(asset),asset));
   assert.doesNotMatch(sw,/modules\/(topic-coach|learning-tools)\.js/);
 });
 
@@ -158,6 +158,13 @@ test("v4 konu ve çalışma state işlemleri tür güvenli alan servislerini kul
 test("v4 Konular ekranı hedefleri, yüzdeleri ve yedi günlük tekrar planını sade biçimde gösterir",()=>{
   const html=fs.readFileSync(path.join(root,"index.html"),"utf8"),app=fs.readFileSync(path.join(root,"app.js"),"utf8"),css=fs.readFileSync(path.join(root,"app.css"),"utf8");
   assert.match(html,/id="v4TopicGoals"/);assert.match(app,/v4ExamTopicProgress/);assert.match(app,/v4RenderTopicGoals/);assert.match(app,/v4UpcomingReviews/);assert.match(app,/önümüzdeki 7 gün/);assert.match(app,/Programım tablosuna otomatik/);assert.match(css,/v4-topic-progressbar/);assert.match(css,/v4-topic-goal-list/);
+});
+
+test("v4 tablet ve PC görünümü ortak genişlik, dengeli kartlar ve dokunma hedefleri kullanır",()=>{
+  const html=fs.readFileSync(path.join(root,"index.html"),"utf8"),app=fs.readFileSync(path.join(root,"app.js"),"utf8"),css=fs.readFileSync(path.join(root,"app.css"),"utf8");
+  assert.match(css,/v4\.0\.0-r18 — tablet \+ PC son görünüm cilası/);assert.match(css,/--app-content-max:1560px/);assert.match(css,/@media \(pointer:coarse\)/);assert.match(css,/min-width:44px;min-height:44px/);
+  assert.match(app,/desktop-topic-summary-section/);assert.match(app,/desktopTopic===key/);assert.match(app,/desktop-topic-overview #v4TopicGoals/);
+  assert.doesNotMatch(`${html}\n${app}`,/initGestures|swipe(?:Left|Right)|addEventListener\(["']touchend["']/i);
 });
 
 test("v4 ilerleme ekranı tür güvenli analiz ve sade tek bakış dashboard'u kullanır",()=>{
