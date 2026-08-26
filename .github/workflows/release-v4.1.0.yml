@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   release:
-    if: "${{ github.event.head_commit.message == 'chore: diagnose v4.1.0 release checks' }}"
+    if: "${{ github.event.head_commit.message == 'chore: fix v4.1.0 version assertions' }}"
     runs-on: ubuntu-latest
     steps:
       - name: Kaynak kodu al
@@ -49,7 +49,7 @@ jobs:
 
           const version=JSON.parse(read('version.json'));
           if(version.version!=='4.0.0')throw new Error(`version.json beklenmeyen sürüm: ${version.version}`);
-          Object.assign(version,{version:'4.1.0',channel:'Kararlı',schema:21,released:'2026-08-26',status:'Kararlı',build:'2026-08-26'});
+          Object.assign(version,{version:'4.1.0',channel:'Kararlı',schema:21,released:'2026-08-26',status:'Kararlı',build:'4.1.0-r20'});
           write('version.json',JSON.stringify(version)+'\n');
 
           const active=['index.html','app.js','sw.js','src/main.ts','src/release/release.ts','src/pwa/pwa-runtime.ts','scripts/verify-dist.mjs','scripts/verify-release.mjs','tests/package.test.js','RELEASE.md'];
@@ -58,6 +58,8 @@ jobs:
             text=text.split('4.0.0-r19').join('4.1.0-r20');
             text=text.split('v4.0.0').join('v4.1.0');
             text=text.split('4.0.0').join('4.1.0');
+            text=text.split('4\\.0\\.0-r19').join('4\\.1\\.0-r20');
+            text=text.split('4\\.0\\.0').join('4\\.1\\.0');
             write(file,text);
           }
           let app=read('app.js');app=app.replace('const APP_BUILD="2026-08-24";','const APP_BUILD="2026-08-26";');write('app.js',app);
