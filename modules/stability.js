@@ -97,12 +97,14 @@
     });
   }
 
-  function loadPersonalUpgrades(){
-    if(window.__YKS_PERSONAL_UPGRADES__||document.querySelector('script[data-yks-personal-upgrades]'))return;
-    const s=document.createElement("script");s.src="./modules/personal-upgrades.js?v=4.1.0-r20";s.dataset.yksPersonalUpgrades="1";s.async=false;
-    s.onerror=()=>{try{if(typeof infraError==="function")infraError("personal-upgrades-load",new Error("Kişisel iyileştirme modülü yüklenemedi"));}catch(e){}};
+  function loadScriptOnce(src,dataKey,globalFlag,scope){
+    if(window[globalFlag]||document.querySelector('script['+dataKey+']'))return;
+    const s=document.createElement("script");s.src=src;s.setAttribute(dataKey,"1");s.async=false;
+    s.onerror=()=>{try{if(typeof infraError==="function")infraError(scope,new Error(src+" yüklenemedi"));}catch(e){}};
     document.head.appendChild(s);
   }
+  function loadPersonalUpgrades(){loadScriptOnce("./modules/personal-upgrades.js?v=4.1.0-r20","data-yks-personal-upgrades","__YKS_PERSONAL_UPGRADES__","personal-upgrades-load");}
+  function loadProgressV2(){loadScriptOnce("./modules/progress-v2.js?v=4.1.0-r20","data-yks-progress-v2","__YKS_PROGRESS_V2__","progress-v2-load");}
 
   function start(){
     wrapTimerFunction("startPomo","save");wrapTimerFunction("pausePomo","save");wrapTimerFunction("resetPomo","clear");wrapTimerFunction("finishPhase","clear");wrapTimerFunction("skipPhase","save");
@@ -110,8 +112,8 @@
     document.addEventListener("visibilitychange",()=>{if(document.hidden)persistRuntime(true);});
     window.addEventListener("pagehide",()=>persistRuntime(true));
     setInterval(()=>{try{if(pomoState==="running")persistRuntime(false);}catch(e){}},15000);
-    bindAccessibility();updateOnlineBanner();loadPersonalUpgrades();setTimeout(restoreRuntime,180);
+    bindAccessibility();updateOnlineBanner();loadPersonalUpgrades();loadProgressV2();setTimeout(restoreRuntime,180);
   }
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",start,{once:true});else start();
-  window.YKSStability={persistRuntime,restoreRuntime,clearRuntime,updateOnlineBanner,loadPersonalUpgrades};
+  window.YKSStability={persistRuntime,restoreRuntime,clearRuntime,updateOnlineBanner,loadPersonalUpgrades,loadProgressV2};
 })();
