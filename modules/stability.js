@@ -97,14 +97,21 @@
     });
   }
 
+  function loadPersonalUpgrades(){
+    if(window.__YKS_PERSONAL_UPGRADES__||document.querySelector('script[data-yks-personal-upgrades]'))return;
+    const s=document.createElement("script");s.src="./modules/personal-upgrades.js?v=4.1.0-r20";s.dataset.yksPersonalUpgrades="1";s.async=false;
+    s.onerror=()=>{try{if(typeof infraError==="function")infraError("personal-upgrades-load",new Error("Kişisel iyileştirme modülü yüklenemedi"));}catch(e){}};
+    document.head.appendChild(s);
+  }
+
   function start(){
     wrapTimerFunction("startPomo","save");wrapTimerFunction("pausePomo","save");wrapTimerFunction("resetPomo","clear");wrapTimerFunction("finishPhase","clear");wrapTimerFunction("skipPhase","save");
     window.addEventListener("offline",updateOnlineBanner);window.addEventListener("online",updateOnlineBanner);
     document.addEventListener("visibilitychange",()=>{if(document.hidden)persistRuntime(true);});
     window.addEventListener("pagehide",()=>persistRuntime(true));
     setInterval(()=>{try{if(pomoState==="running")persistRuntime(false);}catch(e){}},15000);
-    bindAccessibility();updateOnlineBanner();setTimeout(restoreRuntime,180);
+    bindAccessibility();updateOnlineBanner();loadPersonalUpgrades();setTimeout(restoreRuntime,180);
   }
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",start,{once:true});else start();
-  window.YKSStability={persistRuntime,restoreRuntime,clearRuntime,updateOnlineBanner};
+  window.YKSStability={persistRuntime,restoreRuntime,clearRuntime,updateOnlineBanner,loadPersonalUpgrades};
 })();
