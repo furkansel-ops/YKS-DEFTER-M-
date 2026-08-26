@@ -10708,7 +10708,7 @@ function renderV315Dashboard(){
   ["TYT","AYT","YDT","BRANS"].forEach(x=>{const b=el("v315t"+x);if(b)b.classList.toggle("on",x===v315DashType)});[["v315w5",5],["v315w10",10],["v315wAll",0]].forEach(x=>{const b=el(x[0]);if(b)b.classList.toggle("on",x[1]===v315DashWindow)});
   if(k){if(!st.list.length)k.innerHTML=v315KpiHTML('Son net','—','Henüz kayıt yok')+v315KpiHTML('Ortalama','—','Veri bekleniyor')+v315KpiHTML('En iyi','—','Veri bekleniyor')+v315KpiHTML('Net değişimi','—','İki deneme gerekli');else{const ds=st.delta===null?'İki deneme gerekli':(st.delta>0?'Öncekiye göre yükseldi':st.delta<0?'Öncekiye göre düştü':'Öncekiyle aynı'),dc=st.delta>0?'good':st.delta<0?'bad':'';k.innerHTML=v315KpiHTML('Son net',v315Fmt(st.last.totalNet),String(st.last.name||v315TypeLabel(v315DashType)))+v315KpiHTML((v315DashWindow?('Son '+st.list.length):'Tüm')+' ort.',v315Fmt(st.avg),st.list.length+' kayıt')+v315KpiHTML('En iyi',v315Fmt(st.best&&st.best.totalNet),st.best?String(st.best.name||''):'')+v315KpiHTML('Net değişimi',st.delta===null?'—':(st.delta>0?'+':'')+st.delta,ds,dc);}}
   if(trend)trend.innerHTML=v315TrendSVG(st.list);if(tm)tm.textContent=v315TypeLabel(v315DashType)+' · '+(v315DashWindow?('son '+st.list.length):('tüm '+st.list.length));
-  v315RenderWrong(st.list);v315RenderSubjects(st.list,st.all);v315RenderBalance(st.list);return true;
+  v315RenderWrong(st.list);v315RenderSubjects(st.list,st.all);v315RenderBalance(st.list);try{if(typeof window.__YKS_RENDER_EXAM_DASHBOARD__==='function')window.__YKS_RENDER_EXAM_DASHBOARD__()}catch(e){try{infraError('v4-exam-dashboard',e)}catch(_){}}return true;
 }
 function runV315SelfTest(){
   const checks=[],add=(n,o)=>checks.push([n,!!o]),keep=S,kt=v315DashType,kw=v315DashWindow;

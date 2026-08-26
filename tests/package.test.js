@@ -17,9 +17,9 @@ test("HTML kimlikleri benzersiz ve kritik alanlar mevcut",()=>{
 
 test("sürüm, şema ve PWA önbelleği tutarlı",()=>{
   const html=fs.readFileSync(path.join(root,"index.html"),"utf8"),app=fs.readFileSync(path.join(root,"app.js"),"utf8"),sw=fs.readFileSync(path.join(root,"sw.js"),"utf8"),version=JSON.parse(fs.readFileSync(path.join(root,"version.json"),"utf8"));
-  assert.match(html,/src="\.\/app\.js\?v=4\.0\.0-r14"/);assert.match(app,/const APP_VERSION="4\.0\.0"/);assert.match(app,/const DATA_SCHEMA=21/);
-  assert.equal(version.version,"4.0.0");assert.equal(version.schema,21);assert.match(sw,/yks-core-v4\.0\.0-r14/);
-  ["app.css","app.js?v=4.0.0-r14","modules/core-utils.js?v=4.0.0-r14","modules/stability.js?v=4.0.0-r14","modules/topic-guides.js?v=4.0.0-r14","modules/learning-lab.js?v=4.0.0-r14","modules/target-center.js?v=4.0.0-r14","modules/export-center.js?v=4.0.0-r14","modules/release-selftest.js?v=4.0.0-r14"].forEach(asset=>assert.ok(sw.includes(asset),asset));
+  assert.match(html,/src="\.\/app\.js\?v=4\.0\.0-r15"/);assert.match(app,/const APP_VERSION="4\.0\.0"/);assert.match(app,/const DATA_SCHEMA=21/);
+  assert.equal(version.version,"4.0.0");assert.equal(version.schema,21);assert.match(sw,/yks-core-v4\.0\.0-r15/);
+  ["app.css","app.js?v=4.0.0-r15","modules/core-utils.js?v=4.0.0-r15","modules/stability.js?v=4.0.0-r15","modules/topic-guides.js?v=4.0.0-r15","modules/learning-lab.js?v=4.0.0-r15","modules/target-center.js?v=4.0.0-r15","modules/export-center.js?v=4.0.0-r15","modules/release-selftest.js?v=4.0.0-r15"].forEach(asset=>assert.ok(sw.includes(asset),asset));
   assert.doesNotMatch(sw,/modules\/(topic-coach|learning-tools)\.js/);
 });
 
@@ -162,6 +162,13 @@ test("v4 ilerleme ekranı tür güvenli analiz ve sade tek bakış dashboard'u k
   ["v4ProgressOverview","v4SubjectInsights","v4ProgressRhythm","v4TopicsReviews","v4ProgressCoreGrid"].forEach(id=>assert.match(html,new RegExp(`id="${id}"`),id));
   assert.match(html,/Ayrıntılı analizleri göster/);assert.match(css,/v4-progress-core-grid/);assert.match(css,/v4-progress-detail-grid/);
   assert.doesNotMatch(source,/localStorage\.(?:setItem|removeItem|clear)/);
+});
+
+test("v4 deneme ekranı dönem, yanlış yoğunluğu ve son iki denemeyi tür güvenli analiz eder",()=>{
+  const files=["src/domain/exam-analysis-service.ts","src/domain/legacy-exam-analysis-bridge.ts","src/ui/exam-dashboard.ts"],source=files.map(file=>{assert.equal(fs.existsSync(path.join(root,file)),true,file);return fs.readFileSync(path.join(root,file),"utf8");}).join("\n"),entry=fs.readFileSync(path.join(root,"src/main.ts"),"utf8"),html=fs.readFileSync(path.join(root,"index.html"),"utf8"),app=fs.readFileSync(path.join(root,"app.js"),"utf8"),css=fs.readFileSync(path.join(root,"app.css"),"utf8");
+  assert.match(source,/analyzeExams/);assert.match(source,/__YKS_EXAM_ANALYSIS__/);assert.match(source,/renderExamDashboard/);assert.match(source,/sharePercent/);assert.match(source,/periodDelta/);
+  assert.match(entry,/installLegacyExamAnalysisBridge\(\)/);assert.match(entry,/examAnalysis:true/);assert.match(app,/__YKS_RENDER_EXAM_DASHBOARD__/);
+  ["v4ExamInsights","v4ExamComparison"].forEach(id=>assert.match(html,new RegExp(`id="${id}"`),id));assert.match(html,/Pay ve tekrar sayısı/);assert.match(css,/v4-exam-compare-grid/);assert.doesNotMatch(source,/localStorage\.(?:setItem|removeItem|clear)/);
 });
 
 test("v4 kararlı sürümü tarayıcı ve üretim paketi kontrollerini içerir",()=>{

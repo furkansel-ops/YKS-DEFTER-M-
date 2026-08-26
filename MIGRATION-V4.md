@@ -2,6 +2,13 @@
 
 Bu dal, çalışan v3 uygulamasını bozmadan yeni altyapıya kademeli geçiş için kullanılır.
 
+## Tamamlanan adım 15 — Deneme analizi
+
+- Son denemeyi yalnız bir öncekiyle değil, son dönem ortalamasını önceki eşit dönemle karşılaştıran tür güvenli analiz eklendi.
+- Konu yanlışlarında toplam pay ve kaç farklı denemede tekrarlandığı gösteriliyor.
+- Dersler veri yeterliliğiyle güçlü/dikkat isteyen olarak ayrılıyor; tek kayıtta kesin yorum yapılmıyor.
+- Son iki denemenin net, süre, yanlış, boş ve ders farkları tek karşılaştırma kartında toplanıyor.
+
 ## Tamamlanan adım 14 — İlerleme analizi
 
 - Dönem, net, ders, konu, tekrar ve çalışma ritmi hesapları tür güvenli `progress-analysis-service` içinde birleştirildi.

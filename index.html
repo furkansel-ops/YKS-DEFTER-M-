@@ -508,22 +508,27 @@ document.documentElement.setAttribute("data-theme",t);}catch(e){}})();
         </div>
       </div>
       <div class="v315-kpis" id="v315Kpis"></div>
+      <div class="v4-exam-insights" id="v4ExamInsights"></div>
       <div class="v315-dash-grid">
         <div class="card v315-trend-card">
           <div class="v315-card-head"><b>Net trendi</b><small id="v315TrendMeta">—</small></div>
           <div id="v315Trend"></div>
         </div>
         <div class="card v315-wrong-card">
-          <div class="v315-card-head"><b>En çok yanlış yaptığın konular</b><small>Denemeye bağlanan ilk 5</small></div>
+          <div class="v315-card-head"><b>Yanlışların yoğunlaştığı konular</b><small>Pay ve tekrar sayısı</small></div>
           <div id="v315WrongTopics"></div>
         </div>
         <div class="card v315-subject-card">
-          <div class="v315-card-head"><b>Ders bazlı performans</b><small>Son denemeye göre değişim</small></div>
+          <div class="v315-card-head"><b>Ders bazlı performans</b><small>Dönem ortalaması ve değişim</small></div>
           <div id="v315SubjectPerformance"></div>
         </div>
         <div class="card v315-balance-card">
           <div class="v315-card-head"><b>Doğru / yanlış / boş</b><small id="v315BalanceMeta">—</small></div>
           <div id="v315Balance"></div>
+        </div>
+        <div class="card v4-exam-compare-card">
+          <div class="v315-card-head"><b>Son iki deneme karşılaştırması</b><small>Net, süre ve ders farkları</small></div>
+          <div id="v4ExamComparison"></div>
         </div>
       </div>
     </div>
@@ -1931,7 +1936,7 @@ document.documentElement.setAttribute("data-theme",t);}catch(e){}})();
   </div>
 </div>
 
-<div class="toast" id="toast" role="status" aria-live="polite"></div><script vite-ignore src="./app.js?v=4.0.0-r14"></script>
+<div class="toast" id="toast" role="status" aria-live="polite"></div><script vite-ignore src="./app.js?v=4.0.0-r15"></script>
 
 <script type="module" id="firebaseSyncModule">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
@@ -2165,13 +2170,13 @@ window.addEventListener("online",()=>{if(!user)return;status("Bağlantı geldi",
 
 
 
-<script vite-ignore src="./modules/core-utils.js?v=4.0.0-r14"></script>
-<script vite-ignore src="./modules/stability.js?v=4.0.0-r14"></script>
-<script vite-ignore src="./modules/topic-guides.js?v=4.0.0-r14"></script>
-<script vite-ignore src="./modules/learning-lab.js?v=4.0.0-r14"></script>
-<script vite-ignore src="./modules/target-center.js?v=4.0.0-r14"></script>
-<script vite-ignore src="./modules/export-center.js?v=4.0.0-r14"></script>
-<script vite-ignore src="./modules/release-selftest.js?v=4.0.0-r14"></script>
+<script vite-ignore src="./modules/core-utils.js?v=4.0.0-r15"></script>
+<script vite-ignore src="./modules/stability.js?v=4.0.0-r15"></script>
+<script vite-ignore src="./modules/topic-guides.js?v=4.0.0-r15"></script>
+<script vite-ignore src="./modules/learning-lab.js?v=4.0.0-r15"></script>
+<script vite-ignore src="./modules/target-center.js?v=4.0.0-r15"></script>
+<script vite-ignore src="./modules/export-center.js?v=4.0.0-r15"></script>
+<script vite-ignore src="./modules/release-selftest.js?v=4.0.0-r15"></script>
 <script type="module" src="./src/main.ts"></script>
 </body>
 </html>
