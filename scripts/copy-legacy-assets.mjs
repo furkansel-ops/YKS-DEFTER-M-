@@ -7,6 +7,7 @@ const assets=[
   "app.js",
   "app.css",
   "sw.js",
+  "404.html",
   "modules",
   "manifest.webmanifest",
   "version.json",
