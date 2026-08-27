@@ -27,8 +27,15 @@ test('Kulak referans kesiti gerçek 3B kabuk, kemik katmanları ve kanal geometr
   const {createEarSourceModel}=await load('src/ui/biology-ear-source.ts'),{disposeAtlasObject}=await load('src/ui/biology-atlas-model.ts'),THREE=await import('three');
   const model=createEarSourceModel(),names=new Set();let meshes=0,volume=0;
   model.traverse(o=>{if(!o.isMesh)return;meshes++;names.add(o.name);o.geometry.computeBoundingBox();const s=o.geometry.boundingBox.getSize(new THREE.Vector3());assert.ok(s.x>0&&s.y>0&&s.z>0,o.name);volume+=s.x*s.y*s.z;});
-  for(const name of ['pinna-shell','helix-rim','antihelix-ridge','temporal-bone-upper','temporal-bone-floor','ear-canal-wall','ear-canal-lumen'])assert.ok(names.has(name),name);
-  assert.ok(meshes>=35);assert.ok(volume>1);disposeAtlasObject(model);
+  for(const name of ['auricle-skin-plate','helix','antihelix','temporal-bone-body','temporal-bone-floor','external-auditory-canal-wall','external-auditory-canal-lumen','tympanic-membrane','malleus-head','stapes','cochlea'])assert.ok(names.has(name),name);
+  assert.ok(meshes>70);assert.ok(volume>1);disposeAtlasObject(model);
+});
+
+test('Kulak kapalı görünümde de referans tipi anatomik kesit ayrıntıları taşır',async()=>{
+  const {createEarSourceModel}=await load('src/ui/biology-ear-source.ts'),THREE=await import('three');
+  const ear=createEarSourceModel(),names=new Set();let meshes=0;ear.traverse(o=>{if(o.isMesh){meshes++;names.add(o.name);const box=new THREE.Box3().setFromObject(o);assert.ok(box.getSize(new THREE.Vector3()).length()>0);}});
+  for(const name of ['helix','concha','external-auditory-canal-wall','tympanic-membrane','malleus-head','stapes','vestibule','semicircular-canal-1','cochlea','auditory-nerve-0','eustachian-wall'])assert.ok(names.has(name),name);
+  assert.ok(meshes>70,'cutaway detail mesh count');(await load('src/ui/biology-atlas-model.ts')).disposeAtlasObject(ear);
 });
 
 test('Kalp boşlukları dış duvar, iç duvar ve kesit kenarı içerir; sol karıncık duvarı daha kalındır',async()=>{

@@ -92,7 +92,7 @@ export async function loadAtlasModel(container: HTMLElement, id: string, signal:
   };
   const api: AtlasModelControls = {
     zoom(direction) {const distance=camera.position.length();camera.position.multiplyScalar(THREE.MathUtils.clamp(distance*(direction<0?.83:1.2),3.5,30)/distance);invalidate();},
-    reset() {camera.position.set(0,.25,Math.min(30,fitDistance(targetOpen)));controls.target.set(0,0,0);if(model)model.rotation.set(0,-.2,0);invalidate();},
+    reset() {camera.position.set(0,.25,Math.min(30,fitDistance(targetOpen)));controls.target.set(0,0,0);if(model)model.rotation.set(organ.id==="ear"?-.035:0,organ.id==="ear"?.035:-.2,0);invalidate();},
     // Rotation starts only after an explicit user action, never on load.
     rotate(enabled) {controls.autoRotate=enabled;invalidate();},
     wireframe(enabled) {model?.traverse(object=>{if(object instanceof THREE.Mesh) for(const material of Array.isArray(object.material)?object.material:[object.material]) if(material instanceof THREE.MeshStandardMaterial) material.wireframe=enabled;});invalidate();},
@@ -144,7 +144,7 @@ export async function loadAtlasModel(container: HTMLElement, id: string, signal:
     const longest=Math.max(size.x,size.y,size.z);
     if(!Number.isFinite(longest)||longest<=0)throw new Error("Modelin boyutları okunamadı.");
     model.scale.setScalar(3.8/longest);model.position.copy(center.multiplyScalar(-3.8/longest));
-    assembly=createOrganAssembly(model,organ.id);model=assembly.root;model.rotation.y=-.2;scene.add(model);
+    assembly=createOrganAssembly(model,organ.id);model=assembly.root;model.rotation.set(organ.id==="ear"?-.035:0,organ.id==="ear"?.035:-.2,0);scene.add(model);
     labels=createModelLabels(container,organ.id,assembly,value=>{if(!disposed)options.onSelect?.(value);});labels.show(labelsEnabled);labels.select(selected);assembly.interior.select(selected);api.reset();
     progress(100);invalidate();return api;
   }catch(error){api.dispose();throw error;}
