@@ -1,6 +1,6 @@
 import {access,readFile,readdir} from "node:fs/promises";
 import {resolve} from "node:path";
-import {verifyAnatomyAssets} from "./verify-anatomy-assets.mjs";
+import {verifyAnatomyAssets,inspectAnatomyGlb} from "./verify-anatomy-assets.mjs";
 
 const root=resolve(import.meta.dirname,".."),dist=resolve(root,"dist");
 const required=[
@@ -44,6 +44,8 @@ if(!atlasChunk||!modelChunk||!chunks.some(name=>/^biology-atlas-.+\.css$/.test(n
 const atlasBundle=await readFile(resolve(dist,"assets",atlasChunk),"utf8");
 if(!atlasBundle.includes("Genden proteine")||!atlasBundle.includes("Kendini sına")||bundle.includes("WebGLRenderer"))throw new Error("Atlas içeriği / isteğe bağlı yükleme sınırı bozuk");
 await verifyAnatomyAssets(resolve(dist,"anatomy"),JSON.parse(await readFile(resolve(root,"scripts/anatomy-assets.json"),"utf8")));
+const earBytes=await readFile(resolve(dist,"anatomy/models/ear.glb")),earData=inspectAnatomyGlb(earBytes),earNames=new Set((earData.nodes||[]).map(node=>node.name));
+if(earBytes.length<1400000||earBytes.length>2200000||!earNames.has("outer_ear_main")||!earNames.has("cochlea")||!earNames.has("auditory_nerve_main"))throw new Error("Özel 3B kulak modeli üretim paketinde eksik veya bozuk");
 for(const asset of ["error-journal.js?v=4.1.0-r20","personal-upgrades.js?v=4.1.0-r20","progress-v2.js?v=4.1.0-r20","learning-lab-v2.js?v=4.1.0-r24","learning-lab-v3.js?v=4.1.0-r28"])if(!sw.includes(asset))throw new Error("Kişisel modül çevrimdışı çekirdekte eksik: "+asset);
 if(!stability.includes("personal-upgrades.js?v=4.1.0-r20")||!stability.includes("progress-v2.js?v=4.1.0-r20")||!stability.includes("learning-lab-v2.js?v=4.1.0-r24")||!stability.includes("learning-lab-v3.js?v=4.1.0-r28"))throw new Error("Kişisel geliştirme modülleri çalışma zamanında yüklenmiyor");
 if(!personal.includes("enforceSingleUser")||!personal.includes("bindProgramGrid"))throw new Error("Tek kullanıcı / Program v2 üretim paketinde eksik");

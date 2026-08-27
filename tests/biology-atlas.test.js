@@ -32,7 +32,7 @@ test("Atlas 24 benzersiz konu, 5 grup ve izinli 10 organla tutarlı bağlantıla
   for(const organ of organs){
     assert.ok(topics.find(t=>t.id===organ.topic).models.includes(organ.id));
     const entry=manifest.files.find(f=>f.target===`models/${organ.id}.glb`);
-    if(organ.id==="ear"){assert.equal(entry,undefined);assert.equal(organ.megabytes,"0,0");continue;}
+    if(organ.id==="ear"){assert.equal(entry,undefined);const ear=fs.statSync(path.join(root,"public/anatomy/models/ear.glb"));assert.equal(organ.megabytes,(ear.size/1e6).toFixed(1).replace(".",","));continue;}
     assert.ok(entry,organ.id);assert.equal(organ.megabytes,(entry.bytes/1e6).toFixed(1).replace(".",","));
   }
 });

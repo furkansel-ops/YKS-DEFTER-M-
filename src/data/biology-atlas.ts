@@ -16,7 +16,7 @@ export const ATLAS_ORGANS: readonly AtlasOrgan[] = [
   {id:"liver",name:"Karaciğer",topic:"sindirim",detail:"Safra üretimi, glikojen depolama, üre oluşumu ve metabolik düzenleme görevleri vardır.",megabytes:"2,7"},
   {id:"kidneys",name:"Böbrek",topic:"bosaltim",detail:"Nefronlarda süzülme, geri emilim ve salgılama; su–iyon dengesinin düzenlenmesi.",megabytes:"2,2"},
   {id:"eyeball",name:"Göz",topic:"duyu",detail:"Kornea ve mercek ışığı kırar; retinadaki fotoreseptörler ışığı sinirsel sinyale dönüştürür.",megabytes:"2,2"},
-  {id:"ear",name:"Kulak",topic:"duyu",detail:"Dış kulaktan gelen titreşim kulak zarı ve kemikçiklerle iç kulağa aktarılır; koklea işitme, vestibüler yapılar dengeyle ilişkilidir.",megabytes:"0,0"},
+  {id:"ear",name:"Kulak",topic:"duyu",detail:"Dış kulaktan gelen titreşim kulak zarı ve kemikçiklerle iç kulağa aktarılır; koklea işitme, vestibüler yapılar dengeyle ilişkilidir.",megabytes:"1,6"},
   {id:"intestine",name:"Bağırsak",topic:"sindirim",detail:"İnce bağırsak sindirim ve emilimin; kalın bağırsak su–elektrolit emiliminin önemli bir bölümünü üstlenir.",megabytes:"2,0"},
   {id:"pancreas",name:"Pankreas",topic:"endokrin",detail:"Enzimlerini kanalla bağırsağa, insülin ve glukagon gibi hormonlarını kana verir.",megabytes:"4,8"},
   {id:"skin",name:"Deri",topic:"duyu",detail:"Koruma, sıcaklık düzenleme ve duyunun yanında ilk savunma hattına katkı sağlar.",megabytes:"5,8"}

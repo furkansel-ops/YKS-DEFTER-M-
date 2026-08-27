@@ -5,7 +5,6 @@ import {MeshoptDecoder} from "three/examples/jsm/libs/meshopt_decoder.module.js"
 import {atlasAsset, getAtlasOrgan} from "../domain/biology-atlas-service.ts";
 import {createOrganAssembly} from "./biology-organ-assembly.ts";
 import {createModelLabels} from "./biology-model-labels.ts";
-import {createEarSourceModel} from "./biology-ear-source.ts";
 
 export interface AtlasModelControls {zoom(direction: number): void; reset(): void; rotate(enabled: boolean): void; wireframe(enabled: boolean): void; open(enabled:boolean):void; select(id:string):void; labels(enabled:boolean):void; dispose(): void;}
 export function disposeAtlasObject(root: THREE.Object3D) {
@@ -122,9 +121,7 @@ export async function loadAtlasModel(container: HTMLElement, id: string, signal:
   resize();
   try {
     progress(0);
-    if(organ.id==="ear"){model=createEarSourceModel();progress(85);}
-    else {
-      const response = await fetch(atlasAsset(`models/${organ.id}.glb`), {signal});
+    const response = await fetch(atlasAsset(`models/${organ.id}.glb`), {signal});
     if(!response.ok)throw new Error("Model indirilemedi. Bağlantını kontrol edip yeniden deneyebilirsin.");
     const length=Number(response.headers.get("content-length"))||0;
     const reader=response.body?.getReader();let bytes: ArrayBuffer;
@@ -138,8 +135,7 @@ export async function loadAtlasModel(container: HTMLElement, id: string, signal:
     if(bytes.byteLength>12*1024*1024)throw new Error("Model dosyası beklenen boyuttan büyük.");
     const gltf=await new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).parseAsync(bytes,"");
     if(signal.aborted||disposed){disposeAtlasObject(gltf.scene);signal.throwIfAborted();throw new Error("Görüntüleyici kapatıldı.");}
-      model=gltf.scene;
-    }
+    model=gltf.scene;
     const box=new THREE.Box3().setFromObject(model),size=box.getSize(new THREE.Vector3()),center=box.getCenter(new THREE.Vector3());
     const longest=Math.max(size.x,size.y,size.z);
     if(!Number.isFinite(longest)||longest<=0)throw new Error("Modelin boyutları okunamadı.");
