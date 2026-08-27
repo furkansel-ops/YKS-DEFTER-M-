@@ -5,11 +5,12 @@ Bu kararlı sürüm, çalışan v3 arayüzünü değiştirmeden Vite + TypeScrip
 ## Biyoloji Atlası tek sahne 3B güncellemesi · önbellek r31
 
 - 24 konuda 109 ayrı odak çizimi, numaralı öğrenme durakları, konum ve görsel okuma rehberi. Genel bağlantı şeması ayrıntılı anlatımda; sınamada ipuçları gizli.
-- 9 kaynak organın üzerinde dönen kameraya bağlı 52 YKS işareti; içeride 52 seçilebilir, hacimli öğretici 3B yapı.
+- 10 organ üzerinde dönen kameraya bağlı toplam 60 YKS işareti; içeride 60 seçilebilir, hacimli öğretici 3B yapı.
+- Kulak atlası ayrıca cihazda oluşturulan 3B dış kulak yüzeyine sahiptir. “3B içini aç” ile dış kulak yolu, kulak zarı, çekiç–örs–üzengi, Östaki borusu, vestibül, yarım daire kanalları, koklea ve işitme siniri seçilebilir. Kulak için ek GLB indirmesi gerekmez.
 - “3B içini aç” aynı sahnede kaynak kabuğun ön/arka yarılarını ayırır; ortada ayrıca hazırlanmış öğretici iç parçalar görünür. Kalp boşluklarında duvar kalınlığı ve kapaklar; beyinde ön/orta/arka bölümler. Büyütmeler ölçekli değildir.
-- Kaynak 3B modeller, eski laboratuvar araçları ve şema 21 kayıtları korunur; yeni görünümler kullanıcı verisi yazmaz.
+- Mevcut kaynak 3B modeller, eski laboratuvar araçları ve şema 21 kayıtları korunur; yeni görünümler kullanıcı verisi yazmaz.
 - Yapı seçimi, aç/kapat, etiket ve büyütme aynı canvas/model üzerinde çalışır; indirmeyi tekrar başlatmaz. Konu/organ/sekme değişiminde eski yükleme iptal edilir. WebGL yoksa açıkça adlandırılmış 2B şema yedeği kullanılabilir.
-- Geometri, kesme düzlemleri, paylaşılan kaynak temizliği, 52 seçim, 109 çizim, yükleme yarışları ve eski laboratuvar regresyonları otomatik test kapsamındadır.
+- Geometri, kesme düzlemleri, paylaşılan kaynak temizliği, 60 seçim, 109 çizim, yükleme yarışları ve eski laboratuvar regresyonları otomatik test kapsamındadır.
 
 ## Kararlı sürüm kontrolü
 
