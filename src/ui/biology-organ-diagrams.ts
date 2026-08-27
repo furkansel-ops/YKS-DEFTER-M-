@@ -121,6 +121,18 @@ const drawings:Record<OrganId,string>={
     <g fill="#caa080" stroke="#a07568" stroke-width="2"><circle cx="425" cy="376" r="11"/><circle cx="434" cy="399" r="11"/><circle cx="459" cy="332" r="11"/></g>
     <path d="M409 415Q465 437 503 401" stroke="#b46f7d" stroke-width="5" fill="none"/>
   </g>`,
+  ear:`<g class="organ-anatomy" stroke-linejoin="round">
+    <path d="M205 118C151 151 150 355 220 401C266 430 302 390 282 345C263 307 216 312 225 266C233 225 292 242 300 190C311 123 253 88 205 118Z" fill="#e4ad9f" stroke="#a76c78" stroke-width="5"/>
+    <path d="M236 154C196 183 193 305 237 344C261 365 276 337 259 316C235 287 236 251 269 238C300 225 286 171 266 156" fill="none" stroke="#bd7d83" stroke-width="14"/>
+    <path data-region="ear-canal" d="M272 270H333" stroke="#efd5b6" stroke-width="22"/><path d="M272 270H333" stroke="#b8987f" stroke-width="3"/>
+    <ellipse data-region="eardrum" cx="337" cy="270" rx="8" ry="42" fill="#e5a89f" stroke="#9e6674" stroke-width="4"/>
+    <g data-region="ossicles" fill="#d6b471" stroke="#9c7b49" stroke-width="3"><ellipse cx="358" cy="252" rx="10" ry="17"/><ellipse cx="378" cy="246" rx="10" ry="13"/><ellipse cx="397" cy="258" rx="8" ry="16"/><path d="M365 254L372 248M385 249L391 255"/></g>
+    <path data-region="eustachian-tube" d="M381 287Q397 345 428 394" fill="none" stroke="#e4c79d" stroke-width="15"/>
+    <ellipse data-region="vestibule" cx="423" cy="265" rx="23" ry="30" fill="#8ebcaf" stroke="#5c8e82" stroke-width="4"/>
+    <g data-region="semicircular-canals" fill="none" stroke="#79aa9f" stroke-width="11"><ellipse cx="431" cy="191" rx="38" ry="58"/><ellipse cx="459" cy="204" rx="48" ry="31" transform="rotate(35 459 204)"/><ellipse cx="410" cy="207" rx="27" ry="49" transform="rotate(-32 410 207)"/></g>
+    <path data-region="cochlea" d="M455 286C520 267 543 338 496 366C456 390 431 348 454 322C475 300 503 318 494 340C487 355 467 350 468 337" fill="none" stroke="#d48c8d" stroke-width="13"/>
+    <path data-region="auditory-nerve" d="M500 302Q540 285 571 294M500 327Q543 327 574 344" fill="none" stroke="#d3b16e" stroke-width="8"/>
+  </g>`,
   skin:`<g class="organ-anatomy" stroke-linejoin="round">
     <path d="M227 146Q254 134 280 145T334 145T388 145T442 145T505 145V196Q476 215 448 197T391 197T334 197T277 197T227 197Z" fill="#cba08b" stroke="#a67d73" stroke-width="3"/>
     <path d="M227 197Q253 181 277 197T334 197T391 197T448 197T505 196V380H227Z" fill="#eed1b4" stroke="#b89582" stroke-width="3"/>
@@ -138,7 +150,7 @@ const drawings:Record<OrganId,string>={
 
 export function organDiagram(id:OrganId,selected:string,open=true,labels=true,animate=false):string {
   const guide=organGuide(id)!;
-  const canOpen=id==="heart"||id==="brain";
+  const canOpen=id==="heart"||id==="brain"||id==="ear";
   const isOpen=!canOpen||open;
   const pins=guide.structures.map((part,index)=>{
     const [x,y]=part.point,left=part.side==="left",labelX=left?16:542,labelY=80+part.row*88;

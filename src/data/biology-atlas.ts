@@ -1,6 +1,6 @@
 export const ATLAS_GROUPS = ["İnsan sistemleri", "Genden proteine", "Enerji dönüşümleri", "Bitki biyolojisi", "Ekoloji"] as const;
 export type AtlasGroup = typeof ATLAS_GROUPS[number];
-export type OrganId = "heart" | "brain" | "lungs" | "liver" | "kidneys" | "eyeball" | "intestine" | "pancreas" | "skin";
+export type OrganId = "heart" | "brain" | "lungs" | "liver" | "kidneys" | "eyeball" | "ear" | "intestine" | "pancreas" | "skin";
 export type AtlasScene = "neuron" | "feedback" | "senses" | "muscle" | "digestion" | "circulation" | "immunity" | "alveoli" | "nephron" | "reproduction" | "dna" | "protein" | "biotech" | "atp" | "chloroplast" | "chemo" | "mitochondria" | "fermentation" | "plant" | "transport" | "flower" | "community" | "population" | "environment";
 export interface AtlasTopic {
   id: string; title: string; group: AtlasGroup; scene: AtlasScene; intro: string;
@@ -16,6 +16,7 @@ export const ATLAS_ORGANS: readonly AtlasOrgan[] = [
   {id:"liver",name:"Karaciğer",topic:"sindirim",detail:"Safra üretimi, glikojen depolama, üre oluşumu ve metabolik düzenleme görevleri vardır.",megabytes:"2,7"},
   {id:"kidneys",name:"Böbrek",topic:"bosaltim",detail:"Nefronlarda süzülme, geri emilim ve salgılama; su–iyon dengesinin düzenlenmesi.",megabytes:"2,2"},
   {id:"eyeball",name:"Göz",topic:"duyu",detail:"Kornea ve mercek ışığı kırar; retinadaki fotoreseptörler ışığı sinirsel sinyale dönüştürür.",megabytes:"2,2"},
+  {id:"ear",name:"Kulak",topic:"duyu",detail:"Dış kulaktan gelen titreşim kulak zarı ve kemikçiklerle iç kulağa aktarılır; koklea işitme, vestibüler yapılar dengeyle ilişkilidir.",megabytes:"0,0"},
   {id:"intestine",name:"Bağırsak",topic:"sindirim",detail:"İnce bağırsak sindirim ve emilimin; kalın bağırsak su–elektrolit emiliminin önemli bir bölümünü üstlenir.",megabytes:"2,0"},
   {id:"pancreas",name:"Pankreas",topic:"endokrin",detail:"Enzimlerini kanalla bağırsağa, insülin ve glukagon gibi hormonlarını kana verir.",megabytes:"4,8"},
   {id:"skin",name:"Deri",topic:"duyu",detail:"Koruma, sıcaklık düzenleme ve duyunun yanında ilk savunma hattına katkı sağlar.",megabytes:"5,8"}
@@ -32,7 +33,7 @@ export const ATLAS_TOPICS: readonly AtlasTopic[] = [
     trap:"ADH ve oksitosin hipotalamusta üretilir, hipofizin arka lobundan kana verilir. İnsülin–glukagon denetimini de ayrı düşün.",quiz:{prompt:"Hormon artışının üst merkezleri baskılayarak dengeyi koruduğu mekanizmayı seç.",answer:4,why:"Negatif geri bildirim değişime karşı koyarak dengeye katkı sağlar."},models:["pancreas","brain"]},
   {id:"duyu",title:"Duyu organları",group:"İnsan sistemleri",scene:"senses",intro:"Uyaranın türü değişir; sinir sistemine taşınan bilgi reseptörlerde başlar.",
     steps:[["Göz / retina","Kornea ve mercek ışığı kırar; çubuk ve koniler retinada bulunur. Görüntü beyin tarafından yorumlanır."],["Kulak / koklea","Ses titreşimleri orta kulak kemikçiklerinden iç kulağa aktarılır; kokleadaki tüylü hücreler uyarılır."],["Denge reseptörleri","Yarım daire kanalları açısal hareketi; utrikulus ve sakkulus doğrusal ivme ve yerçekimiyle ilgili değişimleri algılar."],["Tat ve koku","Çözünmüş kimyasal maddeler kemoreseptörleri uyarır. Koku, tat algısına katkı sağlar."],["Deri reseptörleri","Dokunma, basınç ve sıcaklık gibi uyaranlar farklı reseptörlerle algılanır."]],links:[],
-    trap:"Göz merceği ışığı algılamaz; ışığı kırar. İşitme ile denge, iç kulakta farklı yapılarda gerçekleşir.",quiz:{prompt:"Işığı sinirsel sinyale dönüştüren fotoreseptörlerin bulunduğu yapıyı seç.",answer:0,why:"Çubuk ve koni hücreleri retinadadır."},models:["eyeball","skin"]},
+    trap:"Göz merceği ışığı algılamaz; ışığı kırar. İşitme ile denge, iç kulakta farklı yapılarda gerçekleşir.",quiz:{prompt:"Işığı sinirsel sinyale dönüştüren fotoreseptörlerin bulunduğu yapıyı seç.",answer:0,why:"Çubuk ve koni hücreleri retinadadır."},models:["eyeball","ear","skin"]},
   {id:"destek",title:"Destek, hareket ve kasılma",group:"İnsan sistemleri",scene:"muscle",intro:"Kayan filament modelinde değişen uzunlukları gözünde canlandır.",
     steps:[["Aktin","İnce filamenttir. Kasılmada miyozin üzerinde kayar; kendi boyu kısalmaz."],["Miyozin","Kalın filamenttir. Başları aktinle çapraz köprü kurar; ATP döngüsü hareketi sağlar."],["Z çizgileri","Kasılmada birbirine yaklaşır; aralarındaki sarkomer kısalır."],["Ca²⁺ ve ATP","Ca²⁺ bağlanma bölgelerinin açılmasına yardım eder; ATP köprünün ayrılması ve döngünün sürmesi için gereklidir."]],links:[],
     trap:"Kasılmada A bandının boyu sabit kalırken I bandı ve H bölgesi daralır. Tendon kası kemiğe, bağ kemiği kemiğe bağlar.",quiz:{prompt:"Kasılmada birbirine yaklaşarak sarkomerin kısaldığını gösteren sınırları seç.",answer:2,why:"İki Z çizgisi arasındaki uzaklık sarkomer uzunluğudur."},models:[]},

@@ -20,7 +20,7 @@ test('Her 3B yapı için sonlu konum, gerçek hacim geometrisi ve bağımsız se
     for(const [name,p] of interior.parts)p.root.traverse(o=>{if(o.isMesh)for(const m of Array.isArray(o.material)?o.material:[o.material])assert.equal(m.emissiveIntensity,name===first?.48:0);});
     interior.select('');for(const p of interior.parts.values())p.root.traverse(o=>{if(o.isMesh)for(const m of Array.isArray(o.material)?o.material:[o.material])assert.equal(m.emissiveIntensity,0);});
     disposeAtlasObject(interior.root);
-  }assert.equal(count,52);
+  }assert.equal(count,60);
 });
 
 test('Kalp boşlukları dış duvar, iç duvar ve kesit kenarı içerir; sol karıncık duvarı daha kalındır',async()=>{
