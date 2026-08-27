@@ -32,12 +32,17 @@ jobs:
       - name: 3B kulak atlasını ekle
         run: python scripts/add-ear-atlas.py
 
+      - name: Test sözleşmelerini güncelle
+        run: python scripts/fix-ear-atlas-tests.py
+
+      - name: Geçici yükseltme dosyalarını çalışma ağacından kaldır
+        run: rm .github/workflows/add-ear-atlas.yml scripts/add-ear-atlas.py scripts/fix-ear-atlas-tests.py
+
       - name: Türleri, testleri ve üretim paketini doğrula
         run: npm run release:check
 
-      - name: Geçici yükseltme dosyalarını temizle ve kaydet
+      - name: Doğrulanmış değişiklikleri kaydet
         run: |
-          rm .github/workflows/add-ear-atlas.yml scripts/add-ear-atlas.py
           git config user.name "YKS Defterim Automation"
           git config user.email "actions@users.noreply.github.com"
           git add -A
