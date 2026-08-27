@@ -48,7 +48,7 @@
   }
 
   function scienceRows(){const dives=window.YKSLearningLabV2?.deepDives||{};return Array.isArray(dives[science])?dives[science]:[];}
-  function renderScience(){const root=$("v4ScienceCards");if(!root)return;$("v4ScienceBiology")?.classList.toggle("on",science==="Biyoloji");$("v4SciencePhysics")?.classList.toggle("on",science==="Fizik");const rows=scienceRows();root.innerHTML=rows.length?'<div class="v4-science-grid">'+rows.map(x=>'<article class="v4-science-card"><i>'+esc(x[0])+'</i><div><b>'+esc(x[1])+'</b><p>'+esc(x[2])+'</p><small><strong>Sık hata:</strong> '+esc(x[3])+'</small><em><strong>YKS taktiği:</strong> '+esc(x[4])+'</em></div></article>').join("")+'</div>':'<div class="v4-science-empty">Bilim kartları hazırlanıyor.</div>';}
+  function renderScience(){if(window.YKSScienceCards?.mount?.($("v320PanelScience")))return;const root=$("v4ScienceCards");if(!root)return;$("v4ScienceBiology")?.classList.toggle("on",science==="Biyoloji");$("v4SciencePhysics")?.classList.toggle("on",science==="Fizik");const rows=scienceRows();const markup=rows.length?'<div class="v4-science-grid">'+rows.map(x=>'<article class="v4-science-card"><i>'+esc(x[0])+'</i><div><b>'+esc(x[1])+'</b><p>'+esc(x[2])+'</p><small><strong>Sık hata:</strong> '+esc(x[3])+'</small><em><strong>YKS taktiği:</strong> '+esc(x[4])+'</em></div></article>').join("")+'</div>':'<div class="v4-science-empty">Bilim kartları hazırlanıyor.</div>';if(root.dataset.scienceMarkup!==markup){root.dataset.scienceMarkup=markup;root.innerHTML=markup;}}
 
   function renderPeriodicStudy(){
     const root=$("v4PeriodicStudy");if(!root)return;
@@ -154,7 +154,7 @@
   function schedule(){if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;ensureStructure();});}
   function start(){let tries=0;const timer=setInterval(()=>{tries++;if($("v320LearningLab")&&window.YKSLearningLabV2&&window.YKSLearningLab){clearInterval(timer);ensureStructure();setTab(active);observer=new MutationObserver(schedule);observer.observe($("v320LearningLab"),{childList:true,subtree:true});}else if(tries>60)clearInterval(timer);},120);}
 
-  window.v4SetScienceSubject=value=>{science=value==="Fizik"?"Fizik":"Biyoloji";renderScience();};
+  window.v4SetScienceSubject=value=>{science=value==="Fizik"?"Fizik":"Biyoloji";if(window.YKSScienceCards){window.YKSScienceCards.setSubject(science);return;}renderScience();};
   window.v4PeriodicSetType=value=>{periodicType=TYPES.includes(value)?value:"Tümü";renderPeriodicStudy();applyPeriodicFilters();};
   window.v4PeriodicToggleYks=()=>{periodicYksOnly=!periodicYksOnly;renderPeriodicStudy();applyPeriodicFilters();};
   window.v4PeriodicToggleFavorites=()=>{const source=$("v320ElementFavOnly");if(!source)return false;source.checked=!source.checked;try{window.v320RenderElements?.();}catch(e){}setTimeout(applyPeriodicFilters,0);return true;};
@@ -162,6 +162,7 @@
   window.v4TimelineChooseEra=value=>{const select=$("v320TimelineEra");if(!select)return false;select.value=TIMELINE_ERAS.includes(value)?value:"Tümü";try{window.v320RenderTimeline?.();}catch(e){}requestAnimationFrame(()=>{renderTimelineOverview();decorateTimeline();});return true;};
   window.v4TimelineReset=()=>{try{window.v327ResetTimelineFilters?.();}catch(e){const select=$("v320TimelineEra");if(select)select.value="Tümü";try{window.v320RenderTimeline?.();}catch(_){}}requestAnimationFrame(()=>{renderTimelineOverview();decorateTimeline();});return true;};
   document.addEventListener("yks:navigation-after",()=>setTimeout(ensureStructure,70));
+  window.addEventListener("yks:v4-bootstrap",()=>{if(active==="science")renderScience();});
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",start,{once:true});else start();
-  window.YKSLearningLabV3={version:"3.2.1",setTab,renderScience,ensureStructure,applyPeriodicFilters,enhancePeriodicDetail,ensureTimelineExperience,decorateTimeline,yksFocus:YKS_FOCUS};
+  window.YKSLearningLabV3={version:"3.3.0",setTab,renderScience,ensureStructure,applyPeriodicFilters,enhancePeriodicDetail,ensureTimelineExperience,decorateTimeline,yksFocus:YKS_FOCUS};
 })();

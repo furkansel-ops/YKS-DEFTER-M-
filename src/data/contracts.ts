@@ -146,11 +146,20 @@ export interface ParagraphLog extends LegacyEntity{
   title:string;
 }
 
+export type ScienceCardStatus="new"|"review"|"known";
+export interface ScienceCardProgress {
+  status:ScienceCardStatus;
+  statusAt:number;
+  favorite:boolean;
+  favoriteAt:number;
+}
+
 export interface LearningLabState extends UnknownRecord{
   paragraphLog:ParagraphLog[];
   elementFav:number[];
   timelineFav:string[];
   topicFav:string[];
+  scienceCards?:Record<string,ScienceCardProgress>;
 }
 
 export interface FocusState extends UnknownRecord{

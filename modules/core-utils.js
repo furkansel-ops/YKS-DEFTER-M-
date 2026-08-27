@@ -100,13 +100,37 @@
     };
   }
 
+  function mergeScienceCards(remote,local){
+    const clean=value=>{
+      const out={};
+      if(!isObject(value))return out;
+      const time=n=>typeof n==="number"&&Number.isSafeInteger(n)&&n>0&&n<Number.MAX_SAFE_INTEGER?n:0;
+      for(const [id,row] of Object.entries(value).slice(0,512)){
+        if(!/^(bio|phy)-[a-z0-9-]{1,60}$/.test(id)||!isObject(row))continue;
+        const validStatus=["new","review","known"].includes(row.status);
+        out[id]={status:validStatus?row.status:"new",statusAt:validStatus?time(row.statusAt):0,
+          favorite:row.favorite===true,favoriteAt:typeof row.favorite==="boolean"?time(row.favoriteAt):0};
+      }
+      return out;
+    };
+    const r=clean(remote),l=clean(local),out={};
+    for(const id of new Set([...Object.keys(r),...Object.keys(l)])){
+      if(!r[id]||!l[id]){out[id]=r[id]||l[id];continue;}
+      const status=l[id].statusAt>=r[id].statusAt?l[id]:r[id];
+      const favorite=l[id].favoriteAt>=r[id].favoriteAt?l[id]:r[id];
+      out[id]={status:status.status,statusAt:status.statusAt,favorite:favorite.favorite,favoriteAt:favorite.favoriteAt};
+    }
+    return out;
+  }
+
   function mergeLab(remote,local){
     const r=isObject(remote)?remote:{},l=isObject(local)?local:{};
     return {
       paragraphLog:mergeArray(r.paragraphLog,l.paragraphLog).sort((a,b)=>stamp(a)-stamp(b)).slice(-500),
       elementFav:[...new Set([...(Array.isArray(r.elementFav)?r.elementFav:[]),...(Array.isArray(l.elementFav)?l.elementFav:[])])],
       timelineFav:[...new Set([...(Array.isArray(r.timelineFav)?r.timelineFav:[]),...(Array.isArray(l.timelineFav)?l.timelineFav:[])])],
-      topicFav:[...new Set([...(Array.isArray(r.topicFav)?r.topicFav:[]),...(Array.isArray(l.topicFav)?l.topicFav:[])])]
+      topicFav:[...new Set([...(Array.isArray(r.topicFav)?r.topicFav:[]),...(Array.isArray(l.topicFav)?l.topicFav:[])])],
+      scienceCards:mergeScienceCards(r.scienceCards,l.scienceCards)
     };
   }
 
