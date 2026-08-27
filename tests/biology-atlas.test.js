@@ -265,6 +265,13 @@ test("Organın SVG etiketleri Enter ve boşlukla seçilebilir; diğer tuşlar se
   const before=content.innerHTML;assert.equal(h.keyStructure("mitral","ArrowRight"),false);assert.equal(content.innerHTML,before);
 });
 
+test("Görseli büyüt yan dizini kapatıp alan açar; görünümden çıkış dizini geri getirir",async()=>{
+  const h=await uiHarness();h.click("organ-detail","heart");h.click("wide");assert.equal(h.panel.dataset.atlasWide,"true");
+  h.structure("mitral");assert.equal(h.panel.dataset.atlasWide,"true");h.click("wide");assert.equal(h.panel.dataset.atlasWide,"false");
+  h.click("wide");h.click("mode","topic");assert.equal(h.panel.dataset.atlasWide,"false");
+  h.click("topic","dna");h.click("wide");assert.equal(h.panel.dataset.atlasWide,"true");h.click("group","Genden proteine");assert.equal(h.panel.dataset.atlasWide,"false");
+});
+
 test("Dokuz organın her yapısı açıklama açar; yalnız açıkça 3B istenince model yüklenir",async()=>{
   let downloads=0,disposed=0;const h=await uiHarness(async()=>{downloads++;return {dispose(){disposed++;}};});
   const {ATLAS_ORGANS}=await data(),{organGuide}=await load("src/data/biology-organs.ts");

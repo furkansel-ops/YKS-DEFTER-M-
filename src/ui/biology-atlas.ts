@@ -30,6 +30,7 @@ export function createBiologyAtlas() {
   }
   function renderLesson(focus?:string) {
     stopModel();const main=find("atlasContent");if(!main)return;
+    if(panel)panel.dataset.atlasWide=String(!overview&&wide);
     main.innerHTML=overview?atlasOverview(group,query):atlasLesson(topic(),{step,view,picked,labels,wide});
     if(focus)main.querySelector<HTMLElement>(focus)?.focus({preventScroll:true});
   }
@@ -58,6 +59,7 @@ export function createBiologyAtlas() {
   }
   function renderModel() {
     stopModel();const organ=getAtlasOrgan(organId)!,main=find("atlasContent");if(!main)return;
+    wide=false;if(panel)panel.dataset.atlasWide="false";
     main.innerHTML=organHeader()+
       `<div class="atlas-model-stage" id="atlasModelStage" data-state="idle"><div class="atlas-model-fallback"><img src="${atlasAsset("images/"+organ.id+".webp")}" alt="${esc(organ.name)} temsili organ resmi"><span>Resimli görünüm</span></div><div id="atlasModelCanvas" class="atlas-model-canvas"></div></div>`+
       `<p id="atlasModelStatus" class="atlas-model-status" role="status" aria-live="polite"></p><div class="atlas-model-tools"><button type="button" id="atlasModelRetry" data-atlas-action="load-model">3B modeli yeniden aç</button><button type="button" data-model-control data-atlas-action="zoom-in" disabled>＋ Yakınlaştır</button><button type="button" data-model-control data-atlas-action="zoom-out" disabled>− Uzaklaştır</button><button type="button" data-model-control data-atlas-action="model-reset" disabled>Görünümü sıfırla</button><button type="button" data-model-control data-atlas-action="rotate" aria-pressed="false" disabled>Otomatik döndür</button><button type="button" data-model-control data-atlas-action="wire" aria-pressed="false" disabled>Tel kafes</button></div>`+
@@ -75,6 +77,7 @@ export function createBiologyAtlas() {
   }
   function renderAnatomy(focus?:string,animate=false) {
     stopModel();const organ=getAtlasOrgan(organId)!,guide=organGuide(organId)!,main=find("atlasContent");if(!main)return;
+    if(panel)panel.dataset.atlasWide=String(wide);
     const part=guide.structures.find(item=>item.id===structureId);
     main.innerHTML=organHeader()+`<div class="atlas-organ-workbench ${wide?"atlas-wide":""}"><figure class="atlas-figure atlas-organ-figure"><div class="atlas-figure-tools"><button type="button" data-atlas-action="organ-labels" aria-pressed="${organLabels}">${organLabels?"Etiketleri gizle":"Etiketleri göster"}</button><button type="button" data-atlas-action="wide" aria-pressed="${wide}">${wide?"Normal görünüm":"Görseli büyüt"}</button></div>${organDiagram(organ.id,structureId,organOpen,organLabels,animate)}<figcaption>${esc(guide.orientation)}</figcaption></figure>`+
       `<aside class="atlas-organ-explanation" aria-live="polite">${part?`<span class="atlas-kicker">${guide.structures.indexOf(part)+1} / ${guide.structures.length} · SEÇİLEN YAPI</span><h4>${esc(part.label)}</h4><p class="atlas-structure-summary">${esc(part.summary)}</p><p>${esc(part.detail)}</p><div class="atlas-trap"><b>AYT'de karıştırma</b><p>${esc(part.exam)}</p></div>`:`<span class="atlas-kicker">GÖRSEL ÜZERİNDE KEŞFET</span><h4>Bir yapıya dokun</h4><p>Organın üzerindeki etiketler veya alttaki numaralı düğmeler, yapının görevini ve önemli ayrımını burada açar.</p><p>İçteki bir yapıyı seçersen kesit kendiliğinden açılır.</p>`}</aside></div>`+

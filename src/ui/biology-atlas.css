@@ -107,6 +107,9 @@
 #v320PanelAtlas .atlas-hide-labels .atlas-pin-label{display:none}
 #v320PanelAtlas .atlas-wide{grid-template-columns:minmax(0,1fr)!important}
 #v320PanelAtlas .atlas-wide .atlas-diagram{max-height:650px}
+#v320PanelAtlas[data-atlas-wide=true] .atlas-layout{grid-template-columns:minmax(0,1fr)}
+#v320PanelAtlas[data-atlas-wide=true] .atlas-sidebar{display:none}
+#v320PanelAtlas[data-atlas-wide=true] .atlas-organ-svg{max-height:850px}
 #v320PanelAtlas .atlas-step-progress{display:flex;gap:5px;width:100%;padding-top:20px;margin-top:auto}
 #v320PanelAtlas .atlas-step-progress span{height:4px;background:var(--glass-line);border-radius:4px;flex:1}
 #v320PanelAtlas .atlas-step-progress .is-current{background:var(--atlas-teal)}
