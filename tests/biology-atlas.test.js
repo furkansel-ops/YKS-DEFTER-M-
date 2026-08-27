@@ -87,6 +87,42 @@ test("Dolaşım şeması oksijen zenginliğini renk anahtarı ve yönlü oklarla
   assert.equal((svg.match(/marker-end=/g)||[]).length,5);
 });
 
+test("24 konu rehberi mekanizma, örnek, üç karşılaştırma ve hatırlama özeti içerir",async()=>{
+  const {ATLAS_TOPICS}=await data(),{ATLAS_GUIDES}=await load("src/data/biology-atlas-guides.ts");
+  assert.deepEqual(Object.keys(ATLAS_GUIDES).sort(),ATLAS_TOPICS.map(t=>t.id).sort());
+  for(const t of ATLAS_TOPICS){
+    const g=ATLAS_GUIDES[t.id];assert.ok(g.goal.length>30&&g.mechanism.length>150&&g.example.length>100&&g.takeaway.length>30,t.id);
+    assert.equal(g.compare.length,3);assert.ok(g.compare.every(([a,b])=>a.length>3&&b.length>20),t.id);
+  }
+});
+
+test("9 organın 52 yapısı benzersiz, konumlu ve ayrıntılıdır; beyin sınıflaması açık ayrılır",async()=>{
+  const {ATLAS_ORGANS}=await data(),{organGuide}=await load("src/data/biology-organs.ts");let total=0;
+  for(const organ of ATLAS_ORGANS){
+    const guide=organGuide(organ.id);assert.ok(guide.orientation.length>50);total+=guide.structures.length;
+    assert.equal(new Set(guide.structures.map(p=>p.id)).size,guide.structures.length);
+    assert.equal(new Set(guide.structures.map(p=>p.side+p.row)).size,guide.structures.length);
+    for(const p of guide.structures){assert.match(p.id,/^[a-z-]+$/);assert.ok(p.point[0]>=190&&p.point[0]<=535&&p.point[1]>=80&&p.point[1]<=450,p.id);assert.ok(p.detail.length>70&&p.exam.length>30,p.id);}
+  }
+  assert.equal(total,52);assert.match(organGuide("brain").connection,/Arka beyin: pons \+ beyincik \+ omurilik soğanı/);
+  assert.match(organGuide("heart").orientation,/kişinin sağı görselin solunda/);
+  for(const id of ["__proto__","constructor","missing"])assert.equal(organGuide(id),undefined);
+});
+
+test("Organ şemaları bütün yapılara erişilebilir etiket verir; kapalı görünüm iç etiketleri gizler",async()=>{
+  const {ATLAS_ORGANS}=await data(),{organGuide}=await load("src/data/biology-organs.ts"),{organDiagram}=await load("src/ui/biology-organ-diagrams.ts");
+  for(const {id} of ATLAS_ORGANS){
+    const parts=organGuide(id).structures,svg=organDiagram(id,parts[0].id,true),closed=organDiagram(id,"",false);
+    assert.equal((svg.match(/data-atlas-structure=/g)||[]).length,parts.length);
+    assert.equal((svg.match(/aria-pressed="true"/g)||[]).length,1);assert.doesNotMatch(svg,/undefined|NaN|aria-hidden="true"/);
+    assert.match(svg,/gerçek kesiti değildir/);assert.ok(!svg.includes("http://")||svg.includes('xmlns="http://www.w3.org/2000/svg"'));
+    const hidden=(closed.match(/aria-hidden="true"/g)||[]).length;
+    assert.equal(hidden,["heart","brain"].includes(id)?parts.filter(p=>p.internal).length:0,id);
+    assert.match(organDiagram(id,"",true,false),/hide-labels/);
+  }
+  assert.match(organDiagram("heart","left-ventricle",true,true,true),/is-opening/);
+});
+
 test("Yeni model veya sekme eski yükleme isteğini ve gecikmiş sonucunu geçersiz kılar",async()=>{
   const {AtlasRequestGate}=await service();const gate=new AtlasRequestGate();
   const first=gate.start();assert.equal(first.current(),true);
@@ -132,7 +168,7 @@ async function uiHarness(loadModel){
   class Element {dataset={};attrs={};hidden=false;writes=0;html="";listeners={};value="";id="";
     set innerHTML(value){this.html=value;this.writes++;}get innerHTML(){return this.html;}
     addEventListener(type,fn){(this.listeners[type]??=[]).push(fn);}setAttribute(k,v){this.attrs[k]=v;}hasAttribute(k){return k in this.attrs;}
-    closest(){return this;}focus(){document.activeElement=this;}querySelector(){return null;}
+    closest(){return this;}focus(){document.activeElement=this;}querySelector(){return null;}getAttribute(k){return this.attrs[k]??null;}
   }
   class Input extends Element {}class Select extends Element {}class Svg extends Element {}
   const ids=["atlasIndex","atlasCount","atlasGroupLabel","atlasMode-topic","atlasMode-model","atlasContent","atlasModelStatus","atlasModelStage","atlasModelRetry","atlasModelCanvas","atlasSearch","atlasGroup"];
@@ -141,13 +177,15 @@ async function uiHarness(loadModel){
   const document={activeElement:null,addEventListener(){}};const window={addEventListener(){}};
   const source=stripTypeScriptTypes(read("src/ui/biology-atlas.ts").replace(/^import[^\n]*\n/gm,"")).replace("export function createBiologyAtlas","function createBiologyAtlas").replace('import("./biology-atlas-model.ts")','importModel()');
   const diagrams=await load("src/ui/biology-atlas-diagrams.ts");
-  const context={...await data(),...await service(),atlasDiagram:diagrams.atlasDiagram,esc:diagrams.atlasEscape,window,document,Element,HTMLInputElement:Input,HTMLSelectElement:Select,SVGElement:Svg,AbortController,clearTimeout,setTimeout,importModel:async()=>({loadAtlasModel:loadModel||(()=>Promise.reject(new Error("WebGL yok")))})};
+  const context={...await data(),...await service(),...await load("src/data/biology-organs.ts"),...await load("src/ui/biology-atlas-lessons.ts"),...await load("src/ui/biology-organ-diagrams.ts"),esc:diagrams.atlasEscape,window,document,Element,HTMLInputElement:Input,HTMLSelectElement:Select,SVGElement:Svg,AbortController,clearTimeout,setTimeout,importModel:async()=>({loadAtlasModel:loadModel||(()=>Promise.reject(new Error("WebGL yok")))})};
   vm.runInNewContext(source+"\nthis.api=createBiologyAtlas();",context);
   const fire=(type,target)=>panel.listeners[type][0]({target});
   const click=(action,id)=>{const target=new Element();target.dataset={atlasAction:action,id};fire("click",target);};
   const choose=value=>{const target=new Element();target.dataset={atlasStep:String(value)};fire("click",target);};
+  const structure=id=>{const target=new Element();target.dataset={atlasStructure:id};fire("click",target);};
+  const keyStructure=(id,key)=>{let prevented=false;const target=new Svg();target.setAttribute("data-atlas-structure",id);panel.listeners.keydown[0]({target,key,preventDefault(){prevented=true;}});return prevented;};
   context.api.mount(panel);
-  return {api:context.api,panel,nodes,document,click,choose,fire};
+  return {api:context.api,panel,nodes,document,click,choose,structure,keyStructure,fire};
 }
 
 test("Atlas tekrar bağlanınca DOM/dinleyici çoğaltmaz ve arama odağını korur",async()=>{
@@ -156,17 +194,83 @@ test("Atlas tekrar bağlanınca DOM/dinleyici çoğaltmaz ve arama odağını ko
   assert.equal(Object.values(h.panel.listeners).flat().length,5);
   const search=h.nodes.get("atlasSearch");search.value="NEFRON";search.focus();h.fire("input",search);
   assert.equal(h.nodes.get("atlasCount").textContent,"1 görsel konu");assert.equal(h.document.activeElement,search);
-  h.api.mount(h.panel);assert.equal(h.nodes.get("atlasContent").writes,1);
+  h.api.mount(h.panel);assert.equal(h.nodes.get("atlasContent").writes,2);
 });
 
 test("Görsel soru yanlış/doğru geri bildirimi verir, tekrar açılır ve konu değişince sıfırlanır",async()=>{
   const h=await uiHarness(),content=h.nodes.get("atlasContent");
+  h.click("topic","sinir");
   h.click("practice");assert.ok(!content.innerHTML.includes('class="atlas-pin-label"'));h.choose(0);
   assert.match(content.innerHTML,/Birlikte düzeltelim/);assert.match(content.innerHTML,/Doğru nokta: 4/);
   h.click("retry-quiz");h.choose(3);assert.match(content.innerHTML,/Doğru ✓/);
   h.click("topic","dna");assert.match(content.innerHTML,/DNA, RNA/);assert.ok(!content.innerHTML.includes("Doğru ✓"));
   for(let i=0;i<8;i++)h.click("next");assert.match(content.innerHTML,/4 \/ 4 · Yapı ve işlev/);
   for(let i=0;i<8;i++)h.click("previous");assert.match(content.innerHTML,/1 \/ 4 · Yapı ve işlev/);
+});
+
+test("Konu atlası önce beş alan açar; grup ve arama odağı sade gezinmeyi korur",async()=>{
+  const h=await uiHarness(),content=h.nodes.get("atlasContent"),index=h.nodes.get("atlasIndex");
+  assert.match(content.innerHTML,/Neyi keşfetmek istersin/);assert.equal((index.innerHTML.match(/data-atlas-action="group"/g)||[]).length,5);
+  assert.doesNotMatch(index.innerHTML,/data-atlas-action="topic"/);
+  h.click("group","Genden proteine");assert.equal((index.innerHTML.match(/data-atlas-action="topic"/g)||[]).length,3);
+  assert.equal(h.nodes.get("atlasGroup").value,"Genden proteine");
+  h.click("topic","protein");assert.match(content.innerHTML,/Genetik şifre ve protein sentezi/);
+  h.click("overview");assert.match(content.innerHTML,/Neyi keşfetmek istersin/);
+  const search=h.nodes.get("atlasSearch");search.value="NEFRON";search.focus();h.fire("input",search);
+  assert.match(content.innerHTML,/Nefron ve homeostasi/);assert.equal(h.document.activeElement,search);
+});
+
+test("Ayrıntılı anlatım istek üzerine açılır; sınamada mekanizma ve cevap ipuçları görünmez",async()=>{
+  const h=await uiHarness(),content=h.nodes.get("atlasContent");h.click("topic","dolasim");
+  assert.doesNotMatch(content.innerHTML,/Mekanizmayı bağla/);
+  h.click("lesson-view","details");assert.match(content.innerHTML,/Mekanizmayı bağla/);assert.match(content.innerHTML,/Yan yana düşün/);assert.match(content.innerHTML,/Sol karıncık büyük dolaşıma/);
+  h.click("practice");assert.doesNotMatch(content.innerHTML,/Mekanizmayı bağla|Yan yana düşün|atlas-related/);assert.doesNotMatch(content.innerHTML,/class="atlas-pin-label"/);
+  h.click("lesson-view","steps");h.click("topic-labels");assert.match(content.innerHTML,/atlas-hide-labels/);
+  h.click("wide");assert.match(content.innerHTML,/atlas-wide/);
+});
+
+test("Kalp iç yapıya seçimle açılır, kapanınca görünmeyen seçimi temizler; 3B indirmez",async()=>{
+  let downloads=0;const h=await uiHarness(()=>{downloads++;return Promise.reject(new Error("unexpected"));}),content=h.nodes.get("atlasContent");
+  h.click("organ-detail","heart");assert.match(content.innerHTML,/is-closed/);assert.match(content.innerHTML,/Bir yapıya dokun/);
+  h.structure("left-ventricle");assert.match(content.innerHTML,/is-open/);assert.match(content.innerHTML,/Kalın kas duvarı yüksek basınç/);assert.match(content.innerHTML,/is-opening/);
+  h.structure("right-atrium");assert.match(content.innerHTML,/Üst ve alt ana toplardamarlar/);assert.doesNotMatch(content.innerHTML,/is-opening/);
+  h.click("cutaway");assert.match(content.innerHTML,/is-closed/);assert.match(content.innerHTML,/Bir yapıya dokun/);
+  h.structure("aorta");assert.match(content.innerHTML,/is-closed/);assert.match(content.innerHTML,/Koroner atardamarlar/);
+  h.click("organ-labels");assert.match(content.innerHTML,/hide-labels/);
+  await new Promise(resolve=>setImmediate(resolve));assert.equal(downloads,0);
+});
+
+test("Beyin seçimi doğru açıklamayı açar; organ değişiminde eski seçimi taşımaz",async()=>{
+  const h=await uiHarness(),content=h.nodes.get("atlasContent");h.click("organ-detail","brain");
+  h.structure("cerebellum");assert.match(content.innerHTML,/hareketlerin zamanlamasını ve koordinasyonunu/);
+  h.structure("hypothalamus");assert.match(content.innerHTML,/is-open/);assert.match(content.innerHTML,/ADH ve oksitosin hipotalamusta üretilir/);
+  h.click("organ-detail","kidneys");assert.match(content.innerHTML,/Bir yapıya dokun/);assert.doesNotMatch(content.innerHTML,/ADH ve oksitosin/);
+  h.structure("glomerulus");assert.match(content.innerHTML,/Sağlıklı süzüntü glikoz içerebilir/);
+  const before=content.innerHTML;h.structure("__proto__");assert.equal(content.innerHTML,before);
+});
+
+test("Kesite geçiş bekleyen 3B modeli iptal eder; geç gelen model kesiti örtemez",async()=>{
+  let resolveModel,disposed=0,signal;const h=await uiHarness((container,id,s)=>{signal=s;return new Promise(resolve=>{resolveModel=resolve;});});
+  h.click("organ","heart");await new Promise(resolve=>setImmediate(resolve));h.click("cutaway");
+  assert.equal(signal.aborted,true);assert.match(h.nodes.get("atlasContent").innerHTML,/is-open/);
+  resolveModel({dispose(){disposed++;}});await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(disposed,1);assert.match(h.nodes.get("atlasContent").innerHTML,/is-open/);
+  h.api.mount(h.panel);h.api.suspend();assert.match(h.nodes.get("atlasContent").innerHTML,/is-open/);
+});
+
+test("Organın SVG etiketleri Enter ve boşlukla seçilebilir; diğer tuşlar seçim değiştirmez",async()=>{
+  const h=await uiHarness(),content=h.nodes.get("atlasContent");h.click("organ-detail","heart");
+  assert.equal(h.keyStructure("left-ventricle","Enter"),true);assert.match(content.innerHTML,/Kalın kas duvarı/);
+  assert.equal(h.keyStructure("right-atrium"," "),true);assert.match(content.innerHTML,/Üst ve alt ana toplardamarlar/);
+  const before=content.innerHTML;assert.equal(h.keyStructure("mitral","ArrowRight"),false);assert.equal(content.innerHTML,before);
+});
+
+test("Dokuz organın her yapısı açıklama açar; yalnız açıkça 3B istenince model yüklenir",async()=>{
+  let downloads=0,disposed=0;const h=await uiHarness(async()=>{downloads++;return {dispose(){disposed++;}};});
+  const {ATLAS_ORGANS}=await data(),{organGuide}=await load("src/data/biology-organs.ts");
+  for(const {id} of ATLAS_ORGANS){h.click("organ-detail",id);for(const part of organGuide(id).structures){h.structure(part.id);assert.ok(h.nodes.get("atlasContent").innerHTML.includes(part.summary),part.id);}}
+  assert.equal(downloads,0);h.click("organ-view","model");await new Promise(resolve=>setImmediate(resolve));assert.equal(downloads,1);
+  h.click("organ-view","model");assert.equal(downloads,1);h.click("organ-view","anatomy");assert.equal(disposed,1);
 });
 
 test("WebGL/yükleme hatasında organ resmi ve tekrar düğmesi kalır",async()=>{

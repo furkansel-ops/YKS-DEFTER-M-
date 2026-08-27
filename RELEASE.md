@@ -2,6 +2,13 @@
 
 Bu kararlı sürüm, çalışan v3 arayüzünü değiştirmeden Vite + TypeScript + Dexie altyapısına yapılan kademeli geçişin sonucudur.
 
+## Biyoloji Atlası ayrıntı güncellemesi · önbellek r30
+
+- Alan → konu → adım/ayrıntı/sınama akışı; 24 ayrıntılı rehber ve görsel odak kontrolleri.
+- 9 organ üzerinde 52 etiketli öğretici yapı; kalp ve beyin için açılabilir şematik iç görünüm.
+- Kaynak 3B modeller, eski laboratuvar araçları ve şema 21 kayıtları korunur; yeni görünümler kullanıcı verisi yazmaz.
+- Kesite geçişte model iptali, gecikmiş sonuçların temizlenmesi, çevrimdışı/resimli görünüm ve klavye kontrolleri test edilir.
+
 ## Kararlı sürüm kontrolü
 
 ```bash

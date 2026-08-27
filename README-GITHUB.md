@@ -7,12 +7,17 @@ Kaynak proje Vite ile derlenir; statik hosting'e yayımlanacak klasör `dist/` k
 Öğrenme Laboratuvarı → Hazır laboratuvar araçları → Biyoloji Atlası:
 
 - 10 insan sistemleri konusu; genden proteine, enerji dönüşümleri, bitkiler ve ekolojiyle toplam 24 etkileşimli Türkçe şema.
-- Her konu için yapı–işlev açıklamaları, AYT karışıklık notu ve şema üstünden bir kısa alıştırma.
+- Beş alanla başlayan sade seçim ekranı; konu içinde adım adım görsel, ayrı ayrıntılı anlatım ve kendini sınama görünümleri. 24 konunun her birinde mekanizma, örnek, üç karşılaştırma ve hatırlama özeti.
+- Etiketleri gizleme, görseli büyütme, klavye ile yapı seçimi; görsel soru sırasında cevap etiketleri ve ayrıntı ipuçları kapalıdır.
 - Kalp, beyin, akciğer, karaciğer, böbrek, göz, bağırsak, pankreas ve deri için 9 isteğe bağlı 3B model. Döndürme, yakınlaştırma, görünümü sıfırlama ve tel kafes kontrolleri.
-- 3B desteği/yüklemesi başarısızsa organ resmi ve konu şeması kullanılabilir. Tel kafes bir anatomik katman veya kesit görünümü değildir.
+- Dokuz organda toplam 52 etiketli yapı. Her yapıda konum, görev, ayrıntı ve AYT ayrımı. Kalpte dört odacık ve kapaklar; beyinde ön/orta/arka beyin yapıları.
+- Kalp ve beyinde “Daha detay · İçini aç” ile özgün öğretici kesit; kalpte ön yüzeyin iki yana açılması. Kaynak GLB'ler tek yüzey modelidir: kesit, gerçek 3B iç doku veya model parçalama iddiası taşımaz. Diğer yedi organ da etiketli yapı/büyütme şemalarına sahiptir.
+- 3B desteği/yüklemesi başarısızsa organ resmi ve bütün öğrenme şemaları kullanılabilir. Kesite geçiş bekleyen GLB indirmesini iptal eder; yapı seçmek yeni model indirmez. Tel kafes bir anatomik katman veya kesit görünümü değildir.
 - Atlas mevcut bilim kartı, favori, konu, deneme ve bulut kayıtlarını değiştirmez; veri şeması 21 olarak kalır.
 
 Şemalar özgün ve öğretici özetlerdir; tam ders anlatımı veya tıbbi/anatomik referans değildir. Konu başlıkları OGM AYT materyaliyle eşleştirilmiştir. Modellerin kaynak/kullanım notu: [THIRD_PARTY_ANATOMY.md](THIRD_PARTY_ANATOMY.md).
+
+Anatomi etiketleri YKS/AYT konu odağını belirtir, geçmiş sınavda soru çıktığı iddiası içermez. Sağ/sol yönleri kişiye göredir; kalbin önden görünümünde kişinin sağı görselin solundadır. İç görünüm çizimleri ölçekli değildir. Hareket azaltma tercihinde açılma animasyonu oynatılmaz.
 
 ### Geliştirme ve doğrulama
 
