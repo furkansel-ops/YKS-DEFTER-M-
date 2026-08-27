@@ -45,6 +45,7 @@ test('Öğrenme Laboratuvarı v3 paragraf aracını kaldırır, YKS periyodik ka
   assert.match(stability,/learning-lab-v3\.js\?v=4\.1\.0-r24/);
   assert.match(sw,/learning-lab-v2\.js\?v=4\.1\.0-r24/);
   assert.match(sw,/learning-lab-v3\.js\?v=4\.1\.0-r24/);
+  assert.match(sw,/yks-core-v4\.1\.0-r26/);
   assert.match(sw,/yks-core-v4\.1\.0-r25/);
   assert.match(sw,/yks-core-v4\.1\.0-r24/);
   assert.match(sw,/yks-core-v4\.1\.0-r23/);
