@@ -6,11 +6,11 @@ Bu kararlı sürüm, çalışan v3 arayüzünü değiştirmeden Vite + TypeScrip
 
 - 24 konuda 109 ayrı odak çizimi, numaralı öğrenme durakları, konum ve görsel okuma rehberi. Genel bağlantı şeması ayrıntılı anlatımda; sınamada ipuçları gizli.
 - 10 organ üzerinde dönen kameraya bağlı toplam 60 YKS işareti; içeride 60 seçilebilir, hacimli öğretici 3B yapı.
-- Kulak atlası kullanıcının sağladığı anatomik kesit referansı esas alınarak yeniden 3B modellenmiştir: helix/antihelix kıvrımları, concha, tragus, temporal kemiğin kesit katmanları, süngerimsi kemik görünümü ve dış kulak yolu kaynak geometride; kulak zarı, çekiç–örs–üzengi, Östaki borusu, vestibül, yarım daire kanalları, koklea ve işitme siniri ise seçilebilir hacimli yapılardır. Görsel dosya modele yapıştırılmaz; sahne Three.js geometrisi olarak döner ve çevrimdışı çalışır.
+- Kulak atlası kullanıcının sağladığı anatomik kesit referansı esas alınarak v2 olarak baştan modellenmiştir. Kapalı görünüm artık yalnız dış kulak kabuğu değil, tek sahnede gerçek kesit düzeni gösterir: hacimli kulak kepçesi ve helix/antihelix kıvrımları, concha/tragus, temporal kemik kütlesi ve kesit yüzeyi, süngerimsi kemik hücreleri, derin dış kulak yolu, yarı saydam kulak zarı, çekiç–örs–üzengi, vestibül, üç yarım daire kanalı, çift katmanlı koklea, işitme siniri demeti ve Östaki borusu. Görsel dosya modele yapıştırılmaz; sahne Three.js geometrisi olarak döner ve çevrimdışı çalışır.
 - “3B içini aç” aynı sahnede kaynak kabuğun ön/arka yarılarını ayırır; ortada ayrıca hazırlanmış öğretici iç parçalar görünür. Kalp boşluklarında duvar kalınlığı ve kapaklar; beyinde ön/orta/arka bölümler. Büyütmeler ölçekli değildir.
 - Mevcut kaynak 3B modeller, eski laboratuvar araçları ve şema 21 kayıtları korunur; yeni görünümler kullanıcı verisi yazmaz.
 - Yapı seçimi, aç/kapat, etiket ve büyütme aynı canvas/model üzerinde çalışır; indirmeyi tekrar başlatmaz. Konu/organ/sekme değişiminde eski yükleme iptal edilir. WebGL yoksa açıkça adlandırılmış 2B şema yedeği kullanılabilir.
-- Geometri, kesme düzlemleri, paylaşılan kaynak temizliği, 60 seçim, 109 çizim, kulak referans kabuğunun gerçek hacim geometrisi, yükleme yarışları ve eski laboratuvar regresyonları otomatik test kapsamındadır.
+- Geometri, kesme düzlemleri, paylaşılan kaynak temizliği, 60 seçim, 109 çizim, kulak referans kesitinin 70'ten fazla gerçek hacimli mesh ile oluşturulması, kapalı görünüm anatomisi, yükleme yarışları ve eski laboratuvar regresyonları otomatik test kapsamındadır.
 
 ## Kararlı sürüm kontrolü
 
