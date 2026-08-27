@@ -70,6 +70,41 @@
 #v320PanelAtlas .atlas-model-tools{display:flex;gap:7px;flex-wrap:wrap}
 #v320PanelAtlas .atlas-model-tools button{font-size:11px}
 #v320PanelAtlas .atlas-model-note{font-size:11px;color:var(--label-2);margin-top:16px}
+#v320PanelAtlas .atlas-live-workbench{display:grid;gap:18px;min-width:0}
+#v320PanelAtlas .atlas-live-view{min-width:0}
+#v320PanelAtlas .atlas-live-view .atlas-figure-tools{border:0;justify-content:flex-start;padding:10px 0 0}
+#v320PanelAtlas .atlas-organ-tabs .atlas-fallback-tab{flex:0 1 auto;font-size:10px;color:var(--label-2)}
+#v320PanelAtlas .atlas-3d-view-label{position:absolute;left:14px;top:12px;right:14px;text-align:center;pointer-events:none;font-size:10px;letter-spacing:.04em;color:var(--label-2);z-index:1;display:none}
+#v320PanelAtlas [data-state=ready] .atlas-3d-view-label{display:block}
+#v320PanelAtlas .atlas-model-annotations{position:absolute;inset:0;pointer-events:none;z-index:2}
+#v320PanelAtlas .atlas-model-leaders{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+#v320PanelAtlas .atlas-model-leaders path{fill:none;stroke:var(--atlas-teal);stroke-width:1.3;opacity:.55}
+#v320PanelAtlas .atlas-model-leaders path.is-selected{stroke-width:2.5;opacity:1}
+#v320PanelAtlas button.atlas-model-point{position:absolute;display:grid;place-items:center;width:44px;height:44px;min-height:44px;transform:translate(-50%,-50%);padding:0;border:0;border-radius:50%;background:transparent;box-shadow:none;pointer-events:auto;overflow:visible}
+#v320PanelAtlas .atlas-model-dot{display:grid;place-items:center;width:25px;height:25px;border-radius:50%;color:#174f4c;font-size:11px;font-weight:850;background:#f8fdfb;border:2px solid #328e89;box-shadow:0 2px 9px #15332a45}
+#v320PanelAtlas .atlas-model-point-name{position:absolute;display:block;text-align:left;padding:6px 8px;border:1px solid var(--glass-line);border-radius:9px;background:var(--bg);box-shadow:0 3px 10px #15332a12;font-size:10px;line-height:1.4;min-height:34px}
+#v320PanelAtlas .atlas-model-point-name small{display:block;font-size:8px;color:var(--label-2);font-weight:450;margin-top:2px}
+#v320PanelAtlas .atlas-model-point:is(.is-selected,:hover,:focus-visible) .atlas-model-dot{background:#236f6b;color:#fff;outline:4px solid #76c0b956}
+#v320PanelAtlas .atlas-model-point:is(.is-selected,:hover,:focus-visible) .atlas-model-point-name{border-color:var(--atlas-teal);font-weight:750}
+#v320PanelAtlas .atlas-model-point.is-selected{z-index:3}
+#v320PanelAtlas[data-atlas-wide=true] .atlas-model-stage{height:clamp(400px,66vh,760px)}
+#v320PanelAtlas .atlas-stage{display:block;width:100%;height:auto;max-height:490px}
+#v320PanelAtlas .atlas-stage text{font-family:system-ui,sans-serif;fill:var(--label-1);font-size:16px;text-anchor:middle}
+#v320PanelAtlas .atlas-stage .stage-note{font-size:12px;fill:var(--label-2)}
+#v320PanelAtlas .atlas-stage .stage-label{font-size:17px;font-weight:750}
+#v320PanelAtlas .atlas-stage-heading{display:flex;gap:12px;align-items:center;padding:16px 18px 0}
+#v320PanelAtlas .atlas-stage-heading>span{width:34px;height:34px;border-radius:11px;background:var(--atlas-teal);color:#fff;display:grid;place-items:center;font-size:15px;font-weight:850;flex-shrink:0}
+#v320PanelAtlas .atlas-stage-heading small{display:block;color:var(--label-2);font-size:10px;margin-bottom:3px}
+#v320PanelAtlas .atlas-stage-heading b{font-size:15px}
+#v320PanelAtlas .atlas-stage-caption{margin:0 16px 16px;padding:12px 15px;border-radius:12px;background:var(--bg);font-size:12px;line-height:1.7;color:var(--label-1)}
+#v320PanelAtlas .atlas-stage-caption b{color:var(--atlas-teal);display:block;font-size:10px;margin-bottom:4px;letter-spacing:.05em}
+#v320PanelAtlas .atlas-stage-roadmap{display:grid;grid-template-columns:repeat(auto-fit,minmax(125px,1fr));gap:7px;list-style:none;padding:0;margin:0 0 16px}
+#v320PanelAtlas .atlas-stage-roadmap li{min-width:0}
+#v320PanelAtlas .atlas-stage-roadmap button{display:flex;align-items:center;gap:8px;text-align:left;width:100%;height:100%;padding:10px 9px;font-size:10px;line-height:1.45}
+#v320PanelAtlas .atlas-stage-roadmap button>span:first-child{width:24px;height:24px;flex-shrink:0;border-radius:50%;display:grid;place-items:center;background:var(--fill);font-weight:850}
+#v320PanelAtlas .atlas-stage-roadmap button[aria-pressed=true]>span:first-child{background:var(--atlas-teal);color:#fff}
+#v320PanelAtlas .atlas-stage-location{display:block;padding:8px 10px;border-radius:9px;background:var(--atlas-soft);font-size:11px;color:var(--atlas-teal);margin-bottom:6px}
+#v320PanelAtlas .atlas-stage-scope{padding-top:13px;font-size:10px;color:var(--label-2)}
 #v320PanelAtlas .atlas-footer{padding:20px 0 10px;color:var(--label-2);font-size:11px}
 #v320PanelAtlas .atlas-footer a{display:inline-block;margin:8px 15px 0 0;color:var(--accent);min-height:32px}
 #v320PanelAtlas .atlas-empty{font-size:12px;padding:16px 4px;color:var(--label-2)}
@@ -105,6 +140,7 @@
 #v320PanelAtlas .atlas-figure-tools button{font-size:10px;background:transparent;border-color:transparent}
 #v320PanelAtlas .atlas-figure-tools span{margin-right:auto;color:var(--label-2);font-size:11px}
 #v320PanelAtlas .atlas-hide-labels .atlas-pin-label{display:none}
+#v320PanelAtlas .atlas-hide-labels .atlas-stage :is(.stage-label,.stage-note){visibility:hidden}
 #v320PanelAtlas .atlas-wide{grid-template-columns:minmax(0,1fr)!important}
 #v320PanelAtlas .atlas-wide .atlas-diagram{max-height:650px}
 #v320PanelAtlas[data-atlas-wide=true] .atlas-layout{grid-template-columns:minmax(0,1fr)}

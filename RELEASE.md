@@ -2,12 +2,14 @@
 
 Bu kararlı sürüm, çalışan v3 arayüzünü değiştirmeden Vite + TypeScript + Dexie altyapısına yapılan kademeli geçişin sonucudur.
 
-## Biyoloji Atlası ayrıntı güncellemesi · önbellek r30
+## Biyoloji Atlası tek sahne 3B güncellemesi · önbellek r31
 
-- Alan → konu → adım/ayrıntı/sınama akışı; 24 ayrıntılı rehber ve görsel odak kontrolleri.
-- 9 organ üzerinde 52 etiketli öğretici yapı; kalp ve beyin için açılabilir şematik iç görünüm.
+- 24 konuda 109 ayrı odak çizimi, numaralı öğrenme durakları, konum ve görsel okuma rehberi. Genel bağlantı şeması ayrıntılı anlatımda; sınamada ipuçları gizli.
+- 9 kaynak organın üzerinde dönen kameraya bağlı 52 YKS işareti; içeride 52 seçilebilir, hacimli öğretici 3B yapı.
+- “3B içini aç” aynı sahnede kaynak kabuğun ön/arka yarılarını ayırır; ortada ayrıca hazırlanmış öğretici iç parçalar görünür. Kalp boşluklarında duvar kalınlığı ve kapaklar; beyinde ön/orta/arka bölümler. Büyütmeler ölçekli değildir.
 - Kaynak 3B modeller, eski laboratuvar araçları ve şema 21 kayıtları korunur; yeni görünümler kullanıcı verisi yazmaz.
-- Kesite geçişte model iptali, gecikmiş sonuçların temizlenmesi, çevrimdışı/resimli görünüm ve klavye kontrolleri test edilir.
+- Yapı seçimi, aç/kapat, etiket ve büyütme aynı canvas/model üzerinde çalışır; indirmeyi tekrar başlatmaz. Konu/organ/sekme değişiminde eski yükleme iptal edilir. WebGL yoksa açıkça adlandırılmış 2B şema yedeği kullanılabilir.
+- Geometri, kesme düzlemleri, paylaşılan kaynak temizliği, 52 seçim, 109 çizim, yükleme yarışları ve eski laboratuvar regresyonları otomatik test kapsamındadır.
 
 ## Kararlı sürüm kontrolü
 

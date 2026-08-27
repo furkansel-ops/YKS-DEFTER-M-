@@ -15,6 +15,13 @@ bağlantısı bu uygulama için hazırlanmıştır. Modeller tıbbi tanı veya e
 anatomik kesit yerine kullanılamaz. Yapı–işlev ilişkileri için eşlik eden
 şemalar ve resmî ders kaynakları birlikte değerlendirilmelidir.
 
+Kaynak projenin `app/lib/anatomy-data.ts` işaret konumları ve yüzeye bağlı
+işaret yaklaşımı referans alınmıştır. YKS iç yapı/büyütme işaretleri ve
+Three.js iç hacimleri bu uygulama için ayrıca hazırlanmıştır. Kaynak GLB
+tek yüzey mesh'idir; ön/arka kabuklar görsel kesme düzlemleriyle ayrılır.
+Görünen iç odacıklar, hücreler ve diğer parçalar kaynaktan çıkarılmış
+gerçek doku değildir; ölçekli olmayan öğretici geometrilerdir.
+
 Three.js ve Meshopt çözücüsünün kendi dağıtımlarındaki lisans bildirimleri
 geçerlidir. Varlık sürümü, boyut ve özetleri scripts/anatomy-assets.json içindedir.
 

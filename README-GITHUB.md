@@ -7,12 +7,13 @@ Kaynak proje Vite ile derlenir; statik hosting'e yayımlanacak klasör `dist/` k
 Öğrenme Laboratuvarı → Hazır laboratuvar araçları → Biyoloji Atlası:
 
 - 10 insan sistemleri konusu; genden proteine, enerji dönüşümleri, bitkiler ve ekolojiyle toplam 24 etkileşimli Türkçe şema.
-- Beş alanla başlayan sade seçim ekranı; konu içinde adım adım görsel, ayrı ayrıntılı anlatım ve kendini sınama görünümleri. 24 konunun her birinde mekanizma, örnek, üç karşılaştırma ve hatırlama özeti.
+- Beş alanla başlayan sade seçim ekranı; 24 konuda 109 odaklı adım çizimi. Her durakta farklı yapı/olay, konum ve “Görseli böyle oku” açıklaması; ayrı ayrıntılı anlatım ve kendini sınama görünümleri. Her konuda mekanizma, örnek, üç karşılaştırma ve hatırlama özeti.
 - Etiketleri gizleme, görseli büyütme, klavye ile yapı seçimi; görsel soru sırasında cevap etiketleri ve ayrıntı ipuçları kapalıdır.
 - Kalp, beyin, akciğer, karaciğer, böbrek, göz, bağırsak, pankreas ve deri için 9 isteğe bağlı 3B model. Döndürme, yakınlaştırma, görünümü sıfırlama ve tel kafes kontrolleri.
 - Dokuz organda toplam 52 etiketli yapı. Her yapıda konum, görev, ayrıntı ve AYT ayrımı. Kalpte dört odacık ve kapaklar; beyinde ön/orta/arka beyin yapıları.
-- Kalp ve beyinde “Daha detay · İçini aç” ile özgün öğretici kesit; kalpte ön yüzeyin iki yana açılması. Kaynak GLB'ler tek yüzey modelidir: kesit, gerçek 3B iç doku veya model parçalama iddiası taşımaz. Diğer yedi organ da etiketli yapı/büyütme şemalarına sahiptir.
-- 3B desteği/yüklemesi başarısızsa organ resmi ve bütün öğrenme şemaları kullanılabilir. Kesite geçiş bekleyen GLB indirmesini iptal eder; yapı seçmek yeni model indirmez. Tel kafes bir anatomik katman veya kesit görünümü değildir.
+- Etiketler doğrudan döndürülen 3B organın yüzeyine bağlıdır. “3B içini aç” kaynak kabuğun ön/arka yarılarını aynı sahnede ayırır; 52 ayrı hazırlanmış, seçilebilir iç hacim ve büyütme görünür. Açık hâl de döndürülüp yakınlaştırılabilir. Bunlar kaynak modelden çıkarılmış gerçek doku değildir; şematik eğitim geometrisidir. Dıştaki iç-yapı işaretleri yaklaşık konum/erişim noktalarıdır.
+- Kalpte kalınlıklı dört odacık, kapakçıklar ve damarlar; beyinde telensefalon, ara beyin, orta/arka beyin yapıları; diğer organlarda ilgili yapı ve hücresel büyütmeler. Yapı seçimi, aç/kapat, etiket ve geniş görünüm aynı canvas üzerinde çalışır; yeniden GLB indirmez.
+- 3B desteği/yüklemesi başarısızsa organ resmi ve “Şema yedeği · 2B” kullanılabilir. Açılma isteği yükleme sürerken korunur; yalnız organ/konu/sekme veya açıkça 2B görünüm değişimi indirmeyi iptal eder. Tel kafes anatomik katman değildir.
 - Atlas mevcut bilim kartı, favori, konu, deneme ve bulut kayıtlarını değiştirmez; veri şeması 21 olarak kalır.
 
 Şemalar özgün ve öğretici özetlerdir; tam ders anlatımı veya tıbbi/anatomik referans değildir. Konu başlıkları OGM AYT materyaliyle eşleştirilmiştir. Modellerin kaynak/kullanım notu: [THIRD_PARTY_ANATOMY.md](THIRD_PARTY_ANATOMY.md).
