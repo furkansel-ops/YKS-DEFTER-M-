@@ -1,0 +1,57 @@
+name: Tek seferlik 3B kulak kesit modeli v2
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/remodel-ear-v2.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Kaynak kodu al
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Node.js ortamını hazırla
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Bağımlılıkları kur
+        run: npm ci
+
+      - name: Geçici model betiğindeki eğri yazımını düzelt
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('scripts/remodel-ear-v2.py')
+          t=p.read_text(encoding='utf-8')
+          t=t.replace('outline.bezierCurveTo(-.98-0.0,-1.28,-1.68,-1.47,-1.48);','outline.bezierCurveTo(-.98,-1.53,-1.28,-1.68,-1.47,-1.48);')
+          p.write_text(t,encoding='utf-8')
+          PY
+
+      - name: Referanstaki anatomik kesit düzenini uygula
+        run: python scripts/remodel-ear-v2.py
+
+      - name: Geçici dosyaları çalışma ağacından kaldır
+        run: rm .github/workflows/remodel-ear-v2.yml scripts/remodel-ear-v2.py
+
+      - name: Türleri, 3B geometri testlerini ve üretim paketini doğrula
+        run: npm run release:check
+
+      - name: Doğrulanmış kulak modelini kaydet
+        run: |
+          git config user.name "YKS Defterim Automation"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A
+          git commit -m "feat(atlas): rebuild ear as anatomical 3D cutaway"
+          git push origin HEAD:main
