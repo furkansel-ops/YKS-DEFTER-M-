@@ -5,17 +5,19 @@
   "scripts": {
     "dev": "vite --host 0.0.0.0",
     "typecheck": "tsc --noEmit",
-    "build": "tsc --noEmit && vite build && node scripts/copy-legacy-assets.mjs && node scripts/verify-dist.mjs",
+    "build": "node scripts/prepare-anatomy-assets.mjs && tsc --noEmit && vite build && node scripts/copy-legacy-assets.mjs && node scripts/verify-dist.mjs",
     "preview": "vite preview --host 0.0.0.0",
     "test": "node --test tests/*.test.js",
     "check": "npm run typecheck && npm test && npm run build",
     "release:check": "npm run check && node scripts/verify-release.mjs"
   },
   "devDependencies": {
+    "@types/three": "0.185.0",
     "typescript": "^7.0.2",
     "vite": "^8.2.2"
   },
   "dependencies": {
-    "dexie": "^4.4.5"
+    "dexie": "^4.4.5",
+    "three": "0.185.1"
   }
 }

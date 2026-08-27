@@ -3,3 +3,4 @@ dist/
 .vite/
 *.tsbuildinfo
 npm-debug.log*
+public/anatomy/

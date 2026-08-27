@@ -9,6 +9,7 @@ import {installLegacyProgressAnalysisBridge} from "./domain/legacy-progress-anal
 import {installLegacyExamAnalysisBridge} from "./domain/legacy-exam-analysis-bridge";
 import {installPwaRuntime} from "./pwa/pwa-runtime";
 import {installScienceCards} from "./ui/science-cards";
+import {installBiologyAtlas} from "./ui/biology-atlas-bridge";
 
 type BootstrapState={
   version:"4.1.0";
@@ -55,6 +56,7 @@ const bootstrap:BootstrapState={
 const services=installLegacyServiceBridge();
 const data=installLegacyDataBridge();
 installScienceCards();
+installBiologyAtlas();
 installLegacyBackupBridge(data,bootstrap.version);
 const domain=installLegacyDomainBridge();
 const progressAnalysis=installLegacyProgressAnalysisBridge();

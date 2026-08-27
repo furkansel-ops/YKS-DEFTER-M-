@@ -1,6 +1,33 @@
-# YKS Defterim v4.0.0
+# YKS Defterim v4.1.0
 
-Bu paket doğrudan statik hosting için hazırlanmıştır. ZIP'i açtıktan sonra bu klasörün **içindeki dosyaları** GitHub deposunun kök dizinine yükleyin. GitHub Pages, Cloudflare Pages veya benzeri bir statik sunucuda çalışır.
+Kaynak proje Vite ile derlenir; statik hosting'e yayımlanacak klasör `dist/` klasörüdür. Kaynak `index.html` dosyasını doğrudan yayımlamayın. Mevcut GitHub Actions iş akışı testleri, derlemeyi ve GitHub Pages dağıtımını yürütür.
+
+## Biyoloji Atlası
+
+Öğrenme Laboratuvarı → Hazır laboratuvar araçları → Biyoloji Atlası:
+
+- 10 insan sistemleri konusu; genden proteine, enerji dönüşümleri, bitkiler ve ekolojiyle toplam 24 etkileşimli Türkçe şema.
+- Her konu için yapı–işlev açıklamaları, AYT karışıklık notu ve şema üstünden bir kısa alıştırma.
+- Kalp, beyin, akciğer, karaciğer, böbrek, göz, bağırsak, pankreas ve deri için 9 isteğe bağlı 3B model. Döndürme, yakınlaştırma, görünümü sıfırlama ve tel kafes kontrolleri.
+- 3B desteği/yüklemesi başarısızsa organ resmi ve konu şeması kullanılabilir. Tel kafes bir anatomik katman veya kesit görünümü değildir.
+- Atlas mevcut bilim kartı, favori, konu, deneme ve bulut kayıtlarını değiştirmez; veri şeması 21 olarak kalır.
+
+Şemalar özgün ve öğretici özetlerdir; tam ders anlatımı veya tıbbi/anatomik referans değildir. Konu başlıkları OGM AYT materyaliyle eşleştirilmiştir. Modellerin kaynak/kullanım notu: [THIRD_PARTY_ANATOMY.md](THIRD_PARTY_ANATOMY.md).
+
+### Geliştirme ve doğrulama
+
+Node.js 22.18+ önerilir:
+
+```sh
+npm ci
+node scripts/prepare-anatomy-assets.mjs
+npm run dev
+npm run release:check
+```
+
+`build` modeli kendisi hazırlar: 27 varlık, `scripts/anatomy-assets.json` içindeki sabit upstream commit'ten indirilir, boyut ve SHA-256 doğrulanır. Üretilen `public/anatomy/` Git'e eklenmez; Vite bu dosyaları `dist/anatomy/` altına kopyalar. İnternet gerektirmeyen hazırlık için upstream projenin `public` klasörünü `node scripts/prepare-anatomy-assets.mjs --source /tam/yol/anatomy/public` ile verebilirsiniz. Geçersiz/eksik kaynak dosyası dağıtımı durdurur.
+
+Atlas ve Three.js ayrı paketlerdir; normal uygulama açılışında yüklenmez. GLB'ler yaklaşık 2–5,8 MB; toplam yaklaşık 30 MB'dır. PWA kurulumu bütün modelleri indirmez. Çevrimdışı kullanım için ilgili atlas bölümü/model daha önce açılmış ve cihaz önbelleğinde kalmış olmalıdır. Sekme değişimi yüklemeyi/görüntüleyiciyi kapatır; görünmeyen sahne sürekli çizilmez.
 
 ## Bu sürümde gelenler
 
@@ -18,9 +45,9 @@ Bu paket doğrudan statik hosting için hazırlanmıştır. ZIP'i açtıktan son
 
 ## Yayına alma
 
-1. ZIP'i açın.
-2. `index.html`, `app.js`, `app.css`, `modules/`, ikonlar ve diğer dosyaları depo köküne yükleyin.
-3. GitHub'da **Settings → Pages** bölümünden ana dalın kök dizinini yayınlayın.
+1. Kaynak dosyalarını `main` dalına gönderin.
+2. GitHub'da **Settings → Pages → Source: GitHub Actions** seçili olmalıdır.
+3. `Vite uygulamasını GitHub Pages'e dağıt` iş akışının tamamlanmasını bekleyin. Başka bir statik sunucu kullanılıyorsa `npm run release:check` sonrası yalnız `dist/` içeriğini yayımlayın.
 4. Firebase kullanılıyorsa yayın alan adını Firebase Authentication içindeki yetkili alan adlarına ekleyin.
 
 Kullanıcı verileri şema 21'e otomatik taşınır. Yeni `lab` alanı yoksa paragraf geçmişi ve favoriler güvenli boş değerlerle oluşturulur. Yine de güncellemeden önce uygulamanın Veri/Yedek bölümünden bir JSON yedeği almak iyi bir güvenlik adımıdır.

@@ -40,12 +40,12 @@ test('Öğrenme Laboratuvarı v3 paragraf aracını kaldırır, YKS periyodik ka
   assert.match(s,/bindMainTabs/);
   assert.match(s,/removeAttribute\("onclick"\)/);
   assert.match(s,/addEventListener\("click",\(\)=>setTab\(key\)\)/);
-  assert.match(s,/version:"3\.3\.0"/);
+  assert.match(s,/version:"3\.4\.0"/);
   assert.match(stability,/learning-lab-v2\.js\?v=4\.1\.0-r24/);
-  assert.match(stability,/learning-lab-v3\.js\?v=4\.1\.0-r27/);
+  assert.match(stability,/learning-lab-v3\.js\?v=4\.1\.0-r28/);
   assert.match(sw,/learning-lab-v2\.js\?v=4\.1\.0-r24/);
-  assert.match(sw,/learning-lab-v3\.js\?v=4\.1\.0-r27/);
-  assert.match(sw,/yks-core-v4\.1\.0-r27/);
+  assert.match(sw,/learning-lab-v3\.js\?v=4\.1\.0-r28/);
+  assert.match(sw,/yks-core-v4\.1\.0-r28/);
   assert.match(sw,/yks-core-v4\.1\.0-r26/);
   assert.match(sw,/yks-core-v4\.1\.0-r25/);
   assert.match(sw,/yks-core-v4\.1\.0-r24/);

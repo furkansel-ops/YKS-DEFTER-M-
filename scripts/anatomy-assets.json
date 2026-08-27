@@ -1,0 +1,168 @@
+{
+  "upstream": "https://github.com/thebuggeddev/anatomy",
+  "commit": "8c0e6f321a47f895ae58ce098028b92774733ee9",
+  "files": [
+    {
+      "bytes": 3321148,
+      "sha256": "ef48b43442dbbe2819d6035f8bbf1391d2c3fefbe842863c9c7c1a22cc6cd748",
+      "source": "models/heart.glb",
+      "target": "models/heart.glb"
+    },
+    {
+      "bytes": 76134,
+      "sha256": "5a8121a3b0594e203e83ace4660edc13cc29a011d9054ff67800ddbe1a6dd523",
+      "source": "anatomy/heart/organ.webp",
+      "target": "images/heart.webp"
+    },
+    {
+      "bytes": 4764,
+      "sha256": "3444630d37ea695064879806207a6f8b84ba00efc2426cadaf5c6ef701be9000",
+      "source": "anatomy/heart/thumb.webp",
+      "target": "thumbs/heart.webp"
+    },
+    {
+      "bytes": 2570592,
+      "sha256": "2cd5e7178f1e5de707bb97c2c06f6c34fb5aaad28132445c0afcb4f0fd67c811",
+      "source": "models/brain.glb",
+      "target": "models/brain.glb"
+    },
+    {
+      "bytes": 73474,
+      "sha256": "d16dba895a61a7adde8d02d53ab5b27d39e3c5a8cb97627416b70d56c582a120",
+      "source": "anatomy/brain/organ.webp",
+      "target": "images/brain.webp"
+    },
+    {
+      "bytes": 4464,
+      "sha256": "0d856fef914d2f4d46d41a2a7fe69aae0fccd2ca720170f0d8081ea0452303f6",
+      "source": "anatomy/brain/thumb.webp",
+      "target": "thumbs/brain.webp"
+    },
+    {
+      "bytes": 4455976,
+      "sha256": "81617c9fc2f2b7bf1e7d874b89614c89b09f2f68318e64997c68c948cfa9abdc",
+      "source": "models/lungs.glb",
+      "target": "models/lungs.glb"
+    },
+    {
+      "bytes": 73028,
+      "sha256": "ccbe39dd866aeb912cedfade77f99cfdfd78ef329ded14e6fb2fb8d9020b7f1c",
+      "source": "anatomy/lungs/organ.webp",
+      "target": "images/lungs.webp"
+    },
+    {
+      "bytes": 4220,
+      "sha256": "ef8fb3c33fda1633131e460f8925d3d5b01cc413b12cabec2302c4bb5ed94037",
+      "source": "anatomy/lungs/thumb.webp",
+      "target": "thumbs/lungs.webp"
+    },
+    {
+      "bytes": 2660384,
+      "sha256": "e4f11a9c0762eb9dc4309dcd0d5c3e3958ccacab915267da4e7775894b674990",
+      "source": "models/liver.glb",
+      "target": "models/liver.glb"
+    },
+    {
+      "bytes": 74938,
+      "sha256": "4f6b2e4db6eb6db66436d9f5a46449ad45eddd9b031899001f4b6b3460d67cd6",
+      "source": "anatomy/liver/organ.webp",
+      "target": "images/liver.webp"
+    },
+    {
+      "bytes": 4672,
+      "sha256": "da70f44c59122c991ad5b575aca09f35cbadbb372501f7e456b12491b4157b25",
+      "source": "anatomy/liver/thumb.webp",
+      "target": "thumbs/liver.webp"
+    },
+    {
+      "bytes": 2190764,
+      "sha256": "e3e0a58372d794d68b181d1d453ff4362da972667c28711e153c5f34064cf165",
+      "source": "models/kidneys.glb",
+      "target": "models/kidneys.glb"
+    },
+    {
+      "bytes": 74522,
+      "sha256": "560ccb896d019ff84f8556317ac581fb99411d12b313110d075841ffbc0a3cf3",
+      "source": "anatomy/kidneys/organ.webp",
+      "target": "images/kidneys.webp"
+    },
+    {
+      "bytes": 4782,
+      "sha256": "cd714251659eb05f12cdd1657ff81e2cd3a5abce6751c60645f6096dcd2bcf42",
+      "source": "anatomy/kidneys/thumb.webp",
+      "target": "thumbs/kidneys.webp"
+    },
+    {
+      "bytes": 2203616,
+      "sha256": "584337a2efc7d3c03d7326ca930217c4f7e5eca0a32a8cec141c7388ecc8a1c7",
+      "source": "models/eyeball.glb",
+      "target": "models/eyeball.glb"
+    },
+    {
+      "bytes": 59682,
+      "sha256": "efbf43beafd8ca61778d80b3569137e3656a2b0e770416e7f2bb165f23d17205",
+      "source": "anatomy/eyeball/organ.webp",
+      "target": "images/eyeball.webp"
+    },
+    {
+      "bytes": 4164,
+      "sha256": "b67b60fdb70f1f94ed254d905c849769935ff83c41351eab599626c20b8df2bc",
+      "source": "anatomy/eyeball/thumb.webp",
+      "target": "thumbs/eyeball.webp"
+    },
+    {
+      "bytes": 1980780,
+      "sha256": "d4423ba0c8f08ac7652396e2530482f874e4964a9c3f1b71440f0493048bea26",
+      "source": "models/intestine.glb",
+      "target": "models/intestine.glb"
+    },
+    {
+      "bytes": 91808,
+      "sha256": "4ae4d0766e80d1863691ced3f7fd2b5aaa89d78cf7229d1980c343dfe112c8f2",
+      "source": "anatomy/intestine/organ.webp",
+      "target": "images/intestine.webp"
+    },
+    {
+      "bytes": 5906,
+      "sha256": "bfb1804cca4d8392e1aeb6f50fa5e2ca6077e65661f4f4d05c4f9ee319e07fdd",
+      "source": "anatomy/intestine/thumb.webp",
+      "target": "thumbs/intestine.webp"
+    },
+    {
+      "bytes": 4848556,
+      "sha256": "e5213bf8ed66e8ed4eb2a9d1c7a6922fb926eac85de8c5979e780ca1abcaf1c3",
+      "source": "models/pancreas.glb",
+      "target": "models/pancreas.glb"
+    },
+    {
+      "bytes": 45372,
+      "sha256": "e82ec8eca1c308df3ff477baa874713563c410882f3d6f63d14a34e45d4c8226",
+      "source": "anatomy/pancreas/organ.webp",
+      "target": "images/pancreas.webp"
+    },
+    {
+      "bytes": 3140,
+      "sha256": "88d8f206e52b88134c89fea47e064566d3b7bf8b13e950a6f28a4868c055bc0a",
+      "source": "anatomy/pancreas/thumb.webp",
+      "target": "thumbs/pancreas.webp"
+    },
+    {
+      "bytes": 5789160,
+      "sha256": "8183ffe3527b3f071c41c55e41ffaf673df8d02a1405e95e644ac5d89cd6f5f9",
+      "source": "models/skin.glb",
+      "target": "models/skin.glb"
+    },
+    {
+      "bytes": 85032,
+      "sha256": "484aa1d41e9442aa554d39a2c09555fd5e8a474dc0afc6e4a3b08150123d8871",
+      "source": "anatomy/skin/organ.webp",
+      "target": "images/skin.webp"
+    },
+    {
+      "bytes": 5826,
+      "sha256": "fb3758bb32cf2dcae0388848d9b16ce6223e71e4cdd94d4137e2f2b85fea8975",
+      "source": "anatomy/skin/thumb.webp",
+      "target": "thumbs/skin.webp"
+    }
+  ]
+}
