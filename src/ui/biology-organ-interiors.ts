@@ -128,14 +128,64 @@ export function createOrganInterior(id:OrganId):OrganInterior {
       for(const [x,y] of [[.48,-.76],[.79,-.69],[.82,-.99],[.51,-1.02],[.65,-.87]])ellipsoid(beta,[x!,y!,.09],[.14,.14,.16],blue);break;
     }
     case "ear": {
-      tube(part("ear-canal",[-.72,-.08,.38]),[[-1.55,-.12,.02],[-1.08,-.08,.04],[-.58,-.05,.06],[-.28,-.03,.06]],.16,cream);
-      const drum=mesh(part("eardrum",[-.18,-.03,.42]),new THREE.CylinderGeometry(.34,.34,.07,40),pink,[-.18,-.03,.06]);drum.rotation.z=Math.PI/2;
-      const bones=part("ossicles",[.20,.13,.45]);ellipsoid(bones,[.02,.14,.08],[.15,.24,.12],gold);ellipsoid(bones,[.23,.18,.08],[.14,.17,.12],gold);ellipsoid(bones,[.43,.10,.08],[.10,.22,.10],gold);tube(bones,[[.06,.11,.08],[.22,.18,.08],[.41,.11,.08]],.035,gold);
-      tube(part("eustachian-tube",[.40,-.84,.37]),[[.28,-.20,.04],[.42,-.61,.02],[.62,-1.28,-.04]],.09,cream);
-      ellipsoid(part("vestibule",[.62,.06,.43]),[.60,.04,.05],[.26,.30,.22],teal);
-      const canals=part("semicircular-canals",[.72,.72,.42]);const c1=ring(canals,[.68,.60,.02],.45,.055,teal),c2=ring(canals,[.70,.60,.02],.40,.05,teal),c3=ring(canals,[.72,.56,.02],.36,.05,teal);c1.rotation.x=Math.PI/2;c2.rotation.y=Math.PI/2;c3.rotation.set(Math.PI/2,Math.PI/3,0);
-      const cochlea=part("cochlea",[1.02,-.18,.45]),spiral:Point3[]=[];for(let n=0;n<=90;n++){const t=n/90,a=t*Math.PI*5.4,r=.52*(1-.72*t);spiral.push([1.02,-.18+Math.cos(a)*r,.02+Math.sin(a)*r]);}tube(cochlea,spiral,.07,pink);ellipsoid(cochlea,[1.02,-.18,.02],[.16,.16,.13],pink);
-      tube(part("auditory-nerve",[1.48,-.05,.39]),[[1.14,-.10,.02],[1.42,-.04,.01],[1.78,.02,-.02]],.09,gold);break;
+      // Reference image layout: lateral cutaway, with the canal running left →
+      // right and the inner-ear structures grouped behind the tympanic membrane.
+      const canalPart=part("ear-canal",[-.83,-.13,.42]);
+      tube(canalPart,[[-1.48,-.18,.08],[-1.10,-.16,.09],[-.72,-.14,.10],[-.39,-.11,.10],[-.22,-.09,.10]],.18,red);
+      tube(canalPart,[[-1.45,-.18,.135],[-1.10,-.16,.135],[-.72,-.14,.14],[-.39,-.11,.14],[-.22,-.09,.14]],.105,0x743f40);
+
+      const drum=mesh(part("eardrum",[-.14,-.07,.48]),new THREE.CylinderGeometry(.32,.30,.052,48),pink,[-.14,-.07,.10]);
+      drum.rotation.z=Math.PI/2;drum.rotation.y=-.13;
+      const drumMaterial=drum.material as THREE.MeshStandardMaterial;drumMaterial.transparent=true;drumMaterial.opacity=.72;drumMaterial.roughness=.36;drumMaterial.depthWrite=false;
+      for(let n=0;n<6;n++){const angle=-.92+n*.37;tube(parts.get("eardrum")!.root,[[-.14,-.07,.135],[-.14+Math.cos(angle)*.25,-.07+Math.sin(angle)*.25,.14]],.008,cream);}
+
+      const bones=part("ossicles",[.24,.18,.50]);
+      // Malleus: rounded head plus manubrium attached to the eardrum.
+      ellipsoid(bones,[.02,.23,.13],[.115,.14,.11],cream);
+      tube(bones,[[.02,.15,.13],[-.01,.05,.12],[-.06,-.02,.115]],.035,cream);
+      // Incus: body and long crus.
+      ellipsoid(bones,[.22,.23,.13],[.12,.105,.10],cream);
+      tube(bones,[[.15,.21,.13],[.25,.16,.13],[.32,.08,.12]],.033,cream);
+      // Stapes: a tiny stirrup and its footplate at the oval window.
+      const stapes=mesh(bones,new THREE.TorusGeometry(.085,.022,10,30),gold,[.405,.07,.125],[.74,1,.62]);stapes.rotation.y=-.22;
+      tube(bones,[[.31,.08,.12],[.36,.07,.125]],.022,gold);
+      ellipsoid(bones,[.47,.07,.12],[.035,.105,.075],gold);
+
+      const eustachian=part("eustachian-tube",[.62,-.88,.43]);
+      tube(eustachian,[[.39,-.17,.08],[.48,-.43,.07],[.64,-.78,.055],[.88,-1.28,.02]],.115,red);
+      tube(eustachian,[[.40,-.18,.105],[.49,-.43,.095],[.65,-.78,.08],[.88,-1.28,.05]],.063,cream);
+
+      const vestibule=part("vestibule",[.65,.13,.48]);
+      ellipsoid(vestibule,[.63,.11,.11],[.24,.27,.20],teal);
+      ellipsoid(vestibule,[.57,.18,.25],[.11,.13,.10],0x9bc7bb);
+      ellipsoid(vestibule,[.69,.03,.24],[.095,.115,.09],0x9bc7bb);
+      const oval=ring(vestibule,[.46,.07,.11],.105,.025,cream);oval.scale.y=.72;
+
+      const canals=part("semicircular-canals",[.82,.72,.50]);
+      const loopA:Point3[]=[],loopB:Point3[]=[],loopC:Point3[]=[];
+      for(let n=0;n<=52;n++){
+        const a=n/52*Math.PI*2;
+        loopA.push([.73+Math.cos(a)*.33,.62+Math.sin(a)*.48,.11]);
+        loopB.push([.83+Math.cos(a)*.46,.57+Math.sin(a)*.24,.11+Math.sin(a)*.19]);
+        loopC.push([.79+Math.cos(a)*.27,.61+Math.sin(a)*.40,.11+Math.cos(a)*.18]);
+      }
+      tube(canals,loopA,.052,teal);tube(canals,loopB,.049,teal);tube(canals,loopC,.047,teal);
+      ellipsoid(canals,[.62,.28,.12],[.12,.11,.11],teal);ellipsoid(canals,[.94,.29,.12],[.11,.10,.10],teal);
+
+      const cochlea=part("cochlea",[1.08,-.15,.48]),spiral:Point3[]=[];
+      for(let n=0;n<=128;n++){
+        const t=n/128,a=t*Math.PI*5.7,r=.49*(1-.79*t);
+        spiral.push([1.05+Math.cos(a)*r,-.17+Math.sin(a)*r,.10+Math.sin(a*.55)*.018]);
+      }
+      tube(cochlea,spiral,.082,pink);ellipsoid(cochlea,[1.05,-.17,.10],[.14,.14,.12],pink);
+      const innerSpiral:Point3[]=[];for(let n=0;n<=96;n++){const t=n/96,a=t*Math.PI*5.2,r=.31*(1-.77*t);innerSpiral.push([1.05+Math.cos(a)*r,-.17+Math.sin(a)*r,.185]);}tube(cochlea,innerSpiral,.022,cream);
+
+      const nerve=part("auditory-nerve",[1.55,.02,.45]);
+      for(let n=0;n<5;n++){
+        const offset=(n-2)*.035;
+        tube(nerve,[[1.28,-.06+offset,.105],[1.46,-.01+offset*.8,.095],[1.70,.03+offset*.65,.07],[1.87,.02+offset*.45,.04]],.024,gold);
+      }
+      break;
     }
     case "skin": {
       mesh(part("epidermis",[-.7,1.08,.54]),new THREE.BoxGeometry(2.9,.28,.85),0xc89985,[0,1.03,0]);

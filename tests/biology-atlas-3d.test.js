@@ -23,6 +23,14 @@ test('Her 3B yapı için sonlu konum, gerçek hacim geometrisi ve bağımsız se
   }assert.equal(count,60);
 });
 
+test('Kulak referans kesiti gerçek 3B kabuk, kemik katmanları ve kanal geometrisi içerir',async()=>{
+  const {createEarSourceModel}=await load('src/ui/biology-ear-source.ts'),{disposeAtlasObject}=await load('src/ui/biology-atlas-model.ts'),THREE=await import('three');
+  const model=createEarSourceModel(),names=new Set();let meshes=0,volume=0;
+  model.traverse(o=>{if(!o.isMesh)return;meshes++;names.add(o.name);o.geometry.computeBoundingBox();const s=o.geometry.boundingBox.getSize(new THREE.Vector3());assert.ok(s.x>0&&s.y>0&&s.z>0,o.name);volume+=s.x*s.y*s.z;});
+  for(const name of ['pinna-shell','helix-rim','antihelix-ridge','temporal-bone-upper','temporal-bone-floor','ear-canal-wall','ear-canal-lumen'])assert.ok(names.has(name),name);
+  assert.ok(meshes>=35);assert.ok(volume>1);disposeAtlasObject(model);
+});
+
 test('Kalp boşlukları dış duvar, iç duvar ve kesit kenarı içerir; sol karıncık duvarı daha kalındır',async()=>{
   const {chamberGeometry,createOrganInterior}=await load('src/ui/biology-organ-interiors.ts');
   const g=chamberGeometry(1,1,1,.3);assert.equal(g.groups.length,3);assert.ok(g.groups.every(g=>g.count>0));
