@@ -64,6 +64,18 @@ jobs:
       - name: Referanstaki anatomik kesit düzenini uygula
         run: python scripts/remodel-ear-v2.py
 
+      - name: Eski kulak regresyonunu yeni gerçek kesit parçalarıyla hizala
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('tests/biology-atlas-3d.test.js')
+          t=p.read_text(encoding='utf-8')
+          old="for(const name of ['pinna-shell','helix-rim','antihelix-ridge','temporal-bone-upper','temporal-bone-floor','ear-canal-wall','ear-canal-lumen'])assert.ok(names.has(name),name);\n  assert.ok(meshes>=35);assert.ok(volume>1);"
+          new="for(const name of ['auricle-skin-plate','helix','antihelix','temporal-bone-body','temporal-bone-floor','external-auditory-canal-wall','external-auditory-canal-lumen','tympanic-membrane','malleus-head','stapes','cochlea'])assert.ok(names.has(name),name);\n  assert.ok(meshes>70);assert.ok(volume>1);"
+          if old not in t: raise SystemExit('eski kulak regresyon sözleşmesi bulunamadı')
+          p.write_text(t.replace(old,new),encoding='utf-8')
+          PY
+
       - name: Geçici dosyaları çalışma ağacından kaldır
         run: rm .github/workflows/remodel-ear-v2.yml scripts/remodel-ear-v2.py
 
