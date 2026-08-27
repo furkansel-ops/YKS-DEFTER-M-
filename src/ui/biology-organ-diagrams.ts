@@ -20,7 +20,6 @@ const drawings:Record<OrganId,string>={
       <path data-region="tricuspid" d="M249 260L265 274L282 260L299 275L319 261" fill="none" stroke="#fff9ed" stroke-width="8"/>
       <path data-region="mitral" d="M380 260L397 277L414 262L444 271" fill="none" stroke="#fff9ed" stroke-width="8"/>
       <path d="M266 278L301 354L297 279M398 283L402 350L438 282" fill="none" stroke="#eedbd5" stroke-width="2"/>
-      <path d="M398 179L405 189L414 177M315 169L323 180L333 170" fill="none" stroke="#fff9ed" stroke-width="7"/>
       <path d="M279 225V242M292 296L302 316M420 225V240M414 298L406 318" stroke="#fff" stroke-width="3" marker-end="url(#organ-heart-arrow)"/>
       <text x="299" y="391" class="organ-inset-caption">SAĞ</text><text x="418" y="391" class="organ-inset-caption">SOL</text>
     </g>
