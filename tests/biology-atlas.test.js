@@ -190,12 +190,13 @@ test("Geç gelen 3B sonuç yeni konuya veya organa yazamaz ve kaynaklarını bı
 });
 
 test("Atlas yükleme köprüsü hata durumunda gözlemcinin sonsuz tekrarına girmez",async()=>{
-  let imports=0,retry,mounts=0;const panel={isConnected:true,writes:0,set innerHTML(v){this.writes++;},querySelector(){return {addEventListener(type,fn){retry=fn;}};}};
+  let imports=0,retry,reload,mounts=0,reloads=0;const panel={isConnected:true,writes:0,set innerHTML(v){this.writes++;},querySelector(selector){return {addEventListener(type,fn){if(selector==="[data-atlas-retry]")retry=fn;else reload=fn;}};}};
   const source=stripTypeScriptTypes(read("src/ui/biology-atlas-bridge.ts")).replace("export function installBiologyAtlas","function installBiologyAtlas").replace('import("./biology-atlas.ts")','importAtlas()');
-  const context={window:{},importAtlas:()=>{imports++;return imports===1?Promise.reject(new Error("offline")):Promise.resolve({createBiologyAtlas:()=>({mount(){mounts++;return true;},suspend(){}})});}};
+  const context={window:{location:{reload(){reloads++;}}},importAtlas:()=>{imports++;return imports===1?Promise.reject(new Error("offline")):Promise.resolve({createBiologyAtlas:()=>({mount(){mounts++;return true;},suspend(){}})});}};
   vm.runInNewContext(source+"\nthis.api=installBiologyAtlas();",context);
   context.api.mount(panel);await new Promise(resolve=>setImmediate(resolve));
   context.api.mount(panel);context.api.mount(panel);assert.equal(imports,1);assert.equal(panel.writes,2);
+  assert.equal(reloads,0);reload();assert.equal(reloads,1);
   retry();await new Promise(resolve=>setImmediate(resolve));assert.equal(imports,2);assert.equal(mounts,1);
 });
 

@@ -21,8 +21,9 @@ export function installBiologyAtlas(): BiologyAtlasApi {
         }).catch(() => {
           if (wanted && current) {
             failedPanel = current;
-            current.innerHTML = '<p role="status">Atlas yüklenemedi. Bağlantını kontrol edip yeniden deneyebilirsin.</p><button type="button">Yeniden dene</button>';
-            current.querySelector("button")?.addEventListener("click", () => {failedPanel=null;api.mount(current);}, {once:true});
+            current.innerHTML = '<p role="status">Atlas yüklenemedi. Bağlantını kontrol et. Yeni bir sürüm yayımlandıysa sayfayı yenile.</p><button type="button" data-atlas-retry>Yeniden dene</button> <button type="button" data-atlas-reload>Sayfayı yenile</button>';
+            current.querySelector("[data-atlas-retry]")?.addEventListener("click", () => {failedPanel=null;api.mount(current);}, {once:true});
+            current.querySelector("[data-atlas-reload]")?.addEventListener("click", () => window.location.reload(), {once:true});
           }
         }).finally(() => {pending=null;});
       }
