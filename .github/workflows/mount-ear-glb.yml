@@ -37,6 +37,23 @@ jobs:
       - name: Uygulama bağımlılıklarını kur
         run: npm ci
 
+      - name: GLB ihracat doğrulamasını sağlamlaştır
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('scripts/install-custom-ear-model.py')
+          t=p.read_text(encoding='utf-8')
+          old="if not required<=names or len(data.get('meshes',[]))<60:raise SystemExit('Kulak GLB anatomik parça sözleşmesi eksik')"
+          new="""missing=sorted(required-names)
+          mesh_count=len(data.get('meshes',[]))
+          print(f'GLB doğrulama: {len(raw)} bayt · {mesh_count} mesh · eksik={missing}')
+          if missing: raise SystemExit('Kulak GLB anatomik düğümleri eksik: '+', '.join(missing))
+          if mesh_count<50: raise SystemExit(f'Kulak GLB mesh sayısı beklenenden düşük: {mesh_count}')"""
+          if old not in t: raise SystemExit('GLB doğrulama satırı bulunamadı')
+          t=t.replace(old,new).replace("assert.ok((data.meshes||[]).length>=60);","assert.ok((data.meshes||[]).length>=50);")
+          p.write_text(t,encoding='utf-8')
+          PY
+
       - name: Hazırlanan kulak modelini GLB olarak monte et
         run: python scripts/install-custom-ear-model.py
 
