@@ -78,6 +78,15 @@ test("Atlas SVG metinleri kaçırılır ve varlık yolları uygulama alt klasör
   for(const value of ["../heart.glb","models/../../x","https://other/x.glb","models/heart.glb?x","images/a.svg"] )assert.throws(()=>atlasAsset(value));
 });
 
+test("Dolaşım şeması oksijen zenginliğini renk anahtarı ve yönlü oklarla ayırır",async()=>{
+  const {getAtlasTopic}=await service(),{atlasDiagram}=await load("src/ui/biology-atlas-diagrams.ts");
+  const svg=atlasDiagram(getAtlasTopic("dolasim"));
+  assert.match(svg,/O₂ fakir/);assert.match(svg,/O₂ zengin/);
+  assert.equal((svg.match(/stroke="var\(--atlas-blue\)" stroke-width="3"/g)||[]).length,3);
+  assert.equal((svg.match(/stroke="var\(--atlas-coral\)" stroke-width="3"/g)||[]).length,2);
+  assert.equal((svg.match(/marker-end=/g)||[]).length,5);
+});
+
 test("Yeni model veya sekme eski yükleme isteğini ve gecikmiş sonucunu geçersiz kılar",async()=>{
   const {AtlasRequestGate}=await service();const gate=new AtlasRequestGate();
   const first=gate.start();assert.equal(first.current(),true);

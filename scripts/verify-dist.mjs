@@ -32,7 +32,7 @@ const [bundle,app,sw,versionText,recovery,stability,personal,progress,labV2,labV
 if(!bundle.includes("YKS_V4_RELEASE_OK")||!bundle.includes("4.1.0")||!bundle.includes("stable"))throw new Error("v4 kararlı sürüm denetimi üretim paketine girmedi");
 if(!bundle.includes("4.1.0-r20")||!/(?:assets\/manifest-[^"']+|manifest\.webmanifest)\?v=4\.1\.0-r20/.test(index))throw new Error("r20 PWA çalışma zamanı üretim paketine girmedi");
 if(!app.includes('const APP_VERSION="4.1.0"')||!app.includes('const APP_BUILD="4.1.0-r20"'))throw new Error("Kopyalanan app.js kararlı sürümle eşleşmiyor");
-if(!sw.includes('const APP_VERSION="4.1.0"')||!sw.includes('const APP_BUILD="4.1.0-r20"')||!sw.includes('const CACHE="yks-core-v4.1.0-r28"'))throw new Error("Kopyalanan service worker kararlı sürüm/cache revizyonuyla eşleşmiyor");
+if(!sw.includes('const APP_VERSION="4.1.0"')||!sw.includes('const APP_BUILD="4.1.0-r20"')||!sw.includes('const CACHE="yks-core-v4.1.0-r29"'))throw new Error("Kopyalanan service worker kararlı sürüm/cache revizyonuyla eşleşmiyor");
 if(!sw.includes('learning-lab.js?v=4.1.0-r26'))throw new Error("Laboratuvar favori düzeltmesi çevrimdışı çekirdekte eksik");
 if(!index.includes("core-utils.js?v=4.1.0-r27")||!sw.includes("core-utils.js?v=4.1.0-r27"))throw new Error("Bilim kartlarının senkronizasyon güncellemesi pakette eksik");
 if(!bundle.includes("FEN TEKRAR ATÖLYESİ"))throw new Error("Biyoloji/Fizik kart sistemi TypeScript paketinde eksik");
