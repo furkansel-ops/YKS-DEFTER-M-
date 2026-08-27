@@ -37,7 +37,7 @@ jobs:
       - name: Uygulama bağımlılıklarını kur
         run: npm ci
 
-      - name: GLB ihracat doğrulamasını sağlamlaştır
+      - name: GLB ve sürüm notu doğrulamasını sağlamlaştır
         run: |
           python - <<'PY'
           from pathlib import Path
@@ -50,7 +50,10 @@ jobs:
           if missing: raise SystemExit('Kulak GLB anatomik düğümleri eksik: '+', '.join(missing))
           if mesh_count<50: raise SystemExit(f'Kulak GLB mesh sayısı beklenenden düşük: {mesh_count}')"""
           if old not in t: raise SystemExit('GLB doğrulama satırı bulunamadı')
-          t=t.replace(old,new).replace("assert.ok((data.meshes||[]).length>=60);","assert.ok((data.meshes||[]).length>=50);")
+          t=t.replace(old,new)
+          t=t.replace("assert.ok((data.meshes||[]).length>=60);","assert.ok((data.meshes||[]).length>=50);")
+          t=t.replace("start='- Kulak atlası kullanıcının sağladığı anatomik kesit referansı esas alınarak yeniden 3B modellenmiştir:'","start='- Kulak atlası kullanıcının sağladığı anatomik kesit referansı esas alınarak'")
+          t=t.replace("p.write_text(doc.replace(line,new_line),encoding='utf-8')","p.write_text(doc.replace(line,new_line).replace(\"70'ten fazla gerçek hacimli mesh\",\"51 ayrı mesh\"),encoding='utf-8')")
           p.write_text(t,encoding='utf-8')
           PY
 
