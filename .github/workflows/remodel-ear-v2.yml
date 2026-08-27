@@ -35,7 +35,11 @@ jobs:
           from pathlib import Path
           p=Path('scripts/remodel-ear-v2.py')
           t=p.read_text(encoding='utf-8')
+          t=t.replace('outline.bezierCurveTo(-.69,-.87,-.56-1.14,-.78-1.38);','outline.bezierCurveTo(-.69,-.87,-.56,-1.14,-.78,-1.38);')
           t=t.replace('outline.bezierCurveTo(-.98-0.0,-1.28,-1.68,-1.47,-1.48);','outline.bezierCurveTo(-.98,-1.53,-1.28,-1.68,-1.47,-1.48);')
+          old_cut='const cut=new THREE.Shape();cut.moveTo(-.29,-.44);cut.lineTo(-.27,1.39);cut.bezierCurveTo(.30,1.55,1.34,1.47,1.88,.98);cut.bezierCurveTo(2.05,.61,2.02,-.23,1.73,-.77);cut.bezierCurveTo(1.37,-1.25,.73,-1.37,.29,-.89);cut.bezierCurveTo(.06,-.62,-.03,-.48,-.29,-.44);cut.closePath();'
+          new_cut='const cut=new THREE.Shape();cut.moveTo(-.29,-.44);cut.splineThru([new THREE.Vector2(-.27,1.39),new THREE.Vector2(.30,1.52),new THREE.Vector2(1.24,1.48),new THREE.Vector2(1.88,.98),new THREE.Vector2(1.98,.25),new THREE.Vector2(1.72,-.76),new THREE.Vector2(1.06,-1.24),new THREE.Vector2(.30,-.90),new THREE.Vector2(-.29,-.44)]);cut.closePath();'
+          t=t.replace(old_cut,new_cut)
           t=t.replace(
             '  ear:{"ear-canal":surface([-.72,-.08,.64]),eardrum:inside([-.18,-.04,.72]),ossicles:inside([.20,.12,.75]),"eustachian-tube":inside([.38,-.85,.68]),vestibule:inside([.62,.06,.76]),"semicircular-canals":inside([.72,.70,.72]),cochlea:inside([1.02,-.16,.75]),"auditory-nerve":inside([1.48,-.05,.66])},',
             '  ear:{"ear-canal":surface([-.88,-.14,.68]),eardrum:inside([-.14,-.07,.76]),ossicles:inside([.24,.18,.80]),"eustachian-tube":inside([.62,-.88,.72]),vestibule:inside([.65,.13,.80]),"semicircular-canals":inside([.82,.72,.80]),cochlea:inside([1.08,-.15,.80]),"auditory-nerve":inside([1.55,.02,.72])},'
