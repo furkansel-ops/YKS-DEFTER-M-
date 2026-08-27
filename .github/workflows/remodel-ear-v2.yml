@@ -29,13 +29,17 @@ jobs:
       - name: Bağımlılıkları kur
         run: npm ci
 
-      - name: Geçici model betiğindeki eğri yazımını düzelt
+      - name: Geçici model betiğini güncel kaynakla hizala
         run: |
           python - <<'PY'
           from pathlib import Path
           p=Path('scripts/remodel-ear-v2.py')
           t=p.read_text(encoding='utf-8')
           t=t.replace('outline.bezierCurveTo(-.98-0.0,-1.28,-1.68,-1.47,-1.48);','outline.bezierCurveTo(-.98,-1.53,-1.28,-1.68,-1.47,-1.48);')
+          t=t.replace(
+            '  ear:{"ear-canal":surface([-.72,-.08,.64]),eardrum:inside([-.18,-.04,.72]),ossicles:inside([.20,.12,.75]),"eustachian-tube":inside([.38,-.85,.68]),vestibule:inside([.62,.06,.76]),"semicircular-canals":inside([.72,.70,.72]),cochlea:inside([1.02,-.16,.75]),"auditory-nerve":inside([1.48,-.05,.66])},',
+            '  ear:{"ear-canal":surface([-.88,-.14,.68]),eardrum:inside([-.14,-.07,.76]),ossicles:inside([.24,.18,.80]),"eustachian-tube":inside([.62,-.88,.72]),vestibule:inside([.65,.13,.80]),"semicircular-canals":inside([.82,.72,.80]),cochlea:inside([1.08,-.15,.80]),"auditory-nerve":inside([1.55,.02,.72])},'
+          )
           p.write_text(t,encoding='utf-8')
           PY
 
