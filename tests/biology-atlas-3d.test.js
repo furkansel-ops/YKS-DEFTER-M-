@@ -20,16 +20,8 @@ test('Her 3B yapı için sonlu konum, gerçek hacim geometrisi ve bağımsız se
     for(const [name,p] of interior.parts)p.root.traverse(o=>{if(o.isMesh)for(const m of Array.isArray(o.material)?o.material:[o.material])assert.equal(m.emissiveIntensity,name===first?.48:0);});
     interior.select('');for(const p of interior.parts.values())p.root.traverse(o=>{if(o.isMesh)for(const m of Array.isArray(o.material)?o.material:[o.material])assert.equal(m.emissiveIntensity,0);});
     disposeAtlasObject(interior.root);
-  }assert.equal(count,60);
+  }assert.equal(count,52);
 });
-
-test('Kulak referans paketi doğrudan GLB olarak monte edilir ve anatomik düğümleri taşır',async()=>{
-  const {readFile}=require('node:fs/promises'),{inspectAnatomyGlb}=await load('scripts/verify-anatomy-assets.mjs');
-  const bytes=await readFile(path.resolve(__dirname,'..','public/anatomy/models/ear.glb')),data=inspectAnatomyGlb(bytes),names=new Set((data.nodes||[]).map(n=>n.name));
-  assert.ok(bytes.length>1400000&&bytes.length<2200000);assert.ok((data.meshes||[]).length>=50);
-  for(const name of ['outer_ear_main','helix_rim','antihelix_ridge','temporal_bone_mass','external_auditory_canal','tympanic_membrane','malleus_head','incus_body','stapes','eustachian_tube','vestibule','semicircular_canal_superior','semicircular_canal_posterior','semicircular_canal_lateral','cochlea','auditory_nerve_main'])assert.ok(names.has(name),name);
-});
-
 test('Kalp boşlukları dış duvar, iç duvar ve kesit kenarı içerir; sol karıncık duvarı daha kalındır',async()=>{
   const {chamberGeometry,createOrganInterior}=await load('src/ui/biology-organ-interiors.ts');
   const g=chamberGeometry(1,1,1,.3);assert.equal(g.groups.length,3);assert.ok(g.groups.every(g=>g.count>0));

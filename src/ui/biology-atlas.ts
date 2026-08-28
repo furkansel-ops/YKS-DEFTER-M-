@@ -80,7 +80,7 @@ export function createBiologyAtlas() {
   function syncModelSelection() {
     model?.open?.(organOpen);model?.select?.(structureId);model?.labels?.(organLabels);autoRotate=false;
     const open=find("atlasModelOpen");if(open){open.textContent=organOpen?"3B iç yapıyı kapat":"3B içini aç · Daha detay";open.setAttribute("aria-pressed",String(organOpen));}
-    const badge=find("atlas3DViewLabel");if(badge)badge.textContent=organOpen?"3B İÇ YAPI · DÖNDÜREREK İNCELE":organId==="ear"?"3B ANATOMİK KESİT · YKS ETİKETLERİ":"3B DIŞ YÜZEY · YKS ETİKETLERİ";
+    const badge=find("atlas3DViewLabel");if(badge)badge.textContent=organOpen?"3B İÇ YAPI · DÖNDÜREREK İNCELE":"3B DIŞ YÜZEY · YKS ETİKETLERİ";
     const info=find("atlasStructureInfo");if(info)info.innerHTML=structureInfo();
     for(const button of panel?.querySelectorAll<HTMLElement>(".atlas-structure-list [data-atlas-structure]")||[])button.setAttribute("aria-pressed",String(button.dataset.atlasStructure===structureId));
     panel?.querySelector('[data-atlas-action="rotate"]')?.setAttribute("aria-pressed","false");

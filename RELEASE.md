@@ -5,12 +5,11 @@ Bu kararlı sürüm, çalışan v3 arayüzünü değiştirmeden Vite + TypeScrip
 ## Biyoloji Atlası tek sahne 3B güncellemesi · önbellek r31
 
 - 24 konuda 109 ayrı odak çizimi, numaralı öğrenme durakları, konum ve görsel okuma rehberi. Genel bağlantı şeması ayrıntılı anlatımda; sınamada ipuçları gizli.
-- 10 organ üzerinde dönen kameraya bağlı toplam 60 YKS işareti; içeride 60 seçilebilir, hacimli öğretici 3B yapı.
-- Kulak atlasında kullanıcının gönderdiği anatomik kesit referansından hazırlanan özel yaklaşık 1,6 MB GLB doğrudan canlı 3B model olarak monte edilmiştir. Model `public/anatomy/models/ear.glb` altında dağıtılır. Dış kulak, helix/antihelix, concha, tragus, temporal kemik kesiti, dış kulak yolu, kulak zarı, çekiç–örs–üzengi, Östaki borusu, vestibül, üç yarım daire kanalı, koklea ve işitme siniri aynı döndürülebilir modelde yer alır; eski prosedürel kulak kabuğu kaldırılmıştır.
+- 9 organ üzerinde dönen kameraya bağlı toplam 52 YKS işareti; içeride 52 seçilebilir, hacimli öğretici 3B yapı.
 - “3B içini aç” aynı sahnede kaynak kabuğun ön/arka yarılarını ayırır; ortada ayrıca hazırlanmış öğretici iç parçalar görünür. Kalp boşluklarında duvar kalınlığı ve kapaklar; beyinde ön/orta/arka bölümler. Büyütmeler ölçekli değildir.
 - Mevcut kaynak 3B modeller, eski laboratuvar araçları ve şema 21 kayıtları korunur; yeni görünümler kullanıcı verisi yazmaz.
 - Yapı seçimi, aç/kapat, etiket ve büyütme aynı canvas/model üzerinde çalışır; indirmeyi tekrar başlatmaz. Konu/organ/sekme değişiminde eski yükleme iptal edilir. WebGL yoksa açıkça adlandırılmış 2B şema yedeği kullanılabilir.
-- Geometri, kesme düzlemleri, paylaşılan kaynak temizliği, 60 seçim, 109 çizim, kulak referans kesitinin 51 ayrı mesh ile oluşturulması, kapalı görünüm anatomisi, yükleme yarışları ve eski laboratuvar regresyonları otomatik test kapsamındadır.
+- Geometri, kesme düzlemleri, paylaşılan kaynak temizliği, 52 seçim, 109 çizim, kapalı görünüm anatomisi, yükleme yarışları ve eski laboratuvar regresyonları otomatik test kapsamındadır.
 
 ## Kararlı sürüm kontrolü
 

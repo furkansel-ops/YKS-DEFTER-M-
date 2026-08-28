@@ -11,12 +11,12 @@ const read=file=>fs.readFileSync(path.join(root,file),"utf8");
 const data=()=>load("src/data/biology-atlas.ts");
 const service=()=>load("src/domain/biology-atlas-service.ts");
 
-test("Atlas 24 benzersiz konu, 5 grup ve izinli 10 organla tutarlı bağlantılar içerir",async()=>{
+test("Atlas 24 benzersiz konu, 5 grup ve izinli 9 organla tutarlı bağlantılar içerir",async()=>{
   const {ATLAS_TOPICS:topics,ATLAS_GROUPS:groups,ATLAS_ORGANS:organs}=await data();
-  assert.equal(topics.length,24);assert.equal(organs.length,10);assert.equal(groups.length,5);
+  assert.equal(topics.length,24);assert.equal(organs.length,9);assert.equal(groups.length,5);
   assert.equal(new Set(topics.map(t=>t.id)).size,24);
   assert.equal(new Set(topics.map(t=>t.scene)).size,24);
-  assert.equal(new Set(organs.map(t=>t.id)).size,10);
+  assert.equal(new Set(organs.map(t=>t.id)).size,9);
   assert.equal(topics.filter(t=>t.group==="İnsan sistemleri").length,10);
   for(const group of groups)assert.ok(topics.some(t=>t.group===group));
   for(const topic of topics){
@@ -32,7 +32,6 @@ test("Atlas 24 benzersiz konu, 5 grup ve izinli 10 organla tutarlı bağlantıla
   for(const organ of organs){
     assert.ok(topics.find(t=>t.id===organ.topic).models.includes(organ.id));
     const entry=manifest.files.find(f=>f.target===`models/${organ.id}.glb`);
-    if(organ.id==="ear"){assert.equal(entry,undefined);const ear=fs.statSync(path.join(root,"public/anatomy/models/ear.glb"));assert.equal(organ.megabytes,(ear.size/1e6).toFixed(1).replace(".",","));continue;}
     assert.ok(entry,organ.id);assert.equal(organ.megabytes,(entry.bytes/1e6).toFixed(1).replace(".",","));
   }
 });
@@ -97,7 +96,7 @@ test("24 konu rehberi mekanizma, örnek, üç karşılaştırma ve hatırlama ö
   }
 });
 
-test("10 organın 60 yapısı benzersiz, konumlu ve ayrıntılıdır; beyin sınıflaması açık ayrılır",async()=>{
+test("9 organın 52 yapısı benzersiz, konumlu ve ayrıntılıdır; beyin sınıflaması açık ayrılır",async()=>{
   const {ATLAS_ORGANS}=await data(),{organGuide}=await load("src/data/biology-organs.ts");let total=0;
   for(const organ of ATLAS_ORGANS){
     const guide=organGuide(organ.id);assert.ok(guide.orientation.length>50);total+=guide.structures.length;
@@ -105,7 +104,7 @@ test("10 organın 60 yapısı benzersiz, konumlu ve ayrıntılıdır; beyin sın
     assert.equal(new Set(guide.structures.map(p=>p.side+p.row)).size,guide.structures.length);
     for(const p of guide.structures){assert.match(p.id,/^[a-z-]+$/);assert.ok(p.point[0]>=190&&p.point[0]<=535&&p.point[1]>=80&&p.point[1]<=450,p.id);assert.ok(p.detail.length>70&&p.exam.length>30,p.id);}
   }
-  assert.equal(total,60);assert.match(organGuide("brain").connection,/Arka beyin: pons \+ beyincik \+ omurilik soğanı/);
+  assert.equal(total,52);assert.match(organGuide("brain").connection,/Arka beyin: pons \+ beyincik \+ omurilik soğanı/);
   assert.match(organGuide("heart").orientation,/kişinin sağı görselin solunda/);
   for(const id of ["__proto__","constructor","missing"])assert.equal(organGuide(id),undefined);
 });
@@ -118,7 +117,7 @@ test("Organ şemaları bütün yapılara erişilebilir etiket verir; kapalı gö
     assert.equal((svg.match(/aria-pressed="true"/g)||[]).length,1);assert.doesNotMatch(svg,/undefined|NaN|aria-hidden="true"/);
     assert.match(svg,/gerçek kesiti değildir/);assert.ok(!svg.includes("http://")||svg.includes('xmlns="http://www.w3.org/2000/svg"'));
     const hidden=(closed.match(/aria-hidden="true"/g)||[]).length;
-    assert.equal(hidden,["heart","brain","ear"].includes(id)?parts.filter(p=>p.internal).length:0,id);
+    assert.equal(hidden,["heart","brain"].includes(id)?parts.filter(p=>p.internal).length:0,id);
     assert.match(organDiagram(id,"",true,false),/hide-labels/);
   }
   assert.match(organDiagram("heart","left-ventricle",true,true,true),/is-opening/);
@@ -276,11 +275,11 @@ test("Görseli büyüt yan dizini kapatıp alan açar; görünümden çıkış d
   h.click("topic","dna");h.click("wide");assert.equal(h.panel.dataset.atlasWide,"true");h.click("group","Genden proteine");assert.equal(h.panel.dataset.atlasWide,"false");
 });
 
-test("On organın 60 yapısı 3B seçime bağlanır; seçim başına model yükleyicisi yeniden çağrılmaz",async()=>{
+test("Dokuz organın 52 yapısı 3B seçime bağlanır; seçim başına model yükleyicisi yeniden çağrılmaz",async()=>{
   let downloads=0,disposed=0;const h=await uiHarness(async()=>{downloads++;return {dispose(){disposed++;}};});
   const {ATLAS_ORGANS}=await data(),{organGuide}=await load("src/data/biology-organs.ts");
   for(const {id} of ATLAS_ORGANS){h.click("organ-detail",id);await new Promise(resolve=>setImmediate(resolve));const writes=h.nodes.get("atlasContent").writes;for(const part of organGuide(id).structures){h.structure(part.id);assert.ok(h.nodes.get("atlasStructureInfo").innerHTML.includes(part.summary),part.id);}assert.equal(h.nodes.get("atlasContent").writes,writes);}
-  assert.equal(downloads,10);h.click("organ-view","model");assert.equal(downloads,10);h.click("organ-view","anatomy");assert.equal(disposed,10);
+  assert.equal(downloads,9);h.click("organ-view","model");assert.equal(downloads,9);h.click("organ-view","anatomy");assert.equal(disposed,9);
 });
 
 test("WebGL/yükleme hatasında organ resmi ve tekrar düğmesi kalır",async()=>{
