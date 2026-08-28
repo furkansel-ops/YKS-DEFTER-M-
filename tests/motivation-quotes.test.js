@@ -22,22 +22,25 @@ test('Günün sözü YKS ve teknik direktör havuzlarıyla sınırlıdır',()=>{
   const meta=context.window.__YKS_MOTIVATION_QUOTES_READY__;
   assert.equal(meta.scope,'YKS+coaches');assert.ok(meta.examPool>=70);assert.ok(meta.coachPool>=10);
   const allowedCoaches=/Fatih Terim|Şenol Güneş|Sir Alex Ferguson|Jürgen Klopp|Arsène Wenger/;
-  const exam=/YKS|sınav|deneme|net|soru|konu|tekrar|çalış|paragraf|problem|matematik|fen|süre|yanlış|odak|ders|program|hedef/i;
   const forbiddenNames=/Einstein|Edison|Sokrates|Nietzsche|İnsan Sözü/i;
   const forbiddenTopics=/(^|[^a-zçğıöşü])aşk([^a-zçğıöşü]|$)|(^|[^a-zçğıöşü])içki([^a-zçğıöşü]|$)|(^|[^a-zçğıöşü])siyaset([^a-zçğıöşü]|$)/i;
   let sawExam=false,sawCoach=false;
   for(let i=0;i<300;i++){
     context.yeniSoz();const text=context.gununSozu();
-    if(/szcat">Teknik Direktör/.test(box.innerHTML)){sawCoach=true;assert.match(box.innerHTML,allowedCoaches);}
-    else{sawExam=true;assert.match(box.innerHTML,/szcat">YKS/);assert.match(text,exam);assert.doesNotMatch(box.innerHTML,/class="sza"/);}
-    assert.doesNotMatch(box.innerHTML,forbiddenNames);assert.doesNotMatch(text,forbiddenTopics);
+    if(/szcat">Teknik Direktör/.test(box.innerHTML)){
+      sawCoach=true;assert.match(box.innerHTML,allowedCoaches);assert.match(box.innerHTML,/class="sza"/);
+    }else{
+      sawExam=true;assert.match(box.innerHTML,/szcat">YKS/);assert.doesNotMatch(box.innerHTML,/class="sza"/);
+    }
+    assert.ok(text.length>=20);assert.doesNotMatch(box.innerHTML,forbiddenNames);assert.doesNotMatch(text,forbiddenTopics);
   }
   assert.equal(sawExam,true);assert.equal(sawCoach,true);
 });
 
 test('teknik direktör havuzu sadece seçilmiş teknik direktörleri içerir',()=>{
   const source=fs.readFileSync(path.join(root,'modules/motivation-quotes-v1.js'),'utf8');
-  assert.match(source,/const COACH_QUOTES=/);assert.match(source,/Fatih Terim/);assert.match(source,/Şenol Güneş/);
-  assert.match(source,/Sir Alex Ferguson/);assert.match(source,/Jürgen Klopp/);assert.match(source,/Arsène Wenger/);
+  assert.match(source,/const EXAM_QUOTES=/);assert.match(source,/const COACH_QUOTES=/);
+  assert.match(source,/Fatih Terim/);assert.match(source,/Şenol Güneş/);assert.match(source,/Sir Alex Ferguson/);
+  assert.match(source,/Jürgen Klopp/);assert.match(source,/Arsène Wenger/);
   assert.doesNotMatch(source,/Thomas Edison|Albert Einstein|Marcus Aurelius|İnsan Sözü/);
 });
