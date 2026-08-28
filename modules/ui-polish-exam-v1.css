@@ -1,0 +1,227 @@
+/* YKS Defterim · Deneme ekranı premium cila v1
+   Deneme hesaplama mantığını değiştirmeden görsel hiyerarşi,
+   karşılaştırma okunabilirliği, tablet/PC dengesi ve mobil erişilebilirliği güçlendirir. */
+
+#deneme{
+  --exam-max:980px;
+  --exam-radius:24px;
+  --exam-line:color-mix(in srgb,var(--label) 8%,transparent);
+  --exam-shadow:0 2px 8px rgba(10,14,30,.04),0 26px 68px -46px color-mix(in srgb,var(--label) 52%,transparent);
+}
+
+/* Deneme ekranı tablet ve PC'de veri yoğunluğuna uygun genişlik kullanır. */
+.wrap:has(#deneme.active){max-width:1080px;padding-left:22px;padding-right:22px;}
+#deneme>.error-journal,
+#deneme>.v315-dashboard,
+#deneme>h1,
+#deneme>h2,
+#deneme>.card,
+#deneme>.foldhead,
+#deneme>.foldbody{
+  width:min(100%,var(--exam-max));
+  margin-left:auto;
+  margin-right:auto;
+}
+
+#deneme .v315-dashboard{position:relative;}
+#deneme .v315-dash-head{
+  padding:4px 2px 8px;
+  align-items:flex-end;
+}
+#deneme .v315-dash-head h2{font-size:clamp(24px,2.7vw,32px);letter-spacing:-.04em;margin-bottom:4px;}
+#deneme .v315-add-btn{
+  min-height:46px;
+  padding:0 17px;
+  border-radius:15px;
+  font-weight:800;
+  box-shadow:0 12px 26px -18px color-mix(in srgb,var(--accent) 66%,transparent);
+  transition:transform .16s ease,box-shadow .2s ease,filter .2s ease;
+}
+#deneme .v315-add-btn:active{transform:scale(.98);}
+
+#deneme .v315-filterbar{
+  padding:10px;
+  border:1px solid var(--exam-line);
+  border-radius:19px;
+  background:color-mix(in srgb,var(--glass) 88%,var(--fill));
+  box-shadow:0 12px 30px -28px color-mix(in srgb,var(--label) 46%,transparent);
+}
+#deneme .v315-filterbar .seg{
+  padding:4px;
+  border:0;
+  background:color-mix(in srgb,var(--fill) 92%,transparent);
+  border-radius:15px;
+}
+#deneme .v315-filterbar .seg button{
+  min-height:40px;
+  border-radius:12px;
+  font-weight:750;
+  transition:background .2s ease,color .2s ease,box-shadow .2s ease,transform .15s ease;
+}
+#deneme .v315-filterbar .seg button.on{
+  background:var(--glass-strong);
+  box-shadow:0 5px 15px -12px color-mix(in srgb,var(--accent) 45%,transparent),inset 0 0 0 .5px color-mix(in srgb,var(--accent) 20%,transparent);
+}
+#deneme .v315-filterbar .seg button:active{transform:scale(.985);}
+
+#deneme .v315-kpis{gap:12px;margin:14px 0;}
+#deneme .v315-kpi{
+  position:relative;
+  overflow:hidden;
+  min-height:118px;
+  padding:17px 17px 15px;
+  border:1px solid var(--exam-line);
+  border-radius:19px;
+  background-image:linear-gradient(150deg,color-mix(in srgb,var(--glass) 98%,transparent),color-mix(in srgb,var(--fill) 94%,transparent));
+  box-shadow:0 16px 38px -32px color-mix(in srgb,var(--label) 50%,transparent);
+}
+#deneme .v315-kpi::after{
+  content:"";position:absolute;inset:auto -20% -55% 35%;height:90px;border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle,color-mix(in srgb,var(--accent) 10%,transparent),transparent 70%);
+}
+#deneme .v315-kpi.good::after{background:radial-gradient(circle,color-mix(in srgb,var(--success) 12%,transparent),transparent 70%);}
+#deneme .v315-kpi.bad::after{background:radial-gradient(circle,color-mix(in srgb,var(--danger) 11%,transparent),transparent 70%);}
+#deneme .v315-kpi .k{font-size:10.5px;font-weight:820;letter-spacing:.07em;}
+#deneme .v315-kpi .v{font-size:clamp(28px,3vw,38px);margin-top:8px;}
+#deneme .v315-kpi .s{font-size:11.5px;line-height:1.4;margin-top:5px;}
+
+#deneme .v4-exam-insights{
+  padding:16px 17px;
+  border:1px solid var(--exam-line);
+  border-radius:18px;
+  background:linear-gradient(145deg,color-mix(in srgb,var(--accent-soft) 30%,var(--glass)),color-mix(in srgb,var(--glass) 97%,transparent));
+}
+#deneme .v4-exam-insight-head strong{font-size:14px;letter-spacing:-.012em;}
+#deneme .v4-exam-data{min-height:26px;align-items:center;padding:4px 9px;font-size:10.5px;}
+#deneme .v4-exam-insight-list{gap:7px;margin-top:10px;}
+#deneme .v4-exam-insight-list p{grid-template-columns:16px minmax(0,1fr);font-size:12.5px;line-height:1.5;}
+
+#deneme .v315-dash-grid{gap:14px;}
+#deneme .v315-dash-grid>.card{
+  border:1px solid var(--exam-line);
+  border-radius:var(--exam-radius);
+  box-shadow:var(--exam-shadow);
+  background-image:linear-gradient(155deg,color-mix(in srgb,var(--glass) 98%,transparent),color-mix(in srgb,var(--fill) 95%,transparent));
+}
+#deneme .v315-card-head{padding-bottom:9px;margin-bottom:12px;border-bottom:1px solid color-mix(in srgb,var(--exam-line) 72%,transparent);}
+#deneme .v315-card-head b{font-size:15px;letter-spacing:-.015em;}
+#deneme .v315-card-head span{font-size:11px;color:var(--label-3);}
+
+#deneme .v4-exam-subject-callouts{gap:10px;margin-bottom:14px;}
+#deneme .v4-exam-subject-callout{
+  min-height:96px;
+  padding:13px 14px;
+  border:1px solid color-mix(in srgb,var(--exam-line) 72%,transparent);
+  border-radius:16px;
+}
+#deneme .v4-exam-subject-callout>span{font-size:10.5px;font-weight:760;text-transform:uppercase;letter-spacing:.045em;}
+#deneme .v4-exam-subject-callout>strong{font-size:15px;margin-top:5px;}
+#deneme .v4-exam-subject-callout>p{font-size:11.5px;margin-top:5px;}
+
+#deneme .v315-subject-table{width:100%;border-collapse:separate;border-spacing:0;}
+#deneme .v315-subject-table th{
+  padding:9px 10px;
+  color:var(--label-3);
+  font-size:10.5px;
+  text-transform:uppercase;
+  letter-spacing:.045em;
+  text-align:left;
+}
+#deneme .v315-subject-table td{padding:11px 10px;border-top:1px solid color-mix(in srgb,var(--exam-line) 66%,transparent);font-size:12.5px;}
+#deneme .v315-subject-table tr:hover td{background:color-mix(in srgb,var(--accent-soft) 28%,transparent);}
+#deneme .v315-subject-table td:not(:first-child),#deneme .v315-subject-table th:not(:first-child){text-align:right;}
+
+#deneme .v315-topic-row{padding:11px 0;gap:12px;}
+#deneme .v315-topic-main b{font-size:13px;}
+#deneme .v315-topic-main small{font-size:11px;line-height:1.4;}
+#deneme .v315-topic-bar{height:7px;margin-top:7px;border-radius:999px;background:color-mix(in srgb,var(--fill) 94%,transparent);}
+#deneme .v315-topic-bar i{border-radius:inherit;}
+#deneme .v315-topic-count{
+  display:grid;place-items:center;min-width:36px;height:36px;padding:0 8px;border-radius:12px;
+  background:color-mix(in srgb,var(--danger-soft) 70%,var(--fill));font-weight:800;
+}
+
+/* Son iki deneme karşılaştırması gözün ilk yakaladığı analiz kartı olsun. */
+#deneme .v4-exam-compare-card{
+  position:relative;
+  overflow:hidden;
+  border-color:color-mix(in srgb,var(--accent) 18%,var(--exam-line));
+}
+#deneme .v4-exam-compare-card::after{
+  content:"";position:absolute;right:-90px;top:-100px;width:230px;height:230px;border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle,color-mix(in srgb,var(--accent) 11%,transparent),transparent 68%);
+}
+#deneme .v4-exam-compare-names{position:relative;z-index:1;padding-bottom:13px;font-size:13px;}
+#deneme .v4-exam-compare-names i{display:grid;place-items:center;min-width:30px;height:30px;border-radius:10px;background:var(--accent-soft);}
+#deneme .v4-exam-compare-grid{position:relative;z-index:1;gap:9px;margin-top:13px;}
+#deneme .v4-exam-compare-metric{
+  min-height:76px;padding:12px;border:1px solid color-mix(in srgb,var(--exam-line) 70%,transparent);border-radius:15px;
+  background:color-mix(in srgb,var(--glass) 82%,var(--fill));
+}
+#deneme .v4-exam-compare-metric span{font-size:10.5px;font-weight:700;}
+#deneme .v4-exam-compare-metric strong{font-size:19px;margin-top:6px;letter-spacing:-.025em;}
+#deneme .v4-exam-pair-subjects{position:relative;z-index:1;margin-top:12px;}
+#deneme .v4-exam-pair-subjects>div{padding:10px 2px;font-size:12px;}
+
+#deneme .v315-balance-grid{gap:8px;}
+#deneme .v315-balance-stat{
+  padding:12px 10px;border:1px solid color-mix(in srgb,var(--exam-line) 70%,transparent);border-radius:15px;
+  background:color-mix(in srgb,var(--fill) 88%,transparent);text-align:center;
+}
+#deneme .v315-balance-stat b{font-size:21px;}
+#deneme .v315-balance-line{padding:11px 1px;}
+
+#deneme button:focus-visible,
+#deneme input:focus-visible,
+#deneme select:focus-visible,
+#deneme textarea:focus-visible{
+  outline:3px solid color-mix(in srgb,var(--accent) 36%,transparent);
+  outline-offset:2px;
+}
+
+@media (min-width:980px){
+  #deneme{--exam-max:1000px;}
+  .wrap:has(#deneme.active){max-width:1120px;padding-left:28px;padding-right:28px;}
+  #deneme .v315-dashboard>.card{padding:22px 24px;}
+  #deneme .v315-dash-grid{grid-template-columns:minmax(0,1.55fr) minmax(310px,.85fr);}
+}
+
+@media (min-width:760px) and (max-width:979px){
+  #deneme{--exam-max:820px;}
+  .wrap:has(#deneme.active){max-width:880px;}
+  #deneme .v315-kpis{grid-template-columns:repeat(2,minmax(0,1fr));}
+  #deneme .v315-kpi{min-height:108px;}
+  #deneme .v315-dash-grid{grid-template-columns:1fr;}
+}
+
+@media (max-width:759px){
+  #deneme{--exam-radius:20px;}
+  .wrap:has(#deneme.active){padding-left:14px;padding-right:14px;}
+  #deneme .v315-dash-head{padding-top:0;}
+  #deneme .v315-add-btn{min-height:48px;margin-top:10px;}
+  #deneme .v315-filterbar{padding:7px;border-radius:17px;}
+  #deneme .v315-filterbar .seg button{min-height:42px;font-size:12px;}
+  #deneme .v315-kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
+  #deneme .v315-kpi{min-height:104px;padding:14px 13px;border-radius:17px;}
+  #deneme .v315-kpi .v{font-size:28px;}
+  #deneme .v315-dash-grid{display:block;}
+  #deneme .v315-dash-grid>.card{margin-bottom:10px;}
+  #deneme .v4-exam-compare-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+  #deneme .v4-exam-subject-callouts{grid-template-columns:1fr;}
+  #deneme .v315-subject-table{font-size:12px;}
+  #deneme .v315-subject-table th,#deneme .v315-subject-table td{padding-left:7px;padding-right:7px;}
+}
+
+@media (max-width:390px){
+  #deneme .v315-kpis{grid-template-columns:1fr;}
+  #deneme .v315-kpi{min-height:92px;}
+  #deneme .v4-exam-compare-grid{grid-template-columns:1fr 1fr;gap:7px;}
+  #deneme .v4-exam-compare-metric{min-height:70px;padding:10px;}
+}
+
+@media (prefers-reduced-motion:reduce){
+  #deneme .v315-add-btn,
+  #deneme .v315-filterbar .seg button,
+  #deneme .v315-kpi,
+  #deneme .v315-dash-grid>.card{transition:none!important;}
+}
