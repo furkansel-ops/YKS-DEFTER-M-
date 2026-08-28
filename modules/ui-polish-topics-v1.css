@@ -1,0 +1,374 @@
+/* YKS Defterim · Konular ekranı premium cila v1
+   Konu/tekrar hesaplamalarına dokunmadan görsel hiyerarşi,
+   taranabilirlik, tablet/PC dengesi ve dokunmatik erişilebilirliği güçlendirir. */
+
+#topics{
+  --topics-max:1040px;
+  --topics-radius:24px;
+  --topics-line:color-mix(in srgb,var(--label) 8%,transparent);
+  --topics-shadow:0 2px 8px rgba(10,14,30,.04),0 26px 68px -46px color-mix(in srgb,var(--label) 50%,transparent);
+}
+
+/* Konular, veri yoğun bir ekran: tablet/PC'de alanı daha verimli kullanır. */
+.wrap:has(#topics.active){max-width:1140px;padding-left:22px;padding-right:22px;}
+#topics>.v26-topic-tools,
+#topics>#subjectList,
+#topics>.desktop-topic-overview,
+#topics>h1,
+#topics>h2,
+#topics>.card,
+#topics>.foldhead,
+#topics>.foldbody{
+  width:min(100%,var(--topics-max));
+  margin-left:auto;
+  margin-right:auto;
+}
+
+/* Arama + filtre kontrol merkezi */
+#topics .v26-topic-tools{
+  gap:13px;
+  padding:16px;
+  border:1px solid var(--topics-line);
+  border-radius:22px;
+  background:
+    radial-gradient(circle at 92% 0%,color-mix(in srgb,var(--accent) 8%,transparent),transparent 34%),
+    linear-gradient(150deg,color-mix(in srgb,var(--glass) 98%,transparent),color-mix(in srgb,var(--fill) 92%,transparent));
+  box-shadow:var(--topics-shadow);
+}
+#topics .v26-topic-tools .row2{gap:9px;align-items:stretch;}
+#topics #topicSearch{
+  min-height:48px;
+  margin:0;
+  border-radius:15px;
+  border-color:color-mix(in srgb,var(--accent) 12%,var(--sep));
+  background:color-mix(in srgb,var(--glass-strong) 92%,var(--fill));
+  font-size:14px;
+  font-weight:620;
+}
+#topics #topicSearch:focus{
+  border-color:color-mix(in srgb,var(--accent) 48%,var(--sep));
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 12%,transparent);
+}
+#topics .v26-topic-tools .row2>.btn{
+  min-height:48px;
+  border-radius:15px;
+  padding-inline:16px;
+}
+
+#topics .topic-filter-row{
+  gap:7px;
+  padding:1px 1px 3px;
+  scrollbar-width:none;
+}
+#topics .topic-filter-row::-webkit-scrollbar{display:none;}
+#topics .topic-filter{
+  min-height:39px;
+  padding:0 13px;
+  border:1px solid var(--topics-line);
+  border-radius:13px;
+  background:color-mix(in srgb,var(--glass) 78%,var(--fill));
+  font-size:11.5px;
+  font-weight:760;
+  transition:transform .15s ease,background .2s ease,color .2s ease,border-color .2s ease,box-shadow .2s ease;
+}
+#topics .topic-filter.on{
+  border-color:color-mix(in srgb,var(--accent) 34%,transparent);
+  background:color-mix(in srgb,var(--accent) 88%,var(--glass));
+  box-shadow:0 8px 18px -14px color-mix(in srgb,var(--accent) 60%,transparent);
+}
+#topics .topic-filter:active{transform:scale(.975);}
+
+/* Konu özetleri */
+#topics .v26-topic-grid{gap:10px;}
+#topics .v26-topic-kpi{
+  position:relative;
+  overflow:hidden;
+  min-height:84px;
+  padding:13px 14px;
+  border:1px solid var(--topics-line);
+  border-radius:16px;
+  background:linear-gradient(145deg,color-mix(in srgb,var(--glass) 94%,var(--fill)),color-mix(in srgb,var(--fill) 94%,transparent));
+  box-shadow:0 12px 28px -26px color-mix(in srgb,var(--label) 46%,transparent);
+}
+#topics .v26-topic-kpi::after{
+  content:"";
+  position:absolute;
+  right:-18px;
+  bottom:-30px;
+  width:76px;
+  height:76px;
+  border-radius:50%;
+  pointer-events:none;
+  background:radial-gradient(circle,color-mix(in srgb,var(--accent) 10%,transparent),transparent 69%);
+}
+#topics .v26-topic-kpi small{
+  position:relative;
+  z-index:1;
+  font-size:10.5px;
+  font-weight:700;
+  letter-spacing:.015em;
+}
+#topics .v26-topic-kpi b{
+  position:relative;
+  z-index:1;
+  margin-top:5px;
+  font-size:clamp(20px,2vw,25px);
+  letter-spacing:-.035em;
+}
+#topics .v26-topic-summary{margin-top:0;line-height:1.55;}
+
+/* Ders kartları */
+#topics .subj{
+  padding:0;
+  overflow:hidden;
+  border:1px solid var(--topics-line);
+  border-radius:21px;
+  box-shadow:0 14px 36px -32px color-mix(in srgb,var(--label) 48%,transparent);
+}
+#topics .subj-head{
+  min-height:66px;
+  padding:14px 16px 10px;
+  gap:14px;
+  transition:background .2s ease;
+}
+#topics .subj-head:hover{background:color-mix(in srgb,var(--accent) 4%,transparent);}
+#topics .subj-head .nm{
+  font-size:17px;
+  font-weight:760;
+  line-height:1.25;
+  letter-spacing:-.025em;
+}
+#topics .subj-sub{
+  margin-top:5px;
+  font-size:10.5px;
+  line-height:1.4;
+  color:var(--time);
+}
+#topics .subj-head .pct{
+  padding:6px 9px;
+  border:1px solid color-mix(in srgb,var(--success) 16%,transparent);
+  font-size:10.5px;
+  font-weight:800;
+}
+#topics .subj>.bar{
+  height:5px;
+  margin:0 16px 11px;
+  border-radius:999px;
+  background:color-mix(in srgb,var(--success) 9%,var(--fill));
+  overflow:hidden;
+}
+#topics .subj>.bar i{
+  height:100%;
+  border-radius:inherit;
+  background:linear-gradient(90deg,var(--accent),var(--success));
+  box-shadow:0 0 14px color-mix(in srgb,var(--success) 20%,transparent);
+}
+#topics .topics{margin-top:0;padding:0 14px 8px;}
+
+/* Tek tek konu satırları: önce isim/durum, sonra kontrol. */
+#topics .topic{
+  min-height:76px;
+  padding:12px 2px;
+  gap:14px;
+  border-bottom-color:color-mix(in srgb,var(--sep) 78%,transparent);
+  transition:background .18s ease,opacity .18s ease;
+}
+#topics .topic:hover{background:color-mix(in srgb,var(--accent) 3%,transparent);}
+#topics .topic.full{opacity:.72;}
+#topics .topic.full:hover{opacity:.9;}
+#topics .topic-title-row{gap:8px;}
+#topics .topic-name-btn{
+  font-size:14.5px;
+  font-weight:720;
+  line-height:1.35;
+  letter-spacing:-.016em;
+}
+#topics .topic-name-btn:hover{text-decoration:none;color:var(--accent);}
+#topics .tres{
+  min-width:34px;
+  min-height:34px;
+  border-radius:11px;
+}
+#topics .topic .tmeta{
+  margin-top:5px;
+  font-size:10.5px;
+  line-height:1.4;
+}
+#topics .topic .tmeta:first-of-type{
+  display:flex;
+  align-items:center;
+  gap:5px;
+  flex-wrap:wrap;
+}
+#topics .topic-state,
+#topics .topic-risk-inline{
+  min-height:23px;
+  padding:4px 7px;
+  border-radius:8px;
+  font-size:9.5px;
+  font-weight:820;
+  letter-spacing:.01em;
+}
+#topics .topic-state.s0{border:1px solid var(--topics-line);}
+#topics .topic-state.s1{border:1px solid color-mix(in srgb,var(--accent) 16%,transparent);}
+#topics .topic-state.s2{border:1px solid color-mix(in srgb,var(--time) 18%,transparent);}
+#topics .topic-state.s3{border:1px solid color-mix(in srgb,var(--success) 18%,transparent);}
+#topics .topic .tmeta.v26-meta{
+  max-width:660px;
+  color:var(--label-3);
+  line-height:1.5;
+}
+
+#topics .tctl{gap:9px;}
+#topics .pills{gap:4px;}
+#topics .pill{
+  width:34px;
+  height:34px;
+  border-radius:11px;
+  border:1px solid var(--topics-line);
+  font-size:11px;
+  transition:transform .15s ease,background .2s ease,color .2s ease,border-color .2s ease,box-shadow .2s ease;
+}
+#topics .pill.on{border-color:transparent;box-shadow:0 7px 14px -12px color-mix(in srgb,var(--success) 60%,transparent);}
+#topics .stars{gap:0;}
+#topics .star{
+  display:grid;
+  place-items:center;
+  min-width:23px;
+  min-height:34px;
+  font-size:14px;
+}
+#topics .topic-open{
+  width:38px;
+  height:38px;
+  border:1px solid var(--topics-line);
+  border-radius:12px;
+  background:color-mix(in srgb,var(--glass) 72%,var(--fill));
+  font-size:20px;
+  transition:transform .15s ease,background .2s ease,color .2s ease,border-color .2s ease;
+}
+#topics .topic-open:hover{background:var(--accent-soft);color:var(--accent);border-color:color-mix(in srgb,var(--accent) 22%,transparent);}
+#topics .topic-open:active{transform:scale(.94);}
+
+/* Öncelik / dikkat listesi */
+#topics .v26-att-row{
+  min-height:54px;
+  padding:10px 4px;
+  border-bottom-color:color-mix(in srgb,var(--sep) 72%,transparent);
+}
+#topics .v26-att-rank{
+  width:30px;
+  height:30px;
+  border-radius:10px;
+}
+#topics .v26-att-title{font-size:13px;font-weight:780;}
+#topics .v26-att-why{margin-top:3px;line-height:1.4;}
+
+/* Konu ayrıntısı: masaüstünde sheet, mobilde temiz bottom sheet */
+.v26-topic-modal{padding:24px;align-items:center;}
+.v26-topic-sheet{
+  width:min(760px,100%);
+  max-height:min(86vh,840px);
+  border-radius:28px;
+  border-color:color-mix(in srgb,var(--glass-edge) 74%,var(--sep));
+  box-shadow:0 30px 90px -22px rgba(0,0,0,.34);
+}
+.v26-sheet-head{padding-bottom:14px;}
+.v26-sheet-head h3{font-size:22px;}
+.v26-close{
+  min-width:42px;
+  min-height:42px;
+  border-radius:13px;
+  transition:transform .15s ease,background .2s ease;
+}
+.v26-close:hover{background:var(--danger-soft);color:var(--danger);}
+.v26-close:active{transform:scale(.94);}
+.v26-detail-grid{gap:9px;}
+.v26-detail-metric{
+  min-height:72px;
+  padding:12px;
+  border:1px solid var(--topics-line);
+  background:linear-gradient(145deg,color-mix(in srgb,var(--glass) 78%,var(--fill)),var(--fill));
+}
+.v26-detail-metric b{font-size:14px;}
+.v26-review-step{
+  min-height:62px;
+  padding:11px;
+  border:1px solid var(--topics-line);
+}
+.v4-topic-progressbar{height:11px;border:1px solid color-mix(in srgb,var(--label) 4%,transparent);}
+.v4-topic-goal-row{
+  min-height:60px;
+  padding:11px 12px;
+  border-radius:14px;
+  transition:transform .15s ease,background .2s ease,border-color .2s ease;
+}
+.v4-topic-goal-row:active{transform:scale(.985);}
+
+/* Klavye erişilebilirliği */
+#topics .topic-filter:focus-visible,
+#topics .topic-name-btn:focus-visible,
+#topics .topic-open:focus-visible,
+#topics .pill:focus-visible,
+#topics .tres:focus-visible,
+.v26-close:focus-visible,
+.v4-topic-goal-row:focus-visible{
+  outline:3px solid color-mix(in srgb,var(--accent) 38%,transparent);
+  outline-offset:2px;
+}
+
+@media (min-width:760px){
+  #topics{--topics-max:1060px;}
+  .wrap:has(#topics.active){max-width:1180px;padding-left:26px;padding-right:26px;}
+  #topics .v26-topic-tools{padding:18px;}
+  #topics .v26-topic-grid{grid-template-columns:repeat(4,minmax(0,1fr));}
+  #topics .subj-head{padding-left:18px;padding-right:18px;}
+  #topics .subj>.bar{margin-left:18px;margin-right:18px;}
+  #topics .topics{padding-left:18px;padding-right:18px;}
+}
+
+@media (max-width:759px){
+  #topics .v26-topic-tools{padding:13px;border-radius:19px;}
+  #topics .v26-topic-tools .row2{display:grid;grid-template-columns:minmax(0,1fr) auto;}
+  #topics .v26-topic-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+  #topics .v26-topic-kpi{min-height:76px;padding:12px;}
+  #topics .subj{border-radius:19px;}
+  #topics .subj-head{min-height:62px;padding:13px 13px 9px;align-items:flex-start;}
+  #topics .subj-head .nm{font-size:15.5px;}
+  #topics .subj>.bar{margin-left:13px;margin-right:13px;}
+  #topics .topics{padding-left:11px;padding-right:11px;}
+  #topics .topic{padding:12px 2px 11px;gap:8px;}
+  #topics .topic .tinfo{flex:1 0 100%;}
+  #topics .topic .tctl{width:100%;justify-content:space-between;gap:6px;padding-top:2px;}
+  #topics .pill{width:38px;height:38px;}
+  #topics .star{min-width:27px;min-height:38px;}
+  #topics .topic-open{width:40px;height:40px;}
+  .v26-topic-modal{padding:8px;align-items:flex-end;}
+  .v26-topic-sheet{border-radius:24px 24px 16px 16px;max-height:91vh;}
+}
+
+@media (max-width:390px){
+  #topics .v26-topic-tools .row2{grid-template-columns:1fr;}
+  #topics .v26-topic-tools .row2>.btn{width:100%;}
+  #topics .v26-topic-grid{gap:7px;}
+  #topics .tctl{flex-wrap:wrap;}
+  #topics .stars{order:3;width:100%;justify-content:flex-start;}
+}
+
+@media (pointer:coarse){
+  #topics .topic-filter{min-height:44px;}
+  #topics .pill{min-width:40px;min-height:40px;}
+  #topics .star{min-width:30px;min-height:40px;}
+  #topics .topic-open,#topics .tres{min-width:44px;min-height:44px;}
+}
+
+@media (prefers-reduced-motion:reduce){
+  #topics .topic-filter,
+  #topics .topic,
+  #topics .pill,
+  #topics .topic-open,
+  #topics .subj-head,
+  .v26-close,
+  .v4-topic-goal-row{transition:none!important;}
+  #topics .topics.open{animation:none!important;}
+}
