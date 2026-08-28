@@ -39,8 +39,8 @@ if(!app.includes('const APP_VERSION="4.1.0"')||!app.includes('const APP_BUILD="4
 if(!sw.includes('const APP_VERSION="4.1.0"')||!sw.includes('const APP_BUILD="4.1.0-r20"')||!sw.includes('const CACHE="yks-core-v4.1.0-r34"'))throw new Error("Kopyalanan service worker kararlı sürüm/cache revizyonuyla eşleşmiyor");
 if(!sw.includes('learning-lab.js?v=4.1.0-r26'))throw new Error("Laboratuvar favori düzeltmesi çevrimdışı çekirdekte eksik");
 if(!sw.includes('study-intelligence-v5.css?v=4.1.0-r1')||!sw.includes('ui-polish-v1.css?v=4.1.0-r1')||!sw.includes('ui-polish-home-v2.css?v=4.1.0-r1'))throw new Error("Cila katmanı çevrimdışı çekirdekte eksik");
-if(!sw.includes('motivation-quotes-v1.js?v=4.1.0-r1')||!stability.includes('motivation-quotes-v1.js?v=4.1.0-r1'))throw new Error("Motivasyon sözleri çalışma zamanı/PWA çekirdeğine bağlı değil");
-if(!motivation.includes('preferredCategories')||!motivation.includes('positive=')||!motivation.includes('blocked=')||!motivation.includes('Motivasyon')||!motivation.includes('sozRandomIndex=function'))throw new Error("Motivasyon-only söz filtresi eksik veya paketlenmedi");
+if(!sw.includes('motivation-quotes-v1.js?v=4.1.0-r1')||!stability.includes('motivation-quotes-v1.js?v=4.1.0-r1'))throw new Error("Günün sözü çalışma zamanı/PWA çekirdeğine bağlı değil");
+if(!motivation.includes('const EXAM_QUOTES=')||!motivation.includes('const COACH_QUOTES=')||!motivation.includes('scope:"YKS+coaches"')||!motivation.includes('Teknik Direktör')||!motivation.includes('yeniSoz=function'))throw new Error("YKS + teknik direktör söz havuzu eksik veya paketlenmedi");
 if(!studyCss.includes('ui-polish-v1.css?v=4.1.0-r1')||!studyCss.includes('ui-polish-home-v2.css?v=4.1.0-r1')||!polishCss.includes('prefers-reduced-motion')||!polishCss.includes('.today-hub')||!polishCss.includes('.v315-dashboard'))throw new Error("Görsel cila katmanı üretim paketine doğru bağlanmadı");
 if(!homePolishCss.includes('#home .home-overview')||!homePolishCss.includes('grid-template-areas')||!homePolishCss.includes('#home .today-summary-grid')||!homePolishCss.includes('prefers-reduced-motion'))throw new Error("Bugün ekranı premium cila katmanı eksik veya eksik paketlendi");
 if(!index.includes("core-utils.js?v=4.1.0-r27")||!sw.includes("core-utils.js?v=4.1.0-r27"))throw new Error("Bilim kartlarının senkronizasyon güncellemesi pakette eksik");
@@ -64,4 +64,4 @@ if(!recovery.includes('/YKS-DEFTER-M-/')||!recovery.includes('location.replace')
 let version;
 try{version=JSON.parse(versionText);}catch{throw new Error("Kopyalanan version.json geçerli JSON değil");}
 if(version?.version!=="4.1.0"||version?.build!=="4.1.0-r20"||version?.schema!==21)throw new Error("Kopyalanan version.json kararlı sürümle eşleşmiyor");
-console.log(`Üretim paketi doğrulandı: ${required.length} geçiş dosyası + TypeScript paketi + sürüm/PWA/cila/motivasyon/kişisel modül bütünlüğü`);
+console.log(`Üretim paketi doğrulandı: ${required.length} geçiş dosyası + TypeScript paketi + sürüm/PWA/cila/YKS+teknik-direktör/kişisel modül bütünlüğü`);
