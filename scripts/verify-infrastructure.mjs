@@ -17,7 +17,8 @@ must(pkg.version===version.version,"package.json ve version.json sürümleri eş
 must(pkg.packageManager==="npm@10.9.8","npm sürümü sabitlenmemiş");
 must(pkg.engines?.node===">=22 <25","Node çalışma aralığı beklenen değer değil");
 must(pkg.scripts?.["infra:check"]==="node scripts/verify-infrastructure.mjs","infra:check komutu eksik");
-must(pkg.scripts?.build?.includes("npm run typecheck")&&pkg.scripts?.build?.includes("npm run build:assets"),"build tür kontrolü + varlık derlemesi ayrımını korumuyor");
+must(pkg.scripts?.build?.includes("npm run typecheck")&&pkg.scripts?.build?.includes("vite build")&&pkg.scripts?.build?.includes("verify-dist.mjs"),"build doğrudan tür kontrolü + Vite + üretim doğrulamasını korumuyor");
+must(pkg.scripts?.["build:assets"]?.includes("vite build")&&!pkg.scripts?.["build:assets"]?.includes("typecheck"),"build:assets yalnız varlık derlemesi olmalı");
 must(pkg.scripts?.check==="npm run infra:check && npm run typecheck && npm test && npm run build:assets","check zinciri deterministik değil veya TypeScript'i gereksiz tekrar çalıştırıyor");
 
 must(tsconfig.compilerOptions?.strict===true,"TypeScript strict kapatılmış");
