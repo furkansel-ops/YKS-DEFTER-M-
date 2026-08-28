@@ -82,6 +82,23 @@ export const ORGAN_GUIDES:Readonly<Record<OrganId,OrganGuide>>={
   ]}
 };
 
+
+export interface OrganExamFocus {summary:string;route:string;mustKnow:readonly string[];}
+export const ORGAN_EXAM_FOCUS:Readonly<Record<OrganId,OrganExamFocus>>={
+  heart:{summary:"Kan yönü, karıncık duvar farkı ve kapakların konumunu birlikte bil.",route:"Odacık → kapak → çıkan damar → küçük/büyük dolaşım",mustKnow:["right-ventricle","left-ventricle","tricuspid","mitral","aorta","pulmonary-artery"]},
+  brain:{summary:"Beyin bölümlerini görevleriyle eşleştir; özellikle hipotalamus ve omurilik soğanını ayır.",route:"Büyük beyin → ara beyin → beyin sapı → beyincik",mustKnow:["cerebrum","hypothalamus","medulla","cerebellum"]},
+  lungs:{summary:"Hava iletim yolu ile gerçek gaz değişim yüzeyini kesin ayır.",route:"Soluk borusu → bronş → bronşçuk → alveol · ventilasyon için diyafram",mustKnow:["bronchus","bronchiole","alveolus","diaphragm"]},
+  liver:{summary:"Karaciğerin metabolik görevleri, çift kan girişi ve safra yolunu birlikte öğren.",route:"Bağırsak kanı → kapı toplardamarı → hepatosit · safra → kanal → bağırsak",mustKnow:["hepatocyte","portal-vein","gallbladder","bile-duct"]},
+  kidneys:{summary:"Süzülmenin nerede başladığını ve oluşan idrarın çıkış yolunu birbirinden ayır.",route:"Glomerulus → nefron tüpleri → toplama → havuzcuk → üreter",mustKnow:["glomerulus","cortex","medulla","pelvis","ureter"]},
+  eyeball:{summary:"Işığı kıran yapılar ile uyarıyı oluşturan retina ve siniri ayrı görevlerle öğren.",route:"Kornea → göz bebeği → mercek → retina → görme siniri",mustKnow:["cornea","lens","retina","blind-spot","optic-nerve"]},
+  intestine:{summary:"Villus–mikrovillus ayrımı ile kan ve lenfe geçen besin yollarını netleştir.",route:"Lümen → villus epiteli → kan kılcalı / lenf kılcalı",mustKnow:["small-intestine","villus","blood-capillary","lymph-capillary"]},
+  pancreas:{summary:"Pankreasın dış salgı ve iç salgı görevlerini aynı organ içinde ama farklı yollarla düşün.",route:"Asinüs → kanal → bağırsak · alfa/beta hücresi → kan",mustKnow:["acini","duct","alpha-cells","beta-cells"]},
+  skin:{summary:"Epidermis–dermis farkı, reseptörler ve sıcaklık düzenleme yapılarını katmanla ilişkilendir.",route:"Epidermis → dermis → deri altı · reseptör/bez/kıl kökü",mustKnow:["epidermis","dermis","sweat-gland","receptor"]}
+};
+export function organExamFocus(id:string):OrganExamFocus|undefined {
+  return Object.prototype.hasOwnProperty.call(ORGAN_EXAM_FOCUS,id)?ORGAN_EXAM_FOCUS[id as OrganId]:undefined;
+}
+
 export function organGuide(id:string):OrganGuide|undefined {
   return Object.prototype.hasOwnProperty.call(ORGAN_GUIDES,id)?ORGAN_GUIDES[id as OrganId]:undefined;
 }

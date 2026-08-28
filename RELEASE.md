@@ -2,6 +2,17 @@
 
 Bu kararlı sürüm, çalışan v3 arayüzünü değiştirmeden Vite + TypeScript + Dexie altyapısına yapılan kademeli geçişin sonucudur.
 
+## Çalışma zekâsı ve Atlas 2.0 güncellemesi
+
+- Biyoloji Atlası 2.0: 9 organ için YKS odak cümlesi, öğrenme rotası ve “YKS öncelikli” yapı işaretleri. Mevcut 3B/2B model sistemi korunur.
+- Akıllı Tekrar Merkezi: yanlış, tekrar gecikmesi, güven ve konu durumunu birlikte değerlendirir; yalnız “tekrar etmen gerekiyor” uyarısı verir, programa otomatik görev eklemez.
+- Hata Defteri 3.0: farklı günlerde tekrar eden hata kalıpları, hata nedeni dağılımı ve kullanıcıya ait düzeltme notları.
+- Deneme Analizi 2.0: aynı deneme türünde önceki sonuç, son 5 ortalaması, dalgalanma, ders bazlı artış/düşüş ve deneme bağlantılı hata sayısı.
+- Bugün ekranındaki Çalışma Komuta Merkezi tek bakışta soru, odak, kritik tekrar ve son denemeyi gösterir; “Gizle” düğmesiyle tamamen kapatılabilir.
+- Konular ekranı “Öğreniliyor / Pekiştiriliyor / Hazır / Tekrar gerekli” sağlık özetini gösterir; bu etiketler de programı değiştirmez.
+- Kullanılmayan özellik temizliği yalnız hiçbir yerden referans edilmeyen eski kopya modülleri hedefler; kayıtlı kullanıcı verisine dokunmaz.
+- Yeni çalışma zekâsı çekirdeği salt-okunur çalışır; program alanlarını değiştirmediğini doğrulayan otomatik test, hata/deneme analiz testleri ve Atlas odak sözleşmesi release kontrolüne eklenmiştir.
+
 ## Biyoloji Atlası tek sahne 3B güncellemesi · önbellek r31
 
 - 24 konuda 109 ayrı odak çizimi, numaralı öğrenme durakları, konum ve görsel okuma rehberi. Genel bağlantı şeması ayrıntılı anlatımda; sınamada ipuçları gizli.

@@ -1,5 +1,5 @@
 import {ATLAS_GROUPS, ATLAS_ORGANS, ATLAS_TOPICS, ATLAS_SOURCE, type AtlasGroup} from "../data/biology-atlas.ts";
-import {organGuide} from "../data/biology-organs.ts";
+import {organExamFocus,organGuide} from "../data/biology-organs.ts";
 import {ORGAN_LANDMARKS} from "../data/biology-organ-landmarks.ts";
 import {atlasAsset, atlasStep, atlasText, AtlasRequestGate, filterAtlas, getAtlasOrgan, getAtlasTopic} from "../domain/biology-atlas-service.ts";
 import {atlasEscape as esc} from "./biology-atlas-diagrams.ts";
@@ -69,13 +69,16 @@ export function createBiologyAtlas() {
     void startModel();
   }
   function organHeader() {
-    const organ=getAtlasOrgan(organId)!,guide=organGuide(organId)!;
-    return `<header class="atlas-lesson-head"><div><span class="atlas-kicker">TEK SAHNE · DIŞTAN İÇE 3B ÖĞRENME</span><h3>${esc(organ.name)}</h3><p>${esc(guide.overview)}</p></div><button type="button" data-atlas-action="topic" data-id="${organ.topic}">Konu anlatımına git ↗</button></header>`+
+    const organ=getAtlasOrgan(organId)!,guide=organGuide(organId)!,focus=organExamFocus(organId)!;
+    const labels=guide.structures.filter(part=>focus.mustKnow.includes(part.id)).map(part=>`<span class="atlas-yks-chip">${esc(part.label)}</span>`).join("");
+    return `<header class="atlas-lesson-head"><div><span class="atlas-kicker">BİYOLOJİ ATLASI 2.0 · YKS ÖNCELİKLİ 3B</span><h3>${esc(organ.name)}</h3><p>${esc(guide.overview)}</p></div><button type="button" data-atlas-action="topic" data-id="${organ.topic}">Konu anlatımına git ↗</button></header>`+
+      `<div class="atlas-yks-focus"><div class="atlas-yks-card"><strong>YKS ODAK</strong><span>${esc(focus.summary)}</span><div class="atlas-yks-list">${labels}</div></div><div class="atlas-yks-card"><strong>ÖĞRENME ROTASI</strong><span>${esc(focus.route)}</span></div></div>`+
       `<div class="atlas-organ-tabs" role="group" aria-label="Organ görünümü"><button type="button" data-atlas-action="organ-view" data-id="model" aria-pressed="${organView==="model"}">Etiketli 3B model</button><button type="button" id="atlasModelOpen" class="atlas-cutaway-button" data-atlas-action="cutaway" aria-pressed="${organView==="model"&&organOpen}">${organView==="model"&&organOpen?"3B iç yapıyı kapat":"3B içini aç · Daha detay"}</button><button type="button" class="atlas-fallback-tab" data-atlas-action="organ-view" data-id="anatomy" aria-pressed="${organView==="anatomy"}">Şema yedeği · 2B</button></div>`;
   }
   function structureInfo() {
-    const guide=organGuide(organId)!,part=guide.structures.find(item=>item.id===structureId);
-    return part?`<span class="atlas-kicker">${guide.structures.indexOf(part)+1} / ${guide.structures.length} · SEÇİLEN 3B YAPI</span><h4>${esc(part.label)}</h4><p class="atlas-structure-summary">${esc(part.summary)}</p><p>${esc(part.detail)}</p><div class="atlas-trap"><b>AYT'de karıştırma</b><p>${esc(part.exam)}</p></div>`:`<span class="atlas-kicker">ORGANIN ÜZERİNDE KEŞFET</span><h4>3B noktaya dokun</h4><p>Etiketler döndürdüğün organa bağlıdır. Bir yapıyı seçince bilgisi burada açılır.</p><p>“3B içini aç” dış kabuğu ayırır ve içteki öğretici parçaları aynı sahnede gösterir.</p><div class="atlas-trap"><b>İpucu</b><p>Açılan renkli 3B parçanın kendisine de dokunabilirsin. Büyük görselde ayrıntıları daha rahat incele.</p></div>`;
+    const guide=organGuide(organId)!,focus=organExamFocus(organId)!,part=guide.structures.find(item=>item.id===structureId);
+    const priority=part&&focus.mustKnow.includes(part.id)?`<span class="atlas-yks-priority">YKS ÖNCELİKLİ</span>`:"";
+    return part?`<span class="atlas-kicker">${guide.structures.indexOf(part)+1} / ${guide.structures.length} · SEÇİLEN 3B YAPI</span>${priority}<h4>${esc(part.label)}</h4><p class="atlas-structure-summary">${esc(part.summary)}</p><p>${esc(part.detail)}</p><div class="atlas-trap"><b>AYT'de karıştırma</b><p>${esc(part.exam)}</p></div>`:`<span class="atlas-kicker">ÖNCE BUNLARI BİL</span><h4>YKS öncelikli yapıları model üzerinde bul</h4><p>${esc(focus.summary)}</p><p>${esc(focus.route)}</p><div class="atlas-trap"><b>İpucu</b><p>3B noktaya dokun veya aşağıdaki yapı düğmelerini kullan. Turuncu YKS işaretli yapılardan başlayıp sonra diğer yapılara geçebilirsin.</p></div>`;
   }
   function syncModelSelection() {
     model?.open?.(organOpen);model?.select?.(structureId);model?.labels?.(organLabels);autoRotate=false;
@@ -86,7 +89,8 @@ export function createBiologyAtlas() {
     panel?.querySelector('[data-atlas-action="rotate"]')?.setAttribute("aria-pressed","false");
   }
   function structureButtons() {
-    return `<div class="atlas-structure-list" role="group" aria-label="Organ yapıları">${organGuide(organId)!.structures.map((part,i)=>`<button type="button" data-atlas-structure="${part.id}" aria-pressed="${structureId===part.id&&organView==="anatomy"}"><span>${i+1}</span>${esc(part.label)}</button>`).join("")}</div>`;
+    const guide=organGuide(organId)!,focus=organExamFocus(organId)!;
+    return `<div class="atlas-structure-list" role="group" aria-label="Organ yapıları">${guide.structures.map((part,i)=>`<button type="button" class="${focus.mustKnow.includes(part.id)?"is-must-know":""}" data-atlas-structure="${part.id}" aria-pressed="${structureId===part.id&&organView==="anatomy"}"><span>${i+1}</span>${esc(part.label)}</button>`).join("")}</div>`;
   }
   function renderAnatomy(focus?:string,animate=false) {
     stopModel();const organ=getAtlasOrgan(organId)!,guide=organGuide(organId)!,main=find("atlasContent");if(!main)return;
