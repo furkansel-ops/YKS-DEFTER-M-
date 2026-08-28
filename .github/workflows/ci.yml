@@ -21,15 +21,41 @@ jobs:
     steps:
       - name: Kaynak kodu al
         uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - name: Node.js ortamını hazırla
         uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
+          cache-dependency-path: package-lock.json
 
       - name: Bağımlılıkları kur
-        run: npm ci
+        run: npm ci --no-audit --no-fund
 
       - name: Türleri, testleri ve üretim paketini doğrula
         run: npm run release:check
+
+  runtime-compat:
+    name: Node 24 uyumluluk denetimi
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Kaynak kodu al
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Node.js 24 ortamını hazırla
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Bağımlılıkları kur
+        run: npm ci --no-audit --no-fund
+
+      - name: Gelecek Node sürümünde tür ve test uyumluluğunu doğrula
+        run: npm run infra:check && npm run typecheck && npm test
