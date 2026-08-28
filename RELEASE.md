@@ -10,8 +10,8 @@ Bu kararlı sürüm, çalışan v3 arayüzünü değiştirmeden Vite + TypeScrip
 - Deneme Analizi 2.0: aynı deneme türünde önceki sonuç, son 5 ortalaması, dalgalanma, ders bazlı artış/düşüş ve deneme bağlantılı hata sayısı.
 - Bugün ekranındaki Çalışma Komuta Merkezi tek bakışta soru, odak, kritik tekrar ve son denemeyi gösterir; “Gizle” düğmesiyle tamamen kapatılabilir.
 - Konular ekranı “Öğreniliyor / Pekiştiriliyor / Hazır / Tekrar gerekli” sağlık özetini gösterir; bu etiketler de programı değiştirmez.
-- Kullanılmayan özellik temizliği yalnız hiçbir yerden referans edilmeyen eski kopya modülleri hedefler; kayıtlı kullanıcı verisine dokunmaz.
-- Yeni çalışma zekâsı çekirdeği salt-okunur çalışır; program alanlarını değiştirmediğini doğrulayan otomatik test, hata/deneme analiz testleri ve Atlas odak sözleşmesi release kontrolüne eklenmiştir.
+- Kullanılmayan özellik temizliği güvenli tutulur: yalnız gerçekten referanssız/geçici yükseltme parçaları kaldırılır; halen kullanılan veya regresyon testlerinin koruduğu eski modüller sırf adları eski diye silinmez ve kayıtlı kullanıcı verisine dokunulmaz.
+- Hız ve güvenilirlik cilasında çalışma zekâsı yeniden çizimleri aynı animasyon karesinde birleştirilir; ek analiz katmanı sürekli timer döngüsü kurmaz. Çekirdek salt-okunur çalışır ve program alanlarını değiştirmediğini doğrulayan otomatik test, hata/deneme analiz testleri ve Atlas odak sözleşmesi release kontrolüne eklenmiştir.
 
 ## Biyoloji Atlası tek sahne 3B güncellemesi · önbellek r31
 
