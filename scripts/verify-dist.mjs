@@ -8,7 +8,7 @@ const required=[
   "modules/core-utils.js","modules/stability.js","modules/topic-guides.js",
   "modules/learning-lab.js","modules/learning-lab-v2.js","modules/learning-lab-v3.js","modules/target-center.js","modules/export-center.js",
   "modules/error-journal.js","modules/personal-upgrades.js","modules/progress-v2.js",
-  "modules/release-selftest.js"
+  "modules/release-selftest.js","modules/study-intelligence-v5.css","modules/ui-polish-v1.css"
 ];
 
 for(const file of required)await access(resolve(dist,file));
@@ -17,7 +17,7 @@ if(!/assets\/index-[^"']+\.js/.test(index))throw new Error("TypeScript üretim p
 if(!index.includes('./app.js?v=4.1.0-r20')||!index.includes('./modules/stability.js?v=4.1.0-r28')||!index.includes('./modules/learning-lab.js?v=4.1.0-r26')||!index.includes('./modules/error-journal.js?v=4.1.0-r20'))throw new Error("Uygulama çalışma zamanı üretim paketinde bağlı değil");
 const bundlePath=index.match(/(?:src|href)="\.\/(assets\/index-[^"']+\.js)"/)?.[1];
 if(!bundlePath)throw new Error("Kararlı sürüm JavaScript paketi bulunamadı");
-const [bundle,app,sw,versionText,recovery,stability,personal,progress,labV2,labV3]=await Promise.all([
+const [bundle,app,sw,versionText,recovery,stability,personal,progress,labV2,labV3,studyCss,polishCss]=await Promise.all([
   readFile(resolve(dist,bundlePath),"utf8"),
   readFile(resolve(dist,"app.js"),"utf8"),
   readFile(resolve(dist,"sw.js"),"utf8"),
@@ -27,13 +27,17 @@ const [bundle,app,sw,versionText,recovery,stability,personal,progress,labV2,labV
   readFile(resolve(dist,"modules/personal-upgrades.js"),"utf8"),
   readFile(resolve(dist,"modules/progress-v2.js"),"utf8"),
   readFile(resolve(dist,"modules/learning-lab-v2.js"),"utf8"),
-  readFile(resolve(dist,"modules/learning-lab-v3.js"),"utf8")
+  readFile(resolve(dist,"modules/learning-lab-v3.js"),"utf8"),
+  readFile(resolve(dist,"modules/study-intelligence-v5.css"),"utf8"),
+  readFile(resolve(dist,"modules/ui-polish-v1.css"),"utf8")
 ]);
 if(!bundle.includes("YKS_V4_RELEASE_OK")||!bundle.includes("4.1.0")||!bundle.includes("stable"))throw new Error("v4 kararlı sürüm denetimi üretim paketine girmedi");
 if(!bundle.includes("4.1.0-r20")||!/(?:assets\/manifest-[^"']+|manifest\.webmanifest)\?v=4\.1\.0-r20/.test(index))throw new Error("r20 PWA çalışma zamanı üretim paketine girmedi");
 if(!app.includes('const APP_VERSION="4.1.0"')||!app.includes('const APP_BUILD="4.1.0-r20"'))throw new Error("Kopyalanan app.js kararlı sürümle eşleşmiyor");
-if(!sw.includes('const APP_VERSION="4.1.0"')||!sw.includes('const APP_BUILD="4.1.0-r20"')||!sw.includes('const CACHE="yks-core-v4.1.0-r31"'))throw new Error("Kopyalanan service worker kararlı sürüm/cache revizyonuyla eşleşmiyor");
+if(!sw.includes('const APP_VERSION="4.1.0"')||!sw.includes('const APP_BUILD="4.1.0-r20"')||!sw.includes('const CACHE="yks-core-v4.1.0-r32"'))throw new Error("Kopyalanan service worker kararlı sürüm/cache revizyonuyla eşleşmiyor");
 if(!sw.includes('learning-lab.js?v=4.1.0-r26'))throw new Error("Laboratuvar favori düzeltmesi çevrimdışı çekirdekte eksik");
+if(!sw.includes('study-intelligence-v5.css?v=4.1.0-r1')||!sw.includes('ui-polish-v1.css?v=4.1.0-r1'))throw new Error("Cila katmanı çevrimdışı çekirdekte eksik");
+if(!studyCss.includes('ui-polish-v1.css?v=4.1.0-r1')||!polishCss.includes('prefers-reduced-motion')||!polishCss.includes('.today-hub')||!polishCss.includes('.v315-dashboard'))throw new Error("Görsel cila katmanı üretim paketine doğru bağlanmadı");
 if(!index.includes("core-utils.js?v=4.1.0-r27")||!sw.includes("core-utils.js?v=4.1.0-r27"))throw new Error("Bilim kartlarının senkronizasyon güncellemesi pakette eksik");
 if(!bundle.includes("FEN TEKRAR ATÖLYESİ"))throw new Error("Biyoloji/Fizik kart sistemi TypeScript paketinde eksik");
 if(!bundle.includes("YKSBiologyAtlas")||!labV3.includes("v320PanelAtlas"))throw new Error("Biyoloji atlası çalışma zamanına bağlı değil");
@@ -55,4 +59,4 @@ if(!recovery.includes('/YKS-DEFTER-M-/')||!recovery.includes('location.replace')
 let version;
 try{version=JSON.parse(versionText);}catch{throw new Error("Kopyalanan version.json geçerli JSON değil");}
 if(version?.version!=="4.1.0"||version?.build!=="4.1.0-r20"||version?.schema!==21)throw new Error("Kopyalanan version.json kararlı sürümle eşleşmiyor");
-console.log(`Üretim paketi doğrulandı: ${required.length} geçiş dosyası + TypeScript paketi + sürüm/PWA/kişisel modül bütünlüğü`);
+console.log(`Üretim paketi doğrulandı: ${required.length} geçiş dosyası + TypeScript paketi + sürüm/PWA/cila/kişisel modül bütünlüğü`);
