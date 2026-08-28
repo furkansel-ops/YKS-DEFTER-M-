@@ -1,0 +1,244 @@
+/* YKS Defterim · Odak ekranı premium cila v1
+   Sayaç/kronometre davranışına dokunmadan görsel hiyerarşi,
+   dokunmatik hedefler, tablet/PC dengesi ve erişilebilirliği güçlendirir. */
+
+#pomo{
+  --focus-max:720px;
+  --focus-radius:30px;
+  --focus-hairline:color-mix(in srgb,var(--label) 8%,transparent);
+  --focus-shadow:0 2px 8px rgba(10,14,30,.045),0 28px 72px -46px color-mix(in srgb,var(--label) 54%,transparent);
+}
+
+/* Odak ekranı açıkken tablet/PC'de gereksiz dar sütuna sıkışmasın. */
+.wrap:has(#pomo.active){max-width:820px;}
+
+#pomo>.seg,
+#pomo>.v29-focus-dashboard,
+#pomo>#focusPomo,
+#pomo>#focusStop,
+#pomo>h2,
+#pomo>.card,
+#pomo>.foldhead,
+#pomo>.foldbody{
+  width:min(100%,var(--focus-max));
+  margin-left:auto;
+  margin-right:auto;
+}
+
+#pomo>.seg{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:4px;
+  padding:4px;
+  margin-top:4px;
+  margin-bottom:14px;
+  border:1px solid var(--focus-hairline);
+  border-radius:18px;
+  background:color-mix(in srgb,var(--glass) 88%,var(--fill));
+  box-shadow:0 8px 24px -22px color-mix(in srgb,var(--label) 50%,transparent);
+  -webkit-backdrop-filter:var(--blur-lite);
+  backdrop-filter:var(--blur-lite);
+}
+#pomo>.seg button{
+  min-height:44px;
+  border-radius:14px;
+  font-weight:760;
+  letter-spacing:-.012em;
+  transition:background .2s ease,color .2s ease,box-shadow .2s ease,transform .16s ease;
+}
+#pomo>.seg button.on{
+  background:color-mix(in srgb,var(--glass-strong) 90%,var(--accent) 10%);
+  box-shadow:0 6px 18px -14px color-mix(in srgb,var(--accent) 42%,transparent),inset 0 0 0 .5px color-mix(in srgb,var(--accent) 22%,transparent);
+}
+#pomo>.seg button:active{transform:scale(.985);}
+
+#pomo .v29-focus-dashboard{margin-bottom:14px;}
+#pomo .v29-dash,
+#pomo .v29-mini{
+  border-color:var(--focus-hairline);
+  box-shadow:0 12px 30px -28px color-mix(in srgb,var(--label) 48%,transparent);
+}
+
+#pomo .focuscard{
+  isolation:isolate;
+  border-radius:var(--focus-radius);
+  padding:24px 24px 26px;
+  border:1px solid var(--focus-hairline);
+  box-shadow:var(--focus-shadow);
+  background-image:
+    radial-gradient(circle at 50% 12%,color-mix(in srgb,var(--phase) 12%,transparent),transparent 33%),
+    linear-gradient(155deg,color-mix(in srgb,var(--glass) 98%,transparent),color-mix(in srgb,var(--fill) 94%,transparent));
+}
+#pomo .focuscard::after{
+  content:"";
+  position:absolute;
+  inset:1px;
+  z-index:0;
+  pointer-events:none;
+  border-radius:calc(var(--focus-radius) - 1px);
+  border:1px solid color-mix(in srgb,var(--glass-edge) 46%,transparent);
+  mask-image:linear-gradient(to bottom,#000,transparent 44%);
+}
+#pomo .focuscard[data-run="running"]{
+  border-color:color-mix(in srgb,var(--phase) 28%,var(--focus-hairline));
+  box-shadow:0 2px 8px rgba(10,14,30,.04),0 30px 78px -44px color-mix(in srgb,var(--phase) 35%,transparent);
+}
+#pomo .focuscard[data-run="paused"]{
+  border-color:color-mix(in srgb,var(--time) 24%,var(--focus-hairline));
+}
+
+#pomo .fchead{min-height:34px;gap:12px;}
+#pomo .phasepill{
+  min-height:30px;
+  padding:6px 12px;
+  font-size:12px;
+  font-weight:800;
+  letter-spacing:.025em;
+  text-transform:uppercase;
+  border:1px solid color-mix(in srgb,var(--phase) 20%,transparent);
+}
+#pomo .fcends{
+  color:var(--label-3);
+  font-size:12.5px;
+  font-weight:650;
+  text-align:right;
+}
+
+#pomo .pomo-ring{margin:12px 0 6px;}
+#pomo .pomo-ring svg{
+  width:min(270px,76vw);
+  height:auto;
+  filter:drop-shadow(0 18px 30px rgba(10,14,30,.075));
+}
+#pomo #pomoTime{
+  font-size:52px;
+  font-weight:760;
+  letter-spacing:-3.2px;
+}
+#pomo .dots{gap:8px;margin-top:12px;}
+#pomo .dots i{width:9px;height:9px;}
+#pomo .cyclenote{margin-bottom:20px;font-size:12.5px;}
+
+#pomo .fcctl{
+  display:grid;
+  grid-template-columns:54px minmax(150px,1fr) 54px;
+  align-items:center;
+  gap:10px;
+  width:min(100%,390px);
+  margin:0 auto;
+}
+#pomo .ctlbtn,
+#pomo .playbtn{
+  min-height:54px;
+  border-radius:18px;
+  transition:transform .16s ease,box-shadow .2s ease,background .2s ease,border-color .2s ease;
+}
+#pomo .ctlbtn{min-width:54px;}
+#pomo .playbtn{
+  padding-left:20px;
+  padding-right:20px;
+  font-weight:800;
+  box-shadow:0 14px 28px -19px color-mix(in srgb,var(--phase) 72%,transparent);
+}
+#pomo .ctlbtn:active,
+#pomo .playbtn:active{transform:scale(.975);}
+#pomo .ctlbtn:focus-visible,
+#pomo .playbtn:focus-visible,
+#pomo .qstep:focus-visible,
+#pomo .quickmins button:focus-visible,
+#pomo>.seg button:focus-visible{
+  outline:3px solid color-mix(in srgb,var(--accent) 38%,transparent);
+  outline-offset:2px;
+}
+
+#pomo .quickwrap{
+  margin-top:22px;
+  padding-top:18px;
+  border-top-color:color-mix(in srgb,var(--label) 9%,transparent);
+}
+#pomo .quickhead{margin-bottom:12px;}
+#pomo .qadj{display:flex;gap:6px;}
+#pomo .qstep{
+  min-width:48px;
+  min-height:40px;
+  border-radius:13px;
+  font-weight:760;
+}
+#pomo .quickmins{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:8px;
+}
+#pomo .quickmins button{
+  min-height:44px;
+  border-radius:14px;
+  font-weight:760;
+  transition:transform .16s ease,background .2s ease,border-color .2s ease,box-shadow .2s ease;
+}
+#pomo .quickmins button:active{transform:scale(.975);}
+#pomo .quickmins button.on{
+  box-shadow:0 8px 18px -14px color-mix(in srgb,var(--phase) 60%,transparent);
+}
+
+#pomo .card{
+  border-color:var(--focus-hairline);
+  box-shadow:0 14px 36px -30px color-mix(in srgb,var(--label) 46%,transparent);
+}
+#pomo input,
+#pomo select,
+#pomo textarea{
+  min-height:46px;
+  border-radius:14px;
+}
+#pomo .switch{
+  min-height:50px;
+  padding-top:9px;
+  padding-bottom:9px;
+}
+#pomo .hint{line-height:1.55;}
+
+/* Kronometre aynı tasarım dilini kullanır. */
+#pomo #swCard .pomo-ring svg{width:min(260px,74vw);}
+#pomo #swLaps .empty{padding:18px 12px;}
+
+@media (min-width:760px){
+  #pomo{--focus-max:760px;}
+  .wrap:has(#pomo.active){max-width:900px;padding-left:24px;padding-right:24px;}
+  #pomo>.seg{width:min(100%,520px);margin-bottom:18px;}
+  #pomo .focuscard{padding:28px 32px 30px;}
+  #pomo .pomo-ring svg{width:286px;}
+  #pomo #pomoTime{font-size:54px;}
+  #pomo .fcctl{width:410px;grid-template-columns:58px minmax(170px,1fr) 58px;}
+  #pomo .ctlbtn,#pomo .playbtn{min-height:58px;}
+  #pomo .ctlbtn{min-width:58px;}
+}
+
+@media (max-width:759px){
+  #pomo{--focus-radius:26px;}
+  #pomo .focuscard{padding:19px 17px 22px;}
+  #pomo .pomo-ring svg{width:min(238px,72vw);}
+  #pomo #pomoTime{font-size:49px;}
+  #pomo .fcctl{grid-template-columns:50px minmax(132px,1fr) 50px;gap:8px;}
+  #pomo .ctlbtn,#pomo .playbtn{min-height:50px;border-radius:16px;}
+  #pomo .ctlbtn{min-width:50px;}
+  #pomo .quickmins{grid-template-columns:repeat(2,minmax(0,1fr));}
+}
+
+@media (max-width:380px){
+  #pomo .pomo-ring svg{width:min(220px,70vw);}
+  #pomo #pomoTime{font-size:46px;}
+  #pomo .fcctl{grid-template-columns:46px minmax(118px,1fr) 46px;}
+  #pomo .ctlbtn,#pomo .playbtn{min-height:48px;}
+  #pomo .ctlbtn{min-width:46px;}
+}
+
+@media (prefers-reduced-motion:reduce){
+  #pomo .fcglow,
+  #pomo .focuscard[data-run="running"] .fcglow{animation:none!important;}
+  #pomo .focuscard,
+  #pomo .ctlbtn,
+  #pomo .playbtn,
+  #pomo .qstep,
+  #pomo .quickmins button,
+  #pomo>.seg button{transition:none!important;}
+}
