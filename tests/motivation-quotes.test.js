@@ -22,7 +22,7 @@ test('Günün sözü YKS ve teknik direktör havuzlarıyla sınırlıdır',()=>{
   const meta=context.window.__YKS_MOTIVATION_QUOTES_READY__;
   assert.equal(meta.scope,'YKS+coaches');assert.ok(meta.examPool>=70);assert.ok(meta.coachPool>=10);
   const allowedCoaches=/Fatih Terim|Şenol Güneş|Sir Alex Ferguson|Jürgen Klopp|Arsène Wenger/;
-  const exam=/YKS|sınav|deneme|net|soru|konu|tekrar|çalış|paragraf|problem|matematik|fen|süre|yanlış|odak|ders/i;
+  const exam=/YKS|sınav|deneme|net|soru|konu|tekrar|çalış|paragraf|problem|matematik|fen|süre|yanlış|odak|ders|program|hedef/i;
   const forbiddenNames=/Einstein|Edison|Sokrates|Nietzsche|İnsan Sözü/i;
   const forbiddenTopics=/(^|[^a-zçğıöşü])aşk([^a-zçğıöşü]|$)|(^|[^a-zçğıöşü])içki([^a-zçğıöşü]|$)|(^|[^a-zçğıöşü])siyaset([^a-zçğıöşü]|$)/i;
   let sawExam=false,sawCoach=false;
