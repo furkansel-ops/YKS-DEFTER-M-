@@ -7,7 +7,7 @@ const required=[
   "index.html","404.html","app.js","app.css","sw.js","version.json","manifest.webmanifest",
   "modules/core-utils.js","modules/stability.js","modules/topic-guides.js",
   "modules/learning-lab.js","modules/learning-lab-v2.js","modules/learning-lab-v3.js","modules/target-center.js","modules/export-center.js",
-  "modules/error-journal.js","modules/personal-upgrades.js","modules/progress-v2.js","modules/motivation-quotes-v1.js",
+  "modules/error-journal.js","modules/personal-upgrades.js","modules/progress-v2.js","modules/motivation-quotes-v1.js","modules/motivation-quotes-v2.css",
   "modules/release-selftest.js","modules/study-intelligence-v5.css","modules/ui-polish-v1.css","modules/ui-polish-home-v2.css"
 ];
 
@@ -17,7 +17,7 @@ if(!/assets\/index-[^"']+\.js/.test(index))throw new Error("TypeScript üretim p
 if(!index.includes('./app.js?v=4.1.0-r20')||!index.includes('./modules/stability.js?v=4.1.0-r28')||!index.includes('./modules/learning-lab.js?v=4.1.0-r26')||!index.includes('./modules/error-journal.js?v=4.1.0-r20'))throw new Error("Uygulama çalışma zamanı üretim paketinde bağlı değil");
 const bundlePath=index.match(/(?:src|href)="\.\/(assets\/index-[^"']+\.js)"/)?.[1];
 if(!bundlePath)throw new Error("Kararlı sürüm JavaScript paketi bulunamadı");
-const [bundle,app,sw,versionText,recovery,stability,personal,progress,labV2,labV3,motivation,studyCss,polishCss,homePolishCss]=await Promise.all([
+const [bundle,app,sw,versionText,recovery,stability,personal,progress,labV2,labV3,motivation,motivationCss,studyCss,polishCss,homePolishCss]=await Promise.all([
   readFile(resolve(dist,bundlePath),"utf8"),
   readFile(resolve(dist,"app.js"),"utf8"),
   readFile(resolve(dist,"sw.js"),"utf8"),
@@ -29,6 +29,7 @@ const [bundle,app,sw,versionText,recovery,stability,personal,progress,labV2,labV
   readFile(resolve(dist,"modules/learning-lab-v2.js"),"utf8"),
   readFile(resolve(dist,"modules/learning-lab-v3.js"),"utf8"),
   readFile(resolve(dist,"modules/motivation-quotes-v1.js"),"utf8"),
+  readFile(resolve(dist,"modules/motivation-quotes-v2.css"),"utf8"),
   readFile(resolve(dist,"modules/study-intelligence-v5.css"),"utf8"),
   readFile(resolve(dist,"modules/ui-polish-v1.css"),"utf8"),
   readFile(resolve(dist,"modules/ui-polish-home-v2.css"),"utf8")
@@ -36,11 +37,12 @@ const [bundle,app,sw,versionText,recovery,stability,personal,progress,labV2,labV
 if(!bundle.includes("YKS_V4_RELEASE_OK")||!bundle.includes("4.1.0")||!bundle.includes("stable"))throw new Error("v4 kararlı sürüm denetimi üretim paketine girmedi");
 if(!bundle.includes("4.1.0-r20")||!/(?:assets\/manifest-[^"']+|manifest\.webmanifest)\?v=4\.1\.0-r20/.test(index))throw new Error("r20 PWA çalışma zamanı üretim paketine girmedi");
 if(!app.includes('const APP_VERSION="4.1.0"')||!app.includes('const APP_BUILD="4.1.0-r20"'))throw new Error("Kopyalanan app.js kararlı sürümle eşleşmiyor");
-if(!sw.includes('const APP_VERSION="4.1.0"')||!sw.includes('const APP_BUILD="4.1.0-r20"')||!sw.includes('const CACHE="yks-core-v4.1.0-r34"'))throw new Error("Kopyalanan service worker kararlı sürüm/cache revizyonuyla eşleşmiyor");
+if(!sw.includes('const APP_VERSION="4.1.0"')||!sw.includes('const APP_BUILD="4.1.0-r20"')||!sw.includes('const CACHE="yks-core-v4.1.0-r35"'))throw new Error("Kopyalanan service worker kararlı sürüm/cache revizyonuyla eşleşmiyor");
 if(!sw.includes('learning-lab.js?v=4.1.0-r26'))throw new Error("Laboratuvar favori düzeltmesi çevrimdışı çekirdekte eksik");
 if(!sw.includes('study-intelligence-v5.css?v=4.1.0-r1')||!sw.includes('ui-polish-v1.css?v=4.1.0-r1')||!sw.includes('ui-polish-home-v2.css?v=4.1.0-r1'))throw new Error("Cila katmanı çevrimdışı çekirdekte eksik");
-if(!sw.includes('motivation-quotes-v1.js?v=4.1.0-r1')||!stability.includes('motivation-quotes-v1.js?v=4.1.0-r1'))throw new Error("Günün sözü çalışma zamanı/PWA çekirdeğine bağlı değil");
-if(!motivation.includes('const EXAM_QUOTES=')||!motivation.includes('const COACH_QUOTES=')||!motivation.includes('scope:"YKS+coaches"')||!motivation.includes('Teknik Direktör')||!motivation.includes('yeniSoz=function'))throw new Error("YKS + teknik direktör söz havuzu eksik veya paketlenmedi");
+if(!sw.includes('motivation-quotes-v1.js?v=4.1.0-r2')||!sw.includes('motivation-quotes-v2.css?v=4.1.0-r1')||!stability.includes('motivation-quotes-v1.js?v=4.1.0-r2'))throw new Error("Günün sözü çalışma zamanı/PWA çekirdeğine bağlı değil");
+if(!motivation.includes('const EXAM_QUOTES=')||!motivation.includes('const COACH_QUOTES=')||!motivation.includes('scope:"YKS+coaches"')||!motivation.includes('style:"v2"')||!motivation.includes('Teknik Direktör')||!motivation.includes('yeniSoz=function'))throw new Error("YKS + teknik direktör söz havuzu eksik veya paketlenmedi");
+if(!motivationCss.includes('[data-quote-type="coach"]')||!motivationCss.includes('focus-visible')||!motivationCss.includes('@media (max-width:759px)')||!motivationCss.includes('prefers-reduced-motion'))throw new Error("Motivasyon kartı v2 cila/erişilebilirlik katmanı paketlenmedi");
 if(!studyCss.includes('ui-polish-v1.css?v=4.1.0-r1')||!studyCss.includes('ui-polish-home-v2.css?v=4.1.0-r1')||!polishCss.includes('prefers-reduced-motion')||!polishCss.includes('.today-hub')||!polishCss.includes('.v315-dashboard'))throw new Error("Görsel cila katmanı üretim paketine doğru bağlanmadı");
 if(!homePolishCss.includes('#home .home-overview')||!homePolishCss.includes('grid-template-areas')||!homePolishCss.includes('#home .today-summary-grid')||!homePolishCss.includes('prefers-reduced-motion'))throw new Error("Bugün ekranı premium cila katmanı eksik veya eksik paketlendi");
 if(!index.includes("core-utils.js?v=4.1.0-r27")||!sw.includes("core-utils.js?v=4.1.0-r27"))throw new Error("Bilim kartlarının senkronizasyon güncellemesi pakette eksik");
@@ -53,8 +55,8 @@ if(!atlasChunk||!modelChunk||!chunks.some(name=>/^biology-atlas-.+\.css$/.test(n
 const atlasBundle=await readFile(resolve(dist,"assets",atlasChunk),"utf8");
 if(!atlasBundle.includes("Genden proteine")||!atlasBundle.includes("Kendini sına")||bundle.includes("WebGLRenderer"))throw new Error("Atlas içeriği / isteğe bağlı yükleme sınırı bozuk");
 await verifyAnatomyAssets(resolve(dist,"anatomy"),JSON.parse(await readFile(resolve(root,"scripts/anatomy-assets.json"),"utf8")));
-for(const asset of ["error-journal.js?v=4.1.0-r20","personal-upgrades.js?v=4.1.0-r20","progress-v2.js?v=4.1.0-r20","learning-lab-v2.js?v=4.1.0-r24","learning-lab-v3.js?v=4.1.0-r28","motivation-quotes-v1.js?v=4.1.0-r1"])if(!sw.includes(asset))throw new Error("Kişisel/ana modül çevrimdışı çekirdekte eksik: "+asset);
-if(!stability.includes("personal-upgrades.js?v=4.1.0-r20")||!stability.includes("progress-v2.js?v=4.1.0-r20")||!stability.includes("learning-lab-v2.js?v=4.1.0-r24")||!stability.includes("learning-lab-v3.js?v=4.1.0-r28")||!stability.includes("motivation-quotes-v1.js?v=4.1.0-r1"))throw new Error("Kişisel geliştirme/motivasyon modülleri çalışma zamanında yüklenmiyor");
+for(const asset of ["error-journal.js?v=4.1.0-r20","personal-upgrades.js?v=4.1.0-r20","progress-v2.js?v=4.1.0-r20","learning-lab-v2.js?v=4.1.0-r24","learning-lab-v3.js?v=4.1.0-r28","motivation-quotes-v1.js?v=4.1.0-r2","motivation-quotes-v2.css?v=4.1.0-r1"])if(!sw.includes(asset))throw new Error("Kişisel/ana modül çevrimdışı çekirdekte eksik: "+asset);
+if(!stability.includes("personal-upgrades.js?v=4.1.0-r20")||!stability.includes("progress-v2.js?v=4.1.0-r20")||!stability.includes("learning-lab-v2.js?v=4.1.0-r24")||!stability.includes("learning-lab-v3.js?v=4.1.0-r28")||!stability.includes("motivation-quotes-v1.js?v=4.1.0-r2"))throw new Error("Kişisel geliştirme/motivasyon modülleri çalışma zamanında yüklenmiyor");
 if(!personal.includes("enforceSingleUser")||!personal.includes("bindProgramGrid"))throw new Error("Tek kullanıcı / Program v2 üretim paketinde eksik");
 if(!progress.includes("studyNetRelation")||!progress.includes("bestImprovingSubject"))throw new Error("İlerleme v2 üretim paketinde eksik");
 if(!labV2.includes("PARAGRAPH_TIPS")||!labV2.includes("fetchElementMedia")||!labV2.includes("DEEP_DIVES")||!labV2.includes("ERA_CARDS")||!/const group=groupOf\(z\)/.test(labV2))throw new Error("Öğrenme Laboratuvarı v2 üretim paketinde eksik veya blok hesabı kararsız");
