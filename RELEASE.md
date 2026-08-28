@@ -6,6 +6,7 @@ Bu kararlı sürüm, çalışan v3 arayüzünü değiştirmeden Vite + TypeScrip
 
 - 24 konuda 109 ayrı odak çizimi, numaralı öğrenme durakları, konum ve görsel okuma rehberi. Genel bağlantı şeması ayrıntılı anlatımda; sınamada ipuçları gizli.
 - 9 organ üzerinde dönen kameraya bağlı toplam 52 YKS işareti; içeride 52 seçilebilir, hacimli öğretici 3B yapı.
+- Kulak, 3B organ listesinden ve ona ait model/şema/etkileşim katmanlarından kaldırılmıştır; Duyu organları konu anlatımındaki işitme ve denge bilgileri müfredat içeriği olarak korunur.
 - “3B içini aç” aynı sahnede kaynak kabuğun ön/arka yarılarını ayırır; ortada ayrıca hazırlanmış öğretici iç parçalar görünür. Kalp boşluklarında duvar kalınlığı ve kapaklar; beyinde ön/orta/arka bölümler. Büyütmeler ölçekli değildir.
 - Mevcut kaynak 3B modeller, eski laboratuvar araçları ve şema 21 kayıtları korunur; yeni görünümler kullanıcı verisi yazmaz.
 - Yapı seçimi, aç/kapat, etiket ve büyütme aynı canvas/model üzerinde çalışır; indirmeyi tekrar başlatmaz. Konu/organ/sekme değişiminde eski yükleme iptal edilir. WebGL yoksa açıkça adlandırılmış 2B şema yedeği kullanılabilir.
