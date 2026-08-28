@@ -33,6 +33,16 @@ jobs:
           p.write_text(s,encoding='utf-8')
           PY
           python3 scripts/upgrade-study-suite.py
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('src/ui/biology-atlas.ts')
+          s=p.read_text(encoding='utf-8')
+          old='Turuncu YKS işaretli yapı düğmelerinden başlayıp sonra diğer yapılara geçebilirsin.'
+          new='3B noktaya dokun veya aşağıdaki yapı düğmelerini kullan. Turuncu YKS işaretli yapılardan başlayıp sonra diğer yapılara geçebilirsin.'
+          if old not in s:
+              raise SystemExit('Atlas guidance patch target missing')
+          p.write_text(s.replace(old,new,1),encoding='utf-8')
+          PY
       - name: Verify all stages
         run: npm run release:check
       - name: Verify intelligence stays read-only
