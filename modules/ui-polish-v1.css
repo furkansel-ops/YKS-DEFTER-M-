@@ -1,0 +1,259 @@
+/* YKS Defterim — UI Polish v1
+   Yalnızca görsel/etkileşim katmanı. Veri ve iş mantığına dokunmaz. */
+
+:root{
+  --polish-edge:color-mix(in srgb,var(--label) 9%,transparent);
+  --polish-edge-strong:color-mix(in srgb,var(--label) 14%,transparent);
+  --polish-surface:color-mix(in srgb,var(--glass-strong) 92%,transparent);
+  --polish-soft:color-mix(in srgb,var(--fill) 72%,transparent);
+  --polish-accent-line:color-mix(in srgb,var(--accent) 34%,transparent);
+  --polish-shadow:0 18px 44px -30px color-mix(in srgb,var(--label) 34%,transparent);
+  --polish-shadow-raised:0 24px 56px -34px color-mix(in srgb,var(--label) 46%,transparent);
+  --polish-ring:0 0 0 3px color-mix(in srgb,var(--accent) 18%,transparent);
+}
+
+html{scroll-behavior:smooth;scrollbar-gutter:stable;}
+body{accent-color:var(--accent);}
+::selection{background:color-mix(in srgb,var(--accent) 24%,transparent);color:var(--label);}
+
+/* ---------- erişilebilir mikro etkileşimler ---------- */
+a,button,input,select,textarea{outline:none;}
+button,.btn,input,select,textarea,.topic-filter,.foldhead{
+  transition:border-color .18s ease,background-color .18s ease,color .18s ease,
+             box-shadow .18s ease,transform .18s cubic-bezier(.2,.8,.3,1),opacity .18s ease;
+}
+button:focus-visible,.btn:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,
+.topic-filter:focus-visible,.foldhead:focus-visible,[tabindex]:focus-visible{
+  outline:2px solid var(--accent);outline-offset:2px;box-shadow:var(--polish-ring);
+}
+button:disabled,.btn:disabled{opacity:.46;cursor:not-allowed;filter:saturate(.55);}
+.btn:not(.tiny),.seg button,.segsel button,.topic-filter{min-height:42px;}
+.btn.tiny{min-height:36px;}
+
+input:not([type="checkbox"]):not([type="radio"]),select,textarea{
+  border-color:var(--polish-edge-strong)!important;
+  background:color-mix(in srgb,var(--glass-strong) 82%,transparent)!important;
+  box-shadow:inset 0 1px 0 color-mix(in srgb,var(--glass-edge) 70%,transparent);
+}
+input:not([type="checkbox"]):not([type="radio"]):hover,select:hover,textarea:hover{
+  border-color:color-mix(in srgb,var(--accent) 25%,var(--polish-edge-strong))!important;
+}
+input:not([type="checkbox"]):not([type="radio"]):focus,select:focus,textarea:focus{
+  border-color:color-mix(in srgb,var(--accent) 62%,var(--polish-edge-strong))!important;
+  box-shadow:var(--polish-ring),inset 0 1px 0 color-mix(in srgb,var(--glass-edge) 74%,transparent)!important;
+}
+textarea{line-height:1.5;}
+label{letter-spacing:-.006em;}
+
+/* ---------- üst çubuk ve ekran geçişi ---------- */
+.navbar{
+  box-shadow:0 10px 34px -30px color-mix(in srgb,var(--label) 45%,transparent);
+}
+.navbar .nt{letter-spacing:-.024em;font-weight:720;}
+.navtools{gap:4px;}
+.themebtn{
+  border:1px solid transparent;
+}
+@media (hover:hover) and (pointer:fine){
+  .themebtn:hover{background:var(--fill);border-color:var(--polish-edge);transform:translateY(-1px);}
+}
+.screen.active{animation:polishScreenIn .26s cubic-bezier(.2,.75,.3,1) both;}
+@keyframes polishScreenIn{from{opacity:.35;transform:translateY(5px)}to{opacity:1;transform:none}}
+
+/* ---------- tipografi / bölüm ritmi ---------- */
+h1{font-weight:760;letter-spacing:-.034em;text-wrap:balance;}
+h2{font-weight:710;letter-spacing:-.025em;margin-top:30px;}
+h2::after{content:"";height:1px;flex:1;min-width:18px;background:linear-gradient(90deg,var(--polish-edge),transparent);opacity:.7;}
+h2 .cnt{box-shadow:0 4px 14px -9px var(--success);}
+.eyebrow{letter-spacing:.075em;}
+.lead,.hint{max-width:72ch;}
+
+/* ---------- yüzeyler ---------- */
+.card{
+  border-color:var(--polish-edge)!important;
+  box-shadow:var(--polish-shadow);
+}
+.card.flat{border-color:var(--polish-edge)!important;}
+@media (hover:hover) and (pointer:fine){
+  .card:not(.plain):hover{border-color:var(--polish-edge-strong)!important;box-shadow:var(--polish-shadow-raised);}
+}
+.banner,.restcard{
+  border:1px solid var(--polish-edge);box-shadow:0 12px 30px -26px color-mix(in srgb,var(--label) 36%,transparent);
+}
+.foldhead{
+  border-color:var(--polish-edge)!important;
+  box-shadow:0 8px 24px -24px color-mix(in srgb,var(--label) 40%,transparent);
+}
+@media (hover:hover) and (pointer:fine){.foldhead:hover{border-color:var(--polish-edge-strong)!important;background:color-mix(in srgb,var(--glass) 84%,var(--fill));}}
+
+/* ---------- segmented / filtre kontrolleri ---------- */
+.seg,.segsel{
+  padding:3px;border:1px solid var(--polish-edge);box-shadow:inset 0 1px 0 color-mix(in srgb,var(--glass-edge) 55%,transparent);
+}
+.seg button,.segsel button,.topic-filter{
+  font-weight:650;letter-spacing:-.012em;
+}
+.seg button.on,.segsel button.on,.topic-filter.on{
+  box-shadow:0 7px 18px -14px color-mix(in srgb,var(--accent) 70%,transparent),inset 0 1px 0 color-mix(in srgb,#fff 55%,transparent);
+}
+.topic-filter-row{gap:7px;}
+.topic-filter{border-color:var(--polish-edge)!important;}
+@media (hover:hover) and (pointer:fine){
+  .seg button:hover,.segsel button:hover,.topic-filter:hover{transform:translateY(-1px);}
+}
+
+/* ---------- Bugün ---------- */
+.home-head{padding-top:8px;margin-bottom:14px;}
+.home-kicker{color:var(--label-2);line-height:1.5;margin-top:7px;max-width:46ch;}
+.sozbox{
+  border:1px solid var(--polish-edge);box-shadow:var(--polish-shadow);
+}
+.home-overview{gap:12px;}
+.hero{
+  border:1px solid var(--polish-edge);box-shadow:var(--polish-shadow-raised);overflow:hidden;
+}
+.hero::after{
+  content:"";position:absolute;inset:auto -20% -58% 30%;height:65%;pointer-events:none;
+  background:radial-gradient(circle,color-mix(in srgb,var(--accent) 14%,transparent),transparent 68%);
+}
+.hero .count{letter-spacing:-.055em;}
+.timeline{box-shadow:inset 0 1px 2px color-mix(in srgb,var(--label) 8%,transparent);overflow:hidden;}
+.timeline i{box-shadow:0 0 18px color-mix(in srgb,var(--accent) 32%,transparent);}
+.stats,.streaks{gap:9px;}
+.stat,.sk{
+  border:1px solid var(--polish-edge);box-shadow:0 12px 28px -28px color-mix(in srgb,var(--label) 42%,transparent);
+}
+.stat .v,.sk .sv{letter-spacing:-.035em;}
+.home-actions{gap:8px;}
+
+.today-hub{
+  border:1px solid var(--polish-edge)!important;
+  box-shadow:var(--polish-shadow-raised)!important;
+  overflow:hidden;
+}
+.today-hub-head{padding-bottom:13px;border-bottom:1px solid var(--polish-edge);}
+.today-hub-head h2{margin:3px 0 0;padding:0;}
+.today-hub-head h2::after{display:none;}
+.today-summary-grid{gap:9px;}
+.today-summary{
+  border:1px solid var(--polish-edge)!important;
+  box-shadow:0 10px 24px -24px color-mix(in srgb,var(--label) 38%,transparent);
+}
+.today-summary b{letter-spacing:-.035em;}
+.today-panel{
+  border-color:var(--polish-edge)!important;
+  background:color-mix(in srgb,var(--glass) 84%,transparent)!important;
+}
+.today-section-head{padding-bottom:7px;border-bottom:1px solid color-mix(in srgb,var(--polish-edge) 70%,transparent);}
+.today-section-head button{font-weight:650;}
+.today-moods button{border-color:var(--polish-edge)!important;min-height:40px;}
+.today-note-row{gap:8px;}
+
+.home-goals{
+  border:1px solid var(--polish-edge);box-shadow:var(--polish-shadow);
+}
+.goalmini{
+  border:1px solid var(--polish-edge)!important;
+  box-shadow:0 10px 26px -26px color-mix(in srgb,var(--label) 38%,transparent);
+}
+.goalmini .gv{letter-spacing:-.035em;}
+.gbar{box-shadow:inset 0 1px 2px color-mix(in srgb,var(--label) 8%,transparent);}
+.gbar i{box-shadow:0 0 14px color-mix(in srgb,var(--success) 24%,transparent);}
+
+/* ---------- Konular ---------- */
+.v26-topic-tools{position:relative;z-index:2;}
+.v26-topic-tools .row2{align-items:center;}
+#topicSearch{font-weight:570;}
+#subjectList{display:grid;gap:10px;}
+.v4-topic-goals{overflow:hidden;}
+.v26-topic-sheet{
+  border:1px solid var(--polish-edge)!important;
+  box-shadow:0 32px 90px -34px color-mix(in srgb,#000 62%,transparent)!important;
+}
+
+/* ---------- Deneme + Hata Defteri ---------- */
+.error-journal{scroll-margin-top:calc(var(--nav-h) + 14px);}
+.error-journal-head h2{margin-top:3px;}
+.error-journal-head h2::after{display:none;}
+.error-journal-form{box-shadow:var(--polish-shadow-raised);}
+.error-journal-form-actions{gap:12px;align-items:center;}
+.error-journal-review{padding:9px 10px;border-radius:12px;background:var(--polish-soft);}
+.error-journal-tools{gap:8px;}
+.error-journal-kpis{gap:9px;}
+
+.v315-dashboard>.card{box-shadow:var(--polish-shadow-raised);}
+.v315-dash-head{padding-bottom:14px;border-bottom:1px solid var(--polish-edge);}
+.v315-dash-title h2{margin:3px 0 0;padding:0;}
+.v315-dash-title h2::after{display:none;}
+.v315-filterbar{gap:10px;}
+.v315-kpis{gap:9px;}
+.v315-dash-grid{gap:11px;}
+.v315-dash-grid>.card{margin-bottom:0;background:color-mix(in srgb,var(--glass) 88%,transparent);}
+.v315-card-head{padding-bottom:8px;border-bottom:1px solid color-mix(in srgb,var(--polish-edge) 75%,transparent);}
+.v315-add-btn{box-shadow:0 12px 26px -19px color-mix(in srgb,var(--success) 70%,transparent);}
+
+/* ---------- Odak ---------- */
+.v29-session-setup{box-shadow:var(--polish-shadow);}
+.v29-setup-head{padding-bottom:11px;border-bottom:1px solid var(--polish-edge);}
+.focuscard{
+  border:1px solid var(--polish-edge)!important;
+  box-shadow:0 28px 76px -38px color-mix(in srgb,var(--accent) 48%,var(--label));
+}
+.phasepill{box-shadow:0 8px 20px -15px color-mix(in srgb,var(--accent) 70%,transparent);}
+.playbtn{box-shadow:0 16px 34px -22px color-mix(in srgb,var(--accent) 80%,transparent);}
+.ctlbtn,.qstep{border-color:var(--polish-edge)!important;}
+@media (hover:hover) and (pointer:fine){
+  .playbtn:hover{transform:translateY(-2px) scale(1.015);}
+  .ctlbtn:hover,.qstep:hover{transform:translateY(-1px);border-color:var(--polish-edge-strong)!important;}
+}
+.quickwrap,.askbox{border-color:var(--polish-edge)!important;}
+
+/* ---------- Akıllı analiz katmanı ---------- */
+.intel-card{border-radius:inherit;}
+.intel-head{padding-bottom:10px;border-bottom:1px solid var(--polish-edge);}
+.intel-head h3{font-size:19px;letter-spacing:-.022em;}
+.intel-metric,.intel-status{
+  border-color:var(--polish-edge);box-shadow:0 9px 22px -24px color-mix(in srgb,var(--label) 38%,transparent);
+}
+.intel-metric b,.intel-status b{letter-spacing:-.035em;}
+.intel-row{border-color:var(--polish-edge);border-radius:12px;padding-left:5px;padding-right:5px;}
+@media (hover:hover) and (pointer:fine){.intel-row:hover{background:color-mix(in srgb,var(--fill) 56%,transparent);}}
+.intel-badge{border:1px solid color-mix(in srgb,currentColor 14%,transparent);}
+.intel-note{border:1px solid var(--polish-edge);}
+.intel-hidden-toggle:hover{border-color:var(--polish-edge-strong);background:var(--polish-soft);}
+.intel-note-editor select,.intel-note-editor textarea{border-color:var(--polish-edge)!important;}
+
+/* ---------- Atlas 2.0 YKS kartları ---------- */
+.atlas-yks-card{box-shadow:0 10px 26px -24px rgba(24,42,66,.35);}
+.atlas-yks-chip{transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease;}
+@media (hover:hover) and (pointer:fine){.atlas-yks-chip:hover{transform:translateY(-1px);box-shadow:0 7px 16px -13px rgba(24,42,66,.55);}}
+
+/* ---------- yatay taşma / tablet ---------- */
+.scroller{scrollbar-width:thin;scrollbar-color:color-mix(in srgb,var(--label) 18%,transparent) transparent;overscroll-behavior-inline:contain;}
+.scroller::-webkit-scrollbar{height:8px}.scroller::-webkit-scrollbar-track{background:transparent}.scroller::-webkit-scrollbar-thumb{background:color-mix(in srgb,var(--label) 18%,transparent);border-radius:99px;}
+
+@media (min-width:760px){
+  .wrap{padding-top:18px;padding-left:22px;padding-right:22px;}
+  .home-head{padding-top:12px;}
+  .today-summary-grid,.home-goals-grid{gap:11px;}
+  .v315-dash-grid{gap:13px;}
+  .intel-grid{gap:11px;}
+}
+
+@media (max-width:620px){
+  h1{font-size:30px;}
+  h2{margin-top:27px;}
+  .card{padding-left:16px;padding-right:16px;}
+  .today-summary-grid{gap:7px;}
+  .today-summary{padding-left:10px;padding-right:10px;}
+  .v315-dash-head{gap:10px;}
+  .v315-add-btn{width:100%;}
+  .error-journal-form-actions{align-items:stretch;flex-direction:column;}
+  .error-journal-review{width:100%;}
+}
+
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto;}
+  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;scroll-behavior:auto!important;}
+  .screen.active{animation:none;}
+}
