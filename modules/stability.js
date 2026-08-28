@@ -119,3 +119,17 @@
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",start,{once:true});else start();
   window.YKSStability={persistRuntime,restoreRuntime,clearRuntime,updateOnlineBanner,loadPersonalUpgrades,loadProgressV2,loadLearningLabV2,loadLearningLabV3};
 })();
+
+(function(){
+  "use strict";
+  function loadMotivationQuotes(){
+    if(window.__YKS_MOTIVATION_QUOTES_READY__||document.querySelector('script[data-yks-motivation-quotes]'))return;
+    const s=document.createElement("script");
+    s.src="./modules/motivation-quotes-v1.js?v=4.1.0-r1";
+    s.async=false;
+    s.setAttribute("data-yks-motivation-quotes","1");
+    s.onerror=()=>{try{if(typeof infraError==="function")infraError("motivation-quotes-load",new Error("Motivasyon sözleri yüklenemedi"));}catch(e){}};
+    document.head.appendChild(s);
+  }
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",loadMotivationQuotes,{once:true});else loadMotivationQuotes();
+})();
