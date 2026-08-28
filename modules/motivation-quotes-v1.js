@@ -1,6 +1,7 @@
 (function(){
   "use strict";
   const READY_FLAG="__YKS_MOTIVATION_QUOTES_READY__";
+  const STYLE_HREF="./modules/motivation-quotes-v2.css?v=4.1.0-r1";
 
   const EXAM_QUOTES=[
     "Bugün çözdüğün her soru, sınav günündeki hızına yatırımdır.",
@@ -98,6 +99,14 @@
 
   let current={type:"exam",index:-1};
   const recentExam=[],recentCoach=[];
+
+  function ensureStyles(){
+    if(typeof document==="undefined"||!document.head||typeof document.createElement!=="function")return false;
+    if(typeof document.querySelector==="function"&&document.querySelector('link[data-yks-motivation-quotes-style]'))return true;
+    const link=document.createElement("link");
+    link.rel="stylesheet";link.href=STYLE_HREF;link.setAttribute("data-yks-motivation-quotes-style","1");
+    document.head.appendChild(link);return true;
+  }
   function rand(max){
     if(max<=1)return 0;
     try{if(typeof sozRand==="function")return sozRand(max);}catch(e){}
@@ -126,7 +135,8 @@
     if(typeof el!=="function"||typeof esc!=="function"||typeof S==="undefined"){
       setTimeout(boot,50);return;
     }
-    window[READY_FLAG]={version:"2.1.0",examPool:EXAM_QUOTES.length,coachPool:COACH_QUOTES.length,scope:"YKS+coaches"};
+    ensureStyles();
+    window[READY_FLAG]={version:"2.2.0",examPool:EXAM_QUOTES.length,coachPool:COACH_QUOTES.length,scope:"YKS+coaches",style:"v2"};
     gununSozu=function(){return item().q;};
     yeniSoz=function(){pick();renderSoz();return true;};
     renderSoz=function(){
@@ -134,12 +144,18 @@
       if(S.sozKapali){w.style.display="none";return true;}
       const x=item(),cat=x.type==="coach"?"Teknik Direktör":"YKS";
       w.style.display="flex";
-      w.innerHTML='<span class="szwrap"><span class="szlabel">Günün sözü <span class="szcat">'+cat+'</span></span><span class="sz">“'+esc(x.q)+'”</span>'+(x.a?'<span class="sza">— '+esc(x.a)+'</span>':'')+'</span><button class="szr" type="button" onclick="yeniSoz()" title="Başka bir motivasyon sözü" aria-label="Başka bir motivasyon sözü">↻</button>';
+      if(w.dataset)w.dataset.quoteType=x.type;
+      if(typeof w.setAttribute==="function"){
+        w.setAttribute("role","group");
+        w.setAttribute("aria-label",x.type==="coach"?"Teknik direktör motivasyon sözü":"YKS çalışma motivasyon sözü");
+      }
+      w.innerHTML='<span class="szwrap" aria-live="polite" aria-atomic="true"><span class="szlabel">Günün sözü <span class="szcat">'+cat+'</span></span><span class="sz">“'+esc(x.q)+'”</span>'+(x.a?'<span class="sza">— '+esc(x.a)+'</span>':'')+'</span><button class="szr" type="button" onclick="yeniSoz()" title="Başka bir motivasyon sözü" aria-label="Başka bir motivasyon sözü">↻</button>';
       return true;
     };
     pick();
     try{renderSoz();}catch(e){try{infraError("exam-coach-quotes-render",e);}catch(_){}}
   }
 
+  ensureStyles();
   boot();
 })();

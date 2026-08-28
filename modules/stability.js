@@ -125,7 +125,7 @@
   function loadMotivationQuotes(){
     if(window.__YKS_MOTIVATION_QUOTES_READY__||document.querySelector('script[data-yks-motivation-quotes]'))return;
     const s=document.createElement("script");
-    s.src="./modules/motivation-quotes-v1.js?v=4.1.0-r1";
+    s.src="./modules/motivation-quotes-v1.js?v=4.1.0-r2";
     s.async=false;
     s.setAttribute("data-yks-motivation-quotes","1");
     s.onerror=()=>{try{if(typeof infraError==="function")infraError("motivation-quotes-load",new Error("Motivasyon sözleri yüklenemedi"));}catch(e){}};

@@ -1,0 +1,73 @@
+/* YKS Defterim — Günün Sözü v2 cilası */
+.sozbox[data-quote-type]{
+  --quote-accent:var(--accent);
+  --quote-soft:color-mix(in srgb,var(--quote-accent) 9%,var(--glass-strong));
+  border-color:color-mix(in srgb,var(--quote-accent) 22%,var(--glass-line));
+  border-left-color:var(--quote-accent);
+  background:
+    radial-gradient(circle at 92% 12%,color-mix(in srgb,var(--quote-accent) 10%,transparent),transparent 30%),
+    linear-gradient(135deg,var(--quote-soft),color-mix(in srgb,var(--glass) 97%,transparent));
+  box-shadow:0 18px 48px -34px color-mix(in srgb,var(--quote-accent) 42%,transparent);
+}
+.sozbox[data-quote-type="coach"]{--quote-accent:var(--success);}
+.sozbox[data-quote-type]::before{color:color-mix(in srgb,var(--quote-accent) 9%,transparent);}
+.sozbox[data-quote-type] .szlabel{color:var(--quote-accent);}
+.sozbox[data-quote-type] .szcat{
+  border:.5px solid color-mix(in srgb,var(--quote-accent) 20%,var(--glass-line));
+  background:color-mix(in srgb,var(--quote-accent) 8%,var(--fill));
+  color:color-mix(in srgb,var(--quote-accent) 78%,var(--label));
+  font-weight:750;
+}
+.sozbox[data-quote-type="coach"] .sza{
+  width:max-content;
+  max-width:100%;
+  padding:5px 9px;
+  border-radius:999px;
+  background:color-mix(in srgb,var(--quote-accent) 7%,var(--fill));
+  color:color-mix(in srgb,var(--quote-accent) 68%,var(--label));
+}
+.sozbox[data-quote-type] .szr{
+  border-color:color-mix(in srgb,var(--quote-accent) 16%,var(--glass-line));
+  background:color-mix(in srgb,var(--quote-accent) 6%,var(--fill));
+}
+.sozbox[data-quote-type] .szr:focus-visible{
+  outline:3px solid color-mix(in srgb,var(--quote-accent) 34%,transparent);
+  outline-offset:3px;
+  color:var(--quote-accent);
+}
+.sozbox[data-quote-type] .szr:active{transform:scale(.94);}
+
+@media (hover:hover) and (pointer:fine){
+  .sozbox[data-quote-type] .szr:hover{
+    background:color-mix(in srgb,var(--quote-accent) 10%,var(--fill-2));
+    color:var(--quote-accent);
+  }
+}
+
+@media (min-width:760px) and (max-width:1099px){
+  .sozbox[data-quote-type]{padding:21px 22px;gap:15px;}
+  .sozbox[data-quote-type] .sz{font-size:clamp(20px,2.6vw,27px);}
+}
+
+@media (max-width:759px){
+  .sozbox[data-quote-type]{
+    align-items:flex-start;
+    gap:10px;
+    margin-bottom:14px;
+    padding:17px 14px 17px 17px;
+    border-radius:18px;
+    border-left-width:3px;
+  }
+  .sozbox[data-quote-type]::before{right:48px;top:-17px;font-size:96px;}
+  .sozbox[data-quote-type] .szwrap{gap:7px;}
+  .sozbox[data-quote-type] .szlabel{gap:6px;font-size:9.5px;letter-spacing:.065em;}
+  .sozbox[data-quote-type] .szcat{font-size:9px;padding:3px 6px;}
+  .sozbox[data-quote-type] .sz{font-size:clamp(18px,5.1vw,22px);line-height:1.3;letter-spacing:-.028em;}
+  .sozbox[data-quote-type] .sza{font-size:11.5px;}
+  .sozbox[data-quote-type] .szr{width:40px;height:40px;border-radius:12px;font-size:17px;}
+}
+
+@media (prefers-reduced-motion:reduce){
+  .sozbox[data-quote-type] .szr{transition:none!important;}
+  .sozbox[data-quote-type] .szr:hover,.sozbox[data-quote-type] .szr:active{transform:none!important;}
+}
