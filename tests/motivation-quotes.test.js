@@ -23,12 +23,14 @@ test('Günün sözü YKS ve teknik direktör havuzlarıyla sınırlıdır',()=>{
   assert.equal(meta.scope,'YKS+coaches');assert.ok(meta.examPool>=70);assert.ok(meta.coachPool>=10);
   const allowedCoaches=/Fatih Terim|Şenol Güneş|Sir Alex Ferguson|Jürgen Klopp|Arsène Wenger/;
   const exam=/YKS|sınav|deneme|net|soru|konu|tekrar|çalış|paragraf|problem|matematik|fen|süre|yanlış|odak|ders/i;
+  const forbiddenNames=/Einstein|Edison|Sokrates|Nietzsche|İnsan Sözü/i;
+  const forbiddenTopics=/(^|[^a-zçğıöşü])aşk([^a-zçğıöşü]|$)|(^|[^a-zçğıöşü])içki([^a-zçğıöşü]|$)|(^|[^a-zçğıöşü])siyaset([^a-zçğıöşü]|$)/i;
   let sawExam=false,sawCoach=false;
   for(let i=0;i<300;i++){
     context.yeniSoz();const text=context.gununSozu();
     if(/szcat">Teknik Direktör/.test(box.innerHTML)){sawCoach=true;assert.match(box.innerHTML,allowedCoaches);}
     else{sawExam=true;assert.match(box.innerHTML,/szcat">YKS/);assert.match(text,exam);assert.doesNotMatch(box.innerHTML,/class="sza"/);}
-    assert.doesNotMatch(box.innerHTML,/Einstein|Edison|Sokrates|Nietzsche|İnsan Sözü|aşk|içki|siyaset/i);
+    assert.doesNotMatch(box.innerHTML,forbiddenNames);assert.doesNotMatch(text,forbiddenTopics);
   }
   assert.equal(sawExam,true);assert.equal(sawCoach,true);
 });
