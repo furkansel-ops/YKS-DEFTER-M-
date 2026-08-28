@@ -23,7 +23,16 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Apply ordered upgrades
-        run: python3 scripts/upgrade-study-suite.py
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('scripts/upgrade-study-suite.py')
+          s=p.read_text(encoding='utf-8')
+          s=s.replace("anchor = '  <script vite-ignore src=\"./modules/release-selftest.js?v=4.1.0-r20\"></script>'", "anchor = '<script vite-ignore src=\"./modules/release-selftest.js?v=4.1.0-r20\"></script>'")
+          p.write_text(s,encoding='utf-8')
+          PY
+          python3 scripts/upgrade-study-suite.py
       - name: Verify all stages
         run: npm run release:check
       - name: Verify intelligence stays read-only
