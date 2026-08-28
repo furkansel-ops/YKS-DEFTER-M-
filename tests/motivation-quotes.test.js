@@ -5,46 +5,37 @@ const path=require('node:path');
 const vm=require('node:vm');
 const root=path.resolve(__dirname,'..');
 
-test('Günün sözü yalnız motivasyon havuzundan seçim yapar',()=>{
+function runWithRandom(random){
   const source=fs.readFileSync(path.join(root,'modules/motivation-quotes-v1.js'),'utf8');
   const box={style:{},innerHTML:''};
   const context={
-    window:{},
-    SOZLER:[
-      {q:'Çok çalışmanın yerini hiçbir şey tutamaz.',a:'Thomas Edison',c:'Bilim'},
-      {q:'Aşk ve evlilik üzerine rastgele bir söz.',a:'Test Kişisi',c:'Düşünce'},
-      {q:'Çok çalış ama bu eski rastgele havuzdan.',a:'Rastgele Yazar',c:'İnsan Sözü'}
-    ],
-    sozRand:()=>0,
-    sozRecentAuthors:[],
-    sozCurrentIndex:-1,
-    sozAuthorKey:x=>String((x&&x.a)||'').toLocaleLowerCase('tr-TR'),
-    sozRememberIndex(){},
-    sozRandomIndex(){return -1;},sozSetRandom(){return -1;},sozIndex(){return -1;},
-    gununSozu(){return '';},yeniSoz(){return false;},aktifSozIndex(){return -1;},renderSoz(){return false;},
-    el:id=>id==='sozBox'?box:null,
-    S:{sozKapali:false},
-    esc:x=>String(x),
-    infraError(){},
-    setTimeout(fn){fn();return 1;},
-    console
+    window:{},S:{sozKapali:false},el:id=>id==='sozBox'?box:null,esc:x=>String(x),
+    sozRand:random,gununSozu(){return '';},yeniSoz(){return false;},renderSoz(){return false;},
+    infraError(){},setTimeout(fn){fn();return 1;},Math,console
   };
-  context.window.window=context.window;
-  vm.createContext(context);
-  vm.runInContext(source,context,{filename:'motivation-quotes-v1.js'});
-  assert.equal(context.window.__YKS_MOTIVATION_QUOTES_READY__.poolSize,1);
-  assert.equal(context.sozCurrentIndex,0);
-  assert.equal(context.gununSozu(),'Çok çalışmanın yerini hiçbir şey tutamaz.');
-  assert.match(box.innerHTML,/Motivasyon/);
-  assert.doesNotMatch(box.innerHTML,/Aşk|İnsan Sözü/);
+  vm.createContext(context);vm.runInContext(source,context,{filename:'motivation-quotes-v1.js'});
+  return {context,box,source};
+}
+
+test('Günün sözü YKS ve teknik direktör havuzlarıyla sınırlıdır',()=>{
+  let n=0;const {context,box}=runWithRandom(max=>(n++*37)%max);
+  const meta=context.window.__YKS_MOTIVATION_QUOTES_READY__;
+  assert.equal(meta.scope,'YKS+coaches');assert.ok(meta.examPool>=70);assert.ok(meta.coachPool>=10);
+  const allowedCoaches=/Fatih Terim|Şenol Güneş|Sir Alex Ferguson|Jürgen Klopp|Arsène Wenger/;
+  const exam=/YKS|sınav|deneme|net|soru|konu|tekrar|çalış|paragraf|problem|matematik|fen|süre|yanlış|odak|ders/i;
+  let sawExam=false,sawCoach=false;
+  for(let i=0;i<300;i++){
+    context.yeniSoz();const text=context.gununSozu();
+    if(/szcat">Teknik Direktör/.test(box.innerHTML)){sawCoach=true;assert.match(box.innerHTML,allowedCoaches);}
+    else{sawExam=true;assert.match(box.innerHTML,/szcat">YKS/);assert.match(text,exam);assert.doesNotMatch(box.innerHTML,/class="sza"/);}
+    assert.doesNotMatch(box.innerHTML,/Einstein|Edison|Sokrates|Nietzsche|İnsan Sözü|aşk|içki|siyaset/i);
+  }
+  assert.equal(sawExam,true);assert.equal(sawCoach,true);
 });
 
-test('motivasyon filtresi alakasız konu kümelerini açıkça dışlar',()=>{
+test('teknik direktör havuzu sadece seçilmiş teknik direktörleri içerir',()=>{
   const source=fs.readFileSync(path.join(root,'modules/motivation-quotes-v1.js'),'utf8');
-  assert.match(source,/preferredCategories/);
-  assert.match(source,/İnsan Sözü|preferredCategories\.has\(category\)/);
-  assert.match(source,/aşk\|evlilik/);
-  assert.match(source,/içki\|alkol/);
-  assert.match(source,/siyaset\|hükümet/);
-  assert.match(source,/Motivasyon/);
+  assert.match(source,/const COACH_QUOTES=/);assert.match(source,/Fatih Terim/);assert.match(source,/Şenol Güneş/);
+  assert.match(source,/Sir Alex Ferguson/);assert.match(source,/Jürgen Klopp/);assert.match(source,/Arsène Wenger/);
+  assert.doesNotMatch(source,/Thomas Edison|Albert Einstein|Marcus Aurelius|İnsan Sözü/);
 });
