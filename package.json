@@ -12,7 +12,7 @@
     "typecheck": "tsc --noEmit",
     "infra:check": "node scripts/verify-infrastructure.mjs",
     "build:assets": "node scripts/prepare-anatomy-assets.mjs && vite build && node scripts/copy-legacy-assets.mjs && node scripts/verify-dist.mjs",
-    "build": "npm run typecheck && npm run build:assets",
+    "build": "npm run typecheck && node scripts/prepare-anatomy-assets.mjs && vite build && node scripts/copy-legacy-assets.mjs && node scripts/verify-dist.mjs",
     "preview": "vite preview --host 0.0.0.0",
     "test": "node --test tests/*.test.js",
     "check": "npm run infra:check && npm run typecheck && npm test && npm run build:assets",
