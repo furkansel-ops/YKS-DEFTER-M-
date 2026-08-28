@@ -76,6 +76,8 @@ jobs:
           replace('tests/biology-atlas.test.js','10 organın 60 yapısı benzersiz, konumlu ve ayrıntılıdır; beyin sınıflaması açık ayrılır','9 organın 52 yapısı benzersiz, konumlu ve ayrıntılıdır; beyin sınıflaması açık ayrılır')
           replace('tests/biology-atlas.test.js','assert.equal(total,60);','assert.equal(total,52);')
           replace('tests/biology-atlas.test.js','["heart","brain","ear"].includes(id)','["heart","brain"].includes(id)')
+          replace('tests/biology-atlas.test.js','On organın 60 yapısı 3B seçime bağlanır; seçim başına model yükleyicisi yeniden çağrılmaz','Dokuz organın 52 yapısı 3B seçime bağlanır; seçim başına model yükleyicisi yeniden çağrılmaz')
+          replace('tests/biology-atlas.test.js','assert.equal(downloads,10);h.click("organ-view","model");assert.equal(downloads,10);h.click("organ-view","anatomy");assert.equal(disposed,10);','assert.equal(downloads,9);h.click("organ-view","model");assert.equal(downloads,9);h.click("organ-view","anatomy");assert.equal(disposed,9);')
 
           # Release notes reflect the smaller atlas and no custom ear asset.
           replace('RELEASE.md','- 10 organ üzerinde dönen kameraya bağlı toplam 60 YKS işareti; içeride 60 seçilebilir, hacimli öğretici 3B yapı.','- 9 organ üzerinde dönen kameraya bağlı toplam 52 YKS işareti; içeride 52 seçilebilir, hacimli öğretici 3B yapı.')
