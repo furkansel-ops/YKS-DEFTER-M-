@@ -1,0 +1,436 @@
+/* YKS Defterim · Hata Defteri premium cila v1
+   Hata kayıt/tekrar mantığını değiştirmeden taranabilirlik,
+   tekrar eden hata vurgusu, tablet/PC dengesi ve mobil erişilebilirliği güçlendirir. */
+
+#errorJournal{
+  --ej-max:980px;
+  --ej-line:color-mix(in srgb,var(--label) 8%,transparent);
+  --ej-shadow:0 2px 8px rgba(10,14,30,.04),0 26px 68px -46px color-mix(in srgb,var(--label) 52%,transparent);
+  width:min(100%,var(--ej-max));
+  margin:0 auto 30px;
+}
+
+/* Başlık */
+#errorJournal .error-journal-head{
+  position:relative;
+  overflow:hidden;
+  margin-bottom:12px;
+  padding:18px 18px 17px;
+  border:1px solid var(--ej-line);
+  border-radius:22px;
+  background:
+    radial-gradient(circle at 94% 6%,color-mix(in srgb,var(--danger) 10%,transparent),transparent 34%),
+    linear-gradient(145deg,color-mix(in srgb,var(--glass) 98%,transparent),color-mix(in srgb,var(--fill) 90%,transparent));
+  box-shadow:var(--ej-shadow);
+}
+#errorJournal .error-journal-head::after{
+  content:"";
+  position:absolute;
+  width:150px;
+  height:150px;
+  right:-75px;
+  bottom:-96px;
+  border-radius:50%;
+  pointer-events:none;
+  background:radial-gradient(circle,color-mix(in srgb,var(--time) 13%,transparent),transparent 68%);
+}
+#errorJournal .error-journal-head>div{position:relative;z-index:1;min-width:0;}
+#errorJournal .error-journal-head .eyebrow{
+  margin-bottom:4px;
+  color:var(--danger);
+  font-size:10px;
+  font-weight:850;
+  letter-spacing:.075em;
+}
+#errorJournal .error-journal-head h2{
+  margin:0;
+  padding:0;
+  font-size:clamp(26px,3vw,34px);
+  font-weight:780;
+  letter-spacing:-.045em;
+}
+#errorJournal .error-journal-head .hint{
+  max-width:720px;
+  margin:7px 0 0;
+  color:var(--label-2);
+  font-size:12.5px;
+  line-height:1.5;
+}
+
+/* Yeni hata formu */
+#errorJournal .error-journal-form{
+  padding:18px;
+  border:1px solid var(--ej-line);
+  border-radius:22px;
+  box-shadow:0 14px 38px -34px color-mix(in srgb,var(--label) 50%,transparent);
+}
+#errorJournal .error-journal-form .row2{gap:10px;}
+#errorJournal .error-journal-form label{
+  margin-top:12px;
+  font-size:10.5px;
+  font-weight:780;
+  color:var(--label-2);
+  letter-spacing:.015em;
+}
+#errorJournal .error-journal-form .row2 label{margin-top:0;}
+#errorJournal .error-journal-form input[type="text"],
+#errorJournal .error-journal-form select,
+#errorJournal .error-journal-form textarea{
+  min-height:46px;
+  margin-top:6px;
+  border-radius:14px;
+  border-color:color-mix(in srgb,var(--label) 10%,transparent);
+  background:color-mix(in srgb,var(--glass-strong) 92%,var(--fill));
+  font-size:13px;
+  transition:border-color .18s ease,box-shadow .18s ease,background .18s ease;
+}
+#errorJournal .error-journal-form textarea{
+  min-height:94px;
+  line-height:1.5;
+}
+#errorJournal .error-journal-form input:focus,
+#errorJournal .error-journal-form select:focus,
+#errorJournal .error-journal-form textarea:focus{
+  border-color:color-mix(in srgb,var(--accent) 48%,transparent);
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 11%,transparent);
+  background:var(--glass-strong);
+}
+#errorJournal .error-journal-form-actions{
+  min-height:52px;
+  margin-top:14px;
+  padding:9px 10px 9px 12px;
+  border:1px solid var(--ej-line);
+  border-radius:15px;
+  background:color-mix(in srgb,var(--fill) 82%,transparent);
+}
+#errorJournal .error-journal-review{
+  min-width:0;
+  margin:0;
+  color:var(--label-2);
+  font-size:12px;
+  font-weight:670;
+  cursor:pointer;
+}
+#errorJournal .error-journal-review input{
+  width:18px;
+  height:18px;
+  margin:0;
+  accent-color:var(--accent);
+}
+#errorJournal .error-journal-form-actions .btn{
+  min-height:40px;
+  border-radius:12px;
+  padding-inline:16px;
+  font-weight:800;
+}
+
+/* Hata özeti KPI alanı */
+#errorJournal .error-journal-kpis{
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:9px;
+  margin:13px 0;
+}
+#errorJournal .error-journal-kpi{
+  position:relative;
+  overflow:hidden;
+  min-height:88px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  padding:13px 12px;
+  border:1px solid var(--ej-line);
+  border-radius:17px;
+  background:linear-gradient(145deg,color-mix(in srgb,var(--glass) 96%,transparent),color-mix(in srgb,var(--fill) 92%,transparent));
+  box-shadow:0 12px 28px -27px color-mix(in srgb,var(--label) 50%,transparent);
+  text-align:left;
+}
+#errorJournal .error-journal-kpi::after{
+  content:"";
+  position:absolute;
+  right:-24px;
+  bottom:-32px;
+  width:84px;
+  height:84px;
+  border-radius:50%;
+  pointer-events:none;
+  background:radial-gradient(circle,color-mix(in srgb,var(--danger) 8%,transparent),transparent 69%);
+}
+#errorJournal .error-journal-kpi b,
+#errorJournal .error-journal-kpi span{position:relative;z-index:1;}
+#errorJournal .error-journal-kpi b{
+  font-size:clamp(19px,2vw,24px);
+  line-height:1.12;
+  letter-spacing:-.035em;
+  overflow-wrap:anywhere;
+}
+#errorJournal .error-journal-kpi span{
+  display:block;
+  margin-top:5px;
+  font-size:10.5px;
+  line-height:1.35;
+  color:var(--label-3);
+}
+#errorJournal .error-journal-kpi-wide{
+  grid-column:1/-1;
+  min-height:74px;
+  border-color:color-mix(in srgb,var(--danger) 18%,var(--ej-line));
+  background:linear-gradient(135deg,color-mix(in srgb,var(--danger) 7%,var(--glass)),color-mix(in srgb,var(--time) 5%,var(--fill)));
+}
+#errorJournal .error-journal-kpi-wide b{font-size:15px;letter-spacing:-.02em;}
+#errorJournal .error-journal-kpi-wide span{color:var(--danger);font-weight:700;}
+
+/* Arama + filtre */
+#errorJournal .error-journal-tools{
+  grid-template-columns:minmax(0,1.55fr) minmax(190px,.75fr);
+  gap:9px;
+  padding:10px;
+  border:1px solid var(--ej-line);
+  border-radius:18px;
+  background:color-mix(in srgb,var(--glass) 92%,var(--fill));
+  box-shadow:0 10px 28px -28px color-mix(in srgb,var(--label) 48%,transparent);
+}
+#errorJournal .error-journal-tools input,
+#errorJournal .error-journal-tools select{
+  min-height:44px;
+  margin:0;
+  border-radius:13px;
+  background:color-mix(in srgb,var(--glass-strong) 94%,var(--fill));
+  font-size:12.5px;
+}
+#errorJournal .error-journal-tools input:focus,
+#errorJournal .error-journal-tools select:focus{
+  border-color:color-mix(in srgb,var(--accent) 44%,transparent);
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 10%,transparent);
+}
+
+/* Kayıt listesi */
+#errorJournal .error-journal-list{gap:9px;}
+#errorJournal .error-journal-item{
+  position:relative;
+  overflow:hidden;
+  padding:15px 16px 14px;
+  border:1px solid var(--ej-line);
+  border-radius:19px;
+  background:linear-gradient(145deg,color-mix(in srgb,var(--glass) 98%,transparent),color-mix(in srgb,var(--fill) 91%,transparent));
+  box-shadow:0 13px 34px -31px color-mix(in srgb,var(--label) 48%,transparent);
+  transition:transform .16s ease,border-color .2s ease,box-shadow .2s ease,opacity .2s ease;
+}
+#errorJournal .error-journal-item::after{
+  content:"";
+  position:absolute;
+  left:0;
+  top:14px;
+  bottom:14px;
+  width:3px;
+  border-radius:0 99px 99px 0;
+  background:color-mix(in srgb,var(--danger) 72%,var(--time));
+  opacity:.82;
+}
+@media (hover:hover){
+  #errorJournal .error-journal-item:hover{
+    transform:translateY(-1px);
+    border-color:color-mix(in srgb,var(--accent) 14%,var(--ej-line));
+    box-shadow:0 17px 38px -31px color-mix(in srgb,var(--label) 54%,transparent);
+  }
+}
+#errorJournal .error-journal-item.is-resolved{
+  opacity:.58;
+  border-color:color-mix(in srgb,var(--success) 13%,var(--ej-line));
+}
+#errorJournal .error-journal-item.is-resolved::after{background:var(--success);}
+#errorJournal .error-journal-item.is-resolved:hover{opacity:.82;}
+#errorJournal .error-journal-item.is-highlighted{
+  opacity:1;
+  border-color:color-mix(in srgb,var(--accent) 58%,transparent);
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 12%,transparent),0 20px 50px -34px color-mix(in srgb,var(--accent) 55%,transparent);
+}
+#errorJournal .error-journal-item-head{gap:14px;}
+#errorJournal .error-journal-item-head>div{min-width:0;}
+#errorJournal .error-journal-item-head>.btn{
+  flex:none;
+  min-height:34px;
+  padding:0 11px;
+  border-radius:11px;
+  font-size:10.5px;
+  font-weight:780;
+}
+#errorJournal .error-journal-item h3{
+  margin:7px 0 0;
+  font-size:15px;
+  line-height:1.32;
+  font-weight:780;
+  letter-spacing:-.024em;
+  overflow-wrap:anywhere;
+}
+#errorJournal .error-journal-item p{
+  margin:10px 0 0;
+  padding:10px 11px;
+  border-radius:12px;
+  background:color-mix(in srgb,var(--fill) 86%,transparent);
+  color:var(--label-2);
+  font-size:12px;
+  line-height:1.52;
+  overflow-wrap:anywhere;
+}
+
+/* Hata türü + tekrar sayısı */
+#errorJournal .error-journal-type,
+#errorJournal .error-journal-repeat{
+  display:inline-flex;
+  align-items:center;
+  min-height:23px;
+  padding:4px 7px;
+  border-radius:8px;
+  font-size:9.5px;
+  line-height:1;
+  font-weight:850;
+  letter-spacing:.015em;
+}
+#errorJournal .error-journal-type{
+  color:var(--accent);
+  border:1px solid color-mix(in srgb,var(--accent) 16%,transparent);
+  background:var(--accent-soft);
+}
+#errorJournal .error-journal-repeat{
+  margin-left:5px;
+  color:var(--danger);
+  border:1px solid color-mix(in srgb,var(--danger) 20%,transparent);
+  background:var(--danger-soft);
+}
+
+/* Meta satırı: tarih/kaynak/tekrar chip, sonra aksiyonlar */
+#errorJournal .error-journal-meta{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  flex-wrap:wrap;
+  margin-top:11px;
+  color:var(--label-3);
+  font-size:10px;
+}
+#errorJournal .error-journal-meta>span{
+  display:inline-flex;
+  align-items:center;
+  min-height:24px;
+  padding:4px 7px;
+  border:1px solid var(--ej-line);
+  border-radius:8px;
+  background:color-mix(in srgb,var(--fill) 78%,transparent);
+}
+#errorJournal .error-journal-meta button{
+  min-height:30px;
+  margin-left:0;
+  padding:0 9px;
+  border:1px solid var(--ej-line);
+  border-radius:9px;
+  background:color-mix(in srgb,var(--fill) 76%,transparent);
+  color:var(--label-2);
+  font:750 10px/1 var(--font);
+  cursor:pointer;
+  transition:transform .14s ease,background .18s ease,color .18s ease,border-color .18s ease;
+}
+#errorJournal .error-journal-meta .ej-topic-link{
+  margin-left:auto;
+  color:var(--accent);
+  border-color:color-mix(in srgb,var(--accent) 16%,var(--ej-line));
+  background:var(--accent-soft);
+}
+#errorJournal .error-journal-meta button:last-child{
+  color:var(--danger);
+  border-color:color-mix(in srgb,var(--danger) 14%,var(--ej-line));
+  background:color-mix(in srgb,var(--danger) 5%,transparent);
+}
+#errorJournal .error-journal-meta button:active{transform:scale(.96);}
+
+/* Boş durum */
+#errorJournal .error-journal-list>.empty{
+  margin:0;
+  min-height:120px;
+  display:grid;
+  place-items:center;
+  border:1px dashed color-mix(in srgb,var(--label) 14%,transparent);
+  background:color-mix(in srgb,var(--glass) 76%,transparent);
+}
+
+/* Tekrar entegrasyonu */
+.error-journal-review-group{
+  margin-top:8px;
+  padding-top:12px;
+}
+.error-journal-review-group>small{
+  display:inline-flex;
+  align-items:center;
+  min-height:23px;
+  padding:4px 7px;
+  border-radius:8px;
+  background:var(--danger-soft);
+  color:var(--danger)!important;
+}
+.error-journal-today-reviews{display:grid;gap:6px;margin-top:7px;}
+
+/* Klavye erişilebilirliği */
+#errorJournal button:focus-visible,
+#errorJournal input:focus-visible,
+#errorJournal select:focus-visible,
+#errorJournal textarea:focus-visible{
+  outline:3px solid color-mix(in srgb,var(--accent) 28%,transparent);
+  outline-offset:2px;
+}
+
+/* PC: uzun hata listesinde iki sütun, başlık/form/filtre tek akışta kalır. */
+@media (min-width:980px){
+  #errorJournal .error-journal-list{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    align-items:start;
+  }
+  #errorJournal .error-journal-list>.empty{grid-column:1/-1;}
+  #errorJournal .error-journal-item{height:100%;}
+}
+
+/* Tablet */
+@media (min-width:760px) and (max-width:979px){
+  #errorJournal{--ej-max:920px;}
+  #errorJournal .error-journal-kpis{grid-template-columns:repeat(4,minmax(0,1fr));}
+}
+
+/* Mobil */
+@media (max-width:759px){
+  #errorJournal{margin-bottom:22px;}
+  #errorJournal .error-journal-head{padding:15px;border-radius:19px;}
+  #errorJournal .error-journal-head h2{font-size:27px;}
+  #errorJournal .error-journal-form{padding:14px;border-radius:18px;}
+  #errorJournal .error-journal-form .row2{grid-template-columns:1fr;}
+  #errorJournal .error-journal-form-actions{
+    align-items:stretch;
+    flex-direction:column;
+    padding:10px;
+  }
+  #errorJournal .error-journal-review{min-height:34px;}
+  #errorJournal .error-journal-form-actions .btn{width:100%;min-height:44px;}
+  #errorJournal .error-journal-kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;}
+  #errorJournal .error-journal-kpi{min-height:80px;padding:11px;}
+  #errorJournal .error-journal-kpi-wide{grid-column:1/-1;}
+  #errorJournal .error-journal-tools{grid-template-columns:1fr;padding:8px;}
+  #errorJournal .error-journal-item{padding:14px 13px 13px;border-radius:17px;}
+  #errorJournal .error-journal-item-head{align-items:flex-start;}
+  #errorJournal .error-journal-item-head>.btn{min-height:36px;}
+  #errorJournal .error-journal-meta .ej-topic-link{margin-left:0;}
+  #errorJournal .error-journal-meta button{min-height:34px;}
+}
+
+/* Dokunmatik */
+@media (pointer:coarse){
+  #errorJournal .error-journal-item-head>.btn,
+  #errorJournal .error-journal-meta button{min-height:44px;}
+  #errorJournal .error-journal-review{min-height:44px;}
+  #errorJournal .error-journal-tools input,
+  #errorJournal .error-journal-tools select{min-height:48px;}
+}
+
+@media (prefers-reduced-motion:reduce){
+  #errorJournal *,#errorJournal *::before,#errorJournal *::after{
+    animation:none!important;
+    transition:none!important;
+    scroll-behavior:auto!important;
+  }
+}
