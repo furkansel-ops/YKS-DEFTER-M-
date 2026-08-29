@@ -1,0 +1,481 @@
+/* YKS Defterim · İlerleme ekranı premium cila v1
+   İlerleme hesaplarını değiştirmeden görsel hiyerarşi, taranabilirlik,
+   tablet/PC dengesi ve mobil erişilebilirliği güçlendirir. */
+
+#progress{
+  --pr-max:1120px;
+  --pr-line:color-mix(in srgb,var(--label) 8%,transparent);
+  --pr-soft:color-mix(in srgb,var(--fill) 84%,transparent);
+  --pr-shadow:0 2px 8px rgba(10,14,30,.04),0 28px 70px -48px color-mix(in srgb,var(--label) 52%,transparent);
+}
+
+.wrap:has(#progress.active){
+  max-width:1240px;
+  padding-left:clamp(18px,2.2vw,34px);
+  padding-right:clamp(18px,2.2vw,34px);
+}
+
+#progress>.progress-head,
+#progress>.progress-stats,
+#progress>#personalProgressV2,
+#progress>#v28Score,
+#progress>.desktop-progress-grid,
+#progress>.seg{
+  width:min(100%,var(--pr-max));
+  margin-left:auto;
+  margin-right:auto;
+}
+
+/* Üst başlık: ekranın amacını tek bakışta anlatır. */
+#progress .progress-head{
+  position:relative;
+  overflow:hidden;
+  padding:18px 19px 17px;
+  margin-bottom:12px;
+  border:1px solid var(--pr-line);
+  border-radius:24px;
+  background:
+    radial-gradient(circle at 94% 2%,color-mix(in srgb,var(--success) 12%,transparent),transparent 35%),
+    radial-gradient(circle at 72% 120%,color-mix(in srgb,var(--accent) 9%,transparent),transparent 35%),
+    linear-gradient(145deg,color-mix(in srgb,var(--glass) 98%,transparent),color-mix(in srgb,var(--fill) 91%,transparent));
+  box-shadow:var(--pr-shadow);
+}
+#progress .progress-head>div{position:relative;z-index:1;min-width:0;}
+#progress .progress-head h1{
+  margin:0 0 5px;
+  font-size:clamp(28px,3.4vw,38px);
+  font-weight:790;
+  letter-spacing:-.048em;
+}
+#progress .progress-head .lead{
+  max-width:760px;
+  margin:0;
+  color:var(--label-2);
+  font-size:13px;
+  line-height:1.5;
+}
+
+/* 7 / 30 / 90 gün seçimi */
+#progress>.seg{
+  min-height:46px;
+  padding:4px;
+  margin-bottom:12px;
+  border:1px solid var(--pr-line);
+  border-radius:16px;
+  background:color-mix(in srgb,var(--glass) 86%,var(--fill));
+  box-shadow:0 10px 30px -28px color-mix(in srgb,var(--label) 48%,transparent);
+}
+#progress>.seg button{
+  min-height:36px;
+  border-radius:12px;
+  font-size:11.5px;
+  font-weight:780;
+}
+#progress>.seg button.on{
+  background:color-mix(in srgb,var(--accent) 90%,var(--glass));
+  box-shadow:0 8px 18px -14px color-mix(in srgb,var(--accent) 58%,transparent);
+}
+
+/* Ana üç metrik */
+#progress .progress-stats{
+  gap:10px;
+  margin-top:0;
+  margin-bottom:13px;
+}
+#progress .progress-stats .stat{
+  position:relative;
+  overflow:hidden;
+  min-height:96px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:flex-start;
+  padding:14px 15px;
+  border:1px solid var(--pr-line);
+  border-radius:18px;
+  background:linear-gradient(145deg,color-mix(in srgb,var(--glass) 97%,transparent),color-mix(in srgb,var(--fill) 90%,transparent));
+  box-shadow:0 14px 34px -31px color-mix(in srgb,var(--label) 50%,transparent);
+  text-align:left;
+}
+#progress .progress-stats .stat::after{
+  content:"";
+  position:absolute;
+  right:-23px;
+  bottom:-31px;
+  width:84px;
+  height:84px;
+  border-radius:50%;
+  background:radial-gradient(circle,color-mix(in srgb,var(--success) 11%,transparent),transparent 68%);
+  pointer-events:none;
+}
+#progress .progress-stats .stat .v{
+  position:relative;
+  z-index:1;
+  font-size:clamp(22px,2.4vw,29px);
+  font-weight:810;
+  letter-spacing:-.045em;
+}
+#progress .progress-stats .stat .t{
+  position:relative;
+  z-index:1;
+  margin-top:4px;
+  color:var(--label-3);
+  font-size:10.5px;
+  font-weight:700;
+}
+
+/* İlerleme skoru: ekranın ana karar kartı. */
+#progress #v28Score,
+#progress .v28-score-card{
+  position:relative;
+  overflow:hidden;
+  padding:18px;
+  margin-bottom:14px;
+  border:1px solid color-mix(in srgb,var(--success) 17%,var(--pr-line));
+  border-radius:24px;
+  background:
+    radial-gradient(circle at 8% 5%,color-mix(in srgb,var(--success) 10%,transparent),transparent 34%),
+    linear-gradient(145deg,color-mix(in srgb,var(--glass) 98%,transparent),color-mix(in srgb,var(--fill) 89%,transparent));
+  box-shadow:var(--pr-shadow);
+}
+#progress .v28-score-top{gap:18px;align-items:center;}
+#progress .v28-ring{
+  width:96px;
+  height:96px;
+  box-shadow:0 14px 34px -25px color-mix(in srgb,var(--success) 65%,transparent);
+}
+#progress .v28-ring::after{inset:9px;}
+#progress .v28-ring strong{font-size:27px;}
+#progress .v28-score-main h3{
+  margin-bottom:6px;
+  font-size:clamp(17px,2vw,21px);
+  font-weight:780;
+  letter-spacing:-.025em;
+}
+#progress .v28-score-main p{font-size:12px;line-height:1.52;}
+#progress .v28-score-parts{gap:8px;margin-top:15px;}
+#progress .v28-part{
+  min-height:62px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  padding:9px 7px;
+  border:1px solid var(--pr-line);
+  border-radius:13px;
+  background:color-mix(in srgb,var(--glass) 76%,var(--fill));
+}
+#progress .v28-part b{font-size:15px;}
+#progress .v28-part span{margin-top:2px;font-size:9.5px;font-weight:720;}
+
+/* Kişisel gelişim sinyalleri */
+#progress #personalProgressV2{
+  margin-top:13px;
+  margin-bottom:16px;
+  padding:16px;
+  border:1px solid var(--pr-line);
+  border-radius:21px;
+  background:linear-gradient(145deg,color-mix(in srgb,var(--glass) 94%,transparent),color-mix(in srgb,var(--fill) 88%,transparent));
+  box-shadow:0 14px 38px -34px color-mix(in srgb,var(--label) 48%,transparent);
+}
+#progress .ppv2-head{margin-bottom:11px;align-items:center;}
+#progress .ppv2-head b{font-size:18px;letter-spacing:-.025em;}
+#progress .ppv2-head>small{
+  padding:5px 8px;
+  border:1px solid var(--pr-line);
+  border-radius:999px;
+  background:var(--pr-soft);
+  color:var(--label-2);
+  font-weight:700;
+}
+#progress .ppv2-grid{gap:9px;}
+#progress .ppv2-grid article{
+  min-height:104px;
+  padding:13px 14px;
+  border:1px solid var(--pr-line);
+  border-radius:15px;
+  background:color-mix(in srgb,var(--glass) 91%,var(--fill));
+  box-shadow:0 9px 22px -22px color-mix(in srgb,var(--label) 40%,transparent);
+}
+#progress .ppv2-grid article.wide{
+  min-height:90px;
+  background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 5%,var(--glass)),color-mix(in srgb,var(--success) 5%,var(--fill)));
+}
+#progress .ppv2-grid b{font-size:15.5px;line-height:1.32;letter-spacing:-.018em;}
+#progress .ppv2-grid small{line-height:1.45;}
+
+/* Dashboard bölümleri */
+#progress .desktop-progress-grid{
+  gap:clamp(12px,1.4vw,18px);
+  align-items:stretch;
+}
+#progress .desktop-progress-section{
+  display:grid;
+  grid-template-rows:auto 1fr;
+  align-self:stretch;
+  min-width:0;
+}
+#progress .desktop-progress-section>h2{
+  margin:0 0 8px;
+  padding:0 3px;
+  color:var(--label-2);
+  font-size:12px;
+  font-weight:800;
+  letter-spacing:.025em;
+  text-transform:uppercase;
+}
+#progress .desktop-progress-section>.card,
+#progress .desktop-progress-section>details{
+  height:100%;
+  min-height:128px;
+  padding:15px 16px;
+  border:1px solid var(--pr-line);
+  border-radius:19px;
+  background:linear-gradient(145deg,color-mix(in srgb,var(--glass) 97%,transparent),color-mix(in srgb,var(--fill) 92%,transparent));
+  box-shadow:0 13px 34px -31px color-mix(in srgb,var(--label) 46%,transparent);
+}
+#progress .desktop-progress-section.wide>.card,
+#progress .desktop-progress-section.wide>details{min-height:auto;}
+
+/* Dönem karşılaştırması, net ve tahmin kartları */
+#progress #progressCompare .dayrow,
+#progress #progressNet .dayrow,
+#progress #progressWrong .dayrow,
+#progress #progressForecast .dayrow,
+#progress #v28Topics .dayrow,
+#progress #v28Reviews .dayrow,
+#progress #v28Lifetime .dayrow{
+  min-height:43px;
+  padding:9px 0;
+  gap:14px;
+  border-bottom-color:color-mix(in srgb,var(--sep) 74%,transparent);
+}
+#progress .dayrow .k{font-size:11.5px;line-height:1.4;}
+#progress .dayrow .v{
+  font-size:11.5px;
+  line-height:1.4;
+  font-weight:730;
+  text-align:right;
+}
+#progress #progressWrong .dayrow .v .btn{
+  min-height:30px;
+  margin-left:5px;
+  border-radius:9px;
+  vertical-align:middle;
+}
+
+/* Ders dağılımı */
+#progress .progress-bar-row{padding:10px 0;}
+#progress .progress-bar-line{align-items:baseline;margin-bottom:7px;}
+#progress .progress-bar-line b{font-size:12.5px;}
+#progress .progress-bar-line span{color:var(--label-3);font-size:10.5px;font-weight:680;}
+#progress .v2bar{
+  height:8px;
+  border-radius:999px;
+  background:color-mix(in srgb,var(--fill-2) 86%,transparent);
+}
+#progress .v2bar>i{
+  background:linear-gradient(90deg,var(--accent),color-mix(in srgb,var(--success) 72%,var(--accent)));
+  box-shadow:0 0 12px color-mix(in srgb,var(--accent) 18%,transparent);
+}
+
+/* 8 haftalık trend */
+#progress .v28-week-grid{gap:10px;}
+#progress .v28-mini-chart{
+  padding:12px;
+  border:1px solid var(--pr-line);
+  border-radius:15px;
+  background:color-mix(in srgb,var(--glass) 75%,var(--fill));
+}
+#progress .v28-mini-title{margin-bottom:9px;}
+#progress .v28-mini-title b{font-size:12.5px;font-weight:780;}
+#progress .v28-mini-title span{font-weight:760;color:var(--label-2);}
+#progress .v28-bars{height:108px;gap:5px;}
+#progress .v28-bar{
+  border-radius:6px 6px 3px 3px;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--accent) 82%,white),var(--accent));
+  opacity:.72;
+}
+#progress .v28-barcol:last-child .v28-bar{
+  opacity:1;
+  box-shadow:0 8px 16px -10px color-mix(in srgb,var(--accent) 70%,transparent);
+}
+
+/* Ders bazlı başarı */
+#progress .v28-subj-row{padding:11px 0;}
+#progress .v28-subj-head{align-items:flex-start;}
+#progress .v28-subj-head b{font-size:13.5px;line-height:1.35;}
+#progress .v28-subj-net{
+  padding:4px 7px;
+  border-radius:8px;
+  background:var(--pr-soft);
+  font-size:10px;
+  white-space:nowrap;
+}
+#progress .v28-subj-meta{gap:6px;margin-top:7px;}
+#progress .v28-chip{
+  padding:4px 7px;
+  border:1px solid var(--pr-line);
+  background:color-mix(in srgb,var(--glass) 70%,var(--fill));
+  font-size:10px;
+}
+
+/* Konu, tekrar ve hedefler */
+#progress .v28-topic-grid,
+#progress .v28-pace-grid,
+#progress .v28-life-grid{gap:8px;}
+#progress .v28-metric,
+#progress .v28-pace,
+#progress .v28-life{
+  border:1px solid var(--pr-line);
+  background:color-mix(in srgb,var(--glass) 72%,var(--fill));
+}
+#progress .v28-metric b{font-size:19px;letter-spacing:-.035em;}
+#progress .v28-metric span{line-height:1.35;}
+#progress .v28-bigbar{height:9px;background:color-mix(in srgb,var(--fill-2) 86%,transparent);}
+#progress .v28-bigbar i{
+  background:linear-gradient(90deg,var(--success),color-mix(in srgb,var(--accent) 38%,var(--success)));
+}
+#progress .v28-goal{padding:11px 0;}
+#progress .v28-goal-line{align-items:baseline;}
+#progress .v28-goal-line span{color:var(--label-2);font-size:11px;text-align:right;}
+
+/* Takvim */
+#progress .v28-cal-head{
+  padding:0 2px;
+  font-size:11px;
+  font-weight:680;
+}
+#progress .v28-calendar{gap:6px;}
+#progress .v28-day{
+  border:1px solid color-mix(in srgb,var(--label) 5%,transparent);
+  border-radius:8px;
+  font-size:9px;
+  transition:transform .14s ease,outline-color .14s ease;
+}
+#progress .v28-day.today{
+  outline:2px solid var(--accent);
+  outline-offset:2px;
+  font-weight:850;
+}
+
+/* Kilometre taşları ve ömür boyu özet */
+#progress .v28-mile{min-height:50px;padding:10px 0;}
+#progress .v28-mile-ic{
+  width:34px;
+  height:34px;
+  border:1px solid var(--pr-line);
+  border-radius:11px;
+  background:color-mix(in srgb,var(--glass) 72%,var(--fill));
+}
+#progress .v28-mile.done .v28-mile-ic{
+  border-color:color-mix(in srgb,var(--success) 20%,transparent);
+  background:var(--success-soft);
+}
+#progress .v28-mile-main b{font-size:12.5px;}
+#progress .v28-mile-main div{line-height:1.45;}
+#progress .v28-life{
+  min-height:76px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+#progress .v28-life b{font-size:17px;letter-spacing:-.025em;}
+#progress .v28-summary-item{padding:10px 0;line-height:1.5;}
+
+/* Açılır eski/ayrıntılı raporlar görsel olarak geri planda kalsın. */
+#progress .v28-more{
+  border-top:1px solid var(--pr-line);
+  margin-top:15px;
+}
+#progress .v28-more>summary{
+  min-height:44px;
+  display:flex;
+  align-items:center;
+  border-radius:10px;
+  transition:background .18s ease,color .18s ease;
+}
+#progress .v28-more>summary:hover{background:var(--pr-soft);color:var(--label);}
+
+/* Klavye ve dokunmatik */
+#progress button:focus-visible,
+#progress summary:focus-visible{
+  outline:3px solid color-mix(in srgb,var(--accent) 28%,transparent);
+  outline-offset:2px;
+}
+
+@media (hover:hover) and (pointer:fine){
+  #progress .progress-stats .stat:hover,
+  #progress .ppv2-grid article:hover,
+  #progress .desktop-progress-section>.card:hover{
+    transform:translateY(-2px);
+    border-color:color-mix(in srgb,var(--accent) 14%,var(--pr-line));
+    box-shadow:0 18px 40px -34px color-mix(in srgb,var(--label) 54%,transparent);
+  }
+  #progress .v28-day:hover{transform:translateY(-1px) scale(1.04);}
+}
+
+@media (min-width:980px){
+  #progress .desktop-progress-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+  #progress .ppv2-grid{grid-template-columns:repeat(4,minmax(0,1fr));}
+  #progress .ppv2-grid article.wide{grid-column:1/-1;}
+  #progress .desktop-progress-section.wide{grid-column:1/-1;}
+  #progress .desktop-progress-section.wide .v28-week-grid{grid-template-columns:repeat(3,minmax(0,1fr));}
+}
+
+@media (min-width:760px) and (max-width:979px){
+  #progress .ppv2-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+  #progress .desktop-progress-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+  #progress .v28-score-parts{grid-template-columns:repeat(5,minmax(0,1fr));}
+}
+
+@media (max-width:759px){
+  .wrap:has(#progress.active){padding-left:14px;padding-right:14px;}
+  #progress .progress-head{padding:16px;border-radius:20px;}
+  #progress .progress-head h1{font-size:29px;}
+  #progress .progress-stats{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;}
+  #progress .progress-stats .stat{min-height:84px;padding:11px 10px;border-radius:15px;}
+  #progress .progress-stats .stat .v{font-size:20px;}
+  #progress #v28Score,#progress .v28-score-card{padding:15px;border-radius:20px;}
+  #progress .v28-score-top{gap:13px;align-items:flex-start;}
+  #progress .v28-ring{width:82px;height:82px;}
+  #progress .v28-ring strong{font-size:23px;}
+  #progress .v28-score-parts{grid-template-columns:repeat(3,minmax(0,1fr));}
+  #progress #personalProgressV2{padding:13px;border-radius:18px;}
+  #progress .ppv2-head{align-items:flex-start;}
+  #progress .ppv2-grid{grid-template-columns:1fr;}
+  #progress .ppv2-grid article{min-height:0;}
+  #progress .desktop-progress-section{margin-bottom:11px;}
+  #progress .desktop-progress-section>.card,#progress .desktop-progress-section>details{min-height:0;padding:14px;border-radius:17px;}
+  #progress .v28-week-grid{grid-template-columns:1fr;}
+  #progress .v28-bars{height:96px;}
+  #progress .v28-topic-grid,#progress .v28-pace-grid{grid-template-columns:1fr;}
+  #progress .v28-life-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+  #progress .v28-calendar{gap:4px;}
+  #progress .v28-day{border-radius:6px;font-size:8px;}
+}
+
+@media (max-width:430px){
+  #progress .progress-stats .stat .t{font-size:9px;}
+  #progress .v28-score-top{display:grid;grid-template-columns:auto minmax(0,1fr);}
+  #progress .v28-score-parts{grid-template-columns:repeat(2,minmax(0,1fr));}
+  #progress .ppv2-head>small{padding:4px 7px;}
+  #progress .dayrow{align-items:flex-start;}
+  #progress .dayrow .v{max-width:58%;}
+  #progress .v28-subj-head{display:grid;grid-template-columns:minmax(0,1fr);gap:5px;}
+  #progress .v28-subj-net{justify-self:start;white-space:normal;}
+}
+
+@media (pointer:coarse){
+  #progress>.seg button,
+  #progress #progressWrong .btn,
+  #progress .v28-more>summary{min-height:44px;}
+  #progress .v28-day{min-height:30px;aspect-ratio:auto;}
+}
+
+@media (prefers-reduced-motion:reduce){
+  #progress *,#progress *::before,#progress *::after{
+    transition-duration:.01ms!important;
+    animation-duration:.01ms!important;
+    animation-iteration-count:1!important;
+  }
+}
