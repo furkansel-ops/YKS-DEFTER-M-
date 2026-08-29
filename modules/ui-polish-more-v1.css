@@ -1,0 +1,346 @@
+/* YKS Defterim · Daha ekranı premium cila v1
+   Araç merkezi mantığını değiştirmeden görsel hiyerarşi, tablet/PC dengesi,
+   dokunmatik rahatlık ve alt sayfa okunabilirliğini güçlendirir. */
+
+#more{
+  --more-max:1180px;
+  --more-line:color-mix(in srgb,var(--label) 8%,transparent);
+  --more-shadow:0 2px 8px rgba(10,14,30,.04),0 28px 70px -48px color-mix(in srgb,var(--label) 54%,transparent);
+}
+
+.wrap:has(#more.active){
+  max-width:1320px;
+  padding-left:clamp(18px,2.2vw,34px);
+  padding-right:clamp(18px,2.2vw,34px);
+}
+
+#more>.v30-more-title,
+#more>.v30-search-card,
+#more>#v30MoreHome,
+#more>[id^="mrp_"]{
+  width:min(100%,var(--more-max));
+  margin-left:auto;
+  margin-right:auto;
+}
+
+/* Üst başlık */
+#more .v30-more-title{
+  position:relative;
+  overflow:hidden;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  padding:19px 20px 18px;
+  margin-bottom:11px;
+  border:1px solid var(--more-line);
+  border-radius:24px;
+  background:
+    radial-gradient(circle at 94% 4%,color-mix(in srgb,var(--accent) 12%,transparent),transparent 34%),
+    radial-gradient(circle at 72% 118%,color-mix(in srgb,var(--success) 8%,transparent),transparent 34%),
+    linear-gradient(145deg,color-mix(in srgb,var(--glass) 98%,transparent),color-mix(in srgb,var(--fill) 91%,transparent));
+  box-shadow:var(--more-shadow);
+}
+#more .v30-more-title>div{position:relative;z-index:1;min-width:0;}
+#more .v30-more-title h1{
+  margin:0 0 5px;
+  font-size:clamp(28px,3.3vw,38px);
+  font-weight:790;
+  letter-spacing:-.048em;
+}
+#more .v30-more-title .lead{
+  max-width:720px;
+  margin:0;
+  color:var(--label-2);
+  font-size:13px;
+  line-height:1.5;
+}
+#more .v30-more-title>.btn{
+  position:relative;
+  z-index:1;
+  flex:none;
+  min-height:40px;
+  padding-inline:15px;
+  border-radius:12px;
+  font-weight:780;
+}
+
+/* Global arama */
+#more .v30-search-card{
+  padding:10px;
+  margin-bottom:16px;
+  border:1px solid var(--more-line);
+  border-radius:18px;
+  background:color-mix(in srgb,var(--glass) 92%,var(--fill));
+  box-shadow:0 12px 32px -30px color-mix(in srgb,var(--label) 50%,transparent);
+}
+#more .v30-search-card .row2{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:8px;
+}
+#more .v30-search-card #gsInput{
+  min-height:46px;
+  margin:0;
+  padding-inline:14px;
+  border-radius:13px;
+  background:color-mix(in srgb,var(--glass-strong) 94%,var(--fill));
+  font-size:13px;
+}
+#more .v30-search-card #gsInput:focus{
+  border-color:color-mix(in srgb,var(--accent) 46%,transparent);
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 10%,transparent);
+}
+#more .v30-search-card .btn{
+  min-height:46px;
+  margin:0;
+  padding-inline:15px;
+  border-radius:13px;
+}
+#more #gsBox:empty{display:none;}
+#more #gsBox:not(:empty){
+  margin-top:9px!important;
+  padding:4px 7px 0;
+  border-top:1px solid var(--more-line);
+}
+
+/* Ana merkez */
+#more #v30MoreHome>h2{
+  margin:23px 0 10px;
+  padding:0 3px;
+  color:var(--label-2);
+  font-size:12px;
+  font-weight:850;
+  letter-spacing:.055em;
+  text-transform:uppercase;
+}
+#more #v30MoreHome>h2:first-of-type{margin-top:17px;}
+
+#more .v30-status{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:9px;
+  margin:0 0 3px;
+}
+#more .v30-status>*{
+  min-width:0;
+  min-height:74px;
+  padding:12px;
+  border:1px solid var(--more-line);
+  border-radius:16px;
+  background:linear-gradient(145deg,color-mix(in srgb,var(--glass) 97%,transparent),color-mix(in srgb,var(--fill) 90%,transparent));
+  box-shadow:0 11px 28px -28px color-mix(in srgb,var(--label) 50%,transparent);
+}
+#more .v30-status b,
+#more .v30-status strong{font-weight:820;letter-spacing:-.025em;}
+#more .v30-status small,
+#more .v30-status span{color:var(--label-2);line-height:1.4;}
+
+/* Sık kullanılanlar */
+#more .v30-quick-grid{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:9px;
+}
+#more .v30-quick-grid>*{
+  min-width:0;
+  min-height:92px;
+  border-radius:17px!important;
+  border:1px solid var(--more-line)!important;
+  background:linear-gradient(145deg,color-mix(in srgb,var(--glass) 98%,transparent),color-mix(in srgb,var(--accent) 5%,var(--fill)))!important;
+  box-shadow:0 13px 32px -30px color-mix(in srgb,var(--label) 52%,transparent);
+  transition:transform .16s ease,border-color .18s ease,box-shadow .18s ease,background .18s ease;
+}
+
+/* Menü kartları */
+#more .v30-menu-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:10px;
+}
+#more .v30-menu-card{
+  position:relative;
+  overflow:hidden;
+  min-width:0;
+  min-height:116px;
+  display:grid;
+  grid-template-columns:46px minmax(0,1fr) auto;
+  align-items:center;
+  gap:12px;
+  padding:16px;
+  border:1px solid var(--more-line);
+  border-radius:19px;
+  color:var(--label);
+  background:linear-gradient(145deg,color-mix(in srgb,var(--glass) 98%,transparent),color-mix(in srgb,var(--fill) 91%,transparent));
+  box-shadow:0 14px 36px -33px color-mix(in srgb,var(--label) 54%,transparent);
+  text-align:left;
+  cursor:pointer;
+  transition:transform .17s ease,border-color .18s ease,box-shadow .18s ease,background .18s ease;
+}
+#more .v30-menu-card::after{
+  content:"";
+  position:absolute;
+  width:94px;
+  height:94px;
+  right:-48px;
+  bottom:-54px;
+  border-radius:50%;
+  pointer-events:none;
+  background:radial-gradient(circle,color-mix(in srgb,var(--accent) 8%,transparent),transparent 69%);
+}
+#more .v30-menu-card .v30-menu-ico{
+  position:relative;
+  z-index:1;
+  width:44px;
+  height:44px;
+  display:grid;
+  place-items:center;
+  border:1px solid color-mix(in srgb,var(--accent) 14%,var(--more-line));
+  border-radius:14px;
+  background:color-mix(in srgb,var(--accent) 9%,var(--glass));
+  color:var(--accent);
+  font-size:19px;
+  font-weight:800;
+}
+#more .v30-menu-card>span:nth-child(2){position:relative;z-index:1;min-width:0;}
+#more .v30-menu-card b{
+  display:block;
+  margin-bottom:4px;
+  font-size:14px;
+  font-weight:800;
+  letter-spacing:-.018em;
+  overflow-wrap:anywhere;
+}
+#more .v30-menu-card small{
+  display:block;
+  color:var(--label-2);
+  font-size:11px;
+  line-height:1.42;
+  overflow-wrap:anywhere;
+}
+#more .v30-menu-card>i{
+  position:relative;
+  z-index:1;
+  align-self:center;
+  color:var(--label-3);
+  font-size:25px;
+  font-style:normal;
+  transition:transform .17s ease,color .17s ease;
+}
+
+/* Alt araç sayfaları */
+#more .v30-subhead{
+  position:sticky;
+  top:calc(var(--nav-h) + env(safe-area-inset-top) + 8px);
+  z-index:12;
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr);
+  align-items:center;
+  gap:12px;
+  margin:4px 0 14px;
+  padding:10px 12px;
+  border:1px solid var(--more-line);
+  border-radius:18px;
+  background:color-mix(in srgb,var(--glass-strong) 92%,transparent);
+  -webkit-backdrop-filter:saturate(155%) blur(18px);
+  backdrop-filter:saturate(155%) blur(18px);
+  box-shadow:0 14px 34px -30px color-mix(in srgb,var(--label) 55%,transparent);
+}
+#more .v30-back{
+  min-height:40px;
+  padding:0 12px;
+  border:1px solid var(--more-line);
+  border-radius:12px;
+  background:var(--fill);
+  color:var(--label);
+  font:inherit;
+  font-size:12px;
+  font-weight:780;
+  cursor:pointer;
+}
+#more .v30-subhead h1{
+  margin:0;
+  font-size:clamp(21px,2.4vw,28px);
+  letter-spacing:-.035em;
+}
+#more .v30-subhead p{
+  margin:3px 0 0;
+  color:var(--label-2);
+  font-size:11.5px;
+  line-height:1.4;
+}
+#more>[id^="mrp_"]>.card,
+#more>[id^="mrp_"]>section>.card{
+  border-color:var(--more-line);
+}
+
+/* Etkileşim */
+@media (hover:hover) and (pointer:fine){
+  #more .v30-menu-card:hover,
+  #more .v30-quick-grid>*:hover{
+    transform:translateY(-2px);
+    border-color:color-mix(in srgb,var(--accent) 23%,var(--more-line))!important;
+    box-shadow:0 20px 42px -34px color-mix(in srgb,var(--label) 62%,transparent);
+  }
+  #more .v30-menu-card:hover>i{transform:translateX(2px);color:var(--accent);}
+}
+#more button:focus-visible,
+#more input:focus-visible,
+#more select:focus-visible,
+#more summary:focus-visible{
+  outline:3px solid color-mix(in srgb,var(--accent) 24%,transparent);
+  outline-offset:2px;
+}
+
+/* PC */
+@media (min-width:980px){
+  #more .v30-menu-grid{grid-template-columns:repeat(3,minmax(0,1fr));}
+  #more .v30-quick-grid{grid-template-columns:repeat(4,minmax(0,1fr));}
+}
+
+/* Tablet */
+@media (min-width:760px) and (max-width:979px){
+  #more .v30-menu-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+  #more .v30-quick-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+  #more .v30-status{grid-template-columns:repeat(2,minmax(0,1fr));}
+}
+
+/* Telefon */
+@media (max-width:759px){
+  .wrap:has(#more.active){padding-left:14px;padding-right:14px;}
+  #more .v30-more-title{padding:16px;border-radius:21px;align-items:flex-start;}
+  #more .v30-more-title h1{font-size:28px;}
+  #more .v30-more-title>.btn{min-height:38px;padding-inline:12px;}
+  #more .v30-search-card .row2{grid-template-columns:minmax(0,1fr) auto;}
+  #more .v30-status{grid-template-columns:repeat(2,minmax(0,1fr));}
+  #more .v30-quick-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+  #more .v30-menu-grid{grid-template-columns:1fr;gap:8px;}
+  #more .v30-menu-card{min-height:96px;padding:13px 14px;grid-template-columns:42px minmax(0,1fr) auto;}
+  #more .v30-menu-card .v30-menu-ico{width:40px;height:40px;border-radius:12px;}
+  #more .v30-subhead{top:calc(var(--nav-h) + env(safe-area-inset-top) + 5px);margin-bottom:11px;}
+}
+
+@media (max-width:420px){
+  #more .v30-more-title{display:block;}
+  #more .v30-more-title>.btn{width:100%;margin-top:12px;}
+  #more .v30-search-card .row2{grid-template-columns:1fr;}
+  #more .v30-search-card .btn{width:100%;}
+  #more .v30-status{grid-template-columns:1fr 1fr;}
+  #more .v30-quick-grid{grid-template-columns:1fr 1fr;}
+  #more .v30-subhead{grid-template-columns:1fr;}
+  #more .v30-back{justify-self:start;}
+}
+
+@media (pointer:coarse){
+  #more .v30-menu-card,
+  #more .v30-quick-grid>*,
+  #more .v30-back,
+  #more .v30-more-title>.btn,
+  #more .v30-search-card .btn{min-height:48px;}
+}
+
+@media (prefers-reduced-motion:reduce){
+  #more .v30-menu-card,
+  #more .v30-menu-card>i,
+  #more .v30-quick-grid>*{transition:none!important;transform:none!important;}
+}
