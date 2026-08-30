@@ -26,3 +26,20 @@ test("eski format 2 yedekleri kayıpsız kabul edilir, gelecek şema reddedilir"
   assert.equal(legacy.ok,true);assert.equal(legacy.summary.integrity,"legacy");assert.deepEqual(legacy.state.bilinmeyen,{koru:true});
   const future=inspectBackupPackage(JSON.stringify({format:2,data:{v:22}}));assert.equal(future.ok,false);assert.equal(future.kind,"future-schema");
 });
+
+test("geri yükleme önizlemesi mevcut kayıtla gerçek sayı farklarını gösterir",async()=>{
+  const {createBackupPackage,previewBackupPackage}=await import(dataUrl("backup-service.ts"));
+  const current={v:21,solved:{"2026-08-20":40},pomoMin:{"2026-08-20":60},denemeler:[{id:1}],topics:{a:{st:2}},learning:{cards:[{id:"a"}]}};
+  const incoming={v:21,solved:{"2026-08-20":40,"2026-08-21":50},pomoMin:{"2026-08-20":60,"2026-08-21":80},denemeler:[{id:1},{id:2},{id:3}],topics:{a:{st:2},b:{st:3}},learning:{cards:[{id:"a"},{id:"b"},{id:"c"}]}};
+  const built=createBackupPackage(JSON.stringify(incoming),"4.1.0");assert.equal(built.ok,true);
+  const preview=previewBackupPackage(built.text,JSON.stringify(current));assert.equal(preview.ok,true);assert.equal(preview.comparison.status,"different");assert.equal(preview.comparison.sameState,false);
+  assert.deepEqual(preview.comparison.delta,{days:1,exams:2,topics:1,cards:2});assert.equal(preview.comparison.current.schema,21);assert.equal(preview.comparison.backup.schema,21);
+});
+
+test("aynı yedek mevcut kayıtla aynı olarak işaretlenir",async()=>{
+  const {createBackupPackage,previewBackupPackage}=await import(dataUrl("backup-service.ts"));
+  const state={v:21,name:"Furkan",solved:{"2026-08-25":12},denemeler:[],topics:{},learning:{cards:[]}};
+  const built=createBackupPackage(JSON.stringify(state),"4.1.0");assert.equal(built.ok,true);
+  const canonical=JSON.stringify(JSON.parse(built.text).data),preview=previewBackupPackage(built.text,canonical);
+  assert.equal(preview.ok,true);assert.equal(preview.comparison.status,"same");assert.equal(preview.comparison.sameState,true);assert.deepEqual(preview.comparison.delta,{days:0,exams:0,topics:0,cards:0});
+});
