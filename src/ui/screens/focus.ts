@@ -1,10 +1,10 @@
 import type {ScreenModule} from "./contracts";
+import {focusLegacyAdapter} from "./legacy-adapters";
 
 export const focusScreen:ScreenModule={
   id:"pomo",
-  required:["renderPomo","renderTimeDist"],
+  required:focusLegacyAdapter.required,
   render(environment){
-    environment.call("renderPomo");
-    environment.call("renderTimeDist");
+    focusLegacyAdapter.render(environment);
   }
 };
