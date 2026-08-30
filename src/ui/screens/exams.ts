@@ -1,5 +1,6 @@
 import type {ScreenModule} from "./contracts";
 import {renderExamDashboard} from "../exam-dashboard";
+import {renderLearningCycleV43} from "../learning-cycle-v43";
 
 export const examsScreen:ScreenModule={
   id:"deneme",
@@ -20,5 +21,6 @@ export const examsScreen:ScreenModule={
       environment.optional("renderNetGain");
     }
     renderExamDashboard();
+    renderLearningCycleV43();
   }
 };
