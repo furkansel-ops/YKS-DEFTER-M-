@@ -1,0 +1,258 @@
+/* YKS Defterim · uygulama geneli final tutarlılık cilası v1
+   Yalnızca görsel/etkileşim katmanı. Veri, hesaplama, senkronizasyon,
+   Program ve öğrenme davranışlarını değiştirmez. */
+
+:root{
+  --final-line:color-mix(in srgb,var(--label) 9%,transparent);
+  --final-line-strong:color-mix(in srgb,var(--label) 15%,transparent);
+  --final-surface:color-mix(in srgb,var(--glass) 93%,var(--fill));
+  --final-surface-strong:color-mix(in srgb,var(--glass-strong) 94%,var(--fill));
+  --final-ring:color-mix(in srgb,var(--accent) 42%,transparent);
+  --final-shadow:0 2px 8px rgba(10,14,30,.04),0 24px 62px -46px color-mix(in srgb,var(--label) 48%,transparent);
+}
+
+/* Ortak metin ritmi */
+.screen.active{min-width:0;}
+.screen.active>h1{
+  max-width:100%;
+  overflow-wrap:anywhere;
+  text-wrap:balance;
+}
+.screen.active>.lead{
+  max-width:76ch;
+  line-height:1.55;
+}
+.screen :is(h1,h2,h3,b,strong,.nt){text-rendering:optimizeLegibility;}
+.screen :is(p,small,.hint,.lead,.note){overflow-wrap:anywhere;}
+
+/* Kart ve yüzeyler: ekran özel cilalarını ezmeden ortak saç teli standardı */
+.card,
+.stat,
+.streaks .sk,
+.intel-card,
+.v26-topic-sheet{
+  border-color:var(--final-line);
+}
+.card{isolation:isolate;}
+.card:focus-within{
+  border-color:color-mix(in srgb,var(--accent) 18%,var(--final-line));
+}
+
+/* Form standardı */
+:is(input,select,textarea):not([type="checkbox"]):not([type="radio"]):not([type="range"]){
+  max-width:100%;
+  border-color:var(--final-line);
+  background:color-mix(in srgb,var(--glass) 88%,var(--fill));
+  color:var(--label);
+  caret-color:var(--accent);
+  transition:border-color .16s ease,box-shadow .16s ease,background .16s ease;
+}
+:is(input,select):not([type="checkbox"]):not([type="radio"]):not([type="range"]){min-height:44px;}
+textarea{line-height:1.55;}
+:is(input,select,textarea):not([type="checkbox"]):not([type="radio"]):focus{
+  border-color:color-mix(in srgb,var(--accent) 55%,var(--final-line));
+  box-shadow:0 0 0 3px var(--final-ring);
+  outline:none;
+  background:var(--final-surface-strong);
+}
+:is(input,select,textarea)::placeholder{color:var(--label-3);opacity:.88;}
+
+/* Buton standardı */
+.btn,
+.themebtn,
+.topic-filter,
+.topic-open,
+.v26-close,
+.tabbar .tab{
+  -webkit-tap-highlight-color:transparent;
+  touch-action:manipulation;
+}
+.btn{
+  min-height:42px;
+  border-radius:13px;
+  font-weight:680;
+}
+.btn:not(.ghost):hover{filter:brightness(1.035);}
+.btn:active{transform:translateY(1px) scale(.99);}
+:is(.btn,.themebtn,.topic-filter,.topic-open,.v26-close,.tabbar .tab):focus-visible{
+  outline:3px solid var(--final-ring);
+  outline-offset:2px;
+}
+:is(button,.btn,input,select,textarea)[disabled],
+:is(button,.btn)[aria-disabled="true"]{
+  cursor:not-allowed!important;
+  opacity:.52;
+  filter:saturate(.62);
+}
+
+/* Üst navigasyon ve sol ray: daha sabit hiyerarşi */
+.navbar{
+  border-bottom:1px solid color-mix(in srgb,var(--label) 5%,transparent);
+  box-shadow:0 10px 34px -32px color-mix(in srgb,var(--label) 48%,transparent);
+}
+.navbar .nt{font-weight:730;letter-spacing:-.025em;}
+.themebtn{
+  min-width:38px;
+  min-height:38px;
+  border-color:var(--final-line);
+  background:var(--final-surface);
+}
+.tabbar{
+  border-right:1px solid color-mix(in srgb,var(--label) 6%,transparent);
+}
+.tabbar .tab{
+  border-radius:13px;
+}
+.tabbar .tab:hover{
+  background:color-mix(in srgb,var(--accent) 5%,transparent);
+}
+.tabbar .tab.on,
+.tabbar .tab.active{
+  background:color-mix(in srgb,var(--accent) 8%,transparent);
+}
+
+/* Segment ve filtrelerin ortak hissi */
+.seg{
+  border-color:var(--final-line);
+}
+.seg button,
+.topic-filter{
+  min-height:38px;
+}
+.topic-filter{
+  border:1px solid transparent;
+}
+.topic-filter:not(.on):hover{
+  border-color:var(--final-line);
+  background:color-mix(in srgb,var(--fill) 82%,var(--glass));
+}
+
+/* Konu modalı ve uygulamadaki tam ekran yüzeyler */
+.v26-topic-modal{
+  background:color-mix(in srgb,#05080f 52%,transparent);
+  backdrop-filter:blur(11px) saturate(125%);
+  -webkit-backdrop-filter:blur(11px) saturate(125%);
+}
+.v26-topic-sheet{
+  overscroll-behavior:contain;
+  scrollbar-width:thin;
+  scrollbar-color:color-mix(in srgb,var(--accent) 28%,transparent) transparent;
+  background:var(--final-surface-strong);
+  box-shadow:0 28px 88px rgba(0,0,0,.24);
+}
+.v26-sheet-head{
+  border-bottom-color:var(--final-line);
+  background:color-mix(in srgb,var(--glass-strong) 96%,var(--fill));
+}
+.v26-close{
+  min-width:38px;
+  min-height:38px;
+  border:1px solid var(--final-line);
+  background:var(--final-surface);
+}
+:is(.simov,.wizov,.brov,.vidov,.playov,.gunov,.optikov,.anaov){
+  overscroll-behavior:contain;
+}
+
+/* Bildirim: okunaklı, dar ekranda taşmayan */
+.toast{
+  width:max-content;
+  max-width:min(88vw,620px);
+  min-height:42px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:10px 17px;
+  border:1px solid var(--final-line);
+  border-radius:14px;
+  line-height:1.35;
+  background:var(--final-surface-strong);
+  box-shadow:0 18px 52px -32px color-mix(in srgb,var(--label) 64%,transparent);
+}
+
+/* Uzun listelerde ve kaydırılabilir alanlarda ortak scrollbar */
+:is(.scroller,#atlasIndex,.v4-timeline-overview,.topic-filter-row,#denemeHistory,#sessionList,.v26-topic-sheet){
+  scrollbar-width:thin;
+  scrollbar-color:color-mix(in srgb,var(--accent) 24%,transparent) transparent;
+}
+:is(.scroller,#atlasIndex,.v4-timeline-overview,.topic-filter-row,#denemeHistory,#sessionList,.v26-topic-sheet)::-webkit-scrollbar{
+  width:8px;
+  height:8px;
+}
+:is(.scroller,#atlasIndex,.v4-timeline-overview,.topic-filter-row,#denemeHistory,#sessionList,.v26-topic-sheet)::-webkit-scrollbar-thumb{
+  border-radius:999px;
+  background:color-mix(in srgb,var(--accent) 22%,transparent);
+}
+
+/* Yüksek yoğunluklu ekranlarda masaüstü nefesi */
+@media(min-width:900px){
+  .wrap.wide{
+    width:min(100%,1280px);
+  }
+  .screen.active>.lead{font-size:14px;}
+  .v26-topic-modal{align-items:center;}
+  .v26-topic-sheet{
+    border-radius:22px;
+    max-height:min(86vh,860px);
+  }
+}
+
+/* Tablet */
+@media(min-width:620px) and (max-width:899px){
+  .card{scroll-margin-top:74px;}
+  .toast{max-width:min(78vw,560px);}
+}
+
+/* Telefon / dar pencere */
+@media(max-width:619px){
+  .screen.active>h1{font-size:clamp(27px,8vw,32px);}
+  .screen.active>.lead{font-size:13px;}
+  .btn{min-height:44px;}
+  .toast{
+    left:calc(50% + var(--rail)/2);
+    bottom:calc(18px + env(safe-area-inset-bottom));
+    max-width:calc(100vw - var(--rail) - 24px);
+    font-size:13px;
+  }
+  .v26-topic-modal{padding:6px;}
+  .v26-topic-sheet{
+    max-height:92dvh;
+    border-radius:20px 20px 12px 12px;
+  }
+}
+
+/* Dokunmatik cihazlarda minimum hedef */
+@media(pointer:coarse){
+  :is(.btn,.themebtn,.topic-filter,.topic-open,.v26-close,.seg button,.tabbar .tab){min-height:44px;}
+  .topic-open,.v26-close,.themebtn{min-width:44px;}
+}
+
+/* Koyu temalarda saç teli ve alan kontrastı */
+:root[data-theme="dark"] :is(input,select,textarea):not([type="checkbox"]):not([type="radio"]),
+:root[data-theme="night"] :is(input,select,textarea):not([type="checkbox"]):not([type="radio"]),
+:root[data-theme="graphite"] :is(input,select,textarea):not([type="checkbox"]):not([type="radio"]){
+  background:color-mix(in srgb,var(--glass-strong) 82%,var(--fill));
+}
+:root[data-theme="dark"] .v26-topic-sheet,
+:root[data-theme="night"] .v26-topic-sheet,
+:root[data-theme="graphite"] .v26-topic-sheet{
+  box-shadow:0 28px 90px rgba(0,0,0,.56);
+}
+
+/* Hareket azaltma tercihi tüm son cila etkileşimlerinde korunur */
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto!important;}
+  .screen.active,
+  .screen.active>*,
+  .btn,
+  .themebtn,
+  .topic-filter,
+  .topic-open,
+  .v26-close,
+  .toast,
+  :is(input,select,textarea){
+    animation:none!important;
+    transition:none!important;
+  }
+  .btn:active{transform:none;}
+}
