@@ -85,3 +85,13 @@
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",start,{once:true});else start();
   window.YKSProgressV2={version:"2.0.0",render,rangeAgg,bestImprovingSubject,topErrorTopic,studyNetRelation};
 })();
+
+(function(){
+  "use strict";
+  function loadProgressV42(){
+    if(window.__YKS_PROGRESS_V42__||document.querySelector('script[data-yks-progress-v42]'))return;
+    const s=document.createElement("script");s.src="./modules/progress-v42.js?v=4.2.0-r1";s.async=false;s.setAttribute("data-yks-progress-v42","1");
+    s.onerror=()=>{try{if(typeof infraError==="function")infraError("progress-v42-load",new Error("İlerleme 3.0 yüklenemedi"));}catch(e){}};document.head.appendChild(s);
+  }
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",loadProgressV42,{once:true});else loadProgressV42();
+})();
