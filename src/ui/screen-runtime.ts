@@ -1,22 +1,10 @@
 import {activeId,byId,emit} from "./dom";
 import {isScreenId,type ScreenId} from "./types";
-import type {LegacyScreenFunction,ScreenEnvironment,ScreenModule,ScreenRenderSource,ScreenRuntimeApi} from "./screens/contracts";
-import {homeScreen} from "./screens/home";
-import {programScreen} from "./screens/program";
-import {topicsScreen} from "./screens/topics";
-import {examsScreen} from "./screens/exams";
-import {progressScreen} from "./screens/progress";
-import {focusScreen} from "./screens/focus";
-import {moreScreen} from "./screens/more";
+import type {LegacyScreenFunction,ScreenEnvironment,ScreenRenderSource,ScreenRuntimeApi} from "./screens/contracts";
+import {getScreenModule,SCREEN_MODULES} from "./screens/registry";
 
 type LegacyFunction=(...args:unknown[])=>unknown;
 type LegacyWindow=Window&Record<string,unknown>;
-
-const SCREEN_MODULES:readonly ScreenModule[]=[
-  homeScreen,programScreen,topicsScreen,examsScreen,progressScreen,focusScreen,moreScreen
-];
-
-const SCREEN_MAP=new Map<ScreenId,ScreenModule>(SCREEN_MODULES.map(module=>[module.id,module]));
 
 class BrowserScreenEnvironment implements ScreenEnvironment{
   readonly #legacyWindow:LegacyWindow;
@@ -82,7 +70,7 @@ class ScreenRuntime implements ScreenRuntimeApi{
   }
 
   render(screen:ScreenId,source:ScreenRenderSource="api"):boolean{
-    const module=SCREEN_MAP.get(screen);
+    const module=getScreenModule(screen);
     if(!module)return false;
     const detail={screen,source,at:Date.now()};
     emit("yks:screen-render-before",detail);
