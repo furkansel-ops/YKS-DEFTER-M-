@@ -1,6 +1,6 @@
 # YKS Defterim v4.2.0 Yol Haritası
 
-v4.2.0'ın amacı yeni özellik eklemekten çok, mevcut güçlü altyapıyı daha akıllı ve daha hızlı günlük YKS kullanımına dönüştürmektir.
+v4.2.0'ın amacı mevcut güçlü altyapıyı daha akıllı, daha güvenli ve daha hızlı günlük YKS kullanımına dönüştürmektir.
 
 ## Değişmez kurallar
 
@@ -44,9 +44,9 @@ v4.2.0'ın amacı yeni özellik eklemekten çok, mevcut güçlü altyapıyı dah
 
 - Aynı türde son 5 / 10 denemeyi seçilebilir seri olarak karşılaştırma.
 - Toplam nette ortalama, aralık, seri değişimi ve standart sapma ile istikrar görünümü.
-- Ders bazlı son net, seri değişimi ve dalgalanma (standart sapma) görünümü.
+- Ders bazlı son net, seri değişimi ve dalgalanma görünümü.
 - Denemeye bağlanmış yanlışların konu bazlı yoğunluk haritası.
-- “Net arttı ama aynı hata devam ediyor” gibi açıklanabilir sinyaller; yalnız kayıtlı veriden üretilir.
+- “Net arttı ama aynı hata devam ediyor” gibi açıklanabilir sinyaller yalnız kayıtlı veriden üretilir.
 - Gelecek net veya sınav sonucu için tahmin/garanti üretilmez ve Program'a otomatik görev eklenmez.
 
 ## Aşama 5 — İlerleme 3.0 ✅
@@ -54,42 +54,45 @@ v4.2.0'ın amacı yeni özellik eklemekten çok, mevcut güçlü altyapıyı dah
 **Durum:** Tamamlandı.
 
 - Son 7 gün / önceki 7 gün ve son 30 gün / önceki 30 gün çalışma sürekliliği; aktif gün, çalışma süresi ve soru farkları birlikte gösterilir.
-- Ders bazlı son 30 günlük çalışma süresi ile aynı dönemin deneme net ortalaması aynı satırda karşılaştırılır; önceki 30 güne göre süre ve net değişimi açıklanır.
+- Ders bazlı son 30 günlük çalışma süresi ile aynı dönemin deneme net ortalaması birlikte karşılaştırılır.
 - Öğreniliyor / pekiştiriliyor / hazır / tekrar gerekli konu dağılımı günlük sağlık snapshotlarıyla zaman içinde izlenir; v4.2 öncesi geçmiş uydurulmaz.
-- Konu sağlık snapshotları en fazla 120 gün tutulur; ekranda en fazla 8 ders ve 14 sağlık günü çizilerek büyük veri listelerinde DOM yükü sınırlandırılır.
-- İlerleme analizi Program verisini değiştirmez; Program manuel kalır.
+- Konu sağlık snapshotları en fazla 120 gün tutulur; ekranda en fazla 8 ders ve 14 sağlık günü çizilerek DOM yükü sınırlandırılır.
+- İlerleme analizi Program verisini değiştirmez.
 
 ## Aşama 6 — Öğrenme Laboratuvarı 2.0 kullanım akışı ✅
 
 **Durum:** Tamamlandı.
 
-- Laboratuvar ana yüzeyine `Kaldığın yer` ve `Favoriler` hızlı erişim alanı eklendi; favori konu, Bilim Kartı, periyodik tablo elementi ve kronoloji kaydı tek dokunuşla açılabilir.
-- Son açılan konu, organ, Bilim Kartı, element ve kronoloji kaydı `S.lab.flowV42` altında tutulur; son 12 benzersiz içerik korunur ve aynı içerik tekrar açıldığında çoğaltılmaz.
-- Atlas'ın 9 organı gerçek AYT Biyoloji konu rehberlerine bağlandı; organ başlığından ve yapı detayından ilgili konu rehberine geçiş sağlandı.
-- 3B anatomi modelleri PWA çekirdek kurulumuna alınmadı; yalnız kullanıcı Atlas/organ görünümünü açtığında mevcut lazy-load sınırından yüklenmeye devam eder. 9 organ / 52 yapı sözleşmesi değişmedi.
-- v4.2 çalışma zamanı/PWA doğrulaması güçlendirildi ve İlerleme 3.0'ın eksik çalışma zamanı loader bağlantısı tamamlandı.
-- Laboratuvar akışı Program verisini değiştirmez; Program manuel kalır.
+- Laboratuvar ana yüzeyine `Kaldığın yer` ve `Favoriler` hızlı erişim alanı eklendi.
+- Son açılan konu, organ, Bilim Kartı, element ve kronoloji kaydı `S.lab.flowV42` altında tutulur; son 12 benzersiz içerik korunur.
+- Atlas'ın 9 organı gerçek AYT Biyoloji konu rehberlerine bağlandı.
+- 3B anatomi modelleri PWA çekirdek kurulumuna alınmadı; yalnız kullanıcı Atlas/organ görünümünü açtığında lazy-load ile yüklenir. 9 organ / 52 yapı sözleşmesi değişmedi.
+- İlerleme 3.0'ın çalışma zamanı loader bağlantısı tamamlandı.
+- Laboratuvar akışı Program verisini değiştirmez.
 
 ## Aşama 7 — Veri güvenliği ve kurtarma 2.0 ✅
 
 **Durum:** Tamamlandı.
 
-- Yedek içe aktarmadan önce kayıt tarihi, uygulama sürümü, şema, dosya boyutu ve bütünlük durumu erişilebilir bir önizleme penceresinde gösterilir.
-- Yedekteki çalışma günü, deneme, konu ve kart sayıları mevcut ana kayıtla karşılaştırılır; farklar geri yükleme yapılmadan önce görünür.
-- Geri yükleme başlamadan önce Dexie ana kayıt + güvenli yerel ayna yakalanır. Haricî kayıt uygulaması yarıda kalıp ana kayıt değişmişse bridge önceki kaydı otomatik geri almaya çalışır.
-- Veri & Sistem ekranına `Kurtarma Merkezi` eklendi; Dexie/localStorage ana kayıt durumu, uzlaştırma sonucu ve Firebase/bulut bekleyen değişiklik durumu tek bakışta gösterilir.
-- Başarılı yedek geri yüklemesi bulut kaydını kirli işaretleyerek sonraki senkronun geri yüklenen veriyi taşımasını sağlar.
-- Çok sık legacy `save()` çağrılarını birleştiren mevcut write-tail/dirty koruması ve son yazı testleri korunur.
-- Aşama 7 için fark önizleme, aynı-yedek ve otomatik rollback regresyon testleri eklendi.
+- Yedek içe aktarmadan önce kayıt tarihi, uygulama sürümü, şema, dosya boyutu ve bütünlük durumu erişilebilir önizleme penceresinde gösterilir.
+- Yedekteki çalışma günü, deneme, konu ve kart sayıları mevcut ana kayıtla karşılaştırılır.
+- Geri yükleme yarıda kalıp ana kayıt değişmişse bridge önceki kaydı otomatik geri almaya çalışır.
+- Veri & Sistem ekranına `Kurtarma Merkezi` eklendi; Dexie/localStorage uzlaştırması ve Firebase/bulut bekleyen değişiklik durumu görünür.
+- Başarılı yedek geri yüklemesi bulut kaydını kirli işaretler.
+- Write-tail/dirty son-yazı koruması ve rollback regresyon testleri korunur.
 
-## Aşama 8 — v4.2.0 final kalite kapısı
+## Aşama 8 — v4.2.0 final kalite kapısı ✅
 
-- Node 22 + Node 24 uyumluluğu.
-- TypeScript strict kontrolü.
-- Tüm regresyon testleri.
-- Büyük veri / yedek / Dexie / PWA / offline testleri.
-- Tablet, PC ve mobil taşma/dokunma kontrolleri.
-- GitHub Pages build, deploy ve canlı sürüm doğrulaması.
+**Durum:** Tamamlandı — v4.2.0 kararlı sürüm kapatıldı.
+
+- Kararlı sürüm kimliği `4.2.0`, build `4.2.0-r1`, veri şeması `21` olarak merkezileştirildi.
+- Büyük legacy `app.js` veri/regresyon güvenliği için `4.1.0-r20` uyumluluk çekirdeği olarak bilinçli biçimde korundu; TypeScript release katmanı gerçek v4.2 kimliğini, güncelleme karşılaştırmasını ve tarayıcı self-test kapısını yönetir.
+- PWA cache çizgisi `yks-core-v4.2.0-r1` seviyesine taşındı; eski `r20…r40` cache ailesi kontrollü temizleme soyunda tutulur.
+- Node 22 ana kapısı ve Node 24 uyumluluk kapısı başarıyla geçti.
+- TypeScript strict kontrolü ve **235/235 regresyon testi** başarıyla geçti.
+- Production build, üretim paket bütünlüğü, 27 sabit SHA-256 anatomi varlığı, Atlas lazy-load sınırı ve kaynak bütçeleri doğrulandı.
+- Programın manuel kalması, Atlas 9 organ / 52 yapı sözleşmesi, 3B model lazy-load, Dexie/localStorage/Firebase hattı, yedek rollback ve büyük veri DOM sınırları regresyonlarla korundu.
+- GitHub Pages build, deploy ve canlı sürüm doğrulaması başarıyla geçti.
 
 ## Uygulama sırası
 
@@ -100,6 +103,6 @@ v4.2.0'ın amacı yeni özellik eklemekten çok, mevcut güçlü altyapıyı dah
 5. İlerleme 3.0 ✅
 6. Öğrenme Laboratuvarı kullanım akışı ✅
 7. Veri güvenliği 2.0 ✅
-8. Final kalite taraması
+8. Final kalite taraması ✅
 
-Her aşama ayrı testlerle korunacak ve bir sonraki aşamaya geçmeden CI yeşil olacaktır.
+**v4.2.0 yol haritasındaki 8 aşamanın tamamı kapatıldı.**
