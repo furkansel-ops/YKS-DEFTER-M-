@@ -161,3 +161,17 @@
   }
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",loadSmartRepeatV42,{once:true});else loadSmartRepeatV42();
 })();
+
+(function(){
+  "use strict";
+  function loadErrorTopicLabV42(){
+    if(window.__YKS_ERROR_TOPIC_LAB_V42__||document.querySelector('script[data-yks-error-topic-lab-v42]'))return;
+    const s=document.createElement("script");
+    s.src="./modules/error-topic-lab-v42.js?v=4.2.0-r1";
+    s.async=false;
+    s.setAttribute("data-yks-error-topic-lab-v42","1");
+    s.onerror=()=>{try{if(typeof infraError==="function")infraError("error-topic-lab-v42-load",new Error("Hata Defteri konu bağlantıları yüklenemedi"));}catch(e){}};
+    document.head.appendChild(s);
+  }
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",loadErrorTopicLabV42,{once:true});else loadErrorTopicLabV42();
+})();
