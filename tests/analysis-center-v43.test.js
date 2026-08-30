@@ -32,7 +32,7 @@ test("v4.3 Analiz Merkezi salt okunur kalır ve Program ya da kayıt katmanını
   assert.doesNotMatch(source,/\.rows\s*\[/);
 });
 
-test("v4.3 Analiz Merkezi güvenli TypeScript runtime, İlerleme ekranı ve tablet erişilebilirliğiyle bağlıdır",()=>{
+test("v4.3 Analiz Merkezi güvenli lazy runtime, İlerleme ekranı ve tablet erişilebilirliğiyle bağlıdır",()=>{
   const source=read("src/ui/analysis-center-v43.ts"),style=read("src/ui/analysis-center-v43.css"),main=read("src/main.ts"),safe=read("src/ui/v43-safe-runtime.ts"),progress=read("src/ui/screens/progress.ts");
   assert.match(source,/import "\.\/analysis-center-v43\.css"/);
   assert.match(source,/role","img"/);
@@ -41,7 +41,10 @@ test("v4.3 Analiz Merkezi güvenli TypeScript runtime, İlerleme ekranı ve tabl
   assert.doesNotMatch(main,/from "\.\/ui\/analysis-center-v43"/);
   assert.match(safe,/import\("\.\/analysis-center-v43"\)/);
   assert.match(safe,/installAnalysisCenterV43/);
+  assert.match(safe,/__YKS_V43_RENDER_ANALYSIS__=mod\.renderAnalysisCenterV43/);
   assert.match(safe,/v43AnalysisErrors/);
+  assert.doesNotMatch(progress,/from "\.\.\/analysis-center-v43"/);
+  assert.match(progress,/__YKS_V43_RENDER_ANALYSIS__/);
   assert.match(progress,/renderAnalysisCenterV43\(\)/);
   assert.match(style,/@media\(max-width:980px\)/);
   assert.match(style,/@media\(pointer:coarse\)/);
