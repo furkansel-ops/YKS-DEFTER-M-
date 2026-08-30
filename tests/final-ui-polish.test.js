@@ -18,7 +18,8 @@ test('final tutarlılık cilası form, modal, navigasyon ve erişilebilirliği k
   assert.match(css,/prefers-reduced-motion:reduce/);
   assert.match(study,/ui-polish-final-v1\.css\?v=4\.1\.0-r1/);
   assert.match(sw,/ui-polish-final-v1\.css\?v=4\.1\.0-r1/);
-  assert.match(sw,/const CACHE="yks-core-v4\.1\.0-r39"/);
+  assert.match(sw,/const CACHE="yks-core-v4\.1\.0-r40"/);
+  assert.match(sw,/yks-core-v4\.1\.0-r39/);
 });
 
 test('final cila Program mantığını değiştiren bir script değildir',()=>{
