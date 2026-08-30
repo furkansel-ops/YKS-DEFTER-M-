@@ -1,0 +1,323 @@
+/* YKS Defterim · Program ekranı premium cila v1
+   Program üretmez/değiştirmez. Yalnızca manuel plan ızgarasının
+   görsel hiyerarşisini, tablet/PC kullanımını ve dokunmatik erişilebilirliğini güçlendirir. */
+
+#program{
+  --pg-max:1120px;
+  --pg-line:color-mix(in srgb,var(--label) 8%,transparent);
+  --pg-shadow:0 2px 8px rgba(10,14,30,.04),0 28px 72px -48px color-mix(in srgb,var(--label) 52%,transparent);
+}
+
+.wrap:has(#program.active){
+  max-width:1240px;
+  padding-left:clamp(16px,2.2vw,34px);
+  padding-right:clamp(16px,2.2vw,34px);
+}
+
+#program>.seg,
+#program>#progWeek,
+#program>#progCal,
+#program>.foldhead,
+#program>.foldbody{
+  width:min(100%,var(--pg-max));
+  margin-left:auto;
+  margin-right:auto;
+}
+
+/* Haftalık plan / takvim ana seçimi */
+#program>.seg{
+  min-height:50px;
+  padding:5px;
+  margin-bottom:14px;
+  border:1px solid var(--pg-line);
+  border-radius:17px;
+  background:color-mix(in srgb,var(--glass) 88%,var(--fill));
+  box-shadow:0 12px 32px -30px color-mix(in srgb,var(--label) 48%,transparent);
+}
+#program>.seg button{
+  min-height:38px;
+  border-radius:12px;
+  font-size:12px;
+  font-weight:790;
+}
+#program>.seg button.on{
+  background:color-mix(in srgb,var(--accent) 90%,var(--glass));
+  box-shadow:0 9px 20px -15px color-mix(in srgb,var(--accent) 62%,transparent);
+}
+
+/* Üst başlık ve hafta gezintisi */
+#program .plantitle{
+  margin:2px 0 10px;
+  padding:0 3px;
+  color:var(--label-3);
+  font-size:10.5px;
+  font-weight:850;
+  letter-spacing:.065em;
+  text-transform:uppercase;
+}
+#program .weeknav{
+  min-height:68px;
+  display:grid;
+  grid-template-columns:46px minmax(0,1fr) 46px;
+  align-items:center;
+  gap:10px;
+  margin-bottom:12px;
+  padding:10px;
+  border:1px solid var(--pg-line);
+  border-radius:21px;
+  background:
+    radial-gradient(circle at 92% 0%,color-mix(in srgb,var(--accent) 8%,transparent),transparent 36%),
+    linear-gradient(145deg,color-mix(in srgb,var(--glass) 97%,transparent),color-mix(in srgb,var(--fill) 90%,transparent));
+  box-shadow:var(--pg-shadow);
+}
+#program .weeknav>button{
+  width:46px;
+  height:46px;
+  display:grid;
+  place-items:center;
+  border:1px solid var(--pg-line);
+  border-radius:14px;
+  background:color-mix(in srgb,var(--glass-strong) 82%,var(--fill));
+  color:var(--label);
+  font-size:27px;
+  line-height:1;
+  cursor:pointer;
+}
+#program .weeknav .wk{
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  min-height:46px;
+  border-radius:14px;
+  cursor:pointer;
+}
+#program .weeknav .wk span{
+  font-size:clamp(16px,2vw,20px);
+  font-weight:800;
+  letter-spacing:-.03em;
+}
+#program .weeknav .wk small{
+  margin-top:2px;
+  color:var(--label-3);
+  font-size:10.5px;
+  font-weight:680;
+}
+
+/* Haftalık ilerleme / özet */
+#program .program-week-overview{
+  margin:0 0 10px;
+  border-radius:19px;
+}
+#program .program-fast-entry-hint{
+  margin:0 0 12px;
+  padding:10px 12px;
+  border:1px solid color-mix(in srgb,var(--accent) 13%,var(--pg-line));
+  border-radius:14px;
+  background:color-mix(in srgb,var(--accent) 5%,var(--glass));
+}
+#program .program-fast-entry-hint span{color:var(--accent);}
+#program .program-fast-entry-hint b{
+  min-height:23px;
+  display:inline-flex;
+  align-items:center;
+  padding:3px 7px;
+  border:1px solid var(--pg-line);
+  background:color-mix(in srgb,var(--glass-strong) 84%,var(--fill));
+}
+
+/* Ana program ızgarası */
+#program .scroller{
+  position:relative;
+  margin:0 0 8px;
+  padding:8px;
+  border:1px solid var(--pg-line);
+  border-radius:21px;
+  background:linear-gradient(145deg,color-mix(in srgb,var(--glass) 96%,transparent),color-mix(in srgb,var(--fill) 90%,transparent));
+  box-shadow:0 16px 40px -36px color-mix(in srgb,var(--label) 52%,transparent);
+  scrollbar-width:thin;
+  scrollbar-color:color-mix(in srgb,var(--accent) 25%,transparent) transparent;
+}
+#program .scroller::-webkit-scrollbar{height:8px;}
+#program .scroller::-webkit-scrollbar-track{background:transparent;}
+#program .scroller::-webkit-scrollbar-thumb{
+  border-radius:999px;
+  background:color-mix(in srgb,var(--accent) 22%,transparent);
+}
+#program .gtable{
+  min-width:760px;
+  border-radius:15px;
+  overflow:hidden;
+  border:1px solid color-mix(in srgb,var(--label) 6%,transparent);
+  background:color-mix(in srgb,var(--glass-strong) 68%,transparent);
+}
+#program .gcell{
+  position:relative;
+  min-height:48px;
+  border-color:color-mix(in srgb,var(--cell-line) 78%,transparent);
+  background:color-mix(in srgb,var(--cell) 94%,transparent);
+  transition:background .16s ease,box-shadow .16s ease,border-color .16s ease;
+}
+#program .gcell .gtx{
+  min-height:42px;
+  padding:7px 8px;
+  line-height:1.35;
+  border-radius:8px;
+}
+#program .gcell .gtx:focus{
+  background:color-mix(in srgb,var(--accent) 5%,var(--glass-strong));
+  box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--accent) 70%,transparent),0 0 0 3px color-mix(in srgb,var(--accent) 8%,transparent);
+}
+#program .gcell .tick{
+  min-width:30px;
+  min-height:30px;
+  border-radius:9px;
+}
+#program .gcell.today,
+#program .gtable .today{
+  background:color-mix(in srgb,var(--accent) 7%,var(--cell));
+}
+#program .gcell.done,
+#program .gcell.is-done{
+  background:color-mix(in srgb,var(--success) 7%,var(--cell));
+}
+
+/* Izgara altındaki manuel araçlar */
+#program .rowtools{
+  gap:7px;
+  margin:7px 0 15px;
+}
+#program .rowtools .btn{
+  min-height:36px;
+  border-radius:11px;
+  padding-inline:11px;
+  font-size:10.5px;
+  font-weight:730;
+}
+#program .fidbar{
+  margin:12px 0;
+  padding:10px 12px;
+  border:1px solid var(--pg-line);
+  border-radius:14px;
+  background:color-mix(in srgb,var(--glass) 78%,var(--fill));
+}
+
+/* Hazır kamp/şablonlar yardımcıdır; manuel programın önüne geçmez. */
+#program>.foldhead{
+  min-height:48px;
+  margin-top:10px;
+  border:1px solid var(--pg-line);
+  border-radius:15px;
+  background:color-mix(in srgb,var(--glass) 80%,var(--fill));
+}
+#program>.foldhead .ft{font-weight:760;}
+#program>.foldbody>.card{
+  border-color:var(--pg-line);
+  border-radius:19px;
+}
+
+/* Takvim */
+#program #progCal>.card{
+  padding:17px;
+  border:1px solid var(--pg-line);
+  border-radius:22px;
+  box-shadow:var(--pg-shadow);
+}
+#program .calnav{
+  min-height:46px;
+  display:grid;
+  grid-template-columns:42px minmax(0,1fr) 42px;
+  align-items:center;
+  gap:9px;
+  margin-bottom:12px;
+}
+#program .calnav>button{
+  width:42px;
+  height:42px;
+  border:1px solid var(--pg-line);
+  border-radius:12px;
+  background:color-mix(in srgb,var(--glass-strong) 78%,var(--fill));
+  color:var(--label);
+  font-size:23px;
+}
+#program .calnav .mo{
+  text-align:center;
+  font-size:16px;
+  font-weight:800;
+  letter-spacing:-.025em;
+}
+#program .cal{gap:5px;}
+#program .cal>*{
+  border-radius:10px;
+}
+#program .legend{
+  margin-top:12px;
+  color:var(--label-3);
+  font-size:10px;
+}
+#program #dayDetail,
+#program #procBox{
+  border-color:var(--pg-line);
+}
+
+@media (hover:hover) and (pointer:fine){
+  #program .weeknav>button,
+  #program .calnav>button,
+  #program .gcell{transition:transform .15s ease,background .16s ease,border-color .16s ease,box-shadow .16s ease;}
+  #program .weeknav>button:hover,
+  #program .calnav>button:hover{
+    transform:translateY(-1px);
+    border-color:color-mix(in srgb,var(--accent) 18%,var(--pg-line));
+    background:color-mix(in srgb,var(--accent) 6%,var(--glass-strong));
+  }
+  #program .gcell:hover{
+    background:color-mix(in srgb,var(--accent) 3%,var(--cell));
+  }
+}
+
+@media (min-width:900px){
+  #program .scroller{padding:10px;}
+  #program .gtable{min-width:0;width:100%;}
+  #program .rowtools{justify-content:flex-start;}
+  #program #progCal>.card{padding:20px;}
+}
+
+@media (max-width:759px){
+  .wrap:has(#program.active){padding-left:13px;padding-right:13px;}
+  #program .weeknav{grid-template-columns:42px minmax(0,1fr) 42px;padding:8px;border-radius:18px;}
+  #program .weeknav>button{width:42px;height:42px;border-radius:12px;}
+  #program .weeknav .wk span{font-size:16px;}
+  #program .scroller{margin-left:-2px;margin-right:-2px;padding:6px;border-radius:17px;}
+  #program .gtable{min-width:700px;}
+  #program .rowtools{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+  #program .rowtools .btn{width:100%;min-height:40px;}
+  #program .program-fast-entry-hint small{width:100%;}
+  #program #progCal>.card{padding:13px;border-radius:18px;}
+}
+
+@media (max-width:460px){
+  #program .rowtools{grid-template-columns:1fr;}
+  #program .plantitle{text-align:center;}
+}
+
+@media (pointer:coarse){
+  #program button,
+  #program .gcell .tick{min-height:44px;}
+  #program .gcell{min-height:54px;}
+  #program .gcell .gtx{min-height:46px;}
+}
+
+#program button:focus-visible,
+#program [contenteditable="true"]:focus-visible,
+#program input:focus-visible,
+#program select:focus-visible{
+  outline:3px solid color-mix(in srgb,var(--accent) 34%,transparent);
+  outline-offset:2px;
+}
+
+@media (prefers-reduced-motion:reduce){
+  #program .weeknav>button,
+  #program .calnav>button,
+  #program .gcell{transition:none!important;}
+}
