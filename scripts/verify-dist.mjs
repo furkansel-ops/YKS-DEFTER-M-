@@ -43,9 +43,10 @@ const [bundle,app,sw,versionText,recovery,stability,personal,progress,labV2,labV
   readFile(resolve(dist,"modules/ui-polish-final-v1.css"),"utf8")
 ]);
 if(!bundle.includes("YKS_V4_RELEASE_OK")||!bundle.includes("4.1.0")||!bundle.includes("stable"))throw new Error("v4 kararlı sürüm denetimi üretim paketine girmedi");
+if(!bundle.includes("__YKS_GLOBAL_SEARCH__")||!bundle.includes("v42GlobalSearchVersion"))throw new Error("v4.2 global arama çalışma zamanı üretim paketine girmedi");
 if(!bundle.includes("4.1.0-r20")||!/(?:assets\/manifest-[^"']+|manifest\.webmanifest)\?v=4\.1\.0-r20/.test(index))throw new Error("r20 PWA çalışma zamanı üretim paketine girmedi");
 if(!app.includes('const APP_VERSION="4.1.0"')||!app.includes('const APP_BUILD="4.1.0-r20"'))throw new Error("Kopyalanan app.js kararlı sürümle eşleşmiyor");
-if(!sw.includes('const APP_VERSION="4.1.0"')||!sw.includes('const APP_BUILD="4.1.0-r20"')||!sw.includes('const CACHE="yks-core-v4.1.0-r39"'))throw new Error("Kopyalanan service worker kararlı sürüm/cache revizyonuyla eşleşmiyor");
+if(!sw.includes('const APP_VERSION="4.1.0"')||!sw.includes('const APP_BUILD="4.1.0-r20"')||!sw.includes('const CACHE="yks-core-v4.1.0-r40"'))throw new Error("Kopyalanan service worker kararlı sürüm/cache revizyonuyla eşleşmiyor");
 if(!sw.includes('learning-lab.js?v=4.1.0-r26'))throw new Error("Laboratuvar favori düzeltmesi çevrimdışı çekirdekte eksik");
 const polishCore=["study-intelligence-v5.css","ui-polish-v1.css","ui-polish-home-v2.css","ui-polish-focus-v1.css","ui-polish-exam-v1.css","ui-polish-topics-v1.css","ui-polish-error-journal-v1.css","ui-polish-progress-v1.css","ui-polish-progress-v2.css","ui-polish-more-v1.css","ui-polish-program-v1.css","ui-polish-learning-lab-v1.css","ui-polish-final-v1.css"];
 for(const file of polishCore)if(!sw.includes(`${file}?v=4.1.0-r1`))throw new Error("Cila katmanı çevrimdışı çekirdekte eksik: "+file);
@@ -79,4 +80,4 @@ if(!recovery.includes('/YKS-DEFTER-M-/')||!recovery.includes('location.replace')
 let version;
 try{version=JSON.parse(versionText);}catch{throw new Error("Kopyalanan version.json geçerli JSON değil");}
 if(version?.version!=="4.1.0"||version?.build!=="4.1.0-r20"||version?.schema!==21)throw new Error("Kopyalanan version.json kararlı sürümle eşleşmiyor");
-console.log(`Üretim paketi doğrulandı: ${required.length} geçiş dosyası + TypeScript paketi + sürüm/PWA/final-cila/YKS+teknik-direktör/kişisel modül bütünlüğü`);
+console.log(`Üretim paketi doğrulandı: ${required.length} geçiş dosyası + TypeScript paketi + sürüm/PWA/final-cila/global-arama/YKS+teknik-direktör/kişisel modül bütünlüğü`);
