@@ -1,8 +1,14 @@
+import {readFile} from "node:fs/promises";
+import {resolve} from "node:path";
 import {pathToFileURL} from "node:url";
 
-const RELEASE_MARKER="4.1.0";
+const root=resolve(import.meta.dirname,"..");
+const localRelease=JSON.parse(await readFile(resolve(root,"version.json"),"utf8"));
+const RELEASE_MARKER=String(localRelease.version||"");
 const LEGACY_VERSION="4.1.0";
 const BUILD_MARKER="4.1.0-r20";
+
+if(!RELEASE_MARKER)throw new Error("Yerel release sürümü version.json içinden okunamadı");
 
 export function extractBundlePath(index){
   return index.match(/(?:src|href)=["'](?:\.\/)?(assets\/index-[^"']+\.js)["']/)?.[1]??null;
@@ -13,9 +19,9 @@ export function verifyLiveAssets({index,bundle,legacyApp}){
   if(!bundlePath)throw new Error("Canlı sayfada Vite JavaScript paketi bulunamadı");
   if(!index.includes('./app.js?v=4.1.0-r20')||!index.includes('./modules/release-selftest.js?v=4.1.0-r20'))throw new Error("Canlı sayfada beklenen çalışma zamanı dosyaları bağlı değil");
   if(/src=["']\.\/src\/main\.ts["']/.test(index))throw new Error("Canlı sayfa üretim paketi yerine TypeScript kaynak dosyasını kullanıyor");
-  if(!bundle.includes("YKS_V4_RELEASE_OK")||!bundle.includes(RELEASE_MARKER)||!bundle.includes("stable"))throw new Error("Canlı Vite paketi beklenen kararlı sürüm işaretlerini taşımıyor");
+  if(!bundle.includes("YKS_V4_RELEASE_OK")||!bundle.includes(RELEASE_MARKER)||!bundle.includes("stable"))throw new Error(`Canlı Vite paketi beklenen ${RELEASE_MARKER} kararlı sürüm işaretlerini taşımıyor`);
   if(!legacyApp.includes(`const APP_VERSION="${LEGACY_VERSION}"`))throw new Error("Canlı çalışma zamanı sürümü beklenen değerle eşleşmiyor");
-  if(!legacyApp.includes(`const APP_BUILD="${BUILD_MARKER}"`))throw new Error("Canlı PWA yapı sürümü beklenen değerle eşleşmiyor");
+  if(!legacyApp.includes(`const APP_BUILD="${BUILD_MARKER}"`))throw new Error("Canlı legacy yapı sürümü beklenen değerle eşleşmiyor");
   if(legacyApp.includes("\uFFFD"))throw new Error("Canlı çalışma zamanı bozuk UTF-8 karakteri içeriyor");
   return {bundlePath,release:RELEASE_MARKER,legacyVersion:LEGACY_VERSION,build:BUILD_MARKER};
 }
@@ -63,5 +69,5 @@ if(import.meta.url===invokedPath){
   const liveUrl=process.env.LIVE_URL||process.argv[2];
   if(!liveUrl)throw new Error("LIVE_URL ortam değişkeni veya URL argümanı gerekli");
   const result=await verifyLivePages(liveUrl);
-  console.log(`Canlı GitHub Pages doğrulandı: ${result.release}, yapı ${result.build}, ${result.bundlePath}`);
+  console.log(`Canlı GitHub Pages doğrulandı: ${result.release}, legacy yapı ${result.build}, ${result.bundlePath}`);
 }
