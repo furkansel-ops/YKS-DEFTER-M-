@@ -10,6 +10,7 @@ import {installLegacyExamAnalysisBridge} from "./domain/legacy-exam-analysis-bri
 import {installPwaRuntime} from "./pwa/pwa-runtime";
 import {installScienceCards} from "./ui/science-cards";
 import {installBiologyAtlas} from "./ui/biology-atlas-bridge";
+import {installRecoveryCenter} from "./ui/recovery-center";
 
 type BootstrapState={
   version:"4.1.0";
@@ -23,6 +24,7 @@ type BootstrapState={
   domainServices:true;
   stableRelease:true;
   backupBridge:true;
+  recoveryCenter:true;
   progressAnalysis:true;
   examAnalysis:true;
   pwaRuntime:true;
@@ -47,6 +49,7 @@ const bootstrap:BootstrapState={
   domainServices:true,
   stableRelease:true,
   backupBridge:true,
+  recoveryCenter:true,
   progressAnalysis:true,
   examAnalysis:true,
   pwaRuntime:true,
@@ -57,7 +60,8 @@ const services=installLegacyServiceBridge();
 const data=installLegacyDataBridge();
 installScienceCards();
 installBiologyAtlas();
-installLegacyBackupBridge(data,bootstrap.version);
+const backup=installLegacyBackupBridge(data,bootstrap.version);
+const recovery=installRecoveryCenter(data,backup);
 const domain=installLegacyDomainBridge();
 const progressAnalysis=installLegacyProgressAnalysisBridge();
 const examAnalysis=installLegacyExamAnalysisBridge();
@@ -69,6 +73,7 @@ window.__YKS_V4_BOOTSTRAP__=bootstrap;
 document.documentElement.dataset.v4Runtime="ready";
 document.documentElement.dataset.v4UiErrors=String(ui.validate().length);
 document.documentElement.dataset.v4DataErrors=String(data.validate().length);
+document.documentElement.dataset.v4RecoveryErrors=String(recovery.validate().length);
 document.documentElement.dataset.v4ScreenErrors=String(screens.validate().length);
 document.documentElement.dataset.v4ServiceErrors=String(services.validate().length);
 document.documentElement.dataset.v4DomainErrors=String(domain.validate().length);
