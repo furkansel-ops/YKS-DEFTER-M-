@@ -32,13 +32,16 @@ test("v4.3 Analiz Merkezi salt okunur kalır ve Program ya da kayıt katmanını
   assert.doesNotMatch(source,/\.rows\s*\[/);
 });
 
-test("v4.3 Analiz Merkezi TypeScript bootstrap, İlerleme ekranı ve tablet erişilebilirliğiyle bağlıdır",()=>{
-  const source=read("src/ui/analysis-center-v43.ts"),style=read("src/ui/analysis-center-v43.css"),main=read("src/main.ts"),progress=read("src/ui/screens/progress.ts");
+test("v4.3 Analiz Merkezi güvenli TypeScript runtime, İlerleme ekranı ve tablet erişilebilirliğiyle bağlıdır",()=>{
+  const source=read("src/ui/analysis-center-v43.ts"),style=read("src/ui/analysis-center-v43.css"),main=read("src/main.ts"),safe=read("src/ui/v43-safe-runtime.ts"),progress=read("src/ui/screens/progress.ts");
   assert.match(source,/import "\.\/analysis-center-v43\.css"/);
   assert.match(source,/role","img"/);
   assert.match(source,/aria-pressed/);
-  assert.match(main,/installAnalysisCenterV43/);
-  assert.match(main,/v43AnalysisErrors/);
+  assert.match(main,/installV43SafeRuntime/);
+  assert.doesNotMatch(main,/from "\.\/ui\/analysis-center-v43"/);
+  assert.match(safe,/import\("\.\/analysis-center-v43"\)/);
+  assert.match(safe,/installAnalysisCenterV43/);
+  assert.match(safe,/v43AnalysisErrors/);
   assert.match(progress,/renderAnalysisCenterV43\(\)/);
   assert.match(style,/@media\(max-width:980px\)/);
   assert.match(style,/@media\(pointer:coarse\)/);
