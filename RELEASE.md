@@ -1,5 +1,36 @@
 # YKS Defterim v4.1.0
 
+## FINAL · 30 Ağustos 2026
+
+YKS Defterim v4.1.0; çalışma zekâsı, 3B Biyoloji Atlası, deneme/hata analizi, PWA, Dexie veri katmanı ve tüm ana ekranların tablet/PC/mobil cilasını bir araya getiren kararlı sürümdür.
+
+### Final sürüm özeti
+
+- Bugün, Program, Konular, Deneme, İlerleme, Odak, Daha ve Öğrenme Laboratuvarı ekranları ortak premium tasarım diline getirildi.
+- Günün Sözü sistemi yalnız YKS/çalışma motivasyonu ve seçili teknik direktör sözlerini gösterir.
+- Akıllı Tekrar Merkezi, Hata Defteri 3.0 ve Deneme Analizi 2.0 güçlendirildi.
+- Program sistemi manuel kalır; çalışma zekâsı programa otomatik görev eklemez veya mevcut görevleri değiştirmez.
+- Biyoloji Atlası 2.0 toplam 9 organ ve 52 seçilebilir YKS yapısıyla çalışır. Kulak Atlas organ listesinden kaldırılmıştır; işitme/denge müfredat içeriği normal konu anlatımında korunur.
+- 3B Atlas ağır Three.js parçalarını normal uygulama açılışından ayrı yükler; WebGL/yükleme hatalarında kontrollü geri dönüş sağlar.
+- Dexie ana kayıt + localStorage güvenli ayna uzlaştırması, Firebase bulut JSON yolu ve yedek içe/dışa aktarma korumaları korunur.
+- Çok sık art arda çalışan eski `save()` çağrıları artık Dexie yazma kuyruğunu gereksiz büyütmez; son değişiklik kaybolmadan yazmalar birleştirilir.
+- Dexie başlatmasındaki beklenmedik hata kontrollü `warning` durumuna düşer; kontrolsüz promise reddi bırakılmaz.
+- PWA çevrimdışı durum kontrolündeki timeout ve MessageChannel kaynakları temizlenir; eski/yavaş async sonuç yeni UI durumunun üzerine yazamaz.
+- PWA cache çizgisi final UI turunda `r39` seviyesine ulaştı; üretim paketi ve canlı Pages doğrulaması CI tarafından kontrol edilir.
+- Node 22 ana çalışma tabanı ve Node 24 uyumluluk kapısı korunur.
+- TypeScript strict, `noUncheckedIndexedAccess`, `noFallthroughCasesInSwitch`, kaynak boyut bütçeleri ve salt-okunur CI korumaları aktiftir.
+- Final runtime hardening için ayrı regresyon testleri eklendi.
+
+### Son doğrulama
+
+Final runtime sağlamlaştırmasından sonraki son commit zinciri Node 22/24 üzerinde typecheck, tüm otomatik testler, üretim build'i, GitHub Pages build/deploy ve canlı sürüm doğrulamasından başarıyla geçti.
+
+Veri şeması: **21** (değişmedi)  
+Uygulama sürümü: **4.1.0**  
+Kanal: **stable**
+
+---
+
 Bu kararlı sürüm, çalışan v3 arayüzünü değiştirmeden Vite + TypeScript + Dexie altyapısına yapılan kademeli geçişin sonucudur.
 
 ## Çalışma zekâsı ve Atlas 2.0 güncellemesi
