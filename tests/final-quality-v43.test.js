@@ -6,25 +6,29 @@ const path=require("node:path");
 const root=path.resolve(__dirname,"..");
 const read=file=>fs.readFileSync(path.join(root,file),"utf8");
 
-test("v4.3 final release runtime yedi yeni ürün katmanını gerçek kurulum durumuyla doğrular",()=>{
-  const release=read("src/release/release.ts"),main=read("src/main.ts");
+test("v4.3 final release runtime yedi yeni ürün katmanını izole kurulum durumuyla doğrular",()=>{
+  const release=read("src/release/release.ts"),main=read("src/main.ts"),safe=read("src/ui/v43-safe-runtime.ts");
   const checks=[
-    ["v43-today","v43Today","v43TodayErrors"],
-    ["v43-analysis","v43Analysis","v43AnalysisErrors"],
-    ["v43-learning-cycle","v43LearningCycle","v43LearningCycleErrors"],
-    ["v43-lab-quiz","v43LabQuiz","v43LabQuizErrors"],
-    ["v43-navigation","v43Navigation","v43NavigationErrors"],
-    ["v43-personalization","v43Personalization","v43PersonalizationErrors"],
-    ["v43-focus-session-guard","v43FocusSessionGuard","v43FocusSessionGuardErrors"]
+    ["v43-today","v43Today","v43TodayErrors","today-v43"],
+    ["v43-analysis","v43Analysis","v43AnalysisErrors","analysis-center-v43"],
+    ["v43-learning-cycle","v43LearningCycle","v43LearningCycleErrors","learning-cycle-v43"],
+    ["v43-lab-quiz","v43LabQuiz","v43LabQuizErrors","lab-quiz-v43"],
+    ["v43-navigation","v43Navigation","v43NavigationErrors","navigation-v43"],
+    ["v43-personalization","v43Personalization","v43PersonalizationErrors","personalization-v43"],
+    ["v43-focus-session-guard","v43FocusSessionGuard","v43FocusSessionGuardErrors","focus-session-guard-v43"]
   ];
-  for(const [name,installed,error] of checks){
+  assert.match(main,/installV43SafeRuntime/);
+  for(const [name,installed,error,module] of checks){
     assert.ok(release.includes(`\"${name}\"`),name);
     assert.ok(release.includes(`\"${installed}\"`),installed);
     assert.ok(release.includes(`\"${error}\"`),error);
-    assert.ok(main.includes(`dataset.${installed}=`),installed);
-    assert.ok(main.includes(`dataset.${error}=`),error);
+    assert.ok(safe.includes(`dataset.${installed}=`)||safe.includes(`\"${installed}\"`),installed);
+    assert.ok(safe.includes(`dataset.${error}=`)||safe.includes(`\"${error}\"`),error);
+    assert.ok(safe.includes(`import(\"./${module}\")`),module);
   }
   assert.match(release,/v43Ready/);
+  assert.match(release,/v43-runtime/);
+  assert.match(release,/withTimeout\(runtime\.ready,12_000\)/);
 });
 
 test("production ve canlı Pages doğrulaması release kimliği sapmasını yakalar",()=>{
