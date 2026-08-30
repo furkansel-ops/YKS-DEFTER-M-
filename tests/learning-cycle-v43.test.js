@@ -38,7 +38,9 @@ test("v4.3 öğrenme döngüsü eski kayıtları değiştirmez ve Program mutasy
   assert.doesNotMatch(ui,/\baddToToday\s*\(/);assert.doesNotMatch(ui,/\baddToDay\s*\(/);assert.doesNotMatch(ui,/\.weeks\s*\[/);assert.doesNotMatch(ui,/\.rows\s*\[/);assert.doesNotMatch(ui,/\.save\s*\(/);
 });
 
-test("v4.3 öğrenme döngüsü bootstrap ve Deneme ekranı yenilemesine bağlıdır",()=>{
-  const main=read("src/main.ts"),screen=read("src/ui/screens/exams.ts"),css=read("src/ui/learning-cycle-v43.css");
-  assert.match(main,/installLearningCycleV43/);assert.match(main,/v43LearningCycleErrors/);assert.match(screen,/renderLearningCycleV43/);assert.match(css,/@media\(pointer:coarse\)/);assert.match(css,/prefers-reduced-motion:reduce/);assert.match(css,/focus-visible/);
+test("v4.3 öğrenme döngüsü güvenli runtime ve Deneme ekranı yenilemesine bağlıdır",()=>{
+  const main=read("src/main.ts"),safe=read("src/ui/v43-safe-runtime.ts"),screen=read("src/ui/screens/exams.ts"),css=read("src/ui/learning-cycle-v43.css");
+  assert.match(main,/installV43SafeRuntime/);assert.doesNotMatch(main,/from "\.\/ui\/learning-cycle-v43"/);
+  assert.match(safe,/import\("\.\/learning-cycle-v43"\)/);assert.match(safe,/installLearningCycleV43/);assert.match(safe,/v43LearningCycleErrors/);
+  assert.match(screen,/renderLearningCycleV43/);assert.match(css,/@media\(pointer:coarse\)/);assert.match(css,/prefers-reduced-motion:reduce/);assert.match(css,/focus-visible/);
 });
