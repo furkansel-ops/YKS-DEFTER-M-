@@ -31,12 +31,14 @@ test("v4.3 Today 2.0 collapses secondary information without writing study data"
   assert.doesNotMatch(source,/\baddToDay\s*\(/);
 });
 
-test("v4.3 Today 2.0 is installed by the TypeScript bootstrap and keeps tablet accessibility",()=>{
-  const main=read("src/main.ts");
-  const css=read("src/ui/today-v43.css");
-  assert.match(main,/installTodayV43/);
-  assert.match(main,/data(?:set)?\.v43Today|dataset\.v43Today/);
-  assert.match(main,/dataset\.v43TodayErrors/);
+test("v4.3 Today 2.0 güvenli TypeScript runtime tarafından yüklenir ve tablet erişilebilirliğini korur",()=>{
+  const main=read("src/main.ts"),safe=read("src/ui/v43-safe-runtime.ts"),css=read("src/ui/today-v43.css");
+  assert.match(main,/installV43SafeRuntime/);
+  assert.doesNotMatch(main,/from "\.\/ui\/today-v43"/);
+  assert.match(safe,/import\("\.\/today-v43"\)/);
+  assert.match(safe,/installTodayV43/);
+  assert.match(safe,/v43Today/);
+  assert.match(safe,/v43TodayErrors/);
   assert.match(css,/@media \(max-width:760px\)/);
   assert.match(css,/@media \(prefers-reduced-motion:reduce\)/);
   assert.match(css,/\[hidden\]/);
