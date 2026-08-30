@@ -74,6 +74,7 @@ export function installFocusSessionGuardV43():FocusSessionGuardV43Api{
 
   const requestPreparation=(mode:FocusStartMode):void=>{
     pendingMode=mode;subjectConfirmed=false;
+    legacy("v29ToggleMinimal")?.(false);
     const setup=setupCard(),message=ensureGateMessage();
     if(!setup||!message)return;
     setup.classList.add("v43-session-required");
