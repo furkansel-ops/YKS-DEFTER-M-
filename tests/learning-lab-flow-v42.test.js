@@ -40,6 +40,7 @@ test("Laboratuvar akışı Program verisini değiştirmez ve 3B modeli önden y�
   assert.match(stability,/learning-lab-flow-v42\.js\?v=4\.2\.0-r1/);
   assert.match(sw,/progress-v42\.js\?v=4\.2\.0-r1/);
   assert.match(sw,/learning-lab-flow-v42\.js\?v=4\.2\.0-r1/);
-  assert.match(sw,/const CACHE="yks-core-v4\.1\.0-r40"/);
-  assert.match(sw,/yks-core-v4\.1\.0-r39/);
+  assert.match(sw,/const CACHE="yks-core-v4\.2\.0-r1"/);
+  assert.match(sw,/yks-core-v4\.1\.0-r40/);
+  assert.doesNotMatch(sw,/anatomy\/models\/[^"']+\.glb/);
 });
