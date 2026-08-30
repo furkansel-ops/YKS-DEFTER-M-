@@ -29,6 +29,16 @@ test("her v4.3 özelliği ayrı dynamic import ve hata sınırında yüklenir",(
   assert.match(source,/dataset\.v43Runtime=report\.ok\?"ready":"degraded"/);
 });
 
+test("ekran modülleri v4.3 ürün chunklarını başlangıç paketine geri çekmez",()=>{
+  const safe=read("src/ui/v43-safe-runtime.ts"),progress=read("src/ui/screens/progress.ts"),exams=read("src/ui/screens/exams.ts");
+  assert.doesNotMatch(progress,/from "\.\.\/analysis-center-v43"/);
+  assert.doesNotMatch(exams,/from "\.\.\/learning-cycle-v43"/);
+  assert.match(progress,/__YKS_V43_RENDER_ANALYSIS__/);
+  assert.match(exams,/__YKS_V43_RENDER_LEARNING_CYCLE__/);
+  assert.match(safe,/__YKS_V43_RENDER_ANALYSIS__=mod\.renderAnalysisCenterV43/);
+  assert.match(safe,/__YKS_V43_RENDER_LEARNING_CYCLE__=mod\.renderLearningCycleV43/);
+});
+
 test("tek özellik arızası çekirdek bootstrap veya Firebase girişini bloke edemez",()=>{
   const main=read("src/main.ts"),safe=read("src/ui/v43-safe-runtime.ts"),html=read("index.html");
   assert.match(main,/const services=installLegacyServiceBridge\(\)/);
