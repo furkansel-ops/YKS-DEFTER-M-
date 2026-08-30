@@ -43,7 +43,7 @@ test("komut paleti klavye, yönlendirme, konu odağı ve erişilebilirlik sözle
   assert.match(runtime,/ArrowDown/);assert.match(runtime,/ArrowUp/);assert.match(runtime,/Enter/);assert.match(runtime,/Escape/);
   assert.match(runtime,/window\.openGlobalSearch=open/);assert.match(runtime,/window\.__YKS_GLOBAL_SEARCH__=api/);
   assert.match(runtime,/window\.__YKS_UI__/);assert.match(runtime,/focusTopic/);assert.match(runtime,/topicSearch/);
-  assert.match(runtime,/aria-modal/);assert.match(runtime,/role=\\"listbox\\"/);
+  assert.match(runtime,/aria-modal/);assert.match(runtime,/role="listbox"/);
   assert.match(css,/@media \(max-width:759px\)/);assert.match(css,/pointer:coarse/);assert.match(css,/prefers-reduced-motion:reduce/);
   assert.match(main,/installGlobalSearch/);assert.match(main,/v42GlobalSearchVersion/);
 });
