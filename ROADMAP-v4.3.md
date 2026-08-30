@@ -93,13 +93,29 @@ v4.3.0'ın ana hedefi yeni özellik yığmak değil; mevcut güçlü modülleri 
 - İlk CI denemesinde yalnız yeni testteki fazla dar metin eşleşmesi yakalandı; uygulama koduna dokunmadan test gerçek sözleşmeyi kontrol edecek şekilde düzeltildi.
 - Son doğrulamada Node 22/24, TypeScript strict, **253/253 test** ve production Vite build başarıyla geçti.
 
-## Aşama 6 — Kişiselleştirilebilir görünüm
+## Aşama 6 — Kişiselleştirilebilir görünüm ✅
 
-**Durum:** Sıradaki.
+**Durum:** Tamamlandı.
 
-- Ana ekran kartlarını göster/gizle ve sınav kapsamını kişisel kullanıma göre sadeleştirme.
+- Merkez → Ayarlar içine yeni `Kişiselleştirme` paneli eklendi; varsayılan ayarlar mevcut v4.3 görünümünü aynen koruyor.
+- Kullanıcı TYT / AYT / YDT kapsamını ayrı ayrı açıp kapatabiliyor; en az bir sınav türünün açık kalması zorunlu tutuluyor.
+- Sınav kapsamı yalnız görünümü sadeleştiriyor; kapatılan türün eski konu, deneme, yanlış, tekrar veya çalışma kayıtları silinmiyor.
+- Seçilen kapsam Konular, Deneme analiz filtresi, Deneme giriş türü, Öğrenme Laboratuvarı, Odak sınav simülasyonları ve v4.3 Analiz Merkezi üzerinde birlikte uygulanıyor.
+- Görünmez hale getirilen bir sınav türü o anda aktifse arayüz ilk açık sınav türüne güvenli biçimde geçiriliyor; BRANŞ denemeleri bu kapsamdan etkilenmiyor.
+- Bugün ekranı için beş görünürlük seçeneği eklendi: Günün sözü, hızlı işlemler, Bugün kontrol merkezi, Bugünün programı ve uyarılar.
+- YKS sayacı ve temel günlük özet kişiselleştirme dışında bırakılarak ana ekranın çekirdek işlevi her zaman görünür tutuldu.
+- `Varsayılana dön` ile tüm sınav türleri ve Bugün kartları tek işlemde yeniden açılıyor.
+- Tercihler ayrı bir tarayıcı anahtarına yazılmak yerine mevcut `studyPrefs.personalizationV43` alanında tutuluyor ve mevcut `YKSLegacyState.save()` zincirinden geçiyor; böylece şema 21 korunurken Dexie/localStorage/Firebase/yedek hattıyla birlikte taşınıyor.
+- Yeni katman Program satırlarını, konu durumunu veya deneme kayıtlarını otomatik değiştirmiyor.
+- Analiz Merkezi kişiselleştirme olayını dinleyerek görünür TYT/AYT/YDT sekmelerini anında yeniden oluşturuyor.
+- Tablet/dar ekran, coarse-pointer, klavye odağı, canlı durum metni ve azaltılmış hareket erişilebilirliği eklendi.
+- Aşama 6 için 4 yeni regresyon testi eklendi.
+- İlk strict TypeScript turunda `unknown` tercih kayıtlarının indekslenmesi yakalandı; kayıtlar açıkça daraltılarak tip güvenli hale getirildi.
+- Son doğrulamada Node 22/24, TypeScript strict, **257/257 test** ve production Vite build başarıyla geçti.
 
 ## Aşama 7 — Legacy kod modülerleştirme
+
+**Durum:** Sıradaki.
 
 - Büyük `app.js` çekirdeğini bir kerede yeniden yazmadan ekran bazlı TypeScript modüllerine kademeli çıkarma.
 - Her taşıma mevcut regresyon kapısından geçer.
@@ -115,8 +131,8 @@ v4.3.0'ın ana hedefi yeni özellik yığmak değil; mevcut güçlü modülleri 
 3. Hata → Öğren → Tekrar ✅
 4. Laboratuvar 3.0 / Quiz ✅
 5. Navigasyon + Daha temizliği ✅
-6. Kişiselleştirilebilir görünüm
+6. Kişiselleştirilebilir görünüm ✅
 7. Legacy modülerleştirme
 8. Final kalite kapısı
 
-**Durum: 5/8 tamamlandı.**
+**Durum: 6/8 tamamlandı.**
