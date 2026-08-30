@@ -49,12 +49,15 @@ v4.2.0'ın amacı yeni özellik eklemekten çok, mevcut güçlü altyapıyı dah
 - “Net arttı ama aynı hata devam ediyor” gibi açıklanabilir sinyaller; yalnız kayıtlı veriden üretilir.
 - Gelecek net veya sınav sonucu için tahmin/garanti üretilmez ve Program'a otomatik görev eklenmez.
 
-## Aşama 5 — İlerleme 3.0
+## Aşama 5 — İlerleme 3.0 ✅
 
-- Haftalık ve aylık çalışma sürekliliği karşılaştırması.
-- Ders bazlı net değişimi ile çalışma süresini aynı bağlamda gösterme.
-- Hazır / pekiştiriliyor / tekrar gerekli konu dağılımının zaman içindeki değişimi.
-- Büyük veri listelerinde DOM çizimini sınırlayan performans korumaları.
+**Durum:** Tamamlandı.
+
+- Son 7 gün / önceki 7 gün ve son 30 gün / önceki 30 gün çalışma sürekliliği; aktif gün, çalışma süresi ve soru farkları birlikte gösterilir.
+- Ders bazlı son 30 günlük çalışma süresi ile aynı dönemin deneme net ortalaması aynı satırda karşılaştırılır; önceki 30 güne göre süre ve net değişimi açıklanır.
+- Öğreniliyor / pekiştiriliyor / hazır / tekrar gerekli konu dağılımı günlük sağlık snapshotlarıyla zaman içinde izlenir; v4.2 öncesi geçmiş uydurulmaz.
+- Konu sağlık snapshotları en fazla 120 gün tutulur; ekranda en fazla 8 ders ve 14 sağlık günü çizilerek büyük veri listelerinde DOM yükü sınırlandırılır.
+- İlerleme analizi Program verisini değiştirmez; Program manuel kalır.
 
 ## Aşama 6 — Öğrenme Laboratuvarı 2.0 kullanım akışı
 
@@ -84,7 +87,7 @@ v4.2.0'ın amacı yeni özellik eklemekten çok, mevcut güçlü altyapıyı dah
 2. Akıllı Tekrar Merkezi 2.0 ✅
 3. Hata Defteri bağlantıları ✅
 4. Deneme Analizi 3.0 ✅
-5. İlerleme 3.0
+5. İlerleme 3.0 ✅
 6. Öğrenme Laboratuvarı kullanım akışı
 7. Veri güvenliği 2.0
 8. Final kalite taraması
