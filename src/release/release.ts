@@ -79,6 +79,7 @@ export function createReleaseRuntime(host:Window,documentRef:Document):ReleaseAp
     await add("v43-lab-quiz",()=>v43Ready("v43LabQuiz","v43LabQuizErrors"));
     await add("v43-navigation",()=>v43Ready("v43Navigation","v43NavigationErrors"));
     await add("v43-personalization",()=>v43Ready("v43Personalization","v43PersonalizationErrors"));
+    await add("v43-focus-session-guard",()=>v43Ready("v43FocusSessionGuard","v43FocusSessionGuardErrors"));
     await add("seven-screens",()=>documentRef.querySelectorAll(".screen").length===SCREEN_IDS.length);
     await add("one-active-screen",()=>documentRef.querySelectorAll(".screen.active").length===1);
     await add("legacy-release",()=>typeof host.runReleaseSelfTest==="function"&&host.runReleaseSelfTest().ok);
