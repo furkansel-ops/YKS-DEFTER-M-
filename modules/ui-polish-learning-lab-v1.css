@@ -1,0 +1,647 @@
+/* YKS Defterim · Öğrenme Laboratuvarı premium cila v1
+   Yalnızca görsel/etkileşim katmanı. Ders, konu, bilim kartı, periyodik tablo,
+   kronoloji ve Biyoloji Atlası veri/hesap/3B davranışını değiştirmez. */
+
+#mrp_lab{
+  --lab-max:1180px;
+  --lab-line:color-mix(in srgb,var(--label) 8%,transparent);
+  --lab-line-strong:color-mix(in srgb,var(--label) 13%,transparent);
+  --lab-surface:color-mix(in srgb,var(--glass) 94%,var(--fill));
+  --lab-soft:color-mix(in srgb,var(--fill) 82%,transparent);
+  --lab-shadow:0 2px 8px rgba(10,14,30,.04),0 28px 72px -48px color-mix(in srgb,var(--label) 52%,transparent);
+  width:min(100%,var(--lab-max));
+  margin-inline:auto;
+}
+
+/* Laboratuvar üst alanı */
+#mrp_lab>.v30-subhead{
+  position:relative;
+  overflow:hidden;
+  min-height:92px;
+  align-items:center;
+  margin-bottom:16px;
+  padding:16px 18px;
+  border:1px solid var(--lab-line);
+  border-radius:24px;
+  background:
+    radial-gradient(circle at 94% 0%,color-mix(in srgb,var(--accent) 13%,transparent),transparent 36%),
+    radial-gradient(circle at 74% 120%,color-mix(in srgb,var(--success) 9%,transparent),transparent 38%),
+    linear-gradient(145deg,color-mix(in srgb,var(--glass) 98%,transparent),color-mix(in srgb,var(--fill) 90%,transparent));
+  box-shadow:var(--lab-shadow);
+}
+#mrp_lab>.v30-subhead h1{
+  margin:0;
+  font-size:clamp(28px,3.5vw,38px);
+  font-weight:790;
+  letter-spacing:-.045em;
+}
+#mrp_lab>.v30-subhead p{
+  margin-top:4px;
+  color:var(--label-2);
+  font-size:12px;
+}
+#mrp_lab>.v30-subhead .v30-back{
+  min-height:42px;
+  border:1px solid var(--lab-line);
+  border-radius:13px;
+  background:color-mix(in srgb,var(--glass-strong) 78%,var(--fill));
+}
+
+#mrp_lab .v320-lab{margin:0 0 26px;}
+#mrp_lab .v320-head{
+  align-items:center;
+  gap:18px;
+  margin:0 0 12px;
+  padding:0 3px;
+}
+#mrp_lab .v320-head h2{
+  margin:2px 0 0;
+  padding:0;
+  font-size:clamp(21px,2.5vw,27px);
+  font-weight:780;
+  letter-spacing:-.035em;
+}
+#mrp_lab .v320-head .hint{
+  max-width:720px;
+  margin-top:6px;
+  font-size:11.5px;
+  line-height:1.5;
+}
+#mrp_lab .v320-lab-summary{gap:7px;}
+#mrp_lab .v320-lab-summary span{
+  min-height:32px;
+  display:inline-flex;
+  align-items:center;
+  padding:6px 10px;
+  border:1px solid var(--lab-line);
+  border-radius:999px;
+  background:color-mix(in srgb,var(--glass) 76%,var(--fill));
+  color:var(--label-2);
+  font-size:10px;
+  font-weight:720;
+}
+
+/* Ders ve konu tarayıcısı */
+#mrp_lab .v320-course-browser{
+  position:relative;
+  overflow:hidden;
+  padding:18px;
+  border:1px solid var(--lab-line);
+  border-radius:24px;
+  background:
+    radial-gradient(circle at 98% 0%,color-mix(in srgb,var(--accent) 7%,transparent),transparent 31%),
+    linear-gradient(145deg,color-mix(in srgb,var(--glass) 98%,transparent),color-mix(in srgb,var(--fill) 91%,transparent));
+  box-shadow:var(--lab-shadow);
+}
+#mrp_lab .v320-exam-tabs{
+  min-height:48px;
+  padding:4px;
+  margin-bottom:15px;
+  border:1px solid var(--lab-line);
+  border-radius:15px;
+  background:color-mix(in srgb,var(--fill) 75%,transparent);
+}
+#mrp_lab .v320-exam-tabs button{
+  min-height:38px;
+  border-radius:11px;
+  font-weight:800;
+}
+#mrp_lab .v320-browser-head{
+  min-height:48px;
+  margin:2px 0 11px;
+  padding-bottom:10px;
+  border-bottom:1px solid var(--lab-line);
+}
+#mrp_lab .v320-browser-head b{
+  font-size:18px;
+  font-weight:780;
+  letter-spacing:-.025em;
+}
+#mrp_lab .v320-browser-head small{
+  margin-top:4px;
+  font-size:10.5px;
+  line-height:1.4;
+}
+#mrp_lab .v4-lab-course-tools{
+  gap:9px;
+  margin:0 0 9px;
+  padding:9px;
+  border:1px solid var(--lab-line);
+  border-radius:16px;
+  background:color-mix(in srgb,var(--glass) 72%,var(--fill));
+}
+#mrp_lab .v4-lab-course-tools input[type="search"]{
+  min-height:44px;
+  margin:0;
+  border-radius:12px;
+  background:color-mix(in srgb,var(--glass-strong) 88%,var(--fill));
+}
+#mrp_lab .v320-only-fav{
+  min-height:42px;
+  padding:7px 10px;
+  border:1px solid var(--lab-line);
+  border-radius:11px;
+  background:var(--lab-soft);
+  font-weight:710;
+}
+#mrp_lab .v320-only-fav input{width:17px;height:17px;accent-color:var(--accent);}
+#mrp_lab .v327-result-meta{
+  min-height:20px;
+  margin:7px 2px 10px;
+  color:var(--label-3);
+  font-size:10px;
+  font-weight:680;
+}
+
+#mrp_lab .v320-subject-grid{gap:10px;}
+#mrp_lab .v320-subject-card{
+  position:relative;
+  overflow:hidden;
+  min-height:98px;
+  padding:14px 15px;
+  border:1px solid var(--lab-line);
+  border-radius:17px;
+  background:linear-gradient(145deg,color-mix(in srgb,var(--glass) 96%,transparent),color-mix(in srgb,var(--fill) 88%,transparent));
+  box-shadow:0 13px 30px -30px color-mix(in srgb,var(--label) 48%,transparent);
+  transition:transform .16s ease,border-color .18s ease,box-shadow .18s ease,background .18s ease;
+}
+#mrp_lab .v320-subject-card::after{
+  content:"";
+  position:absolute;
+  width:82px;
+  height:82px;
+  right:-34px;
+  bottom:-39px;
+  border-radius:50%;
+  pointer-events:none;
+  background:radial-gradient(circle,color-mix(in srgb,var(--accent) 9%,transparent),transparent 69%);
+}
+#mrp_lab .v320-subject-card span,
+#mrp_lab .v320-subject-card b,
+#mrp_lab .v320-subject-card small,
+#mrp_lab .v320-subject-card i{position:relative;z-index:1;}
+#mrp_lab .v320-subject-card span{font-size:9.5px;letter-spacing:.04em;text-transform:uppercase;}
+#mrp_lab .v320-subject-card b{font-size:13.5px;line-height:1.35;}
+#mrp_lab .v320-subject-card small{font-size:10px;line-height:1.4;}
+#mrp_lab .v320-subject-card i{font-size:24px;}
+
+#mrp_lab .v320-browser-back{
+  min-height:40px;
+  display:inline-flex;
+  align-items:center;
+  padding:5px 9px;
+  margin-bottom:6px;
+  border:1px solid var(--lab-line);
+  border-radius:11px;
+  background:var(--lab-soft);
+}
+#mrp_lab .v320-topic-grid{gap:8px;margin-top:11px;}
+#mrp_lab .v4-topic-row,
+#mrp_lab .v4-topic-result{
+  border:1px solid var(--lab-line);
+  border-radius:14px;
+  background:color-mix(in srgb,var(--glass) 89%,var(--fill));
+  box-shadow:0 9px 24px -25px color-mix(in srgb,var(--label) 42%,transparent);
+}
+#mrp_lab .v320-topic-card{min-height:58px;padding:10px 12px;}
+#mrp_lab .v320-topic-card span{
+  width:30px;
+  height:30px;
+  border-radius:9px;
+  background:color-mix(in srgb,var(--accent) 7%,var(--fill));
+}
+#mrp_lab .v320-topic-card b{font-size:12.5px;line-height:1.4;}
+#mrp_lab .v4-topic-fav{
+  width:36px;
+  height:36px;
+  border:1px solid var(--lab-line);
+  border-radius:11px;
+}
+
+/* Seçili konu rehberi */
+#mrp_lab .v320-topic-selection{
+  margin-top:15px;
+  border:1px solid var(--lab-line);
+  border-radius:20px;
+  background:color-mix(in srgb,var(--glass) 92%,var(--fill));
+  box-shadow:0 14px 36px -34px color-mix(in srgb,var(--label) 48%,transparent);
+}
+#mrp_lab .v326-guide-head{
+  padding:18px;
+  background:
+    radial-gradient(circle at 94% 0%,color-mix(in srgb,var(--accent) 10%,transparent),transparent 40%),
+    linear-gradient(135deg,color-mix(in srgb,var(--accent) 7%,var(--glass)),transparent);
+}
+#mrp_lab .v326-guide-head h2{font-size:20px;letter-spacing:-.03em;}
+#mrp_lab .v326-guide-badge{padding:7px 10px;}
+#mrp_lab .v326-guide-grid{gap:9px;padding:13px;}
+#mrp_lab .v326-guide-block{
+  padding:14px;
+  border:1px solid var(--lab-line);
+  border-radius:14px;
+  background:color-mix(in srgb,var(--glass) 72%,var(--fill));
+}
+#mrp_lab .v326-guide-title span{width:28px;height:28px;}
+#mrp_lab .v326-guide-title h3{font-size:12.5px;}
+#mrp_lab .v326-guide-block li{font-size:11px;line-height:1.55;}
+#mrp_lab .v326-guide-sources{padding:14px 18px;}
+#mrp_lab .v326-source-links a{min-height:34px;display:inline-flex;align-items:center;border-radius:10px;}
+
+/* Hazır araçlar ana çalışma yüzeyi */
+#mrp_lab .v320-toolbox{
+  margin-top:16px;
+  padding:0;
+  border:1px solid var(--lab-line);
+  border-radius:23px;
+  background:linear-gradient(145deg,color-mix(in srgb,var(--glass) 95%,transparent),color-mix(in srgb,var(--fill) 90%,transparent));
+  box-shadow:var(--lab-shadow);
+  overflow:hidden;
+}
+#mrp_lab .v320-toolbox>summary{
+  min-height:54px;
+  display:flex;
+  align-items:center;
+  padding:14px 17px;
+  border:0;
+  border-radius:0;
+  background:color-mix(in srgb,var(--glass-strong) 68%,var(--fill));
+  font-size:13px;
+  font-weight:800;
+}
+#mrp_lab .v320-toolbox[open]>summary{
+  margin:0;
+  border-bottom:1px solid var(--lab-line);
+}
+#mrp_lab .v320-toolbox>.v320-tabs,
+#mrp_lab .v320-toolbox>.v4lab-main-tabs{
+  margin:13px 13px 12px;
+  padding:5px;
+  border:1px solid var(--lab-line);
+  border-radius:16px;
+  background:var(--lab-soft);
+}
+#mrp_lab .v4lab-main-tabs button{
+  min-height:46px;
+  border-radius:11px;
+  font-size:10.5px;
+  font-weight:790;
+  line-height:1.25;
+}
+#mrp_lab #v320PanelPeriodic,
+#mrp_lab #v320PanelTimeline,
+#mrp_lab #v320PanelScience,
+#mrp_lab #v320PanelAtlas{
+  padding:3px 14px 16px;
+}
+
+/* Araç giriş başlıkları */
+#mrp_lab .v327-tool-intro,
+#mrp_lab .v4-science-head,
+#mrp_lab .v4-timeline-upgrade{
+  border:1px solid var(--lab-line);
+  border-radius:17px;
+  background:color-mix(in srgb,var(--glass) 78%,var(--fill));
+}
+#mrp_lab .v327-tool-intro{padding:12px 13px;}
+#mrp_lab .v327-tool-intro b,
+#mrp_lab .v4-science-head b{font-weight:780;letter-spacing:-.02em;}
+
+/* Bilim kartları */
+#mrp_lab .v4-science-head{padding:14px;margin:0 0 11px;}
+#mrp_lab .v4-science-switch button{
+  min-height:38px;
+  padding:7px 12px;
+  border:1px solid var(--lab-line);
+}
+#mrp_lab .v4-science-grid{gap:10px;}
+#mrp_lab .v4-science-card{
+  min-height:132px;
+  padding:14px;
+  border:1px solid var(--lab-line);
+  border-radius:17px;
+  background:linear-gradient(145deg,color-mix(in srgb,var(--glass) 94%,transparent),color-mix(in srgb,var(--fill) 89%,transparent));
+  box-shadow:0 12px 30px -29px color-mix(in srgb,var(--label) 46%,transparent);
+}
+#mrp_lab .v4-science-card>i{
+  width:42px;
+  height:42px;
+  display:grid;
+  place-items:center;
+  flex:0 0 42px;
+  border-radius:13px;
+  background:color-mix(in srgb,var(--accent) 8%,var(--fill));
+  font-size:25px;
+}
+#mrp_lab .v4-science-card b{font-size:13.5px;}
+#mrp_lab .v4-science-card p{font-size:11px;line-height:1.5;}
+#mrp_lab .v4-science-card small,
+#mrp_lab .v4-science-card em{font-size:10px;line-height:1.45;}
+
+/* Periyodik tablo */
+#mrp_lab .v4-periodic-study{gap:11px;}
+#mrp_lab .v4-periodic-trends{gap:8px;}
+#mrp_lab .v4-trend-card{
+  min-height:92px;
+  padding:11px;
+  border:1px solid var(--lab-line);
+  border-radius:14px;
+  background:color-mix(in srgb,var(--glass) 78%,var(--fill));
+}
+#mrp_lab .v4-trend-card i{font-size:24px;}
+#mrp_lab .v4-trend-card b{font-size:11.5px;}
+#mrp_lab .v4-periodic-filterbar,
+#mrp_lab .v320-toolbar{
+  gap:8px;
+  padding:9px;
+  border:1px solid var(--lab-line);
+  border-radius:15px;
+  background:color-mix(in srgb,var(--glass) 74%,var(--fill));
+}
+#mrp_lab .v320-toolbar input,
+#mrp_lab .v320-toolbar select,
+#mrp_lab .v4-periodic-filterbar select,
+#mrp_lab .v4-periodic-filterbar button{
+  min-height:42px;
+  border-radius:11px;
+}
+#mrp_lab .v320-periodic-layout{gap:12px;}
+#mrp_lab .v320-element-grid{
+  gap:6px;
+  padding:9px;
+  border:1px solid var(--lab-line);
+  border-radius:17px;
+  background:color-mix(in srgb,var(--fill) 66%,transparent);
+}
+#mrp_lab .v320-element{
+  min-height:64px;
+  padding:7px;
+  border:1px solid var(--lab-line);
+  border-radius:11px;
+  box-shadow:0 5px 14px -14px color-mix(in srgb,var(--label) 45%,transparent);
+  transition:transform .14s ease,border-color .16s ease,background .16s ease;
+}
+#mrp_lab .v320-element.active{
+  border-color:color-mix(in srgb,var(--accent) 72%,transparent);
+  box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 10%,transparent);
+}
+#mrp_lab .v320-element-detail{
+  top:72px;
+  padding:16px;
+  border:1px solid var(--lab-line);
+  border-radius:18px;
+  box-shadow:0 16px 38px -34px color-mix(in srgb,var(--label) 48%,transparent);
+}
+#mrp_lab .v320-element-symbol{font-size:52px;letter-spacing:-.05em;}
+#mrp_lab .v4-yks-trend-panel,
+#mrp_lab .v4-element-yks-detail{
+  border:1px solid var(--lab-line);
+  border-radius:15px;
+}
+
+/* Kronoloji */
+#mrp_lab .v4-timeline-upgrade{
+  padding:15px;
+  margin:0 0 13px;
+  background:
+    radial-gradient(circle at 94% 0%,color-mix(in srgb,var(--accent) 8%,transparent),transparent 36%),
+    color-mix(in srgb,var(--glass) 78%,var(--fill));
+}
+#mrp_lab .v4-timeline-overview button{
+  min-height:52px;
+  border:1px solid var(--lab-line);
+  border-radius:12px;
+}
+#mrp_lab .v4-timeline-stats>div{
+  min-height:60px;
+  border:1px solid var(--lab-line);
+  border-radius:12px;
+  background:color-mix(in srgb,var(--glass) 68%,var(--fill));
+}
+#mrp_lab #v320Timeline.v4-history-timeline .v320-event{
+  padding:13px 14px;
+  border:1px solid var(--lab-line);
+  border-radius:15px;
+  background:color-mix(in srgb,var(--glass) 88%,var(--fill));
+  box-shadow:0 12px 28px -27px color-mix(in srgb,var(--label) 44%,transparent);
+}
+#mrp_lab #v320Timeline .v320-event b{font-size:13.5px;}
+#mrp_lab #v320Timeline .v320-event p{font-size:11px;line-height:1.52;}
+
+/* Biyoloji Atlası — 3B çalışma alanını daha güçlü bir laboratuvar yüzeyine çevir. */
+#mrp_lab #v320PanelAtlas{
+  --atlas-line:color-mix(in srgb,var(--label) 9%,transparent);
+  --atlas-soft:color-mix(in srgb,var(--atlas-teal) 9%,var(--fill));
+  padding-top:4px;
+}
+#mrp_lab #v320PanelAtlas .atlas-header{
+  position:relative;
+  overflow:hidden;
+  align-items:center;
+  padding:16px 17px;
+  margin-bottom:12px;
+  border:1px solid var(--lab-line);
+  border-radius:19px;
+  background:
+    radial-gradient(circle at 95% 0%,color-mix(in srgb,var(--atlas-teal) 12%,transparent),transparent 36%),
+    linear-gradient(145deg,color-mix(in srgb,var(--glass) 96%,transparent),color-mix(in srgb,var(--fill) 88%,transparent));
+}
+#mrp_lab #v320PanelAtlas .atlas-header h2{font-size:clamp(23px,2.8vw,30px);letter-spacing:-.04em;}
+#mrp_lab #v320PanelAtlas .atlas-mode-switch{
+  padding:4px;
+  border:1px solid var(--lab-line);
+  background:color-mix(in srgb,var(--fill) 75%,transparent);
+}
+#mrp_lab #v320PanelAtlas .atlas-mode-switch button{min-height:38px;border-radius:10px;}
+#mrp_lab #v320PanelAtlas .atlas-layout{grid-template-columns:235px minmax(0,1fr);gap:14px;}
+#mrp_lab #v320PanelAtlas .atlas-sidebar{
+  position:sticky;
+  top:72px;
+  padding:13px;
+  border:1px solid var(--lab-line);
+  border-radius:18px;
+  background:color-mix(in srgb,var(--glass) 88%,var(--fill));
+  box-shadow:0 13px 32px -31px color-mix(in srgb,var(--label) 48%,transparent);
+}
+#mrp_lab #v320PanelAtlas #atlasIndex{gap:6px;scrollbar-width:thin;}
+#mrp_lab #v320PanelAtlas #atlasIndex button{
+  min-height:58px;
+  border:1px solid transparent;
+  border-radius:12px;
+}
+#mrp_lab #v320PanelAtlas #atlasIndex button[aria-pressed="true"]{
+  border-color:color-mix(in srgb,var(--atlas-teal) 40%,transparent);
+  background:color-mix(in srgb,var(--atlas-teal) 9%,var(--glass));
+}
+#mrp_lab #v320PanelAtlas .atlas-content{
+  padding:18px;
+  border:1px solid var(--lab-line);
+  border-radius:21px;
+  background:linear-gradient(145deg,color-mix(in srgb,var(--glass) 98%,transparent),color-mix(in srgb,var(--fill) 91%,transparent));
+  box-shadow:var(--lab-shadow);
+}
+#mrp_lab #v320PanelAtlas .atlas-lesson-head{margin-bottom:15px;}
+#mrp_lab #v320PanelAtlas .atlas-lesson-head h3{font-size:clamp(20px,2.3vw,25px);letter-spacing:-.035em;}
+#mrp_lab #v320PanelAtlas .atlas-workbench,
+#mrp_lab #v320PanelAtlas .atlas-organ-workbench{gap:13px;}
+#mrp_lab #v320PanelAtlas .atlas-figure,
+#mrp_lab #v320PanelAtlas .atlas-model-stage{
+  border:1px solid var(--lab-line);
+  border-radius:18px;
+  box-shadow:inset 0 1px 0 color-mix(in srgb,var(--glass-edge) 45%,transparent),0 14px 32px -32px color-mix(in srgb,var(--label) 50%,transparent);
+}
+#mrp_lab #v320PanelAtlas .atlas-model-stage{
+  min-height:360px;
+  background:
+    radial-gradient(circle at 50% 42%,color-mix(in srgb,var(--atlas-coral) 13%,transparent),transparent 47%),
+    linear-gradient(145deg,color-mix(in srgb,var(--glass) 94%,var(--bg)),var(--bg));
+}
+#mrp_lab #v320PanelAtlas .atlas-explanation,
+#mrp_lab #v320PanelAtlas .atlas-organ-explanation{
+  border:1px solid var(--lab-line);
+  border-radius:17px;
+  background:color-mix(in srgb,var(--glass) 70%,var(--fill));
+}
+#mrp_lab #v320PanelAtlas .atlas-structure-list{gap:8px;}
+#mrp_lab #v320PanelAtlas .atlas-structure-list button,
+#mrp_lab #v320PanelAtlas .atlas-stage-roadmap button{
+  border:1px solid var(--lab-line);
+  border-radius:11px;
+  background:color-mix(in srgb,var(--glass) 76%,var(--fill));
+}
+#mrp_lab #v320PanelAtlas .atlas-structure-list button.is-must-know{
+  border-color:color-mix(in srgb,var(--atlas-gold) 28%,var(--lab-line));
+  background:color-mix(in srgb,var(--atlas-gold) 7%,var(--glass));
+}
+#mrp_lab #v320PanelAtlas .atlas-yks-focus{gap:9px;}
+#mrp_lab #v320PanelAtlas .atlas-yks-card{
+  border:1px solid var(--lab-line);
+  border-radius:15px;
+  background:color-mix(in srgb,var(--glass) 76%,var(--atlas-soft));
+}
+#mrp_lab #v320PanelAtlas button.atlas-model-point{width:46px;height:46px;min-height:46px;}
+#mrp_lab #v320PanelAtlas .atlas-model-dot{
+  width:27px;
+  height:27px;
+  box-shadow:0 3px 11px color-mix(in srgb,var(--atlas-teal) 30%,transparent);
+}
+#mrp_lab #v320PanelAtlas .atlas-model-point-name{
+  border:1px solid var(--lab-line);
+  border-radius:10px;
+  background:color-mix(in srgb,var(--glass-strong) 94%,var(--bg));
+  box-shadow:0 6px 18px -13px color-mix(in srgb,var(--label) 50%,transparent);
+}
+#mrp_lab #v320PanelAtlas .atlas-trap{
+  border-radius:0 13px 13px 0;
+  box-shadow:0 8px 22px -23px color-mix(in srgb,var(--atlas-gold) 60%,transparent);
+}
+
+/* Etkileşim / erişilebilirlik */
+#mrp_lab :is(button,input,select,textarea,a):focus-visible{
+  outline:3px solid color-mix(in srgb,var(--accent) 70%,transparent);
+  outline-offset:2px;
+}
+@media (hover:hover) and (pointer:fine){
+  #mrp_lab .v320-subject-card:hover,
+  #mrp_lab .v4-topic-row:hover,
+  #mrp_lab .v4-topic-result:hover,
+  #mrp_lab .v4-science-card:hover,
+  #mrp_lab .v320-element:hover{
+    transform:translateY(-1px);
+    border-color:color-mix(in srgb,var(--accent) 24%,var(--lab-line));
+    box-shadow:0 16px 32px -29px color-mix(in srgb,var(--label) 48%,transparent);
+  }
+  #mrp_lab #v320PanelAtlas #atlasIndex button:hover,
+  #mrp_lab #v320PanelAtlas .atlas-structure-list button:hover,
+  #mrp_lab #v320PanelAtlas .atlas-stage-roadmap button:hover{
+    border-color:color-mix(in srgb,var(--atlas-teal) 34%,var(--lab-line));
+    background:color-mix(in srgb,var(--atlas-teal) 6%,var(--glass));
+  }
+}
+
+/* Büyük tablet / PC */
+@media (min-width:1050px){
+  #mrp_lab .v320-subject-grid{grid-template-columns:repeat(4,minmax(0,1fr));}
+  #mrp_lab .v320-topic-grid,
+  #mrp_lab .v4-lab-search-results{grid-template-columns:repeat(2,minmax(0,1fr));}
+  #mrp_lab .v4-science-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+  #mrp_lab #v320PanelAtlas .atlas-content{container-type:inline-size;}
+}
+
+/* Tablet */
+@media (max-width:900px){
+  #mrp_lab .v320-subject-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+  #mrp_lab .v4-periodic-trends{grid-template-columns:repeat(3,minmax(0,1fr));}
+  #mrp_lab #v320PanelAtlas .atlas-layout{grid-template-columns:1fr;}
+  #mrp_lab #v320PanelAtlas .atlas-sidebar{
+    position:static;
+    grid-template-columns:1fr 1fr;
+  }
+  #mrp_lab #v320PanelAtlas #atlasCount,
+  #mrp_lab #v320PanelAtlas #atlasIndex{grid-column:1/-1;}
+  #mrp_lab #v320PanelAtlas #atlasIndex{grid-template-columns:repeat(3,minmax(0,1fr));max-height:190px;}
+}
+
+/* Telefon */
+@media (max-width:620px){
+  #mrp_lab{width:100%;}
+  #mrp_lab>.v30-subhead{min-height:0;align-items:flex-start;padding:14px;border-radius:20px;}
+  #mrp_lab>.v30-subhead h1{font-size:27px;}
+  #mrp_lab .v320-head{align-items:flex-start;flex-direction:column;gap:8px;}
+  #mrp_lab .v320-lab-summary{justify-content:flex-start;}
+  #mrp_lab .v320-course-browser{padding:13px;border-radius:20px;}
+  #mrp_lab .v4-lab-course-tools{align-items:stretch;flex-direction:column;}
+  #mrp_lab .v320-only-fav{width:100%;}
+  #mrp_lab .v320-subject-grid,
+  #mrp_lab .v320-topic-grid,
+  #mrp_lab .v4-lab-search-results,
+  #mrp_lab .v4-science-grid{grid-template-columns:1fr;}
+  #mrp_lab .v320-subject-card{min-height:82px;}
+  #mrp_lab .v326-guide-grid{grid-template-columns:1fr;}
+  #mrp_lab .v320-toolbox>.v320-tabs,
+  #mrp_lab .v320-toolbox>.v4lab-main-tabs{grid-template-columns:repeat(2,minmax(0,1fr));}
+  #mrp_lab #v320PanelPeriodic,
+  #mrp_lab #v320PanelTimeline,
+  #mrp_lab #v320PanelScience,
+  #mrp_lab #v320PanelAtlas{padding-inline:10px;}
+  #mrp_lab .v4-periodic-trends{grid-template-columns:repeat(2,minmax(0,1fr));}
+  #mrp_lab .v320-element-grid{grid-template-columns:repeat(4,minmax(44px,1fr));padding:7px;}
+  #mrp_lab .v320-element{min-height:59px;}
+  #mrp_lab #v320PanelAtlas .atlas-header{align-items:flex-start;padding:14px;}
+  #mrp_lab #v320PanelAtlas .atlas-mode-switch{width:100%;}
+  #mrp_lab #v320PanelAtlas .atlas-mode-switch button{flex:1;}
+  #mrp_lab #v320PanelAtlas .atlas-sidebar{grid-template-columns:1fr;}
+  #mrp_lab #v320PanelAtlas #atlasCount,
+  #mrp_lab #v320PanelAtlas #atlasIndex{grid-column:1;}
+  #mrp_lab #v320PanelAtlas #atlasIndex{grid-template-columns:repeat(2,minmax(0,1fr));}
+  #mrp_lab #v320PanelAtlas .atlas-content{padding:12px;border-radius:18px;}
+  #mrp_lab #v320PanelAtlas .atlas-model-stage{min-height:320px;}
+  #mrp_lab #v320PanelAtlas .atlas-structure-list{grid-template-columns:repeat(2,minmax(0,1fr));}
+}
+
+@media (max-width:390px){
+  #mrp_lab .v320-element-grid{grid-template-columns:repeat(3,minmax(44px,1fr));}
+  #mrp_lab #v320PanelAtlas .atlas-structure-list{grid-template-columns:1fr;}
+}
+
+@media (pointer:coarse){
+  #mrp_lab .v320-subject-card,
+  #mrp_lab .v320-topic-card,
+  #mrp_lab .v4-topic-fav,
+  #mrp_lab .v4lab-main-tabs button,
+  #mrp_lab .v4-science-switch button,
+  #mrp_lab .v320-element,
+  #mrp_lab #v320PanelAtlas button{min-height:44px;}
+}
+
+@media (prefers-reduced-motion:reduce){
+  #mrp_lab .v320-subject-card,
+  #mrp_lab .v4-topic-row,
+  #mrp_lab .v4-topic-result,
+  #mrp_lab .v4-science-card,
+  #mrp_lab .v320-element{transition:none!important;}
+  #mrp_lab .v320-subject-card:hover,
+  #mrp_lab .v4-topic-row:hover,
+  #mrp_lab .v4-topic-result:hover,
+  #mrp_lab .v4-science-card:hover,
+  #mrp_lab .v320-element:hover{transform:none!important;}
+}
