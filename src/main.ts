@@ -13,13 +13,7 @@ import {installPwaRuntime} from "./pwa/pwa-runtime";
 import {installScienceCards} from "./ui/science-cards";
 import {installBiologyAtlas} from "./ui/biology-atlas-bridge";
 import {installRecoveryCenter} from "./ui/recovery-center";
-import {installTodayV43} from "./ui/today-v43";
-import {installAnalysisCenterV43} from "./ui/analysis-center-v43";
-import {installLearningCycleV43} from "./ui/learning-cycle-v43";
-import {installLabQuizV43} from "./ui/lab-quiz-v43";
-import {installNavigationV43} from "./ui/navigation-v43";
-import {installPersonalizationV43} from "./ui/personalization-v43";
-import {installFocusSessionGuardV43} from "./ui/focus-session-guard-v43";
+import {installV43SafeRuntime} from "./ui/v43-safe-runtime";
 
 type BootstrapState={
   version:typeof RELEASE_VERSION;
@@ -69,11 +63,12 @@ const bootstrap:BootstrapState={
   startedAt:Date.now()
 };
 
+/* Çekirdek açılış zinciri yalnız kararlı altyapı modüllerinden oluşur.
+   v4.3 ürün katmanları aşağıda, bootstrap tamamlandıktan sonra ayrı fail-open sınırlarında yüklenir. */
 const services=installLegacyServiceBridge();
 const data=installLegacyDataBridge();
 installScienceCards();
 installBiologyAtlas();
-const labQuizV43=installLabQuizV43();
 const backup=installLegacyBackupBridge(data,RELEASE_VERSION);
 const recovery=installRecoveryCenter(data,backup);
 const domain=installLegacyDomainBridge();
@@ -82,13 +77,6 @@ const examAnalysis=installLegacyExamAnalysisBridge();
 const pwa=installPwaRuntime(RELEASE_BUILD);
 const screens=installScreenRuntime();
 const ui=installLegacyUiBridge(screens);
-const todayV43=installTodayV43();
-const analysisCenterV43=installAnalysisCenterV43();
-const learningCycleV43=installLearningCycleV43();
-const navigationV43=installNavigationV43();
-const personalizationV43=installPersonalizationV43();
-const focusSessionGuardV43=installFocusSessionGuardV43();
-const release=installReleaseRuntime();
 window.__YKS_V4_BOOTSTRAP__=bootstrap;
 installReleaseOverlay();
 document.documentElement.dataset.v4Runtime="ready";
@@ -101,21 +89,11 @@ document.documentElement.dataset.v4DomainErrors=String(domain.validate().length)
 document.documentElement.dataset.v4ProgressAnalysisErrors=String(progressAnalysis.validate().length);
 document.documentElement.dataset.v4ExamAnalysisErrors=String(examAnalysis.validate().length);
 document.documentElement.dataset.v4PwaBuild=pwa.build;
-document.documentElement.dataset.v4ReleaseVersion=release.version;
-document.documentElement.dataset.v43Today=String(todayV43.installed);
-document.documentElement.dataset.v43TodayErrors=String(todayV43.validate().length);
-document.documentElement.dataset.v43Analysis=String(analysisCenterV43.installed);
-document.documentElement.dataset.v43AnalysisErrors=String(analysisCenterV43.validate().length);
-document.documentElement.dataset.v43LearningCycle=String(learningCycleV43.installed);
-document.documentElement.dataset.v43LearningCycleErrors=String(learningCycleV43.validate().length);
-document.documentElement.dataset.v43LabQuiz=String(labQuizV43.installed);
-document.documentElement.dataset.v43LabQuizErrors=String(labQuizV43.validate().length);
-document.documentElement.dataset.v43Navigation=String(navigationV43.installed);
-document.documentElement.dataset.v43NavigationErrors=String(navigationV43.validate().length);
-document.documentElement.dataset.v43Personalization=String(personalizationV43.installed);
-document.documentElement.dataset.v43PersonalizationErrors=String(personalizationV43.validate().length);
-document.documentElement.dataset.v43FocusSessionGuard=String(focusSessionGuardV43.installed);
-document.documentElement.dataset.v43FocusSessionGuardErrors=String(focusSessionGuardV43.validate().length);
 window.dispatchEvent(new CustomEvent<BootstrapState>("yks:v4-bootstrap",{detail:bootstrap}));
+
+const v43Runtime=installV43SafeRuntime();
+document.documentElement.dataset.v43RuntimeHost=String(v43Runtime.installed);
+const release=installReleaseRuntime();
+document.documentElement.dataset.v4ReleaseVersion=release.version;
 
 export {};
