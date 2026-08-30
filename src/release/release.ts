@@ -33,7 +33,6 @@ type V43RuntimeApiLike={ready:Promise<V43RuntimeReportLike>};
 declare global{
   interface Window{
     __YKS_RELEASE__?:ReleaseApi;
-    __YKS_V43_RUNTIME__?:V43RuntimeApiLike;
     runReleaseSelfTest?:()=>LegacyReleaseResult;
   }
 }
@@ -77,7 +76,7 @@ export function createReleaseRuntime(host:Window,documentRef:Document):ReleaseAp
     await add("backup-recovery",()=>host.__YKS_BACKUP__?.version==="2.0.0"&&documentRef.documentElement.dataset.v4RecoveryErrors==="0");
     await add("pwa-build",()=>host.__YKS_PWA__?.build===RELEASE_BUILD);
     await add("v43-runtime",async()=>{
-      const runtime=host.__YKS_V43_RUNTIME__;
+      const runtime=(host as Window&{__YKS_V43_RUNTIME__?:V43RuntimeApiLike}).__YKS_V43_RUNTIME__;
       if(!runtime)return false;
       const report=await withTimeout(runtime.ready,12_000);
       return report.ok&&documentRef.documentElement.dataset.v43Runtime==="ready"&&documentRef.documentElement.dataset.v43RuntimeErrors==="0";
