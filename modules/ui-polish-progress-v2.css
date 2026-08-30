@@ -1,0 +1,252 @@
+/* YKS Defterim · İlerleme ekranı premium cila v2
+   Modern v4 ilerleme özetini ana karar yüzeyi haline getirir.
+   Hesaplama, kayıt ve Program davranışına dokunmaz. */
+
+#progress{
+  --pr2-line:color-mix(in srgb,var(--label) 8%,transparent);
+  --pr2-surface:color-mix(in srgb,var(--glass) 94%,var(--fill));
+}
+
+/* Ana modern özet ve ayrıntı alanı diğer ilerleme yüzeyleriyle aynı genişlikte. */
+#progress>.v4-progress-overview,
+#progress>.v4-progress-details{
+  width:min(100%,var(--pr-max,1120px));
+  margin-left:auto;
+  margin-right:auto;
+}
+
+#progress>.v4-progress-overview{
+  position:relative;
+  overflow:hidden;
+  margin-top:0;
+  margin-bottom:18px;
+  padding:20px;
+  border:1px solid color-mix(in srgb,var(--accent) 14%,var(--pr2-line));
+  border-radius:24px;
+  background:
+    radial-gradient(circle at 93% 0%,color-mix(in srgb,var(--accent) 13%,transparent),transparent 34%),
+    radial-gradient(circle at 78% 112%,color-mix(in srgb,var(--success) 10%,transparent),transparent 34%),
+    linear-gradient(145deg,color-mix(in srgb,var(--glass) 98%,transparent),color-mix(in srgb,var(--fill) 88%,transparent));
+  box-shadow:0 3px 10px rgba(10,14,30,.04),0 30px 72px -48px color-mix(in srgb,var(--label) 55%,transparent);
+}
+#progress>.v4-progress-overview::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:inherit;
+  pointer-events:none;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--glass-edge) 62%,transparent),transparent 34%);
+  opacity:.55;
+}
+#progress>.v4-progress-overview>*{position:relative;z-index:1;}
+
+#progress .v4-progress-overview-head{align-items:center;gap:16px;}
+#progress .v4-progress-eyebrow{
+  color:var(--accent);
+  font-size:10px;
+  font-weight:850;
+  letter-spacing:.075em;
+}
+#progress .v4-progress-overview-head h2{
+  margin-top:4px;
+  padding:0;
+  font-size:clamp(20px,2.3vw,27px);
+  font-weight:790;
+  letter-spacing:-.04em;
+}
+#progress .v4-progress-overview-head h2::after{display:none;}
+#progress .v4-data-badge{
+  min-height:30px;
+  display:inline-flex;
+  align-items:center;
+  padding:6px 10px;
+  border:1px solid var(--pr2-line);
+  background:color-mix(in srgb,var(--glass) 72%,var(--fill));
+  font-size:10px;
+  font-weight:820;
+}
+#progress .v4-data-badge.ready{border-color:color-mix(in srgb,var(--success) 22%,transparent);}
+#progress .v4-data-badge.limited{border-color:color-mix(in srgb,var(--accent) 22%,transparent);}
+
+#progress .v4-progress-kpis{
+  gap:9px;
+  margin-top:17px;
+}
+#progress .v4-progress-kpi{
+  position:relative;
+  overflow:hidden;
+  min-height:82px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  padding:12px 13px;
+  border:1px solid var(--pr2-line);
+  border-radius:15px;
+  background:color-mix(in srgb,var(--glass) 72%,var(--fill));
+}
+#progress .v4-progress-kpi::after{
+  content:"";
+  position:absolute;
+  width:64px;
+  height:64px;
+  right:-24px;
+  bottom:-28px;
+  border-radius:50%;
+  pointer-events:none;
+  background:radial-gradient(circle,color-mix(in srgb,var(--accent) 9%,transparent),transparent 70%);
+}
+#progress .v4-progress-kpi strong,
+#progress .v4-progress-kpi span{position:relative;z-index:1;}
+#progress .v4-progress-kpi strong{
+  font-size:clamp(16px,1.8vw,20px);
+  font-weight:820;
+  letter-spacing:-.03em;
+}
+#progress .v4-progress-kpi span{margin-top:5px;font-size:10px;font-weight:690;}
+#progress .v4-progress-kpi.up{
+  border-color:color-mix(in srgb,var(--success) 18%,transparent);
+  background:color-mix(in srgb,var(--success-soft) 64%,var(--glass));
+}
+#progress .v4-progress-kpi.down{
+  border-color:color-mix(in srgb,var(--danger) 17%,transparent);
+  background:color-mix(in srgb,var(--danger-soft) 54%,var(--glass));
+}
+#progress .v4-progress-kpi.flat{background:color-mix(in srgb,var(--glass) 72%,var(--fill));}
+
+#progress .v4-progress-insights{
+  gap:7px;
+  margin-top:14px;
+  padding-top:13px;
+  border-top:1px solid var(--pr2-line);
+}
+#progress .v4-progress-insights p{
+  min-height:28px;
+  align-items:start;
+  grid-template-columns:18px minmax(0,1fr);
+  gap:4px;
+  padding:5px 7px;
+  border-radius:10px;
+  font-size:11.5px;
+  line-height:1.48;
+}
+#progress .v4-progress-insights p:hover{background:color-mix(in srgb,var(--fill) 70%,transparent);}
+#progress .v4-progress-insights i{font-size:16px;line-height:15px;}
+
+/* Ana 2 sütun dashboard içeriğini daha kolay taranır yap. */
+#progress #v4SubjectInsights .v4-subject-callouts{gap:9px;}
+#progress .v4-subject-callout{
+  min-height:92px;
+  padding:12px;
+  border:1px solid var(--pr2-line);
+  border-radius:14px;
+  background:color-mix(in srgb,var(--glass) 68%,var(--fill));
+}
+#progress .v4-subject-callout.strong{
+  border-color:color-mix(in srgb,var(--success) 18%,transparent);
+  background:color-mix(in srgb,var(--success-soft) 62%,var(--glass));
+}
+#progress .v4-subject-callout.attention{
+  border-color:color-mix(in srgb,var(--danger) 17%,transparent);
+  background:color-mix(in srgb,var(--danger-soft) 50%,var(--glass));
+}
+#progress .v4-subject-callout-top span{
+  font-size:9.5px;
+  font-weight:760;
+  text-transform:uppercase;
+  letter-spacing:.035em;
+}
+#progress .v4-subject-callout-top strong{font-size:14.5px;line-height:1.3;}
+#progress .v4-subject-callout p{font-size:10.5px;line-height:1.48;}
+#progress .v4-subject-list{margin-top:10px;padding-top:3px;}
+#progress .v4-subject-line{min-height:42px;align-items:center;padding:8px 1px;}
+#progress .v4-subject-line b{font-size:12px;}
+#progress .v4-subject-line span{font-size:10.5px;line-height:1.4;}
+
+#progress .v4-mini-grid{gap:9px;}
+#progress .v4-mini-metric{
+  min-height:70px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  padding:11px 12px;
+  border:1px solid var(--pr2-line);
+  border-radius:13px;
+  background:color-mix(in srgb,var(--glass) 68%,var(--fill));
+}
+#progress .v4-mini-metric strong{
+  font-size:17px;
+  line-height:1.2;
+  font-weight:800;
+  letter-spacing:-.025em;
+}
+#progress .v4-mini-metric span{margin-top:4px;font-size:10px;font-weight:680;}
+#progress .v4-simple-progress{
+  height:8px;
+  margin-top:12px;
+  background:color-mix(in srgb,var(--fill-2) 82%,transparent);
+}
+#progress .v4-simple-progress i{
+  background:linear-gradient(90deg,var(--success),color-mix(in srgb,var(--accent) 45%,var(--success)));
+  box-shadow:0 0 12px color-mix(in srgb,var(--success) 18%,transparent);
+}
+
+/* Ayrıntılar açıkken de ana dashboarddan kopuk görünmesin. */
+#progress>.v4-progress-details{
+  margin-top:18px;
+  padding-top:10px;
+  border-top:1px solid var(--pr2-line);
+}
+#progress>.v4-progress-details>summary{
+  min-height:48px;
+  padding:12px 15px;
+  border:1px solid var(--pr2-line);
+  border-radius:15px;
+  background:color-mix(in srgb,var(--glass) 76%,var(--fill));
+  box-shadow:0 10px 28px -27px color-mix(in srgb,var(--label) 44%,transparent);
+}
+#progress>.v4-progress-details[open]>summary{
+  border-color:color-mix(in srgb,var(--accent) 20%,var(--pr2-line));
+  background:color-mix(in srgb,var(--accent) 6%,var(--glass));
+}
+
+@media (hover:hover) and (pointer:fine){
+  #progress .v4-progress-kpi,
+  #progress .v4-subject-callout,
+  #progress .v4-mini-metric{transition:transform .16s ease,border-color .18s ease,box-shadow .18s ease;}
+  #progress .v4-progress-kpi:hover,
+  #progress .v4-subject-callout:hover,
+  #progress .v4-mini-metric:hover{
+    transform:translateY(-1px);
+    border-color:color-mix(in srgb,var(--accent) 16%,var(--pr2-line));
+    box-shadow:0 14px 28px -27px color-mix(in srgb,var(--label) 48%,transparent);
+  }
+}
+
+@media (max-width:759px){
+  #progress>.v4-progress-overview{padding:16px;border-radius:20px;margin-bottom:14px;}
+  #progress .v4-progress-overview-head{align-items:flex-start;}
+  #progress .v4-progress-kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;}
+  #progress .v4-progress-kpi{min-height:76px;padding:10px;}
+  #progress .v4-subject-callouts{grid-template-columns:1fr;}
+  #progress .v4-subject-callout{min-height:0;}
+  #progress>.v4-progress-details{margin-top:14px;}
+}
+
+@media (max-width:430px){
+  #progress .v4-progress-overview-head{display:grid;grid-template-columns:minmax(0,1fr);gap:9px;}
+  #progress .v4-data-badge{justify-self:start;}
+  #progress .v4-progress-overview-head h2{font-size:20px;}
+  #progress .v4-progress-kpi strong{font-size:15px;}
+  #progress .v4-subject-line{display:grid;grid-template-columns:minmax(0,1fr);gap:4px;}
+  #progress .v4-subject-line span{text-align:left;}
+}
+
+@media (pointer:coarse){
+  #progress>.v4-progress-details>summary{min-height:48px;}
+}
+
+@media (prefers-reduced-motion:reduce){
+  #progress .v4-progress-kpi,
+  #progress .v4-subject-callout,
+  #progress .v4-mini-metric{transition:none!important;}
+}
