@@ -35,8 +35,9 @@ test("etiketsiz sınama model isimlerini gizler ama dokunma hedeflerini ve eriş
   assert.match(css,/pointer:coarse/);assert.match(css,/prefers-reduced-motion:reduce/);
 });
 
-test("Laboratuvar 3.0 quiz bootstrapa bağlıdır ve Program ya da çalışma verisine yazmaz",()=>{
-  const ui=read("src/ui/lab-quiz-v43.ts"),main=read("src/main.ts");
-  assert.match(main,/installLabQuizV43/);assert.match(main,/v43LabQuiz/);assert.match(main,/v43LabQuizErrors/);
+test("Laboratuvar 3.0 quiz güvenli runtime'a bağlıdır ve Program ya da çalışma verisine yazmaz",()=>{
+  const ui=read("src/ui/lab-quiz-v43.ts"),main=read("src/main.ts"),safe=read("src/ui/v43-safe-runtime.ts");
+  assert.match(main,/installV43SafeRuntime/);assert.doesNotMatch(main,/from "\.\/ui\/lab-quiz-v43"/);
+  assert.match(safe,/import\("\.\/lab-quiz-v43"\)/);assert.match(safe,/installLabQuizV43/);assert.match(safe,/v43LabQuiz/);assert.match(safe,/v43LabQuizErrors/);
   assert.doesNotMatch(ui,/\blocalStorage\b/);assert.doesNotMatch(ui,/\bsave\s*\(/);assert.doesNotMatch(ui,/\baddToToday\s*\(/);assert.doesNotMatch(ui,/\baddToDay\s*\(/);assert.doesNotMatch(ui,/\.weeks\s*\[/);assert.doesNotMatch(ui,/\.rows\s*\[/);
 });
