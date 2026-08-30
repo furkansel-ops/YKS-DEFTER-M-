@@ -43,10 +43,10 @@ const [bundle,app,sw,versionText,recovery,stability,personal,progress,labV2,labV
   readFile(resolve(dist,"modules/ui-polish-learning-lab-v1.css"),"utf8"),
   readFile(resolve(dist,"modules/ui-polish-final-v1.css"),"utf8")
 ]);
-if(!bundle.includes("YKS_V4_RELEASE_OK")||!bundle.includes("4.1.0")||!bundle.includes("stable"))throw new Error("v4 kararlı sürüm denetimi üretim paketine girmedi");
-if(!bundle.includes("4.1.0-r20")||!/(?:assets\/manifest-[^"']+|manifest\.webmanifest)\?v=4\.1\.0-r20/.test(index))throw new Error("r20 PWA çalışma zamanı üretim paketine girmedi");
-if(!app.includes('const APP_VERSION="4.1.0"')||!app.includes('const APP_BUILD="4.1.0-r20"'))throw new Error("Kopyalanan app.js kararlı sürümle eşleşmiyor");
-if(!sw.includes('const APP_VERSION="4.1.0"')||!sw.includes('const APP_BUILD="4.1.0-r20"')||!sw.includes('const CACHE="yks-core-v4.1.0-r40"'))throw new Error("Kopyalanan service worker kararlı sürüm/cache revizyonuyla eşleşmiyor");
+if(!bundle.includes("YKS_V4_RELEASE_OK")||!bundle.includes("4.2.0")||!bundle.includes("stable")||!bundle.includes("v42ReleaseOverlay"))throw new Error("v4.2 kararlı sürüm denetimi üretim paketine girmedi");
+if(!bundle.includes("4.2.0-r1")||!bundle.includes("4.1.0-r20")||!/(?:assets\/manifest-[^"']+|manifest\.webmanifest)\?v=4\.1\.0-r20/.test(index))throw new Error("v4.2 release / legacy PWA kabuk sınırı üretim paketinde eksik");
+if(!app.includes('const APP_VERSION="4.1.0"')||!app.includes('const APP_BUILD="4.1.0-r20"'))throw new Error("Korunan legacy app.js çekirdek sürümü beklenen değer değil");
+if(!sw.includes('const APP_VERSION="4.2.0"')||!sw.includes('const APP_BUILD="4.2.0-r1"')||!sw.includes('const CACHE="yks-core-v4.2.0-r1"'))throw new Error("Kopyalanan service worker v4.2 kararlı sürüm/cache revizyonuyla eşleşmiyor");
 if(!sw.includes('learning-lab.js?v=4.1.0-r26'))throw new Error("Laboratuvar favori düzeltmesi çevrimdışı çekirdekte eksik");
 const v42Runtime=["global-search-v42.js","smart-repeat-v42.js","error-topic-lab-v42.js","exam-analysis-v42.js","progress-v42.js","learning-lab-flow-v42.js"];
 for(const file of v42Runtime){
@@ -84,5 +84,5 @@ if(!sw.includes("Response.redirect(appRootUrl(),302)")||!sw.includes("self.regis
 if(!recovery.includes('/YKS-DEFTER-M-/')||!recovery.includes('location.replace'))throw new Error("GitHub Pages 404 kurtarma sayfası doğru uygulama köküne yönlendirmiyor");
 let version;
 try{version=JSON.parse(versionText);}catch{throw new Error("Kopyalanan version.json geçerli JSON değil");}
-if(version?.version!=="4.1.0"||version?.build!=="4.1.0-r20"||version?.schema!==21)throw new Error("Kopyalanan version.json kararlı sürümle eşleşmiyor");
-console.log(`Üretim paketi doğrulandı: ${required.length} geçiş dosyası + TypeScript paketi + sürüm/PWA/final-cila/YKS+teknik-direktör/kişisel/v4.2 modül bütünlüğü`);
+if(version?.version!=="4.2.0"||version?.build!=="4.2.0-r1"||version?.schema!==21)throw new Error("Kopyalanan version.json v4.2 kararlı sürümle eşleşmiyor");
+console.log(`Üretim paketi doğrulandı: ${required.length} geçiş dosyası + TypeScript paketi + v4.2 sürüm/PWA/final-cila/YKS+teknik-direktör/kişisel modül bütünlüğü`);
