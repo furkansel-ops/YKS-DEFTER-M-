@@ -1,5 +1,6 @@
 type FeatureApi={installed:boolean;validate():string[]};
 type FeatureStatus={name:string;installed:boolean;errors:number};
+type RenderBridge=()=>boolean|void;
 
 export interface V43RuntimeReport{
   ok:boolean;
@@ -17,6 +18,8 @@ export interface V43RuntimeApi{
 declare global{
   interface Window{
     __YKS_V43_RUNTIME__?:V43RuntimeApi;
+    __YKS_V43_RENDER_ANALYSIS__?:RenderBridge;
+    __YKS_V43_RENDER_LEARNING_CYCLE__?:RenderBridge;
   }
 }
 
@@ -25,17 +28,11 @@ function publishFeature(installedKey:string,errorKey:string,api:FeatureApi|null,
   const installed=!!api?.installed&&errors===0;
   document.documentElement.dataset[installedKey]=String(installed);
   document.documentElement.dataset[errorKey]=String(errors);
-  if(error){
-    try{console.error(`v4.3 feature failed: ${installedKey}`,error);}catch{}
-  }
+  if(error){try{console.error(`v4.3 feature failed: ${installedKey}`,error);}catch{}}
   return {name:installedKey,installed,errors};
 }
 
-async function loadFeature(
-  installedKey:string,
-  errorKey:string,
-  loader:()=>Promise<FeatureApi>
-):Promise<FeatureStatus>{
+async function loadFeature(installedKey:string,errorKey:string,loader:()=>Promise<FeatureApi>):Promise<FeatureStatus>{
   document.documentElement.dataset[installedKey]="loading";
   document.documentElement.dataset[errorKey]="0";
   try{return publishFeature(installedKey,errorKey,await loader());}
@@ -47,16 +44,21 @@ async function loadAll():Promise<V43RuntimeReport>{
   document.documentElement.dataset.v43Runtime="loading";
   const features:FeatureStatus[]=[];
 
-  /* Her modül ayrı dynamic import + try/catch sınırında yüklenir.
+  /* Her ürün modülü ayrı dynamic import + try/catch sınırında yüklenir.
+     Ekran render köprüleri de ancak ilgili chunk başarıyla yüklendikten sonra yayınlanır.
      Tek bir v4.3 özelliği hata verse bile legacy çekirdek, veri katmanı ve Firebase giriş akışı çalışmaya devam eder. */
   features.push(await loadFeature("v43Today","v43TodayErrors",async()=>{
     const mod=await import("./today-v43");return mod.installTodayV43();
   }));
   features.push(await loadFeature("v43Analysis","v43AnalysisErrors",async()=>{
-    const mod=await import("./analysis-center-v43");return mod.installAnalysisCenterV43();
+    const mod=await import("./analysis-center-v43");
+    window.__YKS_V43_RENDER_ANALYSIS__=mod.renderAnalysisCenterV43;
+    return mod.installAnalysisCenterV43();
   }));
   features.push(await loadFeature("v43LearningCycle","v43LearningCycleErrors",async()=>{
-    const mod=await import("./learning-cycle-v43");return mod.installLearningCycleV43();
+    const mod=await import("./learning-cycle-v43");
+    window.__YKS_V43_RENDER_LEARNING_CYCLE__=mod.renderLearningCycleV43;
+    return mod.installLearningCycleV43();
   }));
   features.push(await loadFeature("v43LabQuiz","v43LabQuizErrors",async()=>{
     const mod=await import("./lab-quiz-v43");return mod.installLabQuizV43();
@@ -71,12 +73,7 @@ async function loadAll():Promise<V43RuntimeReport>{
     const mod=await import("./focus-session-guard-v43");return mod.installFocusSessionGuardV43();
   }));
 
-  const report:V43RuntimeReport={
-    ok:features.every(feature=>feature.installed&&feature.errors===0),
-    startedAt,
-    finishedAt:Date.now(),
-    features
-  };
+  const report:V43RuntimeReport={ok:features.every(feature=>feature.installed&&feature.errors===0),startedAt,finishedAt:Date.now(),features};
   document.documentElement.dataset.v43Runtime=report.ok?"ready":"degraded";
   document.documentElement.dataset.v43RuntimeErrors=String(features.filter(feature=>!feature.installed||feature.errors>0).length);
   window.dispatchEvent(new CustomEvent<V43RuntimeReport>("yks:v43-runtime",{detail:report}));
