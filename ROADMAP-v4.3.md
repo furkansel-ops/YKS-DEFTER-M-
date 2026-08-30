@@ -57,14 +57,27 @@ v4.3.0'ın ana hedefi yeni özellik yığmak değil; mevcut güçlü modülleri 
 - Aşama 3 için 4 yeni regresyon testi eklendi.
 - Kod değişiklikleri Node 22/24, TypeScript strict, **245/245 test** ve production Vite build kapısından geçti.
 
-## Aşama 4 — Öğrenme Laboratuvarı 3.0 / Quiz
+## Aşama 4 — Öğrenme Laboratuvarı 3.0 / Quiz ✅
 
-**Durum:** Sıradaki.
+**Durum:** Tamamlandı.
 
-- Atlas yapılarında öğren modu, etiketsiz sınama ve yapı seçme soruları.
-- Mevcut 9 organ / 52 yapı ve lazy-load sözleşmesi korunur.
+- Biyoloji Atlası'na `Öğren` ve `Sınama` modlarını yöneten yeni TypeScript quiz katmanı eklendi.
+- 3B yapı sınaması her turda en fazla 6 benzersiz yapı seçiyor; YKS öncelikli yapılar tur sıralamasında öne alınıyor.
+- Sınama başlarken 3B model görünümü ve iç kesit hazırlanıyor; mevcut model indirme/lazy-load hattı değiştirilmeden kullanılıyor.
+- Sınama sırasında yapı isimleri, numaralar, alt yapı listesi ve cevap açıklaması gizleniyor; model üzerinde yalnız dokunulabilir `?` hedefleri kalıyor.
+- 3B etiket noktası, iç 3B parçaya dokunma ve mevcut yapı seçim olayları aynı doğru/yanlış değerlendirmesine bağlandı.
+- Her seçimden sonra anında `Doğru / Yanlış`, seçilen yapı, doğru yapı ve tur skoru gösteriliyor; tur sonunda doğru yüzdesi veriliyor.
+- Ekran okuyucunun cevabı model noktasının `aria-label` veya `title` alanından öğrenmemesi için sınama sırasında nötr `Yanıt noktası` etiketi kullanılıyor; Öğren moduna dönünce özgün erişilebilir etiket geri geliyor.
+- Sınamadan çıkışta aynı organ açıksa kullanıcının önceki etiket ve iç-kesit görünümü geri yükleniyor.
+- Quiz sonucu kalıcı çalışma verisine yazılmıyor; Program, konu durumu, Dexie, localStorage ve Firebase kayıtları değiştirilmiyor.
+- Veri şeması 21, mevcut 9 organ / 52 yapı sözleşmesi ve 3B lazy-load yapısı korunuyor.
+- Tablet/dar ekran, coarse-pointer, klavye odağı ve azaltılmış hareket erişilebilirliği korundu.
+- Aşama 4 için 4 yeni regresyon testi eklendi.
+- Node 22/24, TypeScript strict, **249/249 test** ve production Vite build kapısından geçti.
 
 ## Aşama 5 — Navigasyon + Daha temizliği
+
+**Durum:** Sıradaki.
 
 - Öğrenme, Analiz, Ayarlar ve Veri & Sistem alanlarını daha açık bilgi mimarisine ayırma.
 
@@ -86,10 +99,10 @@ v4.3.0'ın ana hedefi yeni özellik yığmak değil; mevcut güçlü modülleri 
 1. Bugün 2.0 ✅
 2. Analiz Merkezi ✅
 3. Hata → Öğren → Tekrar ✅
-4. Laboratuvar 3.0 / Quiz
+4. Laboratuvar 3.0 / Quiz ✅
 5. Navigasyon + Daha temizliği
 6. Kişiselleştirilebilir görünüm
 7. Legacy modülerleştirme
 8. Final kalite kapısı
 
-**Durum: 3/8 tamamlandı.**
+**Durum: 4/8 tamamlandı.**
