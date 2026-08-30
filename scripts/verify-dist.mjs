@@ -11,7 +11,7 @@ const required=[
   "modules/release-selftest.js","modules/study-intelligence-v5.css","modules/ui-polish-v1.css","modules/ui-polish-home-v2.css",
   "modules/ui-polish-focus-v1.css","modules/ui-polish-exam-v1.css","modules/ui-polish-topics-v1.css","modules/ui-polish-error-journal-v1.css",
   "modules/ui-polish-progress-v1.css","modules/ui-polish-progress-v2.css","modules/ui-polish-more-v1.css","modules/ui-polish-program-v1.css",
-  "modules/ui-polish-learning-lab-v1.css"
+  "modules/ui-polish-learning-lab-v1.css","modules/ui-polish-final-v1.css"
 ];
 
 for(const file of required)await access(resolve(dist,file));
@@ -20,7 +20,7 @@ if(!/assets\/index-[^"']+\.js/.test(index))throw new Error("TypeScript üretim p
 if(!index.includes('./app.js?v=4.1.0-r20')||!index.includes('./modules/stability.js?v=4.1.0-r28')||!index.includes('./modules/learning-lab.js?v=4.1.0-r26')||!index.includes('./modules/error-journal.js?v=4.1.0-r20'))throw new Error("Uygulama çalışma zamanı üretim paketinde bağlı değil");
 const bundlePath=index.match(/(?:src|href)="\.\/(assets\/index-[^"']+\.js)"/)?.[1];
 if(!bundlePath)throw new Error("Kararlı sürüm JavaScript paketi bulunamadı");
-const [bundle,app,sw,versionText,recovery,stability,personal,progress,labV2,labV3,motivation,motivationCss,studyCss,polishCss,homePolishCss,progressPolishCss,progressModernCss,programPolishCss,labPolishCss]=await Promise.all([
+const [bundle,app,sw,versionText,recovery,stability,personal,progress,labV2,labV3,motivation,motivationCss,studyCss,polishCss,homePolishCss,progressPolishCss,progressModernCss,programPolishCss,labPolishCss,finalPolishCss]=await Promise.all([
   readFile(resolve(dist,bundlePath),"utf8"),
   readFile(resolve(dist,"app.js"),"utf8"),
   readFile(resolve(dist,"sw.js"),"utf8"),
@@ -39,23 +39,25 @@ const [bundle,app,sw,versionText,recovery,stability,personal,progress,labV2,labV
   readFile(resolve(dist,"modules/ui-polish-progress-v1.css"),"utf8"),
   readFile(resolve(dist,"modules/ui-polish-progress-v2.css"),"utf8"),
   readFile(resolve(dist,"modules/ui-polish-program-v1.css"),"utf8"),
-  readFile(resolve(dist,"modules/ui-polish-learning-lab-v1.css"),"utf8")
+  readFile(resolve(dist,"modules/ui-polish-learning-lab-v1.css"),"utf8"),
+  readFile(resolve(dist,"modules/ui-polish-final-v1.css"),"utf8")
 ]);
 if(!bundle.includes("YKS_V4_RELEASE_OK")||!bundle.includes("4.1.0")||!bundle.includes("stable"))throw new Error("v4 kararlı sürüm denetimi üretim paketine girmedi");
 if(!bundle.includes("4.1.0-r20")||!/(?:assets\/manifest-[^"']+|manifest\.webmanifest)\?v=4\.1\.0-r20/.test(index))throw new Error("r20 PWA çalışma zamanı üretim paketine girmedi");
 if(!app.includes('const APP_VERSION="4.1.0"')||!app.includes('const APP_BUILD="4.1.0-r20"'))throw new Error("Kopyalanan app.js kararlı sürümle eşleşmiyor");
-if(!sw.includes('const APP_VERSION="4.1.0"')||!sw.includes('const APP_BUILD="4.1.0-r20"')||!sw.includes('const CACHE="yks-core-v4.1.0-r38"'))throw new Error("Kopyalanan service worker kararlı sürüm/cache revizyonuyla eşleşmiyor");
+if(!sw.includes('const APP_VERSION="4.1.0"')||!sw.includes('const APP_BUILD="4.1.0-r20"')||!sw.includes('const CACHE="yks-core-v4.1.0-r39"'))throw new Error("Kopyalanan service worker kararlı sürüm/cache revizyonuyla eşleşmiyor");
 if(!sw.includes('learning-lab.js?v=4.1.0-r26'))throw new Error("Laboratuvar favori düzeltmesi çevrimdışı çekirdekte eksik");
-const polishCore=["study-intelligence-v5.css","ui-polish-v1.css","ui-polish-home-v2.css","ui-polish-focus-v1.css","ui-polish-exam-v1.css","ui-polish-topics-v1.css","ui-polish-error-journal-v1.css","ui-polish-progress-v1.css","ui-polish-progress-v2.css","ui-polish-more-v1.css","ui-polish-program-v1.css","ui-polish-learning-lab-v1.css"];
+const polishCore=["study-intelligence-v5.css","ui-polish-v1.css","ui-polish-home-v2.css","ui-polish-focus-v1.css","ui-polish-exam-v1.css","ui-polish-topics-v1.css","ui-polish-error-journal-v1.css","ui-polish-progress-v1.css","ui-polish-progress-v2.css","ui-polish-more-v1.css","ui-polish-program-v1.css","ui-polish-learning-lab-v1.css","ui-polish-final-v1.css"];
 for(const file of polishCore)if(!sw.includes(`${file}?v=4.1.0-r1`))throw new Error("Cila katmanı çevrimdışı çekirdekte eksik: "+file);
 if(!sw.includes('motivation-quotes-v1.js?v=4.1.0-r2')||!sw.includes('motivation-quotes-v2.css?v=4.1.0-r1')||!stability.includes('motivation-quotes-v1.js?v=4.1.0-r2'))throw new Error("Günün sözü çalışma zamanı/PWA çekirdeğine bağlı değil");
 if(!motivation.includes('const EXAM_QUOTES=')||!motivation.includes('const COACH_QUOTES=')||!motivation.includes('scope:"YKS+coaches"')||!motivation.includes('style:"v2"')||!motivation.includes('Teknik Direktör')||!motivation.includes('yeniSoz=function'))throw new Error("YKS + teknik direktör söz havuzu eksik veya paketlenmedi");
 if(!motivationCss.includes('[data-quote-type="coach"]')||!motivationCss.includes('focus-visible')||!motivationCss.includes('@media (max-width:759px)')||!motivationCss.includes('prefers-reduced-motion'))throw new Error("Motivasyon kartı v2 cila/erişilebilirlik katmanı paketlenmedi");
-if(!studyCss.includes('ui-polish-v1.css?v=4.1.0-r1')||!studyCss.includes('ui-polish-home-v2.css?v=4.1.0-r1')||!studyCss.includes('ui-polish-progress-v2.css?v=4.1.0-r1')||!studyCss.includes('ui-polish-learning-lab-v1.css?v=4.1.0-r1')||!polishCss.includes('prefers-reduced-motion')||!polishCss.includes('.today-hub')||!polishCss.includes('.v315-dashboard'))throw new Error("Görsel cila katmanı üretim paketine doğru bağlanmadı");
+if(!studyCss.includes('ui-polish-v1.css?v=4.1.0-r1')||!studyCss.includes('ui-polish-home-v2.css?v=4.1.0-r1')||!studyCss.includes('ui-polish-progress-v2.css?v=4.1.0-r1')||!studyCss.includes('ui-polish-learning-lab-v1.css?v=4.1.0-r1')||!studyCss.includes('ui-polish-final-v1.css?v=4.1.0-r1')||!polishCss.includes('prefers-reduced-motion')||!polishCss.includes('.today-hub')||!polishCss.includes('.v315-dashboard'))throw new Error("Görsel cila katmanı üretim paketine doğru bağlanmadı");
 if(!homePolishCss.includes('#home .home-overview')||!homePolishCss.includes('grid-template-areas')||!homePolishCss.includes('#home .today-summary-grid')||!homePolishCss.includes('prefers-reduced-motion'))throw new Error("Bugün ekranı premium cila katmanı eksik veya eksik paketlendi");
 if(!progressPolishCss.includes('#progress .desktop-progress-grid')||!progressPolishCss.includes('prefers-reduced-motion:reduce')||!progressModernCss.includes('#progress>.v4-progress-overview')||!progressModernCss.includes('#progress .v4-progress-kpi')||!progressModernCss.includes('#progress .v4-subject-callout'))throw new Error("İlerleme ekranı modern premium cila katmanı eksik veya eksik paketlendi");
 if(!progressModernCss.includes('ui-polish-program-v1.css?v=4.1.0-r1')||!programPolishCss.includes('#program .weeknav')||!programPolishCss.includes('#program .gtable')||!programPolishCss.includes('#program #progCal')||!programPolishCss.includes('prefers-reduced-motion:reduce'))throw new Error("Program ekranı premium cila katmanı eksik veya eksik paketlendi");
 if(!labPolishCss.includes('#mrp_lab .v320-course-browser')||!labPolishCss.includes('#mrp_lab .v4-science-card')||!labPolishCss.includes('#mrp_lab .v320-element-grid')||!labPolishCss.includes('#mrp_lab #v320Timeline.v4-history-timeline')||!labPolishCss.includes('#mrp_lab #v320PanelAtlas .atlas-model-stage')||!labPolishCss.includes('prefers-reduced-motion:reduce'))throw new Error("Öğrenme Laboratuvarı premium cila katmanı eksik veya eksik paketlendi");
+if(!finalPolishCss.includes('.v26-topic-modal')||!finalPolishCss.includes('.toast')||!finalPolishCss.includes('.tabbar .tab')||!finalPolishCss.includes('pointer:coarse')||!finalPolishCss.includes('prefers-reduced-motion:reduce')||!finalPolishCss.includes('data-theme="dark"'))throw new Error("Uygulama geneli final tutarlılık/erişilebilirlik cilası eksik veya eksik paketlendi");
 if(!index.includes("core-utils.js?v=4.1.0-r27")||!sw.includes("core-utils.js?v=4.1.0-r27"))throw new Error("Bilim kartlarının senkronizasyon güncellemesi pakette eksik");
 if(!bundle.includes("FEN TEKRAR ATÖLYESİ"))throw new Error("Biyoloji/Fizik kart sistemi TypeScript paketinde eksik");
 if(!bundle.includes("YKSBiologyAtlas")||!labV3.includes("v320PanelAtlas"))throw new Error("Biyoloji atlası çalışma zamanına bağlı değil");
@@ -77,4 +79,4 @@ if(!recovery.includes('/YKS-DEFTER-M-/')||!recovery.includes('location.replace')
 let version;
 try{version=JSON.parse(versionText);}catch{throw new Error("Kopyalanan version.json geçerli JSON değil");}
 if(version?.version!=="4.1.0"||version?.build!=="4.1.0-r20"||version?.schema!==21)throw new Error("Kopyalanan version.json kararlı sürümle eşleşmiyor");
-console.log(`Üretim paketi doğrulandı: ${required.length} geçiş dosyası + TypeScript paketi + sürüm/PWA/cila/YKS+teknik-direktör/kişisel modül bütünlüğü`);
+console.log(`Üretim paketi doğrulandı: ${required.length} geçiş dosyası + TypeScript paketi + sürüm/PWA/final-cila/YKS+teknik-direktör/kişisel modül bütünlüğü`);
