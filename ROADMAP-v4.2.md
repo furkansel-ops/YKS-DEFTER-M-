@@ -10,18 +10,23 @@ v4.2.0'ın amacı yeni özellik eklemekten çok, mevcut güçlü altyapıyı dah
 - PWA çevrimdışı kullanım ve tablet/PC desteği release kapısı olmaya devam eder.
 - Biyoloji Atlası 9 organ / 52 yapı sözleşmesini korur; mevcut 3B etkileşimler geriye dönük bozulmaz.
 
-## Aşama 1 — Hızlı erişim ve global arama
+## Aşama 1 — Hızlı erişim ve global arama ✅
+
+**Durum:** Tamamlandı.
 
 - Uygulama genelinde konu, deneme, hata kaydı ve Öğrenme Laboratuvarı içeriğini tek aramada bulabilen hızlı arama.
 - Klavye ile açılabilen komut/arama paneli; tablette dokunmatik kullanım için büyük hedefler.
 - Son kullanılan ekranlar ve sık kullanılan içerikler için hızlı dönüş kısayolları.
 - Arama yalnız yönlendirir; hiçbir veriyi kendiliğinden değiştirmez.
 
-## Aşama 2 — Akıllı Tekrar Merkezi 2.0
+## Aşama 2 — Akıllı Tekrar Merkezi 2.0 ✅
 
-- Tekrar önerilerini hata sıklığı, son çalışma tarihi, güven seviyesi, deneme yanlışları ve konu sağlık durumu ile daha iyi sıralama.
-- Her öneride neden gösterimi: “3 farklı günde yanlış”, “14 gündür tekrar edilmedi”, “son denemede yanlış” gibi.
-- Kullanıcı öneriyi tamamlandı/erteledi olarak işaretleyebilir.
+**Durum:** Tamamlandı.
+
+- Tekrar önerileri hata sıklığı, son çalışma tarihi, güven seviyesi, deneme yanlışları ve konu sağlık durumu ile yeniden sıralanır.
+- Her öneride açıklanabilir neden gösterilir: “3 farklı günde yanlış”, “14 gündür tekrar edilmedi”, “son denemede yanlış” gibi.
+- Kullanıcı öneriyi `Tamamladım` veya `3 gün ertele` ile yönetebilir; yeni yanlış kanıtı gelirse tamamlanan öneri yeniden aktifleşebilir.
+- Tamamlanan/ertelenen durumları uygulama verisinde saklanır; Dexie/localStorage/Firebase veri hattıyla birlikte korunur.
 - Program'a otomatik ekleme kesinlikle yoktur.
 
 ## Aşama 3 — Hata Defteri ↔ Konular ↔ Laboratuvar bağlantısı
@@ -68,8 +73,8 @@ v4.2.0'ın amacı yeni özellik eklemekten çok, mevcut güçlü altyapıyı dah
 
 ## Uygulama sırası
 
-1. Global arama
-2. Akıllı Tekrar Merkezi 2.0
+1. Global arama ✅
+2. Akıllı Tekrar Merkezi 2.0 ✅
 3. Hata Defteri bağlantıları
 4. Deneme Analizi 3.0
 5. İlerleme 3.0
