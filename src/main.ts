@@ -4,6 +4,8 @@ import {installScreenRuntime} from "./ui/screen-runtime";
 import {installLegacyServiceBridge} from "./services/legacy-service-bridge";
 import {installLegacyDomainBridge} from "./domain/legacy-domain-bridge";
 import {installReleaseRuntime} from "./release/release";
+import {installReleaseOverlay} from "./release/release-overlay";
+import {LEGACY_CORE_BUILD,RELEASE_BUILD,RELEASE_CHANNEL,RELEASE_VERSION} from "./release/version";
 import {installLegacyBackupBridge} from "./data/legacy-backup-bridge";
 import {installLegacyProgressAnalysisBridge} from "./domain/legacy-progress-analysis-bridge";
 import {installLegacyExamAnalysisBridge} from "./domain/legacy-exam-analysis-bridge";
@@ -13,8 +15,10 @@ import {installBiologyAtlas} from "./ui/biology-atlas-bridge";
 import {installRecoveryCenter} from "./ui/recovery-center";
 
 type BootstrapState={
-  version:"4.1.0";
-  channel:"stable";
+  version:typeof RELEASE_VERSION;
+  build:typeof RELEASE_BUILD;
+  legacyCore:typeof LEGACY_CORE_BUILD;
+  channel:typeof RELEASE_CHANNEL;
   stack:"vite-typescript";
   legacyRuntime:true;
   uiBridge:true;
@@ -38,8 +42,10 @@ declare global{
 }
 
 const bootstrap:BootstrapState={
-  version:"4.1.0",
-  channel:"stable",
+  version:RELEASE_VERSION,
+  build:RELEASE_BUILD,
+  legacyCore:LEGACY_CORE_BUILD,
+  channel:RELEASE_CHANNEL,
   stack:"vite-typescript",
   legacyRuntime:true,
   uiBridge:true,
@@ -60,16 +66,17 @@ const services=installLegacyServiceBridge();
 const data=installLegacyDataBridge();
 installScienceCards();
 installBiologyAtlas();
-const backup=installLegacyBackupBridge(data,bootstrap.version);
+const backup=installLegacyBackupBridge(data,RELEASE_VERSION);
 const recovery=installRecoveryCenter(data,backup);
 const domain=installLegacyDomainBridge();
 const progressAnalysis=installLegacyProgressAnalysisBridge();
 const examAnalysis=installLegacyExamAnalysisBridge();
-const pwa=installPwaRuntime("4.1.0-r20");
+const pwa=installPwaRuntime(RELEASE_BUILD);
 const screens=installScreenRuntime();
 const ui=installLegacyUiBridge(screens);
 const release=installReleaseRuntime();
 window.__YKS_V4_BOOTSTRAP__=bootstrap;
+installReleaseOverlay();
 document.documentElement.dataset.v4Runtime="ready";
 document.documentElement.dataset.v4UiErrors=String(ui.validate().length);
 document.documentElement.dataset.v4DataErrors=String(data.validate().length);
