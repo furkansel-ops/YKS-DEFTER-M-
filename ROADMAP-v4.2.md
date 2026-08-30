@@ -70,11 +70,17 @@ v4.2.0'ın amacı yeni özellik eklemekten çok, mevcut güçlü altyapıyı dah
 - v4.2 çalışma zamanı/PWA doğrulaması güçlendirildi ve İlerleme 3.0'ın eksik çalışma zamanı loader bağlantısı tamamlandı.
 - Laboratuvar akışı Program verisini değiştirmez; Program manuel kalır.
 
-## Aşama 7 — Veri güvenliği ve kurtarma 2.0
+## Aşama 7 — Veri güvenliği ve kurtarma 2.0 ✅
 
-- Yedek içe aktarmadan önce güvenli önizleme: kayıt tarihi, boyut, şema ve mevcut kayıtla fark özeti.
-- Başarısız Firebase/Dexie işlemlerinde daha anlaşılır kurtarma durumu.
-- Çok sık kayıtların birleştirilmesi ve son yazının garanti edilmesi için mevcut hardening testleri korunur.
+**Durum:** Tamamlandı.
+
+- Yedek içe aktarmadan önce kayıt tarihi, uygulama sürümü, şema, dosya boyutu ve bütünlük durumu erişilebilir bir önizleme penceresinde gösterilir.
+- Yedekteki çalışma günü, deneme, konu ve kart sayıları mevcut ana kayıtla karşılaştırılır; farklar geri yükleme yapılmadan önce görünür.
+- Geri yükleme başlamadan önce Dexie ana kayıt + güvenli yerel ayna yakalanır. Haricî kayıt uygulaması yarıda kalıp ana kayıt değişmişse bridge önceki kaydı otomatik geri almaya çalışır.
+- Veri & Sistem ekranına `Kurtarma Merkezi` eklendi; Dexie/localStorage ana kayıt durumu, uzlaştırma sonucu ve Firebase/bulut bekleyen değişiklik durumu tek bakışta gösterilir.
+- Başarılı yedek geri yüklemesi bulut kaydını kirli işaretleyerek sonraki senkronun geri yüklenen veriyi taşımasını sağlar.
+- Çok sık legacy `save()` çağrılarını birleştiren mevcut write-tail/dirty koruması ve son yazı testleri korunur.
+- Aşama 7 için fark önizleme, aynı-yedek ve otomatik rollback regresyon testleri eklendi.
 
 ## Aşama 8 — v4.2.0 final kalite kapısı
 
@@ -93,7 +99,7 @@ v4.2.0'ın amacı yeni özellik eklemekten çok, mevcut güçlü altyapıyı dah
 4. Deneme Analizi 3.0 ✅
 5. İlerleme 3.0 ✅
 6. Öğrenme Laboratuvarı kullanım akışı ✅
-7. Veri güvenliği 2.0
+7. Veri güvenliği 2.0 ✅
 8. Final kalite taraması
 
 Her aşama ayrı testlerle korunacak ve bir sonraki aşamaya geçmeden CI yeşil olacaktır.
