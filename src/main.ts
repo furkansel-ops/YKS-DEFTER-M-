@@ -13,6 +13,7 @@ import {installPwaRuntime} from "./pwa/pwa-runtime";
 import {installScienceCards} from "./ui/science-cards";
 import {installBiologyAtlas} from "./ui/biology-atlas-bridge";
 import {installRecoveryCenter} from "./ui/recovery-center";
+import {installFocusSessionGuardV43} from "./ui/focus-session-guard-v43";
 
 type BootstrapState={
   version:typeof RELEASE_VERSION;
@@ -89,5 +90,19 @@ document.documentElement.dataset.v4ExamAnalysisErrors=String(examAnalysis.valida
 document.documentElement.dataset.v4PwaBuild=pwa.build;
 document.documentElement.dataset.v4ReleaseVersion=release.version;
 window.dispatchEvent(new CustomEvent<BootstrapState>("yks:v4-bootstrap",{detail:bootstrap}));
+
+/* Bu küçük kullanım katmanı, giriş/bootstrap tamamlandıktan sonra fail-open kurulur.
+   Bir tarayıcı uyumsuzluğu olursa ana uygulamayı veya Firebase girişini bloke etmez. */
+window.setTimeout(()=>{
+  try{
+    const focusSessionGuard=installFocusSessionGuardV43();
+    document.documentElement.dataset.v43FocusSessionGuard=String(focusSessionGuard.installed);
+    document.documentElement.dataset.v43FocusSessionGuardErrors=String(focusSessionGuard.validate().length);
+  }catch(error){
+    document.documentElement.dataset.v43FocusSessionGuard="false";
+    document.documentElement.dataset.v43FocusSessionGuardErrors="1";
+    try{console.error("focus-session-guard",error);}catch{}
+  }
+},0);
 
 export {};
