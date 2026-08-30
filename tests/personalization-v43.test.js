@@ -38,11 +38,11 @@ test("Ayarlar paneli üç sınav kapsamı ve beş Bugün kartı seçeneği sunar
 });
 
 test("sınav kapsamı Konular, Deneme, Laboratuvar, Odak ve Analiz Merkezi görünümünü birlikte sadeleştirir",()=>{
-  const ui=read("src/ui/personalization-v43.ts"),analysis=read("src/ui/analysis-center-v43.ts"),main=read("src/main.ts");
+  const ui=read("src/ui/personalization-v43.ts"),analysis=read("src/ui/analysis-center-v43.ts"),main=read("src/main.ts"),safe=read("src/ui/v43-safe-runtime.ts");
   for(const id of ["segTYT","segAYT","segYDT","v315tTYT","dSegAYT","v320ExamYDT"])assert.match(ui,new RegExp(id));
   for(const call of ["startSim(165)","startSim(180)","startSim(80)"])assert.match(ui,new RegExp(call.replace(/[()]/g,"\\$&")));
   assert.match(analysis,/__YKS_PERSONALIZATION_V43__\?\.examTypes/);
   assert.match(analysis,/yks:v43-personalization/);
-  assert.match(main,/installPersonalizationV43/);
-  assert.match(main,/v43PersonalizationErrors/);
+  assert.match(main,/installV43SafeRuntime/);assert.doesNotMatch(main,/from "\.\/ui\/personalization-v43"/);
+  assert.match(safe,/import\("\.\/personalization-v43"\)/);assert.match(safe,/installPersonalizationV43/);assert.match(safe,/v43PersonalizationErrors/);
 });
