@@ -55,7 +55,7 @@ v4.3.0'ın ana hedefi yeni özellik yığmak değil; mevcut güçlü modülleri 
 - Veri şeması 21 korunur; eski Hata Defteri ve yanlış kayıtları yeni alan gerektirmeden analiz edilir.
 - Tablet/dar ekran, coarse-pointer, klavye odağı ve azaltılmış hareket erişilebilirliği eklendi.
 - Aşama 3 için 4 yeni regresyon testi eklendi.
-- Kod değişiklikleri Node 22/24, TypeScript strict, **245/245 test** ve production Vite build kapısından geçti; son dokümantasyon commit'i de aynı CI kapısından geçirilir.
+- Kod değişiklikleri Node 22/24, TypeScript strict, **245/245 test** ve production Vite build kapısından geçti.
 
 ## Aşama 4 — Öğrenme Laboratuvarı 3.0 / Quiz
 
