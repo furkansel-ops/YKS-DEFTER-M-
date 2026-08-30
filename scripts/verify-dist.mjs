@@ -8,7 +8,8 @@ const required=[
   "modules/core-utils.js","modules/stability.js","modules/topic-guides.js",
   "modules/learning-lab.js","modules/learning-lab-v2.js","modules/learning-lab-v3.js","modules/target-center.js","modules/export-center.js",
   "modules/error-journal.js","modules/personal-upgrades.js","modules/progress-v2.js","modules/motivation-quotes-v1.js","modules/motivation-quotes-v2.css",
-  "modules/release-selftest.js","modules/study-intelligence-v5.css","modules/ui-polish-v1.css","modules/ui-polish-home-v2.css",
+  "modules/release-selftest.js","modules/study-intelligence-core.js","modules/study-intelligence-v5.js","modules/study-intelligence-v5.css",
+  "modules/repeat-center-v42.js","modules/repeat-center-v42.css","modules/ui-polish-v1.css","modules/ui-polish-home-v2.css",
   "modules/ui-polish-focus-v1.css","modules/ui-polish-exam-v1.css","modules/ui-polish-topics-v1.css","modules/ui-polish-error-journal-v1.css",
   "modules/ui-polish-progress-v1.css","modules/ui-polish-progress-v2.css","modules/ui-polish-more-v1.css","modules/ui-polish-program-v1.css",
   "modules/ui-polish-learning-lab-v1.css","modules/ui-polish-final-v1.css"
@@ -20,7 +21,7 @@ if(!/assets\/index-[^"']+\.js/.test(index))throw new Error("TypeScript üretim p
 if(!index.includes('./app.js?v=4.1.0-r20')||!index.includes('./modules/stability.js?v=4.1.0-r28')||!index.includes('./modules/learning-lab.js?v=4.1.0-r26')||!index.includes('./modules/error-journal.js?v=4.1.0-r20'))throw new Error("Uygulama çalışma zamanı üretim paketinde bağlı değil");
 const bundlePath=index.match(/(?:src|href)="\.\/(assets\/index-[^"']+\.js)"/)?.[1];
 if(!bundlePath)throw new Error("Kararlı sürüm JavaScript paketi bulunamadı");
-const [bundle,app,sw,versionText,recovery,stability,personal,progress,labV2,labV3,motivation,motivationCss,studyCss,polishCss,homePolishCss,progressPolishCss,progressModernCss,programPolishCss,labPolishCss,finalPolishCss]=await Promise.all([
+const [bundle,app,sw,versionText,recovery,stability,personal,progress,labV2,labV3,motivation,motivationCss,studyCore,studyRuntime,studyCss,repeatRuntime,repeatCss,polishCss,homePolishCss,progressPolishCss,progressModernCss,programPolishCss,labPolishCss,finalPolishCss]=await Promise.all([
   readFile(resolve(dist,bundlePath),"utf8"),
   readFile(resolve(dist,"app.js"),"utf8"),
   readFile(resolve(dist,"sw.js"),"utf8"),
@@ -33,7 +34,11 @@ const [bundle,app,sw,versionText,recovery,stability,personal,progress,labV2,labV
   readFile(resolve(dist,"modules/learning-lab-v3.js"),"utf8"),
   readFile(resolve(dist,"modules/motivation-quotes-v1.js"),"utf8"),
   readFile(resolve(dist,"modules/motivation-quotes-v2.css"),"utf8"),
+  readFile(resolve(dist,"modules/study-intelligence-core.js"),"utf8"),
+  readFile(resolve(dist,"modules/study-intelligence-v5.js"),"utf8"),
   readFile(resolve(dist,"modules/study-intelligence-v5.css"),"utf8"),
+  readFile(resolve(dist,"modules/repeat-center-v42.js"),"utf8"),
+  readFile(resolve(dist,"modules/repeat-center-v42.css"),"utf8"),
   readFile(resolve(dist,"modules/ui-polish-v1.css"),"utf8"),
   readFile(resolve(dist,"modules/ui-polish-home-v2.css"),"utf8"),
   readFile(resolve(dist,"modules/ui-polish-progress-v1.css"),"utf8"),
@@ -43,10 +48,16 @@ const [bundle,app,sw,versionText,recovery,stability,personal,progress,labV2,labV
   readFile(resolve(dist,"modules/ui-polish-final-v1.css"),"utf8")
 ]);
 if(!bundle.includes("YKS_V4_RELEASE_OK")||!bundle.includes("4.1.0")||!bundle.includes("stable"))throw new Error("v4 kararlı sürüm denetimi üretim paketine girmedi");
+if(!bundle.includes("__YKS_GLOBAL_SEARCH__")||!bundle.includes("v42GlobalSearchVersion"))throw new Error("v4.2 global arama çalışma zamanı üretim paketine girmedi");
+if(!bundle.includes("repeat-center-v42.js?v=4.2.0-r1")||!bundle.includes("v42RepeatCenter"))throw new Error("Akıllı Tekrar Merkezi 2.0 yükleyicisi TypeScript paketine girmedi");
 if(!bundle.includes("4.1.0-r20")||!/(?:assets\/manifest-[^"']+|manifest\.webmanifest)\?v=4\.1\.0-r20/.test(index))throw new Error("r20 PWA çalışma zamanı üretim paketine girmedi");
 if(!app.includes('const APP_VERSION="4.1.0"')||!app.includes('const APP_BUILD="4.1.0-r20"'))throw new Error("Kopyalanan app.js kararlı sürümle eşleşmiyor");
-if(!sw.includes('const APP_VERSION="4.1.0"')||!sw.includes('const APP_BUILD="4.1.0-r20"')||!sw.includes('const CACHE="yks-core-v4.1.0-r39"'))throw new Error("Kopyalanan service worker kararlı sürüm/cache revizyonuyla eşleşmiyor");
+if(!sw.includes('const APP_VERSION="4.1.0"')||!sw.includes('const APP_BUILD="4.1.0-r20"')||!sw.includes('const CACHE="yks-core-v4.1.0-r41"'))throw new Error("Kopyalanan service worker kararlı sürüm/cache revizyonuyla eşleşmiyor");
 if(!sw.includes('learning-lab.js?v=4.1.0-r26'))throw new Error("Laboratuvar favori düzeltmesi çevrimdışı çekirdekte eksik");
+if(!sw.includes('study-intelligence-core.js?v=4.1.0-r1')||!sw.includes('study-intelligence-v5.js?v=4.1.0-r1')||!sw.includes('repeat-center-v42.js?v=4.2.0-r1')||!sw.includes('repeat-center-v42.css?v=4.2.0-r1'))throw new Error("Akıllı Tekrar Merkezi 2.0 çevrimdışı çekirdekte eksik");
+if(!studyCore.includes('repeatVersion:"2.0.0"')||!studyCore.includes('deneme bağlantılı yanlış')||!studyCore.includes('factors')||!studyRuntime.includes('Programına dokunmaz'))throw new Error("Açıklanabilir tekrar sıralaması üretim paketinde eksik");
+if(!repeatRuntime.includes('Akıllı Tekrar Merkezi 2.0')||!repeatRuntime.includes('yks_repeat_actions_v42')||!repeatRuntime.includes('Bugün tamamladım')||!repeatRuntime.includes('3 gün ertele')||!repeatRuntime.includes('Program tamamen manuel'))throw new Error("Akıllı Tekrar Merkezi 2.0 aksiyon katmanı üretim paketinde eksik");
+if(!repeatCss.includes('intel-repeat-reasons')||!repeatCss.includes('pointer:coarse')||!repeatCss.includes('prefers-reduced-motion:reduce'))throw new Error("Akıllı Tekrar Merkezi 2.0 responsive/erişilebilirlik stili eksik");
 const polishCore=["study-intelligence-v5.css","ui-polish-v1.css","ui-polish-home-v2.css","ui-polish-focus-v1.css","ui-polish-exam-v1.css","ui-polish-topics-v1.css","ui-polish-error-journal-v1.css","ui-polish-progress-v1.css","ui-polish-progress-v2.css","ui-polish-more-v1.css","ui-polish-program-v1.css","ui-polish-learning-lab-v1.css","ui-polish-final-v1.css"];
 for(const file of polishCore)if(!sw.includes(`${file}?v=4.1.0-r1`))throw new Error("Cila katmanı çevrimdışı çekirdekte eksik: "+file);
 if(!sw.includes('motivation-quotes-v1.js?v=4.1.0-r2')||!sw.includes('motivation-quotes-v2.css?v=4.1.0-r1')||!stability.includes('motivation-quotes-v1.js?v=4.1.0-r2'))throw new Error("Günün sözü çalışma zamanı/PWA çekirdeğine bağlı değil");
@@ -68,7 +79,7 @@ if(!atlasChunk||!modelChunk||!chunks.some(name=>/^biology-atlas-.+\.css$/.test(n
 const atlasBundle=await readFile(resolve(dist,"assets",atlasChunk),"utf8");
 if(!atlasBundle.includes("Genden proteine")||!atlasBundle.includes("Kendini sına")||bundle.includes("WebGLRenderer"))throw new Error("Atlas içeriği / isteğe bağlı yükleme sınırı bozuk");
 await verifyAnatomyAssets(resolve(dist,"anatomy"),JSON.parse(await readFile(resolve(root,"scripts/anatomy-assets.json"),"utf8")));
-for(const asset of ["error-journal.js?v=4.1.0-r20","personal-upgrades.js?v=4.1.0-r20","progress-v2.js?v=4.1.0-r20","learning-lab-v2.js?v=4.1.0-r24","learning-lab-v3.js?v=4.1.0-r28","motivation-quotes-v1.js?v=4.1.0-r2","motivation-quotes-v2.css?v=4.1.0-r1"])if(!sw.includes(asset))throw new Error("Kişisel/ana modül çevrimdışı çekirdekte eksik: "+asset);
+for(const asset of ["error-journal.js?v=4.1.0-r20","personal-upgrades.js?v=4.1.0-r20","progress-v2.js?v=4.1.0-r20","learning-lab-v2.js?v=4.1.0-r24","learning-lab-v3.js?v=4.1.0-r28","motivation-quotes-v1.js?v=4.1.0-r2","motivation-quotes-v2.css?v=4.1.0-r1","study-intelligence-core.js?v=4.1.0-r1","study-intelligence-v5.js?v=4.1.0-r1","repeat-center-v42.js?v=4.2.0-r1","repeat-center-v42.css?v=4.2.0-r1"])if(!sw.includes(asset))throw new Error("Kişisel/ana modül çevrimdışı çekirdekte eksik: "+asset);
 if(!stability.includes("personal-upgrades.js?v=4.1.0-r20")||!stability.includes("progress-v2.js?v=4.1.0-r20")||!stability.includes("learning-lab-v2.js?v=4.1.0-r24")||!stability.includes("learning-lab-v3.js?v=4.1.0-r28")||!stability.includes("motivation-quotes-v1.js?v=4.1.0-r2"))throw new Error("Kişisel geliştirme/motivasyon modülleri çalışma zamanında yüklenmiyor");
 if(!personal.includes("enforceSingleUser")||!personal.includes("bindProgramGrid"))throw new Error("Tek kullanıcı / Program v2 üretim paketinde eksik");
 if(!progress.includes("studyNetRelation")||!progress.includes("bestImprovingSubject"))throw new Error("İlerleme v2 üretim paketinde eksik");
@@ -79,4 +90,4 @@ if(!recovery.includes('/YKS-DEFTER-M-/')||!recovery.includes('location.replace')
 let version;
 try{version=JSON.parse(versionText);}catch{throw new Error("Kopyalanan version.json geçerli JSON değil");}
 if(version?.version!=="4.1.0"||version?.build!=="4.1.0-r20"||version?.schema!==21)throw new Error("Kopyalanan version.json kararlı sürümle eşleşmiyor");
-console.log(`Üretim paketi doğrulandı: ${required.length} geçiş dosyası + TypeScript paketi + sürüm/PWA/final-cila/YKS+teknik-direktör/kişisel modül bütünlüğü`);
+console.log(`Üretim paketi doğrulandı: ${required.length} geçiş dosyası + TypeScript paketi + sürüm/PWA/final-cila/global-arama/Akıllı Tekrar Merkezi 2.0/YKS+teknik-direktör/kişisel modül bütünlüğü`);
