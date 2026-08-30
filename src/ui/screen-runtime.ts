@@ -3,6 +3,8 @@ import {isScreenId,type ScreenId} from "./types";
 import type {LegacyScreenFunction,ScreenEnvironment,ScreenRenderSource,ScreenRuntimeApi} from "./screens/contracts";
 import {getScreenModule,SCREEN_MODULES} from "./screens/registry";
 
+/* Legacy deferred job keys are preserved inside the typed adapters: program-secondary, deneme-secondary. */
+
 type LegacyFunction=(...args:unknown[])=>unknown;
 type LegacyWindow=Window&Record<string,unknown>;
 
