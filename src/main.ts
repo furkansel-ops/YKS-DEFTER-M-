@@ -13,6 +13,7 @@ import {installPwaRuntime} from "./pwa/pwa-runtime";
 import {installScienceCards} from "./ui/science-cards";
 import {installBiologyAtlas} from "./ui/biology-atlas-bridge";
 import {installRecoveryCenter} from "./ui/recovery-center";
+import {installTodayV43} from "./ui/today-v43";
 
 type BootstrapState={
   version:typeof RELEASE_VERSION;
@@ -74,6 +75,7 @@ const examAnalysis=installLegacyExamAnalysisBridge();
 const pwa=installPwaRuntime(RELEASE_BUILD);
 const screens=installScreenRuntime();
 const ui=installLegacyUiBridge(screens);
+const todayV43=installTodayV43();
 const release=installReleaseRuntime();
 window.__YKS_V4_BOOTSTRAP__=bootstrap;
 installReleaseOverlay();
@@ -88,6 +90,8 @@ document.documentElement.dataset.v4ProgressAnalysisErrors=String(progressAnalysi
 document.documentElement.dataset.v4ExamAnalysisErrors=String(examAnalysis.validate().length);
 document.documentElement.dataset.v4PwaBuild=pwa.build;
 document.documentElement.dataset.v4ReleaseVersion=release.version;
+document.documentElement.dataset.v43Today=String(todayV43.installed);
+document.documentElement.dataset.v43TodayErrors=String(todayV43.validate().length);
 window.dispatchEvent(new CustomEvent<BootstrapState>("yks:v4-bootstrap",{detail:bootstrap}));
 
 export {};
