@@ -11,7 +11,7 @@ const checks={
   version:bundle.includes("4.2.0")&&version.version==="4.2.0"&&version.build==="4.2.0-r1",
   stable:bundle.includes("stable"),runtime:bundle.includes("YKS_V4_RELEASE_OK"),legacy:legacy.includes("v4-bootstrap"),
   legacyCore:bundle.includes("4.1.0-r20"),releaseOverlay:bundle.includes("v42ReleaseOverlay")&&bundle.includes("remoteVersionIsNewer"),
-  recovery:bundle.includes("Kurtarma Merkezi")&&bundle.includes("rolledBack"),
+  recovery:bundle.includes("v42RecoveryCenter")&&bundle.includes("v4BackupVersion")&&bundle.includes("backup-recovery"),
   transaction:bundle.includes("runTransaction as"),conflict:bundle.includes("SYNC_CONFLICT"),hash:bundle.includes("infraHash("),
   dexie:bundle.includes("yks-defterim-v4"),screens:bundle.includes("screen-transitions"),
   pwa:sw.includes('const APP_VERSION="4.2.0"')&&sw.includes('const APP_BUILD="4.2.0-r1"')&&sw.includes('const CACHE="yks-core-v4.2.0-r1"')
