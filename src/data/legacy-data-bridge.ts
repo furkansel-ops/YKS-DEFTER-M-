@@ -66,10 +66,38 @@ export function installLegacyDataBridge():LegacyDataBridgeApi{
     writeTail=result.then(()=>undefined,()=>undefined);
     return result;
   };
-  const captureLegacyWrite=(json?:string):Promise<PrimaryWriteResult>=>enqueue(async()=>{await initialize();return coordinator.capture(json);});
+
+  /* Legacy save() kısa sürede art arda çalışabiliyor (yazı girişi, sayaç, kart işaretleri).
+     Aynı anlık durumu onlarca kez Dexie'ye yazmak yerine kuyruğu birleştir; işlem sürerken
+     yeni bir save gelirse dirty bayrağı son durumu bir kez daha yakalatır. Açık JSON ile
+     yapılan kritik yazılar (yedek/bridge çağrıları) ise sırasını koruyarak ayrı kuyruğa girer. */
+  let pendingLegacyCapture:Promise<PrimaryWriteResult>|null=null,legacyCaptureDirty=false;
+  const captureLegacyWrite=(json?:string):Promise<PrimaryWriteResult>=>{
+    if(typeof json==="string")return enqueue(async()=>{await initialize();return coordinator.capture(json);});
+    legacyCaptureDirty=true;
+    if(pendingLegacyCapture)return pendingLegacyCapture;
+    pendingLegacyCapture=enqueue(async()=>{
+      await initialize();
+      let result:PrimaryWriteResult;
+      do{
+        legacyCaptureDirty=false;
+        result=await coordinator.capture();
+      }while(legacyCaptureDirty);
+      return result;
+    }).finally(()=>{
+      pendingLegacyCapture=null;
+      /* Çok dar bir microtask aralığında save geldiyse son değişikliği kaçırma. */
+      if(legacyCaptureDirty)void captureLegacyWrite();
+    });
+    return pendingLegacyCapture;
+  };
   const applyCloudJSON=(json:string):Promise<ExternalApplyResult>=>enqueue(async()=>{await initialize();return coordinator.replaceFromExternal(json);});
   const applyBackupJSON=(json:string):Promise<ExternalApplyResult>=>enqueue(async()=>{await initialize();return coordinator.replaceFromExternal(json,Date.now(),"backup");});
-  const flush=async()=>{await writeTail;};
+  const flush=async()=>{
+    const pending=pendingLegacyCapture;
+    if(pending)await pending.catch(()=>undefined);
+    await writeTail;
+  };
   const cloudPayload=async():Promise<CloudPayloadResult>=>{
     await initialize();await flush();
     const primary=await coordinator.readPrimaryJSON();
@@ -113,6 +141,12 @@ export function installLegacyDataBridge():LegacyDataBridgeApi{
     document.documentElement.dataset.v4Reconcile=result.status;
     window.dispatchEvent(new CustomEvent<PrimaryInitResult>("yks:data-primary-ready",{detail:result}));
     if(!result.ok||result.degraded)console.warn("Dexie ana kayıt durumu:",result.message);
+  }).catch(error=>{
+    document.documentElement.dataset.v4Data="warning";
+    document.documentElement.dataset.v4Primary="none";
+    document.documentElement.dataset.v4Reconcile="failed";
+    try{if(typeof (window as Window&{infraError?:unknown}).infraError==="function")((window as Window&{infraError:(scope:string,error:unknown)=>unknown}).infraError)("data-primary-ready",error);}catch{}
+    console.error("Dexie ana kayıt başlatması beklenmedik biçimde başarısız oldu",error);
   });
   return api;
 }
