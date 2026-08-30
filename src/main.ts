@@ -18,6 +18,7 @@ import {installAnalysisCenterV43} from "./ui/analysis-center-v43";
 import {installLearningCycleV43} from "./ui/learning-cycle-v43";
 import {installLabQuizV43} from "./ui/lab-quiz-v43";
 import {installNavigationV43} from "./ui/navigation-v43";
+import {installPersonalizationV43} from "./ui/personalization-v43";
 
 type BootstrapState={
   version:typeof RELEASE_VERSION;
@@ -84,6 +85,7 @@ const todayV43=installTodayV43();
 const analysisCenterV43=installAnalysisCenterV43();
 const learningCycleV43=installLearningCycleV43();
 const navigationV43=installNavigationV43();
+const personalizationV43=installPersonalizationV43();
 const release=installReleaseRuntime();
 window.__YKS_V4_BOOTSTRAP__=bootstrap;
 installReleaseOverlay();
@@ -108,6 +110,8 @@ document.documentElement.dataset.v43LabQuiz=String(labQuizV43.installed);
 document.documentElement.dataset.v43LabQuizErrors=String(labQuizV43.validate().length);
 document.documentElement.dataset.v43Navigation=String(navigationV43.installed);
 document.documentElement.dataset.v43NavigationErrors=String(navigationV43.validate().length);
+document.documentElement.dataset.v43Personalization=String(personalizationV43.installed);
+document.documentElement.dataset.v43PersonalizationErrors=String(personalizationV43.validate().length);
 window.dispatchEvent(new CustomEvent<BootstrapState>("yks:v4-bootstrap",{detail:bootstrap}));
 
 export {};
