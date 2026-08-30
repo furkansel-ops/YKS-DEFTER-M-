@@ -19,6 +19,7 @@ import {installLearningCycleV43} from "./ui/learning-cycle-v43";
 import {installLabQuizV43} from "./ui/lab-quiz-v43";
 import {installNavigationV43} from "./ui/navigation-v43";
 import {installPersonalizationV43} from "./ui/personalization-v43";
+import {installFocusSessionGuardV43} from "./ui/focus-session-guard-v43";
 
 type BootstrapState={
   version:typeof RELEASE_VERSION;
@@ -86,6 +87,7 @@ const analysisCenterV43=installAnalysisCenterV43();
 const learningCycleV43=installLearningCycleV43();
 const navigationV43=installNavigationV43();
 const personalizationV43=installPersonalizationV43();
+const focusSessionGuardV43=installFocusSessionGuardV43();
 const release=installReleaseRuntime();
 window.__YKS_V4_BOOTSTRAP__=bootstrap;
 installReleaseOverlay();
@@ -112,6 +114,8 @@ document.documentElement.dataset.v43Navigation=String(navigationV43.installed);
 document.documentElement.dataset.v43NavigationErrors=String(navigationV43.validate().length);
 document.documentElement.dataset.v43Personalization=String(personalizationV43.installed);
 document.documentElement.dataset.v43PersonalizationErrors=String(personalizationV43.validate().length);
+document.documentElement.dataset.v43FocusSessionGuard=String(focusSessionGuardV43.installed);
+document.documentElement.dataset.v43FocusSessionGuardErrors=String(focusSessionGuardV43.validate().length);
 window.dispatchEvent(new CustomEvent<BootstrapState>("yks:v4-bootstrap",{detail:bootstrap}));
 
 export {};
