@@ -4,17 +4,28 @@ import {decodeState,isRecord,stateHash,textBytes} from "./codec.ts";
 export const BACKUP_FORMAT_VERSION=3 as const;
 export const MAX_BACKUP_BYTES=25*1024*1024;
 
-export interface BackupSummary{
-  format:number;
-  appVersion:string;
-  exportedAt:string|null;
+export interface BackupStateMetrics{
   schema:number;
   bytes:number;
-  integrity:"verified"|"legacy";
   days:number;
   exams:number;
   topics:number;
   cards:number;
+}
+
+export interface BackupSummary extends BackupStateMetrics{
+  format:number;
+  appVersion:string;
+  exportedAt:string|null;
+  integrity:"verified"|"legacy";
+}
+
+export interface BackupComparison{
+  status:"same"|"different"|"unavailable";
+  sameState:boolean;
+  current:BackupStateMetrics|null;
+  backup:BackupStateMetrics;
+  delta:{days:number;exams:number;topics:number;cards:number};
 }
 
 export interface BackupPackage{
@@ -35,6 +46,10 @@ export type BackupInspectResult=
   |{ok:true;json:string;state:YksStateCandidate;summary:BackupSummary}
   |{ok:false;kind:"too-large"|"invalid-json"|"invalid-package"|"integrity"|"future-schema";message:string};
 
+export type BackupPreviewResult=
+  |Extract<BackupInspectResult,{ok:false}>
+  |{ok:true;json:string;state:YksStateCandidate;summary:BackupSummary;comparison:BackupComparison};
+
 function safeCount(value:unknown):number{
   return Array.isArray(value)?value.length:0;
 }
@@ -49,12 +64,16 @@ function dayCount(state:YksStateCandidate):number{
   return days.size;
 }
 
-function summarize(state:YksStateCandidate,format:number,appVersion:string,exportedAt:string|null,bytes:number,integrity:"verified"|"legacy"):BackupSummary{
+function stateMetrics(state:YksStateCandidate,bytes:number):BackupStateMetrics{
   const learning=isRecord(state.learning)?state.learning:null;
   return {
-    format,appVersion,exportedAt,schema:Number(state.v??1),bytes,integrity,
+    schema:Number(state.v??1),bytes,
     days:dayCount(state),exams:safeCount(state.denemeler),topics:objectCount(state.topics),cards:safeCount(learning?.cards)
   };
+}
+
+function summarize(state:YksStateCandidate,format:number,appVersion:string,exportedAt:string|null,bytes:number,integrity:"verified"|"legacy"):BackupSummary{
+  return {format,appVersion,exportedAt,integrity,...stateMetrics(state,bytes)};
 }
 
 function sanitizedState(source:YksStateCandidate):YksStateCandidate{
@@ -110,4 +129,26 @@ export function inspectBackupPackage(text:string):BackupInspectResult{
   return {ok:true,json,state:decoded.state,summary:summarize(decoded.state,format,appVersion,exportedAt,textBytes(text),integrity)};
 }
 
-export const backupService={create:createBackupPackage,inspect:inspectBackupPackage} as const;
+export function previewBackupPackage(text:string,currentJSON?:string|null):BackupPreviewResult{
+  const inspected=inspectBackupPackage(text);
+  if(!inspected.ok)return inspected;
+  const backup:BackupStateMetrics={
+    schema:inspected.summary.schema,bytes:inspected.summary.bytes,days:inspected.summary.days,
+    exams:inspected.summary.exams,topics:inspected.summary.topics,cards:inspected.summary.cards
+  };
+  const currentDecoded=typeof currentJSON==="string"?decodeState(currentJSON):null;
+  if(!currentDecoded||!currentDecoded.ok){
+    return {...inspected,comparison:{status:"unavailable",sameState:false,current:null,backup,delta:{days:0,exams:0,topics:0,cards:0}}};
+  }
+  const canonicalCurrent=JSON.stringify(currentDecoded.state),current=stateMetrics(currentDecoded.state,textBytes(canonicalCurrent));
+  const sameState=canonicalCurrent===inspected.json&&stateHash(canonicalCurrent)===stateHash(inspected.json);
+  return {
+    ...inspected,
+    comparison:{
+      status:sameState?"same":"different",sameState,current,backup,
+      delta:{days:backup.days-current.days,exams:backup.exams-current.exams,topics:backup.topics-current.topics,cards:backup.cards-current.cards}
+    }
+  };
+}
+
+export const backupService={create:createBackupPackage,inspect:inspectBackupPackage,preview:previewBackupPackage} as const;
