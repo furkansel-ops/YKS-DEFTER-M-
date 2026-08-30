@@ -51,27 +51,45 @@ function isStandalone(windowRef:Window):boolean{
 
 async function cacheReady(navigatorRef:Navigator):Promise<boolean>{
   if(!("serviceWorker" in navigatorRef))return false;
+  let readyTimer:ReturnType<typeof setTimeout>|undefined;
   try{
-    const registration=await Promise.race([
-      navigatorRef.serviceWorker.ready,
-      new Promise<never>((_resolve,reject)=>window.setTimeout(()=>reject(new Error("service-worker-timeout")),2_500))
-    ]),worker=navigatorRef.serviceWorker.controller||registration.active;
+    const timeout=new Promise<never>((_resolve,reject)=>{readyTimer=globalThis.setTimeout(()=>reject(new Error("service-worker-timeout")),2_500);});
+    let registration:ServiceWorkerRegistration;
+    try{registration=await Promise.race([navigatorRef.serviceWorker.ready,timeout]);}
+    finally{if(readyTimer!==undefined)globalThis.clearTimeout(readyTimer);}
+    const worker=navigatorRef.serviceWorker.controller||registration.active;
     if(!worker)return false;
     return await new Promise<boolean>(resolve=>{
-      const channel=new MessageChannel(),timer=window.setTimeout(()=>resolve(false),2_500);
-      channel.port1.onmessage=event=>{window.clearTimeout(timer);resolve(event.data?.type==="CACHE_STATUS"&&event.data?.ready===true);};
-      worker.postMessage({type:"GET_CACHE_STATUS"},[channel.port2]);
+      const channel=new MessageChannel();
+      let settled=false,timer:ReturnType<typeof setTimeout>|undefined;
+      const finish=(value:boolean)=>{
+        if(settled)return;
+        settled=true;
+        if(timer!==undefined)globalThis.clearTimeout(timer);
+        channel.port1.onmessage=null;
+        try{channel.port1.close();channel.port2.close();}catch{}
+        resolve(value);
+      };
+      timer=globalThis.setTimeout(()=>finish(false),2_500);
+      channel.port1.onmessage=event=>finish(event.data?.type==="CACHE_STATUS"&&event.data?.ready===true);
+      try{worker.postMessage({type:"GET_CACHE_STATUS"},[channel.port2]);}
+      catch{finish(false);}
     });
-  }catch{return false;}
+  }catch{
+    if(readyTimer!==undefined)globalThis.clearTimeout(readyTimer);
+    return false;
+  }
 }
 
 export function installPwaRuntime(build:string,windowRef:Window=window,documentRef:Document=document):PwaRuntimeApi{
-  let installPrompt:BeforeInstallPromptEvent|null=null;
+  let installPrompt:BeforeInstallPromptEvent|null=null,renderGeneration=0;
   const state=():InstallState=>isStandalone(windowRef)?"installed":installPrompt?"installable":"manual";
   const render=async():Promise<void>=>{
     const card=documentRef.getElementById("v4PwaCard"),badge=documentRef.getElementById("v4PwaBadge"),copy=documentRef.getElementById("v4PwaCopy"),install=documentRef.getElementById("v4InstallBtn") as HTMLButtonElement|null,offline=documentRef.getElementById("v4OfflineState");
     if(!card)return;
-    const current=state(),ready=await cacheReady(windowRef.navigator);
+    const generation=++renderGeneration,current=state(),ready=await cacheReady(windowRef.navigator);
+    /* Eski ve yavaş bir probe yeni render sonucunu geri çevirmesin. */
+    if(generation!==renderGeneration)return;
     card.dataset.state=current;card.dataset.offlineReady=ready?"true":"false";
     if(badge)badge.textContent=current==="installed"?"Kurulu":current==="installable"?"Kurulabilir":"Kurulum adımı";
     if(copy)copy.textContent=current==="installed"?"Uygulama ana ekrandan bağımsız pencere olarak açılıyor.":current==="installable"?"Tablete veya PC'ye uygulama olarak kurmaya hazır.":manualInstallHint(windowRef.navigator.userAgent);
