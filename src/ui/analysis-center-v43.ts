@@ -5,6 +5,7 @@ import type {ProgressAnalysis,SubjectInsight} from "../domain/progress-analysis-
 
 const GENERAL_EXAM_TYPES:[ExamAnalysisType,ExamAnalysisType,ExamAnalysisType]=["TYT","AYT","YDT"];
 let selectedExamType:ExamAnalysisType|null=null;
+let personalizationListenerInstalled=false;
 
 function byId<T extends HTMLElement=HTMLElement>(id:string):T|null{
   const element=document.getElementById(id);
@@ -26,9 +27,15 @@ function dataBadge(progress:ProgressAnalysis,exam:ExamAnalysis):{label:string;cl
   if(progress.dataLevel==="limited"||exam.dataLevel==="limited")return {label:"Veri birikiyor",className:"limited"};
   return {label:"Yeterli veri",className:"ready"};
 }
+function activeExamTypes():ExamAnalysisType[]{
+  const configured=window.__YKS_PERSONALIZATION_V43__?.examTypes?.()??GENERAL_EXAM_TYPES;
+  const allowed=new Set<string>(configured);
+  const active=GENERAL_EXAM_TYPES.filter(type=>allowed.has(type));
+  return active.length?active:[GENERAL_EXAM_TYPES[0]];
+}
 function resolveExamAnalyses():{selected:ExamAnalysis;all:ExamAnalysis[]}|null{
   const api=window.__YKS_EXAM_ANALYSIS__;if(!api)return null;
-  const all=GENERAL_EXAM_TYPES.map(type=>api.analyze(type,10));
+  const all=activeExamTypes().map(type=>api.analyze(type,10));
   let selected=selectedExamType?all.find(item=>item.type===selectedExamType&&item.count>0):undefined;
   selected??=all.filter(item=>item.count>0).sort((a,b)=>latestDate(b).localeCompare(latestDate(a))||b.count-a.count)[0];
   selected??=all[0]!;selectedExamType=selected.type;return {selected,all};
@@ -55,7 +62,7 @@ function renderTrendBars(analysis:ExamAnalysis):HTMLElement{
 }
 function renderExamTrend(root:HTMLElement,analysis:ExamAnalysis,all:ExamAnalysis[]):void{
   const section=node("section","v43-analysis-section"),head=node("div","v43-analysis-section-head"),title=node("div");add(title,node("span","v43-analysis-eyebrow","Deneme eğilimi"),node("strong","",analysis.count?`${analysis.type} · son ${analysis.count} deneme`:"Deneme verisi bekleniyor"));
-  const tabs=node("div","v43-analysis-exam-tabs");GENERAL_EXAM_TYPES.forEach(type=>{const item=all.find(row=>row.type===type),button=node("button",type===analysis.type?"on":"",type);button.type="button";button.disabled=!item?.count;button.setAttribute("aria-pressed",String(type===analysis.type));button.title=item?.count?`${item.count} kayıt`:`${type} kaydı yok`;button.addEventListener("click",()=>{selectedExamType=type;renderAnalysisCenterV43();});tabs.appendChild(button);});add(head,title,tabs);section.appendChild(head);
+  const tabs=node("div","v43-analysis-exam-tabs");all.forEach(item=>{const type=item.type,button=node("button",type===analysis.type?"on":"",type);button.type="button";button.disabled=!item.count;button.dataset.v43ExamType=type;button.setAttribute("aria-pressed",String(type===analysis.type));button.title=item.count?`${item.count} kayıt`:`${type} kaydı yok`;button.addEventListener("click",()=>{selectedExamType=type;renderAnalysisCenterV43();});tabs.appendChild(button);});add(head,title,tabs);section.appendChild(head);
   const grid=node("div","v43-analysis-exam-grid"),kpis=node("div","v43-analysis-exam-kpis");add(kpis,metric("Son net",analysis.latest?String(analysis.latest.net):"—",analysis.latest?.name??"kayıt yok"),metric("Ortalama",analysis.average==null?"—":String(analysis.average),`${analysis.count} deneme`),metric("Dönem farkı",signed(analysis.period.delta," net"),analysis.period.delta==null?"karşılaştırma yok":`${analysis.period.currentCount} ↔ ${analysis.period.previousCount}`,trendClass(analysis.period.delta)),metric("İstikrar",analysis.trend.volatility==null?"—":String(analysis.trend.volatility),analysis.trend.direction==="up"?"yükseliş":analysis.trend.direction==="down"?"düşüş":analysis.trend.direction==="flat"?"yatay":"veri bekleniyor"));
   add(grid,kpis,renderTrendBars(analysis));section.appendChild(grid);root.appendChild(section);
 }
@@ -92,5 +99,6 @@ export function renderAnalysisCenterV43():boolean{
 export function installAnalysisCenterV43():{installed:boolean;validate:()=>string[]}{
   const progress=byId("progress");if(!progress)return {installed:false,validate:()=>["progress screen missing"]};
   let root=byId("v43AnalysisCenter");if(!root){root=node("section","v43-analysis-center");root.id="v43AnalysisCenter";root.dataset.v43Analysis="ready";progress.prepend(root);}renderAnalysisCenterV43();
+  if(!personalizationListenerInstalled){personalizationListenerInstalled=true;window.addEventListener("yks:v43-personalization",()=>{selectedExamType=null;renderAnalysisCenterV43();});}
   return {installed:true,validate:()=>{const errors:string[]=[];if(root?.dataset.v43Analysis!=="ready")errors.push("analysis center marker missing");if(!window.__YKS_PROGRESS_ANALYSIS__)errors.push("progress analysis api missing");if(!window.__YKS_EXAM_ANALYSIS__)errors.push("exam analysis api missing");return errors;}};
 }
