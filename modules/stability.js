@@ -147,3 +147,17 @@
   }
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",loadGlobalSearchV42,{once:true});else loadGlobalSearchV42();
 })();
+
+(function(){
+  "use strict";
+  function loadSmartRepeatV42(){
+    if(window.__YKS_SMART_REPEAT_V42__||document.querySelector('script[data-yks-smart-repeat-v42]'))return;
+    const s=document.createElement("script");
+    s.src="./modules/smart-repeat-v42.js?v=4.2.0-r1";
+    s.async=false;
+    s.setAttribute("data-yks-smart-repeat-v42","1");
+    s.onerror=()=>{try{if(typeof infraError==="function")infraError("smart-repeat-v42-load",new Error("Akıllı Tekrar Merkezi 2.0 yüklenemedi"));}catch(e){}};
+    document.head.appendChild(s);
+  }
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",loadSmartRepeatV42,{once:true});else loadSmartRepeatV42();
+})();
