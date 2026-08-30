@@ -1,20 +1,10 @@
 import type {ScreenModule} from "./contracts";
+import {programLegacyAdapter} from "./legacy-adapters";
 
 export const programScreen:ScreenModule={
   id:"program",
-  required:["renderPlan","renderCalendar","renderDayDetail","renderProcrast"],
+  required:programLegacyAdapter.required,
   render(environment){
-    environment.call("renderPlan");
-    if(environment.isVisible("progCal")){
-      environment.call("renderCalendar");
-      environment.call("renderDayDetail");
-      environment.afterPaint("program-procrast",()=>environment.call("renderProcrast"));
-      return;
-    }
-    environment.afterPaint("program-secondary",()=>{
-      environment.call("renderCalendar");
-      environment.call("renderDayDetail");
-      environment.call("renderProcrast");
-    });
+    programLegacyAdapter.render(environment);
   }
 };
