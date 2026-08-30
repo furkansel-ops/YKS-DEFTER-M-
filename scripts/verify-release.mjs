@@ -18,7 +18,7 @@ const checks={
   transaction:bundle.includes("runTransaction as"),conflict:bundle.includes("SYNC_CONFLICT"),hash:bundle.includes("infraHash("),
   dexie:bundle.includes("yks-defterim-v4"),screens:bundle.includes("screen-transitions"),
   v43:v43Markers.every(marker=>bundle.includes(marker))&&bundle.includes("degraded"),
-  pwa:sw.includes(`const APP_VERSION="${localVersion.version}"`)&&sw.includes(`const APP_BUILD="${localVersion.build}"`)&&sw.includes(`const CACHE="yks-core-${localVersion.build}"`)&&sw.includes('"yks-core-v4.2.0-r1"')
+  pwa:sw.includes(`const APP_VERSION="${localVersion.version}"`)&&sw.includes(`const APP_BUILD="${localVersion.build}"`)&&sw.includes(`const CACHE="yks-core-v${localVersion.build}"`)&&sw.includes('"yks-core-v4.2.0-r1"')
 };
 const failed=Object.entries(checks).filter(([,ok])=>!ok).map(([name])=>name);
 if(failed.length)throw new Error(`Kararlı sürüm kontrolleri başarısız: ${failed.join(", ")}`);
