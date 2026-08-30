@@ -16,6 +16,7 @@ import {installRecoveryCenter} from "./ui/recovery-center";
 import {installTodayV43} from "./ui/today-v43";
 import {installAnalysisCenterV43} from "./ui/analysis-center-v43";
 import {installLearningCycleV43} from "./ui/learning-cycle-v43";
+import {installLabQuizV43} from "./ui/lab-quiz-v43";
 
 type BootstrapState={
   version:typeof RELEASE_VERSION;
@@ -69,6 +70,7 @@ const services=installLegacyServiceBridge();
 const data=installLegacyDataBridge();
 installScienceCards();
 installBiologyAtlas();
+const labQuizV43=installLabQuizV43();
 const backup=installLegacyBackupBridge(data,RELEASE_VERSION);
 const recovery=installRecoveryCenter(data,backup);
 const domain=installLegacyDomainBridge();
@@ -100,6 +102,8 @@ document.documentElement.dataset.v43Analysis=String(analysisCenterV43.installed)
 document.documentElement.dataset.v43AnalysisErrors=String(analysisCenterV43.validate().length);
 document.documentElement.dataset.v43LearningCycle=String(learningCycleV43.installed);
 document.documentElement.dataset.v43LearningCycleErrors=String(learningCycleV43.validate().length);
+document.documentElement.dataset.v43LabQuiz=String(labQuizV43.installed);
+document.documentElement.dataset.v43LabQuizErrors=String(labQuizV43.validate().length);
 window.dispatchEvent(new CustomEvent<BootstrapState>("yks:v4-bootstrap",{detail:bootstrap}));
 
 export {};
