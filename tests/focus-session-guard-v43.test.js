@@ -31,10 +31,12 @@ test("duraklatılmış oturum, mola ve önceden hazırlanmış görev başlangı
   assert.doesNotMatch(source,/\.swStart\s*=/);assert.doesNotMatch(source,/\.startPomo\s*=/);
 });
 
-test("odak başlangıç kapısı veri ve Program mantığına yazmaz; bootstrap ve final gate tarafından doğrulanır",()=>{
-  const source=guard(),entry=fs.readFileSync(path.join(root,"src/main.ts"),"utf8"),release=fs.readFileSync(path.join(root,"src/release/release.ts"),"utf8"),style=css();
+test("odak başlangıç kapısı veri ve Program mantığına yazmaz; güvenli v4.3 runtime tarafından yüklenir",()=>{
+  const source=guard(),entry=fs.readFileSync(path.join(root,"src/main.ts"),"utf8"),safe=fs.readFileSync(path.join(root,"src/ui/v43-safe-runtime.ts"),"utf8"),release=fs.readFileSync(path.join(root,"src/release/release.ts"),"utf8"),style=css();
   assert.doesNotMatch(source,/\bsave\s*\(/);assert.doesNotMatch(source,/localStorage\.(?:setItem|removeItem|clear)/);assert.doesNotMatch(source,/__YKS_DATA__|\.weeks\[|\.rows\[/);
-  assert.match(entry,/installFocusSessionGuardV43/);assert.match(entry,/v43FocusSessionGuardErrors/);
+  assert.match(source,/__YKS_FOCUS_SESSION_GUARD_V43__/);
+  assert.match(entry,/installV43SafeRuntime/);assert.doesNotMatch(entry,/from "\.\/ui\/focus-session-guard-v43"/);
+  assert.match(safe,/import\("\.\/focus-session-guard-v43"\)/);assert.match(safe,/v43FocusSessionGuardErrors/);
   assert.match(release,/v43-focus-session-guard/);
   assert.match(style,/@media \(pointer:coarse\)/);assert.match(style,/@media \(prefers-reduced-motion:reduce\)/);
 });
