@@ -1,7 +1,10 @@
 import type {ScreenModule} from "./contracts";
 import {progressLegacyAdapter} from "./legacy-adapters";
 import {renderProgressDashboard} from "../progress-dashboard";
-import {renderAnalysisCenterV43} from "../analysis-center-v43";
+
+function renderAnalysisCenterV43():void{
+  try{window.__YKS_V43_RENDER_ANALYSIS__?.();}catch(error){try{console.error("v4.3 analysis render",error);}catch{}}
+}
 
 export const progressScreen:ScreenModule={
   id:"progress",
