@@ -8,9 +8,9 @@ const read=file=>fs.readFileSync(path.join(root,file),"utf8");
 
 test("v4.3 Merkez bilgi mimarisi dört net kategoriye ayrılır",()=>{
   const ui=read("src/ui/navigation-v43.ts");
-  for(const id of ['id:"learning"','id:"analysis"','id:"settings"','id:"system"'])assert.match(ui,new RegExp(id.replace(/[".]/g,"\\$&")));
-  for(const label of ["Öğrenme","Analiz","Ayarlar","Veri & Sistem"])assert.match(ui,new RegExp(label.replace(/[&]/g,"\\&")));
-  assert.match(ui,/querySelectorAll<HTMLElement>\("\[data-v43-more-category\]"\)\.length!==4/);
+  for(const id of ['id:"learning"','id:"analysis"','id:"settings"','id:"system"'])assert.ok(ui.includes(id));
+  for(const label of ["Öğrenme","Analiz","Ayarlar","Veri & Sistem"])assert.ok(ui.includes(label));
+  assert.ok(ui.includes('document.querySelectorAll("[data-v43-more-category]").length!==4'));
 });
 
 test("Merkez mevcut v30Action alt sayfalarını korur ve Analiz Merkezi için ayrı İlerleme ekranını kullanır",()=>{
@@ -18,7 +18,7 @@ test("Merkez mevcut v30Action alt sayfalarını korur ve Analiz Merkezi için ay
   assert.match(ui,/legacy\(\)\.v30Action\?\.\(action\)/);
   assert.match(ui,/action==="progress"/);
   assert.match(ui,/legacy\(\)\.go\?\.\("progress"\)/);
-  for(const action of ["lab","resources","tactics","archive","success","reports","settings","about","data","system","backup","log"])assert.match(ui,new RegExp(`action:\\"${action}\\"`));
+  for(const action of ["lab","resources","tactics","archive","success","reports","settings","about","data","system","backup","log"])assert.ok(ui.includes(`action:"${action}"`));
 });
 
 test("Daha navigasyonu Merkez olarak sadeleşir ve eski kalabalık kartlar yalnız görünümde gizlenir",()=>{
