@@ -38,7 +38,7 @@ test("Deneme Analizi 3.0 salt okunurdur ve Programı değiştirmez",()=>{
 
 test("Deneme Analizi 3.0 arayüzü kanıta dayalı ve erişilebilir kalır",()=>{
   const source=read("modules/exam-analysis-v42.js"),stability=read("modules/stability.js");
-  assert.match(source,/Deneme Analizi 3\.0/);assert.match(source,/Son 5/);assert.match(source,/Son 10/);
+  assert.match(source,/Deneme Analizi 3\.0/);assert.match(source,/\[5,10\]\.map/);assert.match(source,/Son \$\{size\}/);
   assert.match(source,/Net arttı ama aynı hata devam ediyor/);assert.match(source,/Yanlış konu yoğunluğu/);assert.match(source,/standart sapma/);
   assert.match(source,/tahmin etmez/);assert.match(source,/Program’a otomatik görev eklemez/);
   assert.match(source,/focus-visible/);assert.match(source,/pointer:coarse/);assert.match(source,/prefers-reduced-motion:reduce/);
