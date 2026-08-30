@@ -8,6 +8,7 @@ const required=[
   "modules/core-utils.js","modules/stability.js","modules/topic-guides.js",
   "modules/learning-lab.js","modules/learning-lab-v2.js","modules/learning-lab-v3.js","modules/target-center.js","modules/export-center.js",
   "modules/error-journal.js","modules/personal-upgrades.js","modules/progress-v2.js","modules/motivation-quotes-v1.js","modules/motivation-quotes-v2.css",
+  "modules/global-search-v42.js","modules/smart-repeat-v42.js","modules/error-topic-lab-v42.js","modules/exam-analysis-v42.js","modules/progress-v42.js","modules/learning-lab-flow-v42.js",
   "modules/release-selftest.js","modules/study-intelligence-v5.css","modules/ui-polish-v1.css","modules/ui-polish-home-v2.css",
   "modules/ui-polish-focus-v1.css","modules/ui-polish-exam-v1.css","modules/ui-polish-topics-v1.css","modules/ui-polish-error-journal-v1.css",
   "modules/ui-polish-progress-v1.css","modules/ui-polish-progress-v2.css","modules/ui-polish-more-v1.css","modules/ui-polish-program-v1.css",
@@ -45,8 +46,13 @@ const [bundle,app,sw,versionText,recovery,stability,personal,progress,labV2,labV
 if(!bundle.includes("YKS_V4_RELEASE_OK")||!bundle.includes("4.1.0")||!bundle.includes("stable"))throw new Error("v4 kararlı sürüm denetimi üretim paketine girmedi");
 if(!bundle.includes("4.1.0-r20")||!/(?:assets\/manifest-[^"']+|manifest\.webmanifest)\?v=4\.1\.0-r20/.test(index))throw new Error("r20 PWA çalışma zamanı üretim paketine girmedi");
 if(!app.includes('const APP_VERSION="4.1.0"')||!app.includes('const APP_BUILD="4.1.0-r20"'))throw new Error("Kopyalanan app.js kararlı sürümle eşleşmiyor");
-if(!sw.includes('const APP_VERSION="4.1.0"')||!sw.includes('const APP_BUILD="4.1.0-r20"')||!sw.includes('const CACHE="yks-core-v4.1.0-r39"'))throw new Error("Kopyalanan service worker kararlı sürüm/cache revizyonuyla eşleşmiyor");
+if(!sw.includes('const APP_VERSION="4.1.0"')||!sw.includes('const APP_BUILD="4.1.0-r20"')||!sw.includes('const CACHE="yks-core-v4.1.0-r40"'))throw new Error("Kopyalanan service worker kararlı sürüm/cache revizyonuyla eşleşmiyor");
 if(!sw.includes('learning-lab.js?v=4.1.0-r26'))throw new Error("Laboratuvar favori düzeltmesi çevrimdışı çekirdekte eksik");
+const v42Runtime=["global-search-v42.js","smart-repeat-v42.js","error-topic-lab-v42.js","exam-analysis-v42.js","progress-v42.js","learning-lab-flow-v42.js"];
+for(const file of v42Runtime){
+  if(!sw.includes(`${file}?v=4.2.0-r1`))throw new Error("v4.2 modülü çevrimdışı çekirdekte eksik: "+file);
+  if(!stability.includes(`${file}?v=4.2.0-r1`))throw new Error("v4.2 modülü çalışma zamanında yüklenmiyor: "+file);
+}
 const polishCore=["study-intelligence-v5.css","ui-polish-v1.css","ui-polish-home-v2.css","ui-polish-focus-v1.css","ui-polish-exam-v1.css","ui-polish-topics-v1.css","ui-polish-error-journal-v1.css","ui-polish-progress-v1.css","ui-polish-progress-v2.css","ui-polish-more-v1.css","ui-polish-program-v1.css","ui-polish-learning-lab-v1.css","ui-polish-final-v1.css"];
 for(const file of polishCore)if(!sw.includes(`${file}?v=4.1.0-r1`))throw new Error("Cila katmanı çevrimdışı çekirdekte eksik: "+file);
 if(!sw.includes('motivation-quotes-v1.js?v=4.1.0-r2')||!sw.includes('motivation-quotes-v2.css?v=4.1.0-r1')||!stability.includes('motivation-quotes-v1.js?v=4.1.0-r2'))throw new Error("Günün sözü çalışma zamanı/PWA çekirdeğine bağlı değil");
@@ -79,4 +85,4 @@ if(!recovery.includes('/YKS-DEFTER-M-/')||!recovery.includes('location.replace')
 let version;
 try{version=JSON.parse(versionText);}catch{throw new Error("Kopyalanan version.json geçerli JSON değil");}
 if(version?.version!=="4.1.0"||version?.build!=="4.1.0-r20"||version?.schema!==21)throw new Error("Kopyalanan version.json kararlı sürümle eşleşmiyor");
-console.log(`Üretim paketi doğrulandı: ${required.length} geçiş dosyası + TypeScript paketi + sürüm/PWA/final-cila/YKS+teknik-direktör/kişisel modül bütünlüğü`);
+console.log(`Üretim paketi doğrulandı: ${required.length} geçiş dosyası + TypeScript paketi + sürüm/PWA/final-cila/YKS+teknik-direktör/kişisel/v4.2 modül bütünlüğü`);
