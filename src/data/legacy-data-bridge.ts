@@ -145,7 +145,7 @@ export function installLegacyDataBridge():LegacyDataBridgeApi{
     document.documentElement.dataset.v4Data="warning";
     document.documentElement.dataset.v4Primary="none";
     document.documentElement.dataset.v4Reconcile="failed";
-    try{if(typeof (window as Window&{infraError?:unknown}).infraError==="function")((window as Window&{infraError:(scope:string,error:unknown)=>unknown}).infraError)("data-primary-ready",error);}catch{}
+    try{(window as unknown as {infraError?:(scope:string,error:unknown)=>unknown}).infraError?.("data-primary-ready",error);}catch{}
     console.error("Dexie ana kayıt başlatması beklenmedik biçimde başarısız oldu",error);
   });
   return api;
