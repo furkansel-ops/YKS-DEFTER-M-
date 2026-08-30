@@ -6,7 +6,7 @@ const path=require("node:path");
 const root=path.resolve(__dirname,"..");
 const read=file=>fs.readFileSync(path.join(root,file),"utf8");
 
-test("v4.3 final release runtime altı yeni ürün katmanını gerçek kurulum durumuyla doğrular",()=>{
+test("v4.3 final release runtime yedi yeni ürün katmanını gerçek kurulum durumuyla doğrular",()=>{
   const release=read("src/release/release.ts"),main=read("src/main.ts");
   const checks=[
     ["v43-today","v43Today","v43TodayErrors"],
@@ -14,7 +14,8 @@ test("v4.3 final release runtime altı yeni ürün katmanını gerçek kurulum d
     ["v43-learning-cycle","v43LearningCycle","v43LearningCycleErrors"],
     ["v43-lab-quiz","v43LabQuiz","v43LabQuizErrors"],
     ["v43-navigation","v43Navigation","v43NavigationErrors"],
-    ["v43-personalization","v43Personalization","v43PersonalizationErrors"]
+    ["v43-personalization","v43Personalization","v43PersonalizationErrors"],
+    ["v43-focus-session-guard","v43FocusSessionGuard","v43FocusSessionGuardErrors"]
   ];
   for(const [name,installed,error] of checks){
     assert.ok(release.includes(`\"${name}\"`),name);
@@ -29,7 +30,7 @@ test("v4.3 final release runtime altı yeni ürün katmanını gerçek kurulum d
 test("production ve canlı Pages doğrulaması release kimliği sapmasını yakalar",()=>{
   const verify=read("scripts/verify-release.mjs"),live=read("scripts/verify-live-pages.mjs");
   assert.match(verify,/v43Markers/);
-  for(const marker of ["v43Today","v43Analysis","v43LearningCycle","v43LabQuiz","v43Navigation","v43Personalization"])assert.ok(verify.includes(`\"${marker}\"`),marker);
+  for(const marker of ["v43Today","v43Analysis","v43LearningCycle","v43LabQuiz","v43Navigation","v43Personalization","v43FocusSessionGuard"])assert.ok(verify.includes(`\"${marker}\"`),marker);
   assert.match(live,/version\.json/);
   assert.match(live,/localRelease\.version/);
   assert.doesNotMatch(live,/const RELEASE_MARKER="4\.[0-9]+\.0"/);
@@ -39,7 +40,7 @@ test("v4.3 final kalite kapısı veri şeması ve manuel Program sözleşmesini 
   const data=read("src/data/contracts.ts"),version=JSON.parse(read("version.json"));
   const files=[
     "src/ui/today-v43.ts","src/ui/analysis-center-v43.ts","src/ui/learning-cycle-v43.ts","src/ui/lab-quiz-v43.ts",
-    "src/ui/navigation-v43.ts","src/ui/personalization-v43.ts","src/ui/screens/legacy-adapters.ts","src/release/release.ts"
+    "src/ui/navigation-v43.ts","src/ui/personalization-v43.ts","src/ui/focus-session-guard-v43.ts","src/ui/screens/legacy-adapters.ts","src/release/release.ts"
   ];
   const source=files.map(read).join("\n");
   assert.equal(version.schema,21);
