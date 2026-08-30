@@ -33,19 +33,21 @@ v4.2.0'ın amacı yeni özellik eklemekten çok, mevcut güçlü altyapıyı dah
 
 **Durum:** Tamamlandı.
 
-- Hata Defteri kayıtlarından ilgili Konu detayına ve eşleşen Öğrenme Laboratuvarı konu rehberine tek dokunuşla geçiş eklendi.
-- Hata Defteri 3.0 tekrar eden hata satırları da `Konu detayı` ve varsa `Laboratuvar rehberi` bağlantılarıyla bağlandı.
-- Konu detayında aynı konudaki yanlışlar gün bazlı zaman çizgisi, toplam yanlış ve açık Hata Defteri sayısıyla gösterilir.
-- Hata Defteri 3.0 düzeltme notu ve son Hata Defteri notları ilgili konu detayında salt okunur olarak görünür.
-- Aynı yanlışın Deneme analizinden Hata Defteri'ne taşınmış kopyası zaman çizgisinde iki kez sayılmaz.
-- Bağlantı katmanı Program verisini değiştirmez.
+- Hata kaydından ilgili Konu sayfasına ve varsa Laboratuvar konu rehberine tek dokunuşla geçiş.
+- Aynı konudaki tekrar eden yanlışların tarih bazlı zaman çizgisi.
+- Hata Defteri 3.0 düzeltme notlarının konu detayında salt okunur özeti.
+- Denemeden Hata Defteri'ne aktarılan aynı kayıt zaman çizgisinde iki kez sayılmaz.
 
-## Aşama 4 — Deneme Analizi 3.0
+## Aşama 4 — Deneme Analizi 3.0 ✅
 
-- Son 5 / 10 denemede ders bazlı istikrar ve dalgalanma görünümü.
-- Yanlışların konu kümelerine göre yoğunluk haritası.
-- “Net arttı ama aynı hata devam ediyor” gibi açıklanabilir sinyaller.
-- Tahmin veya garanti yerine yalnız mevcut veriye dayalı kanıt gösterimi.
+**Durum:** Tamamlandı.
+
+- Aynı türde son 5 / 10 denemeyi seçilebilir seri olarak karşılaştırma.
+- Toplam nette ortalama, aralık, seri değişimi ve standart sapma ile istikrar görünümü.
+- Ders bazlı son net, seri değişimi ve dalgalanma (standart sapma) görünümü.
+- Denemeye bağlanmış yanlışların konu bazlı yoğunluk haritası.
+- “Net arttı ama aynı hata devam ediyor” gibi açıklanabilir sinyaller; yalnız kayıtlı veriden üretilir.
+- Gelecek net veya sınav sonucu için tahmin/garanti üretilmez ve Program'a otomatik görev eklenmez.
 
 ## Aşama 5 — İlerleme 3.0
 
@@ -81,7 +83,7 @@ v4.2.0'ın amacı yeni özellik eklemekten çok, mevcut güçlü altyapıyı dah
 1. Global arama ✅
 2. Akıllı Tekrar Merkezi 2.0 ✅
 3. Hata Defteri bağlantıları ✅
-4. Deneme Analizi 3.0
+4. Deneme Analizi 3.0 ✅
 5. İlerleme 3.0
 6. Öğrenme Laboratuvarı kullanım akışı
 7. Veri güvenliği 2.0
