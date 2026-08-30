@@ -28,8 +28,9 @@ test("Daha navigasyonu Merkez olarak sadeleşir ve eski kalabalık kartlar yaln�
   assert.match(css,/v43-more-categories/);assert.match(css,/grid-template-columns:repeat\(4/);assert.match(css,/pointer:coarse/);assert.match(css,/prefers-reduced-motion:reduce/);
 });
 
-test("v4.3 navigasyon katmanı bootstrapa bağlıdır ve Program/veri durumuna yazmaz",()=>{
-  const ui=read("src/ui/navigation-v43.ts"),main=read("src/main.ts");
-  assert.match(main,/installNavigationV43/);assert.match(main,/v43Navigation/);assert.match(main,/v43NavigationErrors/);
+test("v4.3 navigasyon katmanı güvenli runtime'a bağlıdır ve Program/veri durumuna yazmaz",()=>{
+  const ui=read("src/ui/navigation-v43.ts"),main=read("src/main.ts"),safe=read("src/ui/v43-safe-runtime.ts");
+  assert.match(main,/installV43SafeRuntime/);assert.doesNotMatch(main,/from "\.\/ui\/navigation-v43"/);
+  assert.match(safe,/import\("\.\/navigation-v43"\)/);assert.match(safe,/installNavigationV43/);assert.match(safe,/v43Navigation/);assert.match(safe,/v43NavigationErrors/);
   assert.doesNotMatch(ui,/\blocalStorage\b/);assert.doesNotMatch(ui,/\bsave\s*\(/);assert.doesNotMatch(ui,/\bDexie\b/);assert.doesNotMatch(ui,/\bFirebase\b/);assert.doesNotMatch(ui,/\.weeks\s*\[/);assert.doesNotMatch(ui,/\.rows\s*\[/);
 });
