@@ -75,13 +75,27 @@ v4.3.0'ın ana hedefi yeni özellik yığmak değil; mevcut güçlü modülleri 
 - Aşama 4 için 4 yeni regresyon testi eklendi.
 - Node 22/24, TypeScript strict, **249/249 test** ve production Vite build kapısından geçti.
 
-## Aşama 5 — Navigasyon + Daha temizliği
+## Aşama 5 — Navigasyon + Daha temizliği ✅
 
-**Durum:** Sıradaki.
+**Durum:** Tamamlandı.
 
-- Öğrenme, Analiz, Ayarlar ve Veri & Sistem alanlarını daha açık bilgi mimarisine ayırma.
+- Alt navigasyondaki `Daha` çalışma anında `Merkez` olarak sadeleştirildi; yeni bir ana sekme eklenmedi ve mevcut ekran sayısı büyütülmedi.
+- Merkez ilk görünümü dört açık kategoriye ayrıldı: `Öğrenme`, `Analiz`, `Ayarlar`, `Veri & Sistem`.
+- Öğrenme altında Laboratuvar, kaynak/video, taktik ve yanlış soru arşivi; Analiz altında Analiz Merkezi, çalışma özeti ve raporlar; Ayarlar altında uygulama tercihleri ve hakkında; Veri & Sistem altında senkron, sistem durumu, JSON yedek ve değişiklik günlüğü toplandı.
+- Mevcut `v30Action()` / `setMoreTab()` sözleşmeleri değiştirilmedi; eski araç kartları silinmek yerine yalnız ana Merkez görünümünde gizlendi ve mevcut alt sayfalar aynen kullanılmaya devam ediyor.
+- `Analiz Merkezi` yeni bir ekran kopyalamak yerine mevcut `İlerleme` ekranına yönleniyor.
+- Var olan sık kullanılanlar alanı `v30QuickGrid` Merkez içinde korunarak yeniden konumlandırıldı.
+- Alt sayfalardaki geri dönüş metinleri `‹ Merkez` olarak güncellendi; Merkez aktifken üst başlık da aynı adı kullanıyor.
+- Yeni navigasyon katmanı salt görünüm/yönlendirme katmanıdır; Program'a, Dexie'ye, localStorage'a, Firebase'e veya çalışma kayıtlarına yazmaz.
+- Veri şeması 21 ve mevcut geriye dönük arayüz davranışları korunur.
+- PC/tablet, dar ekran, coarse-pointer ve azaltılmış hareket durumları için responsive/erişilebilir davranış eklendi.
+- Aşama 5 için 4 yeni regresyon testi eklendi.
+- İlk CI denemesinde yalnız yeni testteki fazla dar metin eşleşmesi yakalandı; uygulama koduna dokunmadan test gerçek sözleşmeyi kontrol edecek şekilde düzeltildi.
+- Son doğrulamada Node 22/24, TypeScript strict, **253/253 test** ve production Vite build başarıyla geçti.
 
 ## Aşama 6 — Kişiselleştirilebilir görünüm
+
+**Durum:** Sıradaki.
 
 - Ana ekran kartlarını göster/gizle ve sınav kapsamını kişisel kullanıma göre sadeleştirme.
 
@@ -100,9 +114,9 @@ v4.3.0'ın ana hedefi yeni özellik yığmak değil; mevcut güçlü modülleri 
 2. Analiz Merkezi ✅
 3. Hata → Öğren → Tekrar ✅
 4. Laboratuvar 3.0 / Quiz ✅
-5. Navigasyon + Daha temizliği
+5. Navigasyon + Daha temizliği ✅
 6. Kişiselleştirilebilir görünüm
 7. Legacy modülerleştirme
 8. Final kalite kapısı
 
-**Durum: 4/8 tamamlandı.**
+**Durum: 5/8 tamamlandı.**
