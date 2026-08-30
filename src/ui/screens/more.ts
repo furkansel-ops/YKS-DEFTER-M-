@@ -1,9 +1,10 @@
 import type {ScreenModule} from "./contracts";
+import {moreLegacyAdapter} from "./legacy-adapters";
 
 export const moreScreen:ScreenModule={
   id:"more",
-  required:["activeMoreTab","setMoreTab"],
+  required:moreLegacyAdapter.required,
   render(environment){
-    environment.call("setMoreTab",environment.call("activeMoreTab"));
+    moreLegacyAdapter.render(environment);
   }
 };

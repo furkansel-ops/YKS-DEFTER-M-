@@ -1,9 +1,10 @@
 import type {ScreenModule} from "./contracts";
+import {homeLegacyAdapter} from "./legacy-adapters";
 
 export const homeScreen:ScreenModule={
   id:"home",
-  required:["renderHome"],
+  required:homeLegacyAdapter.required,
   render(environment){
-    environment.call("renderHome");
+    homeLegacyAdapter.render(environment);
   }
 };
