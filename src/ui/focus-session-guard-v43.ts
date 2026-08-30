@@ -60,6 +60,8 @@ function selectedSubjectLabel():string{
 }
 
 export function installFocusSessionGuardV43():FocusSessionGuardV43Api{
+  if(window.__YKS_FOCUS_SESSION_GUARD_V43__)return window.__YKS_FOCUS_SESSION_GUARD_V43__;
+
   const originalTogglePomo=legacy("togglePomo"),originalSwToggle=legacy("swToggle"),originalSetSubject=legacy("setPomoSubject");
   let pendingMode:FocusStartMode|null=null,subjectConfirmed=false;
 
@@ -74,29 +76,29 @@ export function installFocusSessionGuardV43():FocusSessionGuardV43Api{
 
   const requestPreparation=(mode:FocusStartMode):void=>{
     pendingMode=mode;subjectConfirmed=false;
-    legacy("v29ToggleMinimal")?.(false);
+    try{legacy("v29ToggleMinimal")?.(false);}catch{}
     const setup=setupCard(),message=ensureGateMessage();
     if(!setup||!message)return;
     setup.classList.add("v43-session-required");
     setup.classList.remove("v43-session-ready");
     setup.dataset.v43StartMode=mode;
     message.textContent="Başlamadan önce dersini seç. Seçimden sonra Başlat'a tekrar bas.";
-    setup.scrollIntoView({behavior:reducedMotion()?"auto":"smooth",block:"center"});
+    try{setup.scrollIntoView?.({behavior:reducedMotion()?"auto":"smooth",block:"center"});}catch{}
     window.setTimeout(()=>document.querySelector<HTMLElement>("#pomoSubjPick .chip")?.focus(),reducedMotion()?0:220);
   };
 
-  const guardedStart=(mode:FocusStartMode,original:LegacyFn|undefined):unknown=>{
+  const guardedStart=(mode:FocusStartMode,original:LegacyFn|undefined,args:unknown[]):unknown=>{
     if(!original)return undefined;
-    if(!needsPreparation(mode))return original();
+    if(!needsPreparation(mode))return original(...args);
     if(pendingMode!==mode||!subjectConfirmed){requestPreparation(mode);return undefined;}
     clearGate();
-    return original();
+    return original(...args);
   };
 
-  if(originalTogglePomo)(window as unknown as Record<string,unknown>).togglePomo=()=>guardedStart("pomo",originalTogglePomo);
-  if(originalSwToggle)(window as unknown as Record<string,unknown>).swToggle=()=>guardedStart("sw",originalSwToggle);
-  if(originalSetSubject)(window as unknown as Record<string,unknown>).setPomoSubject=(subject:unknown)=>{
-    const result=originalSetSubject(subject);
+  if(originalTogglePomo)(window as unknown as Record<string,unknown>).togglePomo=(...args:unknown[])=>guardedStart("pomo",originalTogglePomo,args);
+  if(originalSwToggle)(window as unknown as Record<string,unknown>).swToggle=(...args:unknown[])=>guardedStart("sw",originalSwToggle,args);
+  if(originalSetSubject)(window as unknown as Record<string,unknown>).setPomoSubject=(subject:unknown,...rest:unknown[])=>{
+    const result=originalSetSubject(subject,...rest);
     if(pendingMode&&String(subject??"").trim()){
       subjectConfirmed=true;
       const setup=setupCard(),message=ensureGateMessage();
