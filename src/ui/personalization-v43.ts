@@ -69,12 +69,14 @@ function cloneState(state:PersonalizationV43State):PersonalizationV43State{
 export function normalizePersonalizationV43(value:unknown):PersonalizationV43State{
   const next=cloneState(DEFAULT_STATE);
   if(!isRecord(value))return next;
-  if(isRecord(value.examScope))V43_EXAM_TYPES.forEach(type=>{
-    if(typeof value.examScope?.[type]==="boolean")next.examScope[type]=Boolean(value.examScope[type]);
+  const examScope=isRecord(value.examScope)?value.examScope:null;
+  if(examScope)V43_EXAM_TYPES.forEach(type=>{
+    if(typeof examScope[type]==="boolean")next.examScope[type]=Boolean(examScope[type]);
   });
   if(!V43_EXAM_TYPES.some(type=>next.examScope[type]))next.examScope.TYT=true;
-  if(isRecord(value.homeCards))V43_HOME_CARDS.forEach(key=>{
-    if(typeof value.homeCards?.[key]==="boolean")next.homeCards[key]=Boolean(value.homeCards[key]);
+  const homeCards=isRecord(value.homeCards)?value.homeCards:null;
+  if(homeCards)V43_HOME_CARDS.forEach(key=>{
+    if(typeof homeCards[key]==="boolean")next.homeCards[key]=Boolean(homeCards[key]);
   });
   const updatedAt=Number(value.updatedAt??0);
   next.updatedAt=Number.isFinite(updatedAt)&&updatedAt>0?Math.floor(updatedAt):0;
