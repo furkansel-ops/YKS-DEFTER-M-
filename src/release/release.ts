@@ -1,4 +1,5 @@
 import {SCREEN_IDS,type ScreenId} from "../ui/types.ts";
+import {LEGACY_CORE_BUILD,RELEASE_BUILD,RELEASE_CHANNEL,RELEASE_VERSION} from "./version.ts";
 
 export interface ReleaseCheck{
   name:string;
@@ -7,7 +8,7 @@ export interface ReleaseCheck{
 }
 
 export interface ReleaseReport{
-  version:"4.1.0";
+  version:typeof RELEASE_VERSION;
   ok:boolean;
   startedAt:number;
   finishedAt:number;
@@ -20,7 +21,7 @@ export interface ReleaseRunOptions{
 }
 
 export interface ReleaseApi{
-  readonly version:"4.1.0";
+  readonly version:typeof RELEASE_VERSION;
   run(options?:ReleaseRunOptions):Promise<ReleaseReport>;
   latest():ReleaseReport|null;
 }
@@ -61,12 +62,15 @@ export function createReleaseRuntime(host:Window,documentRef:Document):ReleaseAp
       catch(error){checks.push({name,ok:false,message:error instanceof Error?error.message:String(error)});}
     };
 
-    await add("bootstrap",()=>host.__YKS_V4_BOOTSTRAP__?.version==="4.1.0"&&host.__YKS_V4_BOOTSTRAP__?.channel==="stable"&&host.__YKS_V4_BOOTSTRAP__?.legacyRuntime===true);
+    await add("bootstrap",()=>host.__YKS_V4_BOOTSTRAP__?.version===RELEASE_VERSION&&host.__YKS_V4_BOOTSTRAP__?.build===RELEASE_BUILD&&host.__YKS_V4_BOOTSTRAP__?.channel===RELEASE_CHANNEL&&host.__YKS_V4_BOOTSTRAP__?.legacyCore===LEGACY_CORE_BUILD&&host.__YKS_V4_BOOTSTRAP__?.legacyRuntime===true);
+    await add("release-overlay",()=>documentRef.documentElement.dataset.v42ReleaseOverlay==="ready"&&documentRef.documentElement.dataset.appVersion===RELEASE_VERSION);
     await add("common-services",()=>host.__YKS_SERVICES__?.validate().length===0);
     await add("domain-services",()=>host.__YKS_DOMAIN__?.validate().length===0);
     await add("screen-runtime",()=>host.__YKS_SCREEN_RUNTIME__?.validate().length===0);
     await add("ui-bridge",()=>host.__YKS_UI__?.validate().length===0);
     await add("data-bridge",()=>host.__YKS_DATA__?.validate().length===0&&host.__YKS_DATA__?.schemaVersion===21);
+    await add("backup-recovery",()=>host.__YKS_BACKUP__?.version==="2.0.0"&&documentRef.documentElement.dataset.v4RecoveryErrors==="0");
+    await add("pwa-build",()=>host.__YKS_PWA__?.build===RELEASE_BUILD);
     await add("seven-screens",()=>documentRef.querySelectorAll(".screen").length===SCREEN_IDS.length);
     await add("one-active-screen",()=>documentRef.querySelectorAll(".screen.active").length===1);
     await add("legacy-release",()=>typeof host.runReleaseSelfTest==="function"&&host.runReleaseSelfTest().ok);
@@ -120,13 +124,13 @@ export function createReleaseRuntime(host:Window,documentRef:Document):ReleaseAp
       if(raw)await add("state-restored",async()=>!!data&&(await data.applyCloudJSON(raw)).ok);
     }
 
-    const report:ReleaseReport={version:"4.1.0",ok:checks.every(check=>check.ok),startedAt,finishedAt:Date.now(),checks};
+    const report:ReleaseReport={version:RELEASE_VERSION,ok:checks.every(check=>check.ok),startedAt,finishedAt:Date.now(),checks};
     lastReport=report;publish(documentRef,report);
     host.dispatchEvent(new CustomEvent<ReleaseReport>("yks:release-check",{detail:report}));
     return report;
   }
 
-  return {version:"4.1.0",run,latest:()=>lastReport};
+  return {version:RELEASE_VERSION,run,latest:()=>lastReport};
 }
 
 export function installReleaseRuntime():ReleaseApi{
