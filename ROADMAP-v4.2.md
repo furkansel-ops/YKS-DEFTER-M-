@@ -29,11 +29,16 @@ v4.2.0'ın amacı yeni özellik eklemekten çok, mevcut güçlü altyapıyı dah
 - Tamamlanan/ertelenen durumları uygulama verisinde saklanır; Dexie/localStorage/Firebase veri hattıyla birlikte korunur.
 - Program'a otomatik ekleme kesinlikle yoktur.
 
-## Aşama 3 — Hata Defteri ↔ Konular ↔ Laboratuvar bağlantısı
+## Aşama 3 — Hata Defteri ↔ Konular ↔ Laboratuvar bağlantısı ✅
 
-- Hata kaydından ilgili Konu sayfasına ve varsa Bilim Kartı / konu rehberine tek dokunuşla geçiş.
-- Aynı konudaki tekrar eden yanlışların zaman çizgisi.
-- Kullanıcının düzeltme notlarının ilgili konu detayında salt okunur özetlenmesi.
+**Durum:** Tamamlandı.
+
+- Hata Defteri kayıtlarından ilgili Konu detayına ve eşleşen Öğrenme Laboratuvarı konu rehberine tek dokunuşla geçiş eklendi.
+- Hata Defteri 3.0 tekrar eden hata satırları da `Konu detayı` ve varsa `Laboratuvar rehberi` bağlantılarıyla bağlandı.
+- Konu detayında aynı konudaki yanlışlar gün bazlı zaman çizgisi, toplam yanlış ve açık Hata Defteri sayısıyla gösterilir.
+- Hata Defteri 3.0 düzeltme notu ve son Hata Defteri notları ilgili konu detayında salt okunur olarak görünür.
+- Aynı yanlışın Deneme analizinden Hata Defteri'ne taşınmış kopyası zaman çizgisinde iki kez sayılmaz.
+- Bağlantı katmanı Program verisini değiştirmez.
 
 ## Aşama 4 — Deneme Analizi 3.0
 
@@ -75,7 +80,7 @@ v4.2.0'ın amacı yeni özellik eklemekten çok, mevcut güçlü altyapıyı dah
 
 1. Global arama ✅
 2. Akıllı Tekrar Merkezi 2.0 ✅
-3. Hata Defteri bağlantıları
+3. Hata Defteri bağlantıları ✅
 4. Deneme Analizi 3.0
 5. İlerleme 3.0
 6. Öğrenme Laboratuvarı kullanım akışı
