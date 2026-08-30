@@ -1,0 +1,80 @@
+# YKS Defterim v4.2.0 Yol Haritası
+
+v4.2.0'ın amacı yeni özellik eklemekten çok, mevcut güçlü altyapıyı daha akıllı ve daha hızlı günlük YKS kullanımına dönüştürmektir.
+
+## Değişmez kurallar
+
+- Program tamamen manuel kalır. Hiçbir analiz, öneri veya tekrar sistemi Program'a otomatik görev ekleyemez, silemez veya düzenleyemez.
+- Şema 21 verileri geriye dönük uyumlu tutulur; veri kaybı yaratacak migrasyon yapılmaz.
+- Dexie ana kayıt + güvenli localStorage aynası + Firebase senkronu korunur.
+- PWA çevrimdışı kullanım ve tablet/PC desteği release kapısı olmaya devam eder.
+- Biyoloji Atlası 9 organ / 52 yapı sözleşmesini korur; mevcut 3B etkileşimler geriye dönük bozulmaz.
+
+## Aşama 1 — Hızlı erişim ve global arama
+
+- Uygulama genelinde konu, deneme, hata kaydı ve Öğrenme Laboratuvarı içeriğini tek aramada bulabilen hızlı arama.
+- Klavye ile açılabilen komut/arama paneli; tablette dokunmatik kullanım için büyük hedefler.
+- Son kullanılan ekranlar ve sık kullanılan içerikler için hızlı dönüş kısayolları.
+- Arama yalnız yönlendirir; hiçbir veriyi kendiliğinden değiştirmez.
+
+## Aşama 2 — Akıllı Tekrar Merkezi 2.0
+
+- Tekrar önerilerini hata sıklığı, son çalışma tarihi, güven seviyesi, deneme yanlışları ve konu sağlık durumu ile daha iyi sıralama.
+- Her öneride neden gösterimi: “3 farklı günde yanlış”, “14 gündür tekrar edilmedi”, “son denemede yanlış” gibi.
+- Kullanıcı öneriyi tamamlandı/erteledi olarak işaretleyebilir.
+- Program'a otomatik ekleme kesinlikle yoktur.
+
+## Aşama 3 — Hata Defteri ↔ Konular ↔ Laboratuvar bağlantısı
+
+- Hata kaydından ilgili Konu sayfasına ve varsa Bilim Kartı / konu rehberine tek dokunuşla geçiş.
+- Aynı konudaki tekrar eden yanlışların zaman çizgisi.
+- Kullanıcının düzeltme notlarının ilgili konu detayında salt okunur özetlenmesi.
+
+## Aşama 4 — Deneme Analizi 3.0
+
+- Son 5 / 10 denemede ders bazlı istikrar ve dalgalanma görünümü.
+- Yanlışların konu kümelerine göre yoğunluk haritası.
+- “Net arttı ama aynı hata devam ediyor” gibi açıklanabilir sinyaller.
+- Tahmin veya garanti yerine yalnız mevcut veriye dayalı kanıt gösterimi.
+
+## Aşama 5 — İlerleme 3.0
+
+- Haftalık ve aylık çalışma sürekliliği karşılaştırması.
+- Ders bazlı net değişimi ile çalışma süresini aynı bağlamda gösterme.
+- Hazır / pekiştiriliyor / tekrar gerekli konu dağılımının zaman içindeki değişimi.
+- Büyük veri listelerinde DOM çizimini sınırlayan performans korumaları.
+
+## Aşama 6 — Öğrenme Laboratuvarı 2.0 kullanım akışı
+
+- Favori konu ve kartlara daha hızlı erişim.
+- Son açılan konu/organ/kart için kaldığın yere dönüş.
+- Atlas'ta seçilen YKS yapılarının konu anlatımına bağlantısını güçlendirme.
+- 3B paketlerin lazy-load sınırı korunur; normal açılış performansı kötüleşmez.
+
+## Aşama 7 — Veri güvenliği ve kurtarma 2.0
+
+- Yedek içe aktarmadan önce güvenli önizleme: kayıt tarihi, boyut, şema ve mevcut kayıtla fark özeti.
+- Başarısız Firebase/Dexie işlemlerinde daha anlaşılır kurtarma durumu.
+- Çok sık kayıtların birleştirilmesi ve son yazının garanti edilmesi için mevcut hardening testleri korunur.
+
+## Aşama 8 — v4.2.0 final kalite kapısı
+
+- Node 22 + Node 24 uyumluluğu.
+- TypeScript strict kontrolü.
+- Tüm regresyon testleri.
+- Büyük veri / yedek / Dexie / PWA / offline testleri.
+- Tablet, PC ve mobil taşma/dokunma kontrolleri.
+- GitHub Pages build, deploy ve canlı sürüm doğrulaması.
+
+## Uygulama sırası
+
+1. Global arama
+2. Akıllı Tekrar Merkezi 2.0
+3. Hata Defteri bağlantıları
+4. Deneme Analizi 3.0
+5. İlerleme 3.0
+6. Öğrenme Laboratuvarı kullanım akışı
+7. Veri güvenliği 2.0
+8. Final kalite taraması
+
+Her aşama ayrı testlerle korunacak ve bir sonraki aşamaya geçmeden CI yeşil olacaktır.
