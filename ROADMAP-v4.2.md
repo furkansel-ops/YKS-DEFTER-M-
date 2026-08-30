@@ -59,12 +59,16 @@ v4.2.0'ın amacı yeni özellik eklemekten çok, mevcut güçlü altyapıyı dah
 - Konu sağlık snapshotları en fazla 120 gün tutulur; ekranda en fazla 8 ders ve 14 sağlık günü çizilerek büyük veri listelerinde DOM yükü sınırlandırılır.
 - İlerleme analizi Program verisini değiştirmez; Program manuel kalır.
 
-## Aşama 6 — Öğrenme Laboratuvarı 2.0 kullanım akışı
+## Aşama 6 — Öğrenme Laboratuvarı 2.0 kullanım akışı ✅
 
-- Favori konu ve kartlara daha hızlı erişim.
-- Son açılan konu/organ/kart için kaldığın yere dönüş.
-- Atlas'ta seçilen YKS yapılarının konu anlatımına bağlantısını güçlendirme.
-- 3B paketlerin lazy-load sınırı korunur; normal açılış performansı kötüleşmez.
+**Durum:** Tamamlandı.
+
+- Laboratuvar ana yüzeyine `Kaldığın yer` ve `Favoriler` hızlı erişim alanı eklendi; favori konu, Bilim Kartı, periyodik tablo elementi ve kronoloji kaydı tek dokunuşla açılabilir.
+- Son açılan konu, organ, Bilim Kartı, element ve kronoloji kaydı `S.lab.flowV42` altında tutulur; son 12 benzersiz içerik korunur ve aynı içerik tekrar açıldığında çoğaltılmaz.
+- Atlas'ın 9 organı gerçek AYT Biyoloji konu rehberlerine bağlandı; organ başlığından ve yapı detayından ilgili konu rehberine geçiş sağlandı.
+- 3B anatomi modelleri PWA çekirdek kurulumuna alınmadı; yalnız kullanıcı Atlas/organ görünümünü açtığında mevcut lazy-load sınırından yüklenmeye devam eder. 9 organ / 52 yapı sözleşmesi değişmedi.
+- v4.2 çalışma zamanı/PWA doğrulaması güçlendirildi ve İlerleme 3.0'ın eksik çalışma zamanı loader bağlantısı tamamlandı.
+- Laboratuvar akışı Program verisini değiştirmez; Program manuel kalır.
 
 ## Aşama 7 — Veri güvenliği ve kurtarma 2.0
 
@@ -88,7 +92,7 @@ v4.2.0'ın amacı yeni özellik eklemekten çok, mevcut güçlü altyapıyı dah
 3. Hata Defteri bağlantıları ✅
 4. Deneme Analizi 3.0 ✅
 5. İlerleme 3.0 ✅
-6. Öğrenme Laboratuvarı kullanım akışı
+6. Öğrenme Laboratuvarı kullanım akışı ✅
 7. Veri güvenliği 2.0
 8. Final kalite taraması
 
