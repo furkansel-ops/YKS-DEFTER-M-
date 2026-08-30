@@ -113,14 +113,26 @@ v4.3.0'ın ana hedefi yeni özellik yığmak değil; mevcut güçlü modülleri 
 - İlk strict TypeScript turunda `unknown` tercih kayıtlarının indekslenmesi yakalandı; kayıtlar açıkça daraltılarak tip güvenli hale getirildi.
 - Son doğrulamada Node 22/24, TypeScript strict, **257/257 test** ve production Vite build başarıyla geçti.
 
-## Aşama 7 — Legacy kod modülerleştirme
+## Aşama 7 — Legacy kod modülerleştirme ✅
 
-**Durum:** Sıradaki.
+**Durum:** Tamamlandı.
 
-- Büyük `app.js` çekirdeğini bir kerede yeniden yazmadan ekran bazlı TypeScript modüllerine kademeli çıkarma.
-- Her taşıma mevcut regresyon kapısından geçer.
+- Büyük `app.js` çekirdeği tek seferde yeniden yazılmadı; riskli veri normalizasyonu ve kurtarma çekirdeği mevcut uyumluluk katmanında bırakıldı.
+- Yedi ana ekranın legacy çizim çağrıları `src/ui/screens/legacy-adapters.ts` içindeki tipli adaptör sınırına taşındı.
+- `home`, `program`, `topics`, `deneme`, `progress`, `pomo` ve `more` ekran modülleri artık doğrudan legacy fonksiyon çağrıları taşımıyor; yalnız kendi adaptörünü çalıştırıyor.
+- Program ekranının görünür takvim yolu, `program-procrast` ve `program-secondary` ertelenmiş çizim sırası aynen korundu.
+- Deneme ekranının `deneme-secondary` idle işi, isteğe bağlı eski çizimleri ve hedef/net kazancı sırası korunarak adaptöre alındı.
+- Deneme Dashboard + Öğrenme Döngüsü ve İlerleme Analiz Merkezi + modern dashboard katmanları legacy adaptörün dışında bırakıldı; böylece yeni TypeScript yüzeyleri eski çekirdeğe tekrar bağlanmadı.
+- Yedi ekranın kaydı yeni `src/ui/screens/registry.ts` içinde tek tipli registry/Map altında toplandı; `screen-runtime.ts` artık ekran modüllerini tek tek import etmiyor.
+- Screen runtime hata koruması, `afterPaint`, `idle`, aktif ekran yenilemesi ve legacy fallback davranışı korunuyor.
+- Yeni adaptör/registry katmanı Program, Dexie, localStorage, Firebase veya çalışma verisine yazmıyor.
+- Aşama 7 için 4 yeni regresyon testi eklendi; mevcut ekran runtime testleri yeni mimari sözleşmeye göre güçlendirildi.
+- İlk CI turunda eski paket testi `program-secondary` anahtarını eski dosya konumunda aradığı için 260/261 kaldı; uygulama davranışı bozulmadan uyumluluk sözleşmesi görünür tutuldu.
+- Son doğrulamada Node 22/24, TypeScript strict, **261/261 test**, anatomy asset doğrulaması ve production Vite build başarıyla geçti.
 
 ## Aşama 8 — v4.3.0 final kalite kapısı
+
+**Durum:** Sıradaki.
 
 - Node 22/24, strict TypeScript, tüm regresyonlar, production build, PWA/offline, veri kurtarma, Firebase/Dexie, tablet/PC ve canlı Pages doğrulaması.
 
@@ -132,7 +144,7 @@ v4.3.0'ın ana hedefi yeni özellik yığmak değil; mevcut güçlü modülleri 
 4. Laboratuvar 3.0 / Quiz ✅
 5. Navigasyon + Daha temizliği ✅
 6. Kişiselleştirilebilir görünüm ✅
-7. Legacy modülerleştirme
+7. Legacy modülerleştirme ✅
 8. Final kalite kapısı
 
-**Durum: 6/8 tamamlandı.**
+**Durum: 7/8 tamamlandı.**
