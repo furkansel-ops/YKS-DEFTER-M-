@@ -10,6 +10,7 @@ import {installLegacyExamAnalysisBridge} from "./domain/legacy-exam-analysis-bri
 import {installPwaRuntime} from "./pwa/pwa-runtime";
 import {installScienceCards} from "./ui/science-cards";
 import {installBiologyAtlas} from "./ui/biology-atlas-bridge";
+import {installGlobalSearch} from "./ui/global-search";
 
 type BootstrapState={
   version:"4.1.0";
@@ -64,6 +65,7 @@ const examAnalysis=installLegacyExamAnalysisBridge();
 const pwa=installPwaRuntime("4.1.0-r20");
 const screens=installScreenRuntime();
 const ui=installLegacyUiBridge(screens);
+const globalSearch=installGlobalSearch();
 const release=installReleaseRuntime();
 window.__YKS_V4_BOOTSTRAP__=bootstrap;
 document.documentElement.dataset.v4Runtime="ready";
@@ -76,6 +78,7 @@ document.documentElement.dataset.v4ProgressAnalysisErrors=String(progressAnalysi
 document.documentElement.dataset.v4ExamAnalysisErrors=String(examAnalysis.validate().length);
 document.documentElement.dataset.v4PwaBuild=pwa.build;
 document.documentElement.dataset.v4ReleaseVersion=release.version;
+document.documentElement.dataset.v42GlobalSearchVersion=globalSearch.version;
 window.dispatchEvent(new CustomEvent<BootstrapState>("yks:v4-bootstrap",{detail:bootstrap}));
 
 export {};
