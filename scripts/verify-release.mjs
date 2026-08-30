@@ -7,7 +7,7 @@ if(pkg.version!=="4.2.0")throw new Error(`Beklenmeyen paket sürümü: ${pkg.ver
 const index=await readFile(resolve(dist,"index.html"),"utf8"),asset=index.match(/(?:src|href)="\.\/(assets\/index-[^"']+\.js)"/)?.[1];
 if(!asset)throw new Error("Derlenmiş v4 paketi bulunamadı");
 const bundle=await readFile(resolve(dist,asset),"utf8"),legacy=await readFile(resolve(dist,"modules/release-selftest.js"),"utf8"),sw=await readFile(resolve(dist,"sw.js"),"utf8"),version=JSON.parse(await readFile(resolve(dist,"version.json"),"utf8"));
-const v43Markers=["v43Today","v43Analysis","v43LearningCycle","v43LabQuiz","v43Navigation","v43Personalization"];
+const v43Markers=["v43Today","v43Analysis","v43LearningCycle","v43LabQuiz","v43Navigation","v43Personalization","v43FocusSessionGuard"];
 const checks={
   version:bundle.includes("4.2.0")&&version.version==="4.2.0"&&version.build==="4.2.0-r1",
   stable:bundle.includes("stable"),runtime:bundle.includes("YKS_V4_RELEASE_OK"),legacy:legacy.includes("v4-bootstrap"),
