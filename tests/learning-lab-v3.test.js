@@ -48,7 +48,9 @@ test('Öğrenme Laboratuvarı v3 paragraf aracını kaldırır, YKS periyodik ka
   assert.match(sw,/learning-lab-v3\.js\?v=4\.1\.0-r28/);
   assert.match(sw,/motivation-quotes-v1\.js\?v=4\.1\.0-r2/);
   assert.match(sw,/motivation-quotes-v2\.css\?v=4\.1\.0-r1/);
-  assert.match(sw,/const CACHE="yks-core-v4\.1\.0-r35"/);
+  assert.match(sw,/ui-polish-progress-v2\.css\?v=4\.1\.0-r1/);
+  assert.match(sw,/const CACHE="yks-core-v4\.1\.0-r36"/);
+  assert.match(sw,/yks-core-v4\.1\.0-r35/);
   assert.match(sw,/yks-core-v4\.1\.0-r34/);
   assert.match(sw,/yks-core-v4\.1\.0-r33/);
   assert.match(sw,/yks-core-v4\.1\.0-r32/);
