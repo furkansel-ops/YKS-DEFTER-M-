@@ -19,7 +19,7 @@ test("yedek oluşturma structuredClone desteğine bağlı değildir",async()=>{
   const {createBackupPackage}=await import(url("src/data/backup-service.ts")),previous=global.structuredClone;
   try{
     global.structuredClone=undefined;
-    const result=createBackupPackage(JSON.stringify({v:21,name:"Test",yt:{key:"gizli"},focus:{sw:{run:true,start:5}}}),"4.2.0");
+    const result=createBackupPackage(JSON.stringify({v:21,name:"Test",yt:{key:"gizli"},focus:{sw:{run:true,start:5}}}),"4.3.0");
     assert.equal(result.ok,true);const payload=JSON.parse(result.text);assert.equal(payload.data.yt.key,"");assert.equal(payload.data.focus.sw.run,false);
   }finally{if(previous===undefined)delete global.structuredClone;else global.structuredClone=previous;}
 });
@@ -29,7 +29,7 @@ test("PWA runtime service worker hazır olduğunda durum yenilemesini dinler",as
   const serviceWorker={controller:null,ready:Promise.resolve({active:null}),addEventListener:(name,callback)=>{workerListeners[name]=callback;}};
   const fakeWindow={navigator:{serviceWorker,userAgent:"Test"},matchMedia:()=>({matches:false}),addEventListener:()=>{}};
   const fakeDocument={readyState:"complete",getElementById:()=>null,addEventListener:()=>{}};
-  const api=installPwaRuntime("4.2.0-r1",fakeWindow,fakeDocument);await Promise.resolve();
+  const api=installPwaRuntime("4.3.0-r1",fakeWindow,fakeDocument);await Promise.resolve();
   assert.equal(typeof workerListeners.controllerchange,"function");assert.equal(api.installState(),"manual");
 });
 
@@ -43,5 +43,5 @@ test("kalıcı CI ana dalı denetler, tek Pages deploy kullanır ve eski tek-sef
   assert.match(ci,/branches:\s*\n\s*- main/);assert.match(ci,/npm run release:check/);
   assert.doesNotMatch(deploy,/Eski GitHub Pages dağıtımı|workflow_runs|gh api/);assert.match(deploy,/path: \.\/dist/);assert.match(deploy,/actions\/deploy-pages@v5/);
   for(const file of ["fix-personal-cleanup-test.yml","personal-cleanup-stage2.yml","personal-cleanup-stage2b.yml","personal-cleanup-stage2c.yml","personal-cleanup-stage2d.yml","release-v4.1.0.yml"])assert.equal(fs.existsSync(path.join(root,".github/workflows",file)),false,file);
-  assert.match(verify,/APP_BUILD=\"4\.1\.0-r20\"/);assert.match(verify,/yks-core-v4\.2\.0-r1/);assert.match(verify,/motivation-quotes-v1\.js/);assert.match(verify,/motivation-quotes-v2\.css/);assert.match(verify,/ui-polish-home-v2\.css/);assert.match(verify,/ui-polish-progress-v2\.css/);assert.match(verify,/ui-polish-error-journal-v1\.css/);assert.match(verify,/ui-polish-program-v1\.css/);assert.match(verify,/ui-polish-learning-lab-v1\.css/);assert.match(verify,/ui-polish-final-v1\.css/);assert.match(verify,/version\.json v4\.2 kararlı sürümle eşleşmiyor/);
+  assert.match(verify,/APP_BUILD=\"4\.1\.0-r20\"/);assert.match(verify,/yks-core-v4\.3\.0-r1/);assert.match(verify,/motivation-quotes-v1\.js/);assert.match(verify,/motivation-quotes-v2\.css/);assert.match(verify,/ui-polish-home-v2\.css/);assert.match(verify,/ui-polish-progress-v2\.css/);assert.match(verify,/ui-polish-error-journal-v1\.css/);assert.match(verify,/ui-polish-program-v1\.css/);assert.match(verify,/ui-polish-learning-lab-v1\.css/);assert.match(verify,/ui-polish-final-v1\.css/);assert.match(verify,/version\.json v4\.3 kararlı sürümle eşleşmiyor/);
 });
