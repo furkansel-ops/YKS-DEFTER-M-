@@ -24,15 +24,25 @@ v4.3.0'ın ana hedefi yeni özellik yığmak değil; mevcut güçlü modülleri 
 - Aşama 1 için 3 yeni regresyon testi eklendi.
 - Node 22/24, TypeScript strict, **238/238 test** ve production build başarıyla geçti.
 
-## Aşama 2 — Analiz Merkezi
+## Aşama 2 — Analiz Merkezi ✅
 
-**Durum:** Sıradaki.
+**Durum:** Tamamlandı.
 
-- Mevcut İlerleme 3.0 ve Deneme Analizi 3.0 verilerini tek üst seviye analiz yüzeyinde birleştirme.
-- 7/30 günlük çalışma özeti, net eğilimi, ders çalışma süresi ↔ net bağlamı ve kritik konu sinyalleri.
-- Yeni analiz yüzeyi salt okunur kalır; Program ve çalışma kayıtlarını değiştirmez.
+- Mevcut İlerleme 3.0 ve Deneme Analizi 3.0 API'leri kopyalanmadan tek üst seviye `Analiz Merkezi` yüzeyinde birleştirildi.
+- İlerleme ekranının üstüne 7 günlük ve 30 günlük çalışma özeti eklendi; odak süresi, soru sayısı, aktif gün, seri ve tekrar durumu önceki eşit dönemle birlikte gösteriliyor.
+- TYT / AYT / YDT için mevcut kayıtlardan son 10 denemelik net eğilimi; son net, ortalama, dönem farkı ve oynaklık bağlamı tek görünümde sunuluyor.
+- Ders bazında son 30 günlük çalışma süresi ve soru miktarı aynı dönemin deneme başarı yüzdesi / dönem değişimi ile birlikte gösteriliyor.
+- Denemeye bağlanmış yanlışlardan en kritik 3 konu sinyali oluşturuluyor; deneme bağlantısı yoksa mevcut `dikkat isteyen ders` kanıtı yedek sinyal olarak kullanılıyor.
+- `Kanıt özeti` yalnız kayıtlı İlerleme ve Deneme analizlerinin açıklanabilir metinlerini birleştiriyor; tahmin, garanti veya gelecek net üretmiyor.
+- Analiz Merkezi salt okunurdur; Program, Dexie, localStorage, Firebase veya çalışma kayıtlarına yazmaz.
+- Yeni yüzey mevcut İlerleme 3.0'ı kaldırmaz; onun üzerinde bir üst özet olarak çalışır.
+- Tablet/dar ekran, coarse-pointer ve azaltılmış hareket erişilebilirliği eklendi.
+- Aşama 2 için 3 yeni regresyon testi eklendi.
+- Node 22/24, TypeScript strict, **241/241 test** ve production Vite build başarıyla geçti.
 
 ## Aşama 3 — Hata → Öğren → Tekrar döngüsü
+
+**Durum:** Sıradaki.
 
 - Deneme yanlışı, Hata Defteri, Konular, Laboratuvar ve Tekrar Merkezi arasında tek akış.
 - Aynı yanlışın tekrar edip etmediğini kayıtlı veriden izleme.
@@ -62,7 +72,7 @@ v4.3.0'ın ana hedefi yeni özellik yığmak değil; mevcut güçlü modülleri 
 ## Uygulama sırası
 
 1. Bugün 2.0 ✅
-2. Analiz Merkezi
+2. Analiz Merkezi ✅
 3. Hata → Öğren → Tekrar
 4. Laboratuvar 3.0 / Quiz
 5. Navigasyon + Daha temizliği
@@ -70,4 +80,4 @@ v4.3.0'ın ana hedefi yeni özellik yığmak değil; mevcut güçlü modülleri 
 7. Legacy modülerleştirme
 8. Final kalite kapısı
 
-**Durum: 1/8 tamamlandı.**
+**Durum: 2/8 tamamlandı.**
