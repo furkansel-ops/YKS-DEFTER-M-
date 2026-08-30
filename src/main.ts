@@ -15,6 +15,7 @@ import {installBiologyAtlas} from "./ui/biology-atlas-bridge";
 import {installRecoveryCenter} from "./ui/recovery-center";
 import {installTodayV43} from "./ui/today-v43";
 import {installAnalysisCenterV43} from "./ui/analysis-center-v43";
+import {installLearningCycleV43} from "./ui/learning-cycle-v43";
 
 type BootstrapState={
   version:typeof RELEASE_VERSION;
@@ -78,6 +79,7 @@ const screens=installScreenRuntime();
 const ui=installLegacyUiBridge(screens);
 const todayV43=installTodayV43();
 const analysisCenterV43=installAnalysisCenterV43();
+const learningCycleV43=installLearningCycleV43();
 const release=installReleaseRuntime();
 window.__YKS_V4_BOOTSTRAP__=bootstrap;
 installReleaseOverlay();
@@ -96,6 +98,8 @@ document.documentElement.dataset.v43Today=String(todayV43.installed);
 document.documentElement.dataset.v43TodayErrors=String(todayV43.validate().length);
 document.documentElement.dataset.v43Analysis=String(analysisCenterV43.installed);
 document.documentElement.dataset.v43AnalysisErrors=String(analysisCenterV43.validate().length);
+document.documentElement.dataset.v43LearningCycle=String(learningCycleV43.installed);
+document.documentElement.dataset.v43LearningCycleErrors=String(learningCycleV43.validate().length);
 window.dispatchEvent(new CustomEvent<BootstrapState>("yks:v4-bootstrap",{detail:bootstrap}));
 
 export {};
