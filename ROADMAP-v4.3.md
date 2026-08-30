@@ -90,18 +90,23 @@ v4.3.0'ın ana hedefi yeni özellik yığmak değil; mevcut güçlü modülleri 
 
 **Durum:** Tamamlandı.
 
-- Kararlı release runtime'a v4.3'ün altı ana katmanı için gerçek çalışma zamanı kontrolleri eklendi: `Bugün 2.0`, `Analiz Merkezi`, `Öğrenme Döngüsü`, `Lab Quiz`, `Navigasyon/Merkez` ve `Kişiselleştirme`.
+- Kararlı release runtime'a v4.3'ün yedi ana katmanı için gerçek çalışma zamanı kontrolleri eklendi: `Bugün 2.0`, `Analiz Merkezi`, `Öğrenme Döngüsü`, `Lab Quiz`, `Navigasyon/Merkez`, `Kişiselleştirme` ve `Odak oturum hazırlama kapısı`.
 - Her katman hem kurulum durumunu hem kendi `validate()` hata sayısını final self-test içinde doğruluyor.
-- Production bundle doğrulayıcısı artık v4.3 özellik işaretlerinin derlenmiş pakette gerçekten bulunduğunu kontrol ediyor.
+- Production bundle doğrulayıcısı v4.3 özellik işaretlerinin derlenmiş pakette gerçekten bulunduğunu kontrol ediyor.
 - Canlı GitHub Pages doğrulayıcısındaki önemli sürüm hatası düzeltildi: ürün release sürümü artık legacy `4.1.0` sabitinden değil doğrudan `version.json` içindeki gerçek release kimliğinden okunuyor.
 - Yanlış canlı release, kaynak TypeScript yayını ve bozuk UTF-8 paketi ayrı regresyonlarla reddediliyor.
-- Final kalite için 3 yeni regresyon testi eklendi; veri şeması 21 ve manuel Program sözleşmesi ayrıca korunuyor.
+- Yeni Sayaç veya Kronometre oturumunda ilk `Başlat` süreyi doğrudan çalıştırmıyor; `Oturumu hazırla` alanını öne getiriyor ve ders seçimini zorunlu kılıyor.
+- Önceki/default ders sessizce kabul edilmiyor; kullanıcı bir derse dokunduktan sonra ikinci `Başlat` çalışma oturumunu başlatıyor.
+- Duraklatılmış oturuma devam, Sayaç mola fazı ve Program/Konu üzerinden zaten ders bilgisiyle hazırlanan doğrudan başlangıçlar gereksiz seçim kapısına takılmıyor.
+- Minimal modda yeni oturum başlatılmak istenirse Minimal görünüm kapanıyor ve `Oturumu hazırla` kartı görünür hale geliyor.
+- Odak başlangıç kapısı Program'a, Dexie'ye, localStorage'a veya Firebase'e doğrudan yazmıyor; mevcut oturum kayıt sözleşmesini kullanıyor.
+- Odak başlangıç davranışı için 4 yeni regresyon testi eklendi; veri şeması 21 ve manuel Program sözleşmesi ayrıca korunuyor.
 - Node 22 ana kalite kapısı ✅
 - Node 24 uyumluluk kapısı ✅
 - TypeScript strict ✅
-- **264/264 regresyon testi ✅**
+- **268/268 regresyon testi ✅**
 - 27 anatomy varlığı sabit sürüm + SHA-256 ile doğrulandı ✅
-- Production Vite build: 97 modül başarıyla derlendi ✅
+- Production Vite build: 99 modül başarıyla derlendi ✅
 - Üretim paket doğrulaması ve v4.3 özellik kapısı ✅
 - Mevcut büyük Biyoloji Atlası model chunk uyarısı (>500 kB) bilinen lazy-load varlığıdır; yeni bir final-gate hatası değildir.
 - `main` ve canlı v4.2.0 bu aşamada değiştirilmedi. Gerçek v4.3 canlı Pages doğrulaması yalnız PR merge + deploy işleminden sonra yapılacaktır; final aday bunun için gerekli doğrulayıcıyı hazır taşır.
@@ -117,4 +122,4 @@ v4.3.0'ın ana hedefi yeni özellik yığmak değil; mevcut güçlü modülleri 
 7. Legacy modülerleştirme ✅
 8. Final kalite kapısı ✅
 
-**Durum: 8/8 tamamlandı. v4.3 geliştirme adayı tamamdır; `main` henüz değiştirilmedi.**
+**Durum: 8/8 tamamlandı. v4.3 geliştirme adayı son odak başlangıç rötuşuyla hazırdır; `main` henüz değiştirilmedi.**
