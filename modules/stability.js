@@ -175,3 +175,17 @@
   }
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",loadErrorTopicLabV42,{once:true});else loadErrorTopicLabV42();
 })();
+
+(function(){
+  "use strict";
+  function loadExamAnalysisV42(){
+    if(window.__YKS_EXAM_ANALYSIS_V42__||document.querySelector('script[data-yks-exam-analysis-v42]'))return;
+    const s=document.createElement("script");
+    s.src="./modules/exam-analysis-v42.js?v=4.2.0-r1";
+    s.async=false;
+    s.setAttribute("data-yks-exam-analysis-v42","1");
+    s.onerror=()=>{try{if(typeof infraError==="function")infraError("exam-analysis-v42-load",new Error("Deneme Analizi 3.0 yüklenemedi"));}catch(e){}};
+    document.head.appendChild(s);
+  }
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",loadExamAnalysisV42,{once:true});else loadExamAnalysisV42();
+})();
