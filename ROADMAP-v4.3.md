@@ -40,14 +40,26 @@ v4.3.0'ın ana hedefi yeni özellik yığmak değil; mevcut güçlü modülleri 
 - Aşama 2 için 3 yeni regresyon testi eklendi.
 - Node 22/24, TypeScript strict, **241/241 test** ve production Vite build başarıyla geçti.
 
-## Aşama 3 — Hata → Öğren → Tekrar döngüsü
+## Aşama 3 — Hata → Öğren → Tekrar döngüsü ✅
 
-**Durum:** Sıradaki.
+**Durum:** Tamamlandı.
 
-- Deneme yanlışı, Hata Defteri, Konular, Laboratuvar ve Tekrar Merkezi arasında tek akış.
-- Aynı yanlışın tekrar edip etmediğini kayıtlı veriden izleme.
+- Mevcut `wrongLog`, `errorJournal` ve `manualReviews` kayıtları şema değiştirilmeden tek salt-okunur öğrenme döngüsü analizinde birleştirildi.
+- Deneme ekranında Hata Defteri'nin hemen altında yeni `Öğrenme Döngüsü` merkezi eklendi.
+- Her konu `Hata → Öğren → Tekrar → Kontrol` adımlarıyla tek kartta gösteriliyor.
+- Konular `Yeniden geldi`, `Tekrar ediyor`, `Tekrar bekliyor`, `Açık hata`, `Şimdilik temiz` ve `Deftere bağlanmadı` durumlarına yalnız kayıtlı kanıttan ayrılıyor.
+- Bir hata çözüldü olarak işaretlendikten sonra daha ileri tarihli yeni yanlış kaydı oluşursa konu otomatik olarak `Yeniden geldi` sinyali veriyor.
+- Farklı günlerde yinelenen ve hâlâ açık olan hatalar `Tekrar ediyor` olarak önceliklendiriliyor.
+- Kartlardan mevcut Hata Defteri kaydına, müfredat konusuna, Öğrenme Laboratuvarı rehberine ve tekrar listesine doğrudan geçiş eklendi.
+- Yeni merkez Program, konu durumu veya çalışma kayıtlarına otomatik yazmaz; mevcut manuel Program sözleşmesi korunur.
+- Veri şeması 21 korunur; eski Hata Defteri ve yanlış kayıtları yeni alan gerektirmeden analiz edilir.
+- Tablet/dar ekran, coarse-pointer, klavye odağı ve azaltılmış hareket erişilebilirliği eklendi.
+- Aşama 3 için 4 yeni regresyon testi eklendi.
+- Node 22/24, TypeScript strict, **245/245 test** ve production Vite build başarıyla geçti.
 
 ## Aşama 4 — Öğrenme Laboratuvarı 3.0 / Quiz
+
+**Durum:** Sıradaki.
 
 - Atlas yapılarında öğren modu, etiketsiz sınama ve yapı seçme soruları.
 - Mevcut 9 organ / 52 yapı ve lazy-load sözleşmesi korunur.
@@ -73,11 +85,11 @@ v4.3.0'ın ana hedefi yeni özellik yığmak değil; mevcut güçlü modülleri 
 
 1. Bugün 2.0 ✅
 2. Analiz Merkezi ✅
-3. Hata → Öğren → Tekrar
+3. Hata → Öğren → Tekrar ✅
 4. Laboratuvar 3.0 / Quiz
 5. Navigasyon + Daha temizliği
 6. Kişiselleştirilebilir görünüm
 7. Legacy modülerleştirme
 8. Final kalite kapısı
 
-**Durum: 2/8 tamamlandı.**
+**Durum: 3/8 tamamlandı.**
