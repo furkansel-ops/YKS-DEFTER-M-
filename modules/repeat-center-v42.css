@@ -1,0 +1,12 @@
+.intel-repeat-v42-version{white-space:nowrap;border:1px solid var(--line);border-radius:999px;padding:6px 9px;background:var(--soft);color:var(--label-2);font-size:10px;font-weight:850;letter-spacing:.03em}
+.intel-repeat-v42-list{display:grid;gap:8px}
+.intel-repeat-v42-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:start;gap:11px;padding:12px;border:1px solid var(--line);border-radius:15px;background:color-mix(in srgb,var(--card) 95%,var(--accent) 5%)}
+.intel-repeat-rank{display:grid;place-items:center;width:30px;height:30px;border-radius:9px;background:var(--soft);font-size:12px;font-weight:900;color:var(--label-2)}
+.intel-repeat-main{min-width:0}.intel-repeat-title{font-weight:850;line-height:1.25}.intel-repeat-question{margin-top:7px;color:var(--label-3);font-size:10px;font-weight:850;letter-spacing:.06em;text-transform:uppercase}
+.intel-repeat-reasons{display:flex;flex-wrap:wrap;gap:5px;margin-top:5px}.intel-repeat-reason{display:inline-flex;align-items:center;min-height:25px;padding:4px 7px;border:1px solid color-mix(in srgb,var(--line) 80%,transparent);border-radius:999px;background:var(--soft);color:var(--label-2);font-size:11px;font-weight:650}
+.intel-repeat-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}.intel-repeat-actions .btn{min-height:34px}
+.intel-repeat-side{display:grid;justify-items:end;gap:5px}.intel-repeat-side small{color:var(--label-3);font-size:10px;font-weight:700}
+.intel-repeat-hidden{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px;padding:9px 11px;border:1px dashed var(--line);border-radius:12px;color:var(--label-2);font-size:11.5px}
+@media(max-width:720px){.intel-repeat-v42-row{grid-template-columns:auto minmax(0,1fr)}.intel-repeat-side{grid-column:2;grid-row:2;justify-items:start;display:flex;align-items:center;gap:7px}.intel-repeat-v42-version{display:none}.intel-repeat-actions .btn{flex:1 1 auto}.intel-repeat-hidden{align-items:flex-start;flex-direction:column}}
+@media(pointer:coarse){.intel-repeat-actions .btn,.intel-repeat-hidden .btn{min-height:42px}}
+@media(prefers-reduced-motion:reduce){.intel-repeat-v42-row,.intel-repeat-actions .btn{transition:none!important;animation:none!important}}
