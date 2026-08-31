@@ -13,6 +13,7 @@ import {installPwaRuntime} from "./pwa/pwa-runtime";
 import {installScienceCards} from "./ui/science-cards";
 import {installBiologyAtlas} from "./ui/biology-atlas-bridge";
 import {installChemistryVisualsBridgeV44} from "./ui/chemistry-visuals-bridge";
+import {installLabInteractionsBridgeV44} from "./ui/lab-interactions-bridge-v44";
 import {installRecoveryCenter} from "./ui/recovery-center";
 import {installV43SafeRuntime} from "./ui/v43-safe-runtime";
 
@@ -71,6 +72,7 @@ const data=installLegacyDataBridge();
 installScienceCards();
 installBiologyAtlas();
 installChemistryVisualsBridgeV44();
+installLabInteractionsBridgeV44();
 const backup=installLegacyBackupBridge(data,RELEASE_VERSION);
 const recovery=installRecoveryCenter(data,backup);
 const domain=installLegacyDomainBridge();
