@@ -59,6 +59,8 @@ npm ci
 npm run release:check
 ```
 
+Tarayıcı içi uçtan uca release kontrolü için uygulamayı `?selftest=v4` sorgusuyla açın. Başarılı sonuç release self-test çıktısında `YKS_V4_RELEASE_OK` olarak görünür.
+
 Merge sonrasında Pages workflow'u production paketi dağıtır, canlı release kimliğini doğrular ve kaynak kod + production çıktısını **YKS-Defterim-v4.3.1-backup.zip** olarak 30 günlük artefakt halinde üretir.
 
 ---
