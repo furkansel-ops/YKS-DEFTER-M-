@@ -12,6 +12,7 @@ import {installLegacyExamAnalysisBridge} from "./domain/legacy-exam-analysis-bri
 import {installPwaRuntime} from "./pwa/pwa-runtime";
 import {installScienceCards} from "./ui/science-cards";
 import {installBiologyAtlas} from "./ui/biology-atlas-bridge";
+import {installChemistryVisualsBridgeV44} from "./ui/chemistry-visuals-bridge";
 import {installRecoveryCenter} from "./ui/recovery-center";
 import {installV43SafeRuntime} from "./ui/v43-safe-runtime";
 
@@ -69,6 +70,7 @@ const services=installLegacyServiceBridge();
 const data=installLegacyDataBridge();
 installScienceCards();
 installBiologyAtlas();
+installChemistryVisualsBridgeV44();
 const backup=installLegacyBackupBridge(data,RELEASE_VERSION);
 const recovery=installRecoveryCenter(data,backup);
 const domain=installLegacyDomainBridge();
