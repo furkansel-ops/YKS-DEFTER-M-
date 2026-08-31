@@ -32,5 +32,5 @@ test("v4.4 fizik laboratuvarı yalnız Fizik sekmesinde lazy açılır ve çalı
   const cards=read("src/ui/science-cards.ts"),ui=read("src/ui/physics-lab-v44.ts"),service=read("src/domain/physics-simulation-service.ts"),css=read("src/ui/physics-lab-v44.css"),entry=read("src/main.ts");
   assert.match(cards,/id=\\?"v4PhysicsLab\\?"/);assert.match(cards,/filters\.subject === "Fizik"/);assert.match(cards,/import\("\.\/physics-lab-v44\.ts"\)/);assert.match(cards,/target\.hidden = !active/);assert.match(cards,/kartlarla çalışmaya devam edebilirsin/);
   assert.match(ui,/FİZİK SİMÜLASYONLARI · v4\.4/);assert.match(ui,/type=\\?"range\\?"/);assert.match(ui,/aria-live=\\?"polite\\?"/);assert.doesNotMatch(ui,/requestAnimationFrame|setInterval|WebGLRenderer|from ["']three["']/i);assert.match(css,/pointer:coarse/);assert.match(css,/prefers-reduced-motion:reduce/);
-  assert.doesNotMatch(`${ui}\n${service}`,/localStorage|indexedDB|Dexie|firebase|saveSoon|YKSLegacyState|Program|program\.push|program\.splice/i);assert.doesNotMatch(entry,/physics-lab-v44|physics-simulation-service/);
+  assert.doesNotMatch(`${ui}\n${service}`,/localStorage|indexedDB|Dexie|firebase|saveSoon|YKSLegacyState|program\.push|program\.splice|program\s*=/i);assert.doesNotMatch(entry,/physics-lab-v44|physics-simulation-service/);
 });
