@@ -1,7 +1,6 @@
 import type {AtlasTopic} from "../data/biology-atlas.ts";
 import {buildAtlasTopicMap} from "../domain/biology-topic-map-service.ts";
 import {atlasEscape as esc} from "./biology-atlas-diagrams.ts";
-import "./biology-topic-map-v44.css";
 
 export function atlasTopicMapV44(topic:AtlasTopic,currentStep:number):string {
   const plan=buildAtlasTopicMap(topic);
