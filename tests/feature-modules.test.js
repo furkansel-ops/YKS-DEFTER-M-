@@ -28,21 +28,21 @@ test("Hazır laboratuvar araçlarının özet ve filtreleri doğru çalışır",
 });
 
 test("Öğrenme Laboratuvarı bütün sınavları ders ve konulara ayırır",()=>{
-  const app=fs.readFileSync(path.join(root,"app.js"),"utf8"),match=app.match(/const CURRICULUM=(\{[\s\S]*?\n\};)\nconst ALL_SUBJECTS/);assert.ok(match);
+  const app=fs.readFileSync(path.join(root,"app.js"),"utf8"),match=app.match(/const CURRICULUM=(\{[\s\S]*?\r?\n\};)\r?\nconst ALL_SUBJECTS/);assert.ok(match);
   const CURRICULUM=vm.runInNewContext("("+match[1].replace(/;$/,'')+")"),ctx=context({CURRICULUM,S:{lab:{paragraphLog:[],elementFav:[],timelineFav:[]}}}),win=run("learning-lab.js",ctx),snapshot=win.YKSLearningLab.curriculum();
   assert.deepEqual(Object.keys(snapshot),["TYT","AYT","YDT"]);
   for(const exam of ["TYT","AYT","YDT"]){assert.equal(snapshot[exam].length,CURRICULUM[exam].length);assert.equal(snapshot[exam].reduce((n,x)=>n+x.topics.length,0),CURRICULUM[exam].reduce((n,x)=>n+x.topics.length,0));}
 });
 
 test("Laboratuvar konu içeriğinde arama ve favori filtresi yapar",()=>{
-  const app=fs.readFileSync(path.join(root,"app.js"),"utf8"),match=app.match(/const CURRICULUM=(\{[\s\S]*?\n\};)\nconst ALL_SUBJECTS/);assert.ok(match);
+  const app=fs.readFileSync(path.join(root,"app.js"),"utf8"),match=app.match(/const CURRICULUM=(\{[\s\S]*?\r?\n\};)\r?\nconst ALL_SUBJECTS/);assert.ok(match);
   const CURRICULUM=vm.runInNewContext("("+match[1].replace(/;$/,'')+")"),ctx=context({CURRICULUM,S:{lab:{paragraphLog:[],elementFav:[],timelineFav:[],topicFav:[]}}});run("topic-guides.js",ctx);const api=run("learning-lab.js",ctx).YKSLearningLab;
   const result=api.searchTopics({exam:"TYT",query:"tanım kümesi"});assert.ok(result.some(x=>x.subject==="Matematik"));
   const key=api.topicKey("TYT","Matematik","Problemler"),favorites=api.searchTopics({exam:"TYT",onlyFavorites:true,favorites:new Set([key])});assert.deepEqual(JSON.parse(JSON.stringify(favorites.map(x=>x.key))),[key]);
 });
 
 test("240 TYT, AYT ve YDT konusunun tamamında konuya özel rehber vardır",()=>{
-  const app=fs.readFileSync(path.join(root,"app.js"),"utf8"),match=app.match(/const CURRICULUM=(\{[\s\S]*?\n\};)\nconst ALL_SUBJECTS/);assert.ok(match);
+  const app=fs.readFileSync(path.join(root,"app.js"),"utf8"),match=app.match(/const CURRICULUM=(\{[\s\S]*?\r?\n\};)\r?\nconst ALL_SUBJECTS/);assert.ok(match);
   const CURRICULUM=vm.runInNewContext("("+match[1].replace(/;$/,'')+")"),ctx=context();run("topic-guides.js",ctx);
   const api=ctx.window.YKSTopicGuides,coverage=api.coverage(CURRICULUM);assert.equal(coverage.total,240);assert.equal(coverage.specific,240);assert.equal(coverage.missing.length,0);
   for(const exam of ["TYT","AYT","YDT"])for(const subject of CURRICULUM[exam])for(const topic of subject.topics){const guide=api.guideFor(exam,subject.name,topic);assert.equal(guide.specific,true,exam+" "+subject.name+" "+topic);assert.equal(guide.important.length,2);assert.equal(guide.attention.length,2);assert.equal(guide.mistakes.length,2);assert.equal(guide.study.length,2);assert.equal(guide.checklist.length,3);assert.ok(guide.sources.length>=3);assert.ok(guide.note.includes("çıkma garantisi değildir"));}

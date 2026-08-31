@@ -67,17 +67,6 @@ document.documentElement.setAttribute("data-theme",t);}catch(e){}})();
   <link rel="stylesheet" href="./modules/study-intelligence-v5.css?v=4.1.0-r1">
 </head><body>
 <div class="v311-offline" id="v311OfflineBanner" role="status" aria-live="polite" aria-hidden="true" hidden></div>
-<div id="cloudSyncBox" data-state="signedout" aria-live="polite" title="Bulut senkronizasyon durumu">
-  <span class="cloudSyncDot" id="cloudSyncDot" aria-hidden="true"></span>
-  <span class="cloudSyncCopy">
-    <span id="cloudSyncText">Giriş yapılmadı</span>
-    <small id="cloudSyncMeta">Bulut senkronu kapalı</small>
-  </span>
-  <button id="cloudLoginBtn" type="button">Google ile giriş</button>
-  <button id="cloudLogoutBtn" class="secondary" type="button" style="display:none">Çıkış</button>
-</div>
-
-
 <svg class="svgdefs" aria-hidden="true" focusable="false">
   <defs>
     <linearGradient id="gIcon" x1="0" y1="0" x2="0" y2="1">
@@ -1164,7 +1153,7 @@ document.documentElement.setAttribute("data-theme",t);}catch(e){}})();
     <h2>Uygulama</h2>
     <div class="v30-menu-grid">
       <button class="v30-menu-card" type="button" onclick="v30Action('settings')"><span class="v30-menu-ico">⚙</span><span><b>Ayarlar</b><small>Görünüm, hedefler, bildirimler ve video seçenekleri</small></span><i>›</i></button>
-      <button class="v30-menu-card" type="button" onclick="v30Action('data')"><span class="v30-menu-ico">⇅</span><span><b>Veri & senkron</b><small>Bulut durumu, JSON yedekleri, CSV ve ham veri</small></span><i>›</i></button>
+      <button class="v30-menu-card" type="button" onclick="v30Action('data')"><span class="v30-menu-ico">⇅</span><span><b>Veri & yedek</b><small>Yerel kayıt, JSON yedekleri, CSV ve ham veri</small></span><i>›</i></button>
       <button class="v30-menu-card" type="button" onclick="v30Action('system')"><span class="v30-menu-ico">✓</span><span><b>Sistem durumu</b><small>PWA, depolama, veri şeması ve otomatik kontroller</small></span><i>›</i></button>
       <button class="v30-menu-card" type="button" onclick="v30Action('about')"><span class="v30-menu-ico">i</span><span><b>Hakkında</b><small>Sürüm, geliştirici ve uygulama bilgileri</small></span><i>›</i></button>
     </div>
@@ -1377,11 +1366,11 @@ document.documentElement.setAttribute("data-theme",t);}catch(e){}})();
   </div>
 
   <div id="mrp_veri" style="display:none;">
-    <div class="v30-subhead"><button class="v30-back" type="button" onclick="setMoreTab('home')">‹ Daha</button><div><h1>Veri & sistem</h1><p>Yedek, senkron, rapor ve sistem sağlığı</p></div></div>
+    <div class="v30-subhead"><button class="v30-back" type="button" onclick="setMoreTab('home')">‹ Daha</button><div><h1>Veri & sistem</h1><p>Yerel kayıt, yedek, rapor ve sistem sağlığı</p></div></div>
     <div class="card" id="v30DataTop">
-      <p class="eyebrow">Veri, yedek ve senkron</p>
+      <p class="eyebrow">Veri ve yedek</p>
       <div id="v30DataSyncSummary"></div>
-      <p class="lead" style="margin:12px 0 12px;font-size:14.5px;">Verilerin cihazda tutulur; Google ile giriş yaptıysan Firebase ile de eşitlenir. JSON yedeği ise bunlardan bağımsız geri dönüş güvencesidir.</p>
+      <p class="lead" style="margin:12px 0 12px;font-size:14.5px;">Çalışma verilerin bu cihazda tutulur. Güvenli JSON yedeği, verilerini başka bir cihaza taşımak veya geri yüklemek için bağımsız bir kopya oluşturur.</p>
       <p class="hint" id="lastBackup" style="margin:0 0 14px;"></p>
       <div class="v4-backup-shield" id="v4BackupShield"><span aria-hidden="true">✓</span><div><b>Güvenli yedekleme etkin</b><small>Dosya bütünlüğü doğrulanır · Geri yüklemeden önce içerik gösterilir · Mevcut durum korunur</small></div></div>
       <button class="btn green small" style="width:100%;margin-bottom:9px;" onclick="exportData()">Güvenli JSON yedeği indir</button>
@@ -1555,7 +1544,7 @@ document.documentElement.setAttribute("data-theme",t);}catch(e){}})();
       </div>
       <pre class="diag" id="ytDiag">Henüz test edilmedi.</pre>
       <p class="hint"><b>file:// notu:</b> dosyayı doğrudan açtığında tarayıcı normal ağ isteklerini engelleyebiliyor. Uygulama bu durumu algılayıp isteği JSONP yöntemiyle gönderiyor; ek bir şey yapman gerekmez.</p>
-      <p class="hint"><b>Güvenlik:</b> API anahtarı uygulama dosyasına gömülü değildir. Kendi anahtarını girersen yalnız bu cihazda tutulur, JSON yedeğine ve bulut senkronuna eklenmez. Anahtarı Google Cloud tarafında alan adı ve API ile sınırlandırman önerilir.</p>
+      <p class="hint"><b>Güvenlik:</b> API anahtarı uygulama dosyasına gömülü değildir. Kendi anahtarını girersen yalnız bu cihazda tutulur ve JSON yedeğine eklenmez. Anahtarı Google Cloud tarafında alan adı ve API ile sınırlandırman önerilir.</p>
     </div>
 
     <div class="card">
@@ -1604,7 +1593,7 @@ document.documentElement.setAttribute("data-theme",t);}catch(e){}})();
     </div>
     <div class="card">
       <p class="eyebrow">Veri yaklaşımı</p>
-      <p class="lead" style="font-size:14.5px;margin:0;">Ana çalışma verisi cihazda tutulur. Google ile giriş açıksa Firebase senkronu kullanılabilir; JSON yedeği ise bağımsız geri dönüş kopyasıdır.</p>
+      <p class="lead" style="font-size:14.5px;margin:0;">Ana çalışma verisi yalnız cihazda tutulur. JSON dışa aktarma ve geri yükleme araçları, kullanıcının yönettiği bağımsız yedek kopyalarıdır.</p>
     </div>
   </div>
 </section>
@@ -1953,13 +1942,13 @@ document.documentElement.setAttribute("data-theme",t);}catch(e){}})();
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div><script vite-ignore src="./app.js?v=4.1.0-r20"></script>
 
-<script type="module" id="firebaseSyncModule">
+<script type="application/json" id="legacyFirebaseSyncModule" data-disabled="play-store-release">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
 import { getFirestore, doc, getDoc, collection, getDocs, writeBatch, runTransaction, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
 
 const firebaseConfig={
- apiKey:"AIzaSyA0UMRKwah3Ji9Z8Sd3ZvgLJUKiC40fVSc",
+ apiKey:"",
  authDomain:"yks-uygulamam.firebaseapp.com",
  projectId:"yks-uygulamam",
  storageBucket:"yks-uygulamam.firebasestorage.app",

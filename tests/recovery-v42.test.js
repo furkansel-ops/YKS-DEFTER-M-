@@ -31,6 +31,6 @@ test("başarısız yedek uygulaması değişmiş ana kaydı otomatik geri alır"
 
 test("Kurtarma Merkezi erişilebilir önizleme ile yeni import akışını çalışma zamanına bağlar",()=>{
   const source=fs.readFileSync(path.join(root,"src/ui/recovery-center.ts"),"utf8"),main=fs.readFileSync(path.join(root,"src/main.ts"),"utf8");
-  assert.match(source,/v42RecoveryCenter/);assert.match(source,/aria-modal/);assert.match(source,/Yedek önizlemesi/);assert.match(source,/backup\.preview\(text\)/);assert.match(source,/backup\.restore\(text\)/);assert.match(source,/runtime\.importData=input/);assert.match(source,/yksCloudForceDirty/);assert.match(source,/otomatik geri almaya çalışır/);
+  assert.match(source,/v42RecoveryCenter/);assert.match(source,/aria-modal/);assert.match(source,/Yedek önizlemesi/);assert.match(source,/backup\.preview\(text\)/);assert.match(source,/backup\.restore\(text\)/);assert.match(source,/runtime\.importData=input/);assert.doesNotMatch(source,/yksCloudForceDirty/);assert.match(source,/Hesap \/ bulut","Kullanılmıyor/);assert.match(source,/otomatik geri almaya çalışır/);
   assert.doesNotMatch(source,/\.weeks\b|\.rows\b|rowLabels/);assert.match(main,/installRecoveryCenter\(data,backup\)/);assert.match(main,/v4RecoveryErrors/);
 });

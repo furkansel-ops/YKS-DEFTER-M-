@@ -11,6 +11,8 @@ const [pkgText,versionText,tsconfigText,srcPkgText,ci,deploy,nvmrc]=await Promis
   read(".github/workflows/ci.yml"),read(".github/workflows/deploy-pages.yml"),read(".nvmrc")
 ]);
 const pkg=JSON.parse(pkgText),version=JSON.parse(versionText),tsconfig=JSON.parse(tsconfigText),srcPkg=JSON.parse(srcPkgText);
+const checkoutPin="actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1";
+const setupNodePin="actions/setup-node@820762786026740c76f36085b0efc47a31fe5020";
 
 must(pkg.private===true,"paket public npm yayınına açık olmamalı");
 must(pkg.version===version.version,"package.json ve version.json sürümleri eşleşmiyor");
@@ -28,8 +30,8 @@ must(srcPkg.type==="module","src TypeScript ESM sınırı eksik");
 must(nvmrc.trim()==="22",".nvmrc Node 22 tabanını göstermiyor");
 
 for(const [name,text] of [["CI",ci],["Pages",deploy]]){
-  must(text.includes("actions/checkout@v7"),`${name} güncel checkout eylemini kullanmıyor`);
-  must(text.includes("actions/setup-node@v7"),`${name} güncel Node kurulum eylemini kullanmıyor`);
+  must(text.includes(checkoutPin),`${name} değişmez checkout SHA'sını kullanmıyor`);
+  must(text.includes(setupNodePin),`${name} değişmez Node kurulum SHA'sını kullanmıyor`);
   must(text.includes("node-version: 22"),`${name} ana doğrulamayı Node 22 ile yapmıyor`);
   must(text.includes("persist-credentials: false"),`${name} checkout kimlik bilgilerini gereksiz yere kalıcı tutuyor`);
   must(text.includes("npm ci --no-audit --no-fund"),`${name} deterministik/hafif npm ci komutunu kullanmıyor`);
@@ -42,6 +44,8 @@ must(ci.includes("node-version: 24"),"Node 24 uyumluluk kapısı eksik");
 
 const workflows=await readdir(resolve(root,".github/workflows"));
 must(!workflows.some(name=>/upgrade|once|temp|temporary/i.test(name)),"geçici/tek-seferlik workflow kalmış");
+const workflowTexts=await Promise.all(workflows.filter(name=>/\.ya?ml$/i.test(name)).map(name=>read(`.github/workflows/${name}`)));
+must(!workflowTexts.some(text=>/uses:\s+[^\s#]+@v\d+/i.test(text)),"hareketli GitHub Action etiketi kalmış; eylemler tam SHA ile sabitlenmeli");
 
 const budgets={"app.js":1_100_000,"app.css":320_000,"index.html":180_000,"sw.js":32_000};
 for(const [file,max] of Object.entries(budgets)){

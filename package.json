@@ -16,14 +16,20 @@
     "preview": "vite preview --host 0.0.0.0",
     "test": "node --test tests/*.test.js",
     "check": "npm run infra:check && npm run typecheck && npm test && npm run build:assets",
-    "release:check": "npm run check && node scripts/verify-release.mjs && node scripts/verify-v440-production.mjs"
+    "release:check": "npm run check && node scripts/verify-release.mjs && node scripts/verify-v440-production.mjs",
+    "android:sync": "npm run build:assets && cap sync android",
+    "android:prepare": "npm run android:sync && node scripts/prepare-android-release.mjs",
+    "android:verify": "node --test tests/android-release.test.js"
   },
   "devDependencies": {
+    "@capacitor/cli": "8.5.0",
     "@types/three": "0.185.0",
     "typescript": "^7.0.2",
     "vite": "^8.2.2"
   },
   "dependencies": {
+    "@capacitor/android": "8.5.0",
+    "@capacitor/core": "8.5.0",
     "dexie": "^4.4.5",
     "three": "0.185.1"
   }

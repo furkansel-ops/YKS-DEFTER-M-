@@ -25,8 +25,8 @@ const CATEGORIES:readonly MoreCategory[]=[
     {action:"settings",label:"Ayarlar",description:"Tema, hedefler, bildirimler ve video seçenekleri",icon:"⚙"},
     {action:"about",label:"Hakkında",description:"Sürüm, geliştirici ve uygulama bilgileri",icon:"i"}
   ]},
-  {id:"system",label:"Veri & Sistem",description:"Yedek, senkron, kurtarma ve sistem sağlığı",icon:"⇅",items:[
-    {action:"data",label:"Veri & senkron",description:"Bulut durumu, içe/dışa aktarma ve ham veri",icon:"⇅"},
+  {id:"system",label:"Veri & Sistem",description:"Yerel kayıt, yedek, kurtarma ve sistem sağlığı",icon:"⇅",items:[
+    {action:"data",label:"Veri & yedek",description:"Yerel kayıt, içe/dışa aktarma ve ham veri",icon:"⇅"},
     {action:"system",label:"Sistem durumu",description:"PWA, depolama, veri şeması ve kontroller",icon:"✓"},
     {action:"backup",label:"JSON yedek",description:"Manuel geri dönüş kopyası oluştur",icon:"⇩"},
     {action:"log",label:"Değişiklik günlüğü",description:"Son ekleme ve silmeleri incele",icon:"≡"}
