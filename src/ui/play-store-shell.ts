@@ -1,12 +1,6 @@
 import Dexie from "dexie";
 import {YKS_DATABASE_NAME} from "../data/database";
 
-declare global{
-  interface Window{
-    __YKS_DATA__?:{flush?:()=>Promise<void>};
-  }
-}
-
 const CARD_ID="playStorePrivacyCard";
 
 async function clearAppCaches():Promise<void>{
@@ -22,7 +16,8 @@ async function deleteDeviceData(button:HTMLButtonElement):Promise<void>{
   button.disabled=true;
   button.textContent="Veriler siliniyor…";
   try{
-    await window.__YKS_DATA__?.flush?.();
+    const dataBridge=(window as unknown as {__YKS_DATA__?:{flush?:()=>Promise<void>}}).__YKS_DATA__;
+    await dataBridge?.flush?.();
     await Dexie.delete(YKS_DATABASE_NAME);
     localStorage.clear();
     sessionStorage.clear();
