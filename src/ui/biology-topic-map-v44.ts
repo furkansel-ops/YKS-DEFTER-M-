@@ -2,6 +2,8 @@ import type {AtlasTopic} from "../data/biology-atlas.ts";
 import {buildAtlasTopicMap} from "../domain/biology-topic-map-service.ts";
 import {atlasEscape as esc} from "./biology-atlas-diagrams.ts";
 
+if (typeof document !== "undefined") void import("./biology-topic-map-v44.css").catch(()=>{});
+
 export function atlasTopicMapV44(topic:AtlasTopic,currentStep:number):string {
   const plan=buildAtlasTopicMap(topic);
   const nodes=plan.nodes.map(node=>`<button type="button" class="atlas-topic-map-v44__node" data-atlas-step="${node.id}" aria-pressed="${node.id===currentStep}" ${node.id===currentStep?'aria-current="step"':""}><span class="atlas-topic-map-v44__number">${node.id+1}</span><span><b>${esc(node.label)}</b><small>${esc(node.detail)}</small></span></button>`).join("");
