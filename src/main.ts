@@ -16,6 +16,7 @@ import {installChemistryVisualsBridgeV44} from "./ui/chemistry-visuals-bridge";
 import {installLabInteractionsBridgeV44} from "./ui/lab-interactions-bridge-v44";
 import {installRecoveryCenter} from "./ui/recovery-center";
 import {installV43SafeRuntime} from "./ui/v43-safe-runtime";
+import {installPlayStoreShell} from "./ui/play-store-shell";
 
 type BootstrapState={
   version:typeof RELEASE_VERSION;
@@ -66,7 +67,8 @@ const bootstrap:BootstrapState={
 };
 
 /* Çekirdek açılış zinciri yalnız kararlı altyapı modüllerinden oluşur.
-   v4.3 ürün katmanları aşağıda, bootstrap tamamlandıktan sonra ayrı fail-open sınırlarında yüklenir. */
+   v4.3 ürün katmanları ve mağaza yardımcıları aşağıda, bootstrap tamamlandıktan sonra
+   ayrı fail-open sınırlarında yüklenir. */
 const services=installLegacyServiceBridge();
 const data=installLegacyDataBridge();
 installScienceCards();
@@ -95,6 +97,8 @@ document.documentElement.dataset.v4ExamAnalysisErrors=String(examAnalysis.valida
 document.documentElement.dataset.v4PwaBuild=pwa.build;
 window.dispatchEvent(new CustomEvent<BootstrapState>("yks:v4-bootstrap",{detail:bootstrap}));
 
+const playStoreShell=installPlayStoreShell();
+document.documentElement.dataset.playStorePrivacy=playStoreShell.installed?"ready":"deferred";
 const v43Runtime=installV43SafeRuntime();
 document.documentElement.dataset.v43RuntimeHost=String(v43Runtime.installed);
 const release=installReleaseRuntime();
