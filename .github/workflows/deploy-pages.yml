@@ -38,20 +38,20 @@ jobs:
       - name: Kararlı sürümü doğrula ve derle
         run: npm run release:check
 
-      - name: v4.3.0 yedek ZIP'ini hazırla
+      - name: v4.3.1 yedek ZIP'ini hazırla
         run: |
-          rm -rf .release-backup YKS-Defterim-v4.3.0-backup.zip
+          rm -rf .release-backup YKS-Defterim-v4.3.1-backup.zip
           mkdir -p .release-backup/source .release-backup/production
           git archive HEAD | tar -x -C .release-backup/source
           cp -a dist/. .release-backup/production/
-          printf 'YKS Defterim v4.3.0\nBuild: 4.3.0-r1\nCommit: %s\n' "$GITHUB_SHA" > .release-backup/BACKUP-INFO.txt
-          (cd .release-backup && zip -qr ../YKS-Defterim-v4.3.0-backup.zip .)
+          printf 'YKS Defterim v4.3.1\nBuild: 4.3.1-r1\nCommit: %s\n' "$GITHUB_SHA" > .release-backup/BACKUP-INFO.txt
+          (cd .release-backup && zip -qr ../YKS-Defterim-v4.3.1-backup.zip .)
 
       - name: Yedek ZIP artefaktını yükle
         uses: actions/upload-artifact@v4
         with:
-          name: yks-defterim-v4.3.0-backup
-          path: YKS-Defterim-v4.3.0-backup.zip
+          name: yks-defterim-v4.3.1-backup
+          path: YKS-Defterim-v4.3.1-backup.zip
           if-no-files-found: error
           retention-days: 30
 
