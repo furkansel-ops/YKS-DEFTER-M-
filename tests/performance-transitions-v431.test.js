@@ -9,7 +9,7 @@ const read=file=>fs.readFileSync(path.join(root,file),"utf8");
 test("v4.3.1 ekran runtime ağır ikincil işleri paint/idle sonrasına taşır ve hatayı çekirdeğe yaymaz",()=>{
   const source=read("src/ui/screen-runtime.ts");
   assert.match(source,/#safeDeferred/);
-  assert.match(source,/this\.#optional\("infraError",`screen-deferred:\$\{key\}`,error\)/);
+  assert.match(source,/this\.optional\("infraError",`screen-deferred:\$\{key\}`,error\)/);
   assert.match(source,/perfAfterPaint/);
   assert.match(source,/requestAnimationFrame\(safe\)/);
   assert.match(source,/perfIdle/);
