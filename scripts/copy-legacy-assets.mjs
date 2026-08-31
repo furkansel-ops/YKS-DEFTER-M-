@@ -9,6 +9,7 @@ const assets=[
   "sw.js",
   "404.html",
   "privacy.html",
+  "data-deletion.html",
   "modules",
   "manifest.webmanifest",
   "version.json",
