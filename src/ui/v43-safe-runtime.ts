@@ -72,6 +72,9 @@ async function loadAll():Promise<V43RuntimeReport>{
   features.push(await loadFeature("v43FocusSessionGuard","v43FocusSessionGuardErrors",async()=>{
     const mod=await import("./focus-session-guard-v43");return mod.installFocusSessionGuardV43();
   }));
+  features.push(await loadFeature("v431Resilience","v431ResilienceErrors",async()=>{
+    const mod=await import("./runtime-resilience-v431");return mod.installRuntimeResilienceV431();
+  }));
 
   const report:V43RuntimeReport={ok:features.every(feature=>feature.installed&&feature.errors===0),startedAt,finishedAt:Date.now(),features};
   document.documentElement.dataset.v43Runtime=report.ok?"ready":"degraded";
