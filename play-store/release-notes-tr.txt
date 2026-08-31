@@ -1,0 +1,10 @@
+YKS Defterim Android sürümü için ilk Play Store hazırlığı.
+
+• TYT/AYT/YDT çalışma takibi
+• Manuel haftalık Program
+• Deneme ve ilerleme analizleri
+• Sayaç, Pomodoro ve kronometre
+• Biyoloji Atlası ve YKS odaklı görsel öğrenme araçları
+• Etkileşimli fizik, kimya, periyodik tablo ve kronoloji
+• Çevrimdışı çalışma ve yerel yedekleme
+• Uygulama içi gizlilik ve cihaz verilerini silme kontrolleri
