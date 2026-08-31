@@ -16,7 +16,7 @@
     "preview": "vite preview --host 0.0.0.0",
     "test": "node --test tests/*.test.js",
     "check": "npm run infra:check && npm run typecheck && npm test && npm run build:assets",
-    "release:check": "npm run check && node scripts/verify-release.mjs"
+    "release:check": "npm run check && node scripts/verify-release.mjs && node scripts/verify-v431-production.mjs"
   },
   "devDependencies": {
     "@types/three": "0.185.0",
