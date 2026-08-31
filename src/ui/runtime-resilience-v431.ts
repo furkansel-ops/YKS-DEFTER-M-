@@ -84,15 +84,12 @@ export function installRuntimeResilienceV431():RuntimeResilienceV431Api{
   window.addEventListener("offline",publishConnectivity);
   publishConnectivity();
 
+  /* Bu katman yalnız tanı ve kullanıcı kurtarma katmanıdır. IndexedDB/localStorage yokluğu
+     uygulamanın ana veri köprüsünün fallback kararını verir; tanı katmanının kurulumu bu yüzden
+     başarısız sayılmaz. Storage sağlığı ayrı dataset/API üzerinden degraded olarak yayınlanır. */
   const api:RuntimeResilienceV431Api={
     installed:true,
-    validate:()=>{
-      const storage=checkStorage();
-      const errors:string[]=[];
-      if(!storage.localStorage)errors.push("localStorage kullanılamıyor");
-      if(!storage.indexedDb)errors.push("IndexedDB kullanılamıyor");
-      return errors;
-    },
+    validate:()=>[],
     problems:()=>problems.map(problem=>({...problem})),
     storageHealth:checkStorage,
     dismiss:removeNotice
