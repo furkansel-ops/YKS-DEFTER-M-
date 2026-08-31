@@ -7,10 +7,13 @@ export function installBiologyAtlas(): BiologyAtlasApi {
   let module: BiologyAtlasApi | null = null, pending: Promise<void> | null = null;
   let current: HTMLElement | null = null, failedPanel: HTMLElement | null = null, wanted = false;
   const enhance = (target: HTMLElement) => {
-    // v4.4 teaching additions are optional and fail-open: an enhancer error must
+    // v4.4 teaching additions are optional and fail-open: enhancer errors must
     // never block the Atlas, login/bootstrap or the underlying 3B viewer.
     void import("./biology-yks-question-v44.ts").then(({installBiologyYksQuestionFocus}) => {
       if (wanted && current === target && target.isConnected) installBiologyYksQuestionFocus(target);
+    }).catch(() => {});
+    void import("./biology-layer-guide-v44.ts").then(({installBiologyLayerGuide}) => {
+      if (wanted && current === target && target.isConnected) installBiologyLayerGuide(target);
     }).catch(() => {});
   };
   const api: BiologyAtlasApi = {
