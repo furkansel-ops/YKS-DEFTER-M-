@@ -59,7 +59,8 @@ test("v4.3.1 büyük anatomi varlıklarını çekirdek PWA kurulumuna almaz ve y
   assert.doesNotMatch(coreMatch[1],/anatomy\/(models|images|thumbs)/);
   assert.match(sw,/\/anatomy\\\/\(models\|images\|thumbs\)/);
   assert.match(sw,/45000/);
-  assert.match(sw,/await cache\.put\(req,copy\)/);
+  assert.match(sw,/event\.waitUntil\(caches\.open\(CACHE\)/);
+  assert.match(sw,/cache\.put\(req,copy\)/);
 });
 
 test("v4.3.1 tanı katmanı storage engelini uygulama katmanı hatası saymadan ayrı degraded sinyali verir",()=>{
