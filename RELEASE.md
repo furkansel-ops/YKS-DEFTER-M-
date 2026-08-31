@@ -75,4 +75,4 @@ Tarayıcı release kapısı bootstrap sürüm/build kimliğini, güvenli v4.3 ru
 
 ---
 
-**v4.3.0, yol haritasındaki 8 aşamanın tamamlanması ve final kalite kapısının geçilmesiyle kararlı yayın adayıdır.**
+**v4.3.0, yol haritasındaki 8 aşamanın tamamlanması ve final kalite kapısının tamamen yeşil geçmesiyle kararlı yayın için hazırdır.**
