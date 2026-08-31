@@ -48,7 +48,7 @@ const [bundle,app,sw,versionText,recovery,stability,personal,progress,labV2,labV
 if(!bundle.includes("YKS_V4_RELEASE_OK")||!bundle.includes(localRelease.version)||!bundle.includes("stable")||!bundle.includes("v42ReleaseOverlay"))throw new Error("v4.3 kararlı sürüm denetimi üretim paketine girmedi");
 if(!bundle.includes(localRelease.build)||!bundle.includes("4.1.0-r20")||!/(?:assets\/manifest-[^"']+|manifest\.webmanifest)\?v=4\.1\.0-r20/.test(index))throw new Error("v4.3 release / legacy PWA kabuk sınırı üretim paketinde eksik");
 if(!app.includes('const APP_VERSION="4.1.0"')||!app.includes('const APP_BUILD="4.1.0-r20"'))throw new Error("Korunan legacy app.js çekirdek sürümü beklenen değer değil");
-if(!sw.includes(`const APP_VERSION="${localRelease.version}"`)||!sw.includes(`const APP_BUILD="${localRelease.build}"`)||!sw.includes(`const CACHE="yks-core-${localRelease.build}"`)||!sw.includes('"yks-core-v4.2.0-r1"'))throw new Error("Kopyalanan service worker v4.3 kararlı sürüm/cache revizyonuyla eşleşmiyor");
+if(!sw.includes(`const APP_VERSION="${localRelease.version}"`)||!sw.includes(`const APP_BUILD="${localRelease.build}"`)||!sw.includes(`const CACHE="yks-core-v${localRelease.build}"`)||!sw.includes('"yks-core-v4.2.0-r1"'))throw new Error("Kopyalanan service worker v4.3 kararlı sürüm/cache revizyonuyla eşleşmiyor");
 if(!sw.includes('learning-lab.js?v=4.1.0-r26'))throw new Error("Laboratuvar favori düzeltmesi çevrimdışı çekirdekte eksik");
 const v42Runtime=["global-search-v42.js","smart-repeat-v42.js","error-topic-lab-v42.js","exam-analysis-v42.js","progress-v42.js","learning-lab-flow-v42.js"];
 for(const file of v42Runtime){
