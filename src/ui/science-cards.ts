@@ -7,12 +7,14 @@ import {scienceCardMarkup, scienceEscape} from "./science-card-markup.ts";
 import "./science-cards.css";
 
 interface ScienceCardsApi {mount(panel: HTMLElement | null): boolean; setSubject(subject: ScienceSubject): void;}
+interface PhysicsLabApi {mount(panel: HTMLElement | null): boolean; suspend(): void;}
 declare global {interface Window {YKSScienceCards?: ScienceCardsApi;}}
 
 export function installScienceCards(): ScienceCardsApi {
   if (window.YKSScienceCards) return window.YKSScienceCards;
   let panel: HTMLElement | null = null, signature = "", practice = false;
   let filters: ScienceFilters = {...SCIENCE_DEFAULT_FILTERS};
+  let physicsLab: PhysicsLabApi | null = null, physicsPending: Promise<void> | null = null, physicsFailed: HTMLElement | null = null;
   const revealed = new Set<string>(), hidden = new Set<string>(), bound = new WeakSet<HTMLElement>();
   const find = <T extends HTMLElement>(id: string) => panel?.querySelector<T>("#" + id) || null;
   function message(text: string) {
@@ -20,6 +22,22 @@ export function installScienceCards(): ScienceCardsApi {
     if (target && target.textContent !== text) target.textContent = text;
   }
   function progress() {return normalizeScienceProgress(window.YKSLegacyState?.readState?.()?.lab?.scienceCards);}
+  function syncPhysicsLab() {
+    const target = find("v4PhysicsLab"); if (!target) return;
+    const active = filters.subject === "Fizik"; target.hidden = !active;
+    if (!active) {physicsLab?.suspend(); return;}
+    if (physicsLab) {physicsLab.mount(target); return;}
+    if (physicsFailed === target || physicsPending) return;
+    target.innerHTML = '<p class="science-message" role="status">Fizik simülasyonları hazırlanıyor…</p>';
+    physicsPending = import("./physics-lab-v44.ts").then(({createPhysicsLabV44}) => {
+      physicsLab = createPhysicsLabV44();
+      if (panel?.contains(target) && filters.subject === "Fizik") physicsLab.mount(target);
+      else physicsLab.suspend();
+    }).catch(() => {
+      physicsFailed = target;
+      if (panel?.contains(target) && filters.subject === "Fizik") target.innerHTML = '<p class="science-message" role="status">Fizik simülasyonları açılamadı; kartlarla çalışmaya devam edebilirsin.</p>';
+    }).finally(() => {physicsPending = null;});
+  }
   function setSubject(subject: ScienceSubject) {
     filters = {...SCIENCE_DEFAULT_FILTERS, subject};
     revealed.clear(); hidden.clear(); render();
@@ -28,7 +46,7 @@ export function installScienceCards(): ScienceCardsApi {
     if (!panel) return;
     const saved = progress(), rows = filterScienceCards(filters, saved), totals = scienceTotals(filters.subject, saved);
     const next = JSON.stringify([filters, practice, [...revealed], [...hidden], saved]);
-    if (signature === next) return;
+    if (signature === next) {syncPhysicsLab(); return;}
     signature = next;
     for (const [id, value] of [
       ["v4ScienceSearch", filters.query], ["v4ScienceExam", filters.exam], ["v4ScienceView", filters.view]
@@ -66,6 +84,7 @@ export function installScienceCards(): ScienceCardsApi {
       const fallback = grid.querySelectorAll<HTMLElement>("[data-card]")[Math.max(0, Math.min(previousIndex, rows.length - 1))]?.querySelector<HTMLButtonElement>("button");
       (same || fallback || grid.querySelector<HTMLButtonElement>("button"))?.focus({preventScroll: true});
     }
+    syncPhysicsLab();
   }
   function reset() {
     filters = {...SCIENCE_DEFAULT_FILTERS, subject: filters.subject};
@@ -109,7 +128,7 @@ export function installScienceCards(): ScienceCardsApi {
   function mount(target: HTMLElement | null): boolean {
     if (!target) return false;
     if (panel !== target || target.dataset.scienceVersion !== "1") {
-      panel = target; signature = ""; target.dataset.scienceVersion = "1";
+      panel = target; signature = ""; physicsFailed = null; target.dataset.scienceVersion = "1";
       target.innerHTML = '<header class="science-header"><div><span class="science-eyebrow">FEN TEKRAR ATÖLYESİ</span><h2>Biyoloji / Fizik kartları</h2><p>Kısa soruyla hatırla, cevabı kontrol et, tekrar edeceğin kartları ayır.</p></div>' +
         '<div class="science-subjects" role="group" aria-label="Bilim kartı dersi"><button type="button" id="v4ScienceBiology" data-action="subject" data-subject="Biyoloji">🧬 Biyoloji</button><button type="button" id="v4SciencePhysics" data-action="subject" data-subject="Fizik">⚡ Fizik</button></div></header>' +
         '<div id="v4ScienceStats" class="science-stats"></div><progress id="v4ScienceProgress"></progress>' +
@@ -117,7 +136,7 @@ export function installScienceCards(): ScienceCardsApi {
         '<label>Sınav<select id="v4ScienceExam"><option value="all">TYT + AYT</option><option>TYT</option><option>AYT</option></select></label>' +
         '<label>Konu<select id="v4ScienceTopic"></select></label><label>Göster<select id="v4ScienceView"><option value="all">Bütün kartlar</option><option value="favorites">Favoriler</option><option value="review">Tekrar edeceklerim</option><option value="known">Bildiklerim</option><option value="new">İşaretsiz</option></select></label></div>' +
         '<div class="science-tools"><label><input id="v4SciencePractice" type="checkbox"> Kendini sına</label><button type="button" data-action="cover">Cevapları gizle</button><button type="button" data-action="reset">Filtreleri temizle</button><span id="v4ScienceResult" role="status"></span></div>' +
-        '<p id="v4ScienceMessage" class="science-message" role="status" aria-live="polite"></p><div id="v4ScienceCards" class="science-deck"></div>' +
+        '<p id="v4ScienceMessage" class="science-message" role="status" aria-live="polite"></p><section id="v4PhysicsLab" hidden aria-label="Fizik simülasyon laboratuvarı"></section><div id="v4ScienceCards" class="science-deck"></div>' +
         '<p class="science-footnote">Seçili TYT/AYT kavramları için 32 başlangıç kartı. “Biliyorum” kişisel işaretindir; Konular bölümündeki ilerlemeyi değiştirmez. Bu set konu anlatımının yerine geçmez.</p>';
       if (!bound.has(target)) {
         bound.add(target); target.addEventListener("click", onClick);

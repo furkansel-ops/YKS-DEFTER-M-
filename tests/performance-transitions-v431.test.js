@@ -24,18 +24,28 @@ test("v4.3.1 navigasyon yalnız istenen ekranı çizer ve legacy fallback'i koru
   assert.doesNotMatch(source,/biology-atlas|WebGLRenderer|import\(.+biology/i);
 });
 
-test("v4.3.1 production kapısı başlangıç JS bütçesini ve resilience lazy chunk sınırını kilitler",()=>{
-  const gate=read("scripts/verify-v431-production.mjs");
+test("v4.4.0 production kapısı başlangıç JS bütçesini, resilience ve yeni lazy özellik sınırlarını kilitler",()=>{
+  const gate=read("scripts/verify-v440-production.mjs");
   const pkg=JSON.parse(read("package.json"));
   assert.match(gate,/260_000/);
   assert.match(gate,/12_000/);
+  assert.match(gate,/40_000/);
+  assert.match(gate,/180_000/);
   assert.match(gate,/runtime-resilience-v431/);
+  assert.match(gate,/biology-yks-question-v44/);
+  assert.match(gate,/biology-layer-guide-v44/);
+  assert.match(gate,/biology-topic-map-v44/);
+  assert.match(gate,/Biyoloji konu haritası Atlas lazy sınırında paketlenmedi/);
+  assert.match(gate,/AYT GÖRSEL KONU HARİTASI/);
+  assert.match(gate,/physics-lab-v44/);
+  assert.match(gate,/chemistry-visuals-v44/);
+  assert.match(gate,/lab-interactions-v44/);
   assert.match(gate,/WebGLRenderer/);
   assert.match(gate,/Bir bölüm beklenmedik şekilde durdu\./);
-  assert.match(pkg.scripts["release:check"],/verify-v431-production\.mjs/);
+  assert.match(pkg.scripts["release:check"],/verify-v440-production\.mjs/);
 });
 
-test("v4.3.1 performans kapısı Program veya çalışma verisi mutasyonu içermez",()=>{
-  const gate=read("scripts/verify-v431-production.mjs");
+test("v4.4.0 performans kapısı Program veya çalışma verisi mutasyonu içermez",()=>{
+  const gate=read("scripts/verify-v440-production.mjs");
   assert.doesNotMatch(gate,/weeklyPlan|addToDay|addToToday|wrongLog|studyPrefs|localStorage\.setItem|Dexie|firebase/i);
 });

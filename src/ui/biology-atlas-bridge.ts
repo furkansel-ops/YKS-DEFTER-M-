@@ -6,18 +6,29 @@ export function installBiologyAtlas(): BiologyAtlasApi {
   if (window.YKSBiologyAtlas) return window.YKSBiologyAtlas;
   let module: BiologyAtlasApi | null = null, pending: Promise<void> | null = null;
   let current: HTMLElement | null = null, failedPanel: HTMLElement | null = null, wanted = false;
+  const enhance = (target: HTMLElement) => {
+    // v4.4 teaching additions are optional and fail-open: enhancer errors must
+    // never block the Atlas, login/bootstrap or the underlying 3B viewer.
+    void import("./biology-yks-question-v44.ts").then(({installBiologyYksQuestionFocus}) => {
+      if (wanted && current === target && target.isConnected) installBiologyYksQuestionFocus(target);
+    }).catch(() => {});
+    void import("./biology-layer-guide-v44.ts").then(({installBiologyLayerGuide}) => {
+      if (wanted && current === target && target.isConnected) installBiologyLayerGuide(target);
+    }).catch(() => {});
+  };
   const api: BiologyAtlasApi = {
     mount(panel) {
       if (!panel) return false;
       current = panel; wanted = true;
-      if (module) return module.mount(panel);
+      if (module) {const mounted=module.mount(panel);if(mounted)enhance(panel);return mounted;}
       // The legacy lab observes DOM mutations. Do not turn an import failure
       // into an endless re-render/retry loop; only the retry button resets it.
       if (failedPanel === panel) return true;
       if (!pending) {
         panel.innerHTML = '<p role="status">Biyoloji Atlası hazırlanıyor…</p>';
         pending = import("./biology-atlas.ts").then(({createBiologyAtlas}) => {
-          module = createBiologyAtlas(); if (wanted && current?.isConnected) module.mount(current);
+          module = createBiologyAtlas();
+          if (wanted && current?.isConnected) {const target=current;if(module.mount(target))enhance(target);}
         }).catch(() => {
           if (wanted && current) {
             failedPanel = current;
