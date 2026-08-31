@@ -35,7 +35,7 @@ test("v4.4 ağır öğrenme yüzeylerini başlangıç paketinden ayırır ve fai
 });
 
 test("v4.4 final kalite kapısı şema 21 ve manuel Program sözleşmesini değiştirmez",()=>{
-  const version=JSON.parse(read("version.json"));assert.equal(version.schema,21);assert.equal(version.version,"4.3.1");
+  const version=JSON.parse(read("version.json"));assert.equal(version.schema,21);assert.equal(version.version,"4.4.0");
   const files=[
     "src/domain/biology-layer-service.ts","src/domain/biology-topic-map-service.ts","src/domain/biology-yks-question-service.ts",
     "src/ui/biology-layer-guide-v44.ts","src/ui/biology-topic-map-v44.ts","src/ui/biology-yks-question-v44.ts",
