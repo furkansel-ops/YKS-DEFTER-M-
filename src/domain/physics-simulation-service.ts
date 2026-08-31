@@ -26,47 +26,45 @@ export const PHYSICS_SIMULATIONS:readonly PhysicsSimulationDefinition[]=[
 const byId=new Map(PHYSICS_SIMULATIONS.map(sim=>[sim.id,sim] as const));
 const finite=(value:unknown,fallback:number)=>typeof value==="number"&&Number.isFinite(value)?value:fallback;
 const clamp=(value:number,min:number,max:number)=>Math.max(min,Math.min(max,value));
+const read=(values:Readonly<Record<string,number>>,key:string)=>values[key]??0;
 export function normalizePhysicsInputs(id:PhysicsSimulationId,raw:Readonly<Record<string,number>>={}):Readonly<Record<string,number>> {
   const sim=byId.get(id);if(!sim)return {};
   return Object.fromEntries(sim.inputs.map(spec=>[spec.key,clamp(finite(raw[spec.key],spec.initial),spec.min,spec.max)]));
 }
 const round=(value:number,digits=3)=>Number(value.toFixed(digits));
 export function evaluatePhysicsSimulation(id:PhysicsSimulationId,raw:Readonly<Record<string,number>>={}):PhysicsSimulationResult|null {
-  const x=normalizePhysicsInputs(id,raw);
   if(!byId.has(id))return null;
+  const x=normalizePhysicsInputs(id,raw),n=(key:string)=>read(x,key);
   if(id==="motion"){
-    const v=x.v0+x.a*x.t,dx=x.v0*x.t+.5*x.a*x.t*x.t,force=x.m*x.a;
-    return {id,values:{v:round(v),dx:round(dx),force:round(force)},summary:`${x.t} s sonunda hız ${round(v)} m/s, yer değiştirme ${round(dx)} m.`,cue:"İvme sıfırsa hız sabit kalabilir; net kuvvet sıfır olması durmak demek değildir.",state:x.a===0?"constant":"accelerating"};
+    const v0=n("v0"),a=n("a"),t=n("t"),m=n("m"),v=v0+a*t,dx=v0*t+.5*a*t*t,force=m*a;
+    return {id,values:{v:round(v),dx:round(dx),force:round(force)},summary:`${t} s sonunda hız ${round(v)} m/s, yer değiştirme ${round(dx)} m.`,cue:"İvme sıfırsa hız sabit kalabilir; net kuvvet sıfır olması durmak demek değildir.",state:a===0?"constant":"accelerating"};
   }
   if(id==="energy-momentum"){
-    const kinetic=.5*x.m*x.v*x.v,momentum=x.m*x.v,impulse=x.force*x.dt;
-    return {id,values:{kinetic:round(kinetic),momentum:round(momentum),impulse:round(impulse)},summary:`K = ${round(kinetic)} J · p = ${round(momentum)} kg·m/s · I = ${round(impulse)} N·s`,cue:"Hız iki katına çıkınca momentum 2 kat, kinetik enerji 4 kat olur.",state:x.v===0?"rest":"moving"};
+    const m=n("m"),v=n("v"),force=n("force"),dt=n("dt"),kinetic=.5*m*v*v,momentum=m*v,impulse=force*dt;
+    return {id,values:{kinetic:round(kinetic),momentum:round(momentum),impulse:round(impulse)},summary:`K = ${round(kinetic)} J · p = ${round(momentum)} kg·m/s · I = ${round(impulse)} N·s`,cue:"Hız iki katına çıkınca momentum 2 kat, kinetik enerji 4 kat olur.",state:v===0?"rest":"moving"};
   }
   if(id==="circuits"){
-    const series=x.r1+x.r2,parallel=(x.r1*x.r2)/(x.r1+x.r2),iSeries=x.voltage/series,iParallel=x.voltage/parallel;
+    const voltage=n("voltage"),r1=n("r1"),r2=n("r2"),series=r1+r2,parallel=(r1*r2)/(r1+r2),iSeries=voltage/series,iParallel=voltage/parallel;
     return {id,values:{series:round(series),parallel:round(parallel),iSeries:round(iSeries),iParallel:round(iParallel)},summary:`Rseri ${round(series)} Ω · Rparalel ${round(parallel)} Ω`,cue:"Paralel eşdeğer direnç her zaman en küçük kol direncinden küçüktür.",state:"closed-circuit"};
   }
   if(id==="fields"){
-    const theta=x.theta*Math.PI/180,fe=x.q*x.e,fm=Math.abs(x.q)*x.v*x.b*Math.sin(theta);
-    return {id,values:{electric:round(fe),magnetic:round(fm),sinTheta:round(Math.sin(theta))},summary:`Elektrik kuvveti işaretli ${round(fe)} bağıl birim · Manyetik kuvvet ${round(fm)} bağıl birim.`,cue:"Negatif yükte elektrik kuvveti alanın tersine; v ile B paralelse manyetik kuvvet sıfırdır.",state:x.q<0?"negative-charge":x.q>0?"positive-charge":"neutral"};
+    const q=n("q"),e=n("e"),v=n("v"),b=n("b"),theta=n("theta")*Math.PI/180,fe=q*e,fm=Math.abs(q)*v*b*Math.sin(theta);
+    return {id,values:{electric:round(fe),magnetic:round(fm),sinTheta:round(Math.sin(theta))},summary:`Elektrik kuvveti işaretli ${round(fe)} bağıl birim · Manyetik kuvvet ${round(fm)} bağıl birim.`,cue:"Negatif yükte elektrik kuvveti alanın tersine; v ile B paralelse manyetik kuvvet sıfırdır.",state:q<0?"negative-charge":q>0?"positive-charge":"neutral"};
   }
   if(id==="optics"){
-    const incidence=x.angle*Math.PI/180,sinRefracted=x.n1*Math.sin(incidence)/x.n2,tir=Math.abs(sinRefracted)>1;
-    const refracted=tir?NaN:Math.asin(sinRefracted)*180/Math.PI;
-    const denominator=1/x.f-1/x.do,di=Math.abs(denominator)<1e-9?Infinity:1/denominator;
-    const virtual=Number.isFinite(di)&&di<0;
-    return {id,values:{reflection:round(x.angle),refraction:tir?-1:round(refracted),imageDistance:Number.isFinite(di)?round(di):9999},summary:tir?`Yansıma açısı ${x.angle}° · tam yansıma koşulu oluştu.`:`Yansıma ${x.angle}° · kırılma ${round(refracted)}° · görüntü uzaklığı ${Number.isFinite(di)?round(di):"∞"} cm.`,cue:"Açılar normale göre ölçülür. Cisim odak içindeyse ince kenarlı mercekte görüntü sanal, düz ve büyüktür.",state:tir?"total-internal-reflection":virtual?"virtual-image":"real-image"};
+    const angle=n("angle"),n1=n("n1"),n2=n("n2"),f=n("f"),objectDistance=n("do"),incidence=angle*Math.PI/180,sinRefracted=n1*Math.sin(incidence)/n2,tir=Math.abs(sinRefracted)>1;
+    const refracted=tir?NaN:Math.asin(sinRefracted)*180/Math.PI,denominator=1/f-1/objectDistance,di=Math.abs(denominator)<1e-9?Infinity:1/denominator,virtual=Number.isFinite(di)&&di<0;
+    return {id,values:{reflection:round(angle),refraction:tir?-1:round(refracted),imageDistance:Number.isFinite(di)?round(di):9999},summary:tir?`Yansıma açısı ${angle}° · tam yansıma koşulu oluştu.`:`Yansıma ${angle}° · kırılma ${round(refracted)}° · görüntü uzaklığı ${Number.isFinite(di)?round(di):"∞"} cm.`,cue:"Açılar normale göre ölçülür. Cisim odak içindeyse ince kenarlı mercekte görüntü sanal, düz ve büyüktür.",state:tir?"total-internal-reflection":virtual?"virtual-image":"real-image"};
   }
   if(id==="waves"){
-    const wavelength=x.speed/x.frequency,ratio=x.path/wavelength,nearest=Math.round(ratio),nearestHalf=Math.round(ratio-.5)+.5;
-    const constructive=Math.abs(ratio-nearest)<.06,destructive=Math.abs(ratio-nearestHalf)<.06;
+    const speed=n("speed"),frequency=n("frequency"),path=n("path"),wavelength=speed/frequency,ratio=path/wavelength,nearest=Math.round(ratio),nearestHalf=Math.round(ratio-.5)+.5,constructive=Math.abs(ratio-nearest)<.06,destructive=Math.abs(ratio-nearestHalf)<.06;
     return {id,values:{wavelength:round(wavelength),ratio:round(ratio)},summary:`λ = ${round(wavelength)} m · Δx/λ = ${round(ratio)} → ${constructive?"yapıcı":destructive?"söndürücü":"ara"} girişim.`,cue:"Ortam değişince hız ve dalga boyu değişebilir; kaynak değişmedikçe frekans değişmez.",state:constructive?"constructive":destructive?"destructive":"partial"};
   }
   if(id==="matter"){
-    const heat=x.m*x.c*x.dT,pressure=x.rho*9.8*x.h,buoyancy=x.rho*9.8*x.volume;
-    return {id,values:{heat:round(heat),pressure:round(pressure),buoyancy:round(buoyancy)},summary:`Q = ${round(heat)} J · p = ${round(pressure)} Pa · Fk = ${round(buoyancy)} N`,cue:"Basınçta derinlik; kaldırmada yalnız batan hacim; ısınmada hâl değişimi yoksa mcΔT kullanılır.",state:x.h===0?"surface":"submerged"};
+    const m=n("m"),c=n("c"),dT=n("dT"),rho=n("rho"),h=n("h"),volume=n("volume"),heat=m*c*dT,pressure=rho*9.8*h,buoyancy=rho*9.8*volume;
+    return {id,values:{heat:round(heat),pressure:round(pressure),buoyancy:round(buoyancy)},summary:`Q = ${round(heat)} J · p = ${round(pressure)} Pa · Fk = ${round(buoyancy)} N`,cue:"Basınçta derinlik; kaldırmada yalnız batan hacim; ısınmada hâl değişimi yoksa mcΔT kullanılır.",state:h===0?"surface":"submerged"};
   }
-  const emitted=x.frequency>=x.threshold,excess=Math.max(0,x.frequency-x.threshold),current=emitted?x.intensity:0;
+  const frequency=n("frequency"),threshold=n("threshold"),intensity=n("intensity"),emitted=frequency>=threshold,excess=Math.max(0,frequency-threshold),current=emitted?intensity:0;
   return {id,values:{excess:round(excess),current:round(current)},summary:emitted?`Elektron çıkar. Bağıl maksimum enerji ${round(excess)}, bağıl akım ${round(current)}.`:"f < f₀: şiddet artsa da elektron çıkmaz.",cue:"Önce eşik frekansını kontrol et; şiddet elektron enerjisini değil, uygun koşulda çıkan elektron sayısını etkiler.",state:emitted?"emission":"below-threshold"};
 }
 
