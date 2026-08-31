@@ -1,10 +1,10 @@
 import type {ScreenModule} from "./contracts";
+import {topicsLegacyAdapter} from "./legacy-adapters";
 
 export const topicsScreen:ScreenModule={
   id:"topics",
-  required:["renderSubjects","renderReviewQueue"],
+  required:topicsLegacyAdapter.required,
   render(environment){
-    environment.call("renderSubjects");
-    environment.call("renderReviewQueue");
+    topicsLegacyAdapter.render(environment);
   }
 };

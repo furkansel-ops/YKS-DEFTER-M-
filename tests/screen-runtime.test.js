@@ -6,22 +6,26 @@ const root=path.resolve(__dirname,"..");
 
 function read(file){return fs.readFileSync(path.join(root,file),"utf8");}
 
-test("yedi ana ekranın her biri tek TypeScript modülüyle kayıtlıdır",()=>{
-  const runtime=read("src/ui/screen-runtime.ts");
+test("yedi ana ekran tek TypeScript registry üzerinden kayıtlıdır",()=>{
+  const runtime=read("src/ui/screen-runtime.ts"),registry=read("src/ui/screens/registry.ts");
   const imports=["homeScreen","programScreen","topicsScreen","examsScreen","progressScreen","focusScreen","moreScreen"];
   for(const name of imports){
-    assert.match(runtime,new RegExp(`import \\{${name}\\}`));
-    assert.equal((runtime.match(new RegExp(`\\b${name}\\b`,"g"))||[]).length,2,name);
+    assert.match(registry,new RegExp(`import \\{${name}\\}`));
+    assert.equal((registry.match(new RegExp(`\\b${name}\\b`,"g"))||[]).length,2,name);
   }
-  assert.match(runtime,/new Map<ScreenId,ScreenModule>/);
+  assert.match(registry,/new Map<ScreenId,ScreenModule>/);
+  assert.match(runtime,/import \{getScreenModule,SCREEN_MODULES\} from "\.\/screens\/registry"/);
+  assert.doesNotMatch(runtime,/from "\.\/screens\/(home|program|topics|exams|progress|focus|more)"/);
 });
 
-test("ekran modülleri mevcut çizim sırasını ve performans ertelemelerini korur",()=>{
-  const program=read("src/ui/screens/program.ts"),exams=read("src/ui/screens/exams.ts"),focus=read("src/ui/screens/focus.ts"),more=read("src/ui/screens/more.ts");
-  assert.ok(program.indexOf('call("renderPlan")')<program.indexOf('afterPaint("program-secondary"'));
-  assert.match(program,/isVisible\("progCal"\)/);assert.match(exams,/idle\("deneme-secondary"/);assert.match(exams,/call\("setAnaTab",environment\.call\("activeAnaTab"\)\)/);
-  assert.ok(focus.indexOf('call("renderPomo")')<focus.indexOf('call("renderTimeDist")'));
-  assert.match(more,/call\("setMoreTab",environment\.call\("activeMoreTab"\)\)/);
+test("legacy ekran adaptörleri çizim sırasını ve performans ertelemelerini korur",()=>{
+  const adapters=read("src/ui/screens/legacy-adapters.ts");
+  assert.ok(adapters.indexOf('call("renderPlan")')<adapters.indexOf('afterPaint("program-secondary"'));
+  assert.match(adapters,/isVisible\("progCal"\)/);
+  assert.match(adapters,/idle\("deneme-secondary"/);
+  assert.match(adapters,/call\("setAnaTab",environment\.call\("activeAnaTab"\)\)/);
+  assert.ok(adapters.indexOf('call("renderPomo")')<adapters.indexOf('call("renderTimeDist")'));
+  assert.match(adapters,/call\("setMoreTab",environment\.call\("activeMoreTab"\)\)/);
 });
 
 test("aktif ekran yenilemesi güvenli biçimde TypeScript'e bağlanır",()=>{

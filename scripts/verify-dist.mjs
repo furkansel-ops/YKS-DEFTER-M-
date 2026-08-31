@@ -3,6 +3,8 @@ import {resolve} from "node:path";
 import {verifyAnatomyAssets} from "./verify-anatomy-assets.mjs";
 
 const root=resolve(import.meta.dirname,".."),dist=resolve(root,"dist");
+const localRelease=JSON.parse(await readFile(resolve(root,"version.json"),"utf8"));
+if(localRelease.version!=="4.3.0"||localRelease.build!=="4.3.0-r1"||localRelease.schema!==21)throw new Error("Yerel v4.3 release kimliği beklenen değerle eşleşmiyor");
 const required=[
   "index.html","404.html","app.js","app.css","sw.js","version.json","manifest.webmanifest",
   "modules/core-utils.js","modules/stability.js","modules/topic-guides.js",
@@ -43,15 +45,15 @@ const [bundle,app,sw,versionText,recovery,stability,personal,progress,labV2,labV
   readFile(resolve(dist,"modules/ui-polish-learning-lab-v1.css"),"utf8"),
   readFile(resolve(dist,"modules/ui-polish-final-v1.css"),"utf8")
 ]);
-if(!bundle.includes("YKS_V4_RELEASE_OK")||!bundle.includes("4.2.0")||!bundle.includes("stable")||!bundle.includes("v42ReleaseOverlay"))throw new Error("v4.2 kararlı sürüm denetimi üretim paketine girmedi");
-if(!bundle.includes("4.2.0-r1")||!bundle.includes("4.1.0-r20")||!/(?:assets\/manifest-[^"']+|manifest\.webmanifest)\?v=4\.1\.0-r20/.test(index))throw new Error("v4.2 release / legacy PWA kabuk sınırı üretim paketinde eksik");
+if(!bundle.includes("YKS_V4_RELEASE_OK")||!bundle.includes(localRelease.version)||!bundle.includes("stable")||!bundle.includes("v42ReleaseOverlay"))throw new Error("v4.3 kararlı sürüm denetimi üretim paketine girmedi");
+if(!bundle.includes(localRelease.build)||!bundle.includes("4.1.0-r20")||!/(?:assets\/manifest-[^"']+|manifest\.webmanifest)\?v=4\.1\.0-r20/.test(index))throw new Error("v4.3 release / legacy PWA kabuk sınırı üretim paketinde eksik");
 if(!app.includes('const APP_VERSION="4.1.0"')||!app.includes('const APP_BUILD="4.1.0-r20"'))throw new Error("Korunan legacy app.js çekirdek sürümü beklenen değer değil");
-if(!sw.includes('const APP_VERSION="4.2.0"')||!sw.includes('const APP_BUILD="4.2.0-r1"')||!sw.includes('const CACHE="yks-core-v4.2.0-r1"'))throw new Error("Kopyalanan service worker v4.2 kararlı sürüm/cache revizyonuyla eşleşmiyor");
+if(!sw.includes(`const APP_VERSION="${localRelease.version}"`)||!sw.includes(`const APP_BUILD="${localRelease.build}"`)||!sw.includes(`const CACHE="yks-core-v${localRelease.build}"`)||!sw.includes('"yks-core-v4.2.0-r1"'))throw new Error("Kopyalanan service worker v4.3 kararlı sürüm/cache revizyonuyla eşleşmiyor");
 if(!sw.includes('learning-lab.js?v=4.1.0-r26'))throw new Error("Laboratuvar favori düzeltmesi çevrimdışı çekirdekte eksik");
 const v42Runtime=["global-search-v42.js","smart-repeat-v42.js","error-topic-lab-v42.js","exam-analysis-v42.js","progress-v42.js","learning-lab-flow-v42.js"];
 for(const file of v42Runtime){
-  if(!sw.includes(`${file}?v=4.2.0-r1`))throw new Error("v4.2 modülü çevrimdışı çekirdekte eksik: "+file);
-  if(!stability.includes(`${file}?v=4.2.0-r1`))throw new Error("v4.2 modülü çalışma zamanında yüklenmiyor: "+file);
+  if(!sw.includes(`${file}?v=4.2.0-r1`))throw new Error("v4.2 uyumluluk modülü çevrimdışı çekirdekte eksik: "+file);
+  if(!stability.includes(`${file}?v=4.2.0-r1`))throw new Error("v4.2 uyumluluk modülü çalışma zamanında yüklenmiyor: "+file);
 }
 const polishCore=["study-intelligence-v5.css","ui-polish-v1.css","ui-polish-home-v2.css","ui-polish-focus-v1.css","ui-polish-exam-v1.css","ui-polish-topics-v1.css","ui-polish-error-journal-v1.css","ui-polish-progress-v1.css","ui-polish-progress-v2.css","ui-polish-more-v1.css","ui-polish-program-v1.css","ui-polish-learning-lab-v1.css","ui-polish-final-v1.css"];
 for(const file of polishCore)if(!sw.includes(`${file}?v=4.1.0-r1`))throw new Error("Cila katmanı çevrimdışı çekirdekte eksik: "+file);
@@ -68,6 +70,8 @@ if(!index.includes("core-utils.js?v=4.1.0-r27")||!sw.includes("core-utils.js?v=4
 if(!bundle.includes("FEN TEKRAR ATÖLYESİ"))throw new Error("Biyoloji/Fizik kart sistemi TypeScript paketinde eksik");
 if(!bundle.includes("YKSBiologyAtlas")||!labV3.includes("v320PanelAtlas"))throw new Error("Biyoloji atlası çalışma zamanına bağlı değil");
 const chunks=await readdir(resolve(dist,"assets"));
+const v43Chunks=["today-v43","analysis-center-v43","learning-cycle-v43","lab-quiz-v43","navigation-v43","personalization-v43","focus-session-guard-v43"];
+for(const prefix of v43Chunks)if(!chunks.some(name=>name.startsWith(`${prefix}-`)&&name.endsWith(".js")))throw new Error("v4.3 modülü ayrı lazy chunk değil: "+prefix);
 const atlasChunk=chunks.find(name=>/^biology-atlas-(?!model-).+\.js$/.test(name));
 const modelChunk=chunks.find(name=>/^biology-atlas-model-.+\.js$/.test(name));
 if(!atlasChunk||!modelChunk||!chunks.some(name=>/^biology-atlas-.+\.css$/.test(name)))throw new Error("Atlas veya 3B modül ayrı yükleme paketi olarak bulunamadı");
@@ -84,5 +88,5 @@ if(!sw.includes("Response.redirect(appRootUrl(),302)")||!sw.includes("self.regis
 if(!recovery.includes('/YKS-DEFTER-M-/')||!recovery.includes('location.replace'))throw new Error("GitHub Pages 404 kurtarma sayfası doğru uygulama köküne yönlendirmiyor");
 let version;
 try{version=JSON.parse(versionText);}catch{throw new Error("Kopyalanan version.json geçerli JSON değil");}
-if(version?.version!=="4.2.0"||version?.build!=="4.2.0-r1"||version?.schema!==21)throw new Error("Kopyalanan version.json v4.2 kararlı sürümle eşleşmiyor");
-console.log(`Üretim paketi doğrulandı: ${required.length} geçiş dosyası + TypeScript paketi + v4.2 sürüm/PWA/final-cila/YKS+teknik-direktör/kişisel modül bütünlüğü`);
+if(version?.version!==localRelease.version||version?.build!==localRelease.build||version?.schema!==21)throw new Error("Kopyalanan version.json v4.3 kararlı sürümle eşleşmiyor");
+console.log(`Üretim paketi doğrulandı: ${required.length} geçiş dosyası + TypeScript paketi + v4.3 sürüm/PWA/lazy-modül/final-cila/YKS+teknik-direktör/kişisel modül bütünlüğü`);

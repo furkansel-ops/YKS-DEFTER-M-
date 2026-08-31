@@ -27,6 +27,8 @@ export interface ReleaseApi{
 }
 
 type LegacyReleaseResult={ok:boolean;checks?:unknown[]};
+type V43RuntimeReportLike={ok:boolean};
+type V43RuntimeApiLike={ready:Promise<V43RuntimeReportLike>};
 
 declare global{
   interface Window{
@@ -61,6 +63,8 @@ export function createReleaseRuntime(host:Window,documentRef:Document):ReleaseAp
       try{checks.push({name,ok:!!(await test())});}
       catch(error){checks.push({name,ok:false,message:error instanceof Error?error.message:String(error)});}
     };
+    const v43Ready=(installedKey:string,errorKey:string):boolean=>
+      documentRef.documentElement.dataset[installedKey]==="true"&&documentRef.documentElement.dataset[errorKey]==="0";
 
     await add("bootstrap",()=>host.__YKS_V4_BOOTSTRAP__?.version===RELEASE_VERSION&&host.__YKS_V4_BOOTSTRAP__?.build===RELEASE_BUILD&&host.__YKS_V4_BOOTSTRAP__?.channel===RELEASE_CHANNEL&&host.__YKS_V4_BOOTSTRAP__?.legacyCore===LEGACY_CORE_BUILD&&host.__YKS_V4_BOOTSTRAP__?.legacyRuntime===true);
     await add("release-overlay",()=>documentRef.documentElement.dataset.v42ReleaseOverlay==="ready"&&documentRef.documentElement.dataset.appVersion===RELEASE_VERSION);
@@ -71,6 +75,19 @@ export function createReleaseRuntime(host:Window,documentRef:Document):ReleaseAp
     await add("data-bridge",()=>host.__YKS_DATA__?.validate().length===0&&host.__YKS_DATA__?.schemaVersion===21);
     await add("backup-recovery",()=>host.__YKS_BACKUP__?.version==="2.0.0"&&documentRef.documentElement.dataset.v4RecoveryErrors==="0");
     await add("pwa-build",()=>host.__YKS_PWA__?.build===RELEASE_BUILD);
+    await add("v43-runtime",async()=>{
+      const runtime=(host as Window&{__YKS_V43_RUNTIME__?:V43RuntimeApiLike}).__YKS_V43_RUNTIME__;
+      if(!runtime)return false;
+      const report=await withTimeout(runtime.ready,12_000);
+      return report.ok&&documentRef.documentElement.dataset.v43Runtime==="ready"&&documentRef.documentElement.dataset.v43RuntimeErrors==="0";
+    });
+    await add("v43-today",()=>v43Ready("v43Today","v43TodayErrors"));
+    await add("v43-analysis",()=>v43Ready("v43Analysis","v43AnalysisErrors"));
+    await add("v43-learning-cycle",()=>v43Ready("v43LearningCycle","v43LearningCycleErrors"));
+    await add("v43-lab-quiz",()=>v43Ready("v43LabQuiz","v43LabQuizErrors"));
+    await add("v43-navigation",()=>v43Ready("v43Navigation","v43NavigationErrors"));
+    await add("v43-personalization",()=>v43Ready("v43Personalization","v43PersonalizationErrors"));
+    await add("v43-focus-session-guard",()=>v43Ready("v43FocusSessionGuard","v43FocusSessionGuardErrors"));
     await add("seven-screens",()=>documentRef.querySelectorAll(".screen").length===SCREEN_IDS.length);
     await add("one-active-screen",()=>documentRef.querySelectorAll(".screen.active").length===1);
     await add("legacy-release",()=>typeof host.runReleaseSelfTest==="function"&&host.runReleaseSelfTest().ok);

@@ -35,16 +35,16 @@ test("odak kapısı veri veya Program kayıtlarına doğrudan yazmaz",()=>{
   assert.doesNotMatch(source,/\bsave\s*\(/);
 });
 
-test("odak kapısı ana bootstrap ve giriş tamamlandıktan sonra fail-open kurulur",()=>{
-  const entry=read("src/main.ts");
+test("odak kapısı çekirdek bootstrap tamamlandıktan sonra fail-open runtime içinde kurulur",()=>{
+  const entry=read("src/main.ts"),safe=read("src/ui/v43-safe-runtime.ts");
   const dispatch=entry.indexOf('window.dispatchEvent(new CustomEvent<BootstrapState>("yks:v4-bootstrap"');
-  const deferred=entry.indexOf("window.setTimeout(()=>{");
-  const install=entry.indexOf("installFocusSessionGuardV43()");
+  const installRuntime=entry.indexOf("installV43SafeRuntime()");
   assert.ok(dispatch>=0);
-  assert.ok(deferred>dispatch);
-  assert.ok(install>deferred);
-  assert.match(entry,/try\{[\s\S]*installFocusSessionGuardV43\(\)[\s\S]*\}catch\(error\)/);
-  assert.match(entry,/v43FocusSessionGuardErrors="1"/);
+  assert.ok(installRuntime>dispatch);
+  assert.match(safe,/window\.setTimeout/);
+  assert.match(safe,/import\("\.\/focus-session-guard-v43"\)/);
+  assert.match(safe,/catch\(error\)\{return publishFeature/);
+  assert.match(safe,/v43FocusSessionGuardErrors/);
 });
 
 test("tablet dokunma hedefi ve azaltılmış hareket desteği korunur",()=>{

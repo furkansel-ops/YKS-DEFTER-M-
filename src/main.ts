@@ -13,7 +13,7 @@ import {installPwaRuntime} from "./pwa/pwa-runtime";
 import {installScienceCards} from "./ui/science-cards";
 import {installBiologyAtlas} from "./ui/biology-atlas-bridge";
 import {installRecoveryCenter} from "./ui/recovery-center";
-import {installFocusSessionGuardV43} from "./ui/focus-session-guard-v43";
+import {installV43SafeRuntime} from "./ui/v43-safe-runtime";
 
 type BootstrapState={
   version:typeof RELEASE_VERSION;
@@ -63,6 +63,8 @@ const bootstrap:BootstrapState={
   startedAt:Date.now()
 };
 
+/* Çekirdek açılış zinciri yalnız kararlı altyapı modüllerinden oluşur.
+   v4.3 ürün katmanları aşağıda, bootstrap tamamlandıktan sonra ayrı fail-open sınırlarında yüklenir. */
 const services=installLegacyServiceBridge();
 const data=installLegacyDataBridge();
 installScienceCards();
@@ -75,7 +77,6 @@ const examAnalysis=installLegacyExamAnalysisBridge();
 const pwa=installPwaRuntime(RELEASE_BUILD);
 const screens=installScreenRuntime();
 const ui=installLegacyUiBridge(screens);
-const release=installReleaseRuntime();
 window.__YKS_V4_BOOTSTRAP__=bootstrap;
 installReleaseOverlay();
 document.documentElement.dataset.v4Runtime="ready";
@@ -88,21 +89,11 @@ document.documentElement.dataset.v4DomainErrors=String(domain.validate().length)
 document.documentElement.dataset.v4ProgressAnalysisErrors=String(progressAnalysis.validate().length);
 document.documentElement.dataset.v4ExamAnalysisErrors=String(examAnalysis.validate().length);
 document.documentElement.dataset.v4PwaBuild=pwa.build;
-document.documentElement.dataset.v4ReleaseVersion=release.version;
 window.dispatchEvent(new CustomEvent<BootstrapState>("yks:v4-bootstrap",{detail:bootstrap}));
 
-/* Bu küçük kullanım katmanı, giriş/bootstrap tamamlandıktan sonra fail-open kurulur.
-   Bir tarayıcı uyumsuzluğu olursa ana uygulamayı veya Firebase girişini bloke etmez. */
-window.setTimeout(()=>{
-  try{
-    const focusSessionGuard=installFocusSessionGuardV43();
-    document.documentElement.dataset.v43FocusSessionGuard=String(focusSessionGuard.installed);
-    document.documentElement.dataset.v43FocusSessionGuardErrors=String(focusSessionGuard.validate().length);
-  }catch(error){
-    document.documentElement.dataset.v43FocusSessionGuard="false";
-    document.documentElement.dataset.v43FocusSessionGuardErrors="1";
-    try{console.error("focus-session-guard",error);}catch{}
-  }
-},0);
+const v43Runtime=installV43SafeRuntime();
+document.documentElement.dataset.v43RuntimeHost=String(v43Runtime.installed);
+const release=installReleaseRuntime();
+document.documentElement.dataset.v4ReleaseVersion=release.version;
 
 export {};
