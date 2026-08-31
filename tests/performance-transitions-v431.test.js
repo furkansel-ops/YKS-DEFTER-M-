@@ -30,8 +30,13 @@ test("v4.4.0 production kapısı başlangıç JS bütçesini, resilience ve yeni
   assert.match(gate,/260_000/);
   assert.match(gate,/12_000/);
   assert.match(gate,/40_000/);
+  assert.match(gate,/180_000/);
   assert.match(gate,/runtime-resilience-v431/);
   assert.match(gate,/biology-yks-question-v44/);
+  assert.match(gate,/biology-layer-guide-v44/);
+  assert.match(gate,/biology-topic-map-v44/);
+  assert.match(gate,/Biyoloji konu haritası Atlas lazy sınırında paketlenmedi/);
+  assert.match(gate,/AYT GÖRSEL KONU HARİTASI/);
   assert.match(gate,/physics-lab-v44/);
   assert.match(gate,/chemistry-visuals-v44/);
   assert.match(gate,/lab-interactions-v44/);
