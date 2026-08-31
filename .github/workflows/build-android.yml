@@ -1,0 +1,117 @@
+name: Android AAB · Play Store hazırlığı
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - play-store-prep
+    paths:
+      - ".github/workflows/build-android.yml"
+      - "capacitor.config.ts"
+      - "scripts/prepare-android-release.mjs"
+      - "scripts/copy-legacy-assets.mjs"
+      - "privacy.html"
+      - "data-deletion.html"
+      - "version.json"
+      - "package.json"
+      - "package-lock.json"
+      - "vite.config.mts"
+      - "index.html"
+      - "app.js"
+      - "app.css"
+      - "sw.js"
+      - "src/**"
+      - "modules/**"
+      - "public/**"
+
+permissions:
+  contents: read
+
+jobs:
+  aab:
+    name: API 36 · Android App Bundle
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      CAPACITOR_VERSION: "8.5.0"
+      ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+      ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+      ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+    steps:
+      - name: Kaynak kodu al
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Node.js 22 ortamını hazırla
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Java 21 ortamını hazırla
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Android SDK 36 ortamını hazırla
+        uses: android-actions/setup-android@v4
+        with:
+          packages: "platform-tools platforms;android-36 build-tools;36.0.0"
+
+      - name: Web bağımlılıklarını kur
+        run: npm ci --no-audit --no-fund
+
+      - name: Kararlı web sürümünü doğrula
+        run: npm run release:check
+
+      - name: Capacitor 8.5.0 Android araçlarını geçici kur
+        run: >-
+          npm install --no-save --package-lock=false
+          @capacitor/core@${CAPACITOR_VERSION}
+          @capacitor/cli@${CAPACITOR_VERSION}
+          @capacitor/android@${CAPACITOR_VERSION}
+
+      - name: Android projesini üret ve web paketini eşitle
+        run: |
+          rm -rf android
+          npx cap add android
+          npx cap sync android
+
+      - name: İmzalama anahtarını yalnız secret varsa hazırla
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$ANDROID_KEYSTORE_BASE64" ]; then
+            printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/yks-upload.jks"
+            chmod 600 "$RUNNER_TEMP/yks-upload.jks"
+            echo "ANDROID_KEYSTORE_PATH=$RUNNER_TEMP/yks-upload.jks" >> "$GITHUB_ENV"
+          fi
+
+      - name: API 36, sürüm kodu ve imzalama sözleşmesini uygula
+        run: node scripts/prepare-android-release.mjs
+
+      - name: Android App Bundle üret
+        working-directory: android
+        run: |
+          chmod +x ./gradlew
+          ./gradlew --no-daemon bundleRelease
+
+      - name: AAB çıktısını doğrula
+        run: |
+          test -s android/app/build/outputs/bundle/release/app-release.aab
+          test -s android/yks-release-metadata.json
+          ls -lh android/app/build/outputs/bundle/release/app-release.aab
+          cat android/yks-release-metadata.json
+
+      - name: Play Store AAB artefaktını yükle
+        uses: actions/upload-artifact@v7
+        with:
+          name: yks-defterim-android-aab
+          path: |
+            android/app/build/outputs/bundle/release/app-release.aab
+            android/yks-release-metadata.json
+          if-no-files-found: error
+          retention-days: 30
