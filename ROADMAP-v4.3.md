@@ -109,6 +109,7 @@ v4.3.0'ın ana hedefi yeni özellik yığmak değil; mevcut güçlü modülleri 
 - 27 anatomy varlığı sabit sürüm + SHA-256 ile doğrulandı ✅
 - Production Vite build: **100 modül başarıyla derlendi ✅**
 - Üretim paket doğrulaması, release kimliği ve yedi lazy v4.3 chunk kapısı ✅
+- Final belgeler + deploy/yedek workflow değişikliklerinden sonraki CI run **#380**: Node 22 verify ✅, Node 24 ✅.
 - Deploy workflow'u kaynak + production çıktısını tek `YKS-Defterim-v4.3.0-backup.zip` yedeği olarak üretir.
 - Mevcut büyük Biyoloji Atlası model chunk uyarısı (>500 kB) bilinen lazy-load varlığıdır; başlangıç paketine dahil değildir ve final-gate hatası değildir.
 - Merge sonrası Pages workflow'u production deploy ile birlikte canlı v4.3 release doğrulamasını zorunlu çalıştırır.
@@ -124,4 +125,4 @@ v4.3.0'ın ana hedefi yeni özellik yığmak değil; mevcut güçlü modülleri 
 7. Legacy modülerleştirme ✅
 8. Final kalite kapısı ✅
 
-**Durum: 8/8 tamamlandı. v4.3.0 final kalite kapısı yeşil; yayın paketi merge/deploy ve canlı doğrulama için hazırdır.**
+**Durum: 8/8 tamamlandı. v4.3.0 final kalite kapısı tamamen yeşil; yayın paketi merge/deploy ve canlı doğrulama için hazırdır.**
