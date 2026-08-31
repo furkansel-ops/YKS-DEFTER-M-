@@ -1,66 +1,56 @@
-# YKS Defterim v4.3.0
+# YKS Defterim v4.3.1
 
 ## KARARLI · 31 Ağustos 2026
 
-YKS Defterim v4.3.0; mevcut çalışma akışını yeni özellik yığınına dönüştürmeden sadeleştirir, yedi v4.3 ürün katmanını güvenli ve isteğe bağlı yüklenen modüllere ayırır ve final kalite kapısını PWA, veri güvenliği, tablet/PC ve production doğrulamalarıyla güçlendirir.
+v4.3.1 yeni özellik yığmak yerine canlı v4.3.0'ın gerçek kullanım güvenliğini, tablet/PC ergonomisini, hata kurtarmasını, veri/offline stres kapısını ve production performans bütçelerini güçlendirir.
 
 ### Sürüm kimliği
 
-- Uygulama sürümü: **4.3.0**
-- Build: **4.3.0-r1**
+- Uygulama sürümü: **4.3.1**
+- Build: **4.3.1-r1**
 - Kanal: **stable**
 - Veri şeması: **21**
-- PWA cache: **yks-core-v4.3.0-r1**
+- PWA cache: **yks-core-v4.3.1-r1**
 - Legacy uyumluluk çekirdeği: **app.js 4.1.0-r20**
 - v4.2 uyumluluk modülleri: **4.2.0-r1 sözleşmesi korunur**
 
-Büyük legacy `app.js` çekirdeği veri ve regresyon güvenliği için bilerek yeniden numaralandırılmadı. Gerçek kararlı sürüm kimliği TypeScript release katmanında merkezileştirilir. v4.3 ürün modülleri çekirdek açılış, veri katmanı ve Firebase girişinden sonra ayrı `dynamic import()` ve hata sınırlarında yüklenir; tek bir özellik hatası ana uygulamanın açılışını bloke edemez.
+### v4.3.1 ile tamamlananlar
 
-### v4.3.0 ile tamamlananlar
-
-- **Bugün 2.0:** ana ekranın bilgi hiyerarşisi sadeleştirildi; manuel program ve günlük çalışma akışı öne çıkarıldı.
-- **Analiz Merkezi:** 7/30 günlük çalışma, TYT/AYT/YDT net eğilimi, çalışma ↔ deneme bağlamı ve kritik yanlış sinyalleri tek görünümde birleştirildi.
-- **Hata → Öğren → Tekrar:** Hata Defteri, Konular, Öğrenme Laboratuvarı ve manuel tekrar kayıtları kanıta dayalı tek akışta bağlandı.
-- **Öğrenme Laboratuvarı 3.0 / Quiz:** 3B yapılarda YKS öncelikli, oturum içi ve veri yazmayan sınama modu eklendi.
-- **Merkez navigasyonu:** Daha ekranı Öğrenme, Analiz, Ayarlar ve Veri & Sistem gruplarıyla sadeleştirildi.
-- **Kişiselleştirilebilir görünüm:** TYT/AYT/YDT kapsamı ve Bugün kartlarının görünürlüğü kayıt silmeden yönetilebilir hale getirildi.
-- **Legacy modülerleştirme:** yedi ana ekranın legacy çizim çağrıları tipli adaptör ve registry sınırına taşındı.
-- **Güvenli v4.3 bootstrap:** `today-v43`, `analysis-center-v43`, `learning-cycle-v43`, `lab-quiz-v43`, `navigation-v43`, `personalization-v43` ve `focus-session-guard-v43` ayrı lazy chunk olarak paketlenir.
-- **Odak oturum hazırlama kapısı:** yeni Sayaç/Kronometre oturumu ders seçmeden başlamaz; duraklatılmış veya önceden hazırlanmış oturumlar gereksiz seçim kapısına takılmaz.
-- **Release/PWA sertleştirmesi:** ürün sürümü, build, service worker cache ve production/canlı doğrulayıcılar aynı `4.3.0-r1` kimliğine bağlandı; eski v4.2 cache soy temizliğine dahil edildi.
+- **Fail-open runtime kurtarma:** tarayıcı seviyesinde `error` ve `unhandledrejection` güvenlik ağı eklendi. Bir cila/özellik katmanı hata verse bile ana giriş ve veri çekirdeği çalışmaya devam eder.
+- **Kullanıcı dostu hata bildirimi:** teknik stack yerine kapatılabilir küçük bir bildirim ve kullanıcının seçebileceği güvenli yenileme düğmesi gösterilir.
+- **Storage tanısı:** localStorage ve IndexedDB kullanılabilirliği salt tanı amaçlı ölçülür; ana veri katmanının fallback kararına müdahale edilmez.
+- **Tablet/PC cila:** yatay taşma sınırları, `min-width:0`, safe-area, en az 44 px dokunma hedefi ve azaltılmış hareket desteği güçlendirildi.
+- **Veri stres kapısı:** Dexie arızasında localStorage fallback, commit sonrası readback/hash doğrulaması, Firebase/yedek dış veri doğrulama sırası ve save fırtınası kuyruklama sözleşmeleri regresyonlarla kilitlendi.
+- **PWA/offline stres kapısı:** atomik çekirdek cache, yarım yeni cache temizliği, eski cache soyu, `version.json` no-store ve büyük anatomi varlıklarının yalnız istek üzerine cachelenmesi doğrulandı.
+- **Ekran geçişi güvenliği:** yalnız aktif ekran çizilir; ağır ikincil işler paint/idle sonrasına ertelenir ve deferred hatalar çekirdeğe yayılmaz.
+- **Production performans bütçesi:** ana giriş JavaScript paketi 260 kB tavanıyla, runtime-resilience lazy chunk ise 12 kB tavanıyla CI'da korunur. Three.js/WebGL kodunun başlangıç paketine sızması reddedilir.
+- **Odak başlangıç akışı korunur:** Sayaç/Kronometre `Başlat → Oturumu hazırla → ders seç → Başlat` sözleşmesini sürdürür.
 
 ### Değişmez ürün sözleşmeleri
 
-- **Program tamamen manuel kalır.** Analiz, tekrar sistemi veya öneri katmanı Program'a otomatik görev eklemez, silmez veya düzenlemez.
-- Veri şeması **21** olarak korunur; geriye dönük veri uyumluluğu devam eder.
+- **Program tamamen manuel kalır.** Analiz veya öneri katmanı Program'a otomatik görev eklemez, silmez veya düzenlemez.
+- Veri şeması **21** ve geriye dönük uyumluluk korunur.
 - Dexie ana kayıt + localStorage güvenli ayna + Firebase senkron hattı korunur.
-- Biyoloji Atlası **9 organ / 52 seçilebilir YKS yapısı** sözleşmesini korur.
-- Kulak Atlas organ listesinden çıkarılmış durumda kalır; işitme/denge normal müfredat içeriğinde bulunur.
-- Ağır 3B anatomi/Three.js paketi başlangıç çekirdeğine alınmaz; ayrı lazy model chunk olarak kalır.
-- v4.2 uyumluluk modülleri eski URL/sürüm sözleşmeleriyle korunur; v4.3 üst release katmanı bunları kırmadan çalıştırır.
+- Biyoloji Atlası **9 organ / 52 yapı** ve 27 sabit SHA-256 anatomy varlığı sözleşmesini korur.
+- Kulak Atlas organ listesine geri eklenmez.
+- Ağır 3B anatomi/Three.js başlangıç paketine alınmaz ve lazy-load kalır.
+- v4.3 ürün modülleri çekirdek bootstrap sonrasında ayrı dynamic import + hata sınırlarında çalışır.
 
-### Final doğrulama sonucu
+### Final aday doğrulaması
 
-Final release kapısında aşağıdaki kontroller başarıyla tamamlandı:
+Release kimliği yükseltilmeden önceki v4.3.1 kalite turunda:
 
-- Node 22 ana çalışma kapısı ✅
-- Node 24 uyumluluk kapısı ✅
-- TypeScript strict typecheck ✅
-- **278 / 278 otomatik regresyon testi ✅**
-- Production Vite build: **100 modül başarıyla derlendi ✅**
-- Yedi v4.3 ürün katmanının ayrı lazy JavaScript chunk olması ✅
-- Production paket bütünlüğü ve release kimliği doğrulaması ✅
-- 27 anatomi varlığının sabit sürüm + SHA-256 doğrulaması ✅
-- Atlas 9 organ / 52 yapı ve 3B lazy-load regresyonları ✅
-- Programın manuel kalma regresyonu ✅
-- Dexie write-through, localStorage güvenli ayna ve Firebase payload/download yolu ✅
-- Yedek bütünlüğü, önizleme ve otomatik rollback regresyonları ✅
-- PWA/offline çekirdek, eski başlangıç yolu kurtarma ve cache soy temizliği ✅
-- Tablet/PC dokunma, erişilebilirlik ve azaltılmış hareket regresyonları ✅
-- GitHub Pages workflow'u merge sonrası production deploy ve canlı release doğrulamasını zorunlu çalıştırır.
-- Deploy build'i ayrıca kaynak kod + production çıktısını tek **YKS-Defterim-v4.3.0-backup.zip** yedeği olarak artefaktlar.
+- Node 22 ✅
+- Node 24 ✅
+- TypeScript strict ✅
+- **292 / 292 regresyon testi ✅**
+- Production Vite build: **102 modül ✅**
+- Ana JS: **223.201 bayt** / 260.000 bayt bütçe ✅
+- `runtime-resilience-v431` JS: **2.488 bayt** / 12.000 bayt bütçe ✅
+- 27 anatomy varlığı sabit sürüm + SHA-256 ✅
+- Production package + izole v4.3 runtime ✅
 
-Bilinen `biology-atlas-model` chunk'ının 500 kB üzerindeki Vite uyarısı beklenen durumdur; model başlangıç paketinden ayrıdır ve yalnız kullanıcı 3B Atlası açtığında yüklenir.
+Bilinen `biology-atlas-model` >500 kB Vite uyarısı beklenen lazy-load model chunk'ıdır ve başlangıç performans regresyonu değildir.
 
 ### Kararlı sürüm kontrolü
 
@@ -69,10 +59,8 @@ npm ci
 npm run release:check
 ```
 
-Tarayıcı içi uçtan uca release kontrolü için uygulamayı `?selftest=v4` sorgusuyla açın. Başarılı sonuç sayfanın `data-v4-release="ready"` durumunda ve gizli `v4ReleaseResult` öğesinde `YKS_V4_RELEASE_OK` olarak görünür.
-
-Tarayıcı release kapısı bootstrap sürüm/build kimliğini, güvenli v4.3 runtime'ı, release overlay'i, TypeScript servislerini, yedi ekranı, Dexie ana kaydını, güvenli yedek/kurtarma köprüsünü, Firebase veri yolunu ve PWA build'ini birlikte doğrular.
+Merge sonrasında Pages workflow'u production paketi dağıtır, canlı release kimliğini doğrular ve kaynak kod + production çıktısını **YKS-Defterim-v4.3.1-backup.zip** olarak 30 günlük artefakt halinde üretir.
 
 ---
 
-**v4.3.0, yol haritasındaki 8 aşamanın tamamlanması ve final kalite kapısının tamamen yeşil geçmesiyle kararlı yayın için hazırdır.**
+**v4.3.1, final CI + canlı Pages doğrulaması tamamlandığında kararlı yayın olarak kapanacaktır.**
