@@ -72,13 +72,14 @@ if(!bundle.includes("YKSBiologyAtlas")||!labV3.includes("v320PanelAtlas"))throw 
 const chunks=await readdir(resolve(dist,"assets"));
 const v43Chunks=["today-v43","analysis-center-v43","learning-cycle-v43","lab-quiz-v43","navigation-v43","personalization-v43","focus-session-guard-v43"];
 for(const prefix of v43Chunks)if(!chunks.some(name=>name.startsWith(`${prefix}-`)&&name.endsWith(".js")))throw new Error("v4.3 modülü ayrı lazy chunk değil: "+prefix);
-const v44Chunks=["biology-yks-question-v44","biology-layer-guide-v44","biology-topic-map-v44","physics-lab-v44","chemistry-visuals-v44","lab-interactions-v44"];
-for(const prefix of v44Chunks)if(!chunks.some(name=>name.startsWith(`${prefix}-`)&&name.endsWith(".js")))throw new Error("v4.4 modülü ayrı lazy chunk değil: "+prefix);
+const v44StandaloneChunks=["biology-yks-question-v44","biology-layer-guide-v44","physics-lab-v44","chemistry-visuals-v44","lab-interactions-v44"];
+for(const prefix of v44StandaloneChunks)if(!chunks.some(name=>name.startsWith(`${prefix}-`)&&name.endsWith(".js")))throw new Error("v4.4 bağımsız modülü ayrı lazy chunk değil: "+prefix);
 const atlasChunk=chunks.find(name=>/^biology-atlas-(?!model-).+\.js$/.test(name));
 const modelChunk=chunks.find(name=>/^biology-atlas-model-.+\.js$/.test(name));
-if(!atlasChunk||!modelChunk||!chunks.some(name=>/^biology-atlas-.+\.css$/.test(name)))throw new Error("Atlas veya 3B modül ayrı yükleme paketi olarak bulunamadı");
+const topicMapCss=chunks.find(name=>/^biology-topic-map-v44-.+\.css$/.test(name));
+if(!atlasChunk||!modelChunk||!topicMapCss||!chunks.some(name=>/^biology-atlas-.+\.css$/.test(name)))throw new Error("Atlas, konu haritası veya 3B modül lazy paket olarak bulunamadı");
 const atlasBundle=await readFile(resolve(dist,"assets",atlasChunk),"utf8");
-if(!atlasBundle.includes("Genden proteine")||!atlasBundle.includes("Kendini sına")||bundle.includes("WebGLRenderer"))throw new Error("Atlas içeriği / isteğe bağlı yükleme sınırı bozuk");
+if(!atlasBundle.includes("Genden proteine")||!atlasBundle.includes("Kendini sına")||!atlasBundle.includes("AYT GÖRSEL KONU HARİTASI")||!atlasBundle.includes("Kavramları tek bakışta bağla")||bundle.includes("AYT GÖRSEL KONU HARİTASI")||bundle.includes("WebGLRenderer"))throw new Error("Atlas içeriği / konu haritası / isteğe bağlı yükleme sınırı bozuk");
 await verifyAnatomyAssets(resolve(dist,"anatomy"),JSON.parse(await readFile(resolve(root,"scripts/anatomy-assets.json"),"utf8")));
 for(const asset of ["error-journal.js?v=4.1.0-r20","personal-upgrades.js?v=4.1.0-r20","progress-v2.js?v=4.1.0-r20","learning-lab-v2.js?v=4.1.0-r24","learning-lab-v3.js?v=4.1.0-r28","motivation-quotes-v1.js?v=4.1.0-r2","motivation-quotes-v2.css?v=4.1.0-r1"])if(!sw.includes(asset))throw new Error("Kişisel/ana modül çevrimdışı çekirdekte eksik: "+asset);
 if(!stability.includes("personal-upgrades.js?v=4.1.0-r20")||!stability.includes("progress-v2.js?v=4.1.0-r20")||!stability.includes("learning-lab-v2.js?v=4.1.0-r24")||!stability.includes("learning-lab-v3.js?v=4.1.0-r28")||!stability.includes("motivation-quotes-v1.js?v=4.1.0-r2"))throw new Error("Kişisel geliştirme/motivasyon modülleri çalışma zamanında yüklenmiyor");
