@@ -8,6 +8,7 @@ const assets=[
   "app.css",
   "sw.js",
   "404.html",
+  "privacy.html",
   "modules",
   "manifest.webmanifest",
   "version.json",
