@@ -28,13 +28,15 @@ test("Daha navigasyonu Merkez olarak sadeleşir ve eski kalabalık kartlar yaln�
   assert.match(css,/v43-more-categories/);assert.match(css,/grid-template-columns:repeat\(4/);assert.match(css,/pointer:coarse/);assert.match(css,/prefers-reduced-motion:reduce/);
 });
 
-test("Merkez gözlemcisi aynı kabuk metnini tekrar yazarak etkileşim döngüsünü kilitlemez",()=>{
+test("Merkez yalnız ilgili ekran olaylarında yenilenir; tüm document ağacını gözlemez",()=>{
   const ui=read("src/ui/navigation-v43.ts");
   assert.match(ui,/label&&label\.textContent!=="Merkez"/);
   assert.match(ui,/back\.textContent!=="‹ Merkez"/);
   assert.match(ui,/title\.textContent!=="Merkez"/);
-  assert.match(ui,/sonsuz microtask döngüsünü engeller/);
-  assert.doesNotMatch(ui,/if\(label\)label\.textContent="Merkez"/);
+  assert.match(ui,/detail\?\.to==="more"/);
+  assert.match(ui,/detail\?\.to==="home"/);
+  assert.doesNotMatch(ui,/new MutationObserver/);
+  assert.doesNotMatch(ui,/observer\.observe\(document\.documentElement/);
 });
 
 test("v4.3 navigasyon katmanı güvenli runtime'a bağlıdır ve Program/veri durumuna yazmaz",()=>{
