@@ -1,6 +1,6 @@
 /* v4.4 visual stability hotfix
    Cam yüzeylerdeki GPU yeniden örnekleme kaynaklı mikro titreme/karıncalanmayı azaltır.
-   Görsel dili korur; yalnızca sürekli transform hareketini ve ekran girişindeki ölçeklemeyi kaldırır. */
+   Görsel dili korur; sürekli transform hareketini ve pahalı arka plan örneklemesini sınırlar. */
 
 body::before{
   animation:none !important;
@@ -26,7 +26,7 @@ body::before{
 /* Dokunmatik cihazlarda kaydırma/sekme geçişi sırasında gereksiz compositor yükünü azalt. */
 @media (pointer:coarse){
   body::before{
-    filter:blur(6px) !important;
+    filter:none !important;
   }
 
   .card,
