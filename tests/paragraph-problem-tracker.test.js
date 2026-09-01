@@ -17,8 +17,25 @@ test("Paragraf ve problem takipçisi günlük D/Y/B kaydı ve YKS net hesabını
   assert.match(source,/Paragraf & Problem/);
 });
 
-test("Takipçi uygulama başlangıcında yüklenir",()=>{
+test("Paragraf ve Problem Daha içinde bağımsız alt sayfadır",()=>{
+  const source=read("src/ui/paragraph-problem-tracker.ts");
+  const types=read("src/ui/types.ts");
+  const panels=read("src/ui/more-panels.ts");
+  assert.match(source,/PANEL_ID="mrp_pp"/);
+  assert.match(source,/v30-subhead/);
+  assert.match(source,/data-pp-back/);
+  assert.match(source,/target==="pp"/);
+  assert.match(source,/__YKS_UI__\?\.openMore/);
+  assert.match(types,/"pp"/);
+  assert.match(panels,/"pp"/);
+});
+
+test("Takipçi UI köprüsünden önce yüklenerek pp yönlendirmesini resmi hale getirir",()=>{
   const main=read("src/main.ts");
-  assert.match(main,/installParagraphProblemTracker/);
+  const trackerAt=main.indexOf("const paragraphProblem=installParagraphProblemTracker()");
+  const bridgeAt=main.indexOf("const ui=installLegacyUiBridge(screens)");
+  assert.ok(trackerAt>=0);
+  assert.ok(bridgeAt>=0);
+  assert.ok(trackerAt<bridgeAt);
   assert.match(main,/paragraphProblemTracker/);
 });
