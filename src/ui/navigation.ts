@@ -36,11 +36,26 @@ export class NavigationController{
     }
     const from=this.current(),detail:NavigationDetail={from,to:value,source,at:Date.now()};
     emit("yks:navigation-before",detail);
-    let result:unknown;
-    if(this.#screenRuntime){
+
+    /* Legacy go(), yıllar içinde Daha/Program/Deneme gibi ekranların tüm yan etkilerini
+       ve güvenlik yamalarını biriktirdi. Ana ekran geçişinde otorite olmaya devam eder.
+       TypeScript runtime yalnız yeni P & P çizimini ve gerçek bir legacy arızasında fallback'i sağlar. */
+    let result:unknown=false,legacyFailed=false;
+    try{result=this.#legacyGo(value);}
+    catch(error){
+      legacyFailed=true;
+      console.error(`Legacy ekran geçişi başarısız: ${value}`,error);
+    }
+
+    const active=this.current();
+    if(value==="pp"){
+      if(active!==value)this.#activateShell(value);
+      this.#screenRuntime?.render(value,source);
+    }else if((legacyFailed||active!==value)&&this.#screenRuntime){
       this.#activateShell(value);
-      if(!this.#screenRuntime.render(value,source))result=this.#legacyGo(value);
-    }else result=this.#legacyGo(value);
+      this.#screenRuntime.render(value,source);
+    }
+
     this.#syncShell(value);
     emit("yks:navigation-after",detail);
     return result;
