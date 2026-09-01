@@ -6,6 +6,7 @@ function prepareWebCloudRuntime(){
   let runtimeSource="";
   return {
     name:"prepare-web-cloud-runtime",
+    apply:"build" as const,
     transformIndexHtml(html:string){
       const runtimeMatch=html.match(/<script type="application\/json" id="legacyFirebaseSyncModule"[^>]*>([\s\S]*?)<\/script>\s*/u);
       if(!runtimeMatch)throw new Error("Legacy Firebase eşitleme kaynağı index.html içinde bulunamadı");
