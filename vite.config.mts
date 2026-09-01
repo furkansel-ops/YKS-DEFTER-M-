@@ -1,16 +1,17 @@
-import {defineConfig} from "vite";
+import {defineConfig,type Plugin} from "vite";
 
 const FIREBASE_WEB_API_KEY="AIzaSyA0UMRKwah3Ji9Z8Sd3ZvgLJUKiC40fVSc";
 
-function prepareWebCloudRuntime(){
+function prepareWebCloudRuntime():Plugin{
   let runtimeSource="";
   return {
     name:"prepare-web-cloud-runtime",
-    apply:"build" as const,
+    apply:"build",
     transformIndexHtml(html:string){
       const runtimeMatch=html.match(/<script type="application\/json" id="legacyFirebaseSyncModule"[^>]*>([\s\S]*?)<\/script>\s*/u);
-      if(!runtimeMatch)throw new Error("Legacy Firebase eşitleme kaynağı index.html içinde bulunamadı");
-      runtimeSource=runtimeMatch[1].replace(/apiKey:\s*"[^"]*"/,`apiKey:"${FIREBASE_WEB_API_KEY}"`);
+      const sourceText=runtimeMatch?.[1];
+      if(!runtimeMatch||!sourceText)throw new Error("Legacy Firebase eşitleme kaynağı index.html içinde bulunamadı");
+      runtimeSource=sourceText.replace(/apiKey:\s*"[^"]*"/,`apiKey:"${FIREBASE_WEB_API_KEY}"`);
       if(!runtimeSource.includes("signInWithPopup")||!runtimeSource.includes("onAuthStateChanged")||!runtimeSource.includes("runTransaction")){
         throw new Error("Firebase eşitleme çalışma zamanı eksik veya bozuk");
       }
