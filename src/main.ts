@@ -17,6 +17,7 @@ import {installLabInteractionsBridgeV44} from "./ui/lab-interactions-bridge-v44"
 import {installRecoveryCenter} from "./ui/recovery-center";
 import {installV43SafeRuntime} from "./ui/v43-safe-runtime";
 import {installPlayStoreShell} from "./ui/play-store-shell";
+import {installParagraphProblemTracker} from "./ui/paragraph-problem-tracker";
 import "./ui/visual-stability-hotfix.css";
 
 type BootstrapState={
@@ -100,6 +101,8 @@ window.dispatchEvent(new CustomEvent<BootstrapState>("yks:v4-bootstrap",{detail:
 
 const playStoreShell=installPlayStoreShell();
 document.documentElement.dataset.playStorePrivacy=playStoreShell.installed?"ready":"deferred";
+const paragraphProblem=installParagraphProblemTracker();
+document.documentElement.dataset.paragraphProblemTracker=paragraphProblem.installed?"ready":"deferred";
 const v43Runtime=installV43SafeRuntime();
 document.documentElement.dataset.v43RuntimeHost=String(v43Runtime.installed);
 const release=installReleaseRuntime();
