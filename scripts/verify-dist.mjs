@@ -77,7 +77,7 @@ const v43Chunks=["today-v43","analysis-center-v43","learning-cycle-v43","lab-qui
 for(const prefix of v43Chunks)if(!chunks.some(name=>name.startsWith(`${prefix}-`)&&name.endsWith(".js")))throw new Error("v4.3 modülü ayrı lazy chunk değil: "+prefix);
 const v44StandaloneChunks=["biology-yks-question-v44","biology-layer-guide-v44","physics-lab-v44","chemistry-visuals-v44","lab-interactions-v44"];
 for(const prefix of v44StandaloneChunks)if(!chunks.some(name=>name.startsWith(`${prefix}-`)&&name.endsWith(".js")))throw new Error("v4.4 bağımsız modülü ayrı lazy chunk değil: "+prefix);
-const atlasChunk=chunks.find(name=>/^biology-atlas-(?!model-).+\.js$/.test(name));
+const atlasChunk=chunks.find(name=>/^biology-atlas-(?!model-|diagrams-).+\.js$/.test(name));
 const modelChunk=chunks.find(name=>/^biology-atlas-model-.+\.js$/.test(name));
 const topicMapCss=chunks.find(name=>/^biology-topic-map-v44-.+\.css$/.test(name));
 if(!atlasChunk||!modelChunk||!topicMapCss||!chunks.some(name=>/^biology-atlas-.+\.css$/.test(name)))throw new Error("Atlas, konu haritası veya 3B modül lazy paket olarak bulunamadı");

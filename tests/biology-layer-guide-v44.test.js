@@ -27,3 +27,18 @@ test("v4.4 katman gezgini mevcut Atlas cutaway motorunu kullanır ve lazy/fail-o
   assert.match(bridge,/import\("\.\/biology-layer-guide-v44\.ts"\)/);assert.match(ui,/1 · Dış yüzey/);assert.match(ui,/2 · İç yapılar/);assert.match(ui,/3 · YKS rotası/);assert.match(ui,/Sonraki YKS yapısı/);assert.match(ui,/#atlasModelOpen/);assert.match(ui,/data-atlas-action=["']organ-view["']/);assert.match(ui,/data-atlas-structure/);assert.match(css,/pointer:coarse/);assert.match(css,/prefers-reduced-motion:reduce/);
   assert.doesNotMatch(`${ui}\n${service}`,/localStorage|indexedDB|Dexie|firebase|saveSoon|Program|program\.push|program\.splice/i);assert.doesNotMatch(`${ui}\n${service}`,/WebGLRenderer|from ["']three["']/i);assert.doesNotMatch(entry,/biology-layer-guide-v44/);
 });
+
+test("biyoloji katman gözlemcisi kendi render mutasyonuyla arayüzü kilitlemez",()=>{
+  const ui=read("src/ui/biology-layer-guide-v44.ts");
+  assert.match(ui,/host!==lastHost\|\|markup!==lastMarkup/);
+  assert.match(ui,/!mutation\.target\.closest\("\.atlas-layer-guide-v44"\)/);
+  assert.match(ui,/sonsuz microtask zincirini ve UI kilidini önler/);
+  assert.doesNotMatch(ui,/new MutationObserver\(schedule\)/);
+});
+
+test("üretim kapıları Atlas ana paketini diyagram yardımcı paketinden ayırır",()=>{
+  for(const file of ["scripts/verify-dist.mjs","scripts/verify-v440-production.mjs"]){
+    const verify=read(file);
+    assert.match(verify,/\(\?!model-\|diagrams-\)/,file);
+  }
+});
