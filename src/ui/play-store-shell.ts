@@ -135,6 +135,36 @@ function installCloudSyncCard():boolean{
   return true;
 }
 
+function patchLegacyCloudAuthSource(sourceText:string):string{
+  let runtimeSource=sourceText.replace(/apiKey:\s*"[^"]*"/,`apiKey:"${FIREBASE_WEB_API_KEY}"`);
+  runtimeSource=runtimeSource.replace(
+    'import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";',
+    'import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";'
+  );
+  const oldLogin='login?.addEventListener("click",async()=>{try{status("Google açılıyor…","connecting","Hesap seçimi bekleniyor");await setPersistence(auth,browserLocalPersistence);await signInWithPopup(auth,provider);}catch(e){console.error(e);infraError("firebase-login",e);status("Giriş hatası","error",authErrorText(e));}});';
+  const newLogin=`setPersistence(auth,browserLocalPersistence).catch(e=>{console.warn("Firebase kalıcılık ayarı hazırlanamadı",e);});
+getRedirectResult(auth).catch(e=>{console.error(e);infraError("firebase-redirect-result",e);status("Giriş hatası","error",authErrorText(e));});
+login?.addEventListener("click",()=>{
+  try{
+    status("Google açılıyor…","connecting","Hesap seçimi bekleniyor");
+    provider.setCustomParameters({prompt:"select_account"});
+    /* Popup çağrısı kullanıcı tıklamasının içinde doğrudan yapılmalı. Öncesinde await
+       kullanmak bazı PWA/tarayıcılarda kullanıcı etkinliğini kaybettirip popup'ı engelliyor. */
+    signInWithPopup(auth,provider).catch(e=>{
+      const c=(e&&e.code)||"";
+      if(c==="auth/popup-blocked"||c==="auth/operation-not-supported-in-this-environment"){
+        status("Google'a yönlendiriliyor…","connecting","Giriş penceresi engellendi; tam sayfa giriş açılıyor");
+        signInWithRedirect(auth,provider).catch(x=>{console.error(x);infraError("firebase-login-redirect",x);status("Giriş hatası","error",authErrorText(x));});
+        return;
+      }
+      console.error(e);infraError("firebase-login",e);status("Giriş hatası","error",authErrorText(e));
+    });
+  }catch(e){console.error(e);infraError("firebase-login",e);status("Giriş hatası","error",authErrorText(e));}
+});`;
+  runtimeSource=runtimeSource.replace(oldLogin,newLogin);
+  return runtimeSource;
+}
+
 function activateLegacyCloudSync():boolean{
   if(isNativeApp())return false;
   const source=document.getElementById("legacyFirebaseSyncModule") as HTMLScriptElement|null;
@@ -142,10 +172,9 @@ function activateLegacyCloudSync():boolean{
 
   /* Play Store hazırlığında index içindeki web API anahtarı boşaltılmıştı. Native Android
      hâlâ yerel modda kalıyor; yalnız web/PWA için daha önce çalışan Firebase istemci
-     yapılandırmasını çalışma anında geri koyuyoruz. Firebase Web API key bir istemci
-     yapılandırma değeridir; yetkilendirme yine Firebase Auth/Rules tarafından yapılır. */
-  const runtimeSource=source.textContent.replace(/apiKey:\s*"[^"]*"/,`apiKey:"${FIREBASE_WEB_API_KEY}"`);
-  if(runtimeSource===source.textContent){
+     yapılandırmasını çalışma anında geri koyuyoruz. */
+  const runtimeSource=patchLegacyCloudAuthSource(source.textContent);
+  if(runtimeSource===source.textContent||!runtimeSource.includes("signInWithRedirect")||runtimeSource.includes('await setPersistence(auth,browserLocalPersistence);await signInWithPopup')){
     const text=document.getElementById("cloudSyncText");
     const meta=document.getElementById("cloudSyncMeta");
     const box=document.getElementById(CLOUD_CARD_ID);
