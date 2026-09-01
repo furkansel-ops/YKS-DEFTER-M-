@@ -24,18 +24,30 @@ test("Play Store hazırlığı sabit Android kimliği ve API 36 sözleşmesini k
   assert.equal(version.schema,21);
 });
 
-test("Android CI release kontrolünden sonra Capacitor 8.5.0 ile AAB üretir",()=>{
+test("Android CI takip edilen Capacitor 8.5.0 projesinden imzalı AAB üretir",()=>{
   const workflow=read(".github/workflows/build-android.yml");
   assert.match(workflow,/CAPACITOR_VERSION:\s*"8\.5\.0"/);
-  assert.match(workflow,/android-actions\/setup-android@v4/);
   assert.match(workflow,/platforms;android-36/);
   assert.match(workflow,/build-tools;36\.0\.0/);
   assert.match(workflow,/npm run release:check/);
-  assert.match(workflow,/npx cap add android/);
+  assert.doesNotMatch(workflow,/npx cap add android/);
+  assert.match(workflow,/git ls-files --error-unmatch/);
   assert.match(workflow,/npx cap sync android/);
+  assert.match(workflow,/lintRelease/);
+  assert.match(workflow,/testReleaseUnitTest/);
   assert.match(workflow,/bundleRelease/);
-  assert.match(workflow,/actions\/upload-artifact@v7/);
-  assert.match(workflow,/app-release\.aab/);
+  assert.match(workflow,/ANDROID_KEYSTORE_BASE64/);
+  assert.match(workflow,/jarsigner -verify/);
+  assert.match(workflow,/actions\/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1/);
+  assert.match(workflow,/actions\/setup-node@820762786026740c76f36085b0efc47a31fe5020/);
+  assert.match(workflow,/actions\/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c/);
+  assert.match(workflow,/android-actions\/setup-android@40fd30fb8d7440372e1316f5d1809ec01dcd3699/);
+  assert.match(workflow,/actions\/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a/);
+  assert.doesNotMatch(workflow,/uses:\s+[^\s#]+@v\d+/);
+  assert.match(workflow,/github\.ref_protected/);
+  assert.match(workflow,/bundletool\.jar" validate/);
+  assert.match(workflow,/dump manifest/);
+  assert.match(workflow,/YKS-Defterim-4\.4\.0-4040001\.aab/);
 });
 
 test("Gizlilik ve gerçek cihaz veri silme akışı üretim paketine bağlıdır",()=>{

@@ -42,9 +42,11 @@ const signingReady=Object.values(signingValues).every(Boolean);
 if(signingRequested&&!signingReady)throw new Error("Android release guard: imzalama değişkenlerinden biri eksik");
 if(signingReady){
   await access(signingValues.path);
-  const signingBlock=`\n    signingConfigs {\n        release {\n            storeFile file(System.getenv("ANDROID_KEYSTORE_PATH"))\n            storePassword System.getenv("ANDROID_KEYSTORE_PASSWORD")\n            keyAlias System.getenv("ANDROID_KEY_ALIAS")\n            keyPassword System.getenv("ANDROID_KEY_PASSWORD")\n        }\n    }\n`;
-  if(!/signingConfigs\s*\{/.test(appGradle))appGradle=appGradle.replace(/android\s*\{/,match=>match+signingBlock);
-  appGradle=appGradle.replace(/buildTypes\s*\{\s*release\s*\{/,match=>`${match}\n            signingConfig signingConfigs.release`);
+  for(const pattern of [
+    /releaseSigningReady/,
+    /storeFile\s+file\(releaseKeystorePath\)/,
+    /signingConfig\s*=\s*signingConfigs\.release/
+  ])if(!pattern.test(appGradle))throw new Error("Android release guard: env tabanlı signing sözleşmesi bulunamadı");
 }
 
 await writeFile(appGradlePath,appGradle);

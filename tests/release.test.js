@@ -25,7 +25,7 @@ test("kararlı sürüm denetimi açılış, v4.3 runtime, ekran, Dexie, kurtarma
   try{
     const {createReleaseRuntime}=await import(releaseUrl),h=harness(),api=createReleaseRuntime(h.host,h.document),result=await api.run({exerciseScreens:true,persistRoundTrip:true});
     assert.equal(result.ok,true);assert.equal(result.version,"4.4.0");assert.ok(result.checks.length>=28);assert.equal(result.checks.every(x=>x.ok),true);assert.equal(h.active,"home");assert.equal(h.applied,2);assert.match(h.output.textContent,/YKS_V4_RELEASE_OK/);assert.equal(api.latest(),result);
-    for(const name of ["bootstrap","release-overlay","backup-recovery","pwa-build","v43-runtime","v43-today","v43-analysis","v43-learning-cycle","v43-lab-quiz","v43-navigation","v43-personalization","v43-focus-session-guard","dexie-write-through","firebase-payload","screen-transitions"])assert.equal(result.checks.find(x=>x.name===name)?.ok,true,name);
+    for(const name of ["bootstrap","release-overlay","backup-recovery","pwa-build","v43-runtime","v43-today","v43-analysis","v43-learning-cycle","v43-lab-quiz","v43-navigation","v43-personalization","v43-focus-session-guard","dexie-write-through","portable-payload","screen-transitions"])assert.equal(result.checks.find(x=>x.name===name)?.ok,true,name);
   }finally{if(previous===undefined)delete global.CustomEvent;else global.CustomEvent=previous;}
 });
 

@@ -25,8 +25,8 @@ const CATEGORIES:readonly MoreCategory[]=[
     {action:"settings",label:"Ayarlar",description:"Tema, hedefler, bildirimler ve video seçenekleri",icon:"⚙"},
     {action:"about",label:"Hakkında",description:"Sürüm, geliştirici ve uygulama bilgileri",icon:"i"}
   ]},
-  {id:"system",label:"Veri & Sistem",description:"Yedek, senkron, kurtarma ve sistem sağlığı",icon:"⇅",items:[
-    {action:"data",label:"Veri & senkron",description:"Bulut durumu, içe/dışa aktarma ve ham veri",icon:"⇅"},
+  {id:"system",label:"Veri & Sistem",description:"Yerel kayıt, yedek, kurtarma ve sistem sağlığı",icon:"⇅",items:[
+    {action:"data",label:"Veri & yedek",description:"Yerel kayıt, içe/dışa aktarma ve ham veri",icon:"⇅"},
     {action:"system",label:"Sistem durumu",description:"PWA, depolama, veri şeması ve kontroller",icon:"✓"},
     {action:"backup",label:"JSON yedek",description:"Manuel geri dönüş kopyası oluştur",icon:"⇩"},
     {action:"log",label:"Değişiklik günlüğü",description:"Son ekleme ve silmeleri incele",icon:"≡"}
@@ -43,11 +43,11 @@ export function installNavigationV43():NavigationRuntime{
 
   function renameNavigation(){
     const moreTab=document.querySelector<HTMLElement>('.bottomnav [data-s="more"], nav [data-s="more"]');
-    const label=moreTab?.querySelector<HTMLElement>(".tl");if(label)label.textContent="Merkez";
-    if(moreTab)moreTab.setAttribute("aria-label","Merkez");
-    for(const back of document.querySelectorAll<HTMLElement>("#more .v30-back"))back.textContent="‹ Merkez";
+    const label=moreTab?.querySelector<HTMLElement>(".tl");if(label&&label.textContent!=="Merkez")label.textContent="Merkez";
+    if(moreTab?.getAttribute("aria-label")!=="Merkez")moreTab?.setAttribute("aria-label","Merkez");
+    for(const back of document.querySelectorAll<HTMLElement>("#more .v30-back"))if(back.textContent!=="‹ Merkez")back.textContent="‹ Merkez";
     const moreScreen=document.getElementById("more");const title=document.getElementById("navTitle");
-    if(moreScreen?.classList.contains("active")&&title)title.textContent="Merkez";
+    if(moreScreen?.classList.contains("active")&&title&&title.textContent!=="Merkez")title.textContent="Merkez";
   }
   function renderCategory(){
     if(!hub)return;
@@ -81,6 +81,8 @@ export function installNavigationV43():NavigationRuntime{
     renderCategory();renameNavigation();return true;
   }
   let queued=false;
+  /* Observer, modülün kendi metin yazımlarını da görür. Aynı metni yeniden yazmamak
+     ana iş parçacığını aç bırakabilecek sonsuz microtask döngüsünü engeller. */
   const refresh=()=>{if(queued)return;queued=true;queueMicrotask(()=>{queued=false;mount();});};
   const observer=new MutationObserver(mutations=>{if(mutations.some(m=>m.target instanceof Element&&!m.target.closest("#v43MoreHub")))refresh();});
   observer.observe(document.documentElement,{childList:true,subtree:true});

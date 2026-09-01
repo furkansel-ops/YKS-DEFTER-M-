@@ -39,13 +39,15 @@ test("ekran modülleri v4.3 ürün chunklarını başlangıç paketine geri çek
   assert.match(safe,/__YKS_V43_RENDER_LEARNING_CYCLE__=mod\.renderLearningCycleV43/);
 });
 
-test("tek özellik arızası çekirdek bootstrap veya Firebase girişini bloke edemez",()=>{
-  const main=read("src/main.ts"),safe=read("src/ui/v43-safe-runtime.ts"),html=read("index.html");
+test("tek özellik arızası çekirdek bootstrap veya yerel veri katmanını bloke edemez",()=>{
+  const main=read("src/main.ts"),safe=read("src/ui/v43-safe-runtime.ts"),html=read("index.html"),vite=read("vite.config.mts");
   assert.match(main,/const services=installLegacyServiceBridge\(\)/);
   assert.match(main,/const data=installLegacyDataBridge\(\)/);
   assert.match(main,/document\.documentElement\.dataset\.v4Runtime="ready"/);
-  assert.match(safe,/Tek bir v4\.3 özelliği hata verse bile legacy çekirdek, veri katmanı ve Firebase giriş akışı çalışmaya devam eder/);
-  assert.match(html,/id="firebaseSyncModule"/);
+  assert.match(safe,/Tek bir v4\.3 özelliği hata verse bile legacy çekirdek ve yerel veri katmanı çalışmaya devam eder/);
+  assert.doesNotMatch(html,/type="module" id="firebaseSyncModule"/);
+  assert.match(html,/type="application\/json" id="legacyFirebaseSyncModule" data-disabled="play-store-release"/);
+  assert.match(vite,/remove-disabled-cloud-runtime/);
 });
 
 test("release gate izole runtime tamamen hazır olana kadar bekler",()=>{

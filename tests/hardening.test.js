@@ -41,7 +41,7 @@ test("ertelenmiş ekran çizimleri hata günlüğü korumasından geçer",()=>{
 test("kalıcı CI ana dalı denetler, tek Pages deploy kullanır ve eski tek-seferlik workflowlar kaldırılmıştır",()=>{
   const ci=fs.readFileSync(path.join(root,".github/workflows/ci.yml"),"utf8"),deploy=fs.readFileSync(path.join(root,".github/workflows/deploy-pages.yml"),"utf8"),verify=fs.readFileSync(path.join(root,"scripts/verify-dist.mjs"),"utf8");
   assert.match(ci,/branches:\s*\n\s*- main/);assert.match(ci,/npm run release:check/);
-  assert.doesNotMatch(deploy,/Eski GitHub Pages dağıtımı|workflow_runs|gh api/);assert.match(deploy,/path: \.\/dist/);assert.match(deploy,/actions\/deploy-pages@v5/);
+  assert.doesNotMatch(deploy,/Eski GitHub Pages dağıtımı|workflow_runs|gh api/);assert.match(deploy,/path: \.\/dist/);assert.match(deploy,/actions\/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128/);
   for(const file of ["fix-personal-cleanup-test.yml","personal-cleanup-stage2.yml","personal-cleanup-stage2b.yml","personal-cleanup-stage2c.yml","personal-cleanup-stage2d.yml","release-v4.1.0.yml"])assert.equal(fs.existsSync(path.join(root,".github/workflows",file)),false,file);
   assert.match(verify,/APP_BUILD=\"4\.1\.0-r20\"/);assert.match(verify,/yks-core-v4\.2\.0-r1/);assert.match(verify,/motivation-quotes-v1\.js/);assert.match(verify,/motivation-quotes-v2\.css/);assert.match(verify,/ui-polish-home-v2\.css/);assert.match(verify,/ui-polish-progress-v2\.css/);assert.match(verify,/ui-polish-error-journal-v1\.css/);assert.match(verify,/ui-polish-program-v1\.css/);assert.match(verify,/ui-polish-learning-lab-v1\.css/);assert.match(verify,/ui-polish-final-v1\.css/);assert.match(verify,/Yerel v4\.4\.0 release kimliği beklenen değerle eşleşmiyor/);
 });

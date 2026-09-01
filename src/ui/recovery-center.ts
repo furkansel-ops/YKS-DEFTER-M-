@@ -11,7 +11,6 @@ type LegacyRuntimeWindow=Window&{
   go?:(screen:string)=>unknown;
   toast?:(message:string)=>unknown;
   infraError?:(scope:string,error:unknown)=>unknown;
-  yksCloudForceDirty?:()=>unknown;
 };
 
 export interface RecoveryCenterApi{
@@ -142,7 +141,7 @@ function previewDialog(preview:Extract<BackupPreviewResult,{ok:true}>):Promise<b
 
 export function installRecoveryCenter(data:LegacyDataBridgeApi,backup:BackupBridgeApi):RecoveryCenterApi{
   const runtime=window as LegacyRuntimeWindow,legacyImport=runtime.importData?.bind(runtime);
-  let latestPrimary:PrimaryInitResult|null=null,cloudObserver:MutationObserver|null=null;
+  let latestPrimary:PrimaryInitResult|null=null;
 
   function ensureCenter():HTMLElement|null{
     const parent=document.getElementById("mrp_veri"),anchor=document.getElementById("v30DataTop");if(!parent||!anchor)return null;
@@ -154,15 +153,14 @@ export function installRecoveryCenter(data:LegacyDataBridgeApi,backup:BackupBrid
   function refresh():void{
     const center=ensureCenter();if(!center)return;
     const htmlState=document.documentElement.dataset.v4Data||"initializing",primary=document.documentElement.dataset.v4Primary||latestPrimary?.primary||"none",reconcile=document.documentElement.dataset.v4Reconcile||latestPrimary?.status||"initializing";
-    const cloud=document.getElementById("cloudSyncBox"),cloudState=cloud?.dataset.state||"signedout",dirty=localStorage.getItem("yks_cloud_dirty")==="1";
-    const dataStatus=statusText(htmlState),cloudStatus=statusText(cloudState);
+    const dataStatus=statusText(htmlState);
     center.replaceChildren();
     const head=createElement("div","v42-recovery-head"),titleWrap=createElement("div");titleWrap.append(createElement("span","","KURTARMA MERKEZİ"),createElement("b","","Verinin güvenli dönüş noktaları"));
-    head.append(titleWrap,createElement("small","","Dexie ana kayıt, güvenli yerel ayna, bulut ve JSON yedeği birlikte izlenir."));center.append(head);
+    head.append(titleWrap,createElement("small","","Dexie ana kayıt, güvenli yerel ayna ve kullanıcı denetimindeki JSON yedeği birlikte korunur."));center.append(head);
     const grid=createElement("div","v42-recovery-grid");
     addRow(grid,"Ana kayıt",primary==="dexie"?"Dexie + yerel ayna":primary==="localStorage"?"Yerel ayna ile devam":"Kayıt bekleniyor",dataStatus.level);
     addRow(grid,"Uzlaştırma",reconcile.replaceAll("-"," "),dataStatus.level);
-    addRow(grid,"Bulut",dirty?`${cloudStatus.label} · bekleyen değişiklik var`:cloudStatus.label,cloudStatus.level);
+    addRow(grid,"Hesap / bulut","Kullanılmıyor","ok");
     center.append(grid);
     const note=latestPrimary?.message||(htmlState==="warning"?"Veri katmanı uyarı verdi. Yerel kayıt silinmeden önce JSON yedeği almak en güvenli adımdır.":"Ana kayıt doğrulanıyor; geri yükleme işlemleri önce mevcut durumu korur.");
     center.append(createElement("p","v42-recovery-note",note));
@@ -179,7 +177,6 @@ export function installRecoveryCenter(data:LegacyDataBridgeApi,backup:BackupBrid
       try{runtime.autoBackupRun?.(true);}catch(error){runtime.infraError?.("backup-auto-safety",error);}
       const restored=await backup.restore(text);
       if(!restored.ok)throw new Error(restored.message);
-      try{runtime.yksCloudForceDirty?.();}catch(error){runtime.infraError?.("backup-cloud-dirty",error);}
       try{runtime.applyTheme?.();runtime.renderAll?.();runtime.go?.("home");}catch(error){runtime.infraError?.("backup-post-restore",error);}
       runtime.toast?.("Yedek güvenle geri yüklendi ✓");
       window.dispatchEvent(new CustomEvent("yks:backup-restored",{detail:{summary:restored.summary}}));refresh();
@@ -195,9 +192,6 @@ export function installRecoveryCenter(data:LegacyDataBridgeApi,backup:BackupBrid
     void data.ready.then(result=>{latestPrimary=result;refresh();}).catch(error=>{runtime.infraError?.("recovery-center-data-ready",error);refresh();});
     window.addEventListener("yks:data-primary-ready",event=>{latestPrimary=(event as CustomEvent<PrimaryInitResult>).detail;refresh();});
     window.addEventListener("online",refresh);window.addEventListener("offline",refresh);window.addEventListener("storage",refresh);
-    const cloud=document.getElementById("cloudSyncBox");if(cloud&&typeof MutationObserver!=="undefined"){
-      cloudObserver?.disconnect();cloudObserver=new MutationObserver(refresh);cloudObserver.observe(cloud,{attributes:true,childList:true,subtree:true});
-    }
   }
 
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",bind,{once:true});else bind();

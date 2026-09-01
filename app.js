@@ -1171,7 +1171,7 @@ function saveJournal(){
 /* Hücrede bir video/oynatma listesi bağlantısı var mı? */
 function cellLink(txt){
   const t=String(txt||"");
-  const m=t.match(/https?:\/\/[^\s]+/);
+  const m=t.match(/https:\/\/[^\s]+/);
   if(!m)return null;
   const url=m[0].replace(/[.,;)]+$/,"");
   const vid=url.match(/youtu\.be\/([\w-]{6,})/);
@@ -2743,13 +2743,13 @@ function renderInfraHealth(){
   const swOk=("serviceWorker" in navigator)&&!!navigator.serviceWorker.controller;
   const rows=[
     ["Sürüm","v"+APP_VERSION+" · şema "+DATA_SCHEMA],
-    ["Firebase kural sözleşmesi","v3 · UID + alan/boyut doğrulama"],
+    ["Yerel veri sözleşmesi","şema 21 · Dexie + güvenli ayna"],
     ["Yerel kayıt",infraRecoveryLabel()],
     ["Depolama",kb+" KB"],
     ["İnternet",online?"Bağlı":"Çevrimdışı"],
     ["PWA önbellek",swOk?"Etkin":"Henüz etkin değil"],
     ["Başlangıç performansı",Math.round(PERF_STATE.bootSyncMs||0)+" ms · kademeli yükleme"],
-    ["Bulut hazırlama",PERF_STATE.lastCloudBuildMs?PERF_STATE.lastCloudBuildMs.toFixed(1)+" ms":"Henüz senkron yapılmadı"],
+    ["Veri aktarımı","JSON yedekleme kullanıcı denetiminde"],
     ["Otomatik test",test.ok?"Tüm kontroller geçti":"Kontrol gerekiyor"],
     ["Yakalanan hata",String(errs.length)],
     ["Çakışma yedeği",String(conf.length)]
@@ -4346,7 +4346,7 @@ function renderTopicRes(){
   const list=topicResList();
   if(!list.length){ w.innerHTML='<div class="empty">Bir konuya video bağlantısı, sayfa numarası ya da kendi notunu ekleyebilirsin. Tekrar zamanı geldiğinde nereye bakacağın hazır olur.</div>'; return; }
   w.innerHTML=list.map(x=>{
-    const isLink=/^https?:\/\//.test(x.res);
+    const isLink=/^https:\/\//.test(x.res);
     const val=isLink?'<a href="'+esc(x.res)+'" target="_blank" rel="noopener">'+esc(x.res.slice(0,44))+'</a>':esc(x.res);
     return `<div class="dayrow"><span class="k">${esc(x.subj)} · ${esc(x.topic)}<br><small>${val}</small></span>
       <span class="v"><button class="del" onclick="clearTopicRes('${x.key.replace(/'/g,"\\'")}')">sil</button></span></div>`;
@@ -5249,7 +5249,7 @@ function ytSearch(q){
   return "https://www.youtube.com/results?search_query="+encodeURIComponent(q);
 }
 function openExternalUrl(url){
-  const u=String(url||""); if(!/^https?:\/\//i.test(u))return false;
+  const u=String(url||""); if(!/^https:\/\//i.test(u))return false;
   const local=(location.hostname==="localhost"||location.hostname==="127.0.0.1");
   if(local){
     fetch("/__open_brave?url="+encodeURIComponent(u),{cache:"no-store"}).then(r=>{
@@ -8185,7 +8185,7 @@ function saveRes(){
   const ad=(el("resAd").value||"").trim();
   const deger=(el("resDeger").value||"").trim();
   if(!ad){ toast("Bir ad yaz"); return false; }
-  if(tur==="video"&&deger&&!/^https?:\/\//.test(deger)){ toast("Video için https:// ile başlayan adres gir"); return false; }
+  if(tur==="video"&&deger&&!/^https:\/\//.test(deger)){ toast("Video için https:// ile başlayan adres gir"); return false; }
   addRes(resKey,tur,ad,deger);
   el("resAd").value=""; el("resDeger").value="";
   renderResPanel(); renderSubjects();
@@ -8195,7 +8195,7 @@ function saveRes(){
 function openResItem(key,id){
   const r=resList(key).find(x=>x.id===id); if(!r)return false;
   if(r.tur==="video"&&r.deger){
-    if(typeof openVideos==="function"&&!/^https?:\/\//.test(r.deger))return false;
+    if(typeof openVideos==="function"&&!/^https:\/\//.test(r.deger))return false;
     openExternalUrl(r.deger);
     return true;
   }
@@ -9700,7 +9700,7 @@ function v2DiagnosticsRows(){
   try{localStorage.setItem("__yks_diag","1");const ok=localStorage.getItem("__yks_diag")==="1";localStorage.removeItem("__yks_diag");add("Yerel depolama",ok,ok?"Okuma/yazma çalışıyor":"Başarısız");}catch(e){add("Yerel depolama",false,String(e.message||e));}
   add("Veri şeması",S.v===DATA_SCHEMA,"v"+S.v+" / beklenen "+DATA_SCHEMA);add("Ana kayıt",!!safeJSONParse(localStorage.getItem(STORAGE_KEY)||""),infraRecoveryLabel());
   const backs=typeof autoBackups==="function"?autoBackups():[];add("Otomatik yedek",backs.length>0,backs.length?backs.length+" kopya":"Henüz yok");
-  const state=el("cloudSyncBox")?.dataset.state||"bilinmiyor",dirty=localStorage.getItem("yks_cloud_dirty")==="1";add("Bulut durumu",state!=="error",state+(dirty?" · bekleyen değişiklik":""));
+  add("Veri kapsamı",true,"Çalışma verileri cihazda tutuluyor");
   add("İnternet",navigator.onLine!==false,navigator.onLine===false?"Çevrimdışı":"Bağlı");add("PWA",!("serviceWorker" in navigator)||!!navigator.serviceWorker.controller,("serviceWorker" in navigator)?(navigator.serviceWorker.controller?"Etkin":"Kontrolcü bekleniyor"):"Desteklenmiyor");
   const st=runInfrastructureSelfTest();add("Dahili test",st.ok,st.ok?"Tüm kontroller geçti":st.checks.filter(x=>!x.ok).map(x=>x.name).join(", "));add("Hata günlüğü",infraErrors().length===0,infraErrors().length+" kayıt");return rows;
 }
@@ -9737,7 +9737,7 @@ delSwHistory=function(day,id){if(!S.swHistory||!Array.isArray(S.swHistory[day]))
 const __v18RenderHome=renderHome;renderHome=function(){const r=__v18RenderHome();try{renderExamTasks();}catch(e){infraError("v2-home",e);}return r;};
 const __v18Go=go;go=function(id){const r=__v18Go(id);if(id==="progress")renderProgress();return r;};
 const __v18RenderAll=renderAll;renderAll=function(){const r=__v18RenderAll();try{renderExamTasks();if(el("progress")?.classList.contains("active"))renderProgress();}catch(e){infraError("v2-render",e);}return r;};
-const __v18Infra=renderInfraHealth;renderInfraHealth=function(){__v18Infra();const w=el("infraBox");if(!w)return;const dirty=localStorage.getItem("yks_cloud_dirty")==="1",last=Number(localStorage.getItem("yks_last_sync_at")||0)||0,backs=typeof autoBackups==="function"?autoBackups():[];w.insertAdjacentHTML("beforeend",'<div class="dayrow"><span class="k">Bekleyen senkron</span><span class="v">'+(dirty?'Var':'0')+'</span></div><div class="dayrow"><span class="k">Son bulut senkronu</span><span class="v">'+(last?esc(syncAgo(last)):'—')+'</span></div><div class="dayrow"><span class="k">Yerel yedek</span><span class="v">'+backs.length+' kopya</span></div><div class="rowtools" style="margin:12px 0 0"><button class="btn green tiny" onclick="runFullDiagnostics()">Tanılama çalıştır</button><button class="btn ghost tiny" onclick="go(\'progress\')">İlerlemeyi aç</button></div>');};
+const __v18Infra=renderInfraHealth;renderInfraHealth=function(){__v18Infra();const w=el("infraBox");if(!w)return;const backs=typeof autoBackups==="function"?autoBackups():[];w.insertAdjacentHTML("beforeend",'<div class="dayrow"><span class="k">Yerel yedek</span><span class="v">'+backs.length+' kopya</span></div><div class="dayrow"><span class="k">Hesap / bulut aktarımı</span><span class="v">Kullanılmıyor</span></div><div class="rowtools" style="margin:12px 0 0"><button class="btn green tiny" onclick="runFullDiagnostics()">Tanılama çalıştır</button><button class="btn ghost tiny" onclick="go(\'progress\')">İlerlemeyi aç</button></div>');};
 
 /* v2 self-test */
 function runV2SelfTest(){const checks=[];const add=(n,o)=>checks.push([n,!!o]);try{add("version",APP_VERSION==="4.1.0"&&DATA_SCHEMA===21);add("state",Array.isArray(S.examTasks)&&!!S.studyPrefs);add("risk-score",Array.isArray(v2RiskList(5)));add("removed-smart-ui",!el("smartPriorityBox")&&!el("smartDailyPlan")&&typeof window.generateSmartPlan!=="function");add("progress",typeof v2Forecast==="function"&&typeof renderProgress==="function");add("search",typeof openGlobalSearch==="function");add("diagnostics",typeof runFullDiagnostics==="function");add("topic-session",!!el("pomoTopic"));}catch(e){checks.push(["exception",false]);infraError("v2-selftest",e);}const ok=checks.every(x=>x[1]);document.documentElement.setAttribute("data-v2-selftest",ok?"ok":"fail");let o=el("v2SelfTestResult");if(!o){o=document.createElement("pre");o.id="v2SelfTestResult";o.hidden=true;document.body.appendChild(o);}o.textContent=(ok?"YKS_V2_SELFTEST_OK":"YKS_V2_SELFTEST_FAIL")+" "+checks.map(x=>x[0]+":"+(x[1]?"ok":"fail")).join(",");return {ok,checks};}
@@ -10306,9 +10306,8 @@ function v30QuickItems(){const u=v30Usage();return Object.keys(V30_ACTIONS).map(
 function v30RenderQuick(){const w=el("v30QuickGrid");if(!w)return;w.innerHTML=v30QuickItems().map(x=>'<button class="v30-quick" type="button" onclick="v30Action(\''+x.k+'\')"><i>'+x.icon+'</i><b>'+esc(x.label)+'</b><small>'+esc(x.sub)+'</small></button>').join("")}
 function v30StorageLabel(){try{const n=typeof infraStorageBytes==="function"?infraStorageBytes():new Blob(Object.values(localStorage)).size;return Math.max(0,Math.round(n/1024))+" KB"}catch(e){return "—"}}
 function v30BackupLabel(){if(S.lastBackup){const d=parseKey(S.lastBackup);return d.toLocaleDateString("tr-TR",{day:"numeric",month:"short"})}const a=typeof autoBackups==="function"?autoBackups():[];return a.length?a.length+" yerel kopya":"Henüz yok"}
-function v30CloudText(){const a=el("cloudSyncText"),b=el("cloudSyncMeta");return {main:(a&&a.textContent.trim())||"Bulut durumu",sub:(b&&b.textContent.trim())||"Durum bekleniyor"}}
-function v30RenderHome(){v30RenderQuick();const w=el("v30MoreStatus"),c=v30CloudText();if(w)w.innerHTML='<div class="v30-status-item"><b>'+esc(c.main)+'</b><span>'+esc(c.sub)+'</span></div><div class="v30-status-item"><b>Son yedek · '+esc(v30BackupLabel())+'</b><span>'+esc(v30StorageLabel())+' yerel veri</span></div><div class="v30-status-item"><b>v'+esc(APP_VERSION)+'</b><span>'+esc(APP_CHANNEL)+' · şema '+DATA_SCHEMA+'</span></div>';v30RenderAbout();v30RenderDataSyncSummary()}
-function v30RenderDataSyncSummary(){const w=el("v30DataSyncSummary");if(!w)return;const c=v30CloudText();let dirty=false,last=0;try{dirty=localStorage.getItem("yks_cloud_dirty")==="1";last=Number(localStorage.getItem("yks_last_sync_at")||0)||0}catch(e){}w.innerHTML='<div class="v30-sync-line"><span>Bulut</span><b>'+esc(c.main)+(c.sub?' · '+esc(c.sub):'')+'</b></div><div class="v30-sync-line"><span>Bekleyen değişiklik</span><b>'+(dirty?'Var':'Yok')+'</b></div><div class="v30-sync-line"><span>Son senkron</span><b>'+(last&&typeof syncAgo==="function"?esc(syncAgo(last)):'—')+'</b></div><div class="v30-sync-line"><span>Yerel veri</span><b>'+esc(v30StorageLabel())+'</b></div>'}
+function v30RenderHome(){v30RenderQuick();const w=el("v30MoreStatus");if(w)w.innerHTML='<div class="v30-status-item"><b>Yalnız cihazda</b><span>Hesap veya bulut senkronu yok</span></div><div class="v30-status-item"><b>Son yedek · '+esc(v30BackupLabel())+'</b><span>'+esc(v30StorageLabel())+' yerel veri</span></div><div class="v30-status-item"><b>v'+esc(APP_VERSION)+'</b><span>'+esc(APP_CHANNEL)+' · şema '+DATA_SCHEMA+'</span></div>';v30RenderAbout();v30RenderDataSyncSummary()}
+function v30RenderDataSyncSummary(){const w=el("v30DataSyncSummary");if(!w)return;w.innerHTML='<div class="v30-sync-line"><span>Ana kayıt</span><b>Bu cihaz · Dexie + yerel ayna</b></div><div class="v30-sync-line"><span>Hesap / bulut</span><b>Kullanılmıyor</b></div><div class="v30-sync-line"><span>JSON yedek</span><b>'+esc(v30BackupLabel())+'</b></div><div class="v30-sync-line"><span>Yerel veri</span><b>'+esc(v30StorageLabel())+'</b></div>'}
 function v30RenderAbout(){const a=el("appVersionLabel"),c=el("v30AboutChannel"),sc=el("v30AboutSchema");if(a)a.textContent=APP_VERSION+" · "+APP_CHANNEL;if(c)c.textContent=APP_CHANNEL;if(sc)sc.textContent=String(DATA_SCHEMA)}
 const __v30LegacySetMoreTab=setMoreTab;
 setMoreTab=function(t){t=String(t||"home");const home=el("v30MoreHome"),about=el("v30AboutPanel"),valid=["lab","kay","tak","roz","veri","ayar"];if(home)home.style.display="none";if(about)about.style.display="none";valid.forEach(x=>{const p=el("mrp_"+x),b=el("mr_"+x);if(p)p.style.display="none";if(b)b.classList.remove("on")});if(t==="home"||(!valid.includes(t)&&t!=="about")){v30MoreCurrent="home";if(home)home.style.display="block";v30RenderHome();return}if(t==="about"){v30MoreCurrent="about";if(about)about.style.display="block";v30RenderAbout();return}v30MoreCurrent=t;__v30LegacySetMoreTab(t);if(t==="veri")v30RenderDataSyncSummary()}
@@ -10494,7 +10493,7 @@ try{const q=new URLSearchParams(location.search).get("selftest");if(q==="v31")se
    - Sıra numarasına göre DOM taşımaz; gerçek bileşen/ID'leri kullanır.
    - Her ekran ayrı korunur: bir bölüm bozulsa diğerleri kurulmaya devam eder.
    - Tekrar çalıştırılabilir (idempotent) ve sağlık kontrolü yapar.
-   - Veri katmanına/Firebase'e dokunmaz.
+   - Veri katmanına veya harici servislere dokunmaz.
    ================================================================== */
 (function(){
   const LAYOUT_VERSION="3.1.4";

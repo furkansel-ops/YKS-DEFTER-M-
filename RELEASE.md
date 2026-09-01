@@ -1,68 +1,74 @@
-# YKS Defterim v4.3.1
+# YKS Defterim v4.4.0 · Play Store yayın adayı
 
-## KARARLI · 31 Ağustos 2026
+## Kimlik
 
-v4.3.1 yeni özellik yığmak yerine canlı v4.3.0'ın gerçek kullanım güvenliğini, tablet/PC ergonomisini, hata kurtarmasını, veri/offline stres kapısını ve production performans bütçelerini güçlendirir.
-
-### Sürüm kimliği
-
-- Uygulama sürümü: **4.3.1**
-- Build: **4.3.1-r1**
-- Kanal: **stable**
+- Uygulama sürümü: **4.4.0**
+- Build: **4.4.0-r1**
+- Android `versionCode`: **4040001**
+- Android paket adı: **`com.furkansel.yksdefterim`**
+- Kanal: **stable adayı / Internal Testing öncesi**
 - Veri şeması: **21**
-- PWA cache: **yks-core-v4.3.1-r1**
-- Legacy uyumluluk çekirdeği: **app.js 4.1.0-r20**
-- v4.2 uyumluluk modülleri: **4.2.0-r1 sözleşmesi korunur**
+- Tarih: **31 Ağustos 2026**
 
-### v4.3.1 ile tamamlananlar
+Bu dal, v4.4.0 web uygulamasını Capacitor tabanlı Android App Bundle olarak paketlemeye hazırlar. `main` dalına birleştirme ve Play Console'a yükleme ayrı, açık onay gerektirir.
 
-- **Fail-open runtime kurtarma:** tarayıcı seviyesinde `error` ve `unhandledrejection` güvenlik ağı eklendi. Bir cila/özellik katmanı hata verse bile ana giriş ve veri çekirdeği çalışmaya devam eder.
-- **Kullanıcı dostu hata bildirimi:** teknik stack yerine kapatılabilir küçük bir bildirim ve kullanıcının seçebileceği güvenli yenileme düğmesi gösterilir.
-- **Storage tanısı:** localStorage ve IndexedDB kullanılabilirliği salt tanı amaçlı ölçülür; ana veri katmanının fallback kararına müdahale edilmez.
-- **Tablet/PC cila:** yatay taşma sınırları, `min-width:0`, safe-area, en az 44 px dokunma hedefi ve azaltılmış hareket desteği güçlendirildi.
-- **Veri stres kapısı:** Dexie arızasında localStorage fallback, commit sonrası readback/hash doğrulaması, Firebase/yedek dış veri doğrulama sırası ve save fırtınası kuyruklama sözleşmeleri regresyonlarla kilitlendi.
-- **PWA/offline stres kapısı:** atomik çekirdek cache, yarım yeni cache temizliği, eski cache soyu, `version.json` no-store ve büyük anatomi varlıklarının yalnız istek üzerine cachelenmesi doğrulandı.
-- **Ekran geçişi güvenliği:** yalnız aktif ekran çizilir; ağır ikincil işler paint/idle sonrasına ertelenir ve deferred hatalar çekirdeğe yayılmaz.
-- **Production performans bütçesi:** ana giriş JavaScript paketi 260 kB tavanıyla, runtime-resilience lazy chunk ise 12 kB tavanıyla CI'da korunur. Three.js/WebGL kodunun başlangıç paketine sızması reddedilir.
-- **Odak başlangıç akışı korunur:** Sayaç/Kronometre `Başlat → Oturumu hazırla → ders seç → Başlat` sözleşmesini sürdürür.
+## v4.4.0 ürün kapsamı
 
-### Değişmez ürün sözleşmeleri
+- Manuel YKS çalışma programı, konu takibi, deneme analizi ve odak araçları korunur.
+- Öğrenme Laboratuvarı; 9 organ / 52 yapılık Biyoloji Atlası, AYT görsel konu haritaları, 16 fizik kartına bağlı etkileşimli deneyler, kimya molekül/bağ görselleri, periyodik tablo karşılaştırması ve kronoloji akışı içerir.
+- Büyük 3B anatomi motoru ve laboratuvar katmanları ihtiyaç halinde yüklenir; ana açılış paketine alınmaz.
+- Program tamamen manuel kalır. Öğrenme ve analiz katmanları Program'a görev eklemez, silmez veya düzenlemez.
+- Veri şeması 21 ve mevcut yerel veri/yedek uyumluluğu korunur.
 
-- **Program tamamen manuel kalır.** Analiz veya öneri katmanı Program'a otomatik görev eklemez, silmez veya düzenlemez.
-- Veri şeması **21** ve geriye dönük uyumluluk korunur.
-- Dexie ana kayıt + localStorage güvenli ayna + Firebase senkron hattı korunur.
-- Biyoloji Atlası **9 organ / 52 yapı** ve 27 sabit SHA-256 anatomy varlığı sözleşmesini korur.
-- Kulak Atlas organ listesine geri eklenmez.
-- Ağır 3B anatomi/Three.js başlangıç paketine alınmaz ve lazy-load kalır.
-- v4.3 ürün modülleri çekirdek bootstrap sonrasında ayrı dynamic import + hata sınırlarında çalışır.
+## Play Store hazırlığı
 
-### Final aday doğrulaması
+- Android kimliği ve sürüm sözleşmesi sabitlenmiştir.
+- Web/PWA üretim varlıkları Capacitor Android projesine senkronlanır.
+- Adaptive icon, splash, tema, SDK seviyeleri, ağ güvenliği ve ekran yönü Android yayın kontrolüne alınmıştır.
+- Gizlilik politikası ile cihaz verilerini silme sayfası üretim paketine dahil edilir ve uygulama içinden açılır.
+- Kullanıcı hesabı ve aktif bulut senkronu bu Android yayın kapsamının parçası değildir.
+- Kullanıcı isteğiyle Wikipedia/Wikimedia, YouTube/Google ve resmî MEB/OGM/ÖSYM içeriklerine ağ erişimi olabilir; Data Safety beyanı signed AAB üzerinde yeniden doğrulanır.
+- Upload key ve parolalar repo dışında tutulur; yerel doğrulama geçici ortam değişkenleriyle, CI imzalama ise yalnız korumalı GitHub Environment secret'larıyla çalışır.
 
-Release kimliği yükseltilmeden önceki v4.3.1 kalite turunda:
+## Doğrulama kapısı
 
-- Node 22 ✅
-- Node 24 ✅
-- TypeScript strict ✅
-- **292 / 292 regresyon testi ✅**
-- Production Vite build: **102 modül ✅**
-- Ana JS: **223.201 bayt** / 260.000 bayt bütçe ✅
-- `runtime-resilience-v431` JS: **2.488 bayt** / 12.000 bayt bütçe ✅
-- 27 anatomy varlığı sabit sürüm + SHA-256 ✅
-- Production package + izole v4.3 runtime ✅
+Yayın adayı ancak aşağıdakilerin aynı commit üzerinde başarılı olmasıyla Internal Testing paketi sayılır:
 
-Bilinen `biology-atlas-model` >500 kB Vite uyarısı beklenen lazy-load model chunk'ıdır ve başlangıç performans regresyonu değildir.
-
-### Kararlı sürüm kontrolü
-
-```bash
+```text
 npm ci
 npm run release:check
+npm run android:sync
+Android lint/test
+bundleRelease
+AAB imza doğrulaması
 ```
 
-Tarayıcı içi uçtan uca release kontrolü için uygulamayı `?selftest=v4` sorgusuyla açın. Başarılı sonuç release self-test çıktısında `YKS_V4_RELEASE_OK` olarak görünür.
+Node 22 ana doğrulaması ve Node 24 uyumluluk doğrulaması ayrı ayrı yeşil olmalıdır. Test sayısı veya paket boyutu, o commitin CI çıktısından alınmadan bu belgeye kesin sonuç olarak yazılmaz.
 
-Merge sonrasında Pages workflow'u production paketi dağıtır, canlı release kimliğini doğrular ve kaynak kod + production çıktısını **YKS-Defterim-v4.3.1-backup.zip** olarak 30 günlük artefakt halinde üretir.
+## Yerel doğrulama · 31 Ağustos 2026
 
----
+Bu çalışma alanında, kaynak tabanı `3c618eb45a75fe120eed45335cc8b9e208fe2d45` üzerinden hazırlanan yayın adayı için:
 
-**v4.3.1, final CI + canlı Pages doğrulaması tamamlandığında kararlı yayın olarak kapanacaktır.**
+- Node 22 ve Node 24 `release:check` kapıları geçti; her iki çalışmada **325/325** test başarılı oldu.
+- Capacitor web varlığı eşitlemesi geçti.
+- Android `lintRelease` ve `testReleaseUnitTest` görevleri geçti.
+- Repo dışında oluşturulan upload key ile `bundleRelease` geçti.
+- `bundletool 1.18.3`, AAB manifest sözleşmesini doğruladı; JAR imzası upload sertifikasıyla eşleşti.
+- Yerel Internal Testing dosyası `YKS-Defterim-4.4.0-4040001.aab`, **29.950.020 byte** ve SHA-256 değeri `18d6257347d68aae4745db70b5df3fcc1ea449c5f7448c5c804b430690c4927f` olarak üretildi.
+
+Bu sonuç yerel doğrulamadır; GitHub Actions signed workflow'u ve Play Console yüklemesi henüz çalıştırılmamıştır.
+
+## Bilinen yayın öncesi işler
+
+- Upload key repo dışında oluşturuldu; parola yöneticisi/çevrimdışı yedek ve hesap sahibine güvenli teslim doğrulanmalı, ardından dört GitHub Environment secret'ı eklenmeli
+- Yerel signed AAB doğrulandı; GitHub Actions signed workflow'u ayrıca çalıştırılmalı ve indirilen artefakt checksum'u doğrulanmalı
+- Fiziksel telefon ve mümkünse tablet üzerinde smoke test
+- Signed AAB ağ trafiğinin izlenmesi ve Data Safety formunun buna göre tamamlanması
+- Gizlilik/deletion sayfaları, `main` dağıtılmadığı için beklenen canlı HTTPS adreslerinde şu anda 404 dönüyor; Play Console'a girilmeden önce yayınlanıp doğrulanmalı
+- 512 × 512 store icon, 1024 × 500 feature graphic ve gerçek cihaz ekran görüntüleri
+- Nihai geliştirici/yayıncı adı, destek e-postası, içerik derecelendirme ve target audience kararları
+- Internal Testing yüklemesi ve Play pre-launch report incelemesi
+
+Bu işler tamamlanmadan “Play Store'da yayınlandı” veya “production hazır” ifadesi kullanılmamalıdır.
+
+Tarayıcı self-test'i: `?selftest=v4`
