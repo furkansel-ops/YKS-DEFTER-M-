@@ -17,25 +17,28 @@ test("Paragraf ve problem takipçisi günlük D/Y/B kaydı ve YKS net hesabını
   assert.match(source,/Paragraf & Problem/);
 });
 
-test("Paragraf ve Problem Daha içinde bağımsız alt sayfadır",()=>{
+test("Paragraf ve Problem gerçek ana ekran olarak Odak ile Daha arasına eklenir",()=>{
   const source=read("src/ui/paragraph-problem-tracker.ts");
   const types=read("src/ui/types.ts");
-  const panels=read("src/ui/more-panels.ts");
-  assert.match(source,/PANEL_ID="mrp_pp"/);
-  assert.match(source,/v30-subhead/);
-  assert.match(source,/data-pp-back/);
-  assert.match(source,/target==="pp"/);
-  assert.match(source,/__YKS_UI__\?\.openMore/);
-  assert.match(types,/"pp"/);
-  assert.match(panels,/"pp"/);
+  const navigation=read("src/ui/navigation.ts");
+  const registry=read("src/ui/screens/registry.ts");
+  assert.match(types,/"pomo","pp","more"/);
+  assert.match(source,/SCREEN_ID="pp"/);
+  assert.match(source,/className="screen pp-screen"/);
+  assert.match(source,/tabbar\.insertBefore\(tab,moreTab\)/);
+  assert.match(source,/data-s=\"pp\"|dataset\.s="pp"/);
+  assert.match(source,/P &amp; P/);
+  assert.match(navigation,/pp:"Paragraf & Problem"/);
+  assert.match(registry,/paragraphProblemScreen/);
 });
 
-test("Takipçi UI köprüsünden önce yüklenerek pp yönlendirmesini resmi hale getirir",()=>{
+test("Takipçi navigasyon doğrulanmadan önce ekran kabuğunu kurar",()=>{
   const main=read("src/main.ts");
   const trackerAt=main.indexOf("const paragraphProblem=installParagraphProblemTracker()");
+  const screensAt=main.indexOf("const screens=installScreenRuntime()");
   const bridgeAt=main.indexOf("const ui=installLegacyUiBridge(screens)");
-  assert.ok(trackerAt>=0);
-  assert.ok(bridgeAt>=0);
-  assert.ok(trackerAt<bridgeAt);
+  assert.ok(trackerAt>=0&&screensAt>=0&&bridgeAt>=0);
+  assert.ok(trackerAt<screensAt);
+  assert.ok(screensAt<bridgeAt);
   assert.match(main,/paragraphProblemTracker/);
 });
