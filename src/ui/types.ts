@@ -1,7 +1,7 @@
-export const SCREEN_IDS=["home","program","topics","deneme","progress","pomo","more"] as const;
+export const SCREEN_IDS=["home","program","topics","deneme","progress","pomo","pp","more"] as const;
 export type ScreenId=(typeof SCREEN_IDS)[number];
 
-export const MORE_PANEL_IDS=["home","lab","kay","tak","roz","veri","ayar","pp","about"] as const;
+export const MORE_PANEL_IDS=["home","lab","kay","tak","roz","veri","ayar","about"] as const;
 export type MorePanelId=(typeof MORE_PANEL_IDS)[number];
 
 export type NavigationSource="legacy"|"inline"|"api";
