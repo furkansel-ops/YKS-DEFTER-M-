@@ -43,3 +43,9 @@ test("v4.3 Today 2.0 güvenli TypeScript runtime tarafından yüklenir ve tablet
   assert.match(css,/@media \(prefers-reduced-motion:reduce\)/);
   assert.match(css,/\[hidden\]/);
 });
+
+test("v4.3 Today 2.0 only becomes flex while the home screen is active",()=>{
+  const css=read("src/ui/today-v43.css");
+  assert.doesNotMatch(css,/#home\.v43-today\s*\{[^}]*display\s*:\s*flex/s);
+  assert.match(css,/#home\.v43-today\.active\s*\{[^}]*display\s*:\s*flex/s);
+});
