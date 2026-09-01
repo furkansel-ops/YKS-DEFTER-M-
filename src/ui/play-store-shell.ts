@@ -44,8 +44,9 @@ function updateCloudSyncIndicator(indicator:HTMLElement,box:HTMLElement):void{
   if(title)title.textContent=indicatorLabel(state);
   let timestamp=0;
   try{timestamp=Number(localStorage.getItem(LAST_SYNC_KEY)||0)||0;}catch{}
-  if(meta)meta.textContent=formatLastSync(timestamp);
-  indicator.setAttribute("aria-label",`${indicatorLabel(state)}. ${formatLastSync(timestamp)}`);
+  const lastSync=formatLastSync(timestamp);
+  if(meta)meta.textContent=lastSync;
+  indicator.setAttribute("aria-label",`${indicatorLabel(state)}. ${lastSync}`);
 }
 
 function installCloudSyncIndicator():boolean{
@@ -65,11 +66,13 @@ function installCloudSyncIndicator():boolean{
   }
   if(indicator.dataset.bound!=="1"){
     indicator.dataset.bound="1";
-    const observer=new MutationObserver(()=>updateCloudSyncIndicator(indicator!,box));
-    observer.observe(box,{attributes:true,attributeFilter:["data-state"],subtree:true,childList:true,characterData:true});
-    window.addEventListener("online",()=>updateCloudSyncIndicator(indicator!,box));
-    window.addEventListener("offline",()=>updateCloudSyncIndicator(indicator!,box));
-    window.setInterval(()=>updateCloudSyncIndicator(indicator!,box),30_000);
+    const refresh=()=>updateCloudSyncIndicator(indicator!,box);
+    const observer=new MutationObserver(refresh);
+    observer.observe(box,{attributes:true,attributeFilter:["data-state"]});
+    window.addEventListener("online",refresh,{passive:true});
+    window.addEventListener("offline",refresh,{passive:true});
+    document.addEventListener("visibilitychange",()=>{if(!document.hidden)refresh();},{passive:true});
+    window.setInterval(()=>{if(!document.hidden)refresh();},60_000);
   }
   updateCloudSyncIndicator(indicator,box);
   return true;
