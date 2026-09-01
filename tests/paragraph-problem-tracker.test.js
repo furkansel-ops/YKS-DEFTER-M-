@@ -32,6 +32,30 @@ test("Paragraf ve Problem gerçek ana ekran olarak Odak ile Daha arasına ekleni
   assert.match(registry,/paragraphProblemScreen/);
 });
 
+test("Paragraf ve Problem ayrıntılı performans merkezi 7, 14 ve 30 günlük analizleri içerir",()=>{
+  const source=read("src/ui/paragraph-problem-tracker.ts");
+  const css=read("src/ui/paragraph-problem-tracker.css");
+  for(const token of ["Performans merkezi","Son 14 gün","Performans sinyalleri","Son 7 gün ↔ önceki 7 gün","30 günlük ritim","Günlük döküm","Geçmiş oturumlar"])assert.match(source,new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")));
+  assert.match(source,/currentStreak/);
+  assert.match(source,/bestDay/);
+  assert.match(source,/deltaPercent/);
+  assert.match(source,/wrongRate/);
+  assert.match(source,/data-pp-kind-filter/);
+  assert.match(source,/data-pp-range-filter/);
+  assert.match(css,/\.pp-kind-grid/);
+  assert.match(css,/\.pp-trend/);
+  assert.match(css,/\.pp-heatmap/);
+  assert.match(css,/@media\(pointer:coarse\)/);
+  assert.match(css,/@media\(prefers-reduced-motion:reduce\)/);
+});
+
+test("Ayrıntılı P & P cilası mevcut veri şemasını büyütmeden yalnız entries kaydını kullanır",()=>{
+  const source=read("src/ui/paragraph-problem-tracker.ts");
+  assert.match(source,/type Tracker=\{entries:Entry\[\]\}/);
+  assert.doesNotMatch(source,/paragraphGoal|problemGoal|schemaVersion/);
+  assert.match(source,/\.slice\(-2000\)/);
+});
+
 test("Takipçi navigasyon doğrulanmadan önce ekran kabuğunu kurar",()=>{
   const main=read("src/main.ts");
   const trackerAt=main.indexOf("const paragraphProblem=installParagraphProblemTracker()");
