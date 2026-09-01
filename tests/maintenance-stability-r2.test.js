@@ -33,13 +33,14 @@ test("Laboratuvar yardımcıları global her tıklamada veya çift navigation di
   assert.match(chemistry,/section\.addEventListener\("click",onClick\)/);
 });
 
-test("bakım build kimliği PWA cache ve release dosyalarında aynıdır",()=>{
+test("mevcut 4.4.0 release kimliği korunurken service worker cache'i bakım için tazelenir",()=>{
   const version=read("src/release/version.ts"),json=JSON.parse(read("version.json")),sw=read("sw.js");
-  assert.match(version,/RELEASE_BUILD="4\.4\.0-r2"/);
-  assert.equal(json.build,"4.4.0-r2");
-  assert.match(sw,/APP_BUILD="4\.4\.0-r2"/);
-  assert.match(sw,/CACHE="yks-core-v4\.4\.0-r2"/);
-  assert.match(sw,/yks-core-v4\.4\.0-r1/);
+  assert.match(version,/RELEASE_BUILD="4\.4\.0-r1"/);
+  assert.equal(json.build,"4.4.0-r1");
+  assert.match(sw,/APP_BUILD="4\.4\.0-r1"/);
+  assert.match(sw,/CACHE="yks-core-v4\.4\.0-r1"/);
+  assert.match(sw,/cache refresh epoch: 2026-09-01-stability/);
+  assert.match(sw,/bakım güncellemeleri de no-store ile mevcut cache/);
 });
 
 test("eşitleme göstergesinin eski cam görünümü son stabilizasyon katmanında ezilmez",()=>{
