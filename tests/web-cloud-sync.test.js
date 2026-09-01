@@ -24,10 +24,25 @@ test("Web Firebase istemci yapılandırması Google girişinden önce geri yükl
   const index=read("index.html");
   assert.match(index,/apiKey:\s*""/);
   assert.match(shell,/FIREBASE_WEB_API_KEY="AIza/);
-  assert.match(shell,/runtimeSource=source\.textContent\.replace\(\/apiKey:/);
+  assert.match(shell,/patchLegacyCloudAuthSource/);
+  assert.match(shell,/replace\(\/apiKey:/);
   assert.match(shell,/runtime\.textContent=runtimeSource/);
   assert.match(shell,/webCloudAuthConfig="ready"/);
   assert.match(shell,/if\(isNativeApp\(\)\)return false/);
+});
+
+test("Google giriş popupı kullanıcı tıklamasında doğrudan açılır ve engellenirse redirect fallback kullanır",()=>{
+  const shell=read("src/ui/play-store-shell.ts");
+  assert.match(shell,/signInWithRedirect/);
+  assert.match(shell,/getRedirectResult/);
+  assert.match(shell,/setPersistence\(auth,browserLocalPersistence\)\.catch/);
+  assert.match(shell,/login\?\.addEventListener\(\"click\",\(\)=>\{/);
+  assert.match(shell,/signInWithPopup\(auth,provider\)\.catch/);
+  assert.doesNotMatch(shell,/await setPersistence\(auth,browserLocalPersistence\);await signInWithPopup/);
+  assert.match(shell,/auth\/popup-blocked/);
+  assert.match(shell,/auth\/operation-not-supported-in-this-environment/);
+  assert.match(shell,/Google'a yönlendiriliyor…/);
+  assert.match(shell,/prompt:\"select_account\"/);
 });
 
 test("Sağ alttaki canlı eşitleme göstergesi eski görünümü korurken Veri & Sistem içinde üst üste binmez",()=>{
