@@ -11,6 +11,7 @@ const TITLES:Record<ScreenId,string>={
   deneme:"Denemeler",
   progress:"İlerleme",
   pomo:"Odak",
+  pp:"Paragraf & Problem",
   more:"Daha"
 };
 
