@@ -12,9 +12,9 @@ function harness(){
   const ui={validate:()=>[],snapshot:()=>({activeScreen:active,activeMorePanel:"home",screenCount:8,tabCount:8}),navigate:id=>{active=id;return true;},openMore:()=>true,version:"4.0.0-alpha.7"};
   const data={schemaVersion:21,validate:()=>[],ready:Promise.resolve({ok:true,degraded:false,primary:"dexie"}),captureLegacyWrite:async()=>({ok:true,status:"written"}),flush:async()=>{},indexedSnapshot:async()=>({database:"yks-defterim-v4",statePresent:true,schema:21,sourceHash:"abcd"}),cloudPayload:async()=>({ok:true,json:cloud,schema:21,source:"dexie"}),applyCloudJSON:async json=>{applied++;return {ok:true,status:"applied",json};}};
   const host={
-    __YKS_V4_BOOTSTRAP__:{version:"4.4.0",build:"4.4.0-r2",legacyCore:"4.1.0-r20",channel:"stable",legacyRuntime:true},
+    __YKS_V4_BOOTSTRAP__:{version:"4.4.0",build:"4.4.0-r1",legacyCore:"4.1.0-r20",channel:"stable",legacyRuntime:true},
     __YKS_SERVICES__:{validate:()=>[]},__YKS_DOMAIN__:{validate:()=>[]},__YKS_SCREEN_RUNTIME__:{validate:()=>[]},__YKS_UI__:ui,__YKS_DATA__:data,
-    __YKS_BACKUP__:{version:"2.0.0"},__YKS_PWA__:{build:"4.4.0-r2"},__YKS_V43_RUNTIME__:{ready:Promise.resolve({ok:true})},
+    __YKS_BACKUP__:{version:"2.0.0"},__YKS_PWA__:{build:"4.4.0-r1"},__YKS_V43_RUNTIME__:{ready:Promise.resolve({ok:true})},
     YKSLegacyState:{readJSON:()=>raw},runReleaseSelfTest:()=>({ok:true}),setTimeout,clearTimeout,dispatchEvent:()=>{}
   };
   return {host,document,get active(){return active;},get output(){return output;},get applied(){return applied;}};
