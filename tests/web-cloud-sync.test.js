@@ -19,7 +19,7 @@ test("Web/PWA bulut eşitleme kartı geri gelir ve Android yerel sürüm ayrım�
   assert.doesNotMatch(shell,/legacyCloud\?\.remove\(\)/);
 });
 
-test("Sağ alttaki canlı eşitleme göstergesi gerçek bulut durumunu hafif gözlemle izler",()=>{
+test("Sağ alttaki canlı eşitleme göstergesi eski görünümü korurken gerçek bulut durumunu hafif gözlemle izler",()=>{
   const shell=read("src/ui/play-store-shell.ts");
   const css=read("src/ui/cloud-sync-indicator.css");
   const stability=read("src/ui/recent-feature-stability.css");
@@ -42,11 +42,12 @@ test("Sağ alttaki canlı eşitleme göstergesi gerçek bulut durumunu hafif gö
   assert.match(css,/position:fixed/);
   assert.match(css,/right:/);
   assert.match(css,/bottom:/);
+  assert.match(css,/backdrop-filter:blur\(12px\)/);
+  assert.match(css,/cloudSyncPulse/);
   assert.match(css,/data-state="synced"/);
   assert.match(css,/data-state="offline"/);
   assert.match(css,/data-state="error"/);
-  assert.match(stability,/backdrop-filter:none!important/);
-  assert.match(stability,/\.cloud-sync-indicator-dot[\s\S]*animation:none!important/);
+  assert.doesNotMatch(stability,/\.cloud-sync-indicator/);
   assert.match(main,/recent-feature-stability\.css/);
 });
 
