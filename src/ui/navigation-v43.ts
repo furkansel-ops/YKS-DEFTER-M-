@@ -6,6 +6,7 @@ interface MoreItem{action:MoreAction;label:string;description:string;icon:string
 interface MoreCategory{id:CategoryId;label:string;description:string;icon:string;items:readonly MoreItem[];}
 interface NavigationRuntime{installed:true;version:string;validate():string[];refresh():void;}
 type LegacyWindow=Window&{v30Action?:(action:string)=>unknown;go?:(screen:string)=>unknown;};
+type RouteDetail={to?:string};
 declare global{interface Window{__YKS_NAV_V43__?:NavigationRuntime;}}
 
 const VERSION="4.3.0-stage5";
@@ -81,12 +82,21 @@ export function installNavigationV43():NavigationRuntime{
     renderCategory();renameNavigation();return true;
   }
   let queued=false;
-  /* Observer, modülün kendi metin yazımlarını da görür. Aynı metni yeniden yazmamak
-     ana iş parçacığını aç bırakabilecek sonsuz microtask döngüsünü engeller. */
   const refresh=()=>{if(queued)return;queued=true;queueMicrotask(()=>{queued=false;mount();});};
-  const observer=new MutationObserver(mutations=>{if(mutations.some(m=>m.target instanceof Element&&!m.target.closest("#v43MoreHub")))refresh();});
-  observer.observe(document.documentElement,{childList:true,subtree:true});
-  window.addEventListener("yks:navigation-after",refresh);document.addEventListener("yks:navigation-after",refresh);mount();
+
+  /* Eski sürüm bütün document ağacını MutationObserver ile izleyip alakasız her DOM
+     değişiminde Daha araçlarını yeniden innerHTML ile çiziyordu. Bu, tıklama anında
+     düğümün değiştirilmesine ve tabletlerde gereksiz ana iş parçacığı yüküne yol açıyordu.
+     Hub artık yalnız Daha ekranına gerçekten girildiğinde yenilenir. */
+  window.addEventListener("yks:navigation-after",event=>{
+    const detail=(event as CustomEvent<RouteDetail>).detail;
+    if(detail?.to==="more")refresh();
+  });
+  window.addEventListener("yks:more-after",event=>{
+    const detail=(event as CustomEvent<RouteDetail>).detail;
+    if(detail?.to==="home")refresh();
+  });
+  mount();
   const api:NavigationRuntime={installed:true,version:VERSION,validate(){const issues:string[]=[];if(!document.getElementById("v43MoreHub"))issues.push("hub");if(document.querySelectorAll("[data-v43-more-category]").length!==4)issues.push("categories");const more=document.querySelector<HTMLElement>('[data-s="more"]');if(more&&more.getAttribute("aria-label")!=="Merkez")issues.push("nav-label");return issues;},refresh};
   window.__YKS_NAV_V43__=api;return api;
 }
