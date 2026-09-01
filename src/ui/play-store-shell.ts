@@ -6,6 +6,7 @@ const CARD_ID="playStorePrivacyCard";
 const CLOUD_CARD_ID="cloudSyncBox";
 const CLOUD_INDICATOR_ID="cloudSyncIndicator";
 const LAST_SYNC_KEY="yks_last_sync_at";
+const FIREBASE_WEB_API_KEY="AIzaSyA0UMRKwah3Ji9Z8Sd3ZvgLJUKiC40fVSc";
 
 type CapacitorWindow=Window&{Capacitor?:{isNativePlatform?:()=>boolean}};
 type SyncState="synced"|"syncing"|"connecting"|"offline"|"error"|"signedout";
@@ -113,7 +114,7 @@ function installCloudSyncCard():boolean{
   if(!target)return false;
   const card=document.createElement("section");
   card.id=CLOUD_CARD_ID;
-  card.className="restcard";
+  card.className="restcard web-cloud-sync-card";
   card.dataset.state="signedout";
   card.setAttribute("aria-label","Bulut eşitleme");
   card.innerHTML=`<div class="section-label">Bulut eşitleme</div>
@@ -138,11 +139,27 @@ function activateLegacyCloudSync():boolean{
   if(isNativeApp())return false;
   const source=document.getElementById("legacyFirebaseSyncModule") as HTMLScriptElement|null;
   if(!source||source.dataset.activated==="1"||!source.textContent?.trim())return false;
+
+  /* Play Store hazırlığında index içindeki web API anahtarı boşaltılmıştı. Native Android
+     hâlâ yerel modda kalıyor; yalnız web/PWA için daha önce çalışan Firebase istemci
+     yapılandırmasını çalışma anında geri koyuyoruz. Firebase Web API key bir istemci
+     yapılandırma değeridir; yetkilendirme yine Firebase Auth/Rules tarafından yapılır. */
+  const runtimeSource=source.textContent.replace(/apiKey:\s*"[^"]*"/,`apiKey:"${FIREBASE_WEB_API_KEY}"`);
+  if(runtimeSource===source.textContent){
+    const text=document.getElementById("cloudSyncText");
+    const meta=document.getElementById("cloudSyncMeta");
+    const box=document.getElementById(CLOUD_CARD_ID);
+    if(text)text.textContent="Eşitleme yapılandırması bulunamadı";
+    if(meta)meta.textContent="Uygulama güncellemesini yeniden yükle";
+    if(box)box.dataset.state="error";
+    return false;
+  }
+
   source.dataset.activated="1";
   const runtime=document.createElement("script");
   runtime.type="module";
   runtime.dataset.legacyFirebaseRuntime="active";
-  runtime.textContent=source.textContent;
+  runtime.textContent=runtimeSource;
   runtime.addEventListener("error",()=>{
     const text=document.getElementById("cloudSyncText");
     const meta=document.getElementById("cloudSyncMeta");
@@ -152,6 +169,7 @@ function activateLegacyCloudSync():boolean{
     if(box)box.dataset.state="error";
   });
   document.body.append(runtime);
+  document.documentElement.dataset.webCloudAuthConfig="ready";
   return true;
 }
 
