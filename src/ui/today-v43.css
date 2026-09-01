@@ -1,7 +1,10 @@
 #home.v43-today{
-  display:flex;
   flex-direction:column;
   gap:14px;
+}
+
+#home.v43-today.active{
+  display:flex;
 }
 
 #home.v43-today>.home-head,
