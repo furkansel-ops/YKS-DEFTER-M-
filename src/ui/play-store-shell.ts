@@ -1,13 +1,78 @@
 import Dexie from "dexie";
 import {YKS_DATABASE_NAME} from "../data/database";
+import "./cloud-sync-indicator.css";
 
 const CARD_ID="playStorePrivacyCard";
 const CLOUD_CARD_ID="cloudSyncBox";
+const CLOUD_INDICATOR_ID="cloudSyncIndicator";
+const LAST_SYNC_KEY="yks_last_sync_at";
 
 type CapacitorWindow=Window&{Capacitor?:{isNativePlatform?:()=>boolean}};
+type SyncState="synced"|"syncing"|"connecting"|"offline"|"error"|"signedout";
 
 function isNativeApp():boolean{
   try{return !!(window as CapacitorWindow).Capacitor?.isNativePlatform?.();}catch{return false;}
+}
+
+function formatLastSync(timestamp:number):string{
+  if(!timestamp)return "Henüz eşitlenmedi";
+  const date=new Date(timestamp);
+  if(!Number.isFinite(date.getTime()))return "Henüz eşitlenmedi";
+  const today=new Date();
+  if(date.toDateString()===today.toDateString())return `Son eşitleme ${date.toLocaleTimeString("tr-TR",{hour:"2-digit",minute:"2-digit"})}`;
+  return `Son eşitleme ${date.toLocaleDateString("tr-TR",{day:"2-digit",month:"short"})} ${date.toLocaleTimeString("tr-TR",{hour:"2-digit",minute:"2-digit"})}`;
+}
+
+function indicatorLabel(state:SyncState):string{
+  if(state==="synced")return "Eşitlendi";
+  if(state==="syncing"||state==="connecting")return "Eşitleniyor…";
+  if(state==="offline")return "Çevrimdışı";
+  if(state==="error")return "Eşitleme hatası";
+  return "Bulut eşitleme kapalı";
+}
+
+function readSyncState(box:HTMLElement):SyncState{
+  const state=box.dataset.state;
+  return state==="synced"||state==="syncing"||state==="connecting"||state==="offline"||state==="error"?state:"signedout";
+}
+
+function updateCloudSyncIndicator(indicator:HTMLElement,box:HTMLElement):void{
+  const state=readSyncState(box);
+  const title=indicator.querySelector<HTMLElement>("[data-cloud-indicator-title]");
+  const meta=indicator.querySelector<HTMLElement>("[data-cloud-indicator-meta]");
+  indicator.dataset.state=state;
+  if(title)title.textContent=indicatorLabel(state);
+  let timestamp=0;
+  try{timestamp=Number(localStorage.getItem(LAST_SYNC_KEY)||0)||0;}catch{}
+  if(meta)meta.textContent=formatLastSync(timestamp);
+  indicator.setAttribute("aria-label",`${indicatorLabel(state)}. ${formatLastSync(timestamp)}`);
+}
+
+function installCloudSyncIndicator():boolean{
+  if(isNativeApp())return false;
+  const box=document.getElementById(CLOUD_CARD_ID);
+  if(!box)return false;
+  let indicator=document.getElementById(CLOUD_INDICATOR_ID);
+  if(!indicator){
+    indicator=document.createElement("aside");
+    indicator.id=CLOUD_INDICATOR_ID;
+    indicator.className="cloud-sync-indicator";
+    indicator.dataset.state="signedout";
+    indicator.setAttribute("role","status");
+    indicator.setAttribute("aria-live","polite");
+    indicator.innerHTML=`<span class="cloud-sync-indicator-dot" aria-hidden="true"></span><span class="cloud-sync-indicator-copy"><strong data-cloud-indicator-title>Bulut eşitleme kapalı</strong><small data-cloud-indicator-meta>Henüz eşitlenmedi</small></span>`;
+    document.body.append(indicator);
+  }
+  if(indicator.dataset.bound!=="1"){
+    indicator.dataset.bound="1";
+    const observer=new MutationObserver(()=>updateCloudSyncIndicator(indicator!,box));
+    observer.observe(box,{attributes:true,attributeFilter:["data-state"],subtree:true,childList:true,characterData:true});
+    window.addEventListener("online",()=>updateCloudSyncIndicator(indicator!,box));
+    window.addEventListener("offline",()=>updateCloudSyncIndicator(indicator!,box));
+    window.setInterval(()=>updateCloudSyncIndicator(indicator!,box),30_000);
+  }
+  updateCloudSyncIndicator(indicator,box);
+  return true;
 }
 
 async function clearAppCaches():Promise<void>{
@@ -78,8 +143,10 @@ function activateLegacyCloudSync():boolean{
   runtime.addEventListener("error",()=>{
     const text=document.getElementById("cloudSyncText");
     const meta=document.getElementById("cloudSyncMeta");
+    const box=document.getElementById(CLOUD_CARD_ID);
     if(text)text.textContent="Eşitleme başlatılamadı";
     if(meta)meta.textContent="Bağlantıyı kontrol edip sayfayı yenile";
+    if(box)box.dataset.state="error";
   });
   document.body.append(runtime);
   return true;
@@ -109,19 +176,29 @@ function installPolicyCard():boolean{
 
 export function installPlayStoreShell():{installed:boolean;legacyCloudRemoved:boolean}{
   const cloudInstalled=installCloudSyncCard();
-  if(cloudInstalled)activateLegacyCloudSync();
+  if(cloudInstalled){
+    installCloudSyncIndicator();
+    activateLegacyCloudSync();
+  }
   const installed=installPolicyCard();
   if(!installed||(!cloudInstalled&&!isNativeApp())){
     window.addEventListener("yks:v4-bootstrap",()=>{
-      if(installCloudSyncCard())activateLegacyCloudSync();
+      if(installCloudSyncCard()){
+        installCloudSyncIndicator();
+        activateLegacyCloudSync();
+      }
       installPolicyCard();
     },{once:true});
     setTimeout(()=>{
-      if(installCloudSyncCard())activateLegacyCloudSync();
+      if(installCloudSyncCard()){
+        installCloudSyncIndicator();
+        activateLegacyCloudSync();
+      }
       installPolicyCard();
     },0);
   }
   document.documentElement.dataset.playStoreShell=installed?"ready":"deferred";
   document.documentElement.dataset.webCloudSync=cloudInstalled?"ready":isNativeApp()?"native-local":"deferred";
+  document.documentElement.dataset.cloudSyncIndicator=cloudInstalled?"ready":isNativeApp()?"native-hidden":"deferred";
   return {installed,legacyCloudRemoved:false};
 }
