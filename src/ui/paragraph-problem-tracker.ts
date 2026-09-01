@@ -7,6 +7,7 @@ type LegacyWindow=Window&{S?:Record<string,unknown>&{paragraphProblem?:Tracker};
 
 const ROOT_ID="paragraphProblemTracker";
 const win=window as LegacyWindow;
+const ESCAPE_MAP:Record<string,string>={"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;","\"":"&quot;"};
 
 function todayKey():string{
   const d=new Date(),y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,"0"),day=String(d.getDate()).padStart(2,"0");
@@ -17,10 +18,10 @@ function safeInt(value:unknown):number{
   return Number.isFinite(n)?Math.max(0,Math.min(999,n)):0;
 }
 function state():Tracker|null{
-  if(!win.S)return null;
-  const existing=win.S.paragraphProblem;
-  if(!existing||!Array.isArray(existing.entries))win.S.paragraphProblem={entries:[]};
-  const tracker=win.S.paragraphProblem as Tracker;
+  const root=win.S;if(!root)return null;
+  const existing=root.paragraphProblem;
+  if(!existing||!Array.isArray(existing.entries))root.paragraphProblem={entries:[]};
+  const tracker=root.paragraphProblem as Tracker;
   tracker.entries=tracker.entries.filter(item=>item&&typeof item.id==="string"&&(item.kind==="paragraph"||item.kind==="problem")&&typeof item.date==="string").map(item=>({
     ...item,correct:safeInt(item.correct),wrong:safeInt(item.wrong),blank:safeInt(item.blank),createdAt:Number(item.createdAt)||Date.now()
   })).slice(-2000);
@@ -42,12 +43,15 @@ function metrics(entries:Entry[]){
 }
 function fmtNet(n:number):string{return Number.isInteger(n)?String(n):n.toFixed(2).replace(".",",");}
 function fmtPct(n:number):string{return `${Math.round(n)}%`;}
-function escapeHtml(value:string):string{return value.replace(/[&<>'"]/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;","\"":"&quot;"}[ch]||ch));}
+function escapeHtml(value:string):string{return value.replace(/[&<>'"]/g,ch=>ESCAPE_MAP[ch]??ch);}
 function dateLabel(key:string):string{
-  const [y,m,d]=key.split("-").map(Number),dt=new Date(y,m-1,d);
-  return Number.isFinite(dt.getTime())?dt.toLocaleDateString("tr-TR",{day:"2-digit",month:"short"}):key;
+  const parts=key.split("-"),y=Number(parts[0]??0),m=Number(parts[1]??0),d=Number(parts[2]??0),dt=new Date(y,m-1,d);
+  return y>0&&m>0&&d>0&&Number.isFinite(dt.getTime())?dt.toLocaleDateString("tr-TR",{day:"2-digit",month:"short"}):key;
 }
-function id():string{return globalThis.crypto?.randomUUID?.()||`pp-${Date.now()}-${Math.random().toString(36).slice(2,8)}`;}
+function id():string{
+  const cryptoApi=globalThis.crypto;
+  return cryptoApi&&typeof cryptoApi.randomUUID==="function"?cryptoApi.randomUUID():`pp-${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
+}
 function lastDays(count:number):string[]{
   const out:string[]=[];const now=new Date();
   for(let i=count-1;i>=0;i--){const d=new Date(now);d.setDate(now.getDate()-i);out.push(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`);}return out;
