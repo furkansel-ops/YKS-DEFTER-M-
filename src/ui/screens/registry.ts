@@ -6,6 +6,7 @@ import {topicsScreen} from "./topics";
 import {examsScreen} from "./exams";
 import {progressScreen} from "./progress";
 import {focusScreen} from "./focus";
+import {paragraphProblemScreen} from "./paragraph-problem";
 import {moreScreen} from "./more";
 
 export const SCREEN_MODULES:readonly ScreenModule[]=[
@@ -15,6 +16,7 @@ export const SCREEN_MODULES:readonly ScreenModule[]=[
   examsScreen,
   progressScreen,
   focusScreen,
+  paragraphProblemScreen,
   moreScreen
 ];
 
