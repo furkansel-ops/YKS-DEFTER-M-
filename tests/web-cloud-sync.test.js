@@ -36,9 +36,10 @@ test("Google giriş popupı kullanıcı tıklamasında doğrudan açılır ve en
   assert.match(shell,/signInWithRedirect/);
   assert.match(shell,/getRedirectResult/);
   assert.match(shell,/setPersistence\(auth,browserLocalPersistence\)\.catch/);
+  assert.match(shell,/const newLogin=`setPersistence/);
   assert.match(shell,/login\?\.addEventListener\(\"click\",\(\)=>\{/);
   assert.match(shell,/signInWithPopup\(auth,provider\)\.catch/);
-  assert.doesNotMatch(shell,/await setPersistence\(auth,browserLocalPersistence\);await signInWithPopup/);
+  assert.match(shell,/runtimeSource\.includes\('await setPersistence\(auth,browserLocalPersistence\);await signInWithPopup'\)/);
   assert.match(shell,/auth\/popup-blocked/);
   assert.match(shell,/auth\/operation-not-supported-in-this-environment/);
   assert.match(shell,/Google'a yönlendiriliyor…/);
