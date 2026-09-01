@@ -83,6 +83,9 @@ const domain=installLegacyDomainBridge();
 const progressAnalysis=installLegacyProgressAnalysisBridge();
 const examAnalysis=installLegacyExamAnalysisBridge();
 const pwa=installPwaRuntime(RELEASE_BUILD);
+/* Daha içindeki bağımsız Paragraf & Problem paneli, UI köprüsü legacy setMoreTab işlevini
+   yakalamadan önce kurulmalı; böylece tipli yönlendirme de pp panelini resmi olarak tanır. */
+const paragraphProblem=installParagraphProblemTracker();
 const screens=installScreenRuntime();
 const ui=installLegacyUiBridge(screens);
 window.__YKS_V4_BOOTSTRAP__=bootstrap;
@@ -97,12 +100,11 @@ document.documentElement.dataset.v4DomainErrors=String(domain.validate().length)
 document.documentElement.dataset.v4ProgressAnalysisErrors=String(progressAnalysis.validate().length);
 document.documentElement.dataset.v4ExamAnalysisErrors=String(examAnalysis.validate().length);
 document.documentElement.dataset.v4PwaBuild=pwa.build;
+document.documentElement.dataset.paragraphProblemTracker=paragraphProblem.installed?"ready":"deferred";
 window.dispatchEvent(new CustomEvent<BootstrapState>("yks:v4-bootstrap",{detail:bootstrap}));
 
 const playStoreShell=installPlayStoreShell();
 document.documentElement.dataset.playStorePrivacy=playStoreShell.installed?"ready":"deferred";
-const paragraphProblem=installParagraphProblemTracker();
-document.documentElement.dataset.paragraphProblemTracker=paragraphProblem.installed?"ready":"deferred";
 const v43Runtime=installV43SafeRuntime();
 document.documentElement.dataset.v43RuntimeHost=String(v43Runtime.installed);
 const release=installReleaseRuntime();
