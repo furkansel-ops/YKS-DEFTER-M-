@@ -28,9 +28,13 @@ test("legacy ekran adaptörleri çizim sırasını ve performans ertelemelerini 
   assert.match(adapters,/call\("setMoreTab",environment\.call\("activeMoreTab"\)\)/);
 });
 
-test("aktif ekran yenilemesi güvenli biçimde TypeScript'e bağlanır",()=>{
+test("aktif ekran yenilemesi güvenli biçimde TypeScript'e bağlanır ve legacy yönlendirme korunur",()=>{
   const runtime=read("src/ui/screen-runtime.ts"),navigation=read("src/ui/navigation.ts");
   assert.match(runtime,/legacyRefresh/);assert.match(runtime,/renderCurrent\("external-state"\)\|\|legacyRefresh\(\)/);
-  assert.match(navigation,/if\(!this\.#screenRuntime\.render\(value,source\)\)result=this\.#legacyGo\(value\)/);
-  assert.match(navigation,/classList\.toggle\("wide",screen===\"program\"\)/);
+  const legacyAt=navigation.indexOf("result=this.#legacyGo(value)");
+  const ppAt=navigation.indexOf('if(value==="pp")');
+  assert.ok(legacyAt>=0&&ppAt>legacyAt);
+  assert.match(navigation,/else if\(\(legacyFailed\|\|active!==value\)&&this\.#screenRuntime\)/);
+  assert.match(navigation,/this\.#screenRuntime\.render\(value,source\)/);
+  assert.match(navigation,/classList\.toggle\("wide",screen==="program"\)/);
 });
