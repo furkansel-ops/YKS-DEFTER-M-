@@ -46,7 +46,7 @@ async function loadAll():Promise<V43RuntimeReport>{
 
   /* Her ürün modülü ayrı dynamic import + try/catch sınırında yüklenir.
      Ekran render köprüleri de ancak ilgili chunk başarıyla yüklendikten sonra yayınlanır.
-     Tek bir v4.3 özelliği hata verse bile legacy çekirdek, veri katmanı ve Firebase giriş akışı çalışmaya devam eder. */
+     Tek bir v4.3 özelliği hata verse bile legacy çekirdek ve yerel veri katmanı çalışmaya devam eder. */
   features.push(await loadFeature("v43Today","v43TodayErrors",async()=>{
     const mod=await import("./today-v43");return mod.installTodayV43();
   }));

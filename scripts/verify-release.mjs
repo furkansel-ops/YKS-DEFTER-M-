@@ -15,7 +15,7 @@ const checks={
   stable:bundle.includes("stable"),runtime:bundle.includes("YKS_V4_RELEASE_OK"),legacy:legacy.includes("v4-bootstrap"),
   legacyCore:bundle.includes("4.1.0-r20"),releaseOverlay:bundle.includes("v42ReleaseOverlay")&&bundle.includes("remoteVersionIsNewer"),
   recovery:bundle.includes("v42RecoveryCenter")&&bundle.includes("v4BackupVersion")&&bundle.includes("backup-recovery"),
-  transaction:bundle.includes("runTransaction as"),conflict:bundle.includes("SYNC_CONFLICT"),hash:bundle.includes("infraHash("),
+  localOnly:!index.includes("firebaseSyncModule")&&!index.includes("legacyFirebaseSyncModule")&&!index.includes("www.gstatic.com/firebasejs")&&!index.includes("cloudSyncBox"),
   dexie:bundle.includes("yks-defterim-v4"),screens:bundle.includes("screen-transitions"),
   v43:v43Markers.every(marker=>bundle.includes(marker))&&bundle.includes("degraded"),
   pwa:sw.includes(`const APP_VERSION="${localVersion.version}"`)&&sw.includes(`const APP_BUILD="${localVersion.build}"`)&&sw.includes(`const CACHE="yks-core-v${localVersion.build}"`)&&sw.includes('"yks-core-v4.3.1-r1"')&&sw.includes('"yks-core-v4.3.0-r1"')&&sw.includes('"yks-core-v4.2.0-r1"')

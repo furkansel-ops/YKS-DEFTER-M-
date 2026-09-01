@@ -24,7 +24,7 @@ for(const prefix of v44StandalonePrefixes){
   if(!file)fail(`v4.4 lazy parçası bulunamadı: ${prefix}`);
   v44Chunks.set(prefix,file);
 }
-const atlasJs=files.find(name=>/^biology-atlas-(?!model-).+\.js$/.test(name));
+const atlasJs=files.find(name=>/^biology-atlas-(?!model-|diagrams-).+\.js$/.test(name));
 const topicMapCss=files.find(name=>/^biology-topic-map-v44-.+\.css$/.test(name));
 if(!atlasJs||!topicMapCss)fail("Biyoloji konu haritası Atlas lazy sınırında paketlenmedi");
 

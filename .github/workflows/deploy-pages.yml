@@ -21,12 +21,12 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Kaynak kodu al
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
 
       - name: Node.js ortamını hazırla
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: 22
           cache: npm
@@ -38,28 +38,36 @@ jobs:
       - name: Kararlı sürümü doğrula ve derle
         run: npm run release:check
 
-      - name: v4.3.1 yedek ZIP'ini hazırla
+      - name: Yayın kimliğini hazırla
         run: |
-          rm -rf .release-backup YKS-Defterim-v4.3.1-backup.zip
+          node -e '
+            const fs=require("node:fs");
+            const release=JSON.parse(fs.readFileSync("version.json","utf8"));
+            fs.appendFileSync(process.env.GITHUB_ENV,`RELEASE_VERSION=${release.version}\nRELEASE_BUILD=${release.build}\n`);
+          '
+
+      - name: Kararlı sürüm yedek ZIP'ini hazırla
+        run: |
+          rm -rf .release-backup "YKS-Defterim-v${RELEASE_VERSION}-backup.zip"
           mkdir -p .release-backup/source .release-backup/production
           git archive HEAD | tar -x -C .release-backup/source
           cp -a dist/. .release-backup/production/
-          printf 'YKS Defterim v4.3.1\nBuild: 4.3.1-r1\nCommit: %s\n' "$GITHUB_SHA" > .release-backup/BACKUP-INFO.txt
-          (cd .release-backup && zip -qr ../YKS-Defterim-v4.3.1-backup.zip .)
+          printf 'YKS Defterim v%s\nBuild: %s\nCommit: %s\n' "$RELEASE_VERSION" "$RELEASE_BUILD" "$GITHUB_SHA" > .release-backup/BACKUP-INFO.txt
+          (cd .release-backup && zip -qr "../YKS-Defterim-v${RELEASE_VERSION}-backup.zip" .)
 
       - name: Yedek ZIP artefaktını yükle
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
-          name: yks-defterim-v4.3.1-backup
-          path: YKS-Defterim-v4.3.1-backup.zip
+          name: yks-defterim-v${{ env.RELEASE_VERSION }}-backup
+          path: YKS-Defterim-v${{ env.RELEASE_VERSION }}-backup.zip
           if-no-files-found: error
           retention-days: 30
 
       - name: GitHub Pages'i hazırla
-        uses: actions/configure-pages@v6
+        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6
 
       - name: Üretim paketini yükle
-        uses: actions/upload-pages-artifact@v5
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5
         with:
           path: ./dist
 
@@ -72,19 +80,19 @@ jobs:
     needs: build
     steps:
       - name: Kaynak kodu al
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
 
       - name: Node.js ortamını hazırla
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: 22
 
       # deploy-pages job conclusion değeri GitHub tarafından yönetilir; eski Pages dağıtımı ayrıca beklenmez.
       - name: GitHub Pages'e dağıt
         id: deployment
-        uses: actions/deploy-pages@v5
+        uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5
 
       - name: Canlı sürümü doğrula
         env:

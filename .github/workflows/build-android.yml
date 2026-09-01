@@ -1,0 +1,369 @@
+name: Android AAB · Google Play Internal Testing
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/build-android.yml"
+      - "android/**"
+      - "capacitor.config.ts"
+      - "scripts/**"
+      - "package.json"
+      - "package-lock.json"
+      - "version.json"
+      - "vite.config.mts"
+      - "index.html"
+      - "app.js"
+      - "app.css"
+      - "sw.js"
+      - "privacy.html"
+      - "data-deletion.html"
+      - "src/**"
+      - "modules/**"
+      - "public/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-aab-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  web-check:
+    name: Node ${{ matrix.node }} · web release:check
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        node:
+          - 22
+          - 24
+    steps:
+      - name: Kaynak kodu al
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Node.js ${{ matrix.node }} ortamını hazırla
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Bağımlılıkları kilit dosyasından kur
+        run: npm ci --no-audit --no-fund
+
+      - name: Web sürüm kapısını doğrula
+        run: npm run release:check
+
+  android-quality:
+    name: API 36 · Android lint ve unit test
+    needs: web-check
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Kaynak kodu al
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Node.js 22 ortamını hazırla
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Java 21 ortamını hazırla
+        uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c # v6
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: gradle
+          cache-dependency-path: |
+            android/*.gradle
+            android/gradle/wrapper/gradle-wrapper.properties
+            android/app/*.gradle
+
+      - name: Android SDK 36 ortamını hazırla
+        uses: android-actions/setup-android@40fd30fb8d7440372e1316f5d1809ec01dcd3699 # v4
+        with:
+          packages: "platform-tools platforms;android-36 build-tools;36.0.0"
+
+      - name: Bağımlılıkları kilit dosyasından kur
+        run: npm ci --no-audit --no-fund
+
+      - name: Takip edilen Android projesini ve yayın sözleşmesini doğrula
+        shell: bash
+        run: |
+          set -euo pipefail
+          git ls-files --error-unmatch -- \
+            android/gradlew \
+            android/gradle/wrapper/gradle-wrapper.jar \
+            android/gradle/wrapper/gradle-wrapper.properties \
+            android/app/build.gradle \
+            android/variables.gradle >/dev/null
+          npm run android:verify
+
+      - name: Web paketini üret ve Android projesiyle eşitle
+        run: |
+          npm run build:assets
+          npx cap sync android
+
+      - name: Gradle wrapper, Android lint ve unit testlerini çalıştır
+        working-directory: android
+        run: |
+          chmod +x ./gradlew
+          ./gradlew --no-daemon --warning-mode all --version
+          ./gradlew --no-daemon --warning-mode all lintRelease testReleaseUnitTest
+
+  signed-aab:
+    name: API 36 · imzalı release AAB
+    if: github.event_name == 'workflow_dispatch'
+    needs:
+      - web-check
+      - android-quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    environment: google-play-internal
+    env:
+      CAPACITOR_VERSION: "8.5.0"
+      BUNDLETOOL_VERSION: "1.18.3"
+      BUNDLETOOL_SHA256: "a099cfa1543f55593bc2ed16a70a7c67fe54b1747bb7301f37fdfd6d91028e29"
+    steps:
+      - name: Kaynak kodu al
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Korumalı yayın dalı güvenlik kapısı
+        shell: bash
+        env:
+          REF_PROTECTED: ${{ github.ref_protected }}
+        run: |
+          set -euo pipefail
+          if [ "$REF_PROTECTED" != "true" ]; then
+            echo "::error::İmzalı AAB yalnız GitHub branch protection etkin bir yayın dalından üretilebilir."
+            exit 1
+          fi
+
+      - name: Node.js 22 ortamını hazırla
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Java 21 ortamını hazırla
+        uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c # v6
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: gradle
+          cache-dependency-path: |
+            android/*.gradle
+            android/gradle/wrapper/gradle-wrapper.properties
+            android/app/*.gradle
+
+      - name: Android SDK 36 ortamını hazırla
+        uses: android-actions/setup-android@40fd30fb8d7440372e1316f5d1809ec01dcd3699 # v4
+        with:
+          packages: "platform-tools platforms;android-36 build-tools;36.0.0"
+
+      # Signing secret'ları bu npm adımlarına verilmez.
+      - name: Bağımlılıkları kilit dosyasından kur
+        run: npm ci --no-audit --no-fund
+
+      - name: Capacitor 8.5.0 sözleşmesini doğrula
+        run: |
+          node -e '
+            const pkg = require("./package.json");
+            for (const name of ["@capacitor/core", "@capacitor/android", "@capacitor/cli"]) {
+              const actual = pkg.dependencies?.[name] ?? pkg.devDependencies?.[name];
+              if (actual !== process.env.CAPACITOR_VERSION) {
+                throw new Error(`${name} ${actual ?? "eksik"}; ${process.env.CAPACITOR_VERSION} gerekli`);
+              }
+            }
+          '
+
+      - name: Takip edilen Android projesini doğrula
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f android/gradlew
+          test -f android/app/build.gradle
+          test -f android/variables.gradle
+          git ls-files --error-unmatch -- \
+            android/gradlew \
+            android/app/build.gradle \
+            android/variables.gradle >/dev/null
+
+      - name: Web paketini üret ve takip edilen Android projesiyle eşitle
+        run: |
+          npm run build:assets
+          npx cap sync android
+
+      - name: Gradle wrapper checksum'unu ve bundletool paketini doğrula
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x android/gradlew
+          (cd android && ./gradlew --no-daemon --warning-mode all --version)
+          curl --fail --location --silent --show-error \
+            "https://github.com/google/bundletool/releases/download/${BUNDLETOOL_VERSION}/bundletool-all-${BUNDLETOOL_VERSION}.jar" \
+            --output "$RUNNER_TEMP/bundletool.jar"
+          printf '%s  %s\n' "$BUNDLETOOL_SHA256" "$RUNNER_TEMP/bundletool.jar" \
+            | sha256sum --check --strict
+
+      - name: İmzalama secret'larını doğrula ve upload keystore'u hazırla
+        shell: bash
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          missing=0
+          for secret_name in \
+            ANDROID_KEYSTORE_BASE64 \
+            ANDROID_KEYSTORE_PASSWORD \
+            ANDROID_KEY_ALIAS \
+            ANDROID_KEY_PASSWORD
+          do
+            if [ -z "${!secret_name:-}" ]; then
+              echo "::error::${secret_name} secret'ı tanımlı değil."
+              missing=1
+            fi
+          done
+          test "$missing" -eq 0
+
+          umask 077
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" \
+            | base64 --decode > "$RUNNER_TEMP/yks-defterim-upload.jks"
+          test -s "$RUNNER_TEMP/yks-defterim-upload.jks"
+          keytool -list \
+            -keystore "$RUNNER_TEMP/yks-defterim-upload.jks" \
+            -storepass "$ANDROID_KEYSTORE_PASSWORD" \
+            -alias "$ANDROID_KEY_ALIAS" >/dev/null
+
+      - name: API, sürüm ve zorunlu release imzalama ayarlarını uygula
+        env:
+          ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/yks-defterim-upload.jks
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: node scripts/prepare-android-release.mjs
+
+      - name: İmzalı Android App Bundle üret
+        working-directory: android
+        env:
+          ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/yks-defterim-upload.jks
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          chmod +x ./gradlew
+          ./gradlew --no-daemon --warning-mode all bundleRelease
+
+      - name: AAB, metadata ve imzalama sertifikasını doğrula
+        shell: bash
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: |
+          set -euo pipefail
+          aab="android/app/build/outputs/bundle/release/app-release.aab"
+          metadata="android/yks-release-metadata.json"
+          keystore="$RUNNER_TEMP/yks-defterim-upload.jks"
+          manifest="$RUNNER_TEMP/aab-manifest.xml"
+
+          test -s "$aab"
+          test -s "$metadata"
+          unzip -t "$aab" >/dev/null
+          java -jar "$RUNNER_TEMP/bundletool.jar" validate --bundle="$aab" >/dev/null
+          java -jar "$RUNNER_TEMP/bundletool.jar" dump manifest \
+            --bundle="$aab" --module=base > "$manifest"
+          test -s "$manifest"
+          node -e '
+            const fs = require("node:fs");
+            const metadata = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+            const manifest = fs.readFileSync(process.argv[2], "utf8");
+            const release = JSON.parse(fs.readFileSync("version.json", "utf8"));
+            const [major, minor, patch] = release.version.split(".").map(Number);
+            const revision = Number(String(release.build).match(/-r(\d+)$/)?.[1] ?? 1);
+            const expectedVersionCode = major * 1_000_000 + minor * 10_000 + patch * 100 + revision;
+            if (metadata.signed !== true) throw new Error("Play AAB imzasız olarak işaretlenmiş");
+            if (metadata.appId !== "com.furkansel.yksdefterim") throw new Error("applicationId uyuşmuyor");
+            if (release.version !== "4.4.0" || metadata.versionName !== release.version) {
+              throw new Error("versionName uyuşmuyor");
+            }
+            if (metadata.compileSdk !== 36 || metadata.targetSdk !== 36 || metadata.minSdk !== 24) {
+              throw new Error("Android SDK sözleşmesi uyuşmuyor");
+            }
+            if (!Number.isInteger(expectedVersionCode) || metadata.versionCode !== expectedVersionCode) {
+              throw new Error(`versionCode uyuşmuyor: ${metadata.versionCode} != ${expectedVersionCode}`);
+            }
+            for (const [pattern, label] of [
+              [/package="com\.furkansel\.yksdefterim"/, "AAB applicationId"],
+              [/versionName="4\.4\.0"/, "AAB versionName"],
+              [/versionCode="4040001"/, "AAB versionCode"],
+              [/minSdkVersion="24"/, "AAB minSdk"],
+              [/targetSdkVersion="36"/, "AAB targetSdk"],
+              [/usesCleartextTraffic="false"/, "AAB cleartext"],
+              [/allowBackup="false"/, "AAB backup"]
+            ]) if (!pattern.test(manifest)) throw new Error(`${label} doğrulanamadı`);
+            if (/android\.intent\.category\.BROWSABLE|android\.intent\.action\.VIEW/.test(manifest)) {
+              throw new Error("Beklenmeyen deep-link intent-filter bulundu");
+            }
+          ' "$metadata" "$manifest"
+
+          jarsigner -verify "$aab" \
+            | tee "$RUNNER_TEMP/jarsigner-verify.txt"
+          grep -q '^jar verified\.$' "$RUNNER_TEMP/jarsigner-verify.txt"
+
+          keytool -list -v \
+            -keystore "$keystore" \
+            -storepass "$ANDROID_KEYSTORE_PASSWORD" \
+            -alias "$ANDROID_KEY_ALIAS" \
+            > "$RUNNER_TEMP/upload-key.txt"
+          keytool -printcert -jarfile "$aab" \
+            > "$RUNNER_TEMP/aab-cert.txt"
+          expected_fingerprint="$(awk '/SHA256:/{print $2; exit}' "$RUNNER_TEMP/upload-key.txt")"
+          actual_fingerprint="$(awk '/SHA256:/{print $2; exit}' "$RUNNER_TEMP/aab-cert.txt")"
+          test -n "$expected_fingerprint"
+          test "$actual_fingerprint" = "$expected_fingerprint"
+
+          artifact_dir="$RUNNER_TEMP/play-internal-artifact"
+          artifact_name="YKS-Defterim-4.4.0-4040001.aab"
+          mkdir -p "$artifact_dir"
+          cp "$aab" "$artifact_dir/$artifact_name"
+          cp "$metadata" "$artifact_dir/release-metadata.json"
+          cp "$manifest" "$artifact_dir/AndroidManifest.xml"
+          (cd "$artifact_dir" && sha256sum "$artifact_name" > "$artifact_name.sha256")
+          echo "AAB doğrulandı: $(du -h "$aab" | cut -f1), upload sertifikası eşleşti."
+
+      - name: Play Internal Testing AAB artefaktını yükle
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: yks-defterim-play-internal-aab
+          path: ${{ runner.temp }}/play-internal-artifact/*
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0
+
+      - name: Geçici imzalama dosyalarını temizle
+        if: always()
+        shell: bash
+        run: |
+          rm -f \
+            "$RUNNER_TEMP/yks-defterim-upload.jks" \
+            "$RUNNER_TEMP/jarsigner-verify.txt" \
+            "$RUNNER_TEMP/upload-key.txt" \
+            "$RUNNER_TEMP/aab-cert.txt" \
+            "$RUNNER_TEMP/aab-manifest.xml" \
+            "$RUNNER_TEMP/bundletool.jar"
+          rm -rf "$RUNNER_TEMP/play-internal-artifact"

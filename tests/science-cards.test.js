@@ -177,7 +177,7 @@ test("Bilim arayüzü tekrar bağlandığında DOM'u ve dinleyicileri çoğaltma
   const window = {addEventListener() {}, YKSLegacyState: {readState: () => state, save: () => true}};
   const search = nodes.get("v4ScienceSearch");
   const document = {activeElement: search};
-  const source = fs.readFileSync(path.join(root, "src/ui/science-cards.ts"), "utf8").replace(/^import[\s\S]*?;\n/gm, "");
+  const source = fs.readFileSync(path.join(root, "src/ui/science-cards.ts"), "utf8").replace(/^import[\s\S]*?;\r?\n/gm, "");
   const javascript = stripTypeScriptTypes(source).replace("export function installScienceCards", "function installScienceCards");
   const context = {...apiModule, ...data, ...markup, window, document, Element: FakeElement, HTMLButtonElement: FakeButton, HTMLInputElement: FakeInput, HTMLSelectElement: FakeSelect};
   vm.runInNewContext(javascript + "\nthis.install = installScienceCards;", context);

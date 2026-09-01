@@ -1,0 +1,8 @@
+YKS Defterim'in ilk Android test sürümü.
+
+• TYT/AYT/YDT konu, deneme ve ilerleme takibi
+• Tamamen manuel haftalık Program
+• Sayaç, Pomodoro ve kronometre
+• Biyoloji Atlası; fizik ve kimya görsel öğrenme araçları
+• Temel akışlarda çevrimdışı kullanım ve yerel JSON yedeği
+• Uygulama içi gizlilik bilgisi ve cihaz verilerini silme

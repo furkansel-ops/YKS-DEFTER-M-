@@ -27,6 +27,12 @@ export function verifyLiveAssets({index,bundle,legacyApp,serviceWorker=""}){
   return {bundlePath,release:RELEASE_MARKER,releaseBuild:BUILD_RELEASE_MARKER,legacyVersion:LEGACY_VERSION,legacyBuild:LEGACY_BUILD};
 }
 
+export function verifyPolicyPages({privacy,deletion}){
+  if(!privacy.includes("YKS Defterim Gizlilik Politikası")||!privacy.includes("IndexedDB/Dexie")||privacy.includes("Firebase"))throw new Error("Canlı gizlilik politikası eksik veya yayın sözleşmesiyle uyumsuz");
+  if(!deletion.includes("YKS Defterim cihaz verilerini silme")||!deletion.includes("Cihaz verilerini sil")||!deletion.includes("IndexedDB/Dexie"))throw new Error("Canlı veri silme sayfası eksik veya yayın sözleşmesiyle uyumsuz");
+  return {privacy:true,deletion:true};
+}
+
 function cacheBusted(url,token){const value=new URL(url);value.searchParams.set("__yks_verify",token);return value;}
 async function fetchText(url,token){
   const response=await fetch(cacheBusted(url,token),{cache:"no-store",headers:{"cache-control":"no-cache"},signal:AbortSignal.timeout(15000)});
@@ -40,8 +46,15 @@ export async function verifyLivePages(baseUrl,{attempts=12,delayMs=5000}={}){
     try{
       const token=`${Date.now()}-${attempt}`,index=await fetchText(base,token),bundlePath=extractBundlePath(index);
       if(!bundlePath)throw new Error("Canlı sayfada Vite JavaScript paketi bulunamadı");
-      const [bundle,legacyApp,serviceWorker]=await Promise.all([fetchText(new URL(bundlePath,base),token),fetchText(new URL("app.js?v=4.1.0-r20",base),token),fetchText(new URL("sw.js",base),token)]);
-      return verifyLiveAssets({index,bundle,legacyApp,serviceWorker});
+      const [bundle,legacyApp,serviceWorker,privacy,deletion]=await Promise.all([
+        fetchText(new URL(bundlePath,base),token),
+        fetchText(new URL("app.js?v=4.1.0-r20",base),token),
+        fetchText(new URL("sw.js",base),token),
+        fetchText(new URL("privacy.html",base),token),
+        fetchText(new URL("data-deletion.html",base),token)
+      ]);
+      const release=verifyLiveAssets({index,bundle,legacyApp,serviceWorker});
+      return {...release,...verifyPolicyPages({privacy,deletion})};
     }catch(error){lastError=error;if(attempt<attempts)await new Promise(resolve=>setTimeout(resolve,delayMs));}
   }
   throw new Error(`Canlı GitHub Pages doğrulaması başarısız: ${lastError instanceof Error?lastError.message:String(lastError)}`);
@@ -52,5 +65,5 @@ if(import.meta.url===invokedPath){
   const liveUrl=process.env.LIVE_URL||process.argv[2];
   if(!liveUrl)throw new Error("LIVE_URL ortam değişkeni veya URL argümanı gerekli");
   const result=await verifyLivePages(liveUrl);
-  console.log(`Canlı GitHub Pages doğrulandı: ${result.release} (${result.releaseBuild}), legacy ${result.legacyBuild}, ${result.bundlePath}`);
+  console.log(`Canlı GitHub Pages ve politika sayfaları doğrulandı: ${result.release} (${result.releaseBuild}), legacy ${result.legacyBuild}, ${result.bundlePath}`);
 }

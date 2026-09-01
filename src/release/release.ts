@@ -112,7 +112,7 @@ export function createReleaseRuntime(host:Window,documentRef:Document):ReleaseAp
         return snapshot.database==="yks-defterim-v4"&&snapshot.statePresent&&snapshot.schema===21&&!!snapshot.sourceHash;
       });
       let cloudJSON="";
-      await add("firebase-payload",async()=>{
+      await add("portable-payload",async()=>{
         if(!data)return false;
         const payload=await data.cloudPayload();
         if(!payload.ok)return false;
@@ -120,7 +120,7 @@ export function createReleaseRuntime(host:Window,documentRef:Document):ReleaseAp
         const value=JSON.parse(payload.json);
         return payload.schema===21&&payload.source==="dexie"&&value.focus?.sw?.run===false&&value.yt?.key==="";
       });
-      await add("firebase-download-path",async()=>{
+      await add("external-restore-path",async()=>{
         if(!data||!raw||!cloudJSON)return false;
         const result=await data.applyCloudJSON(raw);
         return result.ok&&result.status==="applied"&&JSON.parse(result.json??raw).v===21;
