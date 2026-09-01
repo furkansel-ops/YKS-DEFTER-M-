@@ -5,11 +5,11 @@ const {pathToFileURL}=require("node:url");
 const root=path.resolve(__dirname,".."),releaseUrl=pathToFileURL(path.join(root,"src/release/release.ts")).href;
 
 function harness(){
-  const ids=["home","program","topics","deneme","progress","pomo","more"];let active="home",output=null,applied=0;
+  const ids=["home","program","topics","deneme","progress","pomo","pp","more"];let active="home",output=null,applied=0;
   const screens=ids.map(id=>({id,classList:{contains:name=>name==="active"&&id===active}}));
   const document={documentElement:{dataset:{v42ReleaseOverlay:"ready",appVersion:"4.4.0",v4RecoveryErrors:"0",v43Runtime:"ready",v43RuntimeErrors:"0",v43Today:"true",v43TodayErrors:"0",v43Analysis:"true",v43AnalysisErrors:"0",v43LearningCycle:"true",v43LearningCycleErrors:"0",v43LabQuiz:"true",v43LabQuizErrors:"0",v43Navigation:"true",v43NavigationErrors:"0",v43Personalization:"true",v43PersonalizationErrors:"0",v43FocusSessionGuard:"true",v43FocusSessionGuardErrors:"0"}},body:{appendChild:node=>{output=node;}},querySelectorAll:selector=>selector===".screen.active"?screens.filter(x=>x.id===active):selector===".screen"?screens:[],getElementById:id=>id==="v4ReleaseResult"?output:null,createElement:()=>({id:"",hidden:false,textContent:""})};
   const raw=JSON.stringify({v:21,focus:{sw:{run:true,start:1,acc:2,cr:3},swLaps:[]},yt:{key:"yerel",src:"key",err:""}}),cloud=JSON.stringify({v:21,focus:{sw:{run:false,start:0,acc:0,cr:0},swLaps:[]},yt:{key:"",src:"key",err:""}});
-  const ui={validate:()=>[],snapshot:()=>({activeScreen:active,activeMorePanel:"home",screenCount:7,tabCount:7}),navigate:id=>{active=id;return true;},openMore:()=>true,version:"4.0.0-alpha.7"};
+  const ui={validate:()=>[],snapshot:()=>({activeScreen:active,activeMorePanel:"home",screenCount:8,tabCount:8}),navigate:id=>{active=id;return true;},openMore:()=>true,version:"4.0.0-alpha.7"};
   const data={schemaVersion:21,validate:()=>[],ready:Promise.resolve({ok:true,degraded:false,primary:"dexie"}),captureLegacyWrite:async()=>({ok:true,status:"written"}),flush:async()=>{},indexedSnapshot:async()=>({database:"yks-defterim-v4",statePresent:true,schema:21,sourceHash:"abcd"}),cloudPayload:async()=>({ok:true,json:cloud,schema:21,source:"dexie"}),applyCloudJSON:async json=>{applied++;return {ok:true,status:"applied",json};}};
   const host={
     __YKS_V4_BOOTSTRAP__:{version:"4.4.0",build:"4.4.0-r1",legacyCore:"4.1.0-r20",channel:"stable",legacyRuntime:true},
