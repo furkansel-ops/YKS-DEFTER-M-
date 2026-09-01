@@ -32,7 +32,7 @@ export class MorePanelsController{
 
   validate():string[]{
     const errors:string[]=[];
-    for(const panel of ["lab","kay","tak","roz","veri","ayar"] as const){
+    for(const panel of ["lab","kay","tak","roz","veri","ayar","pp"] as const){
       if(!byId(`mrp_${panel}`))errors.push(`Daha paneli bulunamadı: ${panel}`);
     }
     if(!byId("v30MoreHome"))errors.push("Daha ana sayfası bulunamadı");
@@ -43,7 +43,7 @@ export class MorePanelsController{
   #detect():MorePanelId{
     const about=byId("v30AboutPanel");
     if(about&&about.style.display!=="none")return "about";
-    for(const panel of ["lab","kay","tak","roz","veri","ayar"] as const){
+    for(const panel of ["lab","kay","tak","roz","veri","ayar","pp"] as const){
       const element=byId(`mrp_${panel}`);
       if(element&&element.style.display!=="none")return panel;
     }
