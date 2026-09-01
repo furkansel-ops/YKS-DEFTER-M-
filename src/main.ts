@@ -19,6 +19,7 @@ import {installV43SafeRuntime} from "./ui/v43-safe-runtime";
 import {installPlayStoreShell} from "./ui/play-store-shell";
 import {installParagraphProblemTracker} from "./ui/paragraph-problem-tracker";
 import "./ui/visual-stability-hotfix.css";
+import "./ui/recent-feature-stability.css";
 
 type BootstrapState={
   version:typeof RELEASE_VERSION;
@@ -68,9 +69,21 @@ const bootstrap:BootstrapState={
   startedAt:Date.now()
 };
 
+let optionalFeatureErrors=0;
+function installOptional<T>(name:string,installer:()=>T,fallback:T):T{
+  try{return installer();}
+  catch(error){
+    optionalFeatureErrors++;
+    document.documentElement.dataset.v4OptionalErrors=String(optionalFeatureErrors);
+    console.error(`İsteğe bağlı özellik başlatılamadı: ${name}`,error);
+    return fallback;
+  }
+}
+document.documentElement.dataset.v4OptionalErrors="0";
+
 /* Çekirdek açılış zinciri yalnız kararlı altyapı modüllerinden oluşur.
-   v4.3 ürün katmanları ve mağaza yardımcıları aşağıda, bootstrap tamamlandıktan sonra
-   ayrı fail-open sınırlarında yüklenir. */
+   Ürün katmanları ve yardımcı arayüzler fail-open sınırlarında tutulur: tek bir yeni
+   özellik hata verirse uygulamanın geri kalanı açılmaya devam eder. */
 const services=installLegacyServiceBridge();
 const data=installLegacyDataBridge();
 installScienceCards();
@@ -83,9 +96,14 @@ const domain=installLegacyDomainBridge();
 const progressAnalysis=installLegacyProgressAnalysisBridge();
 const examAnalysis=installLegacyExamAnalysisBridge();
 const pwa=installPwaRuntime(RELEASE_BUILD);
-/* Daha içindeki bağımsız Paragraf & Problem paneli, UI köprüsü legacy setMoreTab işlevini
-   yakalamadan önce kurulmalı; böylece tipli yönlendirme de pp panelini resmi olarak tanır. */
-const paragraphProblem=installParagraphProblemTracker();
+
+/* P & P ekran kabuğunun navigasyon doğrulamasından önce kurulması gerekir; ancak
+   kurulum hatası artık çekirdek açılışı durdurmaz. */
+const paragraphProblem=installOptional(
+  "paragraph-problem",
+  ()=>installParagraphProblemTracker(),
+  {installed:false,entries:0}
+);
 const screens=installScreenRuntime();
 const ui=installLegacyUiBridge(screens);
 window.__YKS_V4_BOOTSTRAP__=bootstrap;
@@ -103,7 +121,11 @@ document.documentElement.dataset.v4PwaBuild=pwa.build;
 document.documentElement.dataset.paragraphProblemTracker=paragraphProblem.installed?"ready":"deferred";
 window.dispatchEvent(new CustomEvent<BootstrapState>("yks:v4-bootstrap",{detail:bootstrap}));
 
-const playStoreShell=installPlayStoreShell();
+const playStoreShell=installOptional(
+  "play-store-shell",
+  ()=>installPlayStoreShell(),
+  {installed:false,legacyCloudRemoved:false}
+);
 document.documentElement.dataset.playStorePrivacy=playStoreShell.installed?"ready":"deferred";
 const v43Runtime=installV43SafeRuntime();
 document.documentElement.dataset.v43RuntimeHost=String(v43Runtime.installed);
