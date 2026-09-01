@@ -17,6 +17,7 @@ import {installLabInteractionsBridgeV44} from "./ui/lab-interactions-bridge-v44"
 import {installRecoveryCenter} from "./ui/recovery-center";
 import {installV43SafeRuntime} from "./ui/v43-safe-runtime";
 import {installPlayStoreShell} from "./ui/play-store-shell";
+import "./ui/visual-stability-hotfix.css";
 
 type BootstrapState={
   version:typeof RELEASE_VERSION;
