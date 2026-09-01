@@ -56,13 +56,16 @@ test("Ayrıntılı P & P cilası mevcut veri şemasını büyütmeden yalnız en
   assert.match(source,/\.slice\(-2000\)/);
 });
 
-test("Takipçi navigasyon doğrulanmadan önce ekran kabuğunu kurar",()=>{
+test("P & P navigasyon doğrulanmadan önce kurulur ama hata verirse çekirdek açılışı durdurmaz",()=>{
   const main=read("src/main.ts");
-  const trackerAt=main.indexOf("const paragraphProblem=installParagraphProblemTracker()");
+  const trackerAt=main.indexOf("const paragraphProblem=installOptional(");
+  const installAt=main.indexOf("()=>installParagraphProblemTracker()");
   const screensAt=main.indexOf("const screens=installScreenRuntime()");
   const bridgeAt=main.indexOf("const ui=installLegacyUiBridge(screens)");
-  assert.ok(trackerAt>=0&&screensAt>=0&&bridgeAt>=0);
-  assert.ok(trackerAt<screensAt);
+  assert.ok(trackerAt>=0&&installAt>=0&&screensAt>=0&&bridgeAt>=0);
+  assert.ok(trackerAt<installAt&&installAt<screensAt);
   assert.ok(screensAt<bridgeAt);
+  assert.match(main,/function installOptional/);
+  assert.match(main,/v4OptionalErrors/);
   assert.match(main,/paragraphProblemTracker/);
 });
