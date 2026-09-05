@@ -5,9 +5,11 @@ dist/
 npm-debug.log*
 public/anatomy/
 
-# Android/Google Play yerel ve gizli dosyaları
+# Android dağıtımına ait yerel, ikili ve gizli dosyalar
 *.jks
 *.keystore
+*.apk
+*.aab
 *.jks.base64
 *.keystore.base64
 *.b64
@@ -22,3 +24,6 @@ android/captures/
 android/yks-release-metadata.json
 work/
 google-services.json
+
+# Local Sleek design review artifacts
+sleek-output/

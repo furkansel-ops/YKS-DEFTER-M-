@@ -18,7 +18,28 @@ test("Merkez mevcut v30Action alt sayfalarını korur ve Analiz Merkezi için ay
   assert.match(ui,/legacy\(\)\.v30Action\?\.\(action\)/);
   assert.match(ui,/action==="progress"/);
   assert.match(ui,/legacy\(\)\.go\?\.\("progress"\)/);
+  assert.match(ui,/legacy\(\)\.go\?\.\("deneme"\)/);
+  assert.match(ui,/legacy\(\)\.go\?\.\("pp"\)/);
+  for(const label of ["Denemeler","Paragraf & Problem"])assert.ok(ui.includes(label));
   for(const action of ["lab","resources","tactics","archive","success","reports","settings","about","data","system","backup","log"])assert.ok(ui.includes(`action:"${action}"`));
+});
+
+test("telefon kabuğu beş ana sekme, güvenli alan ve tek aktif ekran sözleşmesini korur",()=>{
+  const ui=read("src/ui/navigation-v43.ts"),css=read("src/ui/mobile-app-shell.css"),main=read("src/main.ts");
+  assert.match(main,/import "\.\/ui\/mobile-app-shell\.css"/);
+  assert.match(css,/@media \(max-width:760px\)/);
+  assert.match(css,/grid-template-columns:repeat\(5,minmax\(0,1fr\)\)/);
+  for(const screen of ["deneme","progress","pp"])assert.ok(css.includes(`data-s="${screen}"`));
+  assert.match(css,/\.screen:not\(\.active\)/);
+  assert.match(css,/display:none!important/);
+  assert.match(css,/safe-area-inset-top/);
+  assert.match(css,/safe-area-inset-bottom/);
+  assert.match(css,/min-height:44px/);
+  assert.match(css,/input:not\(\[type="checkbox"\]\):not\(\[type="radio"\]\)/);
+  assert.match(css,/input:is\(\[type="checkbox"\],\[type="radio"\]\)[\s\S]*min-height:20px/);
+  assert.match(css,/pointer:coarse/);
+  assert.match(ui,/SECONDARY_MOBILE_ROUTES/);
+  assert.match(ui,/aria-current/);
 });
 
 test("Daha navigasyonu Merkez olarak sadeleşir ve eski kalabalık kartlar yalnız görünümde gizlenir",()=>{

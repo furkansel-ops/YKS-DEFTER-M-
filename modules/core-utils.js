@@ -7,13 +7,108 @@
 
   const clone=value=>value===undefined?undefined:JSON.parse(JSON.stringify(value));
   const isObject=value=>!!value&&typeof value==="object"&&!Array.isArray(value);
+  const sameValue=(a,b)=>{
+    if(a===b)return true;
+    try{return JSON.stringify(a)===JSON.stringify(b);}catch(e){return false;}
+  };
   const stamp=value=>Math.max(0,Number(value?.updatedAt||value?.at||value?.end||value?.t||0)||0);
+  const recordKey=(value,path="")=>{
+    if(!value||typeof value!=="object"||Array.isArray(value))return "";
+    if(value.id!==undefined&&value.id!==null)return "id:"+String(value.id);
+    if(value.key!==undefined&&value.key!==null)return "key:"+String(value.key);
+    if(path==="contracts"&&value.wk)return "contract:"+String(value.wk);
+    if(value.day&&value.subj)return "session:"+[value.day,value.t,value.subj,value.topic,value.m].join("|");
+    if(value.t!==undefined&&value.t!==null)return "time:"+[value.t,value.subj,value.topic,value.type,value.m].join("|");
+    return "";
+  };
   const stableKey=(value,index)=>{
-    if(value&&value.id!==undefined&&value.id!==null)return "id:"+String(value.id);
-    if(value&&value.key)return "key:"+String(value.key);
-    if(value&&value.day&&value.subj)return "session:"+[value.day,value.t,value.subj,value.topic,value.m].join("|");
+    const key=recordKey(value);
+    if(key)return key;
     return "value:"+JSON.stringify(value)+":"+index;
   };
+
+  const setArrayPath=path=>/(^|\.)(badges|favTeachers|formulaFav|elementFav|timelineFav|topicFav|rev)$/.test(path)||path==="morning.done"||path==="teachers[].d";
+  const multisetArrayPath=path=>path==="books[].log";
+  function mergeSetArray3(base,remote,local){
+    const values=new Map(),keys=value=>JSON.stringify(value);
+    for(const value of [...base,...remote,...local])values.set(keys(value),clone(value));
+    const has=(list,key)=>list.some(value=>keys(value)===key),out=[];
+    for(const [key,value] of values){
+      const b=has(base,key),r=has(remote,key),l=has(local,key);
+      if((b&&r&&l)||(!b&&(r||l)))out.push(value);
+    }
+    return out;
+  }
+  function mergeMultisetArray3(base,remote,local){
+    const key=value=>JSON.stringify(value),counts=list=>{
+      const map=new Map();for(const value of list){const k=key(value),row=map.get(k)||{value:clone(value),count:0};row.count++;map.set(k,row);}return map;
+    };
+    const bm=counts(base),rm=counts(remote),lm=counts(local),order=[];
+    for(const list of [remote,local,base])for(const value of list){const k=key(value);if(!order.includes(k))order.push(k);}
+    const out=[];
+    for(const k of order){
+      const b=bm.get(k)?.count||0,r=rm.get(k)?.count||0,l=lm.get(k)?.count||0;
+      const count=r===l?r:r===b?l:l===b?r:Math.max(0,r+l-b);
+      const value=(lm.get(k)||rm.get(k)||bm.get(k)).value;
+      for(let i=0;i<count;i++)out.push(clone(value));
+    }
+    return out;
+  }
+  function mergeRecordArray3(base,remote,local,path){
+    const maps=[base,remote,local].map(list=>new Map(list.map(value=>[recordKey(value,path),value])));
+    const order=[];
+    for(const list of [remote,local,base])for(const value of list){const key=recordKey(value,path);if(key&&!order.includes(key))order.push(key);}
+    const out=[];
+    for(const key of order){
+      const value=mergeValue3(maps[0].get(key),maps[1].get(key),maps[2].get(key),path+"[]");
+      if(value!==undefined)out.push(value);
+    }
+    return out;
+  }
+  function mergeArray3(base,remote,local,path){
+    if(setArrayPath(path))return mergeSetArray3(base,remote,local);
+    if(multisetArrayPath(path))return mergeMultisetArray3(base,remote,local);
+    const all=[...base,...remote,...local],keyed=all.length>0&&all.every(value=>!!recordKey(value,path));
+    if(keyed)return mergeRecordArray3(base,remote,local,path);
+    const out=[],length=Math.max(base.length,remote.length,local.length);
+    for(let i=0;i<length;i++){
+      const value=mergeValue3(base[i],remote[i],local[i],path+"[]");
+      if(value!==undefined)out.push(value);
+    }
+    return out;
+  }
+  function mergeValue3(base,remote,local,path=""){
+    if(sameValue(remote,local))return clone(remote);
+    if(sameValue(remote,base))return clone(local);
+    if(sameValue(local,base))return clone(remote);
+    /* Bir taraf tabandaki değeri açıkça kaldırmışsa, diğer taraftaki eski veya
+       eşzamanlı düzenleme kaydı yeniden diriltmesin. Çakışma yedeği üst katmanda
+       tutulduğu için kullanıcı gerekirse silinen sürüme geri dönebilir. */
+    if(remote===undefined||local===undefined)return undefined;
+    if(Array.isArray(remote)&&Array.isArray(local))return mergeArray3(Array.isArray(base)?base:[],remote,local,path);
+    if(isObject(remote)&&isObject(local)){
+      /* Sabah kontrol listesi yalnız kendi gününe aittir. İki cihaz farklı
+         günlerdeyse en yeni günün nesnesini bütün olarak seç; eski günün
+         tamamlamalarını yeni güne taşımak yanlış işaretler üretir. */
+      if(path==="morning"&&remote.day!==local.day){
+        const rd=String(remote.day||""),ld=String(local.day||"");
+        return clone(rd>ld?remote:local);
+      }
+      const b=isObject(base)?base:{},out={};
+      for(const key of new Set([...Object.keys(b),...Object.keys(remote),...Object.keys(local)])){
+        const value=mergeValue3(b[key],remote[key],local[key],path?path+"."+key:key);
+        if(value!==undefined)out[key]=value;
+      }
+      if(path==="books[]"&&Number.isFinite(out.done)&&Number.isFinite(out.total))out.done=Math.max(0,Math.min(Number(out.total),Number(out.done)));
+      return out;
+    }
+    /* Kaynak ilerlemesi artı/eksi düğmeleriyle delta olarak değişir. Aynı
+       tabandan iki cihazın yaptığı değişiklikleri topla; birini ezme. */
+    if(path==="books[].done"&&[base,remote,local].every(Number.isFinite))return Math.max(0,Number(remote)+Number(local)-Number(base));
+    /* Aynı alan iki cihazda da değiştiyse, çakışmayı çözmekte olan cihazın
+       bekleyen yerel düzeltmesi son yazma olarak kabul edilir. */
+    return clone(local);
+  }
 
   function mergeArray(remote,local){
     const map=new Map();
@@ -134,8 +229,13 @@
     };
   }
 
-  function mergeStates(remote,local,schemaVersion){
+  function mergeStates(remote,local,schemaVersion,base){
     const r=isObject(remote)?remote:{},l=isObject(local)?local:{};
+    if(isObject(base)){
+      const out=mergeValue3(base,r,l)||{};
+      out.v=Math.max(Number(schemaVersion)||0,Number(base.v)||0,Number(r.v)||0,Number(l.v)||0);
+      return out;
+    }
     const out=Object.assign({},clone(r),clone(l));
     ["solved","pomoMin","pauses"].forEach(key=>out[key]=mergeNumberMap(r[key],l[key]));
     ["solvedTopic","pomoSubj"].forEach(key=>out[key]=mergeNestedNumberMap(r[key],l[key]));

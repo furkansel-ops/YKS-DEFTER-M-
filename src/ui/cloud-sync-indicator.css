@@ -1,1 +1,87 @@
-.cloud-sync-indicator{position:fixed;right:max(16px,env(safe-area-inset-right));bottom:calc(82px + env(safe-area-inset-bottom));z-index:68;display:flex;align-items:center;gap:10px;min-width:168px;max-width:min(260px,calc(100vw - 32px));padding:10px 12px;border:1px solid var(--line);border-radius:16px;background:color-mix(in srgb,var(--surface,#fff) 88%,transparent);box-shadow:0 12px 32px rgba(15,23,42,.12);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);pointer-events:none;user-select:none}.cloud-sync-indicator-dot{width:9px;height:9px;flex:0 0 9px;border-radius:999px;background:#94a3b8;box-shadow:0 0 0 4px rgba(148,163,184,.14)}.cloud-sync-indicator-copy{display:grid;gap:2px;min-width:0}.cloud-sync-indicator-copy strong{font-size:12.5px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cloud-sync-indicator-copy small{font-size:10.5px;line-height:1.2;color:var(--label-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cloud-sync-indicator[data-state="synced"] .cloud-sync-indicator-dot{background:#22c55e;box-shadow:0 0 0 4px rgba(34,197,94,.13)}.cloud-sync-indicator[data-state="syncing"] .cloud-sync-indicator-dot,.cloud-sync-indicator[data-state="connecting"] .cloud-sync-indicator-dot{background:#3b82f6;box-shadow:0 0 0 4px rgba(59,130,246,.13);animation:cloudSyncPulse 1.3s ease-in-out infinite}.cloud-sync-indicator[data-state="offline"] .cloud-sync-indicator-dot{background:#f59e0b;box-shadow:0 0 0 4px rgba(245,158,11,.14)}.cloud-sync-indicator[data-state="error"] .cloud-sync-indicator-dot{background:#ef4444;box-shadow:0 0 0 4px rgba(239,68,68,.14)}.cloud-sync-indicator[data-state="signedout"]{opacity:.84}.cloud-sync-indicator[data-state="signedout"] .cloud-sync-indicator-dot{background:#94a3b8}.web-cloud-sync-card{position:relative;z-index:0}html[data-active-more-panel="veri"] .cloud-sync-indicator{display:none!important}@keyframes cloudSyncPulse{0%,100%{transform:scale(1);opacity:.75}50%{transform:scale(1.2);opacity:1}}@media(max-width:700px){.cloud-sync-indicator{right:12px;bottom:calc(76px + env(safe-area-inset-bottom));min-width:150px;padding:9px 10px;border-radius:14px}.cloud-sync-indicator-copy strong{font-size:12px}.cloud-sync-indicator-copy small{font-size:10px}}@media(pointer:coarse){.cloud-sync-indicator{backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}}@media(prefers-reduced-motion:reduce){.cloud-sync-indicator-dot{animation:none!important;transition:none!important}}
+/* Web eşitleme bir ekran katmanı değil, Daha > Veri içindeki normal bir karttır.
+   app.css'teki tarihsel sağ-alt kutu kurallarını bilinçli olarak geçersiz kılar. */
+#cloudSyncBox.web-cloud-sync-card{
+  position:static!important;
+  inset:auto!important;
+  right:auto!important;
+  bottom:auto!important;
+  z-index:auto!important;
+  display:grid!important;
+  gap:14px!important;
+  width:auto!important;
+  min-width:0!important;
+  max-width:none!important;
+  margin:14px 0 0!important;
+  padding:18px!important;
+  border-radius:20px!important;
+  background:var(--surface,var(--glass-strong))!important;
+  border:1px solid var(--line,var(--glass-line))!important;
+  box-shadow:var(--shadow-1,0 10px 28px rgba(15,23,42,.08))!important;
+  -webkit-backdrop-filter:none!important;
+  backdrop-filter:none!important;
+  font-family:var(--font,Inter,system-ui,sans-serif)!important;
+}
+
+#cloudSyncBox .cloud-sync-heading{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:14px;
+}
+
+#cloudSyncBox .cloud-sync-heading h2{
+  margin:2px 0 0;
+  font-size:clamp(16px,3.8vw,20px);
+  line-height:1.25;
+}
+
+#cloudSyncBox .cloudSyncDot{
+  width:11px!important;
+  height:11px!important;
+  margin-top:7px;
+  flex:0 0 11px!important;
+  border-radius:999px;
+  background:var(--label-3,#94a3b8);
+  box-shadow:0 0 0 5px var(--fill,rgba(148,163,184,.14));
+}
+
+#cloudSyncBox[data-state="synced"] .cloudSyncDot{background:var(--success,#22c55e);box-shadow:0 0 0 5px var(--success-soft,rgba(34,197,94,.14))}
+#cloudSyncBox[data-state="syncing"] .cloudSyncDot,
+#cloudSyncBox[data-state="connecting"] .cloudSyncDot{background:var(--time,#3b82f6);box-shadow:0 0 0 5px var(--time-soft,rgba(59,130,246,.14));animation:cloudSyncPulse 1.3s ease-in-out infinite}
+#cloudSyncBox[data-state="offline"] .cloudSyncDot{background:#f59e0b;box-shadow:0 0 0 5px rgba(245,158,11,.14)}
+#cloudSyncBox[data-state="error"] .cloudSyncDot{background:var(--danger,#ef4444);box-shadow:0 0 0 5px var(--danger-soft,rgba(239,68,68,.14))}
+
+#cloudSyncBox .cloud-sync-status{
+  min-width:0;
+  padding:12px 14px;
+  border:1px solid var(--line,var(--glass-line));
+  border-radius:14px;
+  background:var(--fill,rgba(148,163,184,.09));
+}
+
+#cloudSyncBox .cloudSyncCopy{display:grid!important;gap:3px;min-width:0;line-height:1.25!important}
+#cloudSyncBox #cloudSyncText{max-width:none!important;font-size:14px!important;font-weight:750;white-space:normal!important;overflow:visible!important}
+#cloudSyncBox #cloudSyncMeta{max-width:none!important;font-size:12px!important;color:var(--label-2);white-space:normal!important;overflow:visible!important}
+#cloudSyncBox .cloud-sync-actions{display:flex;gap:8px;flex-wrap:wrap}
+#cloudSyncBox .cloud-sync-actions button{
+  min-height:42px;
+  padding:10px 14px!important;
+  border:0!important;
+  border-radius:12px!important;
+  font:700 13px var(--font,Inter,system-ui,sans-serif)!important;
+  cursor:pointer;
+  background:var(--accent,#3157c8)!important;
+  color:#fff!important;
+}
+#cloudSyncBox .cloud-sync-actions button.secondary{background:var(--fill,rgba(148,163,184,.12))!important;color:var(--label,#182033)!important}
+#cloudSyncBox .cloud-sync-actions button.danger{color:var(--danger,#dc2626)!important;border:1px solid color-mix(in srgb,var(--danger,#dc2626) 28%,transparent)!important}
+#cloudSyncBox .cloud-sync-actions button[hidden]{display:none!important}
+
+@keyframes cloudSyncPulse{0%,100%{transform:scale(1);opacity:.72}50%{transform:scale(1.18);opacity:1}}
+@media(max-width:600px){
+  #cloudSyncBox.web-cloud-sync-card{padding:16px!important;border-radius:18px!important}
+  #cloudSyncBox .cloud-sync-actions{display:grid;grid-template-columns:1fr 1fr}
+  #cloudSyncBox #cloudLoginBtn,
+  #cloudSyncBox #cloudRetryBtn{grid-column:1/-1}
+}
+@media(prefers-reduced-motion:reduce){#cloudSyncBox .cloudSyncDot{animation:none!important;transition:none!important}}

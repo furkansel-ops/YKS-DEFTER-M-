@@ -6,14 +6,20 @@ const path=require("node:path");
 const root=path.resolve(__dirname,"..");
 const read=file=>fs.readFileSync(path.join(root,file),"utf8");
 
-test("Play Store belgeleri 4.4.0 Android kimliği ve yayın sınırını doğru anlatır",()=>{
-  const prep=read("PLAY-STORE.md"),release=read("RELEASE.md");
-  for(const text of [prep,release]){
+test("Android belgeleri 4.4.0 kimliğini ve GitHub APK dağıtım kararını doğru anlatır",()=>{
+  const prep=read("PLAY-STORE.md"),release=read("RELEASE.md"),github=read("GITHUB-APK-TESTING.md");
+  for(const text of [prep,release,github]){
     assert.match(text,/4\.4\.0/);
-    assert.match(text,/4040001/);
+    assert.match(text,/4040002/);
     assert.match(text,/com\.furkansel\.yksdefterim/);
-    assert.match(text,/Internal Testing/i);
   }
+  assert.match(prep,/Dağıtım kararı/);
+  assert.match(prep,/Google Play'e yükleme\/yayın yapılmayacaktır/);
+  assert.match(release,/GitHub pre-release/);
+  assert.match(release,/Bu paket Play Store yayını değildir/);
+  assert.match(github,/bir yıl boyunca/i);
+  assert.match(github,/aynı güvenli imzalama anahtarıyla/);
+  assert.match(github,/Actions artefaktı geçicidir/);
   assert.match(prep,/ANDROID_KEYSTORE_BASE64/);
   assert.match(prep,/ANDROID_KEYSTORE_PASSWORD/);
   assert.match(prep,/ANDROID_KEY_ALIAS/);
@@ -21,7 +27,8 @@ test("Play Store belgeleri 4.4.0 Android kimliği ve yayın sınırını doğru 
   assert.match(prep,/512 × 512/);
   assert.match(prep,/1024 × 500/);
   assert.match(prep,/Açık onay olmadan `main` birleştirilmez/);
-  assert.match(release,/tamamlanmadan “Play Store'da yayınlandı”/);
+  assert.match(release,/tarihsel r1 yerel doğrulaması/i);
+  assert.match(release,/4\.4\.0-r2 \/ 4040002\*\* imzalı AAB/);
 });
 
 test("Gizlilik politikası yerel veriyi ve kullanıcı başlatmalı ağ erişimlerini açıklar",()=>{
@@ -36,6 +43,8 @@ test("Gizlilik politikası yerel veriyi ve kullanıcı başlatmalı ağ erişiml
   assert.match(privacy,/Anki uyumlu metin/);
   assert.match(privacy,/PNG/);
   assert.match(privacy,/Cihaz verilerini sil/i);
+  assert.match(privacy,/Google Cloud Firestore/);
+  assert.match(privacy,/Bulut kopyasını sil/);
   assert.doesNotMatch(privacy,/Firebase/i);
   assert.doesNotMatch(privacy,/hiçbir veri (?:toplanmaz|paylaşılmaz)/i);
 });
@@ -64,7 +73,8 @@ test("Veri silme sayfası uygulama deposu ile dışa aktarılan dosyayı ayırı
   assert.match(deletion,/otomatik olarak silmez/);
   assert.match(deletion,/Markdown/);
   assert.match(deletion,/Anki uyumlu/);
-  assert.match(deletion,/hesap silme talep formu değil/i);
+  assert.match(deletion,/Bulut kopyasını sil/);
+  assert.match(deletion,/Google hesabını kapatmaz/i);
 });
 
 test("Türkçe mağaza metinleri Play karakter sınırları içinde ve temkinlidir",()=>{

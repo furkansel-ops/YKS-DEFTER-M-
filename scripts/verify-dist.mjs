@@ -1,10 +1,44 @@
 import {access,readFile,readdir} from "node:fs/promises";
-import {resolve} from "node:path";
+import {relative,resolve} from "node:path";
 import {verifyAnatomyAssets} from "./verify-anatomy-assets.mjs";
 
 const root=resolve(import.meta.dirname,".."),dist=resolve(root,"dist");
+const target=process.argv[2]||"web";
+if(!["web","android"].includes(target))throw new Error(`Bilinmeyen üretim hedefi: ${target}`);
+
+async function distTextFiles(directory){
+  const entries=await readdir(directory,{withFileTypes:true}),files=[];
+  for(const entry of entries){
+    const absolute=resolve(directory,entry.name);
+    if(entry.isDirectory())files.push(...await distTextFiles(absolute));
+    else if(/\.(?:css|html?|js|json|map|txt|webmanifest|xml)$/iu.test(entry.name))files.push(absolute);
+  }
+  return files;
+}
+
+async function verifyCloudBoundary(){
+  const files=await distTextFiles(dist),runtimePath=resolve(dist,"firebase-sync-runtime.js");
+  const findings=[];
+  for(const file of files){
+    const text=await readFile(file,"utf8"),markers=[];
+    if(/www\.gstatic\.com\/firebasejs/iu.test(text))markers.push("Firebase modül URL'si");
+    if(/AIza[0-9A-Za-z_-]{30,}/u.test(text))markers.push("API anahtarı");
+    if(markers.length)findings.push({file:relative(dist,file).replaceAll("\\","/"),markers});
+  }
+  const runtimeRelative="firebase-sync-runtime.js",runtimeFinding=findings.find(item=>item.file===runtimeRelative);
+  if(target==="web"){
+    await access(runtimePath);
+    if(!runtimeFinding?.markers.includes("Firebase modül URL'si")||!runtimeFinding.markers.includes("API anahtarı"))throw new Error("Web eşitleme çalışma zamanı Firebase modülleri veya API yapılandırması olmadan üretildi");
+    const leaked=findings.filter(item=>item.file!==runtimeRelative);
+    if(leaked.length)throw new Error(`Web Firebase yapılandırması ayrılmış çalışma zamanı dışına sızdı: ${leaked.map(item=>item.file).join(", ")}`);
+  }else{
+    if(files.includes(runtimePath)||findings.length)throw new Error(`Android yerel-veri paketinde web Firebase izi bulundu: ${[runtimeRelative,...findings.map(item=>item.file)].join(", ")}`);
+    if(files.some(file=>file.endsWith(".map")))throw new Error("Android paketinde kaynak haritası bulundu");
+  }
+}
+
 const localRelease=JSON.parse(await readFile(resolve(root,"version.json"),"utf8"));
-if(localRelease.version!=="4.4.0"||localRelease.build!=="4.4.0-r1"||localRelease.schema!==21)throw new Error("Yerel v4.4.0 release kimliği beklenen değerle eşleşmiyor");
+if(localRelease.version!=="4.4.0"||localRelease.build!=="4.4.0-r2"||localRelease.schema!==21)throw new Error("Yerel v4.4.0 release kimliği beklenen değerle eşleşmiyor");
 const required=[
   "index.html","404.html","app.js","app.css","sw.js","version.json","manifest.webmanifest",
   "modules/core-utils.js","modules/stability.js","modules/topic-guides.js",
@@ -18,9 +52,10 @@ const required=[
 ];
 
 for(const file of required)await access(resolve(dist,file));
+await verifyCloudBoundary();
 const index=await readFile(resolve(dist,"index.html"),"utf8");
 if(!/assets\/index-[^"']+\.js/.test(index))throw new Error("TypeScript üretim paketi index.html içine bağlanmadı");
-if(!index.includes('./app.js?v=4.1.0-r20')||!index.includes('./modules/stability.js?v=4.1.0-r28')||!index.includes('./modules/learning-lab.js?v=4.1.0-r26')||!index.includes('./modules/error-journal.js?v=4.1.0-r20'))throw new Error("Uygulama çalışma zamanı üretim paketinde bağlı değil");
+if(!index.includes('./app.js?v=4.4.0-r2')||!index.includes('./modules/stability.js?v=4.1.0-r28')||!index.includes('./modules/learning-lab.js?v=4.1.0-r26')||!index.includes('./modules/error-journal.js?v=4.1.0-r20'))throw new Error("Uygulama çalışma zamanı üretim paketinde bağlı değil");
 for(const forbidden of ["legacyFirebaseSyncModule","firebaseSyncModule","www.gstatic.com/firebasejs","cloudSyncBox","Google ile giriş"]){
   if(index.includes(forbidden))throw new Error(`Play Store yerel-veri paketinde eski bulut çalışma zamanı kaldı: ${forbidden}`);
 }
@@ -69,7 +104,7 @@ if(!progressPolishCss.includes('#progress .desktop-progress-grid')||!progressPol
 if(!progressModernCss.includes('ui-polish-program-v1.css?v=4.1.0-r1')||!programPolishCss.includes('#program .weeknav')||!programPolishCss.includes('#program .gtable')||!programPolishCss.includes('#program #progCal')||!programPolishCss.includes('prefers-reduced-motion:reduce'))throw new Error("Program ekranı premium cila katmanı eksik veya eksik paketlendi");
 if(!labPolishCss.includes('#mrp_lab .v320-course-browser')||!labPolishCss.includes('#mrp_lab .v4-science-card')||!labPolishCss.includes('#mrp_lab .v320-element-grid')||!labPolishCss.includes('#mrp_lab #v320Timeline.v4-history-timeline')||!labPolishCss.includes('#mrp_lab #v320PanelAtlas .atlas-model-stage')||!labPolishCss.includes('prefers-reduced-motion:reduce'))throw new Error("Öğrenme Laboratuvarı premium cila katmanı eksik veya eksik paketlendi");
 if(!finalPolishCss.includes('.v26-topic-modal')||!finalPolishCss.includes('.toast')||!finalPolishCss.includes('.tabbar .tab')||!finalPolishCss.includes('pointer:coarse')||!finalPolishCss.includes('prefers-reduced-motion:reduce')||!finalPolishCss.includes('data-theme="dark"'))throw new Error("Uygulama geneli final tutarlılık/erişilebilirlik cilası eksik veya eksik paketlendi");
-if(!index.includes("core-utils.js?v=4.1.0-r27")||!sw.includes("core-utils.js?v=4.1.0-r27"))throw new Error("Bilim kartlarının senkronizasyon güncellemesi pakette eksik");
+if(!index.includes("core-utils.js?v=4.4.0-r2")||!sw.includes("core-utils.js?v=4.4.0-r2"))throw new Error("Eşitleme yardımcılarının bakım güncellemesi pakette eksik");
 if(!bundle.includes("FEN TEKRAR ATÖLYESİ"))throw new Error("Biyoloji/Fizik kart sistemi TypeScript paketinde eksik");
 if(!bundle.includes("YKSBiologyAtlas")||!labV3.includes("v320PanelAtlas"))throw new Error("Biyoloji atlası çalışma zamanına bağlı değil");
 const chunks=await readdir(resolve(dist,"assets"));
@@ -95,4 +130,4 @@ if(!recovery.includes('/YKS-DEFTER-M-/')||!recovery.includes('location.replace')
 let version;
 try{version=JSON.parse(versionText);}catch{throw new Error("Kopyalanan version.json geçerli JSON değil");}
 if(version?.version!==localRelease.version||version?.build!==localRelease.build||version?.schema!==21)throw new Error("Kopyalanan version.json v4.4 kararlı sürümle eşleşmiyor");
-console.log(`Üretim paketi doğrulandı: ${required.length} geçiş dosyası + TypeScript paketi + v4.4 sürüm/PWA/lazy-modül/final-cila/YKS+teknik-direktör/kişisel modül bütünlüğü`);
+console.log(`${target} üretim paketi doğrulandı: ${required.length} geçiş dosyası + TypeScript paketi + v4.4 sürüm/PWA/lazy-modül/final-cila/YKS+teknik-direktör/kişisel modül bütünlüğü`);

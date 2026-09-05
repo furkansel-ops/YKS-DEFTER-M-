@@ -24,19 +24,25 @@ test("Play Store hazırlığı sabit Android kimliği ve API 36 sözleşmesini k
   assert.equal(version.schema,21);
 });
 
-test("Android CI takip edilen Capacitor 8.5.0 projesinden imzalı AAB üretir",()=>{
-  const workflow=read(".github/workflows/build-android.yml");
+test("Android CI takip edilen Capacitor 8.5.0 projesinden imzalı APK ve AAB üretir",()=>{
+  const workflow=read(".github/workflows/build-android.yml"),pkg=JSON.parse(read("package.json"));
   assert.match(workflow,/CAPACITOR_VERSION:\s*"8\.5\.0"/);
   assert.match(workflow,/platforms;android-36/);
   assert.match(workflow,/build-tools;36\.0\.0/);
   assert.match(workflow,/npm run release:check/);
   assert.doesNotMatch(workflow,/npx cap add android/);
   assert.match(workflow,/git ls-files --error-unmatch/);
-  assert.match(workflow,/npx cap sync android/);
+  assert.equal((workflow.match(/npm run android:sync/g)||[]).length,2);
+  assert.equal(pkg.scripts["android:sync"],"npm run build:android && cap sync android");
   assert.match(workflow,/lintRelease/);
   assert.match(workflow,/testReleaseUnitTest/);
+  assert.match(workflow,/assembleRelease/);
   assert.match(workflow,/bundleRelease/);
   assert.match(workflow,/ANDROID_KEYSTORE_BASE64/);
+  assert.match(workflow,/apksigner" verify/);
+  assert.match(workflow,/zipalign" -c -P 16/);
+  assert.match(workflow,/apkanalyzer manifest min-sdk/);
+  assert.match(workflow,/apkanalyzer manifest target-sdk/);
   assert.match(workflow,/jarsigner -verify/);
   assert.match(workflow,/actions\/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1/);
   assert.match(workflow,/actions\/setup-node@820762786026740c76f36085b0efc47a31fe5020/);
@@ -47,7 +53,17 @@ test("Android CI takip edilen Capacitor 8.5.0 projesinden imzalı AAB üretir",(
   assert.match(workflow,/github\.ref_protected/);
   assert.match(workflow,/bundletool\.jar" validate/);
   assert.match(workflow,/dump manifest/);
-  assert.match(workflow,/YKS-Defterim-4\.4\.0-4040001\.aab/);
+  assert.match(workflow,/YKS-Defterim-4\.4\.0-4040002\.apk/);
+  assert.match(workflow,/aab_name="YKS-Defterim-\$\{version_name\}-\$\{version_code\}\.aab"/);
+  assert.match(workflow,/environment:\s*google-play-internal/);
+  assert.match(workflow,/yks-defterim-github-test-package/);
+  assert.match(workflow,/publish_github_release/);
+  assert.match(workflow,/actions\/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c/);
+  assert.match(workflow,/gh release create/);
+  assert.match(workflow,/--target "\$GITHUB_SHA"/);
+  assert.match(workflow,/Metadata APK SHA-256 ile gerçek dosya uyuşmuyor/);
+  assert.match(workflow,/tag="v\$\{build\}"/);
+  assert.match(workflow,/application-label:\\x27YKS Defterim\\x27/);
 });
 
 test("Gizlilik ve gerçek cihaz veri silme akışı üretim paketine bağlıdır",()=>{
@@ -57,17 +73,24 @@ test("Gizlilik ve gerçek cihaz veri silme akışı üretim paketine bağlıdır
   const privacy=read("privacy.html");
   const deletion=read("data-deletion.html");
   assert.match(shell,/Dexie\.delete\(YKS_DATABASE_NAME\)/);
-  assert.match(shell,/localStorage\.clear\(\)/);
-  assert.match(shell,/sessionStorage\.clear\(\)/);
+  assert.match(shell,/function clearYksStorage\(storage:Storage\)/);
+  assert.match(shell,/normalized==="yks"\|\|normalized\.startsWith\("yks_"\)\|\|normalized\.startsWith\("__yks_"\)/);
+  assert.match(shell,/clearYksStorage\(localStorage\)/);
+  assert.match(shell,/clearYksStorage\(sessionStorage\)/);
+  assert.doesNotMatch(shell,/(?:localStorage|sessionStorage)\.clear\(\)/);
   assert.match(shell,/cloudSyncBox/);
+  assert.match(shell,/cloudDeleteBtn/);
+  assert.match(shell,/yksCloudPrepareForDeletion/);
   assert.match(shell,/privacy\.html/);
   assert.match(shell,/data-deletion\.html/);
   assert.match(main,/installPlayStoreShell/);
   assert.match(copy,/"privacy\.html"/);
   assert.match(copy,/"data-deletion\.html"/);
   assert.match(privacy,/kullanıcı hesabı oluşturmaz/);
+  assert.match(privacy,/Google Cloud Firestore/);
   assert.doesNotMatch(privacy,/Firebase/i);
   assert.match(deletion,/IndexedDB/);
+  assert.match(deletion,/Bulut kopyasını sil/);
 });
 
 test("Play Store hazırlık katmanı Program veya YKS çalışma verisi üretmez",()=>{

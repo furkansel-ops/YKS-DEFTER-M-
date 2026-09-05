@@ -3,6 +3,8 @@
   const RUNTIME_KEY="yks_focus_runtime_v1";
   let recoveryBusy=false,lastRuntimeWrite=0;
 
+  function deviceDeletionGuarded(){return window.__YKS_DELETE_IN_PROGRESS===true;}
+
   window.YKSSafeRender=function(scope,fn,fallbackId){
     try{return fn();}
     catch(error){
@@ -23,6 +25,7 @@
     }catch(e){return null;}
   }
   function persistRuntime(force){
+    if(deviceDeletionGuarded())return false;
     const now=Date.now();if(!force&&now-lastRuntimeWrite<12000)return true;lastRuntimeWrite=now;
     try{
       const snap=runtimeSnapshot();
@@ -31,7 +34,7 @@
       return true;
     }catch(e){try{infraError("focus-runtime-save",e);}catch(_){}return false;}
   }
-  function clearRuntime(){try{localStorage.removeItem(RUNTIME_KEY);}catch(e){}return true;}
+  function clearRuntime(){if(deviceDeletionGuarded())return false;try{localStorage.removeItem(RUNTIME_KEY);}catch(e){}return true;}
   function readRuntime(){
     try{
       const x=JSON.parse(localStorage.getItem(RUNTIME_KEY)||"null");
@@ -42,7 +45,7 @@
     }catch(e){return null;}
   }
   function restoreRuntime(){
-    if(recoveryBusy)return false;recoveryBusy=true;
+    if(deviceDeletionGuarded()||recoveryBusy)return false;recoveryBusy=true;
     const x=readRuntime();if(!x){clearRuntime();recoveryBusy=false;return false;}
     try{
       clearInterval(pomoTimer);pomoTimer=null;
@@ -111,9 +114,9 @@
   function start(){
     wrapTimerFunction("startPomo","save");wrapTimerFunction("pausePomo","save");wrapTimerFunction("resetPomo","clear");wrapTimerFunction("finishPhase","clear");wrapTimerFunction("skipPhase","save");
     window.addEventListener("offline",updateOnlineBanner);window.addEventListener("online",updateOnlineBanner);
-    document.addEventListener("visibilitychange",()=>{if(document.hidden)persistRuntime(true);});
-    window.addEventListener("pagehide",()=>persistRuntime(true));
-    setInterval(()=>{try{if(pomoState==="running")persistRuntime(false);}catch(e){}},15000);
+    document.addEventListener("visibilitychange",()=>{if(document.hidden&&!deviceDeletionGuarded())persistRuntime(true);});
+    window.addEventListener("pagehide",()=>{if(!deviceDeletionGuarded())persistRuntime(true);});
+    setInterval(()=>{try{if(!deviceDeletionGuarded()&&pomoState==="running")persistRuntime(false);}catch(e){}},15000);
     bindAccessibility();updateOnlineBanner();loadPersonalUpgrades();loadProgressV2();loadLearningLabV2();loadLearningLabV3();setTimeout(restoreRuntime,180);
   }
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",start,{once:true});else start();

@@ -1,7 +1,7 @@
 import "./navigation-v43.css";
 
 type CategoryId="learning"|"analysis"|"settings"|"system";
-type MoreAction="lab"|"resources"|"tactics"|"archive"|"success"|"reports"|"settings"|"about"|"data"|"system"|"backup"|"log"|"progress";
+type MoreAction="lab"|"resources"|"tactics"|"archive"|"success"|"reports"|"settings"|"about"|"data"|"system"|"backup"|"log"|"progress"|"deneme"|"pp";
 interface MoreItem{action:MoreAction;label:string;description:string;icon:string;}
 interface MoreCategory{id:CategoryId;label:string;description:string;icon:string;items:readonly MoreItem[];}
 interface NavigationRuntime{installed:true;version:string;validate():string[];refresh():void;}
@@ -10,14 +10,18 @@ type RouteDetail={to?:string};
 declare global{interface Window{__YKS_NAV_V43__?:NavigationRuntime;}}
 
 const VERSION="4.3.0-stage5";
+const MOBILE_QUERY="(max-width: 760px)";
+const SECONDARY_MOBILE_ROUTES=new Set(["deneme","progress","pp"]);
 const CATEGORIES:readonly MoreCategory[]=[
   {id:"learning",label:"Öğrenme",description:"Laboratuvar, kaynaklar ve yanlışlardan öğrenme",icon:"◎",items:[
+    {action:"pp",label:"Paragraf & Problem",description:"Günlük soru hacmi, doğruluk ve çalışma geçmişi",icon:"¶"},
     {action:"lab",label:"Öğrenme Laboratuvarı",description:"Konu atlası, 3B organlar ve bilim kartları",icon:"⌁"},
     {action:"resources",label:"Kaynaklar & videolar",description:"Kitaplar, hocalar, listeler ve izleme geçmişi",icon:"▤"},
     {action:"tactics",label:"Taktikler",description:"Çalışma ve sınav stratejileri",icon:"◈"},
     {action:"archive",label:"Yanlış soru arşivi",description:"Fotoğraflı yanlışlarını aç ve tekrar et",icon:"▣"}
   ]},
   {id:"analysis",label:"Analiz",description:"İlerleme, karne ve dönem raporları",icon:"↗",items:[
+    {action:"deneme",label:"Denemeler",description:"Deneme sonuçlarını gir, karşılaştır ve incele",icon:"◇"},
     {action:"progress",label:"Analiz Merkezi",description:"7/30 gün, net eğilimi ve kritik konu sinyalleri",icon:"↗"},
     {action:"success",label:"Çalışma özeti",description:"Haftalık karne, çalışma düzeni ve geçmiş",icon:"▦"},
     {action:"reports",label:"Raporlar & geçmiş",description:"Ay raporu, retrospektif ve dönem geçmişi",icon:"≋"}
@@ -41,6 +45,20 @@ export function installNavigationV43():NavigationRuntime{
   if(window.__YKS_NAV_V43__)return window.__YKS_NAV_V43__;
   let current:CategoryId="learning";
   let home:HTMLElement|null=null,hub:HTMLElement|null=null;
+  const mobileMedia=typeof window.matchMedia==="function"?window.matchMedia(MOBILE_QUERY):null;
+
+  function syncPrimaryNavigation(requested?:string){
+    const active=requested||document.querySelector<HTMLElement>(".screen.active")?.id||"home";
+    const mobile=mobileMedia?.matches??window.innerWidth<=760;
+    const proxyToMore=mobile&&SECONDARY_MOBILE_ROUTES.has(active);
+    for(const tab of document.querySelectorAll<HTMLButtonElement>(".tabbar .tab[data-s]")){
+      const selected=proxyToMore?tab.dataset.s==="more":tab.dataset.s===active;
+      tab.classList.toggle("v43-mobile-proxy-active",proxyToMore&&tab.dataset.s==="more");
+      if(selected)tab.setAttribute("aria-current","page");else tab.removeAttribute("aria-current");
+      if(mobile){tab.setAttribute("aria-selected",String(selected));tab.tabIndex=selected?0:-1;}
+      else{const actual=tab.dataset.s===active;tab.setAttribute("aria-selected",String(actual));tab.tabIndex=actual?0:-1;}
+    }
+  }
 
   function renameNavigation(){
     const moreTab=document.querySelector<HTMLElement>('.bottomnav [data-s="more"], nav [data-s="more"]');
@@ -75,11 +93,14 @@ export function installNavigationV43():NavigationRuntime{
         const categoryButton=event.target.closest<HTMLElement>("[data-v43-more-category]");
         if(categoryButton?.dataset.v43MoreCategory){current=categoryButton.dataset.v43MoreCategory as CategoryId;renderCategory();return;}
         const actionButton=event.target.closest<HTMLElement>("[data-v43-more-action]");const action=actionButton?.dataset.v43MoreAction as MoreAction|undefined;if(!action)return;
-        if(action==="progress")legacy().go?.("progress");else legacy().v30Action?.(action);
+        if(action==="progress")legacy().go?.("progress");
+        else if(action==="deneme")legacy().go?.("deneme");
+        else if(action==="pp")legacy().go?.("pp");
+        else legacy().v30Action?.(action);
       });
     }
     const quick=document.getElementById("v30QuickGrid"),slot=document.getElementById("v43MoreQuickSlot");if(quick&&slot&&quick.parentElement!==slot)slot.appendChild(quick);
-    renderCategory();renameNavigation();return true;
+    renderCategory();renameNavigation();syncPrimaryNavigation();return true;
   }
   let queued=false;
   const refresh=()=>{if(queued)return;queued=true;queueMicrotask(()=>{queued=false;mount();});};
@@ -90,12 +111,18 @@ export function installNavigationV43():NavigationRuntime{
      Hub artık yalnız Daha ekranına gerçekten girildiğinde yenilenir. */
   window.addEventListener("yks:navigation-after",event=>{
     const detail=(event as CustomEvent<RouteDetail>).detail;
+    syncPrimaryNavigation(detail?.to);
     if(detail?.to==="more")refresh();
   });
   window.addEventListener("yks:more-after",event=>{
     const detail=(event as CustomEvent<RouteDetail>).detail;
     if(detail?.to==="home")refresh();
   });
+  const handleViewportChange=()=>syncPrimaryNavigation();
+  if(mobileMedia){
+    if(typeof mobileMedia.addEventListener==="function")mobileMedia.addEventListener("change",handleViewportChange);
+    else mobileMedia.addListener(handleViewportChange);
+  }
   mount();
   const api:NavigationRuntime={installed:true,version:VERSION,validate(){const issues:string[]=[];if(!document.getElementById("v43MoreHub"))issues.push("hub");if(document.querySelectorAll("[data-v43-more-category]").length!==4)issues.push("categories");const more=document.querySelector<HTMLElement>('[data-s="more"]');if(more&&more.getAttribute("aria-label")!=="Merkez")issues.push("nav-label");return issues;},refresh};
   window.__YKS_NAV_V43__=api;return api;

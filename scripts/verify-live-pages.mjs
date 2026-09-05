@@ -16,7 +16,7 @@ export function extractBundlePath(index){return index.match(/(?:src|href)=["'](?
 export function verifyLiveAssets({index,bundle,legacyApp,serviceWorker=""}){
   const bundlePath=extractBundlePath(index);
   if(!bundlePath)throw new Error("Canlı sayfada Vite JavaScript paketi bulunamadı");
-  if(!index.includes('./app.js?v=4.1.0-r20')||!index.includes('./modules/release-selftest.js?v=4.1.0-r20'))throw new Error("Canlı sayfada beklenen çalışma zamanı dosyaları bağlı değil");
+  if(!index.includes('./app.js?v=4.4.0-r2')||!index.includes('./modules/core-utils.js?v=4.4.0-r2')||!index.includes('./modules/release-selftest.js?v=4.1.0-r20'))throw new Error("Canlı sayfada beklenen çalışma zamanı dosyaları bağlı değil");
   if(/src=["']\.\/src\/main\.ts["']/.test(index))throw new Error("Canlı sayfa üretim paketi yerine TypeScript kaynak dosyasını kullanıyor");
   if(!bundle.includes("YKS_V4_RELEASE_OK")||!bundle.includes(RELEASE_MARKER)||!bundle.includes("stable"))throw new Error(`Canlı Vite paketi beklenen ${RELEASE_MARKER} kararlı sürüm işaretlerini taşımıyor`);
   if(!bundle.includes("v43Runtime")||!bundle.includes("v43RuntimeErrors")||!bundle.includes("degraded")||!bundle.includes("v43FocusSessionGuard"))throw new Error("Canlı Vite paketi güvenli v4.3 runtime işaretlerini taşımıyor");
@@ -28,8 +28,8 @@ export function verifyLiveAssets({index,bundle,legacyApp,serviceWorker=""}){
 }
 
 export function verifyPolicyPages({privacy,deletion}){
-  if(!privacy.includes("YKS Defterim Gizlilik Politikası")||!privacy.includes("IndexedDB/Dexie")||privacy.includes("Firebase"))throw new Error("Canlı gizlilik politikası eksik veya yayın sözleşmesiyle uyumsuz");
-  if(!deletion.includes("YKS Defterim cihaz verilerini silme")||!deletion.includes("Cihaz verilerini sil")||!deletion.includes("IndexedDB/Dexie"))throw new Error("Canlı veri silme sayfası eksik veya yayın sözleşmesiyle uyumsuz");
+  if(!privacy.includes("YKS Defterim Gizlilik Politikası")||!privacy.includes("IndexedDB/Dexie")||!privacy.includes("Google Cloud Firestore")||!privacy.includes("Android paketi")||privacy.includes("Firebase"))throw new Error("Canlı gizlilik politikası eksik veya yayın sözleşmesiyle uyumsuz");
+  if(!deletion.includes("YKS Defterim cihaz verilerini silme")||!deletion.includes("Cihaz verilerini sil")||!deletion.includes("Bulut kopyasını sil")||!deletion.includes("IndexedDB/Dexie"))throw new Error("Canlı veri silme sayfası eksik veya yayın sözleşmesiyle uyumsuz");
   return {privacy:true,deletion:true};
 }
 
@@ -48,7 +48,7 @@ export async function verifyLivePages(baseUrl,{attempts=12,delayMs=5000}={}){
       if(!bundlePath)throw new Error("Canlı sayfada Vite JavaScript paketi bulunamadı");
       const [bundle,legacyApp,serviceWorker,privacy,deletion]=await Promise.all([
         fetchText(new URL(bundlePath,base),token),
-        fetchText(new URL("app.js?v=4.1.0-r20",base),token),
+        fetchText(new URL("app.js?v=4.4.0-r2",base),token),
         fetchText(new URL("sw.js",base),token),
         fetchText(new URL("privacy.html",base),token),
         fetchText(new URL("data-deletion.html",base),token)

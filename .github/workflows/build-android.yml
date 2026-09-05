@@ -1,4 +1,4 @@
-name: Android AAB · Google Play Internal Testing
+name: Android APK/AAB · GitHub Arkadaş Testi
 
 on:
   pull_request:
@@ -21,12 +21,18 @@ on:
       - "modules/**"
       - "public/**"
   workflow_dispatch:
+    inputs:
+      publish_github_release:
+        description: "Doğrulanan APK'yı GitHub pre-release olarak yayımla"
+        required: true
+        type: boolean
+        default: false
 
 permissions:
   contents: read
 
 concurrency:
-  group: android-aab-${{ github.workflow }}-${{ github.ref }}
+  group: android-package-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -108,10 +114,8 @@ jobs:
             android/variables.gradle >/dev/null
           npm run android:verify
 
-      - name: Web paketini üret ve Android projesiyle eşitle
-        run: |
-          npm run build:assets
-          npx cap sync android
+      - name: Android hedef paketini üret ve projeyle eşitle
+        run: npm run android:sync
 
       - name: Gradle wrapper, Android lint ve unit testlerini çalıştır
         working-directory: android
@@ -120,14 +124,15 @@ jobs:
           ./gradlew --no-daemon --warning-mode all --version
           ./gradlew --no-daemon --warning-mode all lintRelease testReleaseUnitTest
 
-  signed-aab:
-    name: API 36 · imzalı release AAB
+  signed-android:
+    name: API 36 · imzalı release APK/AAB
     if: github.event_name == 'workflow_dispatch'
     needs:
       - web-check
       - android-quality
     runs-on: ubuntu-latest
     timeout-minutes: 35
+    # Ortam adı tarihsel kalır; burada yalnız imzalama kasası olarak kullanılır.
     environment: google-play-internal
     env:
       CAPACITOR_VERSION: "8.5.0"
@@ -146,7 +151,7 @@ jobs:
         run: |
           set -euo pipefail
           if [ "$REF_PROTECTED" != "true" ]; then
-            echo "::error::İmzalı AAB yalnız GitHub branch protection etkin bir yayın dalından üretilebilir."
+            echo "::error::İmzalı Android paketi yalnız GitHub branch protection etkin bir yayın dalından üretilebilir."
             exit 1
           fi
 
@@ -201,10 +206,8 @@ jobs:
             android/app/build.gradle \
             android/variables.gradle >/dev/null
 
-      - name: Web paketini üret ve takip edilen Android projesiyle eşitle
-        run: |
-          npm run build:assets
-          npx cap sync android
+      - name: Android hedef paketini üret ve takip edilen projeyle eşitle
+        run: npm run android:sync
 
       - name: Gradle wrapper checksum'unu ve bundletool paketini doğrula
         shell: bash
@@ -258,7 +261,7 @@ jobs:
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: node scripts/prepare-android-release.mjs
 
-      - name: İmzalı Android App Bundle üret
+      - name: İmzalı Android APK ve App Bundle üret
         working-directory: android
         env:
           ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/yks-defterim-upload.jks
@@ -267,36 +270,54 @@ jobs:
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
           chmod +x ./gradlew
-          ./gradlew --no-daemon --warning-mode all bundleRelease
+          ./gradlew --no-daemon --warning-mode all assembleRelease bundleRelease
 
-      - name: AAB, metadata ve imzalama sertifikasını doğrula
+      - name: APK/AAB, metadata ve imzalama sertifikasını doğrula
         shell: bash
         env:
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
         run: |
           set -euo pipefail
+          apk="android/app/build/outputs/apk/release/app-release.apk"
           aab="android/app/build/outputs/bundle/release/app-release.aab"
           metadata="android/yks-release-metadata.json"
           keystore="$RUNNER_TEMP/yks-defterim-upload.jks"
-          manifest="$RUNNER_TEMP/aab-manifest.xml"
+          aab_manifest="$RUNNER_TEMP/aab-manifest.xml"
+          apk_badging="$RUNNER_TEMP/apk-badging.txt"
 
+          test -s "$apk"
           test -s "$aab"
           test -s "$metadata"
+          unzip -t "$apk" >/dev/null
           unzip -t "$aab" >/dev/null
+          "$ANDROID_HOME/build-tools/36.0.0/zipalign" -c -P 16 -v 4 "$apk" >/dev/null
           java -jar "$RUNNER_TEMP/bundletool.jar" validate --bundle="$aab" >/dev/null
           java -jar "$RUNNER_TEMP/bundletool.jar" dump manifest \
-            --bundle="$aab" --module=base > "$manifest"
-          test -s "$manifest"
+            --bundle="$aab" --module=base > "$aab_manifest"
+          "$ANDROID_HOME/build-tools/36.0.0/aapt2" dump badging "$apk" > "$apk_badging"
+          test -s "$aab_manifest"
+          test -s "$apk_badging"
+          command -v apkanalyzer >/dev/null
+          test "$(apkanalyzer manifest application-id "$apk")" = "com.furkansel.yksdefterim"
+          test "$(apkanalyzer manifest version-name "$apk")" = "4.4.0"
+          test "$(apkanalyzer manifest version-code "$apk")" = "4040002"
+          test "$(apkanalyzer manifest min-sdk "$apk")" = "24"
+          test "$(apkanalyzer manifest target-sdk "$apk")" = "36"
+          if grep -q '^application-debuggable' "$apk_badging"; then
+            echo "::error::Release APK debug olarak işaretlenmiş."
+            exit 1
+          fi
           node -e '
             const fs = require("node:fs");
             const metadata = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
             const manifest = fs.readFileSync(process.argv[2], "utf8");
+            const badging = fs.readFileSync(process.argv[3], "utf8");
             const release = JSON.parse(fs.readFileSync("version.json", "utf8"));
             const [major, minor, patch] = release.version.split(".").map(Number);
             const revision = Number(String(release.build).match(/-r(\d+)$/)?.[1] ?? 1);
             const expectedVersionCode = major * 1_000_000 + minor * 10_000 + patch * 100 + revision;
-            if (metadata.signed !== true) throw new Error("Play AAB imzasız olarak işaretlenmiş");
+            if (metadata.signed !== true) throw new Error("Android release paketi imzasız olarak işaretlenmiş");
             if (metadata.appId !== "com.furkansel.yksdefterim") throw new Error("applicationId uyuşmuyor");
             if (release.version !== "4.4.0" || metadata.versionName !== release.version) {
               throw new Error("versionName uyuşmuyor");
@@ -310,7 +331,7 @@ jobs:
             for (const [pattern, label] of [
               [/package="com\.furkansel\.yksdefterim"/, "AAB applicationId"],
               [/versionName="4\.4\.0"/, "AAB versionName"],
-              [/versionCode="4040001"/, "AAB versionCode"],
+              [/versionCode="4040002"/, "AAB versionCode"],
               [/minSdkVersion="24"/, "AAB minSdk"],
               [/targetSdkVersion="36"/, "AAB targetSdk"],
               [/usesCleartextTraffic="false"/, "AAB cleartext"],
@@ -319,11 +340,21 @@ jobs:
             if (/android\.intent\.category\.BROWSABLE|android\.intent\.action\.VIEW/.test(manifest)) {
               throw new Error("Beklenmeyen deep-link intent-filter bulundu");
             }
-          ' "$metadata" "$manifest"
+            for (const [pattern, label] of [
+              [/package: name=\x27com\.furkansel\.yksdefterim\x27/, "APK applicationId"],
+              [/versionCode=\x274040002\x27/, "APK versionCode"],
+              [/versionName=\x274\.4\.0\x27/, "APK versionName"],
+              [/application-label:\x27YKS Defterim\x27/, "APK uygulama adı"]
+            ]) if (!pattern.test(badging)) throw new Error(`${label} doğrulanamadı`);
+          ' "$metadata" "$aab_manifest" "$apk_badging"
 
           jarsigner -verify "$aab" \
             | tee "$RUNNER_TEMP/jarsigner-verify.txt"
           grep -q '^jar verified\.$' "$RUNNER_TEMP/jarsigner-verify.txt"
+
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify \
+            --verbose --print-certs --min-sdk-version 24 -Werr "$apk" \
+            > "$RUNNER_TEMP/apksigner-verify.txt"
 
           keytool -list -v \
             -keystore "$keystore" \
@@ -333,26 +364,54 @@ jobs:
           keytool -printcert -jarfile "$aab" \
             > "$RUNNER_TEMP/aab-cert.txt"
           expected_fingerprint="$(awk '/SHA256:/{print $2; exit}' "$RUNNER_TEMP/upload-key.txt")"
-          actual_fingerprint="$(awk '/SHA256:/{print $2; exit}' "$RUNNER_TEMP/aab-cert.txt")"
+          actual_aab_fingerprint="$(awk '/SHA256:/{print $2; exit}' "$RUNNER_TEMP/aab-cert.txt")"
+          actual_apk_fingerprint="$(awk -F': ' '/Signer #1 certificate SHA-256 digest:/{print $2; exit}' "$RUNNER_TEMP/apksigner-verify.txt")"
+          expected_normalized="$(printf '%s' "$expected_fingerprint" | tr -d ':' | tr '[:upper:]' '[:lower:]')"
+          actual_apk_normalized="$(printf '%s' "$actual_apk_fingerprint" | tr -d ':' | tr '[:upper:]' '[:lower:]')"
           test -n "$expected_fingerprint"
-          test "$actual_fingerprint" = "$expected_fingerprint"
+          test "$actual_aab_fingerprint" = "$expected_fingerprint"
+          test -n "$actual_apk_fingerprint"
+          test "$actual_apk_normalized" = "$expected_normalized"
 
-          artifact_dir="$RUNNER_TEMP/play-internal-artifact"
-          artifact_name="YKS-Defterim-4.4.0-4040001.aab"
+          artifact_dir="$RUNNER_TEMP/github-test-artifact"
+          version_name="$(node -p "require('./android/yks-release-metadata.json').versionName")"
+          version_code="$(node -p "require('./android/yks-release-metadata.json').versionCode")"
+          apk_name="YKS-Defterim-${version_name}-${version_code}.apk"
+          aab_name="YKS-Defterim-${version_name}-${version_code}.aab"
           mkdir -p "$artifact_dir"
-          cp "$aab" "$artifact_dir/$artifact_name"
-          cp "$metadata" "$artifact_dir/release-metadata.json"
-          cp "$manifest" "$artifact_dir/AndroidManifest.xml"
-          (cd "$artifact_dir" && sha256sum "$artifact_name" > "$artifact_name.sha256")
-          echo "AAB doğrulandı: $(du -h "$aab" | cut -f1), upload sertifikası eşleşti."
+          cp "$apk" "$artifact_dir/$apk_name"
+          cp "$aab" "$artifact_dir/$aab_name"
+          cp "$aab_manifest" "$artifact_dir/AndroidManifest.xml"
+          cp "$apk_badging" "$artifact_dir/APK-badging.txt"
+          apk_sha256="$(sha256sum "$apk" | awk '{print $1}')"
+          aab_sha256="$(sha256sum "$aab" | awk '{print $1}')"
+          node -e '
+            const fs = require("node:fs");
+            const source = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+            Object.assign(source, {
+              artifactType: "apk",
+              artifactFile: process.argv[3],
+              sha256: process.argv[4],
+              signingCertificateSha256: process.argv[5],
+              sourceCommit: process.argv[6],
+              archiveAabFile: process.argv[7],
+              archiveAabSha256: process.argv[8]
+            });
+            fs.writeFileSync(process.argv[2], `${JSON.stringify(source, null, 2)}\n`);
+          ' "$metadata" "$artifact_dir/release-metadata.json" \
+            "$apk_name" "$apk_sha256" "$expected_normalized" "$GITHUB_SHA" \
+            "$aab_name" "$aab_sha256"
+          (cd "$artifact_dir" && sha256sum "$apk_name" > "$apk_name.sha256")
+          (cd "$artifact_dir" && sha256sum "$aab_name" > "$aab_name.sha256")
+          echo "APK/AAB doğrulandı: APK $(du -h "$apk" | cut -f1), AAB $(du -h "$aab" | cut -f1); API 24/36 ve imzalama sertifikası eşleşti."
 
-      - name: Play Internal Testing AAB artefaktını yükle
+      - name: GitHub arkadaş testi APK/AAB artefaktını yükle
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
-          name: yks-defterim-play-internal-aab
-          path: ${{ runner.temp }}/play-internal-artifact/*
+          name: yks-defterim-github-test-package
+          path: ${{ runner.temp }}/github-test-artifact/*
           if-no-files-found: error
-          retention-days: 30
+          retention-days: 90
           compression-level: 0
 
       - name: Geçici imzalama dosyalarını temizle
@@ -362,8 +421,123 @@ jobs:
           rm -f \
             "$RUNNER_TEMP/yks-defterim-upload.jks" \
             "$RUNNER_TEMP/jarsigner-verify.txt" \
+            "$RUNNER_TEMP/apksigner-verify.txt" \
             "$RUNNER_TEMP/upload-key.txt" \
             "$RUNNER_TEMP/aab-cert.txt" \
             "$RUNNER_TEMP/aab-manifest.xml" \
+            "$RUNNER_TEMP/apk-badging.txt" \
             "$RUNNER_TEMP/bundletool.jar"
-          rm -rf "$RUNNER_TEMP/play-internal-artifact"
+          rm -rf "$RUNNER_TEMP/github-test-artifact"
+
+  publish-github-release:
+    name: GitHub · doğrulanmış test APK'sını yayımla
+    if: github.event_name == 'workflow_dispatch' && inputs.publish_github_release == true
+    needs: signed-android
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      actions: read
+      contents: write
+    steps:
+      - name: Doğrulanmış Android paketini indir
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: yks-defterim-github-test-package
+          path: release-package
+
+      - name: Release girdilerini ve kaynak commitini doğrula
+        shell: bash
+        run: |
+          set -euo pipefail
+          package_dir="release-package"
+          metadata="$package_dir/release-metadata.json"
+          apk_name="$(node -p "require('./release-package/release-metadata.json').artifactFile")"
+          if [[ "$apk_name" == */* || "$apk_name" == *\\* ]]; then
+            echo "::error::APK metadata dosya adı güvenli değil."
+            exit 1
+          fi
+          apk="$package_dir/$apk_name"
+          checksum="$apk.sha256"
+          test -s "$apk"
+          test -s "$checksum"
+          test -s "$metadata"
+          (cd "$package_dir" && sha256sum --check "$(basename "$checksum")")
+          node -e '
+            const crypto = require("node:crypto");
+            const fs = require("node:fs");
+            const metadata = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+            const expected = {
+              appId: "com.furkansel.yksdefterim",
+              versionName: "4.4.0",
+              versionCode: 4040002,
+              build: "4.4.0-r2",
+              signed: true,
+              artifactType: "apk",
+              artifactFile: "YKS-Defterim-4.4.0-4040002.apk",
+              sourceCommit: process.env.GITHUB_SHA
+            };
+            for (const [key, value] of Object.entries(expected)) {
+              if (metadata[key] !== value) throw new Error(`${key} uyuşmuyor`);
+            }
+            if (!/^[a-f0-9]{64}$/.test(metadata.sha256)) throw new Error("APK SHA-256 metadata değeri geçersiz");
+            if (!/^[a-f0-9]{64}$/.test(metadata.signingCertificateSha256)) throw new Error("İmza sertifikası özeti geçersiz");
+            const actualSha256 = crypto.createHash("sha256").update(fs.readFileSync(process.argv[2])).digest("hex");
+            if (metadata.sha256 !== actualSha256) throw new Error("Metadata APK SHA-256 ile gerçek dosya uyuşmuyor");
+          ' "$metadata" "$apk"
+
+      - name: GitHub pre-release oluştur
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          package_dir="release-package"
+          metadata="$package_dir/release-metadata.json"
+          apk_name="$(node -p "require('./release-package/release-metadata.json').artifactFile")"
+          build="$(node -p "require('./release-package/release-metadata.json').build")"
+          apk="$package_dir/$apk_name"
+          checksum="$apk.sha256"
+          tag="v${build}"
+          title="YKS Defterim ${build} — Android Test APK"
+          notes="$RUNNER_TEMP/github-release-notes.md"
+
+          if gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$tag" >/dev/null 2>&1; then
+            echo "::error::$tag etiketi zaten var; var olan yayın otomatik olarak değiştirilmedi."
+            exit 1
+          fi
+
+          node -e '
+            const fs = require("node:fs");
+            const metadata = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+            const notes = [
+              "Bu sürüm Google Play yayını değil, bir yıllık arkadaş testi için doğrudan kurulabilir Android APK paketidir.",
+              "",
+              "## Kurulum",
+              "",
+              "- `YKS-Defterim-4.4.0-4040002.apk` dosyasını indirin ve Android cihazda açın.",
+              "- Minimum Android sürümü: Android 7.0 (API 24).",
+              "- Güncellemeden önce uygulamadaki **Daha → Veri** bölümünden yedek alın.",
+              "- Dosyayı yalnız bu resmî GitHub Release sayfasından indirin.",
+              "",
+              "## Doğrulama",
+              "",
+              `- Paket: \`${metadata.appId}\``,
+              `- Sürüm: \`${metadata.versionName}\` (\`${metadata.versionCode}\`)`,
+              `- Kaynak commit: \`${metadata.sourceCommit}\``,
+              `- APK SHA-256: \`${metadata.sha256}\``,
+              "",
+              "Bu depo herkese açıksa dosya yalnız davet edilen arkadaşlarla sınırlı değildir; bağlantıya erişen herkes indirebilir."
+            ].join("\n");
+            fs.writeFileSync(process.argv[2], `${notes}\n`);
+          ' "$metadata" "$notes"
+
+          gh release create "$tag" \
+            "$apk" \
+            "$checksum" \
+            "$metadata" \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --title "$title" \
+            --notes-file "$notes" \
+            --prerelease \
+            --latest=false

@@ -11,17 +11,27 @@
 </head>
 <body><div class="wrap"><main>
   <h1>YKS Defterim cihaz verilerini silme</h1>
-  <p>YKS Defterim 4.4.0 çevrimiçi kullanıcı hesabı oluşturmaz. Çalışma kayıtları, tercihler ve uygulama içi yerel yedekler cihazdaki uygulama depolamasında tutulur.</p>
+  <p>YKS Defterim 4.4.0 Android paketi çevrimiçi kullanıcı hesabı oluşturmaz. Çalışma kayıtları, tercihler ve uygulama içi yerel yedekler cihazdaki uygulama depolamasında tutulur. Web/PWA sürümünde kullanıcı isterse mevcut Google hesabıyla ayrı bir eşitleme kopyası oluşturabilir.</p>
 
   <h2>Uygulama içinden silme</h2>
   <ol>
-    <li><b>Daha</b> ekranını aç.</li>
+    <li><b>Merkez (Daha)</b> ekranını aç.</li>
     <li><b>Veri</b> bölümüne gir.</li>
     <li><b>Cihaz verilerini sil</b> seçeneğine dokun.</li>
     <li>İki ayrı kalıcı silme onayını tamamla.</li>
   </ol>
-  <p>İşlem, YKS Defterim'e ait IndexedDB/Dexie veritabanını, uygulamanın yerel ve oturum depolamasını ve YKS ile başlayan uygulama cache'lerini temizler. Ardından uygulama yeniden açılır.</p>
+  <p>İşlem, YKS Defterim'e ait IndexedDB/Dexie veritabanını, uygulamanın yerel ve oturum depolamasını ve YKS ile başlayan uygulama cache'lerini temizler. Web eşitleme oturumu açıksa önce çıkış yapılır. Ardından uygulama yeniden açılır.</p>
   <p class="note"><b>Önemli:</b> Silme geri alınamaz. Saklamak istediğin kayıtlar varsa önce uygulamanın dışa aktarma aracını kullan.</p>
+
+  <h2>Web bulut kopyasını silme</h2>
+  <ol>
+    <li>Web/PWA sürümünde <b>Merkez (Daha) → Veri</b> bölümünü aç.</li>
+    <li>Bulut kopyasının bağlı olduğu Google hesabıyla giriş yap.</li>
+    <li>Eşitleme kartındaki <b>Bulut kopyasını sil</b> düğmesine dokun.</li>
+    <li>İki ayrı kalıcı silme onayını tamamla.</li>
+  </ol>
+  <p>Bu işlem Google Cloud Firestore'daki YKS Defterim çalışma içeriğini ve eşitleme parçalarını kalıcı olarak siler, ardından web oturumunu kapatır. Eski içeriğin başka bir açık cihazdan geri yüklenmesini önleyen, çalışma içeriği taşımayan bir silme işareti aynı hesapla eşitleme yeniden açılana kadar saklanır; yeniden açılışta yeni eşitleme kaydıyla değiştirilir. Bu cihazdaki yerel çalışma verileri korunur ve daha sonra aynı hesapla eşitleme yeniden açılırsa yeni bir bulut kopyası oluşturabilir.</p>
+  <p class="note"><b>Ayrım:</b> <b>Cihaz verilerini sil</b> yalnız yerel veriyi; <b>Bulut kopyasını sil</b> yalnız eşitleme kopyasını siler. İkisini de kaldırmak istiyorsan önce bulut kopyasını, ardından cihaz verilerini sil.</p>
 
   <h2>Android ayarlarından alternatif yöntem</h2>
   <p>Uygulama içi işlem tamamlanamazsa Android'de genel olarak <b>Ayarlar → Uygulamalar → YKS Defterim → Depolama ve önbellek → Depolamayı temizle</b> yolu kullanılabilir. Menü adları cihaz üreticisine ve Android sürümüne göre değişebilir.</p>
@@ -30,7 +40,7 @@
   <p>Android uygulamasını kaldırmak normalde uygulamaya ayrılmış yerel depolama alanını kaldırır. İşletim sistemi veya kullanıcının seçtiği yedek/geri yükleme davranışı cihaza göre değişebilir; kesin silme için önce Android ayarlarından uygulama depolamasını temizleyebilirsin.</p>
 
   <h2>Web sürümündeki veriler</h2>
-  <p>Web sürümü ayrıca kullanıldıysa tarayıcının site ayarlarından <b>furkansel-ops.github.io</b> alanına ait site verilerini temizlemek gerekir. Android uygulamasındaki silme, başka tarayıcılardaki site depolamasını otomatik temizlemez.</p>
+  <p>Web sürümü ayrıca kullanıldıysa tarayıcının site ayarlarından <b>furkansel-ops.github.io</b> alanına ait site verilerini temizlemek gerekir. Android uygulamasındaki silme, başka tarayıcılardaki site depolamasını veya isteğe bağlı web bulut kopyasını otomatik temizlemez.</p>
 
   <h2>Dışa aktarılmış dosyalar</h2>
   <p>Uygulamadan indirilen JSON/yedek, Markdown, ICS, Anki uyumlu metin, PNG çalışma kartı ve rapor dosyaları uygulama depolamasının dışındadır. Uygulama içi silme, depolamayı temizleme veya uygulamayı kaldırma bu dosyaları otomatik olarak silmez. Dosya yöneticisi, indirme klasörü, paylaşım hedefi veya dosyanın kaydedildiği bulut hizmetinden ayrıca silinmeleri gerekir.</p>
@@ -39,7 +49,7 @@
   <p>Wikipedia, YouTube, MEB, OGM, ÖSYM veya kullanıcının açtığı başka bir hizmette oluşan geçmiş ya da hesap verileri YKS Defterim'in yerel silme işleminin kapsamına girmez. Bu veriler ilgili hizmetin gizlilik ve silme kontrolleriyle yönetilir.</p>
 
   <h2>Hesap silme</h2>
-  <p>Bu sürüm kullanıcı hesabı oluşturmadığı ve YKS Defterim geliştiricisinin sunucusunda hesaba bağlı veri tutmadığı için ayrıca kapatılacak çevrimiçi bir YKS Defterim hesabı yoktur. Bu sayfa hesap silme talep formu değil, yerel cihaz verisi silme açıklamasıdır.</p>
+  <p>Android paketi ve web sürümü ayrı bir YKS Defterim kullanıcı adı/parolası oluşturmaz; bu nedenle kapatılacak bağımsız bir YKS Defterim hesabı yoktur. Web eşitlemesinde mevcut Google hesabı yalnız kimlik doğrulama için kullanılır. <b>Bulut kopyasını sil</b> eşitlemeye bağlı YKS Defterim verisini kaldırır ancak Google hesabını kapatmaz.</p>
 
   <p><a href="./privacy.html">Gizlilik politikasına dön</a></p>
 </main></div></body>

@@ -6,7 +6,9 @@ export const LEGACY_IMPORT_META_KEY="legacy-localstorage-import-v1" as const;
 export type StateWriteSource="localStorage"|"firebase"|"backup";
 
 export interface IndexedStateRecord{
-  key:typeof PRIMARY_INDEXED_STATE_KEY;
+  /* Aynı Dexie tablosu, ana kaydın yanında hesap bazlı bulut birleştirme
+     tabanlarını da tutar. Ana kayıt anahtarı yine daima `primary`dir. */
+  key:string;
   json:string;
   schema:number;
   chars:number;

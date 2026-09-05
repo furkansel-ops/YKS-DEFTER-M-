@@ -1,4 +1,5 @@
 import {DATA_SCHEMA_VERSION,type YksStateCandidate} from "./contracts";
+import {decodeState,stateHash} from "./codec";
 import type {DomainStateAdapter} from "../domain/state-context";
 import {buildCloudPayload,type CloudPayloadResult} from "./cloud-state";
 import {DexieMigrationTarget,YksDatabase,type IndexedDatabaseSnapshot} from "./database";
@@ -22,6 +23,9 @@ export interface LegacyDataBridgeApi{
   captureLegacyWrite(json?:string):Promise<PrimaryWriteResult>;
   cloudPayload():Promise<CloudPayloadResult>;
   primaryJSON():Promise<PrimaryJSONResult|{ok:false;message:string}>;
+  readCloudBaseline(uid:string):Promise<{ok:true;json:string;hash:string}|{ok:false;message:string}>;
+  writeCloudBaseline(uid:string,json:string):Promise<{ok:true;hash:string}|{ok:false;message:string}>;
+  clearCloudBaseline(uid:string):Promise<void>;
   applyCloudJSON(json:string):Promise<ExternalApplyResult>;
   applyBackupJSON(json:string):Promise<ExternalApplyResult>;
   flush():Promise<void>;
@@ -103,6 +107,38 @@ export function installLegacyDataBridge():LegacyDataBridgeApi{
     const primary=await coordinator.readPrimaryJSON();
     return primary.ok?buildCloudPayload(primary.json,primary.source):primary;
   };
+  const cloudBaselineKey=(uid:string)=>`cloud-base:${String(uid||"").slice(0,256)}`;
+  const readCloudBaseline=async(uid:string):Promise<{ok:true;json:string;hash:string}|{ok:false;message:string}>=>{
+    if(!uid)return {ok:false,message:"Bulut hesabı tanımlı değil"};
+    await initialize();await flush();
+    try{
+      const row=await database.state.get(cloudBaselineKey(uid));
+      if(!row)return {ok:false,message:"Bulut birleştirme tabanı bulunamadı"};
+      const decoded=decodeState(row.json),hash=stateHash(row.json);
+      if(!decoded.ok||hash!==row.sourceHash)return {ok:false,message:"Bulut birleştirme tabanı doğrulanamadı"};
+      return {ok:true,json:row.json,hash};
+    }catch(error){return {ok:false,message:error instanceof Error?error.message:"Bulut birleştirme tabanı okunamadı"};}
+  };
+  const writeCloudBaseline=async(uid:string,json:string):Promise<{ok:true;hash:string}|{ok:false;message:string}>=>{
+    if(!uid)return {ok:false,message:"Bulut hesabı tanımlı değil"};
+    const decoded=decodeState(json);
+    if(!decoded.ok)return {ok:false,message:decoded.message};
+    const hash=stateHash(json);
+    try{
+      await initialize();await flush();
+      await database.state.put({
+        key:cloudBaselineKey(uid),json,schema:decoded.schema,chars:decoded.chars,bytes:decoded.bytes,
+        source:"firebase",sourceHash:hash,updatedAt:Date.now()
+      });
+      const verified=await database.state.get(cloudBaselineKey(uid));
+      if(!verified||verified.sourceHash!==hash||verified.json!==json)throw new Error("Bulut birleştirme tabanı doğrulanamadı");
+      return {ok:true,hash};
+    }catch(error){return {ok:false,message:error instanceof Error?error.message:"Bulut birleştirme tabanı yazılamadı"};}
+  };
+  const clearCloudBaseline=async(uid:string):Promise<void>=>{
+    if(!uid)return;
+    try{await initialize();await flush();await database.state.delete(cloudBaselineKey(uid));}catch(error){console.warn("Bulut birleştirme tabanı silinemedi",error);}
+  };
   const api:LegacyDataBridgeApi={
     version:"4.0.0-alpha.6",
     storage:"localStorage",
@@ -119,6 +155,9 @@ export function installLegacyDataBridge():LegacyDataBridgeApi{
     captureLegacyWrite,
     cloudPayload,
     primaryJSON:async()=>{await initialize();await flush();return coordinator.readPrimaryJSON();},
+    readCloudBaseline,
+    writeCloudBaseline,
+    clearCloudBaseline,
     applyCloudJSON,
     applyBackupJSON,
     flush,
