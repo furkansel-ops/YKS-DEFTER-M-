@@ -20,6 +20,7 @@ import {installPlayStoreShell} from "./ui/play-store-shell";
 import {installParagraphProblemTracker} from "./ui/paragraph-problem-tracker";
 import "./ui/visual-stability-hotfix.css";
 import "./ui/recent-feature-stability.css";
+import "./ui/topics-toolbar-hotfix.css";
 
 type BootstrapState={
   version:typeof RELEASE_VERSION;
