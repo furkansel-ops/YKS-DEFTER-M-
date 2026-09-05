@@ -1,4 +1,4 @@
-# YKS Defterim v4.1.0
+# YKS Defterim v4.4.0
 
 Kaynak proje Vite ile derlenir; statik hosting'e yayımlanacak klasör `dist/` klasörüdür. Kaynak `index.html` dosyasını doğrudan yayımlamayın. Mevcut GitHub Actions iş akışı testleri, derlemeyi ve GitHub Pages dağıtımını yürütür.
 
@@ -32,6 +32,10 @@ npm run release:check
 ```
 
 `build` modeli kendisi hazırlar: 27 varlık, `scripts/anatomy-assets.json` içindeki sabit upstream commit'ten indirilir, boyut ve SHA-256 doğrulanır. Üretilen `public/anatomy/` Git'e eklenmez; Vite bu dosyaları `dist/anatomy/` altına kopyalar. İnternet gerektirmeyen hazırlık için upstream projenin `public` klasörünü `node scripts/prepare-anatomy-assets.mjs --source /tam/yol/anatomy/public` ile verebilirsiniz. Geçersiz/eksik kaynak dosyası dağıtımı durdurur.
+
+### Android arkadaş testi
+
+Android test sürümü Google Play'e gönderilmez. Telefona doğrudan kurulabilen imzalı APK, GitHub Releases üzerinde pre-release olarak paylaşılır. Kurulum, güvenli güncelleme ve bir yıllık test kuralları için [GITHUB-APK-TESTING.md](GITHUB-APK-TESTING.md) belgesine bakın. AAB dosyası teknik arşivdir; telefona doğrudan kurulacak dosya değildir.
 
 Atlas ve Three.js ayrı paketlerdir; normal uygulama açılışında yüklenmez. GLB'ler yaklaşık 2–5,8 MB; toplam yaklaşık 30 MB'dır. PWA kurulumu bütün modelleri indirmez. Çevrimdışı kullanım için ilgili atlas bölümü/model daha önce açılmış ve cihaz önbelleğinde kalmış olmalıdır. Sekme değişimi yüklemeyi/görüntüleyiciyi kapatır; görünmeyen sahne sürekli çizilmez.
 

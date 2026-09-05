@@ -5,9 +5,11 @@ dist/
 npm-debug.log*
 public/anatomy/
 
-# Android/Google Play yerel ve gizli dosyaları
+# Android dağıtımına ait yerel, ikili ve gizli dosyalar
 *.jks
 *.keystore
+*.apk
+*.aab
 *.jks.base64
 *.keystore.base64
 *.b64

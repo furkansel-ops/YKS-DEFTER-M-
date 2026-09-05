@@ -1,5 +1,7 @@
 # YKS Defterim · Google Play yayın hazırlığı
 
+> **Dağıtım kararı (5 Eylül 2026):** Google Play'e yükleme/yayın yapılmayacaktır. Aktif plan, imzalı APK'yı GitHub Releases üzerinden arkadaşlarla bir yıl test etmektir. Güncel kurallar için [GITHUB-APK-TESTING.md](GITHUB-APK-TESTING.md) kullanılır; aşağıdaki içerik yalnız ileride karar değişirse başvurulacak teknik hazırlık notudur.
+
 Bu belge, `main` dışında tutulan Android yayın adayının teknik ve Play Console kontrol listesidir. `main` dalına birleştirme, Play Console'a yükleme veya mağazada yayınlama bu belgenin parçası değildir.
 
 ## Sabit yayın kimliği
