@@ -1,0 +1,7 @@
+/* Konular arama/filtre kutusu sayfayı kaydırırken kullanıcıyı takip etmesin.
+   app.css içindeki masaüstü sticky kuralını kararlı biçimde geçersiz kılar. */
+#topics .v26-topic-tools{
+  position:static !important;
+  top:auto !important;
+  z-index:auto !important;
+}
