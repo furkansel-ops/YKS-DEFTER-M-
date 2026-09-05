@@ -335,12 +335,12 @@ jobs:
               throw new Error("Beklenmeyen deep-link intent-filter bulundu");
             }
             for (const [pattern, label] of [
-              [/package: name='com\.furkansel\.yksdefterim'/, "APK applicationId"],
-              [/versionCode='4040002'/, "APK versionCode"],
-              [/versionName='4\.4\.0'/, "APK versionName"],
-              [/sdkVersion:'24'/, "APK minSdk"],
-              [/targetSdkVersion:'36'/, "APK targetSdk"],
-              [/application-label:'YKS Defterim'/, "APK uygulama adı"]
+              [/package: name=\x27com\.furkansel\.yksdefterim\x27/, "APK applicationId"],
+              [/versionCode=\x274040002\x27/, "APK versionCode"],
+              [/versionName=\x274\.4\.0\x27/, "APK versionName"],
+              [/sdkVersion:\x2724\x27/, "APK minSdk"],
+              [/targetSdkVersion:\x2736\x27/, "APK targetSdk"],
+              [/application-label:\x27YKS Defterim\x27/, "APK uygulama adı"]
             ]) if (!pattern.test(badging)) throw new Error(`${label} doğrulanamadı`);
           ' "$metadata" "$aab_manifest" "$apk_badging"
 

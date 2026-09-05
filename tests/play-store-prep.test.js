@@ -61,6 +61,7 @@ test("Android CI takip edilen Capacitor 8.5.0 projesinden imzalı APK ve AAB ür
   assert.match(workflow,/--target "\$GITHUB_SHA"/);
   assert.match(workflow,/Metadata APK SHA-256 ile gerçek dosya uyuşmuyor/);
   assert.match(workflow,/tag="v\$\{build\}"/);
+  assert.match(workflow,/application-label:\\x27YKS Defterim\\x27/);
 });
 
 test("Gizlilik ve gerçek cihaz veri silme akışı üretim paketine bağlıdır",()=>{
