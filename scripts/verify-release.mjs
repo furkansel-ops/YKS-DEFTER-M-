@@ -5,7 +5,7 @@ const root=resolve(import.meta.dirname,".."),dist=resolve(root,"dist");
 const pkg=JSON.parse(await readFile(resolve(root,"package.json"),"utf8"));
 const localVersion=JSON.parse(await readFile(resolve(root,"version.json"),"utf8"));
 if(pkg.version!==localVersion.version)throw new Error(`Paket/version.json sürüm sapması: ${pkg.version} / ${localVersion.version}`);
-if(localVersion.version!=="4.4.0"||localVersion.build!=="4.4.0-r1"||localVersion.schema!==21)throw new Error(`Beklenmeyen v4.4.0 kimliği: ${JSON.stringify(localVersion)}`);
+if(localVersion.version!=="4.4.0"||localVersion.build!=="4.4.0-r2"||localVersion.schema!==21)throw new Error(`Beklenmeyen v4.4.0 kimliği: ${JSON.stringify(localVersion)}`);
 const index=await readFile(resolve(dist,"index.html"),"utf8"),asset=index.match(/(?:src|href)="\.\/(assets\/index-[^"']+\.js)"/)?.[1];
 if(!asset)throw new Error("Derlenmiş v4 paketi bulunamadı");
 const bundle=await readFile(resolve(dist,asset),"utf8"),legacy=await readFile(resolve(dist,"modules/release-selftest.js"),"utf8"),sw=await readFile(resolve(dist,"sw.js"),"utf8"),version=JSON.parse(await readFile(resolve(dist,"version.json"),"utf8"));
