@@ -298,6 +298,12 @@ jobs:
           "$ANDROID_HOME/build-tools/36.0.0/aapt2" dump badging "$apk" > "$apk_badging"
           test -s "$aab_manifest"
           test -s "$apk_badging"
+          command -v apkanalyzer >/dev/null
+          test "$(apkanalyzer manifest application-id "$apk")" = "com.furkansel.yksdefterim"
+          test "$(apkanalyzer manifest version-name "$apk")" = "4.4.0"
+          test "$(apkanalyzer manifest version-code "$apk")" = "4040002"
+          test "$(apkanalyzer manifest min-sdk "$apk")" = "24"
+          test "$(apkanalyzer manifest target-sdk "$apk")" = "36"
           if grep -q '^application-debuggable' "$apk_badging"; then
             echo "::error::Release APK debug olarak işaretlenmiş."
             exit 1
@@ -338,8 +344,6 @@ jobs:
               [/package: name=\x27com\.furkansel\.yksdefterim\x27/, "APK applicationId"],
               [/versionCode=\x274040002\x27/, "APK versionCode"],
               [/versionName=\x274\.4\.0\x27/, "APK versionName"],
-              [/sdkVersion:\x2724\x27/, "APK minSdk"],
-              [/targetSdkVersion:\x2736\x27/, "APK targetSdk"],
               [/application-label:\x27YKS Defterim\x27/, "APK uygulama adı"]
             ]) if (!pattern.test(badging)) throw new Error(`${label} doğrulanamadı`);
           ' "$metadata" "$aab_manifest" "$apk_badging"
@@ -399,7 +403,7 @@ jobs:
             "$aab_name" "$aab_sha256"
           (cd "$artifact_dir" && sha256sum "$apk_name" > "$apk_name.sha256")
           (cd "$artifact_dir" && sha256sum "$aab_name" > "$aab_name.sha256")
-          echo "APK/AAB doğrulandı: APK $(du -h "$apk" | cut -f1), AAB $(du -h "$aab" | cut -f1); imzalama sertifikası eşleşti."
+          echo "APK/AAB doğrulandı: APK $(du -h "$apk" | cut -f1), AAB $(du -h "$aab" | cut -f1); API 24/36 ve imzalama sertifikası eşleşti."
 
       - name: GitHub arkadaş testi APK/AAB artefaktını yükle
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
