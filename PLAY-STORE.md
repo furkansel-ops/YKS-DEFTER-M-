@@ -1,13 +1,13 @@
 # YKS Defterim · Google Play yayın hazırlığı
 
-Bu belge, `codex/play-store-release-ready` dalındaki Android yayın adayının teknik ve Play Console kontrol listesidir. `main` dalına birleştirme, Play Console'a yükleme veya mağazada yayınlama bu belgenin parçası değildir.
+Bu belge, `main` dışında tutulan Android yayın adayının teknik ve Play Console kontrol listesidir. `main` dalına birleştirme, Play Console'a yükleme veya mağazada yayınlama bu belgenin parçası değildir.
 
 ## Sabit yayın kimliği
 
 - Uygulama adı: **YKS Defterim**
 - Android `applicationId`: **`com.furkansel.yksdefterim`**
 - Sürüm adı: **`4.4.0`**
-- Android `versionCode`: **`4040001`** (`4.4.0-r1`)
+- Android `versionCode`: **`4040002`** (`4.4.0-r2`)
 - Web kaynak klasörü: **`dist`**
 - Minimum Android SDK: **24**
 - Compile SDK / Target SDK: **36 / 36**
@@ -20,13 +20,13 @@ Bu belge, `codex/play-store-release-ready` dalındaki Android yayın adayının 
 major × 1.000.000 + minor × 10.000 + patch × 100 + revision
 ```
 
-Örnek: `4.4.0-r1` → `4040001`.
+Örnek: `4.4.0-r2` → `4040002`.
 
 ## Android ve Capacitor sözleşmesi
 
 Android projesi repoda sabitlenir; her CI çalışmasında geçici olarak yeniden oluşturulmaz. Yayın adayı aşağıdaki kontrolleri sağlamalıdır:
 
-- Capacitor web varlıkları önce `npm run build:assets`, sonra `npx cap sync android` ile güncellenir.
+- Capacitor Android varlıkları tek ve hedefe özel `npm run android:sync` komutuyla üretilip senkronlanır.
 - `applicationId`, sürüm, SDK seviyeleri ve release signing ayarları Gradle çıktısında doğrulanır.
 - Uygulama etiketi **YKS Defterim** olarak görünür.
 - Adaptive icon foreground/background katmanları ve splash kaynakları Android resource klasörlerinde bulunur.
@@ -94,6 +94,14 @@ Beklenen Pages adresleri (yayınlanmadan önce mutlaka açılıp kontrol edilir)
 - `https://furkansel-ops.github.io/YKS-DEFTER-M-/privacy.html`
 - `https://furkansel-ops.github.io/YKS-DEFTER-M-/data-deletion.html`
 
+Web/PWA eşitlemesi yayınlanmadan önce repodaki sürümlenmiş `firestore.rules` dosyası `yks-uygulamam` Firebase projesine yetkili geliştirici tarafından dağıtılmalıdır. Bu adım otomatik Android AAB işinin parçası değildir ve Firebase erişim yetkisi gerektirir:
+
+```text
+firebase deploy --only firestore:rules --project yks-uygulamam
+```
+
+Dağıtımdan sonra Firebase Rules Playground veya emulator ile başka kullanıcı erişiminin, eski formatlı yazmanın ve etkin eşitleme parçalarını silmenin reddedildiği doğrulanmadan web eşitleme sürümü canlıya alınmamalıdır.
+
 ## Play Console ve mağaza içeriği
 
 1. Uygulamayı varsayılan dil **Türkçe (tr-TR)** ve kategori **Eğitim** ile oluşturun.
@@ -125,7 +133,7 @@ Ekran görüntülerinde gerçek uygulama arayüzü kullanılmalı; resmî kurum 
 - `npm ci` ve `npm run release:check` temiz checkout'ta yeşil.
 - Node 22 ana hat ve Node 24 uyumluluk kontrolü yeşil.
 - Android lint/test ve `bundleRelease` yeşil.
-- AAB sürümü `4.4.0 (4040001)`, paket adı `com.furkansel.yksdefterim`.
+- AAB sürümü `4.4.0 (4040002)`, paket adı `com.furkansel.yksdefterim`.
 - AAB upload key ile imzalı ve imza doğrulanmış.
 - Telefon ve tablet üzerinde açılış, yön değişimi, geri tuşu, veri kaydetme, yedekleme, silme, Program, Deneme, Odak ve Öğrenme Laboratuvarı smoke testleri tamam.
 - Wikipedia/YouTube ve resmî kaynak bağlantılarının çevrimiçi/çevrimdışı hata davranışı kontrol edilmiş.

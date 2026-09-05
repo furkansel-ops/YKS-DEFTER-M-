@@ -22,3 +22,6 @@ android/captures/
 android/yks-release-metadata.json
 work/
 google-services.json
+
+# Local Sleek design review artifacts
+sleek-output/

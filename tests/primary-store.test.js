@@ -65,3 +65,18 @@ test("değişmeyen Dexie kaydı doğrulandıktan sonra ayna damgası güncelleni
   const result=await x.coordinator.capture(json,777);
   assert.equal(result.ok,true);assert.equal(result.status,"unchanged");assert.equal(result.updatedAt,500);assert.equal(x.target.commits,0);assert.equal(x.mirror.meta.hash,x.stateHash(json));assert.equal(x.mirror.meta.updatedAt,777);
 });
+
+test("gelecek şemadaki yerel kayıt eski Dexie aynasıyla değiştirilmez veya buluta düşürülmez",async()=>{
+  const [{decodeState,stateHash},{PrimaryStateCoordinator}]=await Promise.all([import(dataUrl("codec.ts")),import(dataUrl("primary-store.ts"))]);
+  const future='{"v":22,"name":"Yeni uygulama kaydı"}',indexed='{"v":21,"name":"Eski Dexie"}';
+  const mirror=new Mirror(decodeState(future),{hash:stateHash(future),updatedAt:1000});
+  const target=new Target({key:"primary",json:indexed,schema:21,chars:indexed.length,bytes:indexed.length,source:"localStorage",sourceHash:stateHash(indexed),updatedAt:900});
+  const runtime=new Runtime(),coordinator=new PrimaryStateCoordinator(mirror,target,runtime,()=>1100);
+
+  const initialized=await coordinator.initialize();
+  assert.equal(initialized.ok,false);assert.equal(initialized.status,"future-schema");assert.equal(initialized.primary,"none");
+  assert.equal(runtime.applied.length,0);assert.equal(target.commits,0);assert.equal(target.state.json,indexed);
+
+  const primary=await coordinator.readPrimaryJSON();
+  assert.equal(primary.ok,false);assert.match(primary.message,/daha yeni veri şemasında/);assert.equal(target.commits,0);
+});

@@ -41,3 +41,11 @@ test("Laboratuvar 3.0 quiz güvenli runtime'a bağlıdır ve Program ya da çal�
   assert.match(safe,/import\("\.\/lab-quiz-v43"\)/);assert.match(safe,/installLabQuizV43/);assert.match(safe,/v43LabQuiz/);assert.match(safe,/v43LabQuizErrors/);
   assert.doesNotMatch(ui,/\blocalStorage\b/);assert.doesNotMatch(ui,/\bsave\s*\(/);assert.doesNotMatch(ui,/\baddToToday\s*\(/);assert.doesNotMatch(ui,/\baddToDay\s*\(/);assert.doesNotMatch(ui,/\.weeks\s*\[/);assert.doesNotMatch(ui,/\.rows\s*\[/);
 });
+
+test("Laboratuvar quiz keşfi tüm document ağacını sürekli izlemez",()=>{
+  const ui=read("src/ui/lab-quiz-v43.ts");
+  assert.doesNotMatch(ui,/observe\(document\.documentElement/);
+  assert.match(ui,/getElementById\("v320PanelAtlas"\)/);
+  assert.match(ui,/discoveryAttempts>=24/);
+  assert.match(ui,/yks:navigation-after/);
+});

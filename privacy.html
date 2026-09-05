@@ -19,14 +19,17 @@
   <p class="note">Not ve serbest metin alanlarına gereksiz kişisel veya hassas bilgi yazılmaması önerilir.</p>
 
   <h2>2. Yerel saklama ve saklama süresi</h2>
-  <p>Çalışma verileri uygulamanın cihazdaki yerel depolama alanlarında (örneğin IndexedDB/Dexie, yerel uygulama depolaması ve cache) tutulur. Bu sürüm kullanıcı hesabı oluşturmaz ve YKS Defterim geliştiricisinin işlettiği bir sunucuya çalışma kayıtlarını yükleyen bir bulut senkronu sunmaz.</p>
-  <p>Yerel veriler kullanıcı uygulama içinden silene, Android ayarlarından uygulama depolamasını temizleyene veya işletim sistemi uygulama verisini kaldırana kadar cihazda kalabilir. Kullanıcının dışa aktardığı JSON/yedek dosyası uygulama deposunun dışındadır; kullanıcı bu dosyayı ayrıca yönetir ve siler.</p>
+  <p>Çalışma verileri önce uygulamanın cihazdaki yerel depolama alanlarında (örneğin IndexedDB/Dexie, yerel uygulama depolaması ve cache) tutulur. Google Play'den dağıtılan Android paketi kullanıcı hesabı oluşturmaz ve çalışma kayıtlarını bir bulut hizmetine göndermez.</p>
+  <p>Web/PWA sürümünde kullanıcı isterse <b>Google ile giriş</b> yaparak cihazlar arası eşitlemeyi açabilir. Bu durumda çalışma kaydının eşitleme kopyası, kullanıcının Google oturumuna bağlı kimlikle Google Cloud Firestore üzerinde saklanır. Eşitlemenin güvenli ve tutarlı çalışması için rastgele oluşturulan cihaz istemci kimliği ile kayıt sürümü (revision), veri şeması ve güncelleme zamanı gibi teknik bilgiler de tutulabilir. Bulut kopyası silinirken, cihazlar arasında eski verinin yeniden yüklenmesini önlemek amacıyla çalışma içeriği taşımayan içeriksiz bir silme işareti saklanır; aynı hesapla eşitleme yeniden açıldığında bu işaret yeni eşitleme kaydıyla değiştirilir. Google e-posta adresi veya görünen adı yalnız oturum/eşitleme durumunu göstermek için kullanılabilir; uygulamanın çalışma verisine eklenmez. Giriş yapılmadığında web sürümü de yalnız yerel kayıtla çalışır.</p>
+  <p>Hesaplar arasında istem dışı veri aktarımını önlemek için cihazdaki yerel kayıt, ilk eşitlenen Google hesabına bağlanır. Aynı yerel kayıtla farklı bir Google hesabına giriş engellenir; hesap değiştirmek için kullanıcı önce cihaz verilerini silmelidir.</p>
+  <p>Yerel veriler kullanıcı uygulama içinden silene, Android ayarlarından uygulama depolamasını temizleyene veya işletim sistemi uygulama verisini kaldırana kadar cihazda kalabilir. İsteğe bağlı web bulut kopyası, kullanıcı eşitleme kartındaki <b>Bulut kopyasını sil</b> işlemini tamamlayana kadar kalabilir. Kullanıcının dışa aktardığı JSON/yedek dosyası uygulama deposunun dışındadır; kullanıcı bu dosyayı ayrıca yönetir ve siler.</p>
 
   <h2>3. Ağ erişimi ve üçüncü taraf hizmetleri</h2>
   <p>Temel kayıt ve planlama işlevleri yerel çalışır. Aşağıdaki isteğe bağlı özellikler, kullanıcı ilgili işlemi başlattığında üçüncü taraf hizmetlere bağlanabilir:</p>
   <ul>
     <li><b>Wikipedia/Wikimedia:</b> Periyodik tabloda bir elementin medya bilgisini göstermek için seçilen element başlığı Türkçe Wikipedia API'sine gönderilebilir ve Wikimedia sunucusundan görsel yüklenebilir.</li>
     <li><b>YouTube/Google:</b> Video araması açıldığında öğretmen/ders/konu arama terimleri YouTube'a gönderilebilir. Kullanıcı kendi YouTube Data API anahtarını etkinleştirdiyse bu anahtar ve arama parametreleri Google API'sine iletilir. Video veya oynatma listesi açıldığında YouTube'un gömülü oynatıcısı yüklenebilir.</li>
+    <li><b>Google ile web eşitleme:</b> Yalnız web/PWA sürümünde ve kullanıcı açıkça giriş yaptığında Google Authentication oturumu açılır; çalışma verisinin eşitleme kopyası Google Cloud Firestore'a gönderilir ve diğer giriş yapılmış web cihazlarıyla alınır/birleştirilir. Android Play paketi bu çalışma zamanını içermez.</li>
     <li><b>Harici kaynaklar:</b> MEB, OGM, ÖSYM, YouTube, GitHub destek sayfası veya kullanıcının eklediği başka bir HTTPS bağlantısı sistem tarayıcısında ya da uygun uygulamada açılabilir.</li>
   </ul>
   <p>Bu bağlantılarda hedef hizmet IP adresi, cihaz/tarayıcı bilgileri, istek zamanı, arama/medya seçimi ve kendi politikasında açıkladığı diğer verileri işleyebilir. YKS Defterim kişisel çalışma planını veya deneme kayıtlarını bu isteklere bilinçli olarak eklemez. Üçüncü taraf hizmetlerdeki işleme ve saklama, ilgili hizmetin koşullarına tabidir: <a href="https://foundation.wikimedia.org/wiki/Policy:Privacy_policy/tr" rel="noopener noreferrer">Wikimedia Gizlilik Politikası</a> ve <a href="https://policies.google.com/privacy?hl=tr" rel="noopener noreferrer">Google Gizlilik Politikası</a>.</p>
@@ -37,26 +40,27 @@
     <li>Deneme ve çalışma analizlerini cihaz üzerinde oluşturmak,</li>
     <li>Odak ve öğrenme özelliklerini çalıştırmak,</li>
     <li>Uygulama tercihlerini ve çevrimdışı temel işlevleri korumak,</li>
+    <li>Kullanıcı açtıysa web/PWA cihazları arasında çalışma kaydını eşitlemek ve çakışan benzersiz kayıtları birleştirmek,</li>
     <li>Kullanıcının istediği dışa aktarma, geri yükleme ve harici içerik işlemlerini gerçekleştirmek.</li>
   </ul>
 
   <h2>5. Reklam, analiz ve veri satışı</h2>
-  <p>Bu sürümde davranışsal reklam, uygulamalar arası izleme, analytics veya crash-reporting amacıyla bir SDK kullanılmaz. YKS Defterim geliştiricisi kişisel çalışma verilerini satmaz. Kullanıcının başlattığı üçüncü taraf ağ akışları, yukarıdaki hizmetlerin kendi veri işleme uygulamalarına tabidir.</p>
+  <p>Bu sürümde davranışsal reklam, uygulamalar arası izleme, analytics veya crash-reporting amacıyla bir SDK kullanılmaz. Web eşitlemede kullanılan Google oturum ve veri saklama modülleri yalnız bu kullanıcı tarafından başlatılan işlev içindir. YKS Defterim geliştiricisi kişisel çalışma verilerini satmaz. Kullanıcının başlattığı üçüncü taraf ağ akışları, yukarıdaki hizmetlerin kendi veri işleme uygulamalarına tabidir.</p>
 
   <h2>6. Yedekleme ve dışa aktarma</h2>
   <p>Kullanıcı çalışma verilerini JSON yedeği, Markdown özeti, ICS takvimi veya Anki uyumlu metin olarak dışa aktarabilir; çalışma kartı ve bazı raporları PNG ya da metin olarak indirebilir/paylaşabilir. Bu çıktılar ad/profil bilgisi, hedef veya çalışma özeti gibi kullanıcının uygulamaya girdiği verileri içerebilir. Dışa aktarma ve paylaşma yalnız kullanıcının başlattığı bir işlemdir. Dosyanın kaydedildiği, yedeklendiği veya başka bir uygulamayla paylaşıldığı konum kullanıcının ve ilgili işletim sistemi/hizmetin kontrolündedir. Uygulama içi veri silme işlemi dışa aktarılmış dosyaları otomatik olarak silmez.</p>
 
   <h2>7. Verileri silme</h2>
-  <p>Uygulamadaki <b>Daha → Veri → Cihaz verilerini sil</b> seçeneği, iki aşamalı onaydan sonra YKS Defterim'in cihazdaki IndexedDB verisini, yerel/session storage kayıtlarını ve YKS cache'lerini temizler. Android ayarlarından uygulama depolamasını temizlemek de yerel uygulama verisini kaldırır. Ayrıntılar ve dışa aktarılmış dosyalarla ilgili sınırlar için <a href="./data-deletion.html">YKS Defterim verilerini silme</a> sayfasına bakılabilir.</p>
+  <p>Uygulamadaki <b>Merkez (Daha) → Veri → Cihaz verilerini sil</b> seçeneği, iki aşamalı onaydan sonra YKS Defterim'in cihazdaki IndexedDB verisini, yerel/session storage kayıtlarını ve YKS cache'lerini temizler; web eşitleme oturumu varsa önce güvenli biçimde kapatır. Bu işlem başka cihazdaki veya buluttaki kopyayı kendiliğinden silmez. Web bulut kopyası, giriş yapıldıktan sonra aynı bölümdeki <b>Bulut kopyasını sil</b> düğmesi ve iki ayrı onayla silinir. Android ayarlarından uygulama depolamasını temizlemek de yerel uygulama verisini kaldırır. Ayrıntılar ve dışa aktarılmış dosyalarla ilgili sınırlar için <a href="./data-deletion.html">YKS Defterim verilerini silme</a> sayfasına bakılabilir.</p>
 
   <h2>8. Hesaplar</h2>
-  <p>Bu sürüm çevrimiçi kullanıcı hesabı oluşturmaz. Bu nedenle YKS Defterim sunucularında kapatılması gereken bir hesap veya hesaba bağlı çalışma verisi bulunmaz. Cihaz verisi silme işlemi bir “hesap silme” işlemi değildir.</p>
+  <p>Android uygulaması çevrimiçi kullanıcı hesabı oluşturmaz. Web/PWA eşitlemesi de ayrı bir YKS Defterim parolası veya profili oluşturmaz; kullanıcı mevcut Google hesabıyla kimlik doğrular. Eşitlemeye bağlı çalışma verisi <b>Bulut kopyasını sil</b> işlemiyle kaldırılabilir. Cihaz verisi silme işlemi yalnız yerel veriyi siler ve bir Google hesabını kapatmaz.</p>
 
   <h2>9. Öğrenciler ve çocukların gizliliği</h2>
-  <p>Uygulama YKS hazırlığı yapan öğrenciler için tasarlanmıştır. Hesap oluşturmadığı için kullanıcıdan doğum tarihi istemez. Yaş grubuna ilişkin nihai Google Play hedef kitle beyanı mağaza kaydında ayrıca yapılır. Reşit olmayan kullanıcıların cihaz, yedekleme ve harici bağlantı tercihlerini bir veliyle değerlendirmesi önerilir.</p>
+  <p>Uygulama YKS hazırlığı yapan öğrenciler için tasarlanmıştır ve kullanıcıdan doğum tarihi istemez. Yaş grubuna ilişkin nihai Google Play hedef kitle beyanı mağaza kaydında ayrıca yapılır. Reşit olmayan kullanıcıların cihaz, web eşitleme, yedekleme ve harici bağlantı tercihlerini bir veliyle değerlendirmesi önerilir.</p>
 
   <h2>10. Güvenlik</h2>
-  <p>Yerel depolama, cihaz ve işletim sistemi güvenliğine bağlıdır. Kullanıcının cihaz kilidi kullanması, yedek dosyalarını güvenli bir yerde saklaması ve YouTube API anahtarını paylaşmaması önerilir. İnternet bağlantıları HTTPS olarak tasarlanır; hiçbir sistem mutlak güvenlik garantisi vermez.</p>
+  <p>Yerel depolama, cihaz ve işletim sistemi güvenliğine bağlıdır. Web eşitleme verilerine erişim Google oturumu ve kullanıcı kimliğine bağlı veri kurallarıyla sınırlandırılır; aktarım HTTPS üzerinden yapılır. Kullanıcının cihaz kilidi kullanması, ortak cihazlarda eşitlemeden çıkış yapması, yedek dosyalarını güvenli bir yerde saklaması ve YouTube API anahtarını paylaşmaması önerilir. Hiçbir sistem mutlak güvenlik garantisi vermez.</p>
 
   <h2>11. Değişiklikler ve iletişim</h2>
   <p>Uygulamanın veri davranışı değişirse bu politika ve Google Play Data Safety beyanı güncellenir. Kişisel bilgi içermeyen teknik veya gizlilik soruları için <a href="https://github.com/furkansel-ops/YKS-DEFTER-M-/issues">YKS Defterim destek sayfası</a> kullanılabilir. Bu sayfa herkese açıktır; kişisel veri, yedek dosyası, API anahtarı veya parola paylaşılmamalıdır.</p>

@@ -108,10 +108,8 @@ jobs:
             android/variables.gradle >/dev/null
           npm run android:verify
 
-      - name: Web paketini üret ve Android projesiyle eşitle
-        run: |
-          npm run build:assets
-          npx cap sync android
+      - name: Android hedef paketini üret ve projeyle eşitle
+        run: npm run android:sync
 
       - name: Gradle wrapper, Android lint ve unit testlerini çalıştır
         working-directory: android
@@ -201,10 +199,8 @@ jobs:
             android/app/build.gradle \
             android/variables.gradle >/dev/null
 
-      - name: Web paketini üret ve takip edilen Android projesiyle eşitle
-        run: |
-          npm run build:assets
-          npx cap sync android
+      - name: Android hedef paketini üret ve takip edilen projeyle eşitle
+        run: npm run android:sync
 
       - name: Gradle wrapper checksum'unu ve bundletool paketini doğrula
         shell: bash
@@ -310,7 +306,7 @@ jobs:
             for (const [pattern, label] of [
               [/package="com\.furkansel\.yksdefterim"/, "AAB applicationId"],
               [/versionName="4\.4\.0"/, "AAB versionName"],
-              [/versionCode="4040001"/, "AAB versionCode"],
+              [/versionCode="4040002"/, "AAB versionCode"],
               [/minSdkVersion="24"/, "AAB minSdk"],
               [/targetSdkVersion="36"/, "AAB targetSdk"],
               [/usesCleartextTraffic="false"/, "AAB cleartext"],
@@ -338,7 +334,7 @@ jobs:
           test "$actual_fingerprint" = "$expected_fingerprint"
 
           artifact_dir="$RUNNER_TEMP/play-internal-artifact"
-          artifact_name="YKS-Defterim-4.4.0-4040001.aab"
+          artifact_name="YKS-Defterim-4.4.0-4040002.aab"
           mkdir -p "$artifact_dir"
           cp "$aab" "$artifact_dir/$artifact_name"
           cp "$metadata" "$artifact_dir/release-metadata.json"

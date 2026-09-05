@@ -12,7 +12,7 @@ export interface LegacyRuntimeAdapter{
   applyJSON(json:string):{ok:true;json:string}|{ok:false;message:string};
 }
 
-export type PrimaryInitStatus="ready"|"seeded-indexed"|"local-newer"|"indexed-newer"|"restored-local"|"fallback-local"|"no-data"|"failed";
+export type PrimaryInitStatus="ready"|"seeded-indexed"|"local-newer"|"indexed-newer"|"restored-local"|"fallback-local"|"no-data"|"future-schema"|"failed";
 
 export interface PrimaryInitResult{
   ok:boolean;
@@ -77,6 +77,16 @@ export class PrimaryStateCoordinator{
     }
 
     const indexedDecoded=indexedState(indexed);
+    /* Daha yeni bir uygulamanın yazdığı localStorage kaydını, bu sürümdeki eski
+       Dexie aynasıyla otomatik olarak değiştirmek geri döndürülemez veri kaybına
+       yol açar. Kullanıcı daha yeni sürüme dönene kadar iki kaynağa da dokunma. */
+    if(!local.ok&&local.kind==="future-schema"){
+      return {
+        ok:false,status:"future-schema",primary:"none",degraded:true,
+        message:`Yerel kayıt daha yeni veri şemasında (${local.schema??"?"}); güvenlik için otomatik geri yükleme yapılmadı`,
+        schema:local.schema
+      };
+    }
     if(!local.ok&&!indexedDecoded){
       if(local.kind==="missing"&&!indexed)return {ok:true,status:"no-data",primary:"none",degraded:false,message:"Henüz kayıt bulunmuyor"};
       return {ok:false,status:"failed",primary:"none",degraded:true,message:"Geçerli ana kayıt bulunamadı"};
@@ -128,6 +138,9 @@ export class PrimaryStateCoordinator{
 
   async readPrimaryJSON():Promise<PrimaryJSONResult|{ok:false;message:string}>{
     const local=this.#mirror.read(),mirrorMeta=this.#mirror.readMirrorMetadata();
+    if(!local.ok&&local.kind==="future-schema"){
+      return {ok:false,message:`Yerel kayıt daha yeni veri şemasında (${local.schema??"?"}); eski kayıt buluta gönderilmedi`};
+    }
     let indexed:IndexedStateRecord|undefined;
     try{indexed=await this.#target.readState();}catch{
       if(local.ok)return {ok:true,json:local.json,hash:stateHash(local.json),schema:local.schema,source:"localStorage",updatedAt:mirrorMeta.updatedAt};

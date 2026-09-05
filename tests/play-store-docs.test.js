@@ -10,7 +10,7 @@ test("Play Store belgeleri 4.4.0 Android kimliği ve yayın sınırını doğru 
   const prep=read("PLAY-STORE.md"),release=read("RELEASE.md");
   for(const text of [prep,release]){
     assert.match(text,/4\.4\.0/);
-    assert.match(text,/4040001/);
+    assert.match(text,/4040002/);
     assert.match(text,/com\.furkansel\.yksdefterim/);
     assert.match(text,/Internal Testing/i);
   }
@@ -22,6 +22,8 @@ test("Play Store belgeleri 4.4.0 Android kimliği ve yayın sınırını doğru 
   assert.match(prep,/1024 × 500/);
   assert.match(prep,/Açık onay olmadan `main` birleştirilmez/);
   assert.match(release,/tamamlanmadan “Play Store'da yayınlandı”/);
+  assert.match(release,/tarihsel r1 yerel doğrulaması/i);
+  assert.match(release,/mevcut \*\*4\.4\.0-r2 \/ 4040002\*\* için signed AAB henüz üretilmemiştir/);
 });
 
 test("Gizlilik politikası yerel veriyi ve kullanıcı başlatmalı ağ erişimlerini açıklar",()=>{
@@ -36,6 +38,8 @@ test("Gizlilik politikası yerel veriyi ve kullanıcı başlatmalı ağ erişiml
   assert.match(privacy,/Anki uyumlu metin/);
   assert.match(privacy,/PNG/);
   assert.match(privacy,/Cihaz verilerini sil/i);
+  assert.match(privacy,/Google Cloud Firestore/);
+  assert.match(privacy,/Bulut kopyasını sil/);
   assert.doesNotMatch(privacy,/Firebase/i);
   assert.doesNotMatch(privacy,/hiçbir veri (?:toplanmaz|paylaşılmaz)/i);
 });
@@ -64,7 +68,8 @@ test("Veri silme sayfası uygulama deposu ile dışa aktarılan dosyayı ayırı
   assert.match(deletion,/otomatik olarak silmez/);
   assert.match(deletion,/Markdown/);
   assert.match(deletion,/Anki uyumlu/);
-  assert.match(deletion,/hesap silme talep formu değil/i);
+  assert.match(deletion,/Bulut kopyasını sil/);
+  assert.match(deletion,/Google hesabını kapatmaz/i);
 });
 
 test("Türkçe mağaza metinleri Play karakter sınırları içinde ve temkinlidir",()=>{

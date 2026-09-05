@@ -132,8 +132,36 @@ export function installLabQuizV43():LabQuizRuntime {
       if(outside)scheduleSync();if(info)detectInfoSelection();
     });panelObserver.observe(panel,{childList:true,subtree:true});render();
   }
-  function discover(){const next=document.querySelector<HTMLElement>('[data-atlas-version="3"]');if(next)attach(next);}
-  const rootObserver=new MutationObserver(discover);rootObserver.observe(document.documentElement,{childList:true,subtree:true});window.addEventListener("yks:navigation-after",discover);discover();
-  const api:LabQuizRuntime={installed:true,version:VERSION,validate(){const issues:string[]=[];if(!rootObserver)issues.push("observer");if(panel&&panel.dataset.atlasVersion!=="3")issues.push("atlas-version");return issues;},refresh(){discover();render();},stop(){stopQuiz();panelObserver?.disconnect();rootObserver.disconnect();window.removeEventListener("yks:navigation-after",discover);}};
+  let discoveryObserver:MutationObserver|null=null,discoveryTimer=0,discoveryAttempts=0;
+  function stopDiscovery(){
+    discoveryObserver?.disconnect();discoveryObserver=null;
+    if(discoveryTimer){window.clearInterval(discoveryTimer);discoveryTimer=0;}
+    discoveryAttempts=0;
+  }
+  function discover():boolean{
+    const next=document.querySelector<HTMLElement>('[data-atlas-version="3"]');
+    if(!next)return false;
+    stopDiscovery();attach(next);return true;
+  }
+  function watchForAtlas(){
+    if(discover())return;
+    const host=document.getElementById("v320PanelAtlas")||document.getElementById("mrp_lab");
+    if(host&&!discoveryObserver){
+      discoveryObserver=new MutationObserver(()=>{discover();});
+      discoveryObserver.observe(host,{childList:true,subtree:true});
+    }
+    if(!discoveryTimer){
+      discoveryTimer=window.setInterval(()=>{
+        discoveryAttempts++;
+        if(discover()||discoveryAttempts>=24)stopDiscovery();
+      },125);
+    }
+  }
+  /* Atlas yalnız Laboratuvar açıldığında oluşur. Bütün document ağacını ömür boyu
+     izlemek yerine ilgili paneli kısa süre ve olay bazlı olarak takip et. */
+  window.addEventListener("yks:navigation-after",watchForAtlas);
+  window.addEventListener("yks:v4-bootstrap",watchForAtlas,{once:true});
+  watchForAtlas();
+  const api:LabQuizRuntime={installed:true,version:VERSION,validate(){const issues:string[]=[];if(panel&&panel.dataset.atlasVersion!=="3")issues.push("atlas-version");return issues;},refresh(){watchForAtlas();render();},stop(){stopQuiz();panelObserver?.disconnect();stopDiscovery();window.removeEventListener("yks:navigation-after",watchForAtlas);}};
   window.__YKS_LAB_QUIZ_V43__=api;return api;
 }

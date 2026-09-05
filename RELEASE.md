@@ -3,8 +3,8 @@
 ## Kimlik
 
 - Uygulama sürümü: **4.4.0**
-- Build: **4.4.0-r1**
-- Android `versionCode`: **4040001**
+- Build: **4.4.0-r2**
+- Android `versionCode`: **4040002**
 - Android paket adı: **`com.furkansel.yksdefterim`**
 - Kanal: **stable adayı / Internal Testing öncesi**
 - Veri şeması: **21**
@@ -45,9 +45,9 @@ AAB imza doğrulaması
 
 Node 22 ana doğrulaması ve Node 24 uyumluluk doğrulaması ayrı ayrı yeşil olmalıdır. Test sayısı veya paket boyutu, o commitin CI çıktısından alınmadan bu belgeye kesin sonuç olarak yazılmaz.
 
-## Yerel doğrulama · 31 Ağustos 2026
+## Tarihsel r1 yerel doğrulaması · 31 Ağustos 2026
 
-Bu çalışma alanında, kaynak tabanı `3c618eb45a75fe120eed45335cc8b9e208fe2d45` üzerinden hazırlanan yayın adayı için:
+Aşağıdaki sonuçlar kaynak tabanı `3c618eb45a75fe120eed45335cc8b9e208fe2d45` üzerinden hazırlanmış önceki **4.4.0-r1 / 4040001** adayına aittir; mevcut r2 adayının üretildiğini veya doğrulandığını göstermez:
 
 - Node 22 ve Node 24 `release:check` kapıları geçti; her iki çalışmada **325/325** test başarılı oldu.
 - Capacitor web varlığı eşitlemesi geçti.
@@ -56,12 +56,12 @@ Bu çalışma alanında, kaynak tabanı `3c618eb45a75fe120eed45335cc8b9e208fe2d4
 - `bundletool 1.18.3`, AAB manifest sözleşmesini doğruladı; JAR imzası upload sertifikasıyla eşleşti.
 - Yerel Internal Testing dosyası `YKS-Defterim-4.4.0-4040001.aab`, **29.950.020 byte** ve SHA-256 değeri `18d6257347d68aae4745db70b5df3fcc1ea449c5f7448c5c804b430690c4927f` olarak üretildi.
 
-Bu sonuç yerel doğrulamadır; GitHub Actions signed workflow'u ve Play Console yüklemesi henüz çalıştırılmamıştır.
+Bu sonuç yalnız tarihsel r1 yerel doğrulamasıdır; mevcut **4.4.0-r2 / 4040002** için signed AAB henüz üretilmemiştir. GitHub Actions signed workflow'u ve Play Console yüklemesi de henüz çalıştırılmamıştır.
 
 ## Bilinen yayın öncesi işler
 
 - Upload key repo dışında oluşturuldu; parola yöneticisi/çevrimdışı yedek ve hesap sahibine güvenli teslim doğrulanmalı, ardından dört GitHub Environment secret'ı eklenmeli
-- Yerel signed AAB doğrulandı; GitHub Actions signed workflow'u ayrıca çalıştırılmalı ve indirilen artefakt checksum'u doğrulanmalı
+- Önceki r1 signed AAB yerelde doğrulandı; mevcut r2 için GitHub Actions signed workflow'u çalıştırılmalı ve indirilen artefakt checksum'u doğrulanmalı
 - Fiziksel telefon ve mümkünse tablet üzerinde smoke test
 - Signed AAB ağ trafiğinin izlenmesi ve Data Safety formunun buna göre tamamlanması
 - Gizlilik/deletion sayfaları, `main` dağıtılmadığı için beklenen canlı HTTPS adreslerinde şu anda 404 dönüyor; Play Console'a girilmeden önce yayınlanıp doğrulanmalı
