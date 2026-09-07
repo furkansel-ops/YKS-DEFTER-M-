@@ -13,7 +13,7 @@ test("Android yayın kimliği, SDK ve sürümü sabittir",()=>{
   assert.match(app,/namespace\s*=\s*"com\.furkansel\.yksdefterim"/);
   assert.match(app,/applicationId\s+"com\.furkansel\.yksdefterim"/);
   assert.match(app,/versionName\s+"4\.4\.0"/);
-  assert.match(app,/versionCode\s+4040002/);
+  assert.match(app,/versionCode\s+4040003/);
   assert.match(vars,/minSdkVersion\s*=\s*24/);
   assert.match(vars,/compileSdkVersion\s*=\s*36/);
   assert.match(vars,/targetSdkVersion\s*=\s*36/);
@@ -61,12 +61,14 @@ test("Upload key signing sözleşmesi idempotent ve secret dışı kalır",()=>{
   assert.match(ignore,/\*\.b64/);
 });
 
-test("Web ve Android üretim hedefleri Firebase ve source map sınırında ayrılır",()=>{
+test("Web, Android ve Windows paketlerinde isteğe bağlı Firebase SDK yereldir ve sunucu sırları bulunmaz",()=>{
   const pkg=JSON.parse(read("package.json")),vite=read("vite.config.mts"),verifyDist=read("scripts/verify-dist.mjs"),verifyRelease=read("scripts/verify-release.mjs"),workflow=read(".github/workflows/build-android.yml");
   assert.match(pkg.scripts["build:assets"],/vite build --mode web/);
   assert.match(pkg.scripts["build:assets"],/verify-dist\.mjs web/);
   assert.match(pkg.scripts["build:android"],/vite build --mode android/);
   assert.match(pkg.scripts["build:android"],/verify-dist\.mjs android/);
+  assert.match(pkg.scripts["build:desktop"],/vite build --mode desktop/);
+  assert.match(pkg.scripts["build:desktop"],/verify-dist\.mjs desktop/);
   assert.equal(pkg.scripts["android:sync"],"npm run build:android && cap sync android");
   assert.match(vite,/mode==="android"/);
   assert.match(vite,/buildStart/);
@@ -78,7 +80,12 @@ test("Web ve Android üretim hedefleri Firebase ve source map sınırında ayrı
     assert.ok(verifier.includes("www\\.gstatic\\.com\\/firebasejs"));
     assert.ok(verifier.includes("AIza[0-9A-Za-z_-]{30,}"));
     assert.match(verifier,/firebase-sync-runtime\.js/);
-    assert.ok(verifier.includes('target==="android"')||verifier.includes('target==="web"'));
+    assert.ok(verifier.includes('["web","android","desktop"]'));
+    assert.match(verifier,/serverSecret/);
+    assert.match(verifier,/apiKeyFiles\.length!==1/);
+    assert.match(verifier,/sdkSource/);
+    for(const marker of ["@firebase/app","@firebase/auth","@firebase/firestore"])assert.ok(verifier.includes(marker),marker);
+    assert.doesNotMatch(verifier,/sdkChunks\.length===0/);
   }
   assert.equal((workflow.match(/npm run android:sync/g)||[]).length,2);
   assert.doesNotMatch(workflow,/npm run build:assets/);

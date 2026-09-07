@@ -43,7 +43,7 @@ export interface PrimaryJSONResult{
 
 export interface ExternalApplyResult{
   ok:boolean;
-  status:"applied"|"invalid"|"failed";
+  status:"applied"|"invalid"|"failed"|"stale";
   message:string;
   json?:string;
   hash?:string;
@@ -159,11 +159,21 @@ export class PrimaryStateCoordinator{
     return {ok:false,message:"Geçerli ana kayıt bulunamadı"};
   }
 
-  async replaceFromExternal(json:string,updatedAt=this.#now(),source:Extract<StateWriteSource,"firebase"|"backup">="firebase"):Promise<ExternalApplyResult>{
+  async replaceFromExternal(json:string,updatedAt=this.#now(),source:Extract<StateWriteSource,"firebase"|"backup">="firebase",guard?:()=>boolean):Promise<ExternalApplyResult>{
     const decoded=decodeState(json);
     if(!decoded.ok)return {ok:false,status:"invalid",message:decoded.message};
+    if(guard&&!guard())return {ok:false,status:"stale",message:"Yerel kayıt değişti; bulut birleştirmesi yeniden denenecek"};
     const written=await this.persistJSON(json,updatedAt,source);
     if(!written.ok)return {ok:false,status:"failed",message:written.message,hash:written.hash,updatedAt:written.updatedAt};
+    /* Kullanıcı IndexedDB yazısını beklerken düzenleme yapmış olabilir. Ekranı
+       eski bulut görüntüsüyle değiştirme; yeni yerel aynayı ana kayda geri al.
+       Köprü kuyruğunda bekleyen sonraki save çağrıları yine sırasıyla çalışır. */
+    if(guard&&!guard()){
+      const local=this.#mirror.read();
+      if(!local.ok)return {ok:false,status:"failed",message:"Yerel değişiklik korunuyor; ana kayıt geri yüklenemedi"};
+      const restored=await this.persistJSON(local.json,Math.max(this.#now(),updatedAt+1),"localStorage");
+      return {ok:false,status:restored.ok?"stale":"failed",message:restored.ok?"Yerel kayıt değişti; bulut birleştirmesi yeniden denenecek":restored.message};
+    }
     const applied=this.#runtime.applyJSON(json);
     if(!applied.ok)return {ok:false,status:"failed",message:applied.message,hash:written.hash,updatedAt:written.updatedAt};
     const appliedHash=stateHash(applied.json);

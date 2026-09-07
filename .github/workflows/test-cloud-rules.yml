@@ -1,0 +1,48 @@
+name: Bulut hesap ve veri güvenliği
+
+on:
+  pull_request:
+    paths:
+      - firestore.rules
+      - firebase.emulators.json
+      - tests/firebase-emulator/**
+      - .github/workflows/test-cloud-rules.yml
+  push:
+    branches: [main]
+    paths:
+      - firestore.rules
+      - firebase.emulators.json
+      - tests/firebase-emulator/**
+      - .github/workflows/test-cloud-rules.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cloud-rules-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  emulator:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: tests/firebase-emulator/package-lock.json
+      - uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c # v6
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Yalıtılmış test bağımlılıklarını kur
+        working-directory: tests/firebase-emulator
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Gerçek yerel Auth ve Firestore emülatörleriyle doğrula
+        working-directory: tests/firebase-emulator
+        run: npm test

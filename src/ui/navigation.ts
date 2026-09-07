@@ -15,6 +15,33 @@ const TITLES:Record<ScreenId,string>={
   more:"Daha"
 };
 
+const keyboardRails=new WeakSet<HTMLElement>();
+
+export function bindPrimaryNavigationKeyboard(rail:HTMLElement,navigate:(screen:ScreenId)=>unknown):void{
+  if(keyboardRails.has(rail))return;
+  keyboardRails.add(rail);
+  rail.addEventListener("keydown",event=>{
+    if(event.defaultPrevented||event.isComposing||event.ctrlKey||event.metaKey||event.altKey||event.shiftKey)return;
+    if(!(event.target instanceof Element))return;
+    const current=event.target.closest<HTMLButtonElement>(".tab[data-s]");
+    if(!current||!rail.contains(current))return;
+    const tabs=Array.from(rail.querySelectorAll<HTMLButtonElement>(".tab[data-s]")).filter(tab=>!tab.hidden&&!tab.disabled&&tab.getClientRects().length>0);
+    const index=tabs.indexOf(current);
+    if(index<0||tabs.length===0)return;
+    let next:number;
+    if(event.key==="ArrowDown"||event.key==="ArrowRight")next=(index+1)%tabs.length;
+    else if(event.key==="ArrowUp"||event.key==="ArrowLeft")next=(index+tabs.length-1)%tabs.length;
+    else if(event.key==="Home")next=0;
+    else if(event.key==="End")next=tabs.length-1;
+    else return;
+    const target=tabs[next],screen=target?.dataset.s;
+    if(!target||!isScreenId(screen))return;
+    event.preventDefault();
+    navigate(screen);
+    target.focus();
+  });
+}
+
 export class NavigationController{
   readonly #legacyGo:LegacyGo;
   readonly #screenRuntime:ScreenRuntimeApi|undefined;
@@ -22,6 +49,8 @@ export class NavigationController{
   constructor(legacyGo:LegacyGo,screenRuntime?:ScreenRuntimeApi){
     this.#legacyGo=legacyGo;
     this.#screenRuntime=screenRuntime;
+    const rail=document.querySelector<HTMLElement>(".tabbar");
+    if(rail)bindPrimaryNavigationKeyboard(rail,screen=>this.open(screen,"inline"));
   }
 
   current():ScreenId|null{

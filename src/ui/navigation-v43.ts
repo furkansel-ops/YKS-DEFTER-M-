@@ -51,6 +51,7 @@ export function installNavigationV43():NavigationRuntime{
     const active=requested||document.querySelector<HTMLElement>(".screen.active")?.id||"home";
     const mobile=mobileMedia?.matches??window.innerWidth<=760;
     const proxyToMore=mobile&&SECONDARY_MOBILE_ROUTES.has(active);
+    document.querySelector(".tabbar")?.setAttribute("aria-orientation",mobile?"horizontal":"vertical");
     for(const tab of document.querySelectorAll<HTMLButtonElement>(".tabbar .tab[data-s]")){
       const selected=proxyToMore?tab.dataset.s==="more":tab.dataset.s===active;
       tab.classList.toggle("v43-mobile-proxy-active",proxyToMore&&tab.dataset.s==="more");

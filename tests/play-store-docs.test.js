@@ -10,7 +10,7 @@ test("Android belgeleri 4.4.0 kimliğini ve GitHub APK dağıtım kararını do�
   const prep=read("PLAY-STORE.md"),release=read("RELEASE.md"),github=read("GITHUB-APK-TESTING.md");
   for(const text of [prep,release,github]){
     assert.match(text,/4\.4\.0/);
-    assert.match(text,/4040002/);
+    assert.match(text,/4040003/);
     assert.match(text,/com\.furkansel\.yksdefterim/);
   }
   assert.match(prep,/Dağıtım kararı/);
@@ -34,7 +34,9 @@ test("Android belgeleri 4.4.0 kimliğini ve GitHub APK dağıtım kararını do�
 test("Gizlilik politikası yerel veriyi ve kullanıcı başlatmalı ağ erişimlerini açıklar",()=>{
   const privacy=read("privacy.html");
   assert.match(privacy,/IndexedDB\/Dexie/);
-  assert.match(privacy,/kullanıcı hesabı oluşturmaz/);
+  assert.match(privacy,/hesap açmak temel kullanım için zorunlu değildir/);
+  assert.match(privacy,/Firebase Authentication/);
+  assert.match(privacy,/E-posta adresi doğrulanmadan çalışma verileri eşitlenmez/);
   assert.match(privacy,/Wikipedia\/Wikimedia/);
   assert.match(privacy,/YouTube Data API/);
   assert.match(privacy,/MEB, OGM, ÖSYM/);
@@ -45,7 +47,7 @@ test("Gizlilik politikası yerel veriyi ve kullanıcı başlatmalı ağ erişiml
   assert.match(privacy,/Cihaz verilerini sil/i);
   assert.match(privacy,/Google Cloud Firestore/);
   assert.match(privacy,/Bulut kopyasını sil/);
-  assert.doesNotMatch(privacy,/Firebase/i);
+  assert.doesNotMatch(privacy,/<script\b/i);
   assert.doesNotMatch(privacy,/hiçbir veri (?:toplanmaz|paylaşılmaz)/i);
 });
 
@@ -58,7 +60,9 @@ test("Data Safety çalışma kağıdı kesin cevap yerine signed AAB doğrulamas
     "signed AAB",
     "merged manifest",
     "on-device processing",
-    "hesap oluşturmaz"
+    "Firebase Authentication",
+    "Google Cloud Firestore",
+    "hesap silme"
   ])assert.ok(safety.includes(marker),marker);
   assert.match(safety,/doğrudan kopyalanacak kesin cevap değildir/);
   assert.match(safety,/hiç veri toplanmıyor\/paylaşılmıyor/);
@@ -74,7 +78,8 @@ test("Veri silme sayfası uygulama deposu ile dışa aktarılan dosyayı ayırı
   assert.match(deletion,/Markdown/);
   assert.match(deletion,/Anki uyumlu/);
   assert.match(deletion,/Bulut kopyasını sil/);
-  assert.match(deletion,/Google hesabını kapatmaz/i);
+  assert.match(deletion,/Google hesabını silmez/i);
+  assert.match(deletion,/kimlik kaydı ayrıca silinmedikçe/);
 });
 
 test("Türkçe mağaza metinleri Play karakter sınırları içinde ve temkinlidir",()=>{

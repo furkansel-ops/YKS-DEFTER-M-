@@ -15,8 +15,10 @@ function extractCloudRuntime(html:string):{match:string;source:string}{
   return {match:runtimeMatch[0],source:sourceText};
 }
 
-function prepareWebCloudRuntime(webCloudEnabled:boolean):Plugin{
+function prepareWebCloudRuntime():Plugin{
   let projectRoot=process.cwd();
+  let runtimeSource="";
+  const cloudEntry="\0yks-cloud-runtime";
   return {
     name:"remove-disabled-cloud-runtime",
     apply:"build",
@@ -24,10 +26,12 @@ function prepareWebCloudRuntime(webCloudEnabled:boolean):Plugin{
     async buildStart(){
       const sourceHtml=await readFile(resolve(projectRoot,"index.html"),"utf8");
       const {source}=extractCloudRuntime(sourceHtml);
-      if(!webCloudEnabled)return;
-      const runtimeSource=source.replace(/apiKey:\s*"[^"]*"/,`apiKey:"${FIREBASE_WEB_API_KEY}"`);
-      this.emitFile({type:"asset",fileName:"firebase-sync-runtime.js",source:runtimeSource});
+      runtimeSource=source.replace(/apiKey:\s*"[^"]*"/,`apiKey:"${FIREBASE_WEB_API_KEY}"`)
+        .replace(/https:\/\/www\.gstatic\.com\/firebasejs\/[\d.]+\/firebase-(app|auth|firestore)\.js/g,"firebase/$1");
+      this.emitFile({type:"chunk",id:cloudEntry,fileName:"firebase-sync-runtime.js"});
     },
+    resolveId(id){if(id===cloudEntry)return id;},
+    load(id){if(id===cloudEntry)return runtimeSource;},
     transformIndexHtml:{
       order:"pre",
       handler(html:string){
@@ -38,34 +42,13 @@ function prepareWebCloudRuntime(webCloudEnabled:boolean):Plugin{
   };
 }
 
-function isolateCloudShell(androidBuild:boolean):Plugin{
+function isolateCloudShell():Plugin{
   return {
-    name:"isolate-cloud-shell-by-build-target",
-    apply:"build",
-    enforce:"pre",
+    name:"isolate-cloud-shell-by-build-target",apply:"build",enforce:"pre",
     transform(code,id){
       if(!/[\\/]src[\\/]ui[\\/]play-store-shell\.ts(?:\?|$)/u.test(id))return null;
-      const keyDeclaration=/const FIREBASE_WEB_API_KEY="AIza[0-9A-Za-z_-]+";/u;
-      if(!keyDeclaration.test(code))this.error("Play Store shell Firebase anahtar sınırı bulunamadı");
-      if(!androidBuild)return {code:code.replace(keyDeclaration,'const FIREBASE_WEB_API_KEY="";'),map:null};
-
-      const cloudStart=code.indexOf("function installEmbeddedCloudSyncCard():boolean{");
-      const policyStart=code.indexOf("function installPolicyCard():boolean{");
-      if(cloudStart<0||policyStart<=cloudStart)this.error("Android yerel-veri shell sınırı hazırlanamadı");
-      const localOnlyCloudFunctions=`function installEmbeddedCloudSyncCard():boolean{return false;}
-function activateWebCloudSync():boolean{return false;}
-
-`;
-      const withoutCloudConstants=code
-        .replace(/import "\.\/cloud-sync-indicator\.css";\r?\n/u,"")
-        .replace(/const CLOUD_BOX_ID=.*?\nconst CLOUD_RUNTIME_ID=.*?\nconst LEGACY_CLOUD_SOURCE_ID=.*?\nconst FIREBASE_WEB_API_KEY=.*?\n/u,"");
-      const adjustedCloudStart=withoutCloudConstants.indexOf("function installEmbeddedCloudSyncCard():boolean{");
-      const adjustedPolicyStart=withoutCloudConstants.indexOf("function installPolicyCard():boolean{");
-      if(adjustedCloudStart<0||adjustedPolicyStart<=adjustedCloudStart)this.error("Android shell dönüşümü tutarsız kaldı");
-      return {
-        code:withoutCloudConstants.slice(0,adjustedCloudStart)+localOnlyCloudFunctions+withoutCloudConstants.slice(adjustedPolicyStart),
-        map:null
-      };
+      // The public client config belongs only to the bundled optional runtime.
+      return {code:code.replace(/const FIREBASE_WEB_API_KEY="AIza[0-9A-Za-z_-]+";/u,'const FIREBASE_WEB_API_KEY="";'),map:null};
     }
   };
 }
@@ -75,7 +58,8 @@ export default defineConfig(({mode})=>{
   return {
     base:"./",
     publicDir:"public",
-    plugins:[isolateCloudShell(androidBuild),prepareWebCloudRuntime(!androidBuild)],
+    define:{__YKS_BUILD_TARGET__:JSON.stringify(androidBuild?"android":mode==="desktop"?"desktop":"web")},
+    plugins:[isolateCloudShell(),prepareWebCloudRuntime()],
     build:{
       outDir:"dist",
       emptyOutDir:true,

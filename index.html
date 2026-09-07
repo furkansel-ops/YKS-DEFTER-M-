@@ -1905,7 +1905,7 @@ document.documentElement.setAttribute("data-theme",t);}catch(e){}})();
     <div id="wiz1">
       <p class="eyebrow">1 / 4</p>
       <h3 class="wizt">Hoş geldin</h3>
-      <p class="wizp">Bu defter yalnızca senin cihazında çalışır. Birkaç soruyla başlayalım.</p>
+      <p class="wizp">Bu defter önce cihazında çalışır; istersen hesabınla diğer cihazlarına eşitlenir. Birkaç soruyla başlayalım.</p>
       <label>Adın</label>
       <input type="text" id="wizName" placeholder="Adın">
     </div>
@@ -1940,11 +1940,11 @@ document.documentElement.setAttribute("data-theme",t);}catch(e){}})();
   </div>
 </div>
 
-<div class="toast" id="toast" role="status" aria-live="polite"></div><script vite-ignore src="./app.js?v=4.4.0-r2"></script>
+<div class="toast" id="toast" role="status" aria-live="polite"></div><script vite-ignore src="./app.js?v=4.4.0-r3"></script>
 
 <script type="application/json" id="legacyFirebaseSyncModule" data-disabled="play-store-release">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut, setPersistence, indexedDBLocalPersistence, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, sendEmailVerification, reload, EmailAuthProvider, linkWithCredential } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
 import { getFirestore, doc, getDoc, collection, getDocs, writeBatch, runTransaction, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
 
 const firebaseConfig={
@@ -1958,12 +1958,15 @@ const firebaseConfig={
 };
 const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app),provider=new GoogleAuthProvider();
 const box=document.getElementById("cloudSyncBox"),txt=document.getElementById("cloudSyncText"),meta=document.getElementById("cloudSyncMeta"),login=document.getElementById("cloudLoginBtn"),logout=document.getElementById("cloudLogoutBtn"),retry=document.getElementById("cloudRetryBtn"),cloudDelete=document.getElementById("cloudDeleteBtn");
+const embeddedApp=box?.dataset.embeddedApp==="true"||!!window.__YKS_DESKTOP__?.installed||!!window.Capacitor?.isNativePlatform?.();
+const authForm=document.getElementById("cloudAuthForm"),emailInput=document.getElementById("cloudEmail"),passwordInput=document.getElementById("cloudPassword"),linkForm=document.getElementById("cloudLinkForm"),linkPassword=document.getElementById("cloudLinkPassword"),verificationPanel=document.getElementById("cloudVerification");
+let authBusy=false;
 const CLOUD_FORMAT=4, LAST_SYNC_KEY="yks_last_sync_at", BASE_REV_KEY="yks_cloud_base_rev", BASE_HASH_KEY="yks_cloud_base_hash", ACCOUNT_KEY="yks_cloud_account", DIRTY_KEY="yks_cloud_dirty", DEVICE_KEY="yks_device_id", RESEED_KEY="yks_cloud_reseed_requested";
 const RETRY_DELAYS=[1000,2000,4000,8000,16000];
 let user=null,timer=null,loading=false,lastJSON="",uploading=false,uploadQueued=false,stopRealtime=null;
 let retryAttempt=0,shuttingDown=false,syncGeneration=0,localApplying=false;
 let cloudCacheEpoch=-1,cloudCacheJSON="";
-let memoryBaseJSON="",reseedAuthorized=false,remoteDeletionNotice=false,accountMismatchNotice=false,pendingRemote=false;
+let memoryBaseJSON="",memoryBaseDurable=false,reseedAuthorized=false,remoteDeletionNotice=false,accountMismatchNotice=false,pendingRemote=false;
 let lastSyncAt=Number(localStorage.getItem(LAST_SYNC_KEY)||0)||0;
 let baseRev=Number(localStorage.getItem(BASE_REV_KEY)||0)||0;
 let baseHash=localStorage.getItem(BASE_HASH_KEY)||"";
@@ -1980,18 +1983,18 @@ function setBaseHash(v){baseHash=String(v||"");try{if(baseHash)localStorage.setI
 function setAccount(uid){accountId=String(uid||"");try{if(accountId)localStorage.setItem(ACCOUNT_KEY,accountId);else localStorage.removeItem(ACCOUNT_KEY);}catch(e){}}
 function baselineKnown(uid){return !!uid&&accountId===uid&&!!baseHash;}
 function syncMatches(uid,generation){return !shuttingDown&&!!uid&&!!user&&user.uid===uid&&syncGeneration===generation;}
-async function clearBaseSnapshot(uid){memoryBaseJSON="";try{await window.__YKS_DATA__?.clearCloudBaseline?.(uid);}catch(e){}}
+async function clearBaseSnapshot(uid){memoryBaseJSON="";memoryBaseDurable=false;try{await window.__YKS_DATA__?.clearCloudBaseline?.(uid);}catch(e){}}
 async function storeBaseSnapshot(uid,json){
-  memoryBaseJSON=String(json||"");
-  if(!uid||!memoryBaseJSON)return false;
-  try{const saved=await window.__YKS_DATA__?.writeCloudBaseline?.(uid,memoryBaseJSON);return !!saved?.ok&&saved.hash===infraHash(memoryBaseJSON);}catch(e){return false;}
+  const snapshot=String(json||"");memoryBaseJSON=snapshot;memoryBaseDurable=false;
+  if(!uid||!snapshot)return false;
+  try{const saved=await window.__YKS_DATA__?.writeCloudBaseline?.(uid,snapshot);const durable=!!saved?.ok&&saved.hash===infraHash(snapshot);if(memoryBaseJSON===snapshot)memoryBaseDurable=durable;return durable;}catch(e){return false;}
 }
 async function readBaseSnapshot(uid){
   if(!baselineKnown(uid))return null;
   if(memoryBaseJSON&&infraHash(memoryBaseJSON)===baseHash)return safeJSONParse(memoryBaseJSON);
   try{
     const saved=await window.__YKS_DATA__?.readCloudBaseline?.(uid);
-    if(saved?.ok&&saved.hash===baseHash){memoryBaseJSON=saved.json;return safeJSONParse(saved.json);}
+    if(saved?.ok&&saved.hash===baseHash){memoryBaseJSON=saved.json;memoryBaseDurable=true;return safeJSONParse(saved.json);}
   }catch(e){}
   return null;
 }
@@ -2044,25 +2047,53 @@ document.documentElement.dataset.webCloudRuntime="ready";
 window.dispatchEvent(new CustomEvent("yks:cloud-runtime",{detail:{state:"ready"}}));
 setInterval(()=>{if(!document.hidden&&box&&box.dataset.state==="synced"&&meta)meta.textContent=syncAgo(lastSyncAt);},30000);
 function splitUtf8(str,max=240000){const out=[];let start=0;while(start<str.length){let end=Math.min(str.length,start+max);while(end>start&&new Blob([str.slice(start,end)]).size>280000)end-=Math.max(1000,Math.floor((end-start)/10));/* UTF-16 surrogate çiftini iki Firestore parçasına bölme; emoji/özel karakter bozulmasın. */if(end<str.length&&end>start){const a=str.charCodeAt(end-1),b=str.charCodeAt(end);if(a>=0xD800&&a<=0xDBFF&&b>=0xDC00&&b<=0xDFFF)end--;}out.push(str.slice(start,end));start=end;}return out;}
+function cloudStateJSON(state){
+  return JSON.stringify(state,function(k,v){
+    if(this===state&&k==="v")return DATA_SCHEMA;
+    if(state.focus&&this===state.focus&&k==="sw")return {run:false,start:0,acc:0,cr:0};
+    if(state.focus&&this===state.focus&&k==="swLaps")return [];
+    if(state.yt&&this===state.yt&&k==="key")return "";
+    return v;
+  });
+}
+function stateEpoch(){return Number(window.__YKS_STATE_EPOCH||0);}
+async function currentCloudSnapshot(){
+  for(let attempt=0;attempt<4;attempt++){
+    const epoch=stateEpoch(),json=await cloudJSON();
+    if(epoch===stateEpoch())return {epoch,json,obj:safeJSONParse(json)};
+  }
+  const error=new Error("Yerel kayıt değişiyor; eşitleme yeniden denenecek");error.code="aborted";throw error;
+}
+function deferChangedLocal(){
+  setDirty(true);pendingRemote=true;uploadQueued=true;
+  status("Yerel değişiklik korundu","syncing","Güncel kayıtla eşitleme yeniden denenecek");
+  return false;
+}
+function preserveDeviceFields(next){
+  const local=window.S||{};
+  if(local.focus){
+    next.focus=next.focus||{};
+    if(local.focus.sw)next.focus.sw=JSON.parse(JSON.stringify(local.focus.sw));
+    if(Array.isArray(local.focus.swLaps))next.focus.swLaps=JSON.parse(JSON.stringify(local.focus.swLaps));
+  }
+  next.yt=next.yt||{};next.yt.key=String(local.yt&&local.yt.key||"");
+  return next;
+}
 async function cloudJSON(){
   const epoch=Number(window.__YKS_STATE_EPOCH||0);
   if(cloudCacheJSON&&cloudCacheEpoch===epoch){try{PERF_STATE.lastCloudBuildMs=0;}catch(e){}return cloudCacheJSON;}
   const t0=(typeof performance!=="undefined"&&performance.now)?performance.now():Date.now();
   let json="";
-  try{
-    if(window.__YKS_DATA__?.cloudPayload){const payload=await window.__YKS_DATA__.cloudPayload();if(payload.ok)json=payload.json;else throw new Error(payload.message);}
-  }catch(e){try{infraError("dexie-cloud-read",e);}catch(_){}}
-  if(!json){
-    const state=window.S||{};
-    json=JSON.stringify(state,function(k,v){
-      if(this===state&&k==="v")return DATA_SCHEMA;
-      if(state.focus&&this===state.focus&&k==="sw")return {run:false,start:0,acc:0,cr:0};
-      if(state.focus&&this===state.focus&&k==="swLaps")return [];
-      if(state.yt&&this===state.yt&&k==="key")return "";
-      return v;
-    });
+  if(window.__YKS_DATA__?.cloudPayload){
+    /* Köprü daha yeni/bozuk bir ana kaydı reddederse eski ekran görüntüsünü
+       buluta gönderme. Depolama erişimindeki güvenli fallback köprüye aittir. */
+    const payload=await window.__YKS_DATA__.cloudPayload();
+    if(!payload?.ok||!payload.json)throw new Error(payload?.message||"Geçerli ana kayıt okunamadı");
+    json=payload.json;
+  }else{
+    json=cloudStateJSON(window.S||{});
   }
-  cloudCacheEpoch=epoch;cloudCacheJSON=json;
+  if(epoch===stateEpoch()){cloudCacheEpoch=epoch;cloudCacheJSON=json;}
   try{PERF_STATE.lastCloudBuildMs=((typeof performance!=="undefined"&&performance.now)?performance.now():Date.now())-t0;}catch(e){}
   return json;
 }
@@ -2100,27 +2131,33 @@ function preserveRemoteDefaults(merged,remote,local,defaults){
 }
 async function applyRemote(remote,reason="remote",expectedUid,generation){
   if(!syncMatches(expectedUid,generation)||!remote||!remote.obj)return false;
+  const local=await currentCloudSnapshot();
+  if(!syncMatches(expectedUid,generation))return false;
+  /* Realtime ağ okuması sürerken kullanıcı düzenlemiş olabilir. Temiz olduğu
+     daha önce görülmüş bir cihazı artık doğrudan uzak kayıtla değiştirme. */
+  if(dirty||!baselineKnown(expectedUid)||baseHash!==infraHash(local.json))return applyMerged(remote,local.obj,expectedUid,generation);
   try{if(typeof window.autoBackupRun==="function")window.autoBackupRun(true);}catch(e){}
-  const localSw=window.S&&window.S.focus&&window.S.focus.sw?JSON.parse(JSON.stringify(window.S.focus.sw)):null;
-  const localLaps=window.S&&window.S.focus&&Array.isArray(window.S.focus.swLaps)?JSON.parse(JSON.stringify(window.S.focus.swLaps)):[];
-  let next=normalize(Object.assign({},JSON.parse(JSON.stringify(DEF)),migrateState(remote.obj)));
-  if(localSw){next.focus.sw=localSw;next.focus.swLaps=localLaps;}
+  let next=preserveDeviceFields(normalize(Object.assign({},JSON.parse(JSON.stringify(DEF)),migrateState(remote.obj))));
+  const acceptedJSON=cloudStateJSON(next),guard=()=>syncMatches(expectedUid,generation)&&stateEpoch()===local.epoch;
   /* Önce diske yaz; depolama doluysa çalışan yerel durumu yarıda değiştirme. */
   if(!syncMatches(expectedUid,generation))return false;
   let persisted=JSON.stringify(next);localApplying=true;
   try{
-    if(window.__YKS_DATA__?.applyCloudJSON){const applied=await window.__YKS_DATA__.applyCloudJSON(persisted);if(!applied.ok)throw new Error(applied.message);persisted=applied.json||persisted;next=window.S||next;}
-    else{localStorage.setItem(STORAGE_KEY,persisted);window.S=next;S=next;lastPersistedJSON=persisted;perfInvalidateState();persistStateHashMaybe(persisted,true);}
+    if(window.__YKS_DATA__?.applyCloudJSON){const applied=await window.__YKS_DATA__.applyCloudJSON(persisted,guard);if(applied.status==="stale")return deferChangedLocal();if(!applied.ok)throw new Error(applied.message);persisted=applied.json||persisted;next=window.S||next;}
+    else{if(!guard())return deferChangedLocal();localStorage.setItem(STORAGE_KEY,persisted);window.S=next;S=next;lastPersistedJSON=persisted;perfInvalidateState();persistStateHashMaybe(persisted,true);}
   }finally{localApplying=false;}
   if(!syncMatches(expectedUid,generation))return false;
-  setAccount(expectedUid);setBaseRev(remote.rev);setDirty(false);lastJSON=await cloudJSON();
+  setAccount(expectedUid);setBaseRev(remote.rev);lastJSON=acceptedJSON;
+  const baseStored=await storeBaseSnapshot(expectedUid,acceptedJSON);
   if(!syncMatches(expectedUid,generation))return false;
-  const baseStored=await storeBaseSnapshot(expectedUid,lastJSON);
+  setBaseHash(infraHash(acceptedJSON));
+  const current=await currentCloudSnapshot();
   if(!syncMatches(expectedUid,generation))return false;
-  setBaseHash(infraHash(lastJSON));
+  const changed=current.epoch!==stateEpoch()||current.json!==acceptedJSON;setDirty(changed);
+  if(changed){pendingRemote=true;uploadQueued=true;}
   if(typeof renderAfterExternalState==="function")renderAfterExternalState(); else if(typeof renderAll==="function")renderAll();
   if(typeof renderSw==="function")renderSw();
-  if(baseStored)markSynced();else status("Yerel kayıt güncel","error","Güvenli eşitleme tabanı saklanamadı · Tekrar dene");
+  if(changed)status("Yerel değişiklik bekliyor","syncing","Yeni kayıt buluta gönderilecek");else if(baseStored)markSynced();else status("Yerel kayıt güncel","error","Güvenli eşitleme tabanı saklanamadı · Tekrar dene");
   return true;
 }
 async function applyMerged(remote,localObj,expectedUid,generation){
@@ -2131,9 +2168,10 @@ async function applyMerged(remote,localObj,expectedUid,generation){
     throw new Error("Güvenli birleştirme çalışma zamanı hazır değil");
   }
   try{if(typeof window.autoBackupRun==="function")window.autoBackupRun(true);}catch(e){}
-  const localSw=window.S&&window.S.focus&&window.S.focus.sw?JSON.parse(JSON.stringify(window.S.focus.sw)):null;
-  const localLaps=window.S&&window.S.focus&&Array.isArray(window.S.focus.swLaps)?JSON.parse(JSON.stringify(window.S.focus.swLaps)):[];
   const known=baselineKnown(expectedUid),base=known?await readBaseSnapshot(expectedUid):null;
+  if(!syncMatches(expectedUid,generation))return false;
+  /* İşlem çağrısındaki görüntü ağ veya taban okuması boyunca eskimiş olabilir. */
+  const local=await currentCloudSnapshot();localObj=local.obj;
   if(!syncMatches(expectedUid,generation))return false;
   if(known&&!base){
     conflictBackupAdd(JSON.stringify(localObj||{}),remote.rev);setDirty(true);
@@ -2142,13 +2180,13 @@ async function applyMerged(remote,localObj,expectedUid,generation){
   }
   const merged=window.YKSCore.mergeStates(remote.obj,localObj,DATA_SCHEMA,base||undefined);
   const raw=base?merged:preserveRemoteDefaults(merged,remote.obj,localObj||{},DEF);
-  let next=normalize(Object.assign({},JSON.parse(JSON.stringify(DEF)),migrateState(raw)));
-  if(localSw){next.focus.sw=localSw;next.focus.swLaps=localLaps;}
+  let next=preserveDeviceFields(normalize(Object.assign({},JSON.parse(JSON.stringify(DEF)),migrateState(raw))));
+  const guard=()=>syncMatches(expectedUid,generation)&&stateEpoch()===local.epoch;
   if(!syncMatches(expectedUid,generation))return false;
   let persisted=JSON.stringify(next);localApplying=true;
   try{
-    if(window.__YKS_DATA__?.applyCloudJSON){const applied=await window.__YKS_DATA__.applyCloudJSON(persisted);if(!applied.ok)throw new Error(applied.message);persisted=applied.json||persisted;next=window.S||next;}
-    else{localStorage.setItem(STORAGE_KEY,persisted);window.S=next;S=next;lastPersistedJSON=persisted;perfInvalidateState();persistStateHashMaybe(persisted,true);}
+    if(window.__YKS_DATA__?.applyCloudJSON){const applied=await window.__YKS_DATA__.applyCloudJSON(persisted,guard);if(applied.status==="stale")return deferChangedLocal();if(!applied.ok)throw new Error(applied.message);persisted=applied.json||persisted;next=window.S||next;}
+    else{if(!guard())return deferChangedLocal();localStorage.setItem(STORAGE_KEY,persisted);window.S=next;S=next;lastPersistedJSON=persisted;perfInvalidateState();persistStateHashMaybe(persisted,true);}
   }finally{localApplying=false;}
   if(!syncMatches(expectedUid,generation))return false;
   setAccount(expectedUid);setBaseRev(remote.rev);
@@ -2173,14 +2211,31 @@ function consumeReseedRequested(){
   let requested=false;try{requested=sessionStorage.getItem(RESEED_KEY)==="1";sessionStorage.removeItem(RESEED_KEY);}catch(e){}
   return requested;
 }
-async function cleanupDeletedCloud(uid){
+async function cleanupDeletedCloud(uid,expectedRevision){
+  const initial=await getDoc(metaRef(uid)),initialData=initial.exists()?(initial.data()||{}):{};
+  if(initialData.deleted!==true)return false;
+  const deletionRevision=expectedRevision===undefined?Number(initialData.revision||0):Number(expectedRevision);
+  if(Number(initialData.revision||0)!==deletionRevision)return false;
+  const ownsDeletion=snap=>snap.exists()&&(snap.data()||{}).deleted===true&&Number((snap.data()||{}).revision||0)===deletionRevision;
   for(let pass=0;pass<20;pass++){
     const snap=await getDocs(chunksCol(uid));
     if(!snap.docs.length){
-      const done=writeBatch(db);done.set(metaRef(uid),{format:CLOUD_FORMAT,deleted:true,cleanupPending:false,count:0,hash:"",updatedAt:serverTimestamp()},{merge:true});await done.commit();
-      return true;
+      return runTransaction(db,async tx=>{
+        const current=await tx.get(metaRef(uid));
+        if(!ownsDeletion(current))return false;
+        // Another device may have completed the same tombstone meanwhile.
+        // Do not rewrite an already-completed revision (rules permit true → false only).
+        if((current.data()||{}).cleanupPending===false)return true;
+        tx.set(metaRef(uid),{format:CLOUD_FORMAT,deleted:true,cleanupPending:false,count:0,hash:"",updatedAt:serverTimestamp()},{merge:true});return true;
+      });
     }
-    for(let p=0;p<snap.docs.length;p+=450){const batch=writeBatch(db);snap.docs.slice(p,p+450).forEach(item=>batch.delete(item.ref));await batch.commit();}
+    for(let p=0;p<snap.docs.length;p+=450){
+      const cleaned=await runTransaction(db,async tx=>{
+        if(!ownsDeletion(await tx.get(metaRef(uid))))return false;
+        snap.docs.slice(p,p+450).forEach(item=>tx.delete(item.ref));return true;
+      });
+      if(!cleaned)return false;
+    }
   }
   throw new Error("Bulut parçaları tamamen temizlenemedi; tekrar dene");
 }
@@ -2190,16 +2245,39 @@ async function handleRemoteDeletion(expectedUid,generation){
   const keepBinding=!!uid&&accountId===uid;
   clearTimeout(timer);uploadQueued=false;reseedAuthorized=false;remoteDeletionNotice=true;
   await clearBaseSnapshot(uid);if(expectedUid&&!syncMatches(expectedUid,generation))return;setBaseRev(0);setBaseHash("");setAccount(keepBinding?uid:"");setDirty(true);lastJSON="";
-  status("Bulut kopyası silinmiş","signedout","Yerel veriler korunuyor · Yeniden açmak için Google ile giriş yap");
+  user=null;renderAuthControls(null);
+  status("Bulut kopyası silinmiş","signedout","Yerel veriler korunuyor · Yeniden açmak için aynı hesapla giriş yap");
   try{if(auth.currentUser&&(!uid||auth.currentUser.uid===uid))await signOut(auth);}catch(e){console.warn("Silinen bulut oturumu kapatılamadı",e);}
 }
 async function upload(){
   if(shuttingDown||!user||loading)return;
   if(uploading){uploadQueued=true;return;}
   const expectedUid=user.uid,generation=syncGeneration;
-  const json=await cloudJSON();
+  let snapshot;
+  try{snapshot=await currentCloudSnapshot();}catch(e){scheduleRetry(upload,e,"Eşitleme bekliyor");return;}
+  const json=snapshot.json;
   if(!syncMatches(expectedUid,generation))return;
-  if(!dirty&&baselineKnown(expectedUid)&&baseHash===infraHash(json)){lastJSON=json;markSynced();return;}
+  if(!dirty&&baselineKnown(expectedUid)&&baseHash===infraHash(json)){
+    if(uploading){uploadQueued=true;return;}
+    uploading=true;uploadQueued=false;
+    try{
+      const durable=memoryBaseDurable&&memoryBaseJSON===json||await storeBaseSnapshot(expectedUid,json);
+      if(!syncMatches(expectedUid,generation))return;
+      const current=await currentCloudSnapshot();
+      if(!syncMatches(expectedUid,generation))return;
+      /* Tabanı yeniden yazmak da bekler: bu sırada gelen düzenleme veya
+         hesap değişikliği eski görüntünün eşitlendiği sonucunu veremez. */
+      const changed=dirty||current.epoch!==snapshot.epoch||current.epoch!==stateEpoch()||current.json!==json;
+      lastJSON=json;
+      if(changed){setDirty(true);uploadQueued=true;status("Yeni değişiklik bekliyor","syncing","Son düzenleme de buluta gönderilecek");}
+      else if(durable)markSynced();else status("Yerel kayıt güncel","error","Güvenli eşitleme tabanı saklanamadı · Tekrar dene");
+    }catch(e){if(syncMatches(expectedUid,generation))scheduleRetry(upload,e,"Eşitleme bekliyor");}
+    finally{
+      uploading=false;
+      if(uploadQueued&&syncMatches(expectedUid,generation)&&navigator.onLine){uploadQueued=false;clearTimeout(timer);timer=setTimeout(upload,500);}
+    }
+    return;
+  }
   if(!navigator.onLine){status("Çevrimdışı","offline","Değişiklikler cihazda saklandı");return;}
   if(uploading){uploadQueued=true;return;}
   uploading=true;uploadQueued=false;status("Kaydediliyor…","syncing",lastSyncAt?syncAgo(lastSyncAt):"Buluta gönderiliyor");
@@ -2207,7 +2285,7 @@ async function upload(){
     const m=await getDoc(metaRef(expectedUid)),md=m.exists()?(m.data()||{}):{};
     if(!syncMatches(expectedUid,generation))return;
     const remoteFormat=Number(md.format||md.version||2),remoteRev=Number(md.revision||0);
-    if(md.deleted===true&&!reseedAuthorized){if(md.cleanupPending===true)await cleanupDeletedCloud(expectedUid);if(syncMatches(expectedUid,generation))await handleRemoteDeletion(expectedUid,generation);return;}
+    if(md.deleted===true&&!reseedAuthorized){if(md.cleanupPending===true&&!(await cleanupDeletedCloud(expectedUid,remoteRev))){uploadQueued=true;return;}if(syncMatches(expectedUid,generation))await handleRemoteDeletion(expectedUid,generation);return;}
     const replacingDeleted=md.deleted===true&&reseedAuthorized;
     const remoteStamp=md.updatedAt&&typeof md.updatedAt.toMillis==="function"?md.updatedAt.toMillis():0;
     /* Başka cihaz bizden sonra yazdıysa veya yeni biçimi görmüş bu cihazın
@@ -2241,8 +2319,10 @@ async function upload(){
     });
     if(!syncMatches(expectedUid,generation))return;
     lastJSON=json;setAccount(expectedUid);setBaseRev(targetRev);
-    const baseStored=await storeBaseSnapshot(expectedUid,json);if(!syncMatches(expectedUid,generation))return;setBaseHash(hash);setDirty(false);reseedAuthorized=false;
-    if(baseStored)markSynced();else status("Buluta kaydedildi","error","Güvenli eşitleme tabanı saklanamadı · Tekrar dene");
+    const baseStored=await storeBaseSnapshot(expectedUid,json);if(!syncMatches(expectedUid,generation))return;setBaseHash(hash);reseedAuthorized=false;
+    const current=await currentCloudSnapshot();if(!syncMatches(expectedUid,generation))return;
+    const changed=current.epoch!==stateEpoch()||current.json!==json;setDirty(changed);if(changed)uploadQueued=true;
+    if(changed)status("Yeni değişiklik bekliyor","syncing","Son düzenleme de buluta gönderilecek");else if(baseStored)markSynced();else status("Buluta kaydedildi","error","Güvenli eşitleme tabanı saklanamadı · Tekrar dene");
     safeCleanupOldRevisions(expectedUid,targetRev,generation);
   }catch(e){
     if(!syncMatches(expectedUid,generation))return;
@@ -2283,7 +2363,7 @@ async function downloadOrSeed(){
     }
     const md=m.data()||{};
     if(md.deleted===true){
-      if(md.cleanupPending===true){await cleanupDeletedCloud(expectedUid);if(syncMatches(expectedUid,generation))await handleRemoteDeletion(expectedUid,generation);return;}
+      if(md.cleanupPending===true){if(!(await cleanupDeletedCloud(expectedUid,Number(md.revision||0)))){pendingRemote=true;return;}if(syncMatches(expectedUid,generation))await handleRemoteDeletion(expectedUid,generation);return;}
       if(!consumeReseedRequested()){await handleRemoteDeletion(expectedUid,generation);return;}
       reseedAuthorized=true;await clearBaseSnapshot(expectedUid);if(!syncMatches(expectedUid,generation))return;setBaseRev(Number(md.revision||0));setBaseHash("");setDirty(true);followUpUpload=true;return;
     }
@@ -2296,7 +2376,7 @@ async function downloadOrSeed(){
       else await applyRemote(r,"login",expectedUid,generation);
     }else{setDirty(true);followUpUpload=true;}
     resetRetry();
-  }catch(e){console.error(e);infraError("firebase-download",e);scheduleRetry(downloadOrSeed,e,"Senkron hatası");}
+  }catch(e){if(syncMatches(expectedUid,generation)){console.error(e);infraError("firebase-download",e);scheduleRetry(downloadOrSeed,e,"Senkron hatası");}}
   finally{
     loading=false;
     if(pendingRemote&&syncMatches(expectedUid,generation)&&navigator.onLine){pendingRemote=false;clearTimeout(timer);timer=setTimeout(downloadOrSeed,0);}
@@ -2305,6 +2385,14 @@ async function downloadOrSeed(){
 }
 function authErrorText(e){
   const c=(e&&e.code)||"";
+  if(c==="auth/operation-not-allowed")return "E-posta/şifre girişi sunucuda etkinleştirilmeli";
+  if(c==="auth/invalid-credential"||c==="auth/wrong-password"||c==="auth/user-not-found")return "E-posta veya şifre doğrulanamadı. Google hesabını kullanıyorsan önce web sürümünde uygulama şifresi ekle.";
+  if(c==="auth/email-already-in-use"||c==="auth/credential-already-in-use")return "Bu bilgilerle yeni hesap açılamadı. Giriş yapmayı veya şifre sıfırlamayı dene; mevcut Google hesabını web sürümünden bağlayabilirsin.";
+  if(c==="auth/invalid-email")return "Geçerli bir e-posta adresi yaz";
+  if(c==="auth/weak-password"||c==="auth/password-does-not-meet-requirements")return "Daha güçlü bir şifre seç; en az 10 karakter kullan";
+  if(c==="auth/requires-recent-login")return "Güvenlik için çıkıp aynı hesapla yeniden giriş yap, sonra tekrar dene";
+  if(c==="auth/too-many-requests")return "Çok fazla deneme yapıldı. Biraz bekleyip tekrar dene";
+  if(c==="auth/network-request-failed")return "Bağlantı kurulamadı. Yerel kayıtların korunuyor";
   if(c==="auth/unauthorized-domain")return "Firebase Authorized domains içine furkansel-ops.github.io eklenmeli";
   if(c==="auth/popup-blocked")return "Giriş penceresi engellendi — Chrome site ayarlarından pop-up izni ver";
   if(c==="auth/popup-closed-by-user")return "Google giriş penceresi kapatıldı";
@@ -2318,7 +2406,7 @@ async function waitForCloudIdle(){
 }
 async function deleteCloudCopy(){
   if(!user)return status("Giriş yapılmadı","signedout","Silinecek bir bulut kopyası yok");
-  if(!confirm("Google hesabına bağlı YKS Defterim bulut kopyası kalıcı olarak silinecek. Bu cihazdaki yerel veriler korunacak. Devam edilsin mi?"))return;
+  if(!confirm("Hesabına bağlı YKS Defterim bulut kopyası kalıcı olarak silinecek. Bu cihazdaki yerel veriler korunacak. Devam edilsin mi?"))return;
   if(!confirm("Son onay: Bulut kopyası geri alınamaz. Bulut verileri silinsin mi?"))return;
   const account=user;
   shuttingDown=true;syncGeneration++;clearTimeout(timer);uploadQueued=false;
@@ -2331,12 +2419,14 @@ async function deleteCloudCopy(){
        bunu görünce yüklemeyi durdurup çıkar; böylece temizlenen veri yeniden
        oluşturulmaz. Sonra chunk'ları Firestore sınırının altında idempotent
        gruplarla sil. Kesinti olursa aynı işlem güvenle yeniden çalıştırılabilir. */
+    let deletionRev=0;
     await runTransaction(db,async tx=>{
       const current=await tx.get(metaRef(account.uid)),md=current.exists()?(current.data()||{}):{};
-      const deletionRev=Math.max(baseRev,Number(md.revision||0))+1;
+      deletionRev=Math.max(baseRev,Number(md.revision||0))+1;
       tx.set(metaRef(account.uid),{format:CLOUD_FORMAT,revision:deletionRev,count:0,hash:"",deleted:true,cleanupPending:true,clientId:deviceId,appVersion:APP_VERSION,schemaVersion:DATA_SCHEMA,deletedAt:serverTimestamp(),updatedAt:serverTimestamp()});
     });
-    await cleanupDeletedCloud(account.uid);
+    user=null;renderAuthControls(null);
+    if(!(await cleanupDeletedCloud(account.uid,deletionRev)))throw new Error("Bulut başka cihazda yeniden açıldı; yeni kayda dokunulmadı");
     await clearBaseSnapshot(account.uid);setBaseRev(0);setBaseHash("");setAccount(account.uid);setDirty(false);lastJSON="";lastSyncAt=0;reseedAuthorized=false;
     try{localStorage.removeItem(LAST_SYNC_KEY);}catch(e){}
     try{await signOut(auth);}catch(e){console.warn("Bulut kopyası silindi ancak yerel oturum hemen kapatılamadı",e);}
@@ -2346,35 +2436,115 @@ async function deleteCloudCopy(){
     status("Bulut kopyası silinemedi","error",String(e&&e.message||"Tekrar dene").slice(0,100));
   }finally{if(cloudDelete)cloudDelete.disabled=false;}
 }
-const persistenceReady=setPersistence(auth,browserLocalPersistence);
+const persistenceReady=setPersistence(auth,indexedDBLocalPersistence);
+function clearAuthPasswords(){if(passwordInput)passwordInput.value="";if(linkPassword)linkPassword.value="";}
+function renderAuthControls(u){
+  const needsVerification=!!u&&!u.emailVerified;
+  const wrongAccount=!!u&&!!accountId&&accountId!==u.uid;
+  if(authForm)authForm.hidden=!!u;
+  if(login)login.hidden=embeddedApp||!!u;
+  if(logout)logout.hidden=!u;
+  if(cloudDelete)cloudDelete.hidden=!u||needsVerification||wrongAccount;
+  if(verificationPanel)verificationPanel.hidden=!needsVerification;
+  if(linkForm)linkForm.hidden=!u||needsVerification||wrongAccount||!!u.providerData?.some(p=>p.providerId==="password");
+  const notice=document.getElementById("cloudAuthNotice");if(notice&&(!u||wrongAccount))notice.hidden=true;
+}
+async function authAction(action){
+  if(authBusy||shuttingDown)return;
+  if(!navigator.onLine){clearAuthPasswords();status("Çevrimdışı","offline","Giriş için internete bağlan; yerel kayıtlarını kullanabilirsin");return;}
+  authBusy=true;
+  const buttons=Array.from(box?.querySelectorAll("button")||[]);
+  buttons.forEach(button=>{button.disabled=true;});
+  try{await persistenceReady;await action();}
+  catch(e){consumeReseedRequested();status("Hesap işlemi tamamlanamadı","error",authErrorText(e));}
+  finally{authBusy=false;clearAuthPasswords();buttons.forEach(button=>{button.disabled=false;});}
+}
+authForm?.addEventListener("submit",event=>{
+  event.preventDefault();if(!authForm.reportValidity())return;
+  void authAction(async()=>{
+    remoteDeletionNotice=false;accountMismatchNotice=false;markReseedRequested();
+    status("Giriş yapılıyor…","connecting","Aynı hesabın kayıtları kontrol edilecek");
+    await signInWithEmailAndPassword(auth,emailInput.value.trim(),passwordInput.value);
+  });
+});
+document.getElementById("cloudSignupBtn")?.addEventListener("click",()=>{
+  if(!authForm?.reportValidity())return;
+  if(accountId){status("Bu cihaz bir hesaba bağlı","error","Yeni hesap oluşturma yerine mevcut hesabınla giriş yap. Yerel kayıtların korunuyor.");return;}
+  if(passwordInput.value.length<10){status("Şifre çok kısa","error","Yeni hesap için en az 10 karakter kullan");return;}
+  if(!confirm("Yeni YKS Defterim hesabı oluşturulsun mu? Daha önce Google ile kullandıysan bu adım yerine web sürümünde mevcut hesabına uygulama şifresi ekle."))return;
+  void authAction(async()=>{
+    if(accountId||auth.currentUser){status("Yeni hesap açılmadı","error","Bu cihazda mevcut hesabınla devam et. Yerel kayıtların korunuyor.");return;}
+    remoteDeletionNotice=false;accountMismatchNotice=false;
+    const result=await createUserWithEmailAndPassword(auth,emailInput.value.trim(),passwordInput.value);
+    await sendEmailVerification(result.user);
+    status("E-postanı doğrula","signedout","Doğrulama bağlantısı gönderildi; çalışma verilerin henüz buluta gönderilmedi");
+  });
+});
+document.getElementById("cloudResetBtn")?.addEventListener("click",()=>{
+  if(!emailInput?.reportValidity())return;
+  void authAction(async()=>{
+    await sendPasswordResetEmail(auth,emailInput.value.trim());
+    status("E-postanı kontrol et","signedout","Adres için uygunsa şifre sıfırlama bağlantısı gönderildi");
+  });
+});
+linkForm?.addEventListener("submit",event=>{
+  event.preventDefault();if(!linkForm.reportValidity()||!auth.currentUser?.email)return;
+  void authAction(async()=>{
+    const current=auth.currentUser;
+    if(!current?.email||!current.emailVerified||!user||user.uid!==current.uid||accountId&&accountId!==current.uid)throw new Error("Önce mevcut doğrulanmış hesabınla giriş yap");
+    if(current.providerData?.some(p=>p.providerId==="password"))throw new Error("Bu hesabın uygulama şifresi zaten var. Gerekirse şifre sıfırlamayı kullan.");
+    if(linkPassword.value.length<10)throw new Error("Yeni uygulama şifresi en az 10 karakter olmalı");
+    await linkWithCredential(current,EmailAuthProvider.credential(current.email,linkPassword.value));
+    if(auth.currentUser?.uid!==current.uid||!user||user.uid!==current.uid)return;
+    renderAuthControls(auth.currentUser);
+    const notice=document.getElementById("cloudAuthNotice");
+    if(notice){notice.hidden=false;notice.textContent="Uygulama girişi hazır. Android ve Windows'ta aynı e-posta ve belirlediğin uygulama şifresiyle giriş yap.";}
+  });
+});
+document.getElementById("cloudSendVerificationBtn")?.addEventListener("click",()=>void authAction(async()=>{
+  if(!auth.currentUser)return;
+  await sendEmailVerification(auth.currentUser);status("Doğrulama gönderildi","signedout","E-postadaki bağlantıyı açıp Doğruladım düğmesine bas");
+}));
+document.getElementById("cloudCheckVerificationBtn")?.addEventListener("click",()=>void authAction(async()=>{
+  if(!auth.currentUser)return;
+  await reload(auth.currentUser);
+  if(auth.currentUser.emailVerified){await auth.currentUser.getIdToken(true);location.reload();}
+  else status("Doğrulama bekleniyor","signedout","E-postadaki bağlantıyı açtıktan sonra yeniden kontrol et");
+}));
 const redirectFallbackCodes=new Set(["auth/popup-blocked","auth/cancelled-popup-request","auth/operation-not-supported-in-this-environment"]);
 login?.addEventListener("click",async()=>{
+  if(embeddedApp)return status("E-posta ile giriş yap","signedout","Google hesabını web sürümünde uygulama şifresi ekleyerek kullanabilirsin");
+  if(authBusy||shuttingDown)return;
+  if(!navigator.onLine){clearAuthPasswords();return status("Çevrimdışı","offline","Giriş için internete bağlan; yerel kayıtlarını kullanabilirsin");}
+  authBusy=true;if(login)login.disabled=true;
   remoteDeletionNotice=false;accountMismatchNotice=false;markReseedRequested();
   status("Google açılıyor…","connecting","Hesap seçimi bekleniyor");
   try{
     /* Popup kullanıcı dokunuşuyla aynı görevde hemen açılır; persistence daha önce
        başlatılmıştır. Popup desteklenmiyorsa yönlendirme akışı güvenli yedektir. */
     const popupResult=signInWithPopup(auth,provider);
-    await persistenceReady;await popupResult;
+    await Promise.all([persistenceReady,popupResult]);
   }catch(e){
     if(redirectFallbackCodes.has(String(e&&e.code||""))){
       try{status("Google'a yönlendiriliyor…","connecting","Girişten sonra bu ekrana geri dönersin");await persistenceReady;await signInWithRedirect(auth,provider);return;}
       catch(redirectError){e=redirectError;}
     }
     consumeReseedRequested();console.error(e);infraError("firebase-login",e);status("Giriş hatası","error",authErrorText(e));
-  }
+  }finally{authBusy=false;clearAuthPasswords();if(login)login.disabled=false;}
 });
-logout?.addEventListener("click",async()=>{try{syncGeneration++;clearTimeout(timer);uploadQueued=false;pendingRemote=false;if(stopRealtime){try{stopRealtime();}catch(e){}stopRealtime=null;}await waitForCloudIdle();await signOut(auth);}catch(e){status("Çıkış yapılamadı","error",authErrorText(e));}});
+logout?.addEventListener("click",async()=>{try{user=null;syncGeneration++;clearAuthPasswords();clearTimeout(timer);uploadQueued=false;pendingRemote=false;if(stopRealtime){try{stopRealtime();}catch(e){}stopRealtime=null;}await waitForCloudIdle();await signOut(auth);}catch(e){status("Çıkış yapılamadı","error",authErrorText(e));}});
 retry?.addEventListener("click",retryNow);
 cloudDelete?.addEventListener("click",()=>{void deleteCloudCopy();});
-void persistenceReady.then(()=>getRedirectResult(auth)).catch(e=>{console.error(e);infraError("firebase-redirect",e);status("Giriş hatası","error",authErrorText(e));});
+void persistenceReady.then(()=>embeddedApp?null:getRedirectResult(auth)).catch(e=>{status("Giriş hatası","error",authErrorText(e));});
 onAuthStateChanged(auth,async u=>{
   const transitionGeneration=++syncGeneration;
+  user=null;
   clearTimeout(timer);uploadQueued=false;pendingRemote=false;
   if(stopRealtime){try{stopRealtime();}catch(e){}stopRealtime=null;}
-  try{await waitForCloudIdle();}catch(e){console.warn("Hesap geçişi için eşitlemenin durması beklenemedi",e);}
+  try{await persistenceReady;await waitForCloudIdle();}catch(e){if(transitionGeneration!==syncGeneration)return;renderAuthControls(u);status("Hesap eşitlemesi durduruldu","error","Güvenli oturum hazırlanamadı. Çıkış yapıp yeniden giriş yap; yerel kayıtların korunuyor.");return;}
   if(transitionGeneration!==syncGeneration)return;
-  user=u;
+  renderAuthControls(u);
+  if(u&&!u.emailVerified){user=null;status("E-postanı doğrula","signedout","Doğrulamadan bulut verileri okunmaz veya gönderilmez");return;}
   if(u){
     if(accountId&&accountId!==u.uid){
       accountMismatchNotice=true;consumeReseedRequested();
@@ -2382,17 +2552,18 @@ onAuthStateChanged(auth,async u=>{
       try{await signOut(auth);}catch(e){console.error(e);}
       return;
     }
+    user=u;
     resetRetry();
     if(login)login.hidden=true;if(logout)logout.hidden=false;if(cloudDelete)cloudDelete.hidden=false;status("Bağlanıyor…","connecting",u.email||u.displayName||"Google hesabı");
     if(navigator.onLine)await downloadOrSeed();else status("Çevrimdışı","offline","Değişiklikler cihazda saklanır");
-    if(!user||user.uid!==u.uid)return;
+    if(!syncMatches(u.uid,transitionGeneration))return;
     const listenerGeneration=syncGeneration;let first=true;
     stopRealtime=onSnapshot(metaRef(u.uid),async snap=>{
       const initial=first;first=false;if(!syncMatches(u.uid,listenerGeneration)||!snap.exists())return;
       if(loading){pendingRemote=true;return;}
       const sd=snap.data()||{},sf=Number(sd.format||sd.version||2),rr=Number(sd.revision||0);
       if(sd.deleted===true&&!reseedAuthorized){
-        try{if(sd.cleanupPending===true)await cleanupDeletedCloud(u.uid);await handleRemoteDeletion(u.uid,listenerGeneration);}
+        try{if(sd.cleanupPending===true&&!(await cleanupDeletedCloud(u.uid,Number(sd.revision||0)))){clearTimeout(timer);timer=setTimeout(downloadOrSeed,0);return;}await handleRemoteDeletion(u.uid,listenerGeneration);}
         catch(e){console.error(e);infraError("firebase-delete-cleanup",e);status("Bulut silme tamamlanamadı","error","Tekrar giriş yaptığında temizlik sürdürülecek");}
         return;
       }
@@ -2400,11 +2571,11 @@ onAuthStateChanged(auth,async u=>{
       if(initial&&sf<3&&baseRev===0)return;
       /* Eski istemci meta'yı v2 biçiminde yazarsa da değişikliği fark et. */
       try{if(dirty){clearTimeout(timer);timer=setTimeout(upload,500);}else{loading=true;const r=await readRemote(snap,u.uid);if(syncMatches(u.uid,listenerGeneration))await applyRemote(r,"realtime",u.uid,listenerGeneration);}}
-      catch(e){console.error(e);infraError("firebase-realtime",e);scheduleRetry(downloadOrSeed,e,"Bağlantı hatası");}finally{loading=false;if(pendingRemote&&syncMatches(u.uid,listenerGeneration)){pendingRemote=false;clearTimeout(timer);timer=setTimeout(downloadOrSeed,0);}}
-    },e=>{console.error(e);infraError("firebase-listener",e);scheduleRetry(downloadOrSeed,e,"Bağlantı hatası");});
+      catch(e){if(syncMatches(u.uid,listenerGeneration)){console.error(e);infraError("firebase-realtime",e);scheduleRetry(downloadOrSeed,e,"Bağlantı hatası");}}finally{loading=false;if(pendingRemote&&syncMatches(u.uid,listenerGeneration)){pendingRemote=false;clearTimeout(timer);timer=setTimeout(downloadOrSeed,0);}}
+    },e=>{if(syncMatches(u.uid,listenerGeneration)){console.error(e);infraError("firebase-listener",e);scheduleRetry(downloadOrSeed,e,"Bağlantı hatası");}});
   }else{
     clearTimeout(timer);uploadQueued=false;pendingRemote=false;
-    if(login)login.hidden=false;if(logout)logout.hidden=true;if(cloudDelete)cloudDelete.hidden=true;
+    renderAuthControls(null);
     if(!shuttingDown){
       if(accountMismatchNotice)status("Farklı hesap engellendi","error","Hesap değiştirmek için önce Merkez → Veri → Cihaz verilerini sil");
       else if(remoteDeletionNotice)status("Bulut kopyası silinmiş","signedout","Yerel veriler korunuyor · Yeniden açmak için Google ile giriş yap");
@@ -2444,7 +2615,7 @@ window.addEventListener("online",()=>{
 
 
 
-<script vite-ignore src="./modules/core-utils.js?v=4.4.0-r2"></script>
+<script vite-ignore src="./modules/core-utils.js?v=4.4.0-r3"></script>
 <script vite-ignore src="./modules/stability.js?v=4.1.0-r28"></script>
 <script vite-ignore src="./modules/topic-guides.js?v=4.1.0-r20"></script>
 <script vite-ignore src="./modules/learning-lab.js?v=4.1.0-r26"></script>

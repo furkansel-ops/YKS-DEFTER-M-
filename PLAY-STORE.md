@@ -9,7 +9,7 @@ Bu belge, `main` dışında tutulan Android yayın adayının teknik ve Play Con
 - Uygulama adı: **YKS Defterim**
 - Android `applicationId`: **`com.furkansel.yksdefterim`**
 - Sürüm adı: **`4.4.0`**
-- Android `versionCode`: **`4040002`** (`4.4.0-r2`)
+- Android `versionCode`: **`4040003`** (`4.4.0-r3`)
 - Web kaynak klasörü: **`dist`**
 - Minimum Android SDK: **24**
 - Compile SDK / Target SDK: **36 / 36**
@@ -22,7 +22,7 @@ Bu belge, `main` dışında tutulan Android yayın adayının teknik ve Play Con
 major × 1.000.000 + minor × 10.000 + patch × 100 + revision
 ```
 
-Örnek: `4.4.0-r2` → `4040002`.
+Örnek: `4.4.0-r3` → `4040003`.
 
 ## Android ve Capacitor sözleşmesi
 
@@ -83,7 +83,7 @@ Internal Testing'e yalnız **signed** workflow'un başarılı çıktısı yükle
 
 ## Gizlilik, ağ ve Data Safety
 
-- Uygulama kullanıcı hesabı oluşturmaz; hesap silme şartı bu sürüm için uygulanabilir değildir.
+- Güncel Android, Windows ve web sürümleri isteğe bağlı e-posta/şifre hesabı ve bulut eşitleme içerir; web sürümünde Google girişi de sunulur. Bu nedenle eski hesapsız paket beyanları güncel sürüme uygulanmaz. Google Play kararı değişirse hesap silme akışı ve Data Safety beyanları ayrıca tamamlanmalıdır.
 - Çalışma kayıtları, tercihler ve kullanıcı tarafından girilen isteğe bağlı bilgiler uygulamanın yerel depolamasında tutulur.
 - Uygulama içindeki **Daha → Veri → Cihaz verilerini sil** işlemi IndexedDB, yerel/session storage ve YKS cache'lerini iki aşamalı onayla temizler.
 - Dışa aktarılmış JSON/yedek dosyaları uygulama depolamasının dışındadır ve kullanıcı tarafından ayrıca silinmelidir.
@@ -96,7 +96,7 @@ Beklenen Pages adresleri (yayınlanmadan önce mutlaka açılıp kontrol edilir)
 - `https://furkansel-ops.github.io/YKS-DEFTER-M-/privacy.html`
 - `https://furkansel-ops.github.io/YKS-DEFTER-M-/data-deletion.html`
 
-Web/PWA eşitlemesi yayınlanmadan önce repodaki sürümlenmiş `firestore.rules` dosyası `yks-uygulamam` Firebase projesine yetkili geliştirici tarafından dağıtılmalıdır. Bu adım otomatik Android AAB işinin parçası değildir ve Firebase erişim yetkisi gerektirir:
+Android, Windows ve web/PWA eşitlemesi yayınlanmadan önce repodaki sürümlenmiş `firestore.rules` dosyası `yks-uygulamam` Firebase projesine yetkili geliştirici tarafından dağıtılmalıdır. Bu adım otomatik Android AAB işinin parçası değildir ve Firebase erişim yetkisi gerektirir:
 
 ```text
 firebase deploy --only firestore:rules --project yks-uygulamam
@@ -135,7 +135,7 @@ Ekran görüntülerinde gerçek uygulama arayüzü kullanılmalı; resmî kurum 
 - `npm ci` ve `npm run release:check` temiz checkout'ta yeşil.
 - Node 22 ana hat ve Node 24 uyumluluk kontrolü yeşil.
 - Android lint/test ve `bundleRelease` yeşil.
-- AAB sürümü `4.4.0 (4040002)`, paket adı `com.furkansel.yksdefterim`.
+- AAB sürümü `4.4.0 (4040003)`, paket adı `com.furkansel.yksdefterim`.
 - AAB upload key ile imzalı ve imza doğrulanmış.
 - Telefon ve tablet üzerinde açılış, yön değişimi, geri tuşu, veri kaydetme, yedekleme, silme, Program, Deneme, Odak ve Öğrenme Laboratuvarı smoke testleri tamam.
 - Wikipedia/YouTube ve resmî kaynak bağlantılarının çevrimiçi/çevrimdışı hata davranışı kontrol edilmiş.

@@ -3402,7 +3402,7 @@ function setFontScale(v){ S.fontScale=v; save(); applyFontScale(); }
 /* ==================================================================
    13) ARAYÜZ: AÇILIR BÖLÜMLER VE ÜST ÇUBUK
    ================================================================== */
-const NAV_TITLES={home:"Bugün",program:"Program",topics:"Konular",deneme:"Denemeler",pomo:"Odak",more:"Daha"};
+const NAV_TITLES={home:"Bugün",program:"Program",topics:"Konular",deneme:"Denemeler",progress:"İlerleme",pomo:"Odak",pp:"Paragraf & Problem",more:"Daha"};
 function updateNav(id){
   const t=el("navTitle");
   if(t)t.textContent=NAV_TITLES[id]||"YKS";
@@ -4399,7 +4399,7 @@ function renderPauseStats(){
    Dokunmatik yatay kaydırma artık ekran değiştirmez. Tablet/PC'de
    kaydırma yalnız içerik kaydırma amacıyla kullanılır.
    ================================================================== */
-const SCREEN_ORDER=["home","program","topics","deneme","pomo","more"];
+const SCREEN_ORDER=["home","program","topics","deneme","progress","pomo","pp","more"];
 function currentScreen(){
   const a=document.querySelector(".screen.active");
   return a?a.id:"home";
@@ -4431,14 +4431,17 @@ function closeTopOverlay(){
 /* Yatay swipe ile ekran değiştirme v3.2.7 itibarıyla kaldırıldı. */
 function initKeys(){
   document.addEventListener("keydown",e=>{
+    if(e.defaultPrevented||e.isComposing)return;
     const tag=(e.target&&e.target.tagName||"").toLowerCase();
     if(tag==="input"||tag==="textarea"||tag==="select"||(e.target&&e.target.isContentEditable)){
       if(e.key==="Escape")e.target.blur();
       return;
     }
     if(e.key==="Escape"){ if(closeTopOverlay())e.preventDefault(); return; }
-    if(e.metaKey||e.ctrlKey||e.altKey)return;
-    if(e.key>="1"&&e.key<="6"){ go(SCREEN_ORDER[+e.key-1]); e.preventDefault(); return; }
+    if(e.metaKey||e.ctrlKey||e.altKey||e.shiftKey)return;
+    const interactive=e.target&&typeof e.target.closest==="function"&&e.target.closest("button,a[href],[role='button'],[role='tab'],[role='slider'],[role='spinbutton'],[role='listbox'],[role='textbox'],canvas,[contenteditable]:not([contenteditable='false'])");
+    if(interactive||anyOverlayOpen())return;
+    if(e.key>="1"&&e.key<="8"){ go(SCREEN_ORDER[+e.key-1]); e.preventDefault(); return; }
     if(e.key==="ArrowRight"){ shiftScreen(1); e.preventDefault(); return; }
     if(e.key==="ArrowLeft"){ shiftScreen(-1); e.preventDefault(); return; }
     if(e.key===" "&&currentScreen()==="pomo"){
@@ -5657,13 +5660,13 @@ function ytTest(){
     return false;
   });
 }
-function ytCopyDiag(){
+async function ytCopyDiag(){
   const box=el("ytDiag");
   const txt=(box?box.textContent:"")+"\nAnahtar: "+(ytKey()?"kendi cihazında":"yok")+
     "\nAdres: "+location.protocol+"\nTarayıcı: "+navigator.userAgent;
   try{
     if(navigator.clipboard&&navigator.clipboard.writeText){
-      navigator.clipboard.writeText(txt); toast("Tanı bilgisi kopyalandı");
+      await navigator.clipboard.writeText(txt); toast("Tanı bilgisi kopyalandı");
     } else { downloadText("yks-tani.txt",txt,"text/plain"); toast("Tanı dosyası indirildi"); }
   }catch(e){ downloadText("yks-tani.txt",txt,"text/plain"); }
 }

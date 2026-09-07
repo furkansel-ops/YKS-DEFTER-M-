@@ -49,6 +49,13 @@ function isStandalone(windowRef:Window):boolean{
   return windowRef.matchMedia?.("(display-mode: standalone)").matches===true||Boolean((windowRef.navigator as Navigator&{standalone?:boolean}).standalone);
 }
 
+export function nativeAppPlatform(windowRef:Window):"android"|"desktop"|null{
+  const host=windowRef as Window&{Capacitor?:{isNativePlatform?:()=>boolean};__YKS_DESKTOP__?:{installed?:boolean}};
+  if(host.__YKS_DESKTOP__?.installed===true)return "desktop";
+  try{if(host.Capacitor?.isNativePlatform?.()===true)return "android";}catch{}
+  return null;
+}
+
 async function cacheReady(navigatorRef:Navigator):Promise<boolean>{
   if(!("serviceWorker" in navigatorRef))return false;
   let readyTimer:ReturnType<typeof setTimeout>|undefined;
@@ -83,28 +90,31 @@ async function cacheReady(navigatorRef:Navigator):Promise<boolean>{
 
 export function installPwaRuntime(build:string,windowRef:Window=window,documentRef:Document=document):PwaRuntimeApi{
   let installPrompt:BeforeInstallPromptEvent|null=null,renderGeneration=0;
-  const state=():InstallState=>isStandalone(windowRef)?"installed":installPrompt?"installable":"manual";
+  const nativePlatform=nativeAppPlatform(windowRef);
+  const state=():InstallState=>nativePlatform||isStandalone(windowRef)?"installed":installPrompt?"installable":"manual";
   const render=async():Promise<void>=>{
     const card=documentRef.getElementById("v4PwaCard"),badge=documentRef.getElementById("v4PwaBadge"),copy=documentRef.getElementById("v4PwaCopy"),install=documentRef.getElementById("v4InstallBtn") as HTMLButtonElement|null,offline=documentRef.getElementById("v4OfflineState");
     if(!card)return;
-    const generation=++renderGeneration,current=state(),ready=await cacheReady(windowRef.navigator);
+    const generation=++renderGeneration,current=state(),ready=nativePlatform!==null||await cacheReady(windowRef.navigator);
     /* Eski ve yavaş bir probe yeni render sonucunu geri çevirmesin. */
     if(generation!==renderGeneration)return;
-    card.dataset.state=current;card.dataset.offlineReady=ready?"true":"false";
+    card.dataset.state=current;card.dataset.platform=nativePlatform||"web";card.dataset.offlineReady=ready?"true":"false";
     if(badge)badge.textContent=current==="installed"?"Kurulu":current==="installable"?"Kurulabilir":"Kurulum adımı";
-    if(copy)copy.textContent=current==="installed"?"Uygulama ana ekrandan bağımsız pencere olarak açılıyor.":current==="installable"?"Tablete veya PC'ye uygulama olarak kurmaya hazır.":manualInstallHint(windowRef.navigator.userAgent);
+    if(copy)copy.textContent=nativePlatform==="desktop"?"Windows uygulaması kurulu. Uygulama dosyaları bu bilgisayarda hazır.":nativePlatform==="android"?"Android uygulaması kurulu. Uygulama dosyaları bu cihazda hazır.":current==="installed"?"Uygulama ana ekrandan bağımsız pencere olarak açılıyor.":current==="installable"?"Tablete veya PC'ye uygulama olarak kurmaya hazır.":manualInstallHint(windowRef.navigator.userAgent);
     if(install){install.hidden=current==="installed";install.disabled=current==="manual";install.textContent=current==="installable"?"Uygulamayı kur":"Tarayıcı menüsünden kur";}
-    if(offline)offline.textContent=ready?"Çevrimdışı dosyalar hazır":"Çevrimdışı dosyalar hazırlanıyor";
+    if(offline)offline.textContent=nativePlatform?"Çevrimdışı uygulama dosyaları hazır · Eşitleme internet gerektirir":ready?"Çevrimdışı dosyalar hazır":"Çevrimdışı dosyalar hazırlanıyor";
   };
   const promptInstall=async():Promise<boolean>=>{
-    if(isStandalone(windowRef))return true;
+    if(nativePlatform||isStandalone(windowRef))return true;
     if(!installPrompt){await render();return false;}
     const prompt=installPrompt;installPrompt=null;await prompt.prompt();const choice=await prompt.userChoice;await render();return choice.outcome==="accepted";
   };
-  windowRef.addEventListener("beforeinstallprompt",event=>{event.preventDefault();installPrompt=event as BeforeInstallPromptEvent;void render();});
-  windowRef.addEventListener("appinstalled",()=>{installPrompt=null;void render();});
+  if(!nativePlatform){
+    windowRef.addEventListener("beforeinstallprompt",event=>{event.preventDefault();installPrompt=event as BeforeInstallPromptEvent;void render();});
+    windowRef.addEventListener("appinstalled",()=>{installPrompt=null;void render();});
+  }
   windowRef.addEventListener("online",()=>void render());windowRef.addEventListener("offline",()=>void render());
-  if("serviceWorker" in windowRef.navigator){
+  if(!nativePlatform&&"serviceWorker" in windowRef.navigator){
     const workers=windowRef.navigator.serviceWorker;
     workers.addEventListener("controllerchange",()=>void render());
     void workers.ready.then(()=>render()).catch(()=>undefined);

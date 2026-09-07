@@ -2,7 +2,7 @@
 
 Bu projenin seçilen Android dağıtım yöntemi Google Play değildir. Test sürümleri, doğrudan telefona kurulabilen imzalı APK olarak GitHub Releases üzerinden paylaşılır. Yayınlar test amaçlı **pre-release** olarak işaretlenir.
 
-İlk test paketi **YKS Defterim 4.4.0-r2**, Android `versionCode` **4040002** ve dosya adı **`YKS-Defterim-4.4.0-4040002.apk`** olarak yayımlanır.
+Güncel test adayı **YKS Defterim 4.4.0-r3**, Android `versionCode` **4040003** ve dosya adı **`YKS-Defterim-4.4.0-4040003.apk`** olarak hazırlanır. Yalnız bu build'in doğrulanmış Release dosyası kurulmalıdır.
 
 ## İlk kurulum
 
@@ -16,7 +16,7 @@ Android 7.0 / API 24 ve üzeri desteklenir. APK Play Store dışından geldiği 
 ## Bir yıl boyunca güncelleme kuralı
 
 - Bütün APK'lar aynı güvenli imzalama anahtarıyla üretilir. Anahtar kaybolursa mevcut kurulumların üzerine veri korunarak güncelleme yapılamaz.
-- Her yeni sürümde `versionCode` artırılır. Örneğin `4.4.0-r3` için `4040003` kullanılır.
+- Her yeni sürümde `versionCode` artırılır. Örneğin bir sonraki `4.4.0-r4` için `4040004` kullanılır.
 - Yeni APK eskisinin üzerine kurulduğunda uygulama verileri korunur; yine de güncellemeden önce **Daha → Veri → Yedek al** önerilir.
 - Test kullanıcıları uygulamayı kaldırırsa cihazdaki yerel veriler de silinebilir. Dışa aktarılan yedek dosyası ayrıca saklanmalıdır.
 - APK yalnız GitHub Releases üzerinden paylaşılır; sohbet uygulamalarında yeniden paketlenmiş kopya dolaştırılmaz.

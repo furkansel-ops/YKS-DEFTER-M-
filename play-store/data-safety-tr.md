@@ -1,5 +1,7 @@
 # Google Play Data Safety · teknik çalışma kağıdı
 
+> Güncel dağıtım GitHub APK ve Windows EXE arkadaş testidir; Play Store yayını planlanmamaktadır. Bu belge eski Play hazırlığının teknik arşividir. r3'te isteğe bağlı hesap ve bulut eklendiği için eski “yerel-only” cevaplar artık geçerli değildir.
+
 > Bu dosya Play Console'a doğrudan kopyalanacak kesin cevap değildir. Google'ın soru metinleri ve tanımları değişebilir; son cevap yalnız yüklenmek üzere imzalanmış AAB, bağımlılık/izin envanteri ve gerçek ağ gözlemiyle verilmelidir.
 
 Google'ın resmî açıklamasına göre cihaz içinde kalan veri Data Safety kapsamında “toplanan” veri değildir. Buna karşılık cihaz dışına iletilen kullanıcı verisi, yalnız geçici işleniyor olsa bile form değerlendirmesine girebilir. Kullanıcının açıkça başlattığı ve makul biçimde beklediği üçüncü taraf aktarımı bazı “paylaşım” beyanlarından istisna olabilir; bu ayrım otomatik varsayılmamalıdır.
@@ -21,7 +23,7 @@ Uygulama aşağıdaki içerikleri işlevlerini sağlamak için cihaz içinde iş
 - Yerel JSON yedekleri, kurtarma kayıtları ve uygulama cache'leri
 - Kullanıcının açıkça başlattığı Markdown, ICS, Anki uyumlu metin, PNG çalışma kartı ve rapor dışa aktarımları/paylaşımları
 
-Ana depolar IndexedDB/Dexie ve uygulama local storage alanıdır. Kaynak denetiminde bu çalışma kayıtlarını YKS Defterim geliştiricisinin işlettiği bir backend'e gönderen aktif bir hesap, auth veya bulut senkronu bulunmaması hedeflenir. Bu cümle, üçüncü taraf ağ isteklerinin olmadığı anlamına gelmez ve son AAB üzerinde doğrulanmalıdır.
+Ana depolar IndexedDB/Dexie ve uygulama local storage alanıdır. Kullanıcı doğrulanmış hesabıyla eşitlemeyi açarsa çalışma kayıtları Google Cloud Firestore'a gönderilir. Firebase Authentication e-posta/şifre girişini ve webde Google girişini sağlar. Şifre çalışma kaydına yazılmaz; YouTube anahtarı ile çalışan odak sayacı bulut yükünden çıkarılır. Hesap, çalışma içeriği ve cihaz/revision bilgileri gizlilik değerlendirmesine dahildir.
 
 ## 2. Cihaz dışına çıkabilen kullanıcı başlatmalı istekler
 
@@ -50,9 +52,9 @@ Kaynak denetiminin doğrulaması gereken mevcut hedef durum:
 - Analytics SDK'sı: yok
 - Crash reporting SDK'sı: yok
 - Push/mesajlaşma SDK'sı: yok
-- Kullanıcı hesabı / authentication: yok
-- Geliştiriciye ait çalışma verisi backend'i: yok
-- Firebase çalışma zamanı: Android yayın paketinde yok
+- Kullanıcı hesabı / authentication: isteğe bağlı Firebase Authentication
+- Çalışma verisi backend'i: isteğe bağlı Google Cloud Firestore (`yks-uygulamam`)
+- Firebase çalışma zamanı: Android, Windows ve web paketinde npm kilit dosyasından derlenmiş SDK; uzak CDN'den çalıştırılabilir modül yüklenmez
 
 Bu liste `npm` bağımlılık ağacı, Android Gradle bağımlılık raporu, merged manifest ve signed AAB içeriğiyle tekrar kontrol edilmeden Play Console cevabı sayılmaz.
 
@@ -68,7 +70,7 @@ Bu liste `npm` bağımlılık ağacı, Android Gradle bağımlılık raporu, mer
 ### Şifreleme ve silme
 
 - “Aktarım sırasında şifrelenir” cevabı yalnız tüm cihaz dışı isteklerin HTTPS olduğu, cleartext trafiğin kapalı bulunduğu ve ağ testinde HTTP görülmediği doğrulanırsa seçilmelidir.
-- Uygulama hesap oluşturmaz. Play Console'daki account creation sorusuna bu gerçek davranışa göre cevap verilir; çevrimiçi hesap silme URL'si varmış gibi beyan verilmez.
+- Uygulama isteğe bağlı hesap oluşturur. **Bulut kopyasını sil** çalışma kopyasını temizler, Firebase giriş hesabını silmez. Olası gelecekteki Play yayını öncesinde gerçek hesap silme akışı ve güncel politika gereklilikleri ayrıca tamamlanmalıdır; hazırmış gibi beyan verilmez.
 - Kullanıcı **Daha → Veri → Cihaz verilerini sil** ile uygulama içi yerel verileri silebilir. Android Ayarları'ndan uygulama depolamasını temizleme ve uygulamayı kaldırma da cihaz içi depoyu etkiler.
 - Uygulama dışına aktarılmış JSON/yedek, Markdown, ICS, Anki uyumlu metin, PNG çalışma kartı ve rapor dosyaları otomatik silinmez. Kullanıcının seçtiği dosya/paylaşım hedefi ile Wikipedia, YouTube veya açılan diğer hizmetlerdeki verilerin saklama/silme politikası ilgili üçüncü tarafa aittir.
 
@@ -76,8 +78,8 @@ Bu liste `npm` bağımlılık ağacı, Android Gradle bağımlılık raporu, mer
 
 1. Internal Testing için üretilecek signed AAB'yi temiz bir test cihazına kurun.
 2. Android Studio Network Inspector, güvenilir bir proxy veya cihaz ağ günlüğüyle önce temiz açılışı gözlemleyin.
-3. Hesap/auth, reklam, analytics, crash veya beklenmeyen telemetri alan adı olmadığını doğrulayın.
-4. Program, Deneme, Odak, yedekleme ve silme akışlarını çalıştırın; çalışma kayıtlarının cihaz dışına çıkmadığını gözlemleyin.
+3. Beklenen Firebase Authentication/Firestore isteklerini doğrulayın; reklam, analytics, crash veya beklenmeyen telemetri olmadığını kontrol edin.
+4. Program, Deneme, Odak, yedekleme ve silme akışlarını hem hesapsız hem doğrulanmış hesapla çalıştırın; yalnız isteğe bağlı eşitlemede çalışma kayıtlarının Firebase'e gönderildiğini gözlemleyin.
 5. Periyodik tablo element medyasını açın; Wikipedia/Wikimedia isteklerini kaydedin.
 6. YouTube araması, kullanıcı API anahtarlı Data API araması, video ve oynatma listesi embed akışlarını ayrı ayrı test edin.
 7. MEB/OGM/ÖSYM ve kullanıcı ekli dış bağlantıların uygulama içi WebView mı, sistem tarayıcısı mı açtığını kaydedin.
@@ -85,7 +87,7 @@ Bu liste `npm` bağımlılık ağacı, Android Gradle bağımlılık raporu, mer
 9. Her alan adı için gönderilen parametreleri, header/cookie davranışını, veri kategorisini, amacı, saklamayı ve sağlayıcı rolünü bir tabloya kaydedin.
 10. Privacy policy ile Data Safety formunu aynı signed commit/binary davranışına göre güncelleyin.
 
-İlk gözlemde özellikle şu alan adları aranmalıdır: `tr.wikipedia.org`, Wikimedia görsel alanları, `www.googleapis.com`, `www.youtube-nocookie.com`, `www.youtube.com`, MEB/OGM/ÖSYM alanları ve kullanıcının açtığı özel bağlantılar. Beklenmeyen `firebase`, reklam, analytics veya crash alan adları bir yayın engelidir.
+İlk gözlemde özellikle şu alan adları aranmalıdır: `identitytoolkit.googleapis.com`, `securetoken.googleapis.com`, `firestore.googleapis.com`, `tr.wikipedia.org`, Wikimedia görsel alanları, `www.googleapis.com`, `www.youtube-nocookie.com`, `www.youtube.com`, MEB/OGM/ÖSYM alanları ve kullanıcının açtığı özel bağlantılar. Tanımlanmamış veri aktarımı veya beklenmeyen reklam, analytics veya crash alan adları bir yayın engelidir.
 
 ## 6. Hesap sahibinin tamamlayacağı maddeler
 

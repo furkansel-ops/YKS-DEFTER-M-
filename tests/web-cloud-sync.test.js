@@ -39,7 +39,7 @@ test("Dexie köprüsü hesap bazlı üç yönlü birleştirme tabanını saklar"
   assert.match(migration,/key:string/);
 });
 
-test("Production build web ve Android eşitleme çalışma zamanlarını kesin ayırır",()=>{
+test("Production build web, Android ve Windows için aynı yerel SDK eşitlemesini paketler",()=>{
   const vite=read("vite.config.mts"),pkg=JSON.parse(read("package.json"));
   assert.match(vite,/prepareWebCloudRuntime/);
   assert.match(vite,/isolateCloudShell/);
@@ -48,11 +48,16 @@ test("Production build web ve Android eşitleme çalışma zamanlarını kesin a
   assert.match(vite,/emitFile/);
   assert.match(vite,/FIREBASE_WEB_API_KEY="AIza/);
   assert.match(vite,/mode==="android"/);
+  assert.match(vite,/mode==="desktop"/);
+  assert.match(vite,/type:"chunk",id:cloudEntry/);
+  assert.match(vite,/"firebase\/\$1"/);
+  assert.equal(pkg.dependencies.firebase,"12.17.1");
   assert.equal(pkg.scripts["build:android"].includes("--mode android"),true);
+  assert.equal(pkg.scripts["build:desktop"].includes("--mode desktop"),true);
   assert.equal(pkg.scripts["android:sync"],"npm run build:android && cap sync android");
 });
 
-test("Web/PWA eşitlemesi sağ-alt katman yerine Merkez > Veri içinde normal karttır",()=>{
+test("Cihazlar arası eşitleme Merkez > Veri içinde normal kart ve taşınabilir giriş sunar",()=>{
   const shell=read("src/ui/play-store-shell.ts"),css=read("src/ui/cloud-sync-indicator.css");
   assert.match(shell,/installEmbeddedCloudSyncCard/);
   assert.match(shell,/getElementById\("mrp_veri"\)/);
@@ -61,12 +66,25 @@ test("Web/PWA eşitlemesi sağ-alt katman yerine Merkez > Veri içinde normal ka
   assert.match(shell,/document\.getElementById\(CLOUD_RUNTIME_ID\)\?\.remove\(\)/);
   assert.match(shell,/dataset\.webCloudRuntimeRetry/);
   assert.match(shell,/window\.addEventListener\("online"/);
-  assert.match(shell,/if\(isNativeApp\(\)\)return false/);
-  assert.match(shell,/firebase-sync-runtime\.js\?v=4\.4\.0-r2/);
+  assert.doesNotMatch(shell,/if\(isNativeApp\(\)\)return false/);
+  assert.match(shell,/box\.dataset\.embeddedApp=String\(isNativeApp\(\)\)/);
+  for(const marker of ["cloudAuthForm","cloudEmail","cloudPassword","cloudSignupBtn","cloudResetBtn","cloudLinkForm","cloudVerification","cloudCheckVerificationBtn"])assert.ok(shell.includes(marker),marker);
+  assert.match(shell,/firebase-sync-runtime\.js\?v=4\.4\.0-r3/);
   assert.match(css,/#cloudSyncBox\.web-cloud-sync-card\{/);
   assert.match(css,/position:static!important/);
   assert.match(css,/backdrop-filter:none!important/);
   assert.doesNotMatch(css,/position:fixed/);
+});
+
+test("Taşınabilir oturum doğrulanmış e-posta kullanır ve mevcut Google hesabına şifre bağlar",()=>{
+  const index=read("index.html"),shell=read("src/ui/play-store-shell.ts");
+  for(const marker of ["signInWithEmailAndPassword","createUserWithEmailAndPassword","sendPasswordResetEmail","sendEmailVerification","EmailAuthProvider.credential","linkWithCredential","indexedDBLocalPersistence"])assert.ok(index.includes(marker),marker);
+  assert.match(index,/if\(u&&!u\.emailVerified\)\{user=null;/);
+  assert.match(index,/if\(embeddedApp\)return status\("E-posta ile giriş yap"/);
+  assert.match(index,/auth\.currentUser\.getIdToken\(true\)/);
+  assert.match(shell,/Google şifreni değil/);
+  assert.match(shell,/autocomplete="new-password"/);
+  assert.doesNotMatch(index,/(?:localStorage|sessionStorage)\.setItem\([^;]*(?:passwordInput|linkPassword)/);
 });
 
 test("Cihaz silme gecikmiş kayıtları durdurur, web hesabından çıkar ve yerel depoları temizler",()=>{

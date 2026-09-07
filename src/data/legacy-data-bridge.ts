@@ -26,7 +26,7 @@ export interface LegacyDataBridgeApi{
   readCloudBaseline(uid:string):Promise<{ok:true;json:string;hash:string}|{ok:false;message:string}>;
   writeCloudBaseline(uid:string,json:string):Promise<{ok:true;hash:string}|{ok:false;message:string}>;
   clearCloudBaseline(uid:string):Promise<void>;
-  applyCloudJSON(json:string):Promise<ExternalApplyResult>;
+  applyCloudJSON(json:string,guard?:()=>boolean):Promise<ExternalApplyResult>;
   applyBackupJSON(json:string):Promise<ExternalApplyResult>;
   flush():Promise<void>;
   validate():string[];
@@ -95,7 +95,7 @@ export function installLegacyDataBridge():LegacyDataBridgeApi{
     });
     return pendingLegacyCapture;
   };
-  const applyCloudJSON=(json:string):Promise<ExternalApplyResult>=>enqueue(async()=>{await initialize();return coordinator.replaceFromExternal(json);});
+  const applyCloudJSON=(json:string,guard?:()=>boolean):Promise<ExternalApplyResult>=>enqueue(async()=>{await initialize();return coordinator.replaceFromExternal(json,Date.now(),"firebase",guard);});
   const applyBackupJSON=(json:string):Promise<ExternalApplyResult>=>enqueue(async()=>{await initialize();return coordinator.replaceFromExternal(json,Date.now(),"backup");});
   const flush=async()=>{
     const pending=pendingLegacyCapture;

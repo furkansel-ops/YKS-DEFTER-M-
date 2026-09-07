@@ -1,0 +1,54 @@
+appId: com.furkansel.yksdefterim.desktop
+productName: YKS Defterim
+electronVersion: 44.2.0
+asar: true
+npmRebuild: false
+electronFuses:
+  runAsNode: false
+  enableCookieEncryption: true
+  enableNodeOptionsEnvironmentVariable: false
+  enableNodeCliInspectArguments: false
+  enableEmbeddedAsarIntegrityValidation: true
+  onlyLoadAppFromAsar: true
+  grantFileProtocolExtraPrivileges: false
+directories:
+  output: desktop-release
+  buildResources: desktop
+files:
+  - desktop/main.cjs
+  - desktop/policy.cjs
+  - desktop/preload.cjs
+  - desktop/document-preload.cjs
+  - dist/**/*
+  - package.json
+  - '!**/*.map'
+  - '!**/node_modules/**/*'
+extraMetadata:
+  main: desktop/main.cjs
+  description: YKS Defterim — kişisel çalışma ve cihazlar arası eşitleme
+  author: furkansel-ops
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+  icon: icon-512.png
+  executableName: YKS Defterim
+  artifactName: YKS-Defterim-${version}-Windows-${arch}-Setup.${ext}
+  requestedExecutionLevel: asInvoker
+nsis:
+  oneClick: false
+  perMachine: false
+  allowElevation: false
+  allowToChangeInstallationDirectory: false
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: YKS Defterim
+  uninstallDisplayName: YKS Defterim
+  deleteAppDataOnUninstall: false
+  runAfterFinish: false
+  installerLanguages:
+    - tr_TR
+    - en_US
+  language: 1055
+publish: null
