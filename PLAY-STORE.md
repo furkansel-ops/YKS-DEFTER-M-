@@ -9,7 +9,7 @@ Bu belge, `main` dışında tutulan Android yayın adayının teknik ve Play Con
 - Uygulama adı: **YKS Defterim**
 - Android `applicationId`: **`com.furkansel.yksdefterim`**
 - Sürüm adı: **`4.4.0`**
-- Android `versionCode`: **`4040003`** (`4.4.0-r3`)
+- Android `versionCode`: **`4040004`** (`4.4.0-r4`)
 - Web kaynak klasörü: **`dist`**
 - Minimum Android SDK: **24**
 - Compile SDK / Target SDK: **36 / 36**
@@ -22,7 +22,7 @@ Bu belge, `main` dışında tutulan Android yayın adayının teknik ve Play Con
 major × 1.000.000 + minor × 10.000 + patch × 100 + revision
 ```
 
-Örnek: `4.4.0-r3` → `4040003`.
+Örnek: `4.4.0-r4` → `4040004`.
 
 ## Android ve Capacitor sözleşmesi
 
@@ -135,7 +135,7 @@ Ekran görüntülerinde gerçek uygulama arayüzü kullanılmalı; resmî kurum 
 - `npm ci` ve `npm run release:check` temiz checkout'ta yeşil.
 - Node 22 ana hat ve Node 24 uyumluluk kontrolü yeşil.
 - Android lint/test ve `bundleRelease` yeşil.
-- AAB sürümü `4.4.0 (4040003)`, paket adı `com.furkansel.yksdefterim`.
+- AAB sürümü `4.4.0 (4040004)`, paket adı `com.furkansel.yksdefterim`.
 - AAB upload key ile imzalı ve imza doğrulanmış.
 - Telefon ve tablet üzerinde açılış, yön değişimi, geri tuşu, veri kaydetme, yedekleme, silme, Program, Deneme, Odak ve Öğrenme Laboratuvarı smoke testleri tamam.
 - Wikipedia/YouTube ve resmî kaynak bağlantılarının çevrimiçi/çevrimdışı hata davranışı kontrol edilmiş.

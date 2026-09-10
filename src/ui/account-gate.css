@@ -1,0 +1,82 @@
+/* Account entry is a separate scroll surface, never another legacy .screen. */
+html[data-account-gate="closed"]{overflow:hidden!important}
+html[data-account-gate="closed"] body{overflow:hidden!important}
+#accountGate[hidden],#accountGate [hidden],#accountGuestBanner[hidden]{display:none!important}
+#accountGate{position:fixed;inset:0;z-index:2147483000;height:100vh;height:100dvh;overflow:auto;overscroll-behavior:contain;background:var(--bg,#eff2f8);color:var(--label,#0a0c14);font-family:var(--font,system-ui);padding:max(24px,env(safe-area-inset-top)) max(24px,env(safe-area-inset-right)) max(24px,env(safe-area-inset-bottom)) max(24px,env(safe-area-inset-left));box-sizing:border-box;display:grid;align-items:center;line-height:1.5}
+#accountGate *{box-sizing:border-box}
+.account-layout{width:min(980px,100%);margin:auto;display:grid;grid-template-columns:1fr 1fr;overflow:hidden;border:1px solid var(--glass-line);border-radius:28px;background:var(--glass-strong);box-shadow:var(--shadow-2)}
+.account-story{background:#102947;color:#f6f8fc;padding:42px;display:flex;flex-direction:column;gap:44px}
+.account-brand,.account-mobile-brand{display:flex;align-items:center;gap:12px;font-size:17px;font-weight:750;letter-spacing:-.025em}
+.account-brand img,.account-mobile-brand img{border-radius:12px}
+.account-story-copy{margin-top:30px}
+#accountGate .account-eyebrow{font-size:10px;font-weight:750;letter-spacing:.16em;margin:0 0 14px;color:var(--accent)}
+#accountGate .account-story .account-eyebrow{color:#97c4ff}
+#accountGate .account-story h2{font-size:38px;letter-spacing:-.045em;line-height:1.15;font-weight:720;margin:0 0 24px}
+.account-story-copy>p:last-child{font-size:15px;color:#c4d4e8;max-width:300px;line-height:1.75}
+.account-benefits{border-top:1px solid #ffffff24;padding-top:20px;font-size:13px;color:#e2ecf9}
+.account-benefits p{display:flex;align-items:center;gap:14px;margin:14px 0}
+.account-benefits span{font-size:11px;color:#98b4d6;font-variant-numeric:tabular-nums}
+.account-story-foot{margin:auto 0 0;font-size:11px;color:#a3bbd9}
+.account-panel{padding:42px;min-width:0}
+.account-mobile-brand{display:none}
+#accountGate h1{font-size:29px;line-height:1.15;letter-spacing:-.045em;margin:0 0 14px;font-weight:740;outline:none}
+#accountDescription{font-size:13px;color:var(--label-2);margin:0 0 25px;line-height:1.7}
+#accountGate button,#accountGate input{font-family:inherit;font-size:14px;letter-spacing:normal}
+#accountGate button{min-height:44px;cursor:pointer;touch-action:manipulation}
+#accountGate button:disabled{opacity:.5;cursor:wait}
+#accountGate :is(button,input,a):focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+.account-tabs{display:grid;grid-template-columns:1fr 1fr;padding:4px;background:var(--fill);border-radius:12px;gap:4px;margin-bottom:20px}
+.account-tabs button{background:transparent;color:var(--label-2);border:0;border-radius:9px;font-weight:650}
+.account-tabs button[aria-pressed="true"]{background:var(--bg);color:var(--label);box-shadow:var(--shadow-1)}
+.account-form{display:flex;flex-direction:column;gap:10px}
+.account-form label{font-size:12px;font-weight:650;color:var(--label);margin-top:6px}
+#accountGate input{width:100%;min-width:0;min-height:48px;border:1px solid var(--sep);border-radius:10px;padding:12px 14px;background:var(--bg);color:var(--label);margin:0}
+#accountGate input::placeholder{color:var(--label-2);opacity:.8}
+.account-label-row{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:-5px}
+.account-label-row label{margin:0}
+#accountGate .account-text-button{border:0;background:transparent;color:var(--accent);font-size:12px;font-weight:650;padding:8px 0;border-radius:5px;box-shadow:none}
+.account-password{position:relative}
+.account-password input{padding-right:70px!important}
+.account-password button{position:absolute;right:5px;top:2px;border:0;background:transparent;color:var(--label-2);padding:6px 10px;border-radius:7px;font-size:11px!important}
+#accountGate .account-primary{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;border:1px solid transparent;border-radius:11px;padding:13px 16px;background:#0862e7;color:#fff;font-weight:680;margin-top:12px;box-shadow:0 3px 9px #0862e71a}
+#accountGate .account-secondary{display:block;width:100%;border:1px solid var(--sep);border-radius:11px;padding:12px 16px;background:transparent;color:var(--label);font-weight:620;margin-top:10px}
+#accountGate .account-fine-print,.account-form small{color:var(--label-2);font-size:11px;line-height:1.65;margin:1px 0 0}
+#accountExistingGoogle{margin-top:16px!important}
+#accountGate a{color:var(--accent);text-underline-offset:3px}
+.account-divider{display:flex;align-items:center;gap:12px;margin:18px 0 12px;color:var(--label-2);font-size:11px}
+.account-divider:before,.account-divider:after{content:"";height:1px;flex:1;background:var(--sep)}
+.account-message{font-size:12px;line-height:1.65;padding:12px 14px;border-radius:10px;background:var(--accent-soft);color:var(--label);margin:0 0 14px;overflow-wrap:anywhere;border-left:3px solid var(--accent)}
+.account-message[data-error="true"]{background:var(--danger-soft);border-left-color:var(--danger)}
+#accountVerification>p{font-size:13px;color:var(--label-2)}
+#accountVerification .account-verify-email{font-size:15px;color:var(--label);font-weight:650;overflow-wrap:anywhere}
+.account-guest-option{margin-top:24px;border-top:1px solid var(--sep);padding-top:14px;text-align:center}
+.account-guest-option p{font-size:11px;color:var(--label-2);line-height:1.65;margin:0 auto;max-width:285px}
+.account-footer{display:flex;justify-content:center;gap:10px;margin-top:24px;font-size:10px;color:var(--label-2)}
+.account-footer a{color:var(--label-2)!important;text-decoration:none;padding:6px 0}
+#accountGuestBanner{position:fixed;bottom:16px;right:20px;left:auto;z-index:5000;max-width:calc(100vw - 32px);display:flex;align-items:center;gap:16px;padding:12px 16px;background:var(--glass-strong);border:1px solid var(--sep);border-radius:14px;box-shadow:var(--shadow-2);backdrop-filter:blur(20px);color:var(--label)}
+#accountGuestBanner strong,#accountGuestBanner span{display:block;font-size:12px;line-height:1.55}
+#accountGuestBanner span{font-size:11px;color:var(--label-2)}
+#accountGuestBanner button{min-height:44px;padding:10px 12px;background:var(--accent-soft);color:var(--accent);border:0;border-radius:9px;font-size:12px;font-weight:650;cursor:pointer}
+html[data-account-mode="guest"] #cloudSyncBox{display:none!important}
+#accountDataPrompt{display:none}
+html[data-account-mode="guest"] #accountDataPrompt{display:block;font-size:13px;line-height:1.6;margin-bottom:18px}
+#accountDataPrompt p{color:var(--label-2);font-size:12px}
+#accountDataPrompt button{min-height:44px;padding:10px 14px;border:0;border-radius:10px;color:var(--accent);background:var(--accent-soft);font-weight:650;cursor:pointer}
+html[data-account-mode="guest"] :is(#v42RecoveryCenter,#v322ExportCenter,#abBox,#backupBanner),
+html[data-account-mode="guest"] #v30DataTop>:not(#accountDataPrompt):not(#v30DataSyncSummary),
+html[data-account-mode="guest"] #playStorePrivacyCard [data-delete-device-data],
+html[data-account-mode="guest"] h2:has(+ #v322ExportCenter),html[data-account-mode="guest"] h2:has(+ #abBox){display:none!important}
+@media(max-width:760px){
+  #accountGate{padding:max(22px,env(safe-area-inset-top)) max(22px,env(safe-area-inset-right)) max(20px,env(safe-area-inset-bottom)) max(22px,env(safe-area-inset-left));align-items:start;background:var(--bg)}
+  .account-layout{display:block;max-width:430px;border:0;border-radius:0;box-shadow:none;background:transparent;overflow:visible}
+  .account-story{display:none}.account-panel{padding:0}
+  .account-mobile-brand{display:flex;margin-bottom:34px;font-size:16px}
+  #accountGate h1{font-size:30px;max-width:320px}
+  #accountDescription{font-size:13px;margin-bottom:24px;max-width:355px}
+  #accountGate input{font-size:16px}
+  #accountGate .account-tabs{margin-bottom:20px}
+  .account-footer{margin-top:22px}
+  #accountGuestBanner{left:12px;right:12px;bottom:calc(76px + env(safe-area-inset-bottom));max-width:none;justify-content:space-between;padding:8px 12px;gap:8px}
+  html[data-account-mode="guest"] body{padding-bottom:calc(var(--mobile-tabbar-h,68px) + env(safe-area-inset-bottom) + 110px)!important}
+}
+@media(prefers-reduced-motion:reduce){#accountGate *{scroll-behavior:auto!important}}

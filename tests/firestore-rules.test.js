@@ -56,7 +56,8 @@ test("Gizlilik politikası tüm cihazlarda isteğe bağlı eşitlemeyi ve hesap 
     "çalışma içeriği taşımayan içeriksiz bir silme işareti",
     "hesap değiştirmek için kullanıcı önce cihaz verilerini silmelidir"
   ])assert.ok(privacy.toLocaleLowerCase("tr").includes(marker.toLocaleLowerCase("tr")),marker);
-  assert.match(privacy,/Giriş yapılmadığında Android, Windows ve web sürümleri çalışma kayıtlarını buluta eşitlemez/);
+  assert.match(privacy,/kalıcı kaydetmek, yedeklemek veya eşitlemek için doğrulanmış bir hesapla giriş gerekir/);
+  assert.match(privacy,/Deneme modunda eski çalışma kayıtları açılmaz, değiştirilmez, yedeklenmez veya buluta gönderilmez/);
   assert.match(privacy,/E-posta adresi doğrulanmadan çalışma verileri eşitlenmez/);
   assert.match(privacy,/aynı hesap kimliğini ve bulut kaydını kullanır/);
 });

@@ -2,7 +2,9 @@ import {DATA_SCHEMA_VERSION,type YksStateCandidate} from "./contracts";
 import {decodeState,stateHash} from "./codec";
 import type {DomainStateAdapter} from "../domain/state-context";
 import {buildCloudPayload,type CloudPayloadResult} from "./cloud-state";
-import {DexieMigrationTarget,YksDatabase,type IndexedDatabaseSnapshot} from "./database";
+import type {IndexedDatabaseSnapshot} from "./database";
+import {SessionDataTarget} from "./session-data-target";
+import {accountPersistenceAllowed,ACCOUNT_REQUIRED_MESSAGE} from "../auth/session-mode";
 import {LocalStateRepository,type DataSnapshot,type RepositoryReadResult,type RepositoryWriteResult} from "./local-state-repository";
 import {PrimaryStateCoordinator,type ExternalApplyResult,type PrimaryInitResult,type PrimaryJSONResult,type PrimaryWriteResult} from "./primary-store";
 import {YKS_STORAGE_KEYS} from "./storage-keys";
@@ -51,7 +53,7 @@ declare global{
 
 export function installLegacyDataBridge():LegacyDataBridgeApi{
   const repository=new LocalStateRepository();
-  const database=new YksDatabase(),target=new DexieMigrationTarget(database);
+  const target=new SessionDataTarget();
   const runtime:LegacyStateAdapter=window.YKSLegacyState??{
     readJSON:()=>{const stored=repository.read();return stored.ok?stored.json:"";},
     applyJSON:json=>{
@@ -95,24 +97,35 @@ export function installLegacyDataBridge():LegacyDataBridgeApi{
     });
     return pendingLegacyCapture;
   };
-  const applyCloudJSON=(json:string,guard?:()=>boolean):Promise<ExternalApplyResult>=>enqueue(async()=>{await initialize();return coordinator.replaceFromExternal(json,Date.now(),"firebase",guard);});
-  const applyBackupJSON=(json:string):Promise<ExternalApplyResult>=>enqueue(async()=>{await initialize();return coordinator.replaceFromExternal(json,Date.now(),"backup");});
+  const applyCloudJSON=(json:string,guard?:()=>boolean):Promise<ExternalApplyResult>=>enqueue(async()=>{
+    if(!accountPersistenceAllowed())return {ok:false,status:"stale",message:ACCOUNT_REQUIRED_MESSAGE};
+    await initialize();return coordinator.replaceFromExternal(json,Date.now(),"firebase",()=>accountPersistenceAllowed()&&(!guard||guard()));
+  });
+  const applyBackupJSON=(json:string):Promise<ExternalApplyResult>=>enqueue(async()=>{
+    if(!accountPersistenceAllowed())return {ok:false,status:"stale",message:ACCOUNT_REQUIRED_MESSAGE};
+    await initialize();return coordinator.replaceFromExternal(json,Date.now(),"backup",accountPersistenceAllowed);
+  });
   const flush=async()=>{
     const pending=pendingLegacyCapture;
     if(pending)await pending.catch(()=>undefined);
     await writeTail;
   };
   const cloudPayload=async():Promise<CloudPayloadResult>=>{
+    if(!accountPersistenceAllowed())return {ok:false,message:ACCOUNT_REQUIRED_MESSAGE};
     await initialize();await flush();
+    if(!accountPersistenceAllowed())return {ok:false,message:ACCOUNT_REQUIRED_MESSAGE};
     const primary=await coordinator.readPrimaryJSON();
+    if(!accountPersistenceAllowed())return {ok:false,message:ACCOUNT_REQUIRED_MESSAGE};
     return primary.ok?buildCloudPayload(primary.json,primary.source):primary;
   };
   const cloudBaselineKey=(uid:string)=>`cloud-base:${String(uid||"").slice(0,256)}`;
   const readCloudBaseline=async(uid:string):Promise<{ok:true;json:string;hash:string}|{ok:false;message:string}>=>{
+    if(!accountPersistenceAllowed())return {ok:false,message:ACCOUNT_REQUIRED_MESSAGE};
     if(!uid)return {ok:false,message:"Bulut hesabı tanımlı değil"};
     await initialize();await flush();
     try{
-      const row=await database.state.get(cloudBaselineKey(uid));
+      const row=await target.readRecord(cloudBaselineKey(uid));
+      if(!accountPersistenceAllowed())return {ok:false,message:ACCOUNT_REQUIRED_MESSAGE};
       if(!row)return {ok:false,message:"Bulut birleştirme tabanı bulunamadı"};
       const decoded=decodeState(row.json),hash=stateHash(row.json);
       if(!decoded.ok||hash!==row.sourceHash)return {ok:false,message:"Bulut birleştirme tabanı doğrulanamadı"};
@@ -120,24 +133,26 @@ export function installLegacyDataBridge():LegacyDataBridgeApi{
     }catch(error){return {ok:false,message:error instanceof Error?error.message:"Bulut birleştirme tabanı okunamadı"};}
   };
   const writeCloudBaseline=async(uid:string,json:string):Promise<{ok:true;hash:string}|{ok:false;message:string}>=>{
+    if(!accountPersistenceAllowed())return {ok:false,message:ACCOUNT_REQUIRED_MESSAGE};
     if(!uid)return {ok:false,message:"Bulut hesabı tanımlı değil"};
     const decoded=decodeState(json);
     if(!decoded.ok)return {ok:false,message:decoded.message};
     const hash=stateHash(json);
     try{
       await initialize();await flush();
-      await database.state.put({
+      await target.writeRecord({
         key:cloudBaselineKey(uid),json,schema:decoded.schema,chars:decoded.chars,bytes:decoded.bytes,
         source:"firebase",sourceHash:hash,updatedAt:Date.now()
       });
-      const verified=await database.state.get(cloudBaselineKey(uid));
+      const verified=await target.readRecord(cloudBaselineKey(uid));
       if(!verified||verified.sourceHash!==hash||verified.json!==json)throw new Error("Bulut birleştirme tabanı doğrulanamadı");
       return {ok:true,hash};
     }catch(error){return {ok:false,message:error instanceof Error?error.message:"Bulut birleştirme tabanı yazılamadı"};}
   };
   const clearCloudBaseline=async(uid:string):Promise<void>=>{
     if(!uid)return;
-    try{await initialize();await flush();await database.state.delete(cloudBaselineKey(uid));}catch(error){console.warn("Bulut birleştirme tabanı silinemedi",error);}
+    if(!accountPersistenceAllowed())return;
+    try{await initialize();await flush();await target.deleteRecord(cloudBaselineKey(uid));}catch(error){console.warn("Bulut birleştirme tabanı silinemedi",error);}
   };
   const api:LegacyDataBridgeApi={
     version:"4.0.0-alpha.6",

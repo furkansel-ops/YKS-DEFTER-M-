@@ -2642,6 +2642,7 @@ function backupFileStamp(){
   return todayKey()+"-"+String(d.getHours()).padStart(2,"0")+String(d.getMinutes()).padStart(2,"0");
 }
 async function exportData(){
+  if(window.__YKS_SESSION__&&!window.__YKS_SESSION__.canPersist()){toast("Yedek almak için hesabına giriş yap. Deneme çalışması kaydedilmez.");return false;}
   let text="";
   try{
     if(window.__YKS_BACKUP__){
@@ -2677,6 +2678,7 @@ function parseBackupPayload(raw){
   return data;
 }
 function importData(inp){
+  if(window.__YKS_SESSION__&&!window.__YKS_SESSION__.canPersist()){toast("Yedek yüklemek için hesabına giriş yap.");inp.value="";return false;}
   const f=inp.files[0]; if(!f)return;
   if(f.size>25*1024*1024){ toast("Yedek dosyası çok büyük (en fazla 25 MB)"); inp.value=""; return; }
   const r=new FileReader();
@@ -3377,6 +3379,7 @@ function buildTopicCSV(){
   return rows.map(r=>r.map(csvCell).join(";")).join("\n");
 }
 function exportCSV(kind){
+  if(window.__YKS_SESSION__&&!window.__YKS_SESSION__.canPersist()){toast("Çalışma kayıtlarını dışa aktarmak için hesabına giriş yap.");return false;}
   let txt,name;
   if(kind==="gun"){ txt=buildDayCSV(); name="yks-gunluk-"+todayKey()+".csv"; }
   else if(kind==="deneme"){ txt=buildDenemeCSV(); name="yks-denemeler-"+todayKey()+".csv"; }
@@ -8552,6 +8555,7 @@ function autoBackupWrite(list){
   }
 }
 function autoBackupRun(zorla){
+  if(window.__YKS_SESSION__&&!window.__YKS_SESSION__.canPersist())return false;
   const bugun=todayKey();
   const list=autoBackups();
   if(!zorla&&list.some(b=>b.gun===bugun))return false;
@@ -8571,6 +8575,7 @@ function autoBackupRun(zorla){
   return ok;
 }
 function autoBackupRestore(gun){
+  if(window.__YKS_SESSION__&&!window.__YKS_SESSION__.canPersist()){toast("Yedek yüklemek için hesabına giriş yap.");return false;}
   const b=autoBackups().find(x=>x.gun===gun);
   if(!b){ toast("Bu güne ait yedek yok"); return false; }
   const t=parseKey(b.gun).toLocaleDateString("tr-TR",{day:"numeric",month:"long"});
@@ -10315,9 +10320,10 @@ function v30RenderQuick(){const w=el("v30QuickGrid");if(!w)return;w.innerHTML=v3
 function v30StorageLabel(){try{const n=typeof infraStorageBytes==="function"?infraStorageBytes():new Blob(Object.values(localStorage)).size;return Math.max(0,Math.round(n/1024))+" KB"}catch(e){return "—"}}
 function v30BackupLabel(){if(S.lastBackup){const d=parseKey(S.lastBackup);return d.toLocaleDateString("tr-TR",{day:"numeric",month:"short"})}const a=typeof autoBackups==="function"?autoBackups():[];return a.length?a.length+" yerel kopya":"Henüz yok"}
 function v30IsNativeApp(){try{return !!window.Capacitor?.isNativePlatform?.()}catch(e){return false}}
-function v30CloudLabel(){if(v30IsNativeApp())return "Android · yalnız yerel";const state=el("cloudSyncBox")?.dataset?.state;return state==="synced"?"Web · Google ile eşitlendi":state==="syncing"||state==="connecting"?"Web · eşitleniyor":state==="offline"?"Web · çevrimdışı, yerel kayıt açık":state==="error"?"Web · bağlantı bekliyor":"Web · isteğe bağlı Google eşitleme"}
-function v30RenderHome(){v30RenderQuick();const w=el("v30MoreStatus"),native=v30IsNativeApp();if(w)w.innerHTML='<div class="v30-status-item"><b>'+(native?'Yalnız cihazda':'Önce cihazda')+'</b><span>'+(native?'Android paketinde hesap veya bulut yok':'İsteğe bağlı Google eşitleme kullanılabilir')+'</span></div><div class="v30-status-item"><b>Son yedek · '+esc(v30BackupLabel())+'</b><span>'+esc(v30StorageLabel())+' yerel veri</span></div><div class="v30-status-item"><b>v'+esc(APP_VERSION)+'</b><span>'+esc(APP_CHANNEL)+' · şema '+DATA_SCHEMA+'</span></div>';v30RenderAbout();v30RenderDataSyncSummary()}
-function v30RenderDataSyncSummary(){const w=el("v30DataSyncSummary");if(!w)return;w.innerHTML='<div class="v30-sync-line"><span>Ana kayıt</span><b>Bu cihaz · Dexie + yerel ayna</b></div><div class="v30-sync-line"><span>Hesap / bulut</span><b>'+esc(v30CloudLabel())+'</b></div><div class="v30-sync-line"><span>JSON yedek</span><b>'+esc(v30BackupLabel())+'</b></div><div class="v30-sync-line"><span>Yerel veri</span><b>'+esc(v30StorageLabel())+'</b></div>'}
+function v30GuestMode(){return window.__YKS_SESSION__?.mode==="guest"}
+function v30CloudLabel(){if(v30GuestMode())return "Deneme · eşitleme kapalı";const state=el("cloudSyncBox")?.dataset?.state;return state==="synced"?"Hesabınla eşitlendi":state==="syncing"||state==="connecting"?"Eşitleniyor":state==="offline"?"Çevrimdışı · cihaz kaydı açık":state==="error"?"Bağlantı bekliyor":"Hesaba giriş gerekli"}
+function v30RenderHome(){v30RenderQuick();const w=el("v30MoreStatus"),guest=v30GuestMode();if(w)w.innerHTML='<div class="v30-status-item"><b>'+(guest?'Kaydetmeden deneme':'Hesabın ve cihazın')+'</b><span>'+esc(v30CloudLabel())+'</span></div><div class="v30-status-item"><b>'+(guest?'Yedekleme kapalı':'Son yedek · '+esc(v30BackupLabel()))+'</b><span>'+(guest?'Yenilenince veya kapanınca silinir':esc(v30StorageLabel())+' yerel veri')+'</span></div><div class="v30-status-item"><b>v'+esc(APP_VERSION)+'</b><span>'+esc(APP_CHANNEL)+' · şema '+DATA_SCHEMA+'</span></div>';v30RenderAbout();v30RenderDataSyncSummary()}
+function v30RenderDataSyncSummary(){const w=el("v30DataSyncSummary");if(!w)return;const guest=v30GuestMode();w.innerHTML='<div class="v30-sync-line"><span>Ana kayıt</span><b>'+(guest?'Geçici bellek · kaydedilmez':'Bu cihaz · Dexie + yerel ayna')+'</b></div><div class="v30-sync-line"><span>Hesap / bulut</span><b>'+esc(v30CloudLabel())+'</b></div><div class="v30-sync-line"><span>JSON yedek</span><b>'+(guest?'Hesaba giriş gerekli':esc(v30BackupLabel()))+'</b></div><div class="v30-sync-line"><span>'+(guest?'Geçici veri':'Yerel veri')+'</span><b>'+esc(v30StorageLabel())+'</b></div>'}
 window.addEventListener("yks:cloud-sync",()=>{try{v30RenderDataSyncSummary()}catch(e){}});
 function v30RenderAbout(){const a=el("appVersionLabel"),c=el("v30AboutChannel"),sc=el("v30AboutSchema");if(a)a.textContent=APP_VERSION+" · "+APP_CHANNEL;if(c)c.textContent=APP_CHANNEL;if(sc)sc.textContent=String(DATA_SCHEMA)}
 const __v30LegacySetMoreTab=setMoreTab;

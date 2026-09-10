@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="tr" data-theme="auto">
+<html lang="tr" data-theme="auto" data-account-gate="closed">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -16,6 +16,20 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" id="metaTheme" content="#EFF2F8">
 <title>YKS Defterim</title>
+<style id="accountBootStyle">
+html[data-account-gate="closed"] body>:not(#accountGate):not(#accountBoot):not(#accountBootFailure):not(script):not(style){visibility:hidden!important;pointer-events:none!important}
+#accountBoot,#accountBootFailure{position:fixed;inset:0;z-index:2147482999;display:grid;place-content:center;gap:16px;padding:32px;background:#eff2f8;color:#102947;font:16px/1.6 system-ui;text-align:center}
+#accountBoot button{padding:12px;border:1px solid #b9c7db;background:white;border-radius:10px;font:inherit}
+</style>
+<script vite-ignore src="./session-mode.js"></script>
+<script>
+if(!window.__YKS_SESSION__){
+  document.addEventListener('DOMContentLoaded',function(){
+    var boot=document.getElementById('accountBoot');if(!boot)return;
+    boot.id='accountBootFailure';boot.querySelector('span').textContent='Hesap ve kayıt koruması yüklenemedi. Mevcut kayıtlarına dokunulmadı. Bağlantını kontrol edip yeniden dene.';
+  },{once:true});
+}
+</script>
 <script>
 (function(){try{var s=JSON.parse(localStorage.getItem("yks")||"{}");
 var t=s.theme||"auto";
@@ -66,6 +80,7 @@ document.documentElement.setAttribute("data-theme",t);}catch(e){}})();
 
   <link rel="stylesheet" href="./modules/study-intelligence-v5.css?v=4.1.0-r1">
 </head><body>
+<section id="accountBoot" role="status"><strong>YKS Defterim</strong><span>Hesap ekranı hazırlanıyor…</span><button type="button" onclick="location.reload()">Açılmazsa yeniden yükle</button><noscript>Uygulamayı kullanmak için JavaScript açık olmalı. Mevcut çalışma kayıtların silinmedi.</noscript></section>
 <div class="v311-offline" id="v311OfflineBanner" role="status" aria-live="polite" aria-hidden="true" hidden></div>
 <svg class="svgdefs" aria-hidden="true" focusable="false">
   <defs>
@@ -1940,7 +1955,7 @@ document.documentElement.setAttribute("data-theme",t);}catch(e){}})();
   </div>
 </div>
 
-<div class="toast" id="toast" role="status" aria-live="polite"></div><script vite-ignore src="./app.js?v=4.4.0-r3"></script>
+<div class="toast" id="toast" role="status" aria-live="polite"></div><script>if(window.__YKS_SESSION__)document.write('<script src="./app.js?v=4.4.0-r4"><\/script>');</script>
 
 <script type="application/json" id="legacyFirebaseSyncModule" data-disabled="play-store-release">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
@@ -1957,10 +1972,17 @@ const firebaseConfig={
  measurementId:"G-E0BG5MMDNV"
 };
 const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app),provider=new GoogleAuthProvider();
+auth.languageCode="tr";
 const box=document.getElementById("cloudSyncBox"),txt=document.getElementById("cloudSyncText"),meta=document.getElementById("cloudSyncMeta"),login=document.getElementById("cloudLoginBtn"),logout=document.getElementById("cloudLogoutBtn"),retry=document.getElementById("cloudRetryBtn"),cloudDelete=document.getElementById("cloudDeleteBtn");
 const embeddedApp=box?.dataset.embeddedApp==="true"||!!window.__YKS_DESKTOP__?.installed||!!window.Capacitor?.isNativePlatform?.();
 const authForm=document.getElementById("cloudAuthForm"),emailInput=document.getElementById("cloudEmail"),passwordInput=document.getElementById("cloudPassword"),linkForm=document.getElementById("cloudLinkForm"),linkPassword=document.getElementById("cloudLinkPassword"),verificationPanel=document.getElementById("cloudVerification");
 let authBusy=false;
+let authState=Object.freeze({phase:"loading",email:"",busy:false,message:"Oturumun kontrol ediliyor…",error:false,googleAvailable:!embeddedApp});
+function publishAuth(change={}){
+  authState=Object.freeze({...authState,...change,busy:authBusy,googleAvailable:!embeddedApp});
+  window.dispatchEvent(new CustomEvent("yks:auth-state",{detail:authState}));
+}
+function authNotice(message,error=false){publishAuth({message,error});}
 const CLOUD_FORMAT=4, LAST_SYNC_KEY="yks_last_sync_at", BASE_REV_KEY="yks_cloud_base_rev", BASE_HASH_KEY="yks_cloud_base_hash", ACCOUNT_KEY="yks_cloud_account", DIRTY_KEY="yks_cloud_dirty", DEVICE_KEY="yks_device_id", RESEED_KEY="yks_cloud_reseed_requested";
 const RETRY_DELAYS=[1000,2000,4000,8000,16000];
 let user=null,timer=null,loading=false,lastJSON="",uploading=false,uploadQueued=false,stopRealtime=null;
@@ -1982,7 +2004,7 @@ function setBaseRev(v){baseRev=Math.max(0,Number(v)||0);try{localStorage.setItem
 function setBaseHash(v){baseHash=String(v||"");try{if(baseHash)localStorage.setItem(BASE_HASH_KEY,baseHash);else localStorage.removeItem(BASE_HASH_KEY);}catch(e){}}
 function setAccount(uid){accountId=String(uid||"");try{if(accountId)localStorage.setItem(ACCOUNT_KEY,accountId);else localStorage.removeItem(ACCOUNT_KEY);}catch(e){}}
 function baselineKnown(uid){return !!uid&&accountId===uid&&!!baseHash;}
-function syncMatches(uid,generation){return !shuttingDown&&!!uid&&!!user&&user.uid===uid&&syncGeneration===generation;}
+function syncMatches(uid,generation){return !shuttingDown&&(!window.__YKS_SESSION__||window.__YKS_SESSION__.mode==="account")&&!!uid&&!!user&&user.uid===uid&&syncGeneration===generation;}
 async function clearBaseSnapshot(uid){memoryBaseJSON="";memoryBaseDurable=false;try{await window.__YKS_DATA__?.clearCloudBaseline?.(uid);}catch(e){}}
 async function storeBaseSnapshot(uid,json){
   const snapshot=String(json||"");memoryBaseJSON=snapshot;memoryBaseDurable=false;
@@ -2437,6 +2459,10 @@ async function deleteCloudCopy(){
   }finally{if(cloudDelete)cloudDelete.disabled=false;}
 }
 const persistenceReady=setPersistence(auth,indexedDBLocalPersistence);
+let persistenceEstablished=false;
+void persistenceReady.then(()=>{persistenceEstablished=true;}).catch(()=>{
+  publishAuth({phase:"error",email:"",message:"Güvenli oturum hazırlanamadı. Uygulamayı yeniden açıp tekrar dene; mevcut kayıtların korunuyor.",error:true});
+});
 function clearAuthPasswords(){if(passwordInput)passwordInput.value="";if(linkPassword)linkPassword.value="";}
 function renderAuthControls(u){
   const needsVerification=!!u&&!u.emailVerified;
@@ -2451,73 +2477,110 @@ function renderAuthControls(u){
 }
 async function authAction(action){
   if(authBusy||shuttingDown)return;
-  if(!navigator.onLine){clearAuthPasswords();status("Çevrimdışı","offline","Giriş için internete bağlan; yerel kayıtlarını kullanabilirsin");return;}
+  if(!navigator.onLine){clearAuthPasswords();authNotice("Bu hesap işlemi için internete bağlan. Mevcut kayıtların korunuyor.",true);status("Çevrimdışı","offline","Hesap işlemi için internet bağlantısı gerekli");return;}
   authBusy=true;
+  publishAuth({message:"İşlemin tamamlanıyor…",error:false});
   const buttons=Array.from(box?.querySelectorAll("button")||[]);
   buttons.forEach(button=>{button.disabled=true;});
   try{await persistenceReady;await action();}
-  catch(e){consumeReseedRequested();status("Hesap işlemi tamamlanamadı","error",authErrorText(e));}
-  finally{authBusy=false;clearAuthPasswords();buttons.forEach(button=>{button.disabled=false;});}
+  catch(e){consumeReseedRequested();publishAuth({...(persistenceEstablished?{}:{phase:"error",email:""}),message:authErrorText(e),error:true});status("Hesap işlemi tamamlanamadı","error",authErrorText(e));}
+  finally{authBusy=false;clearAuthPasswords();buttons.forEach(button=>{button.disabled=false;});publishAuth();}
+}
+function validateAuthEmail(value){
+  const email=typeof value==="string"?value.trim():"";
+  if(!email||email.length>254||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))throw new Error("Geçerli bir e-posta adresi yaz");
+  return email;
+}
+async function loginWithEmail(email,password){
+  email=typeof email==="string"?email.trim():"";password=typeof password==="string"?password:"";
+  try{await authAction(async()=>{
+    email=validateAuthEmail(email);
+    if(!password||password.length>4096)throw new Error("Giriş şifreni yaz");
+    if(auth.currentUser)throw new Error("Önce açık hesaptan çıkış yap");
+    remoteDeletionNotice=false;accountMismatchNotice=false;markReseedRequested();
+    authNotice("Giriş yapılıyor…");status("Giriş yapılıyor…","connecting","Aynı hesabın kayıtları kontrol edilecek");
+    await signInWithEmailAndPassword(auth,email,password);
+  });}finally{password="";email="";}
+}
+async function registerWithEmail(email,password){
+  email=typeof email==="string"?email.trim():"";password=typeof password==="string"?password:"";
+  try{await authAction(async()=>{
+    if(accountId||auth.currentUser)throw new Error("Bu cihazda mevcut hesabınla devam et. Yeni hesap açılmadı; kayıtların korunuyor.");
+    email=validateAuthEmail(email);
+    if(password.length<10||password.length>4096)throw new Error("Yeni hesap için en az 10 karakterli bir şifre kullan");
+    remoteDeletionNotice=false;accountMismatchNotice=false;
+    authNotice("Hesabın oluşturuluyor…");
+    const result=await createUserWithEmailAndPassword(auth,email,password);
+    renderAuthControls(result.user);
+    publishAuth({phase:"unverified",email:result.user.email||email,message:"Hesabın oluşturuldu. E-posta adresini doğrulaman gerekiyor.",error:false});
+    await sendEmailVerification(result.user);
+    authNotice("Doğrulama bağlantısı gönderildi. E-postandaki bağlantıyı açtıktan sonra doğrulamayı kontrol et.");
+    status("E-postanı doğrula","signedout","Doğrulama bağlantısı gönderildi; çalışma verilerin henüz buluta gönderilmedi");
+  });}finally{password="";email="";}
+}
+async function resetAccountPassword(email){
+  email=typeof email==="string"?email.trim():"";
+  await authAction(async()=>{
+    email=validateAuthEmail(email);
+    try{await sendPasswordResetEmail(auth,email);}catch(e){if(e?.code!=="auth/user-not-found")throw e;}
+    authNotice("Adres için uygunsa şifre sıfırlama bağlantısı gönderildi. Gelen kutunu ve spam klasörünü kontrol et.");
+    status("E-postanı kontrol et","signedout","Adres için uygunsa şifre sıfırlama bağlantısı gönderildi");
+  });
 }
 authForm?.addEventListener("submit",event=>{
   event.preventDefault();if(!authForm.reportValidity())return;
-  void authAction(async()=>{
-    remoteDeletionNotice=false;accountMismatchNotice=false;markReseedRequested();
-    status("Giriş yapılıyor…","connecting","Aynı hesabın kayıtları kontrol edilecek");
-    await signInWithEmailAndPassword(auth,emailInput.value.trim(),passwordInput.value);
-  });
+  void loginWithEmail(emailInput.value,passwordInput.value);
 });
 document.getElementById("cloudSignupBtn")?.addEventListener("click",()=>{
   if(!authForm?.reportValidity())return;
-  if(accountId){status("Bu cihaz bir hesaba bağlı","error","Yeni hesap oluşturma yerine mevcut hesabınla giriş yap. Yerel kayıtların korunuyor.");return;}
-  if(passwordInput.value.length<10){status("Şifre çok kısa","error","Yeni hesap için en az 10 karakter kullan");return;}
   if(!confirm("Yeni YKS Defterim hesabı oluşturulsun mu? Daha önce Google ile kullandıysan bu adım yerine web sürümünde mevcut hesabına uygulama şifresi ekle."))return;
-  void authAction(async()=>{
-    if(accountId||auth.currentUser){status("Yeni hesap açılmadı","error","Bu cihazda mevcut hesabınla devam et. Yerel kayıtların korunuyor.");return;}
-    remoteDeletionNotice=false;accountMismatchNotice=false;
-    const result=await createUserWithEmailAndPassword(auth,emailInput.value.trim(),passwordInput.value);
-    await sendEmailVerification(result.user);
-    status("E-postanı doğrula","signedout","Doğrulama bağlantısı gönderildi; çalışma verilerin henüz buluta gönderilmedi");
-  });
+  void registerWithEmail(emailInput.value,passwordInput.value);
 });
 document.getElementById("cloudResetBtn")?.addEventListener("click",()=>{
-  if(!emailInput?.reportValidity())return;
-  void authAction(async()=>{
-    await sendPasswordResetEmail(auth,emailInput.value.trim());
-    status("E-postanı kontrol et","signedout","Adres için uygunsa şifre sıfırlama bağlantısı gönderildi");
-  });
+  if(emailInput?.reportValidity())void resetAccountPassword(emailInput.value);
 });
-linkForm?.addEventListener("submit",event=>{
+linkForm?.addEventListener("submit",async event=>{
   event.preventDefault();if(!linkForm.reportValidity()||!auth.currentUser?.email)return;
-  void authAction(async()=>{
+  let password=linkPassword.value;
+  try{await authAction(async()=>{
     const current=auth.currentUser;
     if(!current?.email||!current.emailVerified||!user||user.uid!==current.uid||accountId&&accountId!==current.uid)throw new Error("Önce mevcut doğrulanmış hesabınla giriş yap");
     if(current.providerData?.some(p=>p.providerId==="password"))throw new Error("Bu hesabın uygulama şifresi zaten var. Gerekirse şifre sıfırlamayı kullan.");
-    if(linkPassword.value.length<10)throw new Error("Yeni uygulama şifresi en az 10 karakter olmalı");
-    await linkWithCredential(current,EmailAuthProvider.credential(current.email,linkPassword.value));
+    if(password.length<10||password.length>4096)throw new Error("Yeni uygulama şifresi en az 10 karakter olmalı");
+    await linkWithCredential(current,EmailAuthProvider.credential(current.email,password));
     if(auth.currentUser?.uid!==current.uid||!user||user.uid!==current.uid)return;
     renderAuthControls(auth.currentUser);
+    authNotice("Uygulama girişin hazır. Diğer cihazlarda aynı e-posta ve bu şifreyle giriş yapabilirsin.");
     const notice=document.getElementById("cloudAuthNotice");
     if(notice){notice.hidden=false;notice.textContent="Uygulama girişi hazır. Android ve Windows'ta aynı e-posta ve belirlediğin uygulama şifresiyle giriş yap.";}
-  });
+  });}finally{password="";}
 });
-document.getElementById("cloudSendVerificationBtn")?.addEventListener("click",()=>void authAction(async()=>{
-  if(!auth.currentUser)return;
-  await sendEmailVerification(auth.currentUser);status("Doğrulama gönderildi","signedout","E-postadaki bağlantıyı açıp Doğruladım düğmesine bas");
-}));
-document.getElementById("cloudCheckVerificationBtn")?.addEventListener("click",()=>void authAction(async()=>{
-  if(!auth.currentUser)return;
-  await reload(auth.currentUser);
-  if(auth.currentUser.emailVerified){await auth.currentUser.getIdToken(true);location.reload();}
-  else status("Doğrulama bekleniyor","signedout","E-postadaki bağlantıyı açtıktan sonra yeniden kontrol et");
-}));
+async function resendVerification(){await authAction(async()=>{
+  const current=auth.currentUser;
+  if(!current||current.emailVerified)throw new Error("Doğrulama bekleyen hesabınla giriş yap");
+  await sendEmailVerification(current);
+  authNotice("Doğrulama bağlantısı yeniden gönderildi. Spam klasörünü de kontrol et.");
+  status("Doğrulama gönderildi","signedout","E-postadaki bağlantıyı açıp Doğruladım düğmesine bas");
+});}
+async function refreshVerification(){await authAction(async()=>{
+  const current=auth.currentUser;
+  if(!current)throw new Error("Önce hesabınla giriş yap");
+  await reload(current);
+  if(auth.currentUser?.uid!==current.uid)return;
+  if(current.emailVerified){await current.getIdToken(true);if(auth.currentUser?.uid===current.uid)await handleAuthTransition(current);}
+  else{authNotice("E-posta henüz doğrulanmadı. Bağlantıyı açtıktan sonra yeniden kontrol et.");status("Doğrulama bekleniyor","signedout","E-postadaki bağlantıyı açtıktan sonra yeniden kontrol et");}
+});}
+document.getElementById("cloudSendVerificationBtn")?.addEventListener("click",()=>void resendVerification());
+document.getElementById("cloudCheckVerificationBtn")?.addEventListener("click",()=>void refreshVerification());
 const redirectFallbackCodes=new Set(["auth/popup-blocked","auth/cancelled-popup-request","auth/operation-not-supported-in-this-environment"]);
-login?.addEventListener("click",async()=>{
-  if(embeddedApp)return status("E-posta ile giriş yap","signedout","Google hesabını web sürümünde uygulama şifresi ekleyerek kullanabilirsin");
+async function googleSignIn(){
+  if(embeddedApp){authNotice("Android ve Windows'ta e-posta ile giriş yap. Mevcut Google hesabına web sürümünden uygulama şifresi ekleyebilirsin.",true);status("E-posta ile giriş yap","signedout","Google hesabını web sürümünde uygulama şifresi ekleyerek kullanabilirsin");return;}
   if(authBusy||shuttingDown)return;
-  if(!navigator.onLine){clearAuthPasswords();return status("Çevrimdışı","offline","Giriş için internete bağlan; yerel kayıtlarını kullanabilirsin");}
+  if(auth.currentUser){authNotice("Önce açık hesaptan çıkış yap",true);return;}
+  if(!navigator.onLine){clearAuthPasswords();authNotice("Giriş yapmak için internete bağlan.",true);status("Çevrimdışı","offline","Giriş için internet bağlantısı gerekli");return;}
   authBusy=true;if(login)login.disabled=true;
   remoteDeletionNotice=false;accountMismatchNotice=false;markReseedRequested();
+  publishAuth({message:"Google hesabını seçmen bekleniyor…",error:false});
   status("Google açılıyor…","connecting","Hesap seçimi bekleniyor");
   try{
     /* Popup kullanıcı dokunuşuyla aynı görevde hemen açılır; persistence daha önce
@@ -2529,30 +2592,59 @@ login?.addEventListener("click",async()=>{
       try{status("Google'a yönlendiriliyor…","connecting","Girişten sonra bu ekrana geri dönersin");await persistenceReady;await signInWithRedirect(auth,provider);return;}
       catch(redirectError){e=redirectError;}
     }
-    consumeReseedRequested();console.error(e);infraError("firebase-login",e);status("Giriş hatası","error",authErrorText(e));
-  }finally{authBusy=false;clearAuthPasswords();if(login)login.disabled=false;}
-});
-logout?.addEventListener("click",async()=>{try{user=null;syncGeneration++;clearAuthPasswords();clearTimeout(timer);uploadQueued=false;pendingRemote=false;if(stopRealtime){try{stopRealtime();}catch(e){}stopRealtime=null;}await waitForCloudIdle();await signOut(auth);}catch(e){status("Çıkış yapılamadı","error",authErrorText(e));}});
+    consumeReseedRequested();console.error(e);infraError("firebase-login",e);authNotice(authErrorText(e),true);status("Giriş hatası","error",authErrorText(e));
+  }finally{authBusy=false;clearAuthPasswords();if(login)login.disabled=false;publishAuth();}
+}
+async function signOutAccount(){
+  if(authBusy||shuttingDown)return;
+  authBusy=true;window.__YKS_SESSION__?.lock();publishAuth({phase:"loading",message:"Hesabından çıkış yapılıyor…",error:false});
+  try{
+    user=null;syncGeneration++;clearAuthPasswords();clearTimeout(timer);uploadQueued=false;pendingRemote=false;
+    if(stopRealtime){try{stopRealtime();}catch(e){}stopRealtime=null;}
+    await waitForCloudIdle();await signOut(auth);renderAuthControls(null);
+    publishAuth({phase:"signedout",email:"",message:"Çıkış yaptın. Hesabındaki kayıtlar korunuyor.",error:false});
+  }catch(e){publishAuth({phase:"blocked",message:"Çıkış tamamlanamadı. Tekrar dene; kayıtların korunuyor.",error:true});status("Çıkış yapılamadı","error",authErrorText(e));}
+  finally{authBusy=false;publishAuth();}
+}
+login?.addEventListener("click",()=>googleSignIn());
+logout?.addEventListener("click",()=>signOutAccount());
 retry?.addEventListener("click",retryNow);
 cloudDelete?.addEventListener("click",()=>{void deleteCloudCopy();});
-void persistenceReady.then(()=>embeddedApp?null:getRedirectResult(auth)).catch(e=>{status("Giriş hatası","error",authErrorText(e));});
-onAuthStateChanged(auth,async u=>{
+void persistenceReady.then(()=>embeddedApp?null:getRedirectResult(auth)).catch(e=>{if(persistenceEstablished)authNotice(authErrorText(e),true);status("Giriş hatası","error",authErrorText(e));});
+async function handleAuthTransition(u){
   const transitionGeneration=++syncGeneration;
   user=null;
+  window.__YKS_SESSION__?.lock();
+  publishAuth({phase:"loading",email:"",message:"Oturumun kontrol ediliyor…",error:false});
   clearTimeout(timer);uploadQueued=false;pendingRemote=false;
   if(stopRealtime){try{stopRealtime();}catch(e){}stopRealtime=null;}
-  try{await persistenceReady;await waitForCloudIdle();}catch(e){if(transitionGeneration!==syncGeneration)return;renderAuthControls(u);status("Hesap eşitlemesi durduruldu","error","Güvenli oturum hazırlanamadı. Çıkış yapıp yeniden giriş yap; yerel kayıtların korunuyor.");return;}
+  try{await persistenceReady;await waitForCloudIdle();}catch(e){if(transitionGeneration!==syncGeneration)return;renderAuthControls(u);publishAuth({phase:"error",email:u?.email||"",message:"Güvenli oturum hazırlanamadı. Çıkış yapıp yeniden giriş yap; mevcut kayıtların korunuyor.",error:true});status("Hesap eşitlemesi durduruldu","error","Güvenli oturum hazırlanamadı. Çıkış yapıp yeniden giriş yap; yerel kayıtların korunuyor.");return;}
   if(transitionGeneration!==syncGeneration)return;
   renderAuthControls(u);
-  if(u&&!u.emailVerified){user=null;status("E-postanı doğrula","signedout","Doğrulamadan bulut verileri okunmaz veya gönderilmez");return;}
+  if(u&&!u.emailVerified){user=null;publishAuth({phase:"unverified",email:u.email||"",message:"Hesabını kullanmak için e-posta adresini doğrula.",error:false});status("E-postanı doğrula","signedout","Doğrulamadan bulut verileri okunmaz veya gönderilmez");return;}
   if(u){
     if(accountId&&accountId!==u.uid){
       accountMismatchNotice=true;consumeReseedRequested();
+      publishAuth({phase:"blocked",email:u.email||"",message:"Bu cihazdaki kayıtlar başka hesaba bağlı. Önce o hesapla giriş yap; mevcut kayıtlarına dokunulmadı.",error:true});
       status("Farklı hesap engellendi","error","Bu cihazın verisi başka hesaba bağlı · Hesap değiştirmek için önce cihaz verilerini sil");
       try{await signOut(auth);}catch(e){console.error(e);}
       return;
     }
+    if(window.__YKS_SESSION__?.mode==="guest"){
+      publishAuth({phase:"signedout",email:"",message:"Kaydetmeden deneme açık. Hesabına geçmek için deneme oturumunu kapat.",error:false});
+      status("Kaydetmeden deneme","signedout","Bu oturumdaki çalışma hesabına gönderilmez");return;
+    }
+    try{
+      if(window.__YKS_SESSION__&&window.__YKS_SESSION__.enterAccount(u.uid)!==true)return;
+      // Bind saved work independently of whether the first cloud request succeeds.
+      localStorage.setItem(ACCOUNT_KEY,u.uid);
+      if(localStorage.getItem(ACCOUNT_KEY)!==u.uid)throw new Error("Hesap bağı kaydedilemedi");
+      setAccount(u.uid);
+    }
+    catch(e){window.__YKS_SESSION__?.lock();publishAuth({phase:"error",email:u.email||"",message:"Hesabın doğrulandı ancak güvenli kayıt alanı açılamadı. Uygulamayı yeniden açıp dene; kayıtların korunuyor.",error:true});status("Kayıt alanı açılamadı","error","Güvenli kayıt alanı hazır olana kadar eşitleme başlatılmadı");return;}
+    if(transitionGeneration!==syncGeneration)return;
     user=u;
+    publishAuth({phase:"signedin",email:u.email||"",message:"Hesabına giriş yaptın.",error:false});
     resetRetry();
     if(login)login.hidden=true;if(logout)logout.hidden=false;if(cloudDelete)cloudDelete.hidden=false;status("Bağlanıyor…","connecting",u.email||u.displayName||"Google hesabı");
     if(navigator.onLine)await downloadOrSeed();else status("Çevrimdışı","offline","Değişiklikler cihazda saklanır");
@@ -2576,14 +2668,24 @@ onAuthStateChanged(auth,async u=>{
   }else{
     clearTimeout(timer);uploadQueued=false;pendingRemote=false;
     renderAuthControls(null);
+    publishAuth({phase:accountMismatchNotice?"blocked":"signedout",email:"",message:accountMismatchNotice?"Bu cihazdaki kayıtların bağlı olduğu hesapla giriş yap.":remoteDeletionNotice?"Bulut kopyası silinmiş. Mevcut kayıtların korunuyor.":"Kayıtlarını saklamak ve eşitlemek için hesabınla giriş yap.",error:accountMismatchNotice});
     if(!shuttingDown){
       if(accountMismatchNotice)status("Farklı hesap engellendi","error","Hesap değiştirmek için önce Merkez → Veri → Cihaz verilerini sil");
       else if(remoteDeletionNotice)status("Bulut kopyası silinmiş","signedout","Yerel veriler korunuyor · Yeniden açmak için Google ile giriş yap");
       else status("Giriş yapılmadı","signedout","Bulut eşitleme kapalı");
     }
   }
+}
+window.__YKS_AUTH__=Object.freeze({getState:()=>authState,login:loginWithEmail,register:registerWithEmail,resetPassword:resetAccountPassword,resendVerification,refreshVerification,signOut:signOutAccount,googleSignIn});
+publishAuth();
+onAuthStateChanged(auth,handleAuthTransition,e=>{
+  user=null;syncGeneration++;window.__YKS_SESSION__?.lock();clearTimeout(timer);
+  if(stopRealtime){try{stopRealtime();}catch(ignore){}stopRealtime=null;}
+  publishAuth({phase:"error",email:"",message:"Oturumun okunamadı. Uygulamayı yeniden açıp tekrar dene; kayıtların korunuyor.",error:true});
+  status("Giriş hatası","error",authErrorText(e));
 });
 window.yksCloudPrepareForDeletion=async()=>{
+  window.__YKS_SESSION__?.lock();publishAuth({phase:"loading",message:"Oturum güvenle kapatılıyor…",error:false});
   shuttingDown=true;syncGeneration++;clearTimeout(timer);uploadQueued=false;
   if(stopRealtime){try{stopRealtime();}catch(e){}stopRealtime=null;}
   await waitForCloudIdle();
@@ -2615,16 +2717,16 @@ window.addEventListener("online",()=>{
 
 
 
-<script vite-ignore src="./modules/core-utils.js?v=4.4.0-r3"></script>
-<script vite-ignore src="./modules/stability.js?v=4.1.0-r28"></script>
-<script vite-ignore src="./modules/topic-guides.js?v=4.1.0-r20"></script>
-<script vite-ignore src="./modules/learning-lab.js?v=4.1.0-r26"></script>
-<script vite-ignore src="./modules/target-center.js?v=4.1.0-r20"></script>
-<script vite-ignore src="./modules/export-center.js?v=4.1.0-r20"></script>
-<script vite-ignore src="./modules/error-journal.js?v=4.1.0-r20"></script>
-  <script vite-ignore src="./modules/study-intelligence-core.js?v=4.1.0-r1"></script>
-  <script vite-ignore src="./modules/study-intelligence-v5.js?v=4.1.0-r1"></script>
-<script vite-ignore src="./modules/release-selftest.js?v=4.1.0-r20"></script>
+<script>if(window.__YKS_SESSION__)document.write('<script src="./modules/core-utils.js?v=4.4.0-r4"><\/script>');</script>
+<script>if(window.__YKS_SESSION__)document.write('<script src="./modules/stability.js?v=4.1.0-r28"><\/script>');</script>
+<script>if(window.__YKS_SESSION__)document.write('<script src="./modules/topic-guides.js?v=4.1.0-r20"><\/script>');</script>
+<script>if(window.__YKS_SESSION__)document.write('<script src="./modules/learning-lab.js?v=4.1.0-r26"><\/script>');</script>
+<script>if(window.__YKS_SESSION__)document.write('<script src="./modules/target-center.js?v=4.1.0-r20"><\/script>');</script>
+<script>if(window.__YKS_SESSION__)document.write('<script src="./modules/export-center.js?v=4.1.0-r20"><\/script>');</script>
+<script>if(window.__YKS_SESSION__)document.write('<script src="./modules/error-journal.js?v=4.1.0-r20"><\/script>');</script>
+<script>if(window.__YKS_SESSION__)document.write('<script src="./modules/study-intelligence-core.js?v=4.1.0-r1"><\/script>');</script>
+<script>if(window.__YKS_SESSION__)document.write('<script src="./modules/study-intelligence-v5.js?v=4.1.0-r1"><\/script>');</script>
+<script>if(window.__YKS_SESSION__)document.write('<script src="./modules/release-selftest.js?v=4.1.0-r20"><\/script>');</script>
 <script type="module" src="./src/main.ts"></script>
 </body>
 </html>

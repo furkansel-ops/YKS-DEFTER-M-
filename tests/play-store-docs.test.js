@@ -10,7 +10,7 @@ test("Android belgeleri 4.4.0 kimliğini ve GitHub APK dağıtım kararını do�
   const prep=read("PLAY-STORE.md"),release=read("RELEASE.md"),github=read("GITHUB-APK-TESTING.md");
   for(const text of [prep,release,github]){
     assert.match(text,/4\.4\.0/);
-    assert.match(text,/4040003/);
+    assert.match(text,/4040004/);
     assert.match(text,/com\.furkansel\.yksdefterim/);
   }
   assert.match(prep,/Dağıtım kararı/);

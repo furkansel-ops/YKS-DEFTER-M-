@@ -17,6 +17,7 @@ import {installLabInteractionsBridgeV44} from "./ui/lab-interactions-bridge-v44"
 import {installRecoveryCenter} from "./ui/recovery-center";
 import {installV43SafeRuntime} from "./ui/v43-safe-runtime";
 import {installPlayStoreShell} from "./ui/play-store-shell";
+import {installAccountGate} from "./ui/account-gate";
 import {installParagraphProblemTracker} from "./ui/paragraph-problem-tracker";
 import "./ui/visual-stability-hotfix.css";
 import "./ui/recent-feature-stability.css";
@@ -85,6 +86,7 @@ document.documentElement.dataset.v4OptionalErrors="0";
 /* Çekirdek açılış zinciri yalnız kararlı altyapı modüllerinden oluşur.
    Ürün katmanları ve yardımcı arayüzler fail-open sınırlarında tutulur: tek bir yeni
    özellik hata verirse uygulamanın geri kalanı açılmaya devam eder. */
+if(!window.__YKS_SESSION__)throw new Error("Hesap ve kayıt koruması yüklenemedi. Uygulama başlatılmadı.");
 const services=installLegacyServiceBridge();
 const data=installLegacyDataBridge();
 installScienceCards();
@@ -127,6 +129,7 @@ const playStoreShell=installOptional(
   ()=>installPlayStoreShell(),
   {installed:false,legacyCloudRemoved:false}
 );
+installAccountGate();
 document.documentElement.dataset.playStorePrivacy=playStoreShell.installed?"ready":"deferred";
 const v43Runtime=installV43SafeRuntime();
 document.documentElement.dataset.v43RuntimeHost=String(v43Runtime.installed);

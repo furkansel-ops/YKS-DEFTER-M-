@@ -50,6 +50,9 @@ function clearYksStorage(storage:Storage):void{
 }
 
 async function deleteDeviceData(button:HTMLButtonElement):Promise<void>{
+  if(window.__YKS_SESSION__&&!window.__YKS_SESSION__.getState().canClearDeviceStudyStorage){
+    alert("Mevcut cihaz kayıtlarını silmek için önce kayıtların bağlı olduğu hesabına giriş yap. Deneme oturumu kapatılınca kendiliğinden silinir.");return;
+  }
   if(!confirm("Bu cihazdaki YKS Defterim çalışma verileri, tercihler ve yerel yedekler kalıcı olarak silinecek. Devam edilsin mi?"))return;
   if(!confirm("Son onay: Bu işlem geri alınamaz. Saklamak istediğin bir yedek varsa önce dışa aktar. Veriler silinsin mi?"))return;
   const original=button.textContent;
@@ -65,8 +68,10 @@ async function deleteDeviceData(button:HTMLButtonElement):Promise<void>{
     await host.yksCloudPrepareForDeletion?.();
     await host.__YKS_DATA__?.flush?.();
     await Dexie.delete(YKS_DATABASE_NAME);
-    clearYksStorage(localStorage);
-    clearYksStorage(sessionStorage);
+    // Sign-out locks the study facade. Explicitly confirmed deletion must clear
+    // the underlying YKS keys, not only that facade's quarantined writes.
+    if(window.__YKS_SESSION__)window.__YKS_SESSION__.clearDeviceStudyStorage();
+    else{clearYksStorage(localStorage);clearYksStorage(sessionStorage);}
     await clearAppCaches();
     location.reload();
   }catch(error){
@@ -91,7 +96,7 @@ function installEmbeddedCloudSyncCard():boolean{
   box.innerHTML=`
     <div class="cloud-sync-heading">
       <div>
-        <p class="eyebrow">İsteğe bağlı eşitleme</p>
+        <p class="eyebrow">Hesabım ve eşitleme</p>
         <h2>Telefonun ve bilgisayarın aynı defterde</h2>
       </div>
       <span class="cloudSyncDot" id="cloudSyncDot" aria-hidden="true"></span>
@@ -179,7 +184,7 @@ function activateWebCloudSync():boolean{
     runtime.textContent=source.textContent.replace(/apiKey:\s*"[^"]*"/,`apiKey:"${FIREBASE_WEB_API_KEY}"`);
     source.dataset.activated="1";
   }else{
-    runtime.src="./firebase-sync-runtime.js?v=4.4.0-r3";
+    runtime.src="./firebase-sync-runtime.js?v=4.4.0-r4";
   }
 
   runtime.addEventListener("load",()=>{

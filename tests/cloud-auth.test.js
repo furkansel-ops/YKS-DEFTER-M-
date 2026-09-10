@@ -21,12 +21,12 @@ async function harness(options={}){
   elements.cloudLinkPassword.value="link-test-password";
   elements.cloudAuthNotice.hidden=true;
   const calls={popup:0,redirect:0,redirectResult:0,email:[],signup:[],reset:[],verification:[],link:[],signOut:0,reads:0,writes:0,downloads:0,listeners:0};
-  const hooks={},timers=[],auth={currentUser:null};let authListener;
+  const hooks={},timers=[],auth={currentUser:null},authEvents=[];let authListener;
   const localStorage=storage(options.storage),sessionStorage=storage();
-  const window={S:{v:21,localRecord:"never-uploaded-test-data"},dispatchEvent(){},addEventListener(){},__YKS_STATE_EPOCH:1};
+  const window={S:{v:21,localRecord:"never-uploaded-test-data"},dispatchEvent(event){if(event.type==="yks:auth-state")authEvents.push(event.detail);},addEventListener(){},__YKS_STATE_EPOCH:1,...(options.session?{__YKS_SESSION__:options.session}:{})};
   const context=vm.createContext({
     window,document:{documentElement:{dataset:{}},hidden:false,getElementById:id=>elements[id]||null},navigator:{onLine:options.online!==false},
-    localStorage,sessionStorage,crypto:{randomUUID:()=>"test-device"},console:{error(){},warn(){}},CustomEvent:class {},Blob,performance,
+    localStorage,sessionStorage,crypto:{randomUUID:()=>"test-device"},console:{error(){},warn(){}},CustomEvent:class {constructor(type,options){this.type=type;this.detail=options?.detail;}},Blob,performance,
     DATA_SCHEMA:21,APP_VERSION:"test",DEF:{v:21},STORAGE_KEY:"state",PERF_STATE:{},S:window.S,lastPersistedJSON:"",
     infraHash:value=>"test-hash-"+value,safeJSONParse:JSON.parse,infraError(){},conflictBackupAdd(){},normalize:value=>value,migrateState:value=>value,
     setInterval(){},setTimeout(fn,delay){timers.push({fn,delay});return timers.length;},clearTimeout(){},confirm:()=>true,location:{reload(){calls.reload=(calls.reload||0)+1;}},
@@ -38,8 +38,8 @@ async function harness(options={}){
     signOut:async()=>{calls.signOut++;if(hooks.signOut)return hooks.signOut();auth.currentUser=null;},
     signInWithEmailAndPassword:async(_auth,email,password)=>{calls.email.push({email,password});if(hooks.email)return hooks.email();return {user:verifiedUser("account",["password"])};},
     createUserWithEmailAndPassword:async(_auth,email,password)=>{calls.signup.push({email,password});const user={...verifiedUser("new-account",["password"]),emailVerified:false};auth.currentUser=user;return {user};},
-    sendPasswordResetEmail:async(_auth,email)=>{calls.reset.push(email);},sendEmailVerification:async user=>{calls.verification.push(user.uid);},
-    reload:async()=>{},EmailAuthProvider:{credential:(email,password)=>({email,password})},
+    sendPasswordResetEmail:async(_auth,email)=>{calls.reset.push(email);if(hooks.reset)return hooks.reset();},sendEmailVerification:async user=>{calls.verification.push(user.uid);if(hooks.verification)return hooks.verification();},
+    reload:async user=>{if(hooks.reload)return hooks.reload(user);},EmailAuthProvider:{credential:(email,password)=>({email,password})},
     linkWithCredential:async(user,credential)=>{calls.link.push({uid:user.uid,credential});if(hooks.link)return hooks.link();user.providerData.push({providerId:"password"});return {user};},
     doc:(_db,...parts)=>parts.join("/"),collection:(_db,...parts)=>parts.join("/"),getDoc:async()=>{calls.reads++;return {exists:()=>false};},
     getDocs:async()=>{calls.reads++;return {docs:[]};},runTransaction:async()=>{calls.writes++;},writeBatch:()=>({}),serverTimestamp:()=>0,
@@ -52,7 +52,7 @@ async function harness(options={}){
   const transition=async user=>{auth.currentUser=user;await authListener(user);await settle();};
   const stubDownloads=()=>{context.downloadSpy=()=>{calls.downloads++;};run("downloadOrSeed=async()=>{downloadSpy();};");};
   await settle();
-  return {run,context,elements,auth,calls,hooks,timers,localStorage,sessionStorage,event,settle,transition,stubDownloads,authCallback:user=>authListener(user)};
+  return {run,context,elements,auth,calls,hooks,timers,localStorage,sessionStorage,event,settle,transition,stubDownloads,authEvents,api:window.__YKS_AUTH__,authCallback:user=>authListener(user)};
 }
 
 test("Android/Windows girişinde Google popup ve yönlendirme hiçbir zaman açılmaz",async()=>{
@@ -146,4 +146,105 @@ test("çıkış ağ yanıtını beklerken buluta yeni kayıt gönderilemez",asyn
   const pending=deferred();h.hooks.signOut=()=>pending.promise;const signingOut=h.elements.cloudLogoutBtn.listeners.click();await h.settle();
   assert.equal(h.run("user"),null);h.run("window.yksCloudSchedule();");await h.run("upload()");assert.equal(h.calls.writes,0);
   pending.resolve();await signingOut;
+});
+
+test("açılış hesap köprüsü salt okunur durum yayınlar ve eşitleme hatasını oturum saymaz",async()=>{
+  const h=await harness();assert.equal(h.api.getState().phase,"loading");assert.equal(Object.isFrozen(h.api),true);
+  await h.transition(null);assert.equal(h.api.getState().phase,"signedout");
+  h.run('status("Bağlanıyor","connecting");status("Hazır","synced");');
+  assert.equal(h.api.getState().phase,"signedout");
+  h.stubDownloads();await h.transition(verifiedUser());h.run('status("İzin yok","error");');
+  assert.equal(h.api.getState().phase,"signedin");assert.equal(h.api.getState().error,false);
+  assert.equal(h.api.getState().email,"owner@example.test");assert.equal(h.api.getState().googleAvailable,true);
+  for(const state of h.authEvents){assert.equal(Object.isFrozen(state),true);assert.deepEqual(Object.keys(state).sort(),["busy","email","error","googleAvailable","message","phase"]);}
+});
+
+test("hesap köprüsü parolayı beklemeden yakalar; durum olaylarına veya depoya eklemez",async()=>{
+  const pending=deferred();const h=await harness({persistence:pending.promise,embedded:true});
+  const signingIn=h.api.login(" owner@example.test ","captured-test-password");
+  assert.equal(h.api.getState().busy,true);h.elements.cloudPassword.value="changed-while-pending";
+  pending.resolve();await signingIn;
+  assert.deepEqual(h.calls.email,[{email:"owner@example.test",password:"captured-test-password"}]);
+  assert.equal(h.api.getState().busy,false);assert.equal(h.api.getState().googleAvailable,false);
+  assert.doesNotMatch(JSON.stringify([h.authEvents,...h.localStorage.rows,...h.sessionStorage.rows]),/captured-test-password|changed-while-pending/);
+});
+
+test("geçersiz girişte hesap ekranı açık kalır ve tekrar denenebilir hata gösterir",async()=>{
+  const h=await harness();await h.transition(null);h.hooks.email=()=>{throw {code:"auth/invalid-credential"};};
+  await h.api.login("owner@example.test","wrong-test-password");
+  assert.equal(h.api.getState().phase,"signedout");assert.equal(h.api.getState().error,true);assert.equal(h.api.getState().busy,false);
+  assert.match(h.api.getState().message,/doğrulanamadı/);assert.equal(h.calls.reads,0);assert.equal(h.calls.writes,0);
+});
+
+test("hesap köprüsü kayıt alanlarını doğrular ve bağlı cihazda farklı hesap açmaz",async()=>{
+  const h=await harness();await h.transition(null);
+  await h.api.register("invalid-email","long-test-password");assert.equal(h.calls.signup.length,0);
+  await h.api.register("owner@example.test","short");assert.equal(h.calls.signup.length,0);
+  h.run('setAccount("original-account");');await h.api.register("owner@example.test","long-test-password");
+  assert.equal(h.calls.signup.length,0);assert.equal(h.api.getState().phase,"signedout");assert.equal(h.api.getState().error,true);
+});
+
+test("doğrulama e-postası gönderilemese de yeni hesap doğrulanmamış olarak kalır",async()=>{
+  const h=await harness();await h.transition(null);h.hooks.verification=()=>{throw {code:"auth/network-request-failed"};};
+  await h.api.register("owner@example.test","long-test-password");
+  assert.equal(h.api.getState().phase,"unverified");assert.equal(h.api.getState().error,true);assert.equal(h.calls.writes,0);
+  delete h.hooks.verification;await h.api.resendVerification();
+  assert.equal(h.api.getState().phase,"unverified");assert.equal(h.api.getState().error,false);assert.equal(h.calls.verification.length,2);
+});
+
+test("şifre sıfırlama hesabın varlığını açıklamaz ve mevcut oturumu değiştirmez",async()=>{
+  for(const missing of [false,true]){
+    const h=await harness();await h.transition(null);if(missing)h.hooks.reset=()=>{throw {code:"auth/user-not-found"};};
+    await h.api.resetPassword(" owner@example.test ");
+    assert.equal(h.api.getState().phase,"signedout");assert.equal(h.api.getState().error,false);assert.match(h.api.getState().message,/Adres için uygunsa/);
+    assert.deepEqual(h.calls.reset,["owner@example.test"]);
+  }
+  const h=await harness();h.stubDownloads();await h.transition(verifiedUser());await h.api.resetPassword("owner@example.test");
+  assert.equal(h.api.getState().phase,"signedin");
+});
+
+test("doğrulama kontrolü sayfayı yenilemeden doğrulanmış hesabı güvenle açar",async()=>{
+  const h=await harness();h.stubDownloads();await h.transition({...verifiedUser("account",["password"]),emailVerified:false});
+  await h.api.refreshVerification();assert.equal(h.api.getState().phase,"unverified");assert.equal(h.calls.downloads,0);
+  h.hooks.reload=user=>{user.emailVerified=true;};await h.api.refreshVerification();
+  assert.equal(h.api.getState().phase,"signedin");assert.equal(h.calls.reload,undefined);assert.equal(h.calls.downloads,1);
+});
+
+test("çevrimdışı doğrulanmış kalıcı hesap açılır; internetsiz yeni giriş engellenir",async()=>{
+  const h=await harness({online:false});await h.transition(verifiedUser());
+  assert.equal(h.api.getState().phase,"signedin");assert.equal(h.elements.cloudSyncBox.dataset.state,"offline");
+  await h.transition(null);await h.api.login("owner@example.test","test-password");
+  assert.equal(h.api.getState().phase,"signedout");assert.equal(h.api.getState().error,true);assert.equal(h.calls.email.length,0);
+});
+
+test("hesap kaydı açılmadan oturum veya bulut erişimi açılmaz",async()=>{
+  const order=[];const session={mode:"locked",lock(){this.mode="locked";order.push("lock");},enterAccount(uid){order.push("account:"+uid);this.mode="account";return true;}};
+  const h=await harness({session});h.context.downloadSpy=()=>{order.push("download");assert.equal(h.api.getState().phase,"signedin");};h.run("downloadOrSeed=async()=>downloadSpy();");
+  await h.transition(verifiedUser());assert.deepEqual(order,["lock","account:account","download"]);
+  assert.equal(h.api.getState().phase,"signedin");
+});
+
+test("geçici oturum kayıtlı Firebase hesabı olsa da açık kalır ve eşitleme başlatmaz",async()=>{
+  const session={mode:"guest",lock(){},enterAccount(){throw new Error("Deneme açıkken hesap açılmamalı");}};
+  const h=await harness({session});h.stubDownloads();await h.transition(verifiedUser());
+  assert.equal(h.api.getState().phase,"signedout");assert.equal(h.run("user"),null);
+  assert.equal(h.calls.downloads,0);assert.equal(h.calls.writes,0);assert.equal(h.calls.listeners,0);
+});
+
+test("ilk çevrimdışı doğrulanmış giriş, bulut yazısı olmadan defteri hesaba bağlar",async()=>{
+  const first=await harness({online:false});await first.transition(verifiedUser("owner-a"));
+  assert.equal(first.api.getState().phase,"signedin");assert.equal(first.calls.writes,0);
+  assert.equal(first.localStorage.getItem("yks_cloud_account"),"owner-a");
+  const next=await harness({storage:Object.fromEntries(first.localStorage.rows)});next.stubDownloads();
+  await next.transition(verifiedUser("owner-b"));
+  assert.notEqual(next.api.getState().phase,"signedin");assert.equal(next.calls.downloads,0);
+  assert.equal(next.localStorage.getItem("yks_cloud_account"),"owner-a");
+});
+
+test("kayıt alanı açılamazsa veya çıkış başarısızsa oturum kapısı kilitli kalır",async()=>{
+  const session={mode:"locked",locks:0,lock(){this.mode="locked";this.locks++;},enterAccount(){throw new Error("disk unavailable");}};
+  const h=await harness({session});h.stubDownloads();await h.transition(verifiedUser());
+  assert.equal(h.api.getState().phase,"error");assert.equal(h.run("user"),null);assert.equal(h.calls.downloads,0);
+  h.hooks.signOut=()=>{throw new Error("signout unavailable");};await h.api.signOut();
+  assert.equal(h.api.getState().phase,"blocked");assert.equal(h.api.getState().busy,false);assert.equal(h.run("user"),null);assert.ok(session.locks>=3);
 });

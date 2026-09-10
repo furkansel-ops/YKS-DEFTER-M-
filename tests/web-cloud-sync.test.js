@@ -69,7 +69,7 @@ test("Cihazlar arası eşitleme Merkez > Veri içinde normal kart ve taşınabil
   assert.doesNotMatch(shell,/if\(isNativeApp\(\)\)return false/);
   assert.match(shell,/box\.dataset\.embeddedApp=String\(isNativeApp\(\)\)/);
   for(const marker of ["cloudAuthForm","cloudEmail","cloudPassword","cloudSignupBtn","cloudResetBtn","cloudLinkForm","cloudVerification","cloudCheckVerificationBtn"])assert.ok(shell.includes(marker),marker);
-  assert.match(shell,/firebase-sync-runtime\.js\?v=4\.4\.0-r3/);
+  assert.match(shell,/firebase-sync-runtime\.js\?v=4\.4\.0-r4/);
   assert.match(css,/#cloudSyncBox\.web-cloud-sync-card\{/);
   assert.match(css,/position:static!important/);
   assert.match(css,/backdrop-filter:none!important/);
@@ -80,8 +80,9 @@ test("Taşınabilir oturum doğrulanmış e-posta kullanır ve mevcut Google hes
   const index=read("index.html"),shell=read("src/ui/play-store-shell.ts");
   for(const marker of ["signInWithEmailAndPassword","createUserWithEmailAndPassword","sendPasswordResetEmail","sendEmailVerification","EmailAuthProvider.credential","linkWithCredential","indexedDBLocalPersistence"])assert.ok(index.includes(marker),marker);
   assert.match(index,/if\(u&&!u\.emailVerified\)\{user=null;/);
-  assert.match(index,/if\(embeddedApp\)return status\("E-posta ile giriş yap"/);
-  assert.match(index,/auth\.currentUser\.getIdToken\(true\)/);
+  assert.match(index,/if\(embeddedApp\)\{authNotice\("Android ve Windows'ta e-posta ile giriş yap/);
+  assert.match(index,/current\.getIdToken\(true\)/);
+  assert.match(index,/window\.__YKS_AUTH__=Object\.freeze/);
   assert.match(shell,/Google şifreni değil/);
   assert.match(shell,/autocomplete="new-password"/);
   assert.doesNotMatch(index,/(?:localStorage|sessionStorage)\.setItem\([^;]*(?:passwordInput|linkPassword)/);

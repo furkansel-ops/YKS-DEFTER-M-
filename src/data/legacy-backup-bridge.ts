@@ -1,6 +1,7 @@
 import {createBackupPackage,inspectBackupPackage,previewBackupPackage,type BackupBuildResult,type BackupInspectResult,type BackupPreviewResult} from "./backup-service.ts";
 import type {LegacyDataBridgeApi} from "./legacy-data-bridge.ts";
 import type {ExternalApplyResult} from "./primary-store.ts";
+import {accountPersistenceAllowed,ACCOUNT_REQUIRED_MESSAGE} from "../auth/session-mode.ts";
 
 export interface BackupBridgeApi{
   readonly version:"2.0.0";
@@ -24,8 +25,11 @@ export function installLegacyBackupBridge(data:LegacyDataBridgeApi,appVersion:st
   const api:BackupBridgeApi={
     version:"2.0.0",format:3,
     async build(){
+      if(!accountPersistenceAllowed())return {ok:false,message:ACCOUNT_REQUIRED_MESSAGE};
       await data.initialize();await data.captureLegacyWrite();await data.flush();
+      if(!accountPersistenceAllowed())return {ok:false,message:ACCOUNT_REQUIRED_MESSAGE};
       const primary=await data.primaryJSON();
+      if(!accountPersistenceAllowed())return {ok:false,message:ACCOUNT_REQUIRED_MESSAGE};
       return primary.ok?createBackupPackage(primary.json,appVersion):primary;
     },
     inspect:inspectBackupPackage,
@@ -34,10 +38,13 @@ export function installLegacyBackupBridge(data:LegacyDataBridgeApi,appVersion:st
       return previewBackupPackage(text,current.ok?current.json:null);
     },
     async restore(text){
+      if(!accountPersistenceAllowed())return {ok:false,kind:"restore",message:ACCOUNT_REQUIRED_MESSAGE,rolledBack:false};
       const inspected=inspectBackupPackage(text);
       if(!inspected.ok)return inspected;
       await data.initialize();await data.captureLegacyWrite();await data.flush();
+      if(!accountPersistenceAllowed())return {ok:false,kind:"restore",message:ACCOUNT_REQUIRED_MESSAGE,rolledBack:false};
       const before=await data.primaryJSON();
+      if(!accountPersistenceAllowed())return {ok:false,kind:"restore",message:ACCOUNT_REQUIRED_MESSAGE,rolledBack:false};
       const result=await data.applyBackupJSON(inspected.json);
       if(!result.ok){
         let rolledBack=false;

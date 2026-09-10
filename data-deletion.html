@@ -14,6 +14,7 @@
   <p>YKS Defterim 4.4.0 Android, Windows ve web sürümleri çalışma kayıtlarını, tercihleri ve uygulama içi yerel yedekleri cihazda tutar. Kullanıcı isterse doğrulanmış e-posta/şifre hesabıyla veya web sürümünde Google ile giriş yaparak ayrı bir bulut eşitleme kopyası oluşturabilir. Yerel veri, bulut çalışma kopyası ve kimlik doğrulama hesabı birbirinden ayrıdır.</p>
 
   <h2>Uygulama içinden silme</h2>
+  <p>Önce mevcut kayıtların bağlı olduğu hesabına giriş yap. Hesapsız deneme oturumu kalıcı kayıt oluşturmaz; kapatmak veya yenilemek deneme çalışmasını siler, eski hesap kayıtlarını etkilemez.</p>
   <ol>
     <li><b>Merkez (Daha)</b> ekranını aç.</li>
     <li><b>Veri</b> bölümüne gir.</li>
@@ -31,7 +32,7 @@
     <li>İki ayrı kalıcı silme onayını tamamla.</li>
   </ol>
   <p>Bu işlem Google Cloud Firestore'daki YKS Defterim çalışma içeriğini ve eşitleme parçalarını kalıcı olarak siler, ardından oturumu kapatır. Eski içeriğin başka bir açık cihazdan geri yüklenmesini önleyen, çalışma içeriği taşımayan bir silme işareti aynı hesapla eşitleme açıkça yeniden başlatılana kadar saklanır; yeniden açılışta yeni eşitleme kaydıyla değiştirilir. Bu cihazdaki yerel çalışma verileri korunur ve daha sonra aynı hesapla eşitleme yeniden açılırsa yeni bir bulut kopyası oluşturabilir. Bağlantı kesilip işlem tamamlanamazsa hata mesajını kontrol et; aynı hesapla yeniden giriş yapıldığında yarım kalan bulut temizliği sürdürülür.</p>
-  <p class="note"><b>Ayrım:</b> <b>Cihaz verilerini sil</b> yalnız yerel veriyi; <b>Bulut kopyasını sil</b> yalnız eşitleme kopyasını siler. İkisini de kaldırmak istiyorsan önce bulut kopyasını, ardından cihaz verilerini sil.</p>
+  <p class="note"><b>Ayrım:</b> <b>Cihaz verilerini sil</b> yalnız yerel veriyi; <b>Bulut kopyasını sil</b> yalnız eşitleme kopyasını siler. İkisini de kaldırmak istiyorsan önce bulut kopyasını sil; bu işlemden sonra aynı açılış ekranındaki <b>Bu cihazdaki kayıtları sil</b> seçeneğini kullan. Bu seçenek o sayfada önceden doğrulanmış oturum varsa gösterilir; yeniden giriş yapman gerekmez.</p>
 
   <h2>Android ayarlarından alternatif yöntem</h2>
   <p>Uygulama içi işlem tamamlanamazsa Android'de genel olarak <b>Ayarlar → Uygulamalar → YKS Defterim → Depolama ve önbellek → Depolamayı temizle</b> yolu kullanılabilir. Menü adları cihaz üreticisine ve Android sürümüne göre değişebilir.</p>

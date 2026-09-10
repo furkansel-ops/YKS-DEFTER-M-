@@ -33,16 +33,17 @@ test("Laboratuvar yardımcıları global her tıklamada veya çift navigation di
   assert.match(chemistry,/section\.addEventListener\("click",onClick\)/);
 });
 
-test("4.4.0-r3 bakım build kimliği PWA cache ve release dosyalarında aynıdır",()=>{
+test("4.4.0-r4 bakım build kimliği PWA cache ve release dosyalarında aynıdır",()=>{
   const version=read("src/release/version.ts"),json=JSON.parse(read("version.json")),sw=read("sw.js");
-  assert.match(version,/RELEASE_BUILD="4\.4\.0-r3"/);
-  assert.equal(json.build,"4.4.0-r3");
-  assert.match(sw,/APP_BUILD="4\.4\.0-r3"/);
-  assert.match(sw,/CACHE="yks-core-v4\.4\.0-r3"/);
+  assert.match(version,/RELEASE_BUILD="4\.4\.0-r4"/);
+  assert.equal(json.build,"4.4.0-r4");
+  assert.match(sw,/APP_BUILD="4\.4\.0-r4"/);
+  assert.match(sw,/CACHE="yks-core-v4\.4\.0-r4"/);
   assert.match(sw,/yks-core-v4\.4\.0-r1/);
   assert.match(sw,/yks-core-v4\.4\.0-r2/);
-  assert.match(sw,/app\.js\?v=4\.4\.0-r3/);
-  assert.match(sw,/core-utils\.js\?v=4\.4\.0-r3/);
+  assert.match(sw,/yks-core-v4\.4\.0-r3/);
+  assert.match(sw,/app\.js\?v=4\.4\.0-r4/);
+  assert.match(sw,/core-utils\.js\?v=4\.4\.0-r4/);
 });
 
 test("eşitleme kartı normal içerik akışında kalır ve ağır cam efektine dönmez",()=>{

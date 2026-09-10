@@ -1,5 +1,5 @@
 import Dexie,{type EntityTable} from "dexie";
-import {LEGACY_IMPORT_META_KEY,PRIMARY_INDEXED_STATE_KEY,type IndexedStateRecord,type MigrationMetaRecord,type MigrationTarget} from "./migration";
+import {LEGACY_IMPORT_META_KEY,PRIMARY_INDEXED_STATE_KEY,type IndexedStateRecord,type MigrationMetaRecord,type MigrationTarget} from "./migration.ts";
 
 export const YKS_DATABASE_NAME="yks-defterim-v4" as const;
 export const YKS_DATABASE_VERSION=1 as const;

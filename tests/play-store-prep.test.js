@@ -53,7 +53,7 @@ test("Android CI takip edilen Capacitor 8.5.0 projesinden imzalı APK ve AAB ür
   assert.match(workflow,/github\.ref_protected/);
   assert.match(workflow,/bundletool\.jar" validate/);
   assert.match(workflow,/dump manifest/);
-  assert.match(workflow,/YKS-Defterim-4\.4\.0-4040003\.apk/);
+  assert.match(workflow,/YKS-Defterim-4\.4\.0-4040004\.apk/);
   assert.match(workflow,/aab_name="YKS-Defterim-\$\{version_name\}-\$\{version_code\}\.aab"/);
   assert.match(workflow,/environment:\s*google-play-internal/);
   assert.match(workflow,/yks-defterim-github-test-package/);

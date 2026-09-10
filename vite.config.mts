@@ -64,7 +64,10 @@ export default defineConfig(({mode})=>{
       outDir:"dist",
       emptyOutDir:true,
       minify:true,
-      sourcemap:false
+      sourcemap:false,
+      // Statically imported + modulepreloaded: the account entry is part of the
+      // offline shell, without swelling the established main-runtime budget.
+      rolldownOptions:{output:{codeSplitting:{groups:[{name:"account-gate",test:/[\\/]src[\\/]ui[\\/]account-gate\.(?:ts|css)$/u}]}}}
     },
     server:{
       host:"0.0.0.0",

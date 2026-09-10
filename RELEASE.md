@@ -3,12 +3,12 @@
 ## Kimlik
 
 - Uygulama sürümü: **4.4.0**
-- Build: **4.4.0-r3**
-- Android `versionCode`: **4040003**
+- Build: **4.4.0-r4**
+- Android `versionCode`: **4040004**
 - Android paket adı: **`com.furkansel.yksdefterim`**
 - Kanal: **GitHub pre-release / arkadaş testi**
 - Veri şeması: **21**
-- Tarih: **6 Eylül 2026**
+- Tarih: **10 Eylül 2026**
 
 Bu dal, v4.4.0 web uygulamasını Capacitor tabanlı, doğrudan kurulabilir imzalı Android APK olarak paketler. AAB teknik arşiv olarak ayrıca üretilir. Seçilen dağıtım kanalı Google Play değil, GitHub Releases üzerindeki arkadaş testidir.
 
@@ -26,7 +26,7 @@ Bu dal, v4.4.0 web uygulamasını Capacitor tabanlı, doğrudan kurulabilir imza
 - Web/PWA üretim varlıkları Capacitor Android projesine senkronlanır.
 - Adaptive icon, splash, tema, SDK seviyeleri, ağ güvenliği ve ekran yönü Android yayın kontrolüne alınmıştır.
 - Gizlilik politikası ile cihaz verilerini silme sayfası üretim paketine dahil edilir ve uygulama içinden açılır.
-- Android, Windows ve web sürümlerinde doğrulanmış e-posta/şifre hesabıyla isteğe bağlı bulut eşitleme sunulur. Web sürümünde Google girişi korunur; mevcut Google hesabına uygulama şifresi bağlanarak aynı hesap kimliği kullanılabilir. Temel çalışma kayıtları çevrimdışı yerel kalır.
+- Android, Windows ve web sürümlerinde açılışta giriş, hesap oluşturma, şifre sıfırlama ve e-posta doğrulama ekranı sunulur. Kayıt, yedekleme ve eşitleme için doğrulanmış hesap gerekir; “Kaydetmeden dene” yalnız geçici bellekte çalışır. Hesaba ait cihaz kayıtları çevrimdışı kullanılabilir. Web sürümünde Google girişi korunur; mevcut Google hesabına uygulama şifresi bağlanarak aynı hesap kimliği kullanılabilir.
 - Windows sürümü GitHub'dan indirilen kurulum dosyası olarak paketlenir. Windows kod imzalama sertifikası olmadığında kurulum imzasızdır ve SmartScreen uyarısı görülebilir.
 - Kullanıcı isteğiyle Wikipedia/Wikimedia, YouTube/Google ve resmî MEB/OGM/ÖSYM içeriklerine ağ erişimi olabilir.
 - İmzalama anahtarı ve parolalar repo dışında tutulur; CI imzalama yalnız korumalı, tarihsel adı `google-play-internal` olan GitHub Environment secret'larıyla çalışır. Bu ortam Play Store'a yükleme yapmaz.
@@ -50,7 +50,7 @@ Node 22 ana doğrulaması ve Node 24 uyumluluk doğrulaması ayrı ayrı yeşil 
 
 ## Tarihsel r1 yerel doğrulaması · 31 Ağustos 2026
 
-Aşağıdaki sonuçlar kaynak tabanı `3c618eb45a75fe120eed45335cc8b9e208fe2d45` üzerinden hazırlanmış önceki **4.4.0-r1 / 4040001** adayına aittir; mevcut r3 adayının üretildiğini veya doğrulandığını göstermez:
+Aşağıdaki sonuçlar kaynak tabanı `3c618eb45a75fe120eed45335cc8b9e208fe2d45` üzerinden hazırlanmış önceki **4.4.0-r1 / 4040001** adayına aittir; mevcut r4 adayının üretildiğini veya doğrulandığını göstermez:
 
 - Node 22 ve Node 24 `release:check` kapıları geçti; her iki çalışmada **325/325** test başarılı oldu.
 - Capacitor web varlığı eşitlemesi geçti.

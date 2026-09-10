@@ -45,8 +45,9 @@ async function verifyCloudBoundary(){
 }
 
 const localRelease=JSON.parse(await readFile(resolve(root,"version.json"),"utf8"));
-if(localRelease.version!=="4.4.0"||localRelease.build!=="4.4.0-r3"||localRelease.schema!==21)throw new Error("Yerel v4.4.0 release kimliği beklenen değerle eşleşmiyor");
+if(localRelease.version!=="4.4.0"||localRelease.build!=="4.4.0-r4"||localRelease.schema!==21)throw new Error("Yerel v4.4.0 release kimliği beklenen değerle eşleşmiyor");
 const required=[
+  "session-mode.js",
   "index.html","404.html","app.js","app.css","sw.js","version.json","manifest.webmanifest",
   "modules/core-utils.js","modules/stability.js","modules/topic-guides.js",
   "modules/learning-lab.js","modules/learning-lab-v2.js","modules/learning-lab-v3.js","modules/target-center.js","modules/export-center.js",
@@ -61,8 +62,10 @@ const required=[
 for(const file of required)await access(resolve(dist,file));
 await verifyCloudBoundary();
 const index=await readFile(resolve(dist,"index.html"),"utf8");
+if(!index.includes('src="./session-mode.js"')||!index.includes('accountBootFailure'))throw new Error("Hesap kayıt koruması üretim girişinde eksik");
+if(!/rel="modulepreload"[^>]*href="\.\/assets\/account-gate-[^"']+\.js"/.test(index))throw new Error("Hesap ekranı çevrimdışı kabuğun ön yüklemesinde eksik");
 if(!/assets\/index-[^"']+\.js/.test(index))throw new Error("TypeScript üretim paketi index.html içine bağlanmadı");
-if(!index.includes('./app.js?v=4.4.0-r3')||!index.includes('./modules/stability.js?v=4.1.0-r28')||!index.includes('./modules/learning-lab.js?v=4.1.0-r26')||!index.includes('./modules/error-journal.js?v=4.1.0-r20'))throw new Error("Uygulama çalışma zamanı üretim paketinde bağlı değil");
+if(!index.includes('./app.js?v=4.4.0-r4')||!index.includes('./modules/stability.js?v=4.1.0-r28')||!index.includes('./modules/learning-lab.js?v=4.1.0-r26')||!index.includes('./modules/error-journal.js?v=4.1.0-r20'))throw new Error("Uygulama çalışma zamanı üretim paketinde bağlı değil");
 for(const forbidden of ["legacyFirebaseSyncModule","firebaseSyncModule","www.gstatic.com/firebasejs","cloudSyncBox","Google ile giriş"]){
   if(index.includes(forbidden))throw new Error(`Ana HTML içinde inert/eski bulut çalışma zamanı kaldı: ${forbidden}`);
 }
@@ -111,7 +114,7 @@ if(!progressPolishCss.includes('#progress .desktop-progress-grid')||!progressPol
 if(!progressModernCss.includes('ui-polish-program-v1.css?v=4.1.0-r1')||!programPolishCss.includes('#program .weeknav')||!programPolishCss.includes('#program .gtable')||!programPolishCss.includes('#program #progCal')||!programPolishCss.includes('prefers-reduced-motion:reduce'))throw new Error("Program ekranı premium cila katmanı eksik veya eksik paketlendi");
 if(!labPolishCss.includes('#mrp_lab .v320-course-browser')||!labPolishCss.includes('#mrp_lab .v4-science-card')||!labPolishCss.includes('#mrp_lab .v320-element-grid')||!labPolishCss.includes('#mrp_lab #v320Timeline.v4-history-timeline')||!labPolishCss.includes('#mrp_lab #v320PanelAtlas .atlas-model-stage')||!labPolishCss.includes('prefers-reduced-motion:reduce'))throw new Error("Öğrenme Laboratuvarı premium cila katmanı eksik veya eksik paketlendi");
 if(!finalPolishCss.includes('.v26-topic-modal')||!finalPolishCss.includes('.toast')||!finalPolishCss.includes('.tabbar .tab')||!finalPolishCss.includes('pointer:coarse')||!finalPolishCss.includes('prefers-reduced-motion:reduce')||!finalPolishCss.includes('data-theme="dark"'))throw new Error("Uygulama geneli final tutarlılık/erişilebilirlik cilası eksik veya eksik paketlendi");
-if(!index.includes("core-utils.js?v=4.4.0-r3")||!sw.includes("core-utils.js?v=4.4.0-r3"))throw new Error("Eşitleme yardımcılarının bakım güncellemesi pakette eksik");
+if(!index.includes("core-utils.js?v=4.4.0-r4")||!sw.includes("core-utils.js?v=4.4.0-r4"))throw new Error("Eşitleme yardımcılarının bakım güncellemesi pakette eksik");
 if(!bundle.includes("FEN TEKRAR ATÖLYESİ"))throw new Error("Biyoloji/Fizik kart sistemi TypeScript paketinde eksik");
 if(!bundle.includes("YKSBiologyAtlas")||!labV3.includes("v320PanelAtlas"))throw new Error("Biyoloji atlası çalışma zamanına bağlı değil");
 const chunks=await readdir(resolve(dist,"assets"));

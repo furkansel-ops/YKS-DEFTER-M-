@@ -23,7 +23,7 @@ for(const platform of ["android","desktop"]){
     const {installPwaRuntime}=await import(runtimeUrl);
     const fixture=pwaFixture(platform==="android"?{Capacitor:{isNativePlatform:()=>true}}:{__YKS_DESKTOP__:{installed:true}});
     Object.defineProperty(fixture.windowRef.navigator,"serviceWorker",{get(){throw new Error("Native app must not probe browser service workers");}});
-    const api=installPwaRuntime("4.4.0-r3",fixture.windowRef,fixture.documentRef);
+    const api=installPwaRuntime("4.4.0-r4",fixture.windowRef,fixture.documentRef);
     await api.refresh();
     assert.equal(api.installState(),"installed");
     assert.equal(await api.promptInstall(),true);
@@ -40,7 +40,7 @@ for(const platform of ["android","desktop"]){
 test("normal web tarayıcısı PWA kurulum ve çevrimdışı durumunu korur",async()=>{
   const {installPwaRuntime}=await import(runtimeUrl);
   const fixture=pwaFixture({Capacitor:{isNativePlatform:()=>false},__YKS_DESKTOP__:{installed:false}});
-  const api=installPwaRuntime("4.4.0-r3",fixture.windowRef,fixture.documentRef);
+  const api=installPwaRuntime("4.4.0-r4",fixture.windowRef,fixture.documentRef);
   await api.refresh();
   assert.equal(api.installState(),"manual");
   assert.equal(fixture.nodes.v4PwaCard.dataset.offlineReady,"false");
