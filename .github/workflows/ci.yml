@@ -6,6 +6,12 @@ on:
     branches:
       - main
   workflow_dispatch:
+    inputs:
+      windows_source:
+        description: "İsteğe bağlı Windows paketi: bu dalın geçmişindeki tam 40 karakterli kaynak commit SHA'sı"
+        required: false
+        default: ""
+        type: string
 
 permissions:
   contents: read
@@ -15,6 +21,16 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  windows-package:
+    name: İstenen kaynak commitinden Windows test paketi
+    if: github.event_name == 'workflow_dispatch' && inputs.windows_source != ''
+    needs: [verify, runtime-compat]
+    uses: ./.github/workflows/build-windows.yml
+    with:
+      source_ref: ${{ inputs.windows_source }}
+    permissions:
+      contents: read
+
   verify:
     runs-on: ubuntu-latest
     timeout-minutes: 10

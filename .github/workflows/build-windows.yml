@@ -20,6 +20,13 @@ on:
       - "modules/**"
       - "public/**"
   workflow_dispatch:
+  workflow_call:
+    inputs:
+      source_ref:
+        description: "Çağıran dalın geçmişindeki tam kaynak commit SHA'sı; boşsa çağıranın commit'i"
+        required: false
+        default: ""
+        type: string
 
 permissions:
   contents: read
@@ -36,10 +43,42 @@ jobs:
     env:
       CSC_IDENTITY_AUTO_DISCOVERY: "false"
     steps:
+      - name: İsteğe bağlı kaynak kimliğini doğrula
+        if: inputs.source_ref != ''
+        shell: pwsh
+        env:
+          SOURCE_REF: ${{ inputs.source_ref }}
+          CALLER_REF: ${{ github.ref }}
+        run: |
+          if ($env:SOURCE_REF.Length -ne 40 -or $env:SOURCE_REF -cnotmatch '^[0-9a-fA-F]{40}$') {
+            throw "Windows kaynak kimliği tam 40 karakterli commit SHA'sı olmalı."
+          }
+          if (-not $env:CALLER_REF.StartsWith('refs/heads/')) {
+            throw "Kaynak commit seçimi yalnız bir daldan başlatılabilir."
+          }
+
       - name: Kaynak kodu al
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
+          ref: ${{ inputs.source_ref || github.sha }}
+          fetch-depth: ${{ inputs.source_ref && '0' || '1' }}
+
+      - name: Kaynak commitinin çağıran dalın geçmişinde olduğunu doğrula
+        if: inputs.source_ref != ''
+        shell: pwsh
+        env:
+          SOURCE_REF: ${{ inputs.source_ref }}
+          CALLER_SHA: ${{ github.sha }}
+        run: |
+          git merge-base --is-ancestor $env:SOURCE_REF $env:CALLER_SHA
+          if ($LASTEXITCODE -ne 0) {
+            throw "İstenen kaynak commit'i çağıran dalın geçmişinde değil."
+          }
+          $checkedOut = (git rev-parse HEAD).Trim()
+          if ($LASTEXITCODE -ne 0 -or $checkedOut -ine $env:SOURCE_REF) {
+            throw "Windows derlemesinin kaynak commit'i istenen SHA ile eşleşmiyor."
+          }
 
       - name: Node.js 22 ortamını hazırla
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
@@ -62,6 +101,16 @@ jobs:
 
       - name: Derlemenin takip edilen kaynakları değiştirmediğini doğrula
         run: git diff --exit-code
+
+      - name: Paket metadata kaynağını ve temiz çalışma ağacını doğrula
+        shell: pwsh
+        env:
+          EXPECTED_SOURCE: ${{ inputs.source_ref || github.sha }}
+        run: |
+          $metadata = Get-Content -LiteralPath 'desktop-release/windows-release-metadata.json' -Raw | ConvertFrom-Json
+          if ($metadata.sourceCommit -ine $env:EXPECTED_SOURCE -or $metadata.sourceDirty -ne $false) {
+            throw "Windows paketi istenen temiz kaynak commitinden üretilmedi."
+          }
 
       - name: Windows kurulum paketi ve sağlama bilgisini sakla
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7

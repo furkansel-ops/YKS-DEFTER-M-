@@ -73,3 +73,39 @@ test('Windows kurulum paketi kullanıcı verisini korur ve kendiliğinden yayım
   assert.match(workflow, /windows-release-metadata\.json/);
   assert.match(workflow, /SHA256SUMS\.txt/);
 });
+
+test('Kayıtlı CI Windows paketini yalnız isteğe bağlı dispatch girdisiyle yeniden kullanır', () => {
+  const ci = read('.github/workflows/ci.yml');
+  assert.match(ci, /workflow_dispatch:\s+inputs:\s+windows_source:/);
+  assert.match(ci, /windows_source:[\s\S]*?required: false[\s\S]*?default: ""[\s\S]*?type: string/);
+  assert.match(ci, /if: github\.event_name == 'workflow_dispatch' && inputs\.windows_source != ''/);
+  assert.match(ci, /needs: \[verify, runtime-compat\]/);
+  assert.match(ci, /uses: \.\/\.github\/workflows\/build-windows\.yml/);
+  assert.match(ci, /source_ref: \$\{\{ inputs\.windows_source \}\}/);
+  assert.doesNotMatch(ci, /runs-on: windows|contents: write|secrets:|secrets\./);
+});
+
+test('Windows tekrar kullanılabilir iş tam kaynak SHA ve çağıran dal geçmişini doğrular', () => {
+  const workflow = read('.github/workflows/build-windows.yml');
+  assert.match(workflow, /workflow_call:\s+inputs:\s+source_ref:/);
+  assert.match(workflow, /ref: \$\{\{ inputs\.source_ref \|\| github\.sha \}\}/);
+  assert.match(workflow, /fetch-depth: \$\{\{ inputs\.source_ref && '0' \|\| '1' \}\}/);
+  assert.ok(workflow.indexOf('SOURCE_REF.Length -ne 40') < workflow.indexOf('uses: actions/checkout@'));
+  assert.match(workflow, /SOURCE_REF -cnotmatch '\^\[0-9a-fA-F\]\{40\}\$'/);
+  assert.match(workflow, /CALLER_REF\.StartsWith\('refs\/heads\/'\)/);
+  assert.match(workflow, /git merge-base --is-ancestor \$env:SOURCE_REF \$env:CALLER_SHA/);
+  assert.match(workflow, /\$checkedOut -ine \$env:SOURCE_REF/);
+  assert.ok(workflow.indexOf('git merge-base --is-ancestor') < workflow.indexOf('run: npm ci'));
+  assert.match(workflow, /persist-credentials: false/);
+  assert.doesNotMatch(workflow, /run:[\s\S]*?\$\{\{ inputs\.source_ref \}\}[^\n]*\n\s+(?:git|npm)/);
+});
+
+test('Windows paket metadata commit kimliğini ve temiz ürün kaynağını zorunlu tutar', () => {
+  const workflow = read('.github/workflows/build-windows.yml');
+  assert.match(workflow, /EXPECTED_SOURCE: \$\{\{ inputs\.source_ref \|\| github\.sha \}\}/);
+  assert.match(workflow, /\$metadata\.sourceCommit -ine \$env:EXPECTED_SOURCE/);
+  assert.match(workflow, /\$metadata\.sourceDirty -ne \$false/);
+  assert.ok(workflow.indexOf('$metadata.sourceCommit') < workflow.indexOf('uses: actions/upload-artifact@'));
+  assert.match(workflow, /run: git diff --exit-code/);
+  assert.match(workflow, /run: npx --no-install electron desktop\/smoke\.cjs/);
+});
