@@ -80,3 +80,55 @@ test("gelecek şemadaki yerel kayıt eski Dexie aynasıyla değiştirilmez veya 
   const primary=await coordinator.readPrimaryJSON();
   assert.equal(primary.ok,false);assert.match(primary.message,/daha yeni veri şemasında/);assert.equal(target.commits,0);
 });
+
+test("hesap beklenirken değişen yerel ayna eski başlangıç görüntüsüyle Dexie'ye yazılmaz",async()=>{
+  const old='{"v":21,"name":"Girişten önce"}',fresh='{"v":21,"name":"Diğer sekmenin yeni çalışması"}';
+  const x=await setup(old,null),{decodeState}=await import(dataUrl("codec.ts"));
+  let unlock;const ready=new Promise(resolve=>{unlock=resolve;});
+  x.target.readState=async()=>{await ready;return x.target.state;};
+  x.mirror.meta={hash:"",updatedAt:0};
+  const pending=x.coordinator.initialize();
+  x.mirror.value=decodeState(fresh);x.mirror.meta={hash:x.stateHash(fresh),updatedAt:2000};
+  x.target.state={key:"primary",json:fresh,schema:21,chars:fresh.length,bytes:fresh.length,source:"localStorage",sourceHash:x.stateHash(fresh),updatedAt:2000};
+  unlock();const result=await pending;
+  assert.equal(result.ok,true);assert.equal(result.status,"ready");
+  assert.equal(x.target.commits,0);assert.equal(x.target.state.json,fresh);
+  assert.deepEqual(x.runtime.applied,[fresh],"Yeni kayıt legacy S'ye de aktarılmalı; ilk kullanıcı düzenlemesi eski S'yi geri yazamaz");
+});
+
+test("geciken ana kayıt okuması eski aynayı buluta veya yedeğe döndürmez",async()=>{
+  const old='{"v":21,"name":"Eski"}',fresh='{"v":21,"name":"Bekleme sırasında kaydedilen"}';
+  const x=await setup(old,null),{decodeState}=await import(dataUrl("codec.ts"));
+  let unlock;const ready=new Promise(resolve=>{unlock=resolve;});
+  x.target.readState=async()=>{await ready;return x.target.state;};
+  const pending=x.coordinator.readPrimaryJSON();
+  x.mirror.value=decodeState(fresh);x.mirror.meta={hash:x.stateHash(fresh),updatedAt:2000};
+  x.target.state={key:"primary",json:fresh,schema:21,chars:fresh.length,bytes:fresh.length,source:"localStorage",sourceHash:x.stateHash(fresh),updatedAt:2000};
+  unlock();const result=await pending;
+  assert.equal(result.ok,true);assert.equal(result.json,fresh);assert.equal(x.target.commits,0);
+});
+
+test("gecikmiş IndexedDB hatasında başlangıç ve okuma en güncel yerel aynayı kullanır",async()=>{
+  const old='{"v":21,"name":"Eski"}',fresh='{"v":21,"name":"Güncel yerel kurtarma"}';
+  const x=await setup(old,null),{decodeState}=await import(dataUrl("codec.ts"));
+  let unlock;const ready=new Promise(resolve=>{unlock=resolve;});
+  x.target.readState=async()=>{await ready;throw Error("IndexedDB kapalı");};
+  const initialize=x.coordinator.initialize(),read=x.coordinator.readPrimaryJSON();
+  x.mirror.value=decodeState(fresh);x.mirror.meta={hash:x.stateHash(fresh),updatedAt:2000};
+  unlock();const [initialized,primary]=await Promise.all([initialize,read]);
+  assert.equal(initialized.status,"fallback-local");assert.equal(primary.ok,true);assert.equal(primary.json,fresh);
+  assert.deepEqual(x.runtime.applied,[fresh]);assert.equal(x.target.commits,0);
+});
+
+test("bekleme sırasında gelen gelecek şema eski kayıt olarak eşitlenmez",async()=>{
+  const old='{"v":21,"name":"Eski"}',future='{"v":22,"name":"Yeni sürümün çalışması"}';
+  const x=await setup(old,old),{decodeState}=await import(dataUrl("codec.ts"));
+  let unlock;const ready=new Promise(resolve=>{unlock=resolve;});
+  x.target.readState=async()=>{await ready;return x.target.state;};
+  const initialize=x.coordinator.initialize(),read=x.coordinator.readPrimaryJSON();
+  x.mirror.value=decodeState(future);x.mirror.meta={hash:x.stateHash(future),updatedAt:2000};
+  unlock();const [initialized,primary]=await Promise.all([initialize,read]);
+  assert.equal(initialized.ok,false);assert.equal(initialized.status,"future-schema");
+  assert.equal(primary.ok,false);assert.match(primary.message,/daha yeni veri şemasında/);
+  assert.equal(x.target.commits,0);assert.equal(x.runtime.applied.length,0);
+});

@@ -2641,7 +2641,7 @@ async function handleAuthTransition(u){
       if(localStorage.getItem(ACCOUNT_KEY)!==u.uid)throw new Error("Hesap bağı kaydedilemedi");
       setAccount(u.uid);
     }
-    catch(e){window.__YKS_SESSION__?.lock();publishAuth({phase:"error",email:u.email||"",message:"Hesabın doğrulandı ancak güvenli kayıt alanı açılamadı. Uygulamayı yeniden açıp dene; kayıtların korunuyor.",error:true});status("Kayıt alanı açılamadı","error","Güvenli kayıt alanı hazır olana kadar eşitleme başlatılmadı");return;}
+    catch(e){window.__YKS_SESSION__?.lock();publishAuth({phase:"error",email:u.email||"",message:window.__YKS_SESSION__?.getState?.()?.error||"Hesabın doğrulandı ancak güvenli kayıt alanı açılamadı. Uygulamayı yeniden açıp dene; kayıtların korunuyor.",error:true});status("Kayıt alanı açılamadı","error","Güvenli kayıt alanı hazır olana kadar eşitleme başlatılmadı");return;}
     if(transitionGeneration!==syncGeneration)return;
     user=u;
     publishAuth({phase:"signedin",email:u.email||"",message:"Hesabına giriş yaptın.",error:false});

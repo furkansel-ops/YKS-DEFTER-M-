@@ -21,26 +21,37 @@
     return keys;
   }
   function facade(storage){
-    var changes=new Map();
-    overlays.push({storage:storage,changes:changes});
+    var changes=new Map(),observed=new Map(),entry={storage:storage,changes:changes,observed:observed,enumerated:null};
+    overlays.push(entry);
+    function observe(key){
+      if(mode==="locked"&&isStudyKey(key)&&key!==ACCOUNT_KEY&&!observed.has(key))observed.set(key,storage.getItem(key));
+    }
     function getItem(key){
       key=String(key);
+      observe(key);
       if(mode==="account"||!isStudyKey(key))return storage.getItem(key);
       if(changes.has(key))return changes.get(key);
       return mode==="guest"?null:storage.getItem(key);
     }
     function setItem(key,value){
       key=String(key);value=String(value);
+      observe(key);
       if(mode==="account"||!isStudyKey(key))storage.setItem(key,value);
       else changes.set(key,value);
     }
     function removeItem(key){
       key=String(key);
+      observe(key);
       if(mode==="account"||!isStudyKey(key))storage.removeItem(key);
       else changes.set(key,null);
     }
     function keys(){
-      var visible=new Set(originalKeys(storage).filter(function(key){return mode!=="guest"||!isStudyKey(key);}));
+      var original=originalKeys(storage);
+      if(mode==="locked"&&entry.enumerated===null){
+        entry.enumerated=original.filter(function(key){return isStudyKey(key)&&key!==ACCOUNT_KEY;}).sort();
+        entry.enumerated.forEach(observe);
+      }
+      var visible=new Set(original.filter(function(key){return mode!=="guest"||!isStudyKey(key);}));
       if(mode!=="account")changes.forEach(function(value,key){if(value===null)visible.delete(key);else visible.add(key);});
       return Array.from(visible);
     }
@@ -107,12 +118,23 @@
       root.location.reload();
       return false;
     }
-    var before=[],ownerMismatch=false;
+    var before=[],ownerMismatch=false,storageChanged=false;
     try{
       /* Account ownership is a local persistence boundary, not a side effect of
          successful cloud upload. Read the real storage, never a stale overlay. */
       var storedOwner=nativeLocal.getItem(ACCOUNT_KEY);
       if(storedOwner&&storedOwner!==uid){ownerMismatch=true;throw new Error("account mismatch");}
+      /* Legacy S was loaded while the login screen was open. Another tab may
+         have saved since then. Never replay that stale in-memory notebook or
+         its startup writes over newer disk data; reopen from a fresh page. */
+      overlays.forEach(function(entry){
+        entry.observed.forEach(function(value,key){if(entry.storage.getItem(key)!==value)storageChanged=true;});
+        if(entry.enumerated!==null){
+          var current=originalKeys(entry.storage).filter(function(key){return isStudyKey(key)&&key!==ACCOUNT_KEY;}).sort();
+          if(JSON.stringify(current)!==JSON.stringify(entry.enumerated))storageChanged=true;
+        }
+      });
+      if(storageChanged)throw new Error("study storage changed while locked");
       before.push({storage:nativeLocal,key:ACCOUNT_KEY,value:storedOwner,next:uid,owner:true});
       overlays.forEach(function(entry){entry.changes.forEach(function(value,key){
         if(entry.storage===nativeLocal&&key===ACCOUNT_KEY)return;
@@ -136,10 +158,10 @@
         if(entry.value===null)entry.storage.removeItem(entry.key);else entry.storage.setItem(entry.key,entry.value);
         if(entry.storage.getItem(entry.key)!==entry.value)rollbackFailed=true;
       }catch(restoreError){rollbackFailed=true;}});
-      lastError=ownerMismatch?"Bu cihazdaki kayıtlar başka hesaba bağlı. Kayıtların bağlı olduğu hesapla giriş yapmalısın.":rollbackFailed?"Kayıt alanı işlemi tamamlanamadı. Güvenlik için kayıt ve eşitleme durduruldu; aynı hesapla yeniden dene.":"Hesabın açıldı ancak kayıt alanı kullanılamıyor. Cihazındaki eski kayıtlar korunuyor.";
+      lastError=ownerMismatch?"Bu cihazdaki kayıtlar başka hesaba bağlı. Kayıtların bağlı olduğu hesapla giriş yapmalısın.":storageChanged?"Kayıtlar diğer sekmede değişti. Güncel defteri açmak için sayfayı yenile; mevcut kayıtlarına dokunulmadı.":rollbackFailed?"Kayıt alanı işlemi tamamlanamadı. Güvenlik için kayıt ve eşitleme durduruldu; aynı hesapla yeniden dene.":"Hesabın açıldı ancak kayıt alanı kullanılamıyor. Cihazındaki eski kayıtlar korunuyor.";
       revision++;mode="locked";emit();throw new Error(lastError);
     }
-    overlays.forEach(function(entry){entry.changes.clear();});
+    overlays.forEach(function(entry){entry.changes.clear();entry.observed.clear();entry.enumerated=null;});
     accountUid=uid;revision++;mode="account";lastError="";resolveReady(mode);emit();
     return true;
   }
@@ -150,7 +172,7 @@
     lock();
     overlays.forEach(function(entry){
       originalKeys(entry.storage).filter(isStudyKey).forEach(function(key){entry.storage.removeItem(key);});
-      entry.changes.clear();
+      entry.changes.clear();entry.observed.clear();entry.enumerated=null;
     });
   }
   var api=Object.freeze({

@@ -68,13 +68,24 @@ export class PrimaryStateCoordinator{
   }
 
   async initialize():Promise<PrimaryInitResult>{
-    const local=this.#mirror.read(),mirrorMeta=this.#mirror.readMirrorMetadata();
+    const initialLocal=this.#mirror.read();
+    const useLocal=(local:RepositoryReadResult,result:PrimaryInitResult):PrimaryInitResult=>{
+      // Account readiness can defer the IndexedDB read. If disk changed during
+      // that await, the visible legacy state must also receive the fresh copy.
+      if(local.ok&&(!initialLocal.ok||initialLocal.json!==local.json)){
+        const applied=this.#runtime.applyJSON(local.json);
+        if(!applied.ok)return {ok:false,status:"failed",primary:"none",degraded:true,message:applied.message};
+      }
+      return result;
+    };
     let indexed:IndexedStateRecord|undefined;
     try{indexed=await this.#target.readState();}
     catch(error){
-      if(local.ok)return {ok:true,status:"fallback-local",primary:"localStorage",degraded:true,message:"IndexedDB açılamadı; güvenli yerel ayna kullanılıyor",hash:stateHash(local.json),schema:local.schema};
+      const local=this.#mirror.read();
+      if(local.ok)return useLocal(local,{ok:true,status:"fallback-local",primary:"localStorage",degraded:true,message:"IndexedDB açılamadı; güvenli yerel ayna kullanılıyor",hash:stateHash(local.json),schema:local.schema});
       return {ok:false,status:"failed",primary:"none",degraded:true,message:error instanceof Error?error.message:"Hiçbir veri kaynağı açılamadı"};
     }
+    const local=this.#mirror.read(),mirrorMeta=this.#mirror.readMirrorMetadata();
 
     const indexedDecoded=indexedState(indexed);
     /* Daha yeni bir uygulamanın yazdığı localStorage kaydını, bu sürümdeki eski
@@ -94,9 +105,9 @@ export class PrimaryStateCoordinator{
 
     if(local.ok&&!indexedDecoded){
       const written=await this.persistJSON(local.json,Math.max(this.#now(),mirrorMeta.updatedAt));
-      return written.ok
+      return useLocal(local,written.ok
         ?{ok:true,status:indexed?"local-newer":"seeded-indexed",primary:"dexie",degraded:false,message:"Yerel ayna Dexie ana kaydına aktarıldı",hash:written.hash,schema:local.schema}
-        :{ok:true,status:"fallback-local",primary:"localStorage",degraded:true,message:written.message,hash:stateHash(local.json),schema:local.schema};
+        :{ok:true,status:"fallback-local",primary:"localStorage",degraded:true,message:written.message,hash:stateHash(local.json),schema:local.schema});
     }
 
     if(!local.ok&&indexed&&indexedDecoded?.ok){
@@ -107,15 +118,15 @@ export class PrimaryStateCoordinator{
     const localHash=stateHash(local.json);
     if(localHash===indexed.sourceHash&&local.json===indexed.json){
       this.#mirror.writeMirrorMetadata(localHash,Math.max(mirrorMeta.updatedAt,indexed.updatedAt));
-      return {ok:true,status:"ready",primary:"dexie",degraded:false,message:"Dexie ana kaydı ve güvenli ayna eşleşiyor",hash:localHash,schema:local.schema};
+      return useLocal(local,{ok:true,status:"ready",primary:"dexie",degraded:false,message:"Dexie ana kaydı ve güvenli ayna eşleşiyor",hash:localHash,schema:local.schema});
     }
 
     const mirrorTracked=mirrorMeta.hash===localHash&&mirrorMeta.updatedAt>0;
     if(!mirrorTracked||mirrorMeta.updatedAt>=indexed.updatedAt){
       const written=await this.persistJSON(local.json,Math.max(this.#now(),mirrorMeta.updatedAt,indexed.updatedAt+1));
-      return written.ok
+      return useLocal(local,written.ok
         ?{ok:true,status:"local-newer",primary:"dexie",degraded:false,message:"Daha yeni yerel değişiklik Dexie'ye aktarıldı",hash:written.hash,schema:local.schema}
-        :{ok:true,status:"fallback-local",primary:"localStorage",degraded:true,message:written.message,hash:localHash,schema:local.schema};
+        :{ok:true,status:"fallback-local",primary:"localStorage",degraded:true,message:written.message,hash:localHash,schema:local.schema});
     }
     return this.#restoreIndexed(indexed,"indexed-newer");
   }
@@ -137,12 +148,13 @@ export class PrimaryStateCoordinator{
   }
 
   async readPrimaryJSON():Promise<PrimaryJSONResult|{ok:false;message:string}>{
+    let indexed:IndexedStateRecord|undefined,readFailed=false;
+    try{indexed=await this.#target.readState();}catch{readFailed=true;}
     const local=this.#mirror.read(),mirrorMeta=this.#mirror.readMirrorMetadata();
     if(!local.ok&&local.kind==="future-schema"){
       return {ok:false,message:`Yerel kayıt daha yeni veri şemasında (${local.schema??"?"}); eski kayıt buluta gönderilmedi`};
     }
-    let indexed:IndexedStateRecord|undefined;
-    try{indexed=await this.#target.readState();}catch{
+    if(readFailed){
       if(local.ok)return {ok:true,json:local.json,hash:stateHash(local.json),schema:local.schema,source:"localStorage",updatedAt:mirrorMeta.updatedAt};
       return {ok:false,message:"Ana kayıt okunamadı"};
     }

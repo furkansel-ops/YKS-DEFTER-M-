@@ -189,6 +189,51 @@ test("kaydetmeden başlatma işareti yazılamazsa eski defterden devam edilmez",
   assert.equal(h.window.reloads,0);assert.equal(h.api.mode,"locked");assert.equal(local.getItem("yks"),"saved");
 });
 
+test("giriş beklerken başka sekme kaydederse salt okunmuş eski S hesabı açamaz",async()=>{
+  const disk=storage({yks:"old-before-login",yks_cloud_account:"owner"}),h=harness(disk);
+  assert.equal(h.window.localStorage.getItem("yks"),"old-before-login");
+  disk.setItem("yks","newer-work-from-other-tab");
+  let ready=false;h.api.ready.then(()=>{ready=true;});
+  assert.throws(()=>h.api.enterAccount("owner"),/diğer sekmede değişti.*sayfayı yenile/);
+  await Promise.resolve();assert.equal(ready,false);assert.equal(h.api.canPersist(),false);
+  assert.equal(h.window.reloads,0,"Recovery must not create an automatic reload loop");
+  assert.equal(disk.getItem("yks"),"newer-work-from-other-tab");
+  assert.equal(disk.getItem("yks_cloud_account"),"owner");
+  const fresh=harness(disk);
+  assert.equal(fresh.window.localStorage.getItem("yks"),"newer-work-from-other-tab");
+  assert.equal(fresh.api.enterAccount("owner"),true);
+});
+
+test("giriş başlangıç yazıları başka sekmenin yeni çalışmasının üzerine oynatılmaz",()=>{
+  const disk=storage({yks:"original",yks_cloud_account:"owner"}),h=harness(disk);
+  h.window.localStorage.setItem("yks","stale-startup-normalization");
+  h.window.localStorage.setItem("yks_device_id","quarantined-device");
+  disk.setItem("yks","newer-in-other-tab");
+  const before=Object.fromEntries(disk.rows);
+  assert.throws(()=>h.api.enterAccount("owner"),/diğer sekmede değişti/);
+  assert.deepEqual(Object.fromEntries(disk.rows),before);
+  assert.equal(h.api.mode,"locked");
+});
+
+test("kilitli depo sayımı sonrası eklenen çalışma anahtarı yeniden açılış gerektirir",()=>{
+  const disk=storage({yks:"saved",yks_cloud_account:"owner"}),h=harness(disk);
+  assert.equal(h.window.localStorage.length,2);
+  disk.setItem("yks_error_fix_notes_v3","new-note-from-other-tab");
+  assert.throws(()=>h.api.enterAccount("owner"),/diğer sekmede değişti/);
+  assert.equal(disk.getItem("yks_error_fix_notes_v3"),"new-note-from-other-tab");
+  assert.equal(h.api.mode,"locked");
+});
+
+test("hesap sağlayıcısının oturum anahtarları çalışma değişikliği sayılmaz",()=>{
+  const disk=storage({yks:"saved"}),h=harness(disk);
+  assert.equal(h.window.localStorage.length,1);
+  assert.equal(h.window.localStorage.getItem("yks"),"saved");
+  disk.setItem("firebase:authUser:fixture","sdk-session");
+  disk.setItem("yks_cloud_account","owner");
+  assert.equal(h.api.enterAccount("owner"),true);
+  assert.equal(disk.getItem("yks"),"saved");
+});
+
 function session(mode){
   let resolve;const ready=new Promise(done=>{resolve=done;});if(mode!=="locked")resolve(mode);
   return {mode,revision:0,ready,resolve,getState(){return {mode:this.mode,revision:this.revision};}};

@@ -8,6 +8,7 @@ Bu sürüm GitHub üzerinden arkadaş testi içindir; Play Store yayını değil
 - Çalışmayı kaydetmek, yedek almak ve telefon–Windows–web arasında eşitlemek için doğrulanmış hesap gerekir. Kalıcı oturumu olan kullanıcıdan her açılışta yeniden şifre istenmez; hesaba ait cihaz kayıtları çevrimdışı kullanılabilir.
 - **Kaydetmeden dene** hesabı olmayanların uygulamayı kullanmasını sağlar. Deneme boş ve geçicidir: yenileme veya kapatma ile biter, hesaba aktarılmaz ve eski cihaz kayıtlarını değiştirmez.
 - Eski cihaz verileri ve hesap bağı korunur. Yanlış hesaba giriş eski çalışma kayıtlarının başka hesaba gönderilmesine izin vermez.
+- Giriş ekranı beklerken başka sekmede kayıt değişirse uygulama eski verileri yazmak yerine güvenli yenileme ister.
 
 ## Kurulum ve mevcut Google hesabı
 

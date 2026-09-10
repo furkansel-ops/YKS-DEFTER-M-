@@ -248,3 +248,11 @@ test("kayıt alanı açılamazsa veya çıkış başarısızsa oturum kapısı k
   h.hooks.signOut=()=>{throw new Error("signout unavailable");};await h.api.signOut();
   assert.equal(h.api.getState().phase,"blocked");assert.equal(h.api.getState().busy,false);assert.equal(h.run("user"),null);assert.ok(session.locks>=3);
 });
+
+test("başka sekmede değişen kayıt için güvenli yenileme açıklaması giriş ekranına ulaşır",async()=>{
+  const message="Kayıtlar diğer sekmede değişti. Güncel defteri açmak için sayfayı yenile; mevcut kayıtlarına dokunulmadı.";
+  const session={mode:"locked",lock(){this.mode="locked";},getState(){return {error:message};},enterAccount(){throw new Error("stale startup");}};
+  const h=await harness({session});h.stubDownloads();await h.transition(verifiedUser());
+  assert.equal(h.api.getState().phase,"error");assert.equal(h.api.getState().message,message);
+  assert.equal(h.run("user"),null);assert.equal(h.calls.downloads,0);assert.equal(h.calls.writes,0);
+});
