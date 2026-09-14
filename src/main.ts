@@ -105,10 +105,16 @@ function loadTeachersV2Media():void{
   if(document.documentElement.dataset.teachersV2Media==="ready"||document.documentElement.dataset.teachersV2Media==="loading")return;
   document.documentElement.dataset.teachersV2Media="loading";
   void import("./ui/teachers-v2-media")
-    .then(()=>import("./ui/teachers-v2-library").catch(error=>{
-      document.documentElement.dataset.teachersV2Library="deferred";
-      console.error("Hocalar v2 kişisel video kütüphanesi yüklenemedi",error);
-    }))
+    .then(()=>{
+      void import("./ui/teachers-v2-custom-fast").catch(error=>{
+        document.documentElement.dataset.teachersV2CustomFast="deferred";
+        console.error("Hocalar v2 özel hoca hızlı erişimi yüklenemedi",error);
+      });
+      return import("./ui/teachers-v2-library").catch(error=>{
+        document.documentElement.dataset.teachersV2Library="deferred";
+        console.error("Hocalar v2 kişisel video kütüphanesi yüklenemedi",error);
+      });
+    })
     .catch(error=>{
       document.documentElement.dataset.teachersV2Media="deferred";
       console.error("Hocalar v2 medya katmanı yüklenemedi",error);
