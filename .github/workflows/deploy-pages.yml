@@ -5,6 +5,8 @@ on:
     branches:
       - main
   workflow_dispatch:
+  schedule:
+    - cron: "17 3 * * *"
 
 permissions:
   contents: read
@@ -34,6 +36,13 @@ jobs:
 
       - name: Bağımlılıkları kur
         run: npm ci --no-audit --no-fund
+
+      - name: Hocalar v2 medya akışını yenile
+        continue-on-error: true
+        run: |
+          python3 -m pip install --disable-pip-version-check --quiet yt-dlp
+          python3 -m yt_dlp --version
+          node scripts/refresh-teachers-v2-feed.mjs
 
       - name: Kararlı sürümü doğrula ve derle
         run: npm run release:check
