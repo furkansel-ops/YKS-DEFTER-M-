@@ -32,7 +32,7 @@ test("Hocalar v2 video kütüphanesi kaydetme ve tekrar açma yüzeylerini paket
   const source=library();
   assert.match(source,/Kütüphanem/);
   assert.match(source,/★ Kaydettiklerim/);
-  assert.match(source,/data-library-action="toggle"/);
+  assert.match(source,/button\.dataset\.libraryAction="toggle"/);
   assert.match(source,/★ Kaydedildi/);
   assert.match(source,/youtube-nocookie\.com\/embed/);
   assert.match(source,/if\(button\.textContent!==label\)button\.textContent=label/);
