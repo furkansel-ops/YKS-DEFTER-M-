@@ -23,7 +23,7 @@ test("Hocalar v2 video içi arama ile izlendi ve izlenmedi süzgeçlerini birlik
   assert.match(source,/type FilterKind=.*"watched"\|"unwatched"/);
   assert.match(source,/\['unwatched','İzlenmedi'\]/);
   assert.match(source,/\['watched','İzlendi'\]/);
-  assert.match(source,/norm\(\[video\.title,video\.channel/);
+  assert.match(source,/norm\(\[(?:video|v)\.title,(?:video|v)\.channel/);
   assert.match(source,/updateVideoGrid/);
 });
 
