@@ -18,7 +18,6 @@ import {installRecoveryCenter} from "./ui/recovery-center";
 import {installV43SafeRuntime} from "./ui/v43-safe-runtime";
 import {installPlayStoreShell} from "./ui/play-store-shell";
 import {installParagraphProblemTracker} from "./ui/paragraph-problem-tracker";
-import {installTeacherVideos} from "./ui/teacher-videos";
 import "./ui/visual-stability-hotfix.css";
 import "./ui/recent-feature-stability.css";
 import "./ui/topics-toolbar-hotfix.css";
@@ -83,6 +82,24 @@ function installOptional<T>(name:string,installer:()=>T,fallback:T):T{
 }
 document.documentElement.dataset.v4OptionalErrors="0";
 
+function loadTeacherVideosRuntime():void{
+  if(document.querySelector('script[data-yks-teacher-videos="true"]'))return;
+  const script=document.createElement("script");
+  script.src=new URL("./teacher-videos.js",document.baseURI).href;
+  script.async=true;
+  script.dataset.yksTeacherVideos="true";
+  document.documentElement.dataset.teacherVideosRuntime="loading";
+  script.addEventListener("load",()=>{
+    document.documentElement.dataset.teacherVideosRuntime=
+      document.documentElement.dataset.teacherVideos==="ready"?"ready":"loaded";
+  },{once:true});
+  script.addEventListener("error",()=>{
+    document.documentElement.dataset.teacherVideosRuntime="deferred";
+    console.error("Hoca videoları çalışma zamanı yüklenemedi");
+  },{once:true});
+  document.head.appendChild(script);
+}
+
 /* Çekirdek açılış zinciri yalnız kararlı altyapı modüllerinden oluşur.
    Ürün katmanları ve yardımcı arayüzler fail-open sınırlarında tutulur: tek bir yeni
    özellik hata verirse uygulamanın geri kalanı açılmaya devam eder. */
@@ -108,11 +125,6 @@ const paragraphProblem=installOptional(
 );
 const screens=installScreenRuntime();
 const ui=installLegacyUiBridge(screens);
-const teacherVideos=installOptional(
-  "teacher-videos",
-  ()=>installTeacherVideos(),
-  {installed:false}
-);
 window.__YKS_V4_BOOTSTRAP__=bootstrap;
 installReleaseOverlay();
 document.documentElement.dataset.v4Runtime="ready";
@@ -126,8 +138,9 @@ document.documentElement.dataset.v4ProgressAnalysisErrors=String(progressAnalysi
 document.documentElement.dataset.v4ExamAnalysisErrors=String(examAnalysis.validate().length);
 document.documentElement.dataset.v4PwaBuild=pwa.build;
 document.documentElement.dataset.paragraphProblemTracker=paragraphProblem.installed?"ready":"deferred";
-document.documentElement.dataset.teacherVideosRuntime=teacherVideos.installed?"ready":"deferred";
 window.dispatchEvent(new CustomEvent<BootstrapState>("yks:v4-bootstrap",{detail:bootstrap}));
+
+loadTeacherVideosRuntime();
 
 const playStoreShell=installOptional(
   "play-store-shell",
