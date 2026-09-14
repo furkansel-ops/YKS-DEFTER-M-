@@ -4,6 +4,12 @@
   transition:none!important;
 }
 
+/* Hoca ayrıntısı tam ekran modal olarak açılır. Bulut senkron kutusu
+   eski z-index değeri nedeniyle modalın üstüne çıkmamalı. */
+body.teacher-open #cloudSyncBox{
+  display:none!important;
+}
+
 @media (pointer:coarse){
   .pp-head-badge,
   .pp-kpi,
