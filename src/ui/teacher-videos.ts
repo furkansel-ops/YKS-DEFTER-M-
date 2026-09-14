@@ -13,17 +13,15 @@ type LegacyVideo={
 
 type TeacherCardRenderer=(teacher:LegacyTeacher)=>string;
 type TeacherListRenderer=()=>void;
+type LegacyWindow=Window&{
+  teacherCard?:TeacherCardRenderer;
+  renderTeachers?:TeacherListRenderer;
+  resolveChannel?:(teacher:string)=>Promise<string>;
+  ytFetch?:(query:string,options?:Record<string,string>)=>Promise<LegacyVideo[]>;
+  ytTeacher?:(teacher:string,kind:string,subject:string)=>unknown;
+};
 
-declare global{
-  interface Window{
-    teacherCard?:TeacherCardRenderer;
-    renderTeachers?:TeacherListRenderer;
-    resolveChannel?:(teacher:string)=>Promise<string>;
-    ytFetch?:(query:string,options?:Record<string,string>)=>Promise<LegacyVideo[]>;
-    ytTeacher?:(teacher:string,kind:string,subject:string)=>unknown;
-  }
-}
-
+const legacyWindow=window as unknown as LegacyWindow;
 const STYLE_ID="yks-teacher-videos-style";
 const PLAYER_ID="yks-teacher-video-player";
 const cache=new Map<string,LegacyVideo[]>();
@@ -100,12 +98,12 @@ async function fetchTeacherVideos(teacher:string,subject:string,force=false):Pro
   if(force)cache.delete(key);
   const prior=cache.get(key);
   if(prior)return prior;
-  const fetcher=window.ytFetch;
+  const fetcher=legacyWindow.ytFetch;
   if(typeof fetcher!=="function")throw new Error("Video servisi henüz hazır değil");
 
   let channelId="";
-  if(typeof window.resolveChannel==="function"){
-    try{channelId=await window.resolveChannel(teacher);}catch{channelId="";}
+  if(typeof legacyWindow.resolveChannel==="function"){
+    try{channelId=await legacyWindow.resolveChannel(teacher);}catch{channelId="";}
   }
   const query=channelId
     ?(`${subject||"YKS"} YKS`.replace(/\s+/g," ").trim())
@@ -176,7 +174,7 @@ async function hydrate(host:HTMLElement,force=false):Promise<void>{
   const key=videoKey(teacher,subject);
   host.querySelector<HTMLButtonElement>(".teacher-video-all")?.addEventListener("click",(event)=>{
     event.stopPropagation();
-    if(typeof window.ytTeacher==="function")window.ytTeacher(teacher,"kanal",subject);
+    if(typeof legacyWindow.ytTeacher==="function")legacyWindow.ytTeacher(teacher,"kanal",subject);
     else window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(`${teacher} ${subject} YKS`)}`,"_blank","noopener,noreferrer");
   },{once:true});
   host.querySelector<HTMLButtonElement>(".teacher-video-refresh")?.addEventListener("click",(event)=>{
@@ -210,15 +208,15 @@ function hydrateOpenTeacher():void{
 
 export function installTeacherVideos():{installed:boolean}{
   injectStyles();
-  const originalTeacherCard=window.teacherCard;
-  const originalRenderTeachers=window.renderTeachers;
+  const originalTeacherCard=legacyWindow.teacherCard;
+  const originalRenderTeachers=legacyWindow.renderTeachers;
   if(typeof originalTeacherCard!=="function"||typeof originalRenderTeachers!=="function"){
     document.documentElement.dataset.teacherVideos="legacy-missing";
     return {installed:false};
   }
   if(document.documentElement.dataset.teacherVideos==="ready")return {installed:true};
 
-  window.teacherCard=(teacher:LegacyTeacher):string=>{
+  legacyWindow.teacherCard=(teacher:LegacyTeacher):string=>{
     const html=originalTeacherCard(teacher);
     if(!/class="thcard[^\"]*\bopen\b/u.test(html)||html.includes("teacher-video-strip"))return html;
     const teacherName=String(teacher.a??"").trim();
@@ -228,7 +226,7 @@ export function installTeacherVideos():{installed:boolean}{
     return lastClose>=0?`${html.slice(0,lastClose)}${marker}${html.slice(lastClose)}`:`${html}${marker}`;
   };
 
-  window.renderTeachers=():void=>{
+  legacyWindow.renderTeachers=():void=>{
     originalRenderTeachers();
     queueMicrotask(hydrateOpenTeacher);
   };
@@ -236,7 +234,7 @@ export function installTeacherVideos():{installed:boolean}{
   document.addEventListener("keydown",(event)=>{if(event.key==="Escape")closePlayer();});
   document.documentElement.dataset.teacherVideos="ready";
   queueMicrotask(()=>{
-    window.renderTeachers?.();
+    legacyWindow.renderTeachers?.();
     hydrateOpenTeacher();
   });
   return {installed:true};
