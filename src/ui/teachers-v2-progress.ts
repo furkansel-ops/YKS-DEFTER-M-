@@ -167,7 +167,7 @@ function render(force=false):void{
   const teacherCount=new Set(rows30.map(row=>row.teacher)).size;
   const series=sevenDaySeries(rows7,now);
   const maxDay=Math.max(1,...series.map(item=>item.count));
-  const last=rows[0];
+  const last=rows[0]!;
 
   panel.innerHTML=`<div class="teachers-v2-progress-head">
       <div><span>Kişisel takip</span><h3>Video ilerlemem</h3></div>
