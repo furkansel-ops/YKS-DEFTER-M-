@@ -7,6 +7,7 @@
   var loading=new Set();
   var observer=null;
   var scanQueued=false;
+  var healTimer=0;
 
   function esc(value){
     return String(value==null?"":value)
@@ -21,16 +22,8 @@
     if(document.getElementById(STYLE_ID))return;
     var style=document.createElement("style");
     style.id=STYLE_ID;
-    style.textContent="\n.teacher-video-strip{margin-top:18px;padding-top:16px;border-top:.5px solid var(--sep,rgba(127,127,127,.25))}\n.teacher-video-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}\n.teacher-video-head strong{font-size:16px;color:var(--label,#111)}\n.teacher-video-head-actions{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}\n.teacher-video-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px}\n.teacher-video-item,.teacher-video-search{appearance:none;-webkit-appearance:none;width:100%;border:.5px solid var(--sep,rgba(127,127,127,.25));background:var(--glass,rgba(255,255,255,.7));border-radius:14px;padding:0;overflow:hidden;text-align:left;color:inherit;cursor:pointer;box-shadow:var(--shadow-1,0 2px 10px rgba(0,0,0,.05));transition:transform .12s ease,border-color .12s ease}\n.teacher-video-item:active,.teacher-video-search:active{transform:scale(.985)}\n.teacher-video-thumb{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;background:rgba(127,127,127,.14)}\n.teacher-video-fallback{display:grid;place-items:center;width:100%;aspect-ratio:16/9;background:linear-gradient(135deg,rgba(255,0,0,.14),rgba(127,127,127,.08));font-size:30px}\n.teacher-video-copy{display:block;padding:10px 11px 11px}\n.teacher-video-title{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:13.5px;font-weight:700;line-height:1.35;color:var(--label,#111)}\n.teacher-video-meta{display:block;margin-top:5px;font-size:11.5px;line-height:1.3;color:var(--label-3,#777);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}\n.teacher-video-state{grid-column:1/-1;padding:14px;border-radius:12px;background:rgba(127,127,127,.08);font-size:13px;line-height:1.45;color:var(--label-2,#555)}\n.teacher-video-search .teacher-video-fallback{font-size:27px;font-weight:800;color:#e11d48}\n.teacher-video-player{position:fixed;inset:0;z-index:950;display:grid;place-items:center;padding:18px;background:rgba(0,0,0,.72);backdrop-filter:blur(12px)}\n.teacher-video-player-card{width:min(920px,100%);max-height:calc(100dvh - 36px);overflow:auto;border-radius:18px;background:var(--bg,#111);box-shadow:0 24px 80px rgba(0,0,0,.38)}\n.teacher-video-player-top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px}\n.teacher-video-player-top strong{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--label,#fff)}\n.teacher-video-player-frame{display:block;width:100%;aspect-ratio:16/9;border:0;background:#000}\n.teacher-video-player-actions{display:flex;justify-content:flex-end;gap:8px;padding:12px 14px}\n@media(max-width:620px){.teacher-video-grid{grid-template-columns:1fr 1fr}.teacher-video-head{align-items:flex-start}.teacher-video-item,.teacher-video-search{border-radius:12px}.teacher-video-copy{padding:8px}.teacher-video-title{font-size:12.5px}}\n@media(max-width:430px){.teacher-video-grid{grid-template-columns:1fr}}\n";
+    style.textContent="\n.teacher-video-strip{width:100%;max-width:760px;margin:22px auto 0;padding-top:18px;border-top:.5px solid var(--sep,rgba(127,127,127,.25));text-align:left!important}\n.teacher-video-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}\n.teacher-video-head strong{font-size:17px;color:var(--label,#111)}\n.teacher-video-head-actions{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}\n.teacher-video-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px}\n.teacher-video-item,.teacher-video-search{appearance:none;-webkit-appearance:none;width:100%;border:.5px solid var(--sep,rgba(127,127,127,.25));background:var(--glass,rgba(255,255,255,.7));border-radius:14px;padding:0;overflow:hidden;text-align:left;color:inherit;cursor:pointer;box-shadow:var(--shadow-1,0 2px 10px rgba(0,0,0,.05));transition:transform .12s ease,border-color .12s ease}\n.teacher-video-item:active,.teacher-video-search:active{transform:scale(.985)}\n.teacher-video-thumb{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;background:rgba(127,127,127,.14)}\n.teacher-video-fallback{display:grid;place-items:center;width:100%;aspect-ratio:16/9;background:linear-gradient(135deg,rgba(255,0,0,.16),rgba(127,127,127,.08));font-size:30px}\n.teacher-video-copy{display:block;padding:10px 11px 11px}\n.teacher-video-title{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:13.5px;font-weight:700;line-height:1.35;color:var(--label,#111)}\n.teacher-video-meta{display:block;margin-top:5px;font-size:11.5px;line-height:1.3;color:var(--label-3,#777);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}\n.teacher-video-note{grid-column:1/-1;padding:12px 14px;border-radius:12px;background:rgba(127,127,127,.08);font-size:12.5px;line-height:1.45;color:var(--label-2,#555)}\n.teacher-video-search .teacher-video-fallback{font-size:27px;font-weight:800;color:#e11d48}\n.teacher-video-player{position:fixed;inset:0;z-index:950;display:grid;place-items:center;padding:18px;background:rgba(0,0,0,.72);backdrop-filter:blur(12px)}\n.teacher-video-player-card{width:min(920px,100%);max-height:calc(100dvh - 36px);overflow:auto;border-radius:18px;background:var(--bg,#111);box-shadow:0 24px 80px rgba(0,0,0,.38)}\n.teacher-video-player-top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px}\n.teacher-video-player-top strong{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--label,#fff)}\n.teacher-video-player-frame{display:block;width:100%;aspect-ratio:16/9;border:0;background:#000}\n.teacher-video-player-actions{display:flex;justify-content:flex-end;gap:8px;padding:12px 14px}\n@media(max-width:620px){.teacher-video-grid{grid-template-columns:1fr 1fr}.teacher-video-head{align-items:flex-start}.teacher-video-item,.teacher-video-search{border-radius:12px}.teacher-video-copy{padding:8px}.teacher-video-title{font-size:12.5px}}\n@media(max-width:430px){.teacher-video-grid{grid-template-columns:1fr}}\n";
     document.head.appendChild(style);
-  }
-
-  function stripMarkup(teacher,subject){
-    return '<section class="teacher-video-strip" data-teacher="'+esc(teacher)+'" data-subject="'+esc(subject)+'" aria-label="'+esc(teacher)+' son videoları">'+
-      '<div class="teacher-video-head"><strong>Son videolar</strong><span class="teacher-video-head-actions">'+
-      '<button class="btn ghost tiny teacher-video-all" type="button">Tüm videolar</button>'+
-      '<button class="btn ghost tiny teacher-video-refresh" type="button">Yenile</button></span></div>'+
-      '<div class="teacher-video-grid"><div class="teacher-video-state">Videolar hazırlanıyor…</div></div></section>';
   }
 
   function teacherNameFromCard(card){
@@ -60,31 +53,6 @@
       seen.add(id);
       return true;
     }).slice(0,6);
-  }
-
-  async function fetchTeacherVideos(teacher,subject,force){
-    var key=videoKey(teacher,subject);
-    if(force)cache.delete(key);
-    if(cache.has(key))return cache.get(key);
-    if(typeof window.ytFetch!=="function")throw new Error("video-servisi-hazir-degil");
-    if(typeof window.ytSource==="function"&&window.ytSource()==="link")throw new Error("api-anahtari-yok");
-
-    var channelId="";
-    if(typeof window.resolveChannel==="function"){
-      try{channelId=await window.resolveChannel(teacher);}catch(_error){channelId="";}
-    }
-
-    var topic=String(subject||"YKS").trim();
-    var query=channelId?(topic+" YKS"):(teacher+" "+topic+" YKS");
-    var options=channelId?{channelId:channelId}:{};
-    var result=validVideos(await window.ytFetch(query.replace(/\s+/g," ").trim(),options));
-
-    if(!result.length&&channelId){
-      result=validVideos(await window.ytFetch((teacher+" "+topic+" YKS").replace(/\s+/g," ").trim(),{}));
-    }
-
-    cache.set(key,result);
-    return result;
   }
 
   function formatDate(value){
@@ -127,20 +95,18 @@
     window.open("https://www.youtube.com/results?search_query="+encodeURIComponent((teacher+" "+subject+" "+tail+" YKS").replace(/\s+/g," ").trim()),"_blank","noopener,noreferrer");
   }
 
-  function renderSearchFallback(host,reason){
+  function renderFallback(host,message){
     var grid=host.querySelector(".teacher-video-grid");
     if(!grid)return;
     var teacher=String(host.dataset.teacher||"").trim();
     var subject=String(host.dataset.subject||"YKS").trim()||"YKS";
-    grid.innerHTML='<div class="teacher-video-state">'+
-      (reason==="api-anahtari-yok"?"Video arama anahtarı ayarlı değil; yine de aşağıdaki seçeneklerden hocanın YouTube videolarını doğrudan açabilirsin.":"Video listesi alınamadı; YouTube araması hazır.")+
-      '</div>';
+    grid.innerHTML='<div class="teacher-video-note">'+esc(message||"Videoları açmak için bir seçenek seç.")+'</div>';
     [["▶","Konu anlatımı","konu"],["＋","Soru çözümü","soru"],["✓","Deneme çözümü","deneme"]].forEach(function(item){
       var button=document.createElement("button");
       button.type="button";
       button.className="teacher-video-search";
+      button.dataset.kind=item[2];
       button.innerHTML='<span class="teacher-video-fallback">'+item[0]+'</span><span class="teacher-video-copy"><span class="teacher-video-title">'+esc(item[1])+'</span><span class="teacher-video-meta">'+esc(teacher+' · '+subject)+'</span></span>';
-      button.addEventListener("click",function(event){event.stopPropagation();openSearch(teacher,subject,item[2]);});
       grid.appendChild(button);
     });
   }
@@ -148,7 +114,7 @@
   function renderVideos(host,items){
     var grid=host.querySelector(".teacher-video-grid");
     if(!grid)return;
-    if(!items.length){renderSearchFallback(host,"empty");return;}
+    if(!items.length){renderFallback(host,"Bu hoca için doğrudan sonuç alınamadı. YouTube seçeneklerini kullanabilirsin.");return;}
     grid.innerHTML="";
     items.forEach(function(video){
       var button=document.createElement("button");
@@ -162,6 +128,61 @@
     });
   }
 
+  async function fetchTeacherVideos(teacher,subject,force){
+    var key=videoKey(teacher,subject);
+    if(force)cache.delete(key);
+    if(cache.has(key))return cache.get(key);
+    if(typeof window.ytFetch!=="function")throw new Error("video-servisi-hazir-degil");
+
+    var channelId="";
+    if(typeof window.resolveChannel==="function"){
+      try{channelId=await window.resolveChannel(teacher);}catch(_error){channelId="";}
+    }
+
+    var topic=String(subject||"YKS").trim();
+    var query=channelId?(topic+" YKS"):(teacher+" "+topic+" YKS");
+    var options=channelId?{channelId:channelId}:{};
+    var result=validVideos(await window.ytFetch(query.replace(/\s+/g," ").trim(),options));
+    if(!result.length&&channelId){
+      result=validVideos(await window.ytFetch((teacher+" "+topic+" YKS").replace(/\s+/g," ").trim(),{}));
+    }
+    cache.set(key,result);
+    return result;
+  }
+
+  async function hydrate(host,force){
+    var teacher=String(host.dataset.teacher||"").trim();
+    var subject=String(host.dataset.subject||"YKS").trim()||"YKS";
+    if(!teacher)return;
+    var key=videoKey(teacher,subject);
+    if(loading.has(key)&&!force)return;
+    loading.add(key);
+    try{
+      var items=await fetchTeacherVideos(teacher,subject,!!force);
+      renderVideos(host,items);
+      host.dataset.videoState="ready";
+    }catch(error){
+      renderFallback(host,"Gerçek video listesi alınamadı; aşağıdaki video aramaları çalışır durumda.");
+      host.dataset.videoState="fallback";
+    }finally{
+      loading.delete(key);
+    }
+  }
+
+  function createHost(card,teacher,subject){
+    var host=document.createElement("section");
+    host.className="teacher-video-strip";
+    host.dataset.teacher=teacher;
+    host.dataset.subject=subject;
+    host.setAttribute("aria-label",teacher+" son videoları");
+    host.innerHTML='<div class="teacher-video-head"><strong>Son videolar</strong><span class="teacher-video-head-actions"><button class="btn ghost tiny teacher-video-all" type="button">Tüm videolar</button><button class="btn ghost tiny teacher-video-refresh" type="button">Yenile</button></span></div><div class="teacher-video-grid"></div>';
+
+    var body=card.querySelector(".thb");
+    if(body)body.appendChild(host);else card.appendChild(host);
+    renderFallback(host,"Video seçenekleri hazır. Gerçek sonuçlar alınabiliyorsa otomatik olarak burada görünecek.");
+    return host;
+  }
+
   function bindHost(host){
     if(host.dataset.videoBound==="1")return;
     host.dataset.videoBound="1";
@@ -169,106 +190,88 @@
       var target=event.target instanceof Element?event.target:null;
       if(!target)return;
       var teacher=String(host.dataset.teacher||"").trim();
-      var subject=String(host.dataset.subject||"").trim();
+      var subject=String(host.dataset.subject||"YKS").trim()||"YKS";
+      var searchButton=target.closest(".teacher-video-search");
+      if(searchButton){
+        event.stopPropagation();
+        openSearch(teacher,subject,String(searchButton.dataset.kind||"konu"));
+        return;
+      }
       if(target.closest(".teacher-video-refresh")){
         event.stopPropagation();
+        renderFallback(host,"Videolar yenileniyor…");
         void hydrate(host,true);
         return;
       }
       if(target.closest(".teacher-video-all")){
         event.stopPropagation();
-        if(typeof window.ytTeacher==="function"){
-          try{window.ytTeacher(teacher,"kanal",subject);return;}catch(_error){}
-        }
-        window.open("https://www.youtube.com/results?search_query="+encodeURIComponent((teacher+" "+subject+" YKS").trim()),"_blank","noopener,noreferrer");
+        openSearch(teacher,subject,"kanal");
       }
     });
   }
 
-  async function hydrate(host,force){
-    var teacher=String(host.dataset.teacher||"").trim();
-    var subject=String(host.dataset.subject||"").trim();
-    if(!teacher)return;
-    bindHost(host);
-    var key=videoKey(teacher,subject);
-    if(loading.has(key)&&!force)return;
-    loading.add(key);
-    var grid=host.querySelector(".teacher-video-grid");
-    if(grid)grid.innerHTML='<div class="teacher-video-state">Videolar getiriliyor…</div>';
-    try{
-      renderVideos(host,await fetchTeacherVideos(teacher,subject,!!force));
-      host.dataset.videoState="ready";
-    }catch(error){
-      var message=error instanceof Error?error.message:String(error);
-      renderSearchFallback(host,message);
-      host.dataset.videoState="fallback";
-    }finally{
-      loading.delete(key);
-    }
-  }
-
   function ensureCard(card){
-    if(!(card instanceof Element)||!card.classList.contains("open"))return;
+    if(!(card instanceof Element)||!card.classList.contains("thcard")||!card.classList.contains("open"))return;
     var teacher=teacherNameFromCard(card);
     if(!teacher)return;
     var subject=subjectFromCard(card);
     var host=card.querySelector(".teacher-video-strip");
-    if(!host){
-      card.insertAdjacentHTML("beforeend",stripMarkup(teacher,subject));
-      host=card.querySelector(".teacher-video-strip");
-    }
-    if(!host)return;
+    if(!host)host=createHost(card,teacher,subject);
     host.dataset.teacher=teacher;
     host.dataset.subject=subject;
+    bindHost(host);
     if(host.dataset.hydrated!=="1"){
       host.dataset.hydrated="1";
       void hydrate(host,false);
     }
+    document.documentElement.dataset.teacherVideosVisible="1";
   }
 
   function scanOpenTeachers(){
     scanQueued=false;
-    document.querySelectorAll("#thList .thcard.open").forEach(ensureCard);
+    var cards=document.querySelectorAll(".thcard.open");
+    cards.forEach(ensureCard);
+    if(cards.length)document.documentElement.dataset.teacherVideosModal="open";
+    else document.documentElement.dataset.teacherVideosModal="closed";
   }
 
   function queueScan(){
     if(scanQueued)return;
     scanQueued=true;
-    queueMicrotask(scanOpenTeachers);
+    if(typeof queueMicrotask==="function")queueMicrotask(scanOpenTeachers);
+    else Promise.resolve().then(scanOpenTeachers);
   }
 
-  function attachObserver(){
-    var list=document.getElementById("thList");
-    if(!list)return false;
+  function installGlobalObserver(){
     if(observer)observer.disconnect();
+    var root=document.documentElement||document.body;
+    if(!root)return false;
     observer=new MutationObserver(queueScan);
-    observer.observe(list,{childList:true,subtree:true,attributes:true,attributeFilter:["class"]});
+    observer.observe(root,{childList:true,subtree:true,attributes:true,attributeFilter:["class"]});
     document.addEventListener("click",function(event){
       var target=event.target instanceof Element?event.target:null;
-      if(target&&target.closest("#thList .thcard"))setTimeout(queueScan,0);
+      if(target&&target.closest(".thcard")){
+        setTimeout(scanOpenTeachers,0);
+        setTimeout(scanOpenTeachers,80);
+        setTimeout(scanOpenTeachers,240);
+      }
     },true);
-    queueScan();
+    if(!healTimer)healTimer=window.setInterval(function(){
+      if(document.querySelector(".thcard.open"))scanOpenTeachers();
+    },700);
+    scanOpenTeachers();
     return true;
   }
 
   function install(){
     injectStyles();
     document.addEventListener("keydown",function(event){if(event.key==="Escape")closePlayer();});
-    if(attachObserver()){
-      document.documentElement.dataset.teacherVideos="ready";
-      return true;
-    }
-    document.documentElement.dataset.teacherVideos="waiting";
-    return false;
+    if(!installGlobalObserver())return false;
+    document.documentElement.dataset.teacherVideos="ready";
+    document.documentElement.dataset.teacherVideosRuntimeVersion="hotfix2";
+    return true;
   }
 
-  var attempts=0;
-  function tryInstall(){
-    if(install())return;
-    attempts+=1;
-    if(attempts<60)setTimeout(tryInstall,100);
-    else document.documentElement.dataset.teacherVideos="deferred";
-  }
-
-  tryInstall();
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",install,{once:true});
+  else install();
 })();
