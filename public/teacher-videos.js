@@ -3,6 +3,11 @@
 
   var STYLE_ID="yks-teacher-videos-style";
   var PLAYER_ID="yks-teacher-video-player";
+  var PIPED_INSTANCES=[
+    "https://pipedapi.kavin.rocks",
+    "https://pipedapi.leptons.xyz",
+    "https://pipedapi.nosebs.ru"
+  ];
   var cache=new Map();
   var loading=new Set();
   var observer=null;
@@ -53,6 +58,69 @@
       seen.add(id);
       return true;
     }).slice(0,6);
+  }
+
+  function normalizePipedItem(item){
+    if(!item||typeof item!=="object")return null;
+    var url=String(item.url||"");
+    var m=url.match(/[?&]v=([A-Za-z0-9_-]{6,})/);
+    var id=m?m[1]:"";
+    if(!id)return null;
+    return {
+      id:id,
+      title:String(item.title||"YouTube videosu"),
+      thumb:String(item.thumbnail||item.thumbnailUrl||("https://i.ytimg.com/vi/"+id+"/hqdefault.jpg")),
+      ch:String(item.uploader||item.author||"YouTube"),
+      when:String(item.uploadedDate||item.publishedText||""),
+      date:""
+    };
+  }
+
+  function fetchJSON(url,timeoutMs){
+    var ctl=typeof AbortController!=="undefined"?new AbortController():null;
+    var timer=ctl?setTimeout(function(){ctl.abort();},timeoutMs||5000):0;
+    return fetch(url,{headers:{Accept:"application/json"},signal:ctl?ctl.signal:undefined,cache:"no-store"})
+      .then(function(res){if(!res.ok)throw new Error("HTTP "+res.status);return res.json();})
+      .finally(function(){if(timer)clearTimeout(timer);});
+  }
+
+  async function fetchViaPiped(query){
+    var lastError=null;
+    for(var i=0;i<PIPED_INSTANCES.length;i++){
+      try{
+        var url=PIPED_INSTANCES[i]+"/search?q="+encodeURIComponent(query)+"&filter=videos";
+        var data=await fetchJSON(url,4500);
+        var raw=Array.isArray(data)?data:(Array.isArray(data&&data.items)?data.items:[]);
+        var out=validVideos(raw.map(normalizePipedItem).filter(Boolean));
+        if(out.length)return out;
+      }catch(error){lastError=error;}
+    }
+    throw lastError||new Error("piped-sonuc-yok");
+  }
+
+  async function fetchTeacherVideos(teacher,subject,force){
+    var key=videoKey(teacher,subject);
+    if(force)cache.delete(key);
+    if(cache.has(key))return cache.get(key);
+
+    var topic=String(subject||"YKS").trim();
+    var query=(teacher+" "+topic+" YKS").replace(/\s+/g," ").trim();
+    var nativeItems=[];
+
+    if(typeof window.ytFetch==="function"){
+      try{
+        var channelId="";
+        if(typeof window.resolveChannel==="function"){
+          try{channelId=await window.resolveChannel(teacher);}catch(_error){channelId="";}
+        }
+        nativeItems=validVideos(await window.ytFetch(channelId?(topic+" YKS"):query,channelId?{channelId:channelId}:{}));
+        if(!nativeItems.length&&channelId)nativeItems=validVideos(await window.ytFetch(query,{}));
+      }catch(_nativeError){nativeItems=[];}
+    }
+
+    var result=nativeItems.length?nativeItems:await fetchViaPiped(query);
+    cache.set(key,result);
+    return result;
   }
 
   function formatDate(value){
@@ -114,40 +182,19 @@
   function renderVideos(host,items){
     var grid=host.querySelector(".teacher-video-grid");
     if(!grid)return;
-    if(!items.length){renderFallback(host,"Bu hoca için doğrudan sonuç alınamadı. YouTube seçeneklerini kullanabilirsin.");return;}
+    if(!items.length){renderFallback(host,"Bu hoca için video sonucu alınamadı. YouTube seçeneklerini kullanabilirsin.");return;}
     grid.innerHTML="";
     items.forEach(function(video){
       var button=document.createElement("button");
       button.type="button";
       button.className="teacher-video-item";
-      var meta=[video.ch,formatDate(video.date)].filter(Boolean).join(" · ");
+      var when=String(video.when||"")||formatDate(video.date);
+      var meta=[video.ch,when].filter(Boolean).join(" · ");
       button.innerHTML=(video.thumb?'<img class="teacher-video-thumb" src="'+esc(video.thumb)+'" alt="" loading="lazy" referrerpolicy="no-referrer">':'<span class="teacher-video-fallback">▶</span>')+
         '<span class="teacher-video-copy"><span class="teacher-video-title">'+esc(video.title||"YouTube videosu")+'</span><span class="teacher-video-meta">'+esc(meta||"YouTube")+'</span></span>';
       button.addEventListener("click",function(event){event.stopPropagation();openPlayer(video);});
       grid.appendChild(button);
     });
-  }
-
-  async function fetchTeacherVideos(teacher,subject,force){
-    var key=videoKey(teacher,subject);
-    if(force)cache.delete(key);
-    if(cache.has(key))return cache.get(key);
-    if(typeof window.ytFetch!=="function")throw new Error("video-servisi-hazir-degil");
-
-    var channelId="";
-    if(typeof window.resolveChannel==="function"){
-      try{channelId=await window.resolveChannel(teacher);}catch(_error){channelId="";}
-    }
-
-    var topic=String(subject||"YKS").trim();
-    var query=channelId?(topic+" YKS"):(teacher+" "+topic+" YKS");
-    var options=channelId?{channelId:channelId}:{};
-    var result=validVideos(await window.ytFetch(query.replace(/\s+/g," ").trim(),options));
-    if(!result.length&&channelId){
-      result=validVideos(await window.ytFetch((teacher+" "+topic+" YKS").replace(/\s+/g," ").trim(),{}));
-    }
-    cache.set(key,result);
-    return result;
   }
 
   async function hydrate(host,force){
@@ -162,7 +209,7 @@
       renderVideos(host,items);
       host.dataset.videoState="ready";
     }catch(error){
-      renderFallback(host,"Gerçek video listesi alınamadı; aşağıdaki video aramaları çalışır durumda.");
+      renderFallback(host,"Gerçek video listesi alınamadı; aşağıdaki YouTube aramaları kullanılabilir.");
       host.dataset.videoState="fallback";
     }finally{
       loading.delete(key);
@@ -176,10 +223,9 @@
     host.dataset.subject=subject;
     host.setAttribute("aria-label",teacher+" son videoları");
     host.innerHTML='<div class="teacher-video-head"><strong>Son videolar</strong><span class="teacher-video-head-actions"><button class="btn ghost tiny teacher-video-all" type="button">Tüm videolar</button><button class="btn ghost tiny teacher-video-refresh" type="button">Yenile</button></span></div><div class="teacher-video-grid"></div>';
-
     var body=card.querySelector(".thb");
     if(body)body.appendChild(host);else card.appendChild(host);
-    renderFallback(host,"Video seçenekleri hazır. Gerçek sonuçlar alınabiliyorsa otomatik olarak burada görünecek.");
+    renderFallback(host,"Videolar yükleniyor…");
     return host;
   }
 
@@ -192,21 +238,9 @@
       var teacher=String(host.dataset.teacher||"").trim();
       var subject=String(host.dataset.subject||"YKS").trim()||"YKS";
       var searchButton=target.closest(".teacher-video-search");
-      if(searchButton){
-        event.stopPropagation();
-        openSearch(teacher,subject,String(searchButton.dataset.kind||"konu"));
-        return;
-      }
-      if(target.closest(".teacher-video-refresh")){
-        event.stopPropagation();
-        renderFallback(host,"Videolar yenileniyor…");
-        void hydrate(host,true);
-        return;
-      }
-      if(target.closest(".teacher-video-all")){
-        event.stopPropagation();
-        openSearch(teacher,subject,"kanal");
-      }
+      if(searchButton){event.stopPropagation();openSearch(teacher,subject,String(searchButton.dataset.kind||"konu"));return;}
+      if(target.closest(".teacher-video-refresh")){event.stopPropagation();renderFallback(host,"Videolar yenileniyor…");void hydrate(host,true);return;}
+      if(target.closest(".teacher-video-all")){event.stopPropagation();openSearch(teacher,subject,"kanal");}
     });
   }
 
@@ -231,8 +265,7 @@
     scanQueued=false;
     var cards=document.querySelectorAll(".thcard.open");
     cards.forEach(ensureCard);
-    if(cards.length)document.documentElement.dataset.teacherVideosModal="open";
-    else document.documentElement.dataset.teacherVideosModal="closed";
+    document.documentElement.dataset.teacherVideosModal=cards.length?"open":"closed";
   }
 
   function queueScan(){
@@ -256,9 +289,7 @@
         setTimeout(scanOpenTeachers,240);
       }
     },true);
-    if(!healTimer)healTimer=window.setInterval(function(){
-      if(document.querySelector(".thcard.open"))scanOpenTeachers();
-    },700);
+    if(!healTimer)healTimer=window.setInterval(function(){if(document.querySelector(".thcard.open"))scanOpenTeachers();},700);
     scanOpenTeachers();
     return true;
   }
@@ -268,7 +299,7 @@
     document.addEventListener("keydown",function(event){if(event.key==="Escape")closePlayer();});
     if(!installGlobalObserver())return false;
     document.documentElement.dataset.teacherVideos="ready";
-    document.documentElement.dataset.teacherVideosRuntimeVersion="hotfix2";
+    document.documentElement.dataset.teacherVideosRuntimeVersion="hotfix3";
     return true;
   }
 
