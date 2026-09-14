@@ -105,6 +105,10 @@ function loadTeachersV2Media():void{
   if(document.documentElement.dataset.teachersV2Media==="ready"||document.documentElement.dataset.teachersV2Media==="loading")return;
   document.documentElement.dataset.teachersV2Media="loading";
   void import("./ui/teachers-v2-media")
+    .then(()=>import("./ui/teachers-v2-library").catch(error=>{
+      document.documentElement.dataset.teachersV2Library="deferred";
+      console.error("Hocalar v2 kişisel video kütüphanesi yüklenemedi",error);
+    }))
     .catch(error=>{
       document.documentElement.dataset.teachersV2Media="deferred";
       console.error("Hocalar v2 medya katmanı yüklenemedi",error);
@@ -157,8 +161,9 @@ document.documentElement.dataset.paragraphProblemTracker=paragraphProblem.instal
 document.documentElement.dataset.teachersV2Runtime=teachersV2.installed?teachersV2.version:"deferred";
 window.dispatchEvent(new CustomEvent<BootstrapState>("yks:v4-bootstrap",{detail:bootstrap}));
 
-/* V2 aktifse medya katmanı ayrı chunk olarak paint sonrasında yüklenir; ana başlangıç
-   paketinin performans bütçesi korunur. V2 başlatılamazsa eski katman fail-open yedek olur. */
+/* V2 aktifse medya ve kişisel kütüphane katmanları ayrı chunklar olarak paint sonrasında
+   yüklenir; ana başlangıç paketinin performans bütçesi korunur. V2 başlatılamazsa eski
+   katman fail-open yedek olur. */
 if(teachersV2.installed)window.setTimeout(loadTeachersV2Media,0);
 else loadTeacherVideosRuntime();
 
