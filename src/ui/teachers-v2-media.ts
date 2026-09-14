@@ -144,7 +144,7 @@ function youtubeSearchUrl(name:string,kind=""):string{
 function playlistSearchUrl(name:string):string{
   const url=new URL("https://www.youtube.com/results");
   url.searchParams.set("search_query",`${name} YKS oynatma listesi`);
-  url.searchParams.set("sp","EgIQAw%3D%3D");
+  url.searchParams.set("sp","EgIQAw==");
   return url.toString();
 }
 
