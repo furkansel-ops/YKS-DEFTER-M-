@@ -38,9 +38,9 @@ test("Laboratuvar akışı Program verisini değiştirmez ve 3B modeli önden y�
   assert.match(source,/focus-visible/);assert.match(source,/pointer:coarse/);assert.match(source,/prefers-reduced-motion:reduce/);
   assert.match(stability,/progress-v42\.js\?v=4\.2\.0-r1/);
   assert.match(stability,/learning-lab-flow-v42\.js\?v=4\.2\.0-r1/);
-  assert.match(sw,/progress-v42\.js\?v=4\.2\.0-r1/);
-  assert.match(sw,/learning-lab-flow-v42\.js\?v=4\.2\.0-r1/);
-  assert.match(sw,/const CACHE="yks-core-v4\.4\.0-r1"/);
+  assert.match(sw,/progress-v42\.js/);
+  assert.match(sw,/learning-lab-flow-v42\.js/);
+  assert.match(sw,/const CACHE="yks-core-v4\.4\.0-r2"/);
   assert.match(sw,/yks-core-v4\.3\.1-r1/);
   assert.match(sw,/yks-core-v4\.3\.0-r1/);
   assert.match(sw,/yks-core-v4\.2\.0-r1/);

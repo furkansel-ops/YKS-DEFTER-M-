@@ -6,7 +6,7 @@ const path=require("node:path");
 const root=path.resolve(__dirname,"..");
 const read=file=>fs.readFileSync(path.join(root,file),"utf8");
 
-test("Dünkü Firebase eşitleme kaynağı kaynak HTML içinde kayıpsız korunur",()=>{
+test("Firebase eşitleme kaynağı HTML içinde pasif kaynak olarak kayıpsız korunur",()=>{
   const index=read("index.html");
   assert.match(index,/type="application\/json" id="legacyFirebaseSyncModule"/);
   assert.match(index,/apiKey:\s*""/);
@@ -14,9 +14,8 @@ test("Dünkü Firebase eşitleme kaynağı kaynak HTML içinde kayıpsız korunu
   assert.match(index,/onAuthStateChanged/);
   assert.match(index,/runTransaction\(db/);
   assert.match(index,/SYNC_CONFLICT/);
-  assert.match(index,/id="cloudSyncBox"/);
-  assert.match(index,/id="cloudLoginBtn"/);
-  assert.match(index,/Google ile giriş/);
+  assert.doesNotMatch(index,/type="module" id="firebaseSyncModule"/);
+  assert.doesNotMatch(index,/id="cloudSyncBox"/);
 });
 
 test("Production build eski Firebase kodunu gerçek web modülüne çıkarır",()=>{
@@ -33,7 +32,7 @@ test("Production build eski Firebase kodunu gerçek web modülüne çıkarır",(
   assert.match(vite,/cloudSyncBox/);
 });
 
-test("Web/PWA tek eski sağ-alt eşitleme kutusunu kullanır; ikinci gösterge oluşturulmaz",()=>{
+test("Web/PWA tek eski sağ-alt eşitleme kutusunu çalışma zamanında kurar; ikinci gösterge oluşturulmaz",()=>{
   const shell=read("src/ui/play-store-shell.ts");
   assert.match(shell,/installLegacyCloudSyncBox/);
   assert.match(shell,/CLOUD_BOX_ID="cloudSyncBox"/);
