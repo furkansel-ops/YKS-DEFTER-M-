@@ -34,7 +34,16 @@ jobs:
       - name: Bağımlılıkları kur
         run: npm ci --no-audit --no-fund
 
-      - name: Türleri, testleri ve üretim paketini doğrula
+      - name: Altyapı kurallarını doğrula
+        run: npm run infra:check
+
+      - name: TypeScript türlerini doğrula
+        run: npm run typecheck
+
+      - name: Testleri çalıştır
+        run: npm test
+
+      - name: Kararlı sürüm paketini doğrula
         run: npm run release:check
 
   runtime-compat:
@@ -57,5 +66,11 @@ jobs:
       - name: Bağımlılıkları kur
         run: npm ci --no-audit --no-fund
 
-      - name: Gelecek Node sürümünde tür ve test uyumluluğunu doğrula
-        run: npm run infra:check && npm run typecheck && npm test
+      - name: Altyapı kurallarını doğrula
+        run: npm run infra:check
+
+      - name: TypeScript türlerini doğrula
+        run: npm run typecheck
+
+      - name: Testleri çalıştır
+        run: npm test
