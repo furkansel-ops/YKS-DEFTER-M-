@@ -18,6 +18,7 @@ import {installRecoveryCenter} from "./ui/recovery-center";
 import {installV43SafeRuntime} from "./ui/v43-safe-runtime";
 import {installPlayStoreShell} from "./ui/play-store-shell";
 import {installParagraphProblemTracker} from "./ui/paragraph-problem-tracker";
+import {installTeachersV2} from "./ui/teachers-v2";
 import "./ui/visual-stability-hotfix.css";
 import "./ui/recent-feature-stability.css";
 import "./ui/topics-toolbar-hotfix.css";
@@ -125,6 +126,11 @@ const paragraphProblem=installOptional(
 );
 const screens=installScreenRuntime();
 const ui=installLegacyUiBridge(screens);
+const teachersV2=installOptional(
+  "teachers-v2",
+  ()=>installTeachersV2(),
+  {installed:false,version:"deferred",refresh:()=>{},destroy:()=>{}}
+);
 window.__YKS_V4_BOOTSTRAP__=bootstrap;
 installReleaseOverlay();
 document.documentElement.dataset.v4Runtime="ready";
@@ -138,9 +144,12 @@ document.documentElement.dataset.v4ProgressAnalysisErrors=String(progressAnalysi
 document.documentElement.dataset.v4ExamAnalysisErrors=String(examAnalysis.validate().length);
 document.documentElement.dataset.v4PwaBuild=pwa.build;
 document.documentElement.dataset.paragraphProblemTracker=paragraphProblem.installed?"ready":"deferred";
+document.documentElement.dataset.teachersV2Runtime=teachersV2.installed?teachersV2.version:"deferred";
 window.dispatchEvent(new CustomEvent<BootstrapState>("yks:v4-bootstrap",{detail:bootstrap}));
 
-loadTeacherVideosRuntime();
+/* V2 aktifse eski Hocalar video hotfix'ini hiç yükleme. Böylece iki ayrı ekran
+   aynı DOM üzerinde yarışmıyor. V2 başlatılamazsa eski katman fail-open yedek olur. */
+if(!teachersV2.installed)loadTeacherVideosRuntime();
 
 const playStoreShell=installOptional(
   "play-store-shell",
