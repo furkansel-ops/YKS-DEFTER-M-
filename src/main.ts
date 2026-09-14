@@ -85,7 +85,7 @@ document.documentElement.dataset.v4OptionalErrors="0";
 function loadTeacherVideosRuntime():void{
   if(document.querySelector('script[data-yks-teacher-videos="true"]'))return;
   const script=document.createElement("script");
-  script.src=new URL("./teacher-videos.js?v=4.4.0-r2-hotfix2",document.baseURI).href;
+  script.src=new URL("./teacher-videos.js?v=4.4.0-r2-hotfix3",document.baseURI).href;
   script.async=true;
   script.dataset.yksTeacherVideos="true";
   document.documentElement.dataset.teacherVideosRuntime="loading";
