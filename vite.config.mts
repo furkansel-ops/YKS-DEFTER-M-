@@ -2,6 +2,8 @@ import {defineConfig,type Plugin} from "vite";
 
 const FIREBASE_WEB_API_KEY="AIzaSyA0UMRKwah3Ji9Z8Sd3ZvgLJUKiC40fVSc";
 
+/* Migration note: remove-disabled-cloud-runtime was the Play-only transition step.
+   Web Firebase sync is restored through prepare-web-cloud-runtime below. */
 function prepareWebCloudRuntime():Plugin{
   let runtimeSource="";
   return {
