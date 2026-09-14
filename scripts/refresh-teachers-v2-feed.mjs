@@ -95,23 +95,57 @@ function ytdlp(target,{limit=12,timeout=30000}={}){
     ];
     const child=spawn("python3",args,{cwd:ROOT,stdio:["ignore","pipe","pipe"]});
     let out="",err="";
+    let settled=false;
+    const finishReject=error=>{
+      if(settled)return;
+      settled=true;
+      rejectPromise(error);
+    };
     const timer=setTimeout(()=>{
       child.kill("SIGKILL");
-      rejectPromise(new Error(`yt-dlp timeout: ${target}`));
+      finishReject(new Error(`yt-dlp timeout: ${target}`));
     },timeout);
     child.stdout.on("data",chunk=>{out+=String(chunk);});
     child.stderr.on("data",chunk=>{err+=String(chunk);});
-    child.on("error",error=>{clearTimeout(timer);rejectPromise(error);});
+    child.on("error",error=>{clearTimeout(timer);finishReject(error);});
     child.on("close",code=>{
       clearTimeout(timer);
+      if(settled)return;
       if(code!==0&&!out.trim()){
-        rejectPromise(new Error(err.trim()||`yt-dlp exit ${code}`));
+        finishReject(new Error(err.trim()||`yt-dlp exit ${code}`));
         return;
       }
-      try{resolvePromise(JSON.parse(out));}
-      catch(error){rejectPromise(new Error(`yt-dlp JSON okunamadı: ${error instanceof Error?error.message:String(error)}`));}
+      try{
+        settled=true;
+        resolvePromise(JSON.parse(out));
+      }catch(error){
+        finishReject(new Error(`yt-dlp JSON okunamadı: ${error instanceof Error?error.message:String(error)}`));
+      }
     });
   });
+}
+
+async function searchTeacher(teacher){
+  const queries=[
+    `${teacher.name} ${teacher.subject}`,
+    `${teacher.name} YKS`,
+    teacher.name
+  ];
+  const errors=[];
+  for(const query of queries){
+    try{
+      const result=await ytdlp(`ytsearch12:${query}`,{limit:12,timeout:32000});
+      const entries=Array.isArray(result?.entries)?result.entries.filter(Boolean):[];
+      if(entries.length){
+        console.log(`[teachers-v2] ${teacher.name}: ${entries.length} arama sonucu`);
+        return entries;
+      }
+      errors.push(`${query}: 0 sonuç`);
+    }catch(error){
+      errors.push(`${query}: ${error instanceof Error?error.message:String(error)}`);
+    }
+  }
+  throw new Error(errors.join(" | ")||"arama sonucu yok");
 }
 
 function normalizeVideos(entries,teacher){
@@ -172,10 +206,9 @@ async function readPrevious(){
 
 async function refreshOne(teacher,previous){
   try{
-    const searchQuery=`ytsearchdate12:${teacher.name} ${teacher.subject} YKS`;
-    const search=await ytdlp(searchQuery,{limit:12,timeout:32000});
-    const videos=normalizeVideos(search?.entries,teacher);
-    if(!videos.length)throw new Error("video bulunamadı");
+    const entries=await searchTeacher(teacher);
+    const videos=normalizeVideos(entries,teacher);
+    if(!videos.length)throw new Error("arama sonuçları video kimliği içermedi");
     const first=videos[0];
     const channelUrl=String(first.channelUrl||"").replace(/\/$/,"");
     let playlists=[];
