@@ -118,9 +118,11 @@ function syncSignature():string{
 
 function initials(name:string):string{
   const parts=name.trim().split(/\s+/).filter(Boolean);
-  if(!parts.length)return "YK";
-  if(parts.length===1)return parts[0].slice(0,2).toLocaleUpperCase("tr-TR");
-  return (parts[0][0]+parts[parts.length-1][0]).toLocaleUpperCase("tr-TR");
+  const first=parts[0]??"";
+  const last=parts[parts.length-1]??first;
+  if(!first)return "YK";
+  if(parts.length===1)return first.slice(0,2).toLocaleUpperCase("tr-TR");
+  return ((first[0]??"")+(last[0]??"")).toLocaleUpperCase("tr-TR");
 }
 
 function subjects(teachers:Teacher[]):string[]{
