@@ -42,7 +42,7 @@ test("Hocalar v2 kişisel kütüphanesi medya sonrasında lazy ve fail-open yük
   const source=main();
   const style=css();
   assert.match(source,/import\("\.\/ui\/teachers-v2-media"\)/);
-  assert.match(source,/\.then\(\(\)=>import\("\.\/ui\/teachers-v2-library"\)\.catch/);
+  assert.match(source,/return import\("\.\/ui\/teachers-v2-library"\)\.catch/);
   assert.match(source,/dataset\.teachersV2Library="deferred"/);
   assert.match(style,/@media\(pointer:coarse\)/);
   assert.match(style,/@media\(prefers-reduced-motion:reduce\)/);
