@@ -109,8 +109,9 @@ function readLibrary():LibraryState{
 function saveLibrary(next:LibraryState):boolean{
   const state=stateRecord();
   if(!state)return false;
-  if(!isRecord(state.studyPrefs))state.studyPrefs={autoPlan:false};
-  state.studyPrefs[LIB_PREF_KEY]={
+  const prefs=isRecord(state.studyPrefs)?state.studyPrefs:{autoPlan:false};
+  state.studyPrefs=prefs;
+  prefs[LIB_PREF_KEY]={
     favorites:{...next.favorites},
     updatedAt:next.updatedAt
   };

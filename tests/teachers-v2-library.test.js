@@ -11,7 +11,8 @@ const main=()=>fs.readFileSync(path.join(root,"src/main.ts"),"utf8");
 test("Hocalar v2 kaydedilen videolar mevcut studyPrefs ve save zincirinden taşınır",()=>{
   const source=library();
   assert.match(source,/const LIB_PREF_KEY="teachersV2LibraryV1"/);
-  assert.match(source,/state\.studyPrefs\[LIB_PREF_KEY\]=/);
+  assert.match(source,/const prefs=isRecord\(state\.studyPrefs\)\?state\.studyPrefs:\{autoPlan:false\}/);
+  assert.match(source,/prefs\[LIB_PREF_KEY\]=/);
   assert.match(source,/window\.YKSLegacyState\?\.save\?\.\(\)/);
   assert.doesNotMatch(source,/localStorage\.setItem\(["']yks["']/);
   assert.doesNotMatch(source,/DATA_SCHEMA_VERSION\s*[+=]/);
