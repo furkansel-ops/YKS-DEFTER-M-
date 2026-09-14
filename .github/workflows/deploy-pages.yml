@@ -43,6 +43,7 @@ jobs:
           python3 -m pip install --disable-pip-version-check --quiet yt-dlp
           python3 -m yt_dlp --version
           node scripts/refresh-teachers-v2-feed.mjs
+          node scripts/patch-teachers-v2-known-custom.mjs
           node scripts/build-teachers-v2-archives.mjs
 
       - name: Kararlı sürümü doğrula ve derle
