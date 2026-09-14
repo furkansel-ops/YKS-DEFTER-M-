@@ -19,6 +19,7 @@ import {installV43SafeRuntime} from "./ui/v43-safe-runtime";
 import {installPlayStoreShell} from "./ui/play-store-shell";
 import {installParagraphProblemTracker} from "./ui/paragraph-problem-tracker";
 import {installTeachersV2} from "./ui/teachers-v2";
+import "./ui/teachers-v2-media";
 import "./ui/visual-stability-hotfix.css";
 import "./ui/recent-feature-stability.css";
 import "./ui/topics-toolbar-hotfix.css";
