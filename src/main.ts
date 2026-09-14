@@ -18,6 +18,7 @@ import {installRecoveryCenter} from "./ui/recovery-center";
 import {installV43SafeRuntime} from "./ui/v43-safe-runtime";
 import {installPlayStoreShell} from "./ui/play-store-shell";
 import {installParagraphProblemTracker} from "./ui/paragraph-problem-tracker";
+import {installTeacherVideos} from "./ui/teacher-videos";
 import "./ui/visual-stability-hotfix.css";
 import "./ui/recent-feature-stability.css";
 import "./ui/topics-toolbar-hotfix.css";
@@ -107,6 +108,11 @@ const paragraphProblem=installOptional(
 );
 const screens=installScreenRuntime();
 const ui=installLegacyUiBridge(screens);
+const teacherVideos=installOptional(
+  "teacher-videos",
+  ()=>installTeacherVideos(),
+  {installed:false}
+);
 window.__YKS_V4_BOOTSTRAP__=bootstrap;
 installReleaseOverlay();
 document.documentElement.dataset.v4Runtime="ready";
@@ -120,6 +126,7 @@ document.documentElement.dataset.v4ProgressAnalysisErrors=String(progressAnalysi
 document.documentElement.dataset.v4ExamAnalysisErrors=String(examAnalysis.validate().length);
 document.documentElement.dataset.v4PwaBuild=pwa.build;
 document.documentElement.dataset.paragraphProblemTracker=paragraphProblem.installed?"ready":"deferred";
+document.documentElement.dataset.teacherVideosRuntime=teacherVideos.installed?"ready":"deferred";
 window.dispatchEvent(new CustomEvent<BootstrapState>("yks:v4-bootstrap",{detail:bootstrap}));
 
 const playStoreShell=installOptional(
