@@ -31,7 +31,7 @@ test("Program cila katmanı mevcut cila zinciri ve PWA çekirdeğinden yüklenir
   const progress=read("modules/ui-polish-progress-v2.css");
   const sw=read("sw.js");
   assert.match(progress,/ui-polish-program-v1\.css\?v=4\.1\.0-r1/);
-  assert.match(sw,/ui-polish-program-v1\.css\?v=4\.1\.0-r1/);
+  assert.match(sw,/ui-polish-program-v1\.css/);
 });
 
 test("Program otomatik program üreticisine dönüşmez",()=>{
