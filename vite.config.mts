@@ -55,7 +55,7 @@ function hardenFirebaseRuntime(source:string):string{
   );
 
   const helperNeedle='async function upload(){';
-  const helper='function syncErrorText(error){return String(error&&((error.code&&String(error.code).replace(/^firestore\\//,""))||error.message)||"hata").slice(0,100);}\nasync function refreshCloudAuth(error){const code=String(error&&error.code||"");if(!user||typeof user.getIdToken!=="function"||(!code.includes("permission-denied")&&!code.includes("unauthenticated")))return false;try{await user.getIdToken(true);return true;}catch(_){return false;}}\nfunction reportSyncError(scope,error){syncRetryCount=Math.min(8,syncRetryCount+1);console.error(error);infraError(scope,error);const detail=syncErrorText(error);if(syncRetryCount<=3)status("Yeniden deneniyor…","syncing",detail);else status("Senkron hatası","error",detail);}\nasync function upload(){';
+  const helper='function syncErrorText(error){return String(error&&((error.code&&String(error.code).replace(/^firestore\\//,""))||error.message)||"hata").slice(0,100);}\nfunction transientSyncError(error){const code=String(error&&error.code||"").toLowerCase();return ["unavailable","deadline-exceeded","aborted","resource-exhausted","cancelled","internal","unknown","network-request-failed"].some(x=>code.includes(x));}\nfunction syncRetryDelay(){const step=Math.min(6,Math.max(0,syncRetryCount-1)),base=Math.min(90000,1000*Math.pow(2,step)),jitter=.8+Math.random()*.4;return Math.max(700,Math.round(base*jitter));}\nasync function refreshCloudAuth(error){const code=String(error&&error.code||"");if(!user||typeof user.getIdToken!=="function"||(!code.includes("permission-denied")&&!code.includes("unauthenticated")))return false;try{await user.getIdToken(true);return true;}catch(_){return false;}}\nfunction reportSyncError(scope,error){syncRetryCount=Math.min(9,syncRetryCount+1);console.error(error);infraError(scope,error);const detail=syncErrorText(error),transient=transientSyncError(error);if(transient||syncRetryCount<=3)status("Buluta tekrar bağlanıyor…","syncing",detail+" · cihazda kayıtlı");else status("Senkron hatası","error",detail);}\nasync function upload(){';
   next=replaceRequired(next,helperNeedle,helper,"kontrollü senkron hata yönetimi");
 
   next=replaceRequired(
@@ -66,6 +66,12 @@ function hardenFirebaseRuntime(source:string):string{
   );
   next=replaceRequired(
     next,
+    'const r=await readRemote(latest);await applyMerged(r,safeJSONParse(json));uploadQueued=true;',
+    'const r=await readRemote(latest);await applyMerged(r,safeJSONParse(json));syncRetryCount=Math.max(syncRetryCount,1);uploadQueued=true;',
+    "çakışma sonrası jitter"
+  );
+  next=replaceRequired(
+    next,
     '}else{console.error(e);infraError("firebase-upload",e);status("Senkron hatası","error",String(e.code||e.message||"hata").slice(0,100));}',
     '}else{await refreshCloudAuth(e);reportSyncError("firebase-upload",e);}',
     "yükleme hata kurtarma"
@@ -73,8 +79,22 @@ function hardenFirebaseRuntime(source:string):string{
   next=replaceRequired(
     next,
     'finally{uploading=false;if(uploadQueued||(!loading&&user&&dirty)){uploadQueued=false;clearTimeout(timer);timer=setTimeout(upload,120);}}',
-    'finally{uploading=false;if(uploadQueued||(!loading&&user&&dirty)){uploadQueued=false;clearTimeout(timer);const wait=syncRetryCount?Math.min(60000,1200*Math.pow(2,Math.min(syncRetryCount-1,5))):120;timer=setTimeout(upload,wait);}}',
-    "senkron geri-deneme gecikmesi"
+    'finally{uploading=false;if(uploadQueued||(!loading&&user&&dirty)){uploadQueued=false;clearTimeout(timer);timer=setTimeout(upload,syncRetryCount?syncRetryDelay():120);}}',
+    "senkron jitter geri-deneme gecikmesi"
+  );
+
+  next=replaceRequired(
+    next,
+    'window.yksCloudForceDirty=()=>{setDirty(true);if(user&&navigator.onLine){clearTimeout(timer);timer=setTimeout(upload,100);}};\nasync function downloadOrSeed(){',
+    'window.yksCloudForceDirty=()=>{setDirty(true);if(user&&navigator.onLine){clearTimeout(timer);timer=setTimeout(upload,100);}};\nfunction resumeCloudSync(){if(!user||loading||uploading||!dirty||!navigator.onLine)return;clearTimeout(timer);timer=setTimeout(upload,300+Math.floor(Math.random()*500));}\nwindow.addEventListener("online",resumeCloudSync);\ndocument.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")resumeCloudSync();});\nasync function downloadOrSeed(){',
+    "çevrimiçi ve görünür olunca senkronu sürdürme"
+  );
+
+  next=replaceRequired(
+    next,
+    '}catch(e){console.error(e);infraError("firebase-download",e);status("Senkron hatası","error",String(e.code||e.message||"hata").slice(0,100));}\n  finally{loading=false;}',
+    '}catch(e){await refreshCloudAuth(e);reportSyncError("firebase-download",e);}\n  finally{loading=false;if(user&&dirty&&navigator.onLine&&syncRetryCount){clearTimeout(timer);timer=setTimeout(upload,syncRetryDelay());}}',
+    "indirme hatası sonrası kontrollü kurtarma"
   );
 
   return next;
