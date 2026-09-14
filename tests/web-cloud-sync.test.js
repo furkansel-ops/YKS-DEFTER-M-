@@ -6,7 +6,7 @@ const path=require("node:path");
 const root=path.resolve(__dirname,"..");
 const read=file=>fs.readFileSync(path.join(root,file),"utf8");
 
-test("Dünkü Firebase eşitleme kaynağı kaynak HTML içinde kayıpsız korunur",()=>{
+test("Firebase eşitleme kaynağı kaynak HTML içinde kayıpsız korunur ve görünür kutu shell tarafından oluşturulur",()=>{
   const index=read("index.html");
   assert.match(index,/type="application\/json" id="legacyFirebaseSyncModule"/);
   assert.match(index,/apiKey:\s*""/);
@@ -14,9 +14,7 @@ test("Dünkü Firebase eşitleme kaynağı kaynak HTML içinde kayıpsız korunu
   assert.match(index,/onAuthStateChanged/);
   assert.match(index,/runTransaction\(db/);
   assert.match(index,/SYNC_CONFLICT/);
-  assert.match(index,/id="cloudSyncBox"/);
-  assert.match(index,/id="cloudLoginBtn"/);
-  assert.match(index,/Google ile giriş/);
+  assert.doesNotMatch(index,/<div id="cloudSyncBox"/);
 });
 
 test("Production build eski Firebase kodunu gerçek web modülüne çıkarır",()=>{
