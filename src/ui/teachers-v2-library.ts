@@ -161,9 +161,28 @@ async function loadFeed():Promise<void>{
   }catch{}
 }
 
+function visibleCardBookmark(id:string):VideoBookmark|null{
+  const card=[...document.querySelectorAll<HTMLElement>(".teachers-v2-video-card[data-video-id]")].find(node=>node.dataset.videoId===id);
+  if(!card)return null;
+  const title=String(card.dataset.videoTitle||"").trim();
+  const channel=String(card.dataset.videoChannel||"").trim();
+  const thumbnail=String(card.dataset.videoThumb||"").trim();
+  const teacher=String(document.querySelector(".teachers-v2-profile h2")?.textContent||"").trim();
+  if(!title)return null;
+  return {
+    id,
+    title:title.slice(0,180),
+    teacher:teacher.slice(0,80),
+    channel:channel.slice(0,80),
+    thumbnail:(thumbnail||`https://i.ytimg.com/vi/${encodeURIComponent(id)}/hqdefault.jpg`).slice(0,500),
+    url:`https://www.youtube.com/watch?v=${encodeURIComponent(id)}`,
+    savedAt:Date.now()
+  };
+}
+
 function bookmarkFor(id:string):VideoBookmark|null{
   const indexed=videoIndex.get(id);
-  if(!indexed)return null;
+  if(!indexed)return visibleCardBookmark(id);
   const {video,teacher}=indexed;
   return {
     id:video.id,
