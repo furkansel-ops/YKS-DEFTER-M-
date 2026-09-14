@@ -19,7 +19,6 @@ import {installV43SafeRuntime} from "./ui/v43-safe-runtime";
 import {installPlayStoreShell} from "./ui/play-store-shell";
 import {installParagraphProblemTracker} from "./ui/paragraph-problem-tracker";
 import {installTeachersV2} from "./ui/teachers-v2";
-import "./ui/teachers-v2-media";
 import "./ui/visual-stability-hotfix.css";
 import "./ui/recent-feature-stability.css";
 import "./ui/topics-toolbar-hotfix.css";
@@ -102,6 +101,16 @@ function loadTeacherVideosRuntime():void{
   document.head.appendChild(script);
 }
 
+function loadTeachersV2Media():void{
+  if(document.documentElement.dataset.teachersV2Media==="ready"||document.documentElement.dataset.teachersV2Media==="loading")return;
+  document.documentElement.dataset.teachersV2Media="loading";
+  void import("./ui/teachers-v2-media")
+    .catch(error=>{
+      document.documentElement.dataset.teachersV2Media="deferred";
+      console.error("Hocalar v2 medya katmanı yüklenemedi",error);
+    });
+}
+
 /* Çekirdek açılış zinciri yalnız kararlı altyapı modüllerinden oluşur.
    Ürün katmanları ve yardımcı arayüzler fail-open sınırlarında tutulur: tek bir yeni
    özellik hata verirse uygulamanın geri kalanı açılmaya devam eder. */
@@ -148,9 +157,10 @@ document.documentElement.dataset.paragraphProblemTracker=paragraphProblem.instal
 document.documentElement.dataset.teachersV2Runtime=teachersV2.installed?teachersV2.version:"deferred";
 window.dispatchEvent(new CustomEvent<BootstrapState>("yks:v4-bootstrap",{detail:bootstrap}));
 
-/* V2 aktifse eski Hocalar video hotfix'ini hiç yükleme. Böylece iki ayrı ekran
-   aynı DOM üzerinde yarışmıyor. V2 başlatılamazsa eski katman fail-open yedek olur. */
-if(!teachersV2.installed)loadTeacherVideosRuntime();
+/* V2 aktifse medya katmanı ayrı chunk olarak paint sonrasında yüklenir; ana başlangıç
+   paketinin performans bütçesi korunur. V2 başlatılamazsa eski katman fail-open yedek olur. */
+if(teachersV2.installed)window.setTimeout(loadTeachersV2Media,0);
+else loadTeacherVideosRuntime();
 
 const playStoreShell=installOptional(
   "play-store-shell",
