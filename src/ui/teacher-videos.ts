@@ -13,7 +13,7 @@ type LegacyVideo={
 
 type TeacherCardRenderer=(teacher:LegacyTeacher)=>string;
 type TeacherListRenderer=()=>void;
-type LegacyWindow=Window&{
+type LegacyWindow={
   teacherCard?:TeacherCardRenderer;
   renderTeachers?:TeacherListRenderer;
   resolveChannel?:(teacher:string)=>Promise<string>;
