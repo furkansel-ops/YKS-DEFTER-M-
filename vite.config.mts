@@ -1,22 +1,34 @@
+import {readFileSync} from "node:fs";
+import {resolve} from "node:path";
 import {defineConfig,type Plugin} from "vite";
 
 const FIREBASE_WEB_API_KEY="AIzaSyA0UMRKwah3Ji9Z8Sd3ZvgLJUKiC40fVSc";
+const FIREBASE_RUNTIME_RE=/<script type="application\/json" id="legacyFirebaseSyncModule"[^>]*>([\s\S]*?)<\/script>\s*/u;
+
+function extractFirebaseRuntime(html:string):string{
+  const runtimeMatch=html.match(FIREBASE_RUNTIME_RE);
+  const sourceText=runtimeMatch?.[1];
+  if(!runtimeMatch||!sourceText)throw new Error("Legacy Firebase eşitleme kaynağı index.html içinde bulunamadı");
+  const source=sourceText.replace(/apiKey:\s*"[^"]*"/,`apiKey:"${FIREBASE_WEB_API_KEY}"`);
+  if(!source.includes("signInWithPopup")||!source.includes("onAuthStateChanged")||!source.includes("runTransaction")){
+    throw new Error("Firebase eşitleme çalışma zamanı eksik veya bozuk");
+  }
+  return source;
+}
 
 /* Migration note: remove-disabled-cloud-runtime was the Play-only transition step.
    Web Firebase sync is restored through prepare-web-cloud-runtime below. */
 function prepareWebCloudRuntime():Plugin{
-  let runtimeSource="";
+  /* Vite 8/rolldown generateBundle'i transformIndexHtml'den önce çalıştırabilir.
+     Kaynağı build başında hazırlamak hook sırasından bağımsız ve deterministik kalır. */
+  let runtimeSource=extractFirebaseRuntime(readFileSync(resolve(process.cwd(),"index.html"),"utf8"));
   return {
     name:"prepare-web-cloud-runtime",
     apply:"build",
     transformIndexHtml(html:string){
-      const runtimeMatch=html.match(/<script type="application\/json" id="legacyFirebaseSyncModule"[^>]*>([\s\S]*?)<\/script>\s*/u);
-      const sourceText=runtimeMatch?.[1];
-      if(!runtimeMatch||!sourceText)throw new Error("Legacy Firebase eşitleme kaynağı index.html içinde bulunamadı");
-      runtimeSource=sourceText.replace(/apiKey:\s*"[^"]*"/,`apiKey:"${FIREBASE_WEB_API_KEY}"`);
-      if(!runtimeSource.includes("signInWithPopup")||!runtimeSource.includes("onAuthStateChanged")||!runtimeSource.includes("runTransaction")){
-        throw new Error("Firebase eşitleme çalışma zamanı eksik veya bozuk");
-      }
+      const runtimeMatch=html.match(FIREBASE_RUNTIME_RE);
+      if(!runtimeMatch)throw new Error("Legacy Firebase eşitleme kaynağı index.html içinde bulunamadı");
+      runtimeSource=extractFirebaseRuntime(html);
       const withoutRuntime=html.replace(runtimeMatch[0],"");
       return withoutRuntime.replace(/<div id="cloudSyncBox"[\s\S]*?<\/div>\s*/u,"");
     },
