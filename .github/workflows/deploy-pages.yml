@@ -20,7 +20,7 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     steps:
       - name: Kaynak kodu al
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -43,6 +43,7 @@ jobs:
           python3 -m pip install --disable-pip-version-check --quiet yt-dlp
           python3 -m yt_dlp --version
           node scripts/refresh-teachers-v2-feed.mjs
+          node scripts/build-teachers-v2-archives.mjs
 
       - name: Kararlı sürümü doğrula ve derle
         run: npm run release:check
