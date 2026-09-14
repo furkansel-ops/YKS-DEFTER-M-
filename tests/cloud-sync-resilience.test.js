@@ -24,7 +24,7 @@ test("Firebase geçici hatalarda sıkı yeniden deneme döngüsüne girmez",()=>
   assert.match(source,/syncRetryCount=0/);
   assert.match(source,/Math\.min\(60000,1200\*Math\.pow\(2,/);
   assert.match(source,/Yeniden deneniyor…/);
-  assert.doesNotMatch(source,/timer=setTimeout\(upload,120\);\}\}'/);
+  assert.match(source,/const wait=syncRetryCount\?/);
 });
 
 test("Firebase oturum kaynaklı senkron hatasında kimlik jetonunu bir kez tazelemeyi dener",()=>{
