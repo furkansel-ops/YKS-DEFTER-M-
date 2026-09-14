@@ -19,12 +19,15 @@ test("Firebase uzaktaki durumu bütün eski chunks koleksiyonunu taramadan okur"
   assert.match(source,/docs\.some\(d=>!d\.exists\(\)\)/);
 });
 
-test("Firebase geçici hatalarda sıkı yeniden deneme döngüsüne girmez",()=>{
+test("Firebase geçici hatalarda jitterlı geri deneme ile iki cihazın kilit adımını kırar",()=>{
   const source=vite();
   assert.match(source,/syncRetryCount=0/);
-  assert.match(source,/Math\.min\(60000,1200\*Math\.pow\(2,/);
-  assert.match(source,/Yeniden deneniyor…/);
-  assert.match(source,/const wait=syncRetryCount\?/);
+  assert.match(source,/function transientSyncError/);
+  assert.match(source,/function syncRetryDelay/);
+  assert.match(source,/Math\.random\(\)\*\.4/);
+  assert.match(source,/Buluta tekrar bağlanıyor…/);
+  assert.match(source,/cihazda kayıtlı/);
+  assert.match(source,/syncRetryCount\?syncRetryDelay\(\):120/);
 });
 
 test("Firebase oturum kaynaklı senkron hatasında kimlik jetonunu bir kez tazelemeyi dener",()=>{
@@ -33,4 +36,17 @@ test("Firebase oturum kaynaklı senkron hatasında kimlik jetonunu bir kez tazel
   assert.match(source,/permission-denied/);
   assert.match(source,/unauthenticated/);
   assert.match(source,/user\.getIdToken\(true\)/);
+});
+
+test("Firebase tablet uykusu veya ağ dönüşünde bekleyen yerel kaydı yeniden sürdürür",()=>{
+  const source=vite();
+  assert.match(source,/function resumeCloudSync/);
+  assert.match(source,/addEventListener\("online",resumeCloudSync\)/);
+  assert.match(source,/visibilitychange/);
+  assert.match(source,/document\.visibilityState===\"visible\"/);
+});
+
+test("Firebase çakışma birleştirmesinden sonra aynı anda yazan cihazlara jitter uygular",()=>{
+  const source=vite();
+  assert.match(source,/applyMerged\(r,safeJSONParse\(json\)\);syncRetryCount=Math\.max\(syncRetryCount,1\);uploadQueued=true/);
 });
