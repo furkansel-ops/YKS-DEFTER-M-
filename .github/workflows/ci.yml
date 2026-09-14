@@ -40,8 +40,25 @@ jobs:
       - name: TypeScript türlerini doğrula
         run: npm run typecheck
 
-      - name: Testleri çalıştır
-        run: npm test
+      - name: Test çıktısını yakala
+        run: |
+          set +e
+          node --test tests/*.test.js > test-output.txt 2>&1
+          code=$?
+          echo "TEST_EXIT=$code" >> "$GITHUB_ENV"
+          exit 0
+
+      - name: Test çıktısını yükle
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: test-output-node22
+          path: test-output.txt
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Test sonucunu doğrula
+        run: test "$TEST_EXIT" = "0"
 
       - name: Kararlı sürüm paketini doğrula
         run: npm run release:check
