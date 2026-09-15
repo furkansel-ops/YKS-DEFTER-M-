@@ -11,9 +11,7 @@ const ui=()=>fs.readFileSync(path.join(root,"src/ui/teachers-v2.ts"),"utf8");
 function catalog(){
   const source=app(),start=source.indexOf("const CURATED_YKS_TEACHERS=["),end=source.indexOf(";\n  try{",start);
   const block=source.slice(start,end),rows=[];
-  for(const match of block.matchAll(/\{a:\"([^\"]+)\",d:\[([^\]]*)\]\s*,?\s*l:/g)){
-    rows.push({name:match[1],subjects:[...match[2].matchAll(/\"([^\"]+)\"/g)].map(x=>x[1])});
-  }
+  for(const match of block.matchAll(/\{a:\"([^\"]+)\",d:\[([^\]]*)\]\s*,?\s*l:/g))rows.push({name:match[1],subjects:[...match[2].matchAll(/\"([^\"]+)\"/g)].map(x=>x[1])});
   return rows;
 }
 
@@ -30,19 +28,11 @@ test("küratörlü Hocalar kataloğu TYT ve AYT derslerini ayrı filtreler",()=>
 
 test("yerleşik hocaların tamamı doğrulanmış YouTube kanal kaynağına bağlanır",()=>{
   const rows=catalog(),map=sources();
-  for(const row of rows){
-    const escaped=row.name.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");
-    assert.match(map,new RegExp(`\"${escaped}\":\\{[^\\n]*(?:channelId|channelHandle):`),`${row.name} kanal eşleşmesi eksik`);
-  }
-  assert.match(map,/@kimyaadasi/);
-  assert.match(map,/@meschemykimya/);
-  assert.match(map,/@paraksilen/);
-  assert.match(map,/@kimyadersleri/);
-  assert.match(map,/@biosem/);
-  assert.match(map,/UC_IRxSYYyDa4Li9lxAM4xbQ/);
+  for(const row of rows){const escaped=row.name.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");assert.match(map,new RegExp(`\"${escaped}\":\\{[^\\n]*(?:channelId|channelHandle):`),`${row.name} kanal eşleşmesi eksik`);}
+  assert.match(map,/@kimyaadasi/);assert.match(map,/@meschemykimya/);assert.match(map,/@paraksilen/);assert.match(map,/@kimyadersleri/);assert.match(map,/@biosem/);assert.match(map,/UC_IRxSYYyDa4Li9lxAM4xbQ/);
 });
 
-test("hızlı medya üreticisi handle çözer, RSS videolarını ve gerçek playlistleri birlikte toplar",()=>{
+test("hızlı medya üreticisi RSS verisini ağır arşiv sonucu ve gerçek playlistlerle birleştirir",()=>{
   const source=patcher();
   assert.match(source,/function parseChannelId/);
   assert.match(source,/async function resolveChannel/);
@@ -51,7 +41,9 @@ test("hızlı medya üreticisi handle çözer, RSS videolarını ve gerçek play
   assert.match(source,/MAX_PLAYLISTS=16/);
   assert.match(source,/CURATED_VIDEOS/);
   assert.match(source,/Doğrulanmış kanal kaynağı olmayan yerleşik hocalar/);
-  assert.match(source,/github-pages-curated-yks-rss-playlists/);
+  assert.match(source,/github-pages-curated-yks-rss-deep-preserve/);
+  assert.match(source,/playlistTeacherCount/);
+  assert.match(source,/queryHint/);
 });
 
 test("Hocalar arayüzü TYT ve AYT derslerini öğrencinin gördüğü etikette ayırır",()=>{

@@ -27,6 +27,7 @@ test("Hocalar v2 playlistleri de Programım'a eklenebilir",()=>{
 test("Hocalar v2 tam arşivi tek dev JSON yerine 80 videoluk sayfalara bölünür",()=>{
   const source=archive();
   assert.match(source,/const PAGE_SIZE=80/);
+  assert.match(source,/ARCHIVE_VIDEO_LIMIT=240/);
   assert.match(source,/p\$\{pageNo\}\.json/);
   assert.match(source,/pageCount:pages\.length/);
   assert.match(source,/archiveIndex=result\.indexPath/);
@@ -42,9 +43,10 @@ test("Hocalar v2 istemcisi yalnız gereken arşiv sayfasını yükler ve devam d
   assert.match(source,/tries<4/);
 });
 
-test("Pages build önizleme akışından sonra sayfalı hoca arşivini üretir",()=>{
+test("Pages build önizleme akışından sonra sayfalı hoca arşivini kontrollü bütçeyle üretir",()=>{
   const source=workflow();
   assert.match(source,/node scripts\/refresh-teachers-v2-feed\.mjs/);
   assert.match(source,/node scripts\/build-teachers-v2-archives\.mjs/);
-  assert.match(source,/timeout-minutes: 20/);
+  assert.match(source,/timeout-minutes: 30/);
+  assert.match(source,/\[teachers-full-refresh\]/);
 });

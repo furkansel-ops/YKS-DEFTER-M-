@@ -1,278 +1,38 @@
 import {spawn} from "node:child_process";
 import {readFile,writeFile,mkdir,rm} from "node:fs/promises";
-import {dirname,resolve} from "node:path";
+import {resolve} from "node:path";
 
 const ROOT=resolve(process.cwd());
 const FEED_PATH=resolve(ROOT,"public/teachers-v2-feed.json");
 const ARCHIVE_ROOT=resolve(ROOT,"public/teachers-v2");
 const PAGE_SIZE=80;
-const SEARCH_BATCH=50;
-const SEARCH_LIMIT=240;
-const CONCURRENCY=3;
+const ARCHIVE_VIDEO_LIMIT=240;
+const SEARCH_BATCH=40;
+const SEARCH_LIMIT=180;
+const CONCURRENCY=4;
 
-function norm(value){
-  return String(value||"")
-    .toLocaleLowerCase("tr-TR")
-    .normalize("NFKD")
-    .replace(/[\u0300-\u036f]/g,"")
-    .replace(/[^a-z0-9ığüşöç]+/gi," ")
-    .replace(/\s+/g," ")
-    .trim();
-}
-
-function slugFor(value){
-  const base=norm(value)
-    .replace(/ı/g,"i").replace(/ğ/g,"g").replace(/ü/g,"u").replace(/ş/g,"s").replace(/ö/g,"o").replace(/ç/g,"c")
-    .replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"")||"hoca";
-  let h=2166136261;
-  for(const ch of String(value||"")){h^=ch.charCodeAt(0);h=Math.imul(h,16777619);}
-  return `${base}-${(h>>>0).toString(36).slice(0,6)}`;
-}
-
-function teacherTokens(name){
-  const ignored=new Set(["hoca","matematik","akademi","fizik","kimya","biyoloji","tarih","cografya","coğrafya","turkce","türkçe"]);
-  return norm(name).split(/\s+/).filter(x=>x.length>1&&!ignored.has(x));
-}
-
-function scoreEntry(entry,teacher){
-  const channelId=String(entry.channel_id||entry.uploader_id||"");
-  const channelName=norm(entry.channel||entry.uploader||"");
-  const title=norm(entry.title||"");
-  const full=norm(teacher.name);
-  let score=0;
-  if(teacher.channelId&&channelId===teacher.channelId)score+=150;
-  if(teacher.channelName&&channelName===norm(teacher.channelName))score+=90;
-  if(full&&title.includes(full))score+=28;
-  if(full&&channelName.includes(full))score+=36;
-  for(const token of teacherTokens(teacher.name)){
-    if(title.includes(token))score+=7;
-    if(channelName.includes(token))score+=9;
-  }
-  for(const subject of teacher.subjects||[]){if(title.includes(norm(subject)))score+=2;}
-  if(/yks|tyt|ayt|ydt|deneme|kamp|soru/.test(title))score+=2;
-  return score;
-}
-
-function exactChannelMatch(channelName,teacherName){
-  const channel=norm(channelName),full=norm(teacherName);
-  if(!channel||!full)return false;
-  if(channel.includes(full)||full.includes(channel))return true;
-  const tokens=teacherTokens(teacherName);
-  return tokens.length>=2&&tokens.every(token=>channel.includes(token));
-}
-
-function videoUrl(id,url){
-  if(typeof url==="string"&&/^https:\/\/(www\.)?youtube\.com\//.test(url))return url;
-  return id?`https://www.youtube.com/watch?v=${encodeURIComponent(id)}`:"";
-}
-
-function thumbFor(id,entry){
-  if(id)return `https://i.ytimg.com/vi/${encodeURIComponent(id)}/hqdefault.jpg`;
-  if(typeof entry.thumbnail==="string")return entry.thumbnail;
-  const thumbs=Array.isArray(entry.thumbnails)?entry.thumbnails:[];
-  return thumbs.length?String(thumbs[thumbs.length-1]?.url||""):"";
-}
-
-function ytdlp(target,{limit=0,timeout=90000}={}){
-  return new Promise((resolvePromise,rejectPromise)=>{
-    const args=[
-      "-m","yt_dlp","--flat-playlist","--dump-single-json","--no-warnings","--ignore-errors",
-      "--socket-timeout","12","--retries","1","--extractor-retries","1"
-    ];
-    if(Number.isFinite(limit)&&limit>0)args.push("--playlist-end",String(limit));
-    args.push(target);
-    const child=spawn("python3",args,{cwd:ROOT,stdio:["ignore","pipe","pipe"]});
-    let out="",err="",settled=false;
-    const fail=error=>{if(settled)return;settled=true;rejectPromise(error);};
-    const timer=setTimeout(()=>{child.kill("SIGKILL");fail(new Error(`yt-dlp timeout: ${target}`));},timeout);
-    child.stdout.on("data",chunk=>{out+=String(chunk);});
-    child.stderr.on("data",chunk=>{err+=String(chunk);});
-    child.on("error",error=>{clearTimeout(timer);fail(error);});
-    child.on("close",code=>{
-      clearTimeout(timer);
-      if(settled)return;
-      if(code!==0&&!out.trim()){fail(new Error(err.trim()||`yt-dlp exit ${code}`));return;}
-      try{settled=true;resolvePromise(JSON.parse(out));}
-      catch(error){fail(new Error(`yt-dlp JSON okunamadı: ${error instanceof Error?error.message:String(error)}`));}
-    });
-  });
-}
-
-function normalizeVideos(entries,teacher,{channelId="",channelName="",strictChannel=false}={}){
-  const rows=(Array.isArray(entries)?entries:[]).filter(Boolean).map((entry,index)=>({entry,index,score:scoreEntry(entry,teacher)}));
-  let selected;
-  if(strictChannel&&channelId){
-    const exact=rows.filter(({entry})=>{
-      const id=String(entry.channel_id||entry.uploader_id||"");
-      return !id||id===channelId;
-    });
-    selected=exact.length?exact:rows;
-  }else{
-    selected=rows.filter(row=>row.score>=4);
-    if(selected.length<3)selected=rows.filter(row=>row.score>0);
-    selected.sort((a,b)=>b.score-a.score||a.index-b.index);
-  }
-  const seen=new Set();
-  return selected.map(({entry})=>{
-    const id=String(entry.id||"");
-    if(!id||seen.has(id))return null;
-    seen.add(id);
-    const rawChannel=String(entry.channel||entry.uploader||"");
-    return {
-      id,
-      title:String(entry.title||"YouTube videosu"),
-      url:videoUrl(id,entry.webpage_url||entry.url),
-      thumbnail:thumbFor(id,entry),
-      channel:channelName||rawChannel||teacher.name,
-      channelId:channelId||String(entry.channel_id||entry.uploader_id||""),
-      channelUrl:channelId?`https://www.youtube.com/channel/${channelId}`:String(entry.channel_url||entry.uploader_url||"")
-    };
-  }).filter(Boolean);
-}
-
-function normalizePlaylists(entries){
-  const seen=new Set();
-  return (Array.isArray(entries)?entries:[]).map(entry=>{
-    if(!entry)return null;
-    const id=String(entry.id||"");
-    const title=String(entry.title||"").trim();
-    if(!id||!title||seen.has(id))return null;
-    seen.add(id);
-    const raw=String(entry.webpage_url||entry.url||"");
-    return {id,title,url:raw.startsWith("http")?raw:`https://www.youtube.com/playlist?list=${encodeURIComponent(id)}`};
-  }).filter(Boolean);
-}
-
-async function searchEntries(teacher){
-  const focus=teacher.subject||"YKS";
-  const queries=[
-    `${teacher.name} ${focus} YKS`,`${teacher.name} TYT`,`${teacher.name} AYT`,
-    `${teacher.name} deneme`,`${teacher.name} kamp`,`${teacher.name} soru çözümü`,teacher.name
-  ];
-  const out=[],seen=new Set();
-  for(const query of [...new Set(queries)]){
-    try{
-      const result=await ytdlp(`ytsearch${SEARCH_BATCH}:${query}`,{limit:SEARCH_BATCH,timeout:45000});
-      for(const entry of Array.isArray(result?.entries)?result.entries:[]){
-        if(!entry)continue;
-        const key=String(entry.id||entry.url||"");
-        if(!key||seen.has(key))continue;
-        seen.add(key);out.push(entry);
-      }
-      if(out.length>=SEARCH_LIMIT)break;
-    }catch{}
-  }
-  return out.slice(0,SEARCH_LIMIT);
-}
-
-function inferExactChannel(entries,teacher){
-  const groups=new Map();
-  for(const entry of entries||[]){
-    const id=String(entry.channel_id||entry.uploader_id||"");
-    const name=String(entry.channel||entry.uploader||"");
-    if(!/^UC[\w-]{8,}$/.test(id)||!exactChannelMatch(name,teacher.name))continue;
-    const current=groups.get(id)||{channelId:id,channelName:name,count:0,score:0};
-    current.count++;current.score+=scoreEntry(entry,teacher);groups.set(id,current);
-  }
-  return [...groups.values()].sort((a,b)=>(b.count*10+b.score)-(a.count*10+a.score))[0]||null;
-}
-
-async function collectTeacher(teacher){
-  let channelId=String(teacher.channelId||""),channelName=String(teacher.channelName||""),channelSource="search",archiveComplete=false;
-  let entries=[];
-  if(channelId&&!teacher.searchOnly){
-    const direct=await ytdlp(`https://www.youtube.com/channel/${channelId}/videos`,{limit:0,timeout:120000});
-    entries=Array.isArray(direct?.entries)?direct.entries.filter(Boolean):[];
-    channelSource="verified";archiveComplete=entries.length>0;
-  }else{
-    const searched=await searchEntries(teacher);
-    const inferred=inferExactChannel(searched,teacher);
-    if(inferred){
-      try{
-        const direct=await ytdlp(`https://www.youtube.com/channel/${inferred.channelId}/videos`,{limit:0,timeout:120000});
-        const rows=Array.isArray(direct?.entries)?direct.entries.filter(Boolean):[];
-        if(rows.length){entries=rows;channelId=inferred.channelId;channelName=inferred.channelName;channelSource="exact-name";archiveComplete=true;}
-      }catch{}
-    }
-    if(!entries.length)entries=searched;
-  }
-  const videos=normalizeVideos(entries,teacher,{channelId,channelName,strictChannel:Boolean(channelId&&archiveComplete)});
-  let playlists=[];
-  if(channelId){
-    try{
-      const pdata=await ytdlp(`https://www.youtube.com/channel/${channelId}/playlists`,{limit:0,timeout:90000});
-      playlists=normalizePlaylists(pdata?.entries);
-    }catch{}
-  }
+function norm(value){return String(value||"").toLocaleLowerCase("tr-TR").normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9ığüşöç]+/gi," ").replace(/\s+/g," ").trim();}
+function slugFor(value){const base=norm(value).replace(/ı/g,"i").replace(/ğ/g,"g").replace(/ü/g,"u").replace(/ş/g,"s").replace(/ö/g,"o").replace(/ç/g,"c").replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"")||"hoca";let h=2166136261;for(const ch of String(value||"")){h^=ch.charCodeAt(0);h=Math.imul(h,16777619);}return `${base}-${(h>>>0).toString(36).slice(0,6)}`;}
+function teacherTokens(name){const ignored=new Set(["hoca","matematik","akademi","fizik","kimya","biyoloji","tarih","cografya","coğrafya","turkce","türkçe"]);return norm(name).split(/\s+/).filter(x=>x.length>1&&!ignored.has(x));}
+function scoreEntry(entry,teacher){const channelId=String(entry.channel_id||entry.uploader_id||""),channelName=norm(entry.channel||entry.uploader||""),title=norm(entry.title||""),full=norm(teacher.name);let score=0;if(teacher.channelId&&channelId===teacher.channelId)score+=150;if(teacher.channelName&&channelName===norm(teacher.channelName))score+=90;if(full&&title.includes(full))score+=28;if(full&&channelName.includes(full))score+=36;for(const token of teacherTokens(teacher.name)){if(title.includes(token))score+=7;if(channelName.includes(token))score+=9;}for(const term of teacher.focusTerms||[]){if(title.includes(norm(term)))score+=8;}for(const subject of teacher.subjects||[]){const clean=norm(String(subject).replace(/\(ayt\)/ig,""));if(clean&&title.includes(clean))score+=3;}if(/yks|tyt|ayt|ydt|deneme|kamp|soru|tekrar/.test(title))score+=3;return score;}
+function exactChannelMatch(channelName,teacherName){const channel=norm(channelName),full=norm(teacherName);if(!channel||!full)return false;if(channel.includes(full)||full.includes(channel))return true;const tokens=teacherTokens(teacherName);return tokens.length>=2&&tokens.every(token=>channel.includes(token));}
+function videoUrl(id,url){if(typeof url==="string"&&/^https:\/\/(www\.)?youtube\.com\//.test(url))return url;return id?`https://www.youtube.com/watch?v=${encodeURIComponent(id)}`:"";}
+function thumbFor(id,entry){if(id)return `https://i.ytimg.com/vi/${encodeURIComponent(id)}/hqdefault.jpg`;if(typeof entry.thumbnail==="string")return entry.thumbnail;const thumbs=Array.isArray(entry.thumbnails)?entry.thumbnails:[];return thumbs.length?String(thumbs[thumbs.length-1]?.url||""):"";}
+function ytdlp(target,{limit=0,timeout=90000}={}){return new Promise((resolvePromise,rejectPromise)=>{const args=["-m","yt_dlp","--flat-playlist","--dump-single-json","--no-warnings","--ignore-errors","--socket-timeout","12","--retries","1","--extractor-retries","1"];if(Number.isFinite(limit)&&limit>0)args.push("--playlist-end",String(limit));args.push(target);const child=spawn("python3",args,{cwd:ROOT,stdio:["ignore","pipe","pipe"]});let out="",err="",settled=false;const fail=error=>{if(settled)return;settled=true;rejectPromise(error);};const timer=setTimeout(()=>{child.kill("SIGKILL");fail(new Error(`yt-dlp timeout: ${target}`));},timeout);child.stdout.on("data",chunk=>{out+=String(chunk);});child.stderr.on("data",chunk=>{err+=String(chunk);});child.on("error",error=>{clearTimeout(timer);fail(error);});child.on("close",code=>{clearTimeout(timer);if(settled)return;if(code!==0&&!out.trim()){fail(new Error(err.trim()||`yt-dlp exit ${code}`));return;}try{settled=true;resolvePromise(JSON.parse(out));}catch(error){fail(new Error(`yt-dlp JSON okunamadı: ${error instanceof Error?error.message:String(error)}`));}});});}
+function normalizeVideos(entries,teacher,{channelId="",channelName="",strictChannel=false}={}){const rows=(Array.isArray(entries)?entries:[]).filter(Boolean).map((entry,index)=>({entry,index,score:scoreEntry(entry,teacher)}));let selected;if(strictChannel&&channelId){const exact=rows.filter(({entry})=>{const id=String(entry.channel_id||entry.uploader_id||"");return !id||id===channelId;});selected=exact.length?exact:rows;}else{selected=rows.filter(row=>row.score>=4);if(selected.length<15)selected=rows.filter(row=>row.score>0);selected.sort((a,b)=>b.score-a.score||a.index-b.index);}const seen=new Set();return selected.map(({entry})=>{const id=String(entry.id||"");if(!id||seen.has(id))return null;seen.add(id);const rawChannel=String(entry.channel||entry.uploader||"");return {id,title:String(entry.title||"YouTube videosu"),url:videoUrl(id,entry.webpage_url||entry.url),thumbnail:thumbFor(id,entry),channel:channelName||rawChannel||teacher.name,channelId:channelId||String(entry.channel_id||entry.uploader_id||""),channelUrl:channelId?`https://www.youtube.com/channel/${channelId}`:String(entry.channel_url||entry.uploader_url||"")};}).filter(Boolean).slice(0,ARCHIVE_VIDEO_LIMIT);}
+function normalizePlaylists(entries){const seen=new Set();return (Array.isArray(entries)?entries:[]).map(entry=>{if(!entry)return null;const id=String(entry.id||""),title=String(entry.title||"").trim();if(!id||!title||seen.has(id))return null;seen.add(id);const raw=String(entry.webpage_url||entry.url||"");return {id,title,url:raw.startsWith("http")?raw:`https://www.youtube.com/playlist?list=${encodeURIComponent(id)}`};}).filter(Boolean).slice(0,40);}
+async function searchEntries(teacher){const base=teacher.queryHint||teacher.name,focus=teacher.subject||"YKS",queries=[`${base} ${focus} YKS`,`${base} TYT`,`${base} AYT`,`${base} kamp`,`${base} soru çözümü`,`${base} deneme`,`${base} tekrar`,base],out=[],seen=new Set();for(const query of [...new Set(queries)]){try{const result=await ytdlp(`ytsearch${SEARCH_BATCH}:${query}`,{limit:SEARCH_BATCH,timeout:50000});for(const entry of Array.isArray(result?.entries)?result.entries:[]){if(!entry)continue;const key=String(entry.id||entry.url||"");if(!key||seen.has(key))continue;seen.add(key);out.push(entry);if(out.length>=SEARCH_LIMIT)break;}if(out.length>=SEARCH_LIMIT)break;}catch{}}return out.slice(0,SEARCH_LIMIT);}
+function inferExactChannel(entries,teacher){const groups=new Map();for(const entry of entries||[]){const id=String(entry.channel_id||entry.uploader_id||""),name=String(entry.channel||entry.uploader||"");if(!/^UC[\w-]{8,}$/.test(id)||!exactChannelMatch(name,teacher.name))continue;const current=groups.get(id)||{channelId:id,channelName:name,count:0,score:0};current.count++;current.score+=scoreEntry(entry,teacher);groups.set(id,current);}return [...groups.values()].sort((a,b)=>(b.count*10+b.score)-(a.count*10+a.score))[0]||null;}
+async function collectTeacher(teacher){let channelId=String(teacher.channelId||""),channelName=String(teacher.channelName||""),channelSource="search",archiveComplete=false,entries=[];
+  if(channelId&&!teacher.searchOnly){const direct=await ytdlp(`https://www.youtube.com/channel/${channelId}/videos`,{limit:ARCHIVE_VIDEO_LIMIT,timeout:100000});entries=Array.isArray(direct?.entries)?direct.entries.filter(Boolean):[];channelSource="verified";archiveComplete=entries.length>0;}
+  else{const searched=await searchEntries(teacher);if(!teacher.searchOnly){const inferred=inferExactChannel(searched,teacher);if(inferred){try{const direct=await ytdlp(`https://www.youtube.com/channel/${inferred.channelId}/videos`,{limit:ARCHIVE_VIDEO_LIMIT,timeout:100000});const rows=Array.isArray(direct?.entries)?direct.entries.filter(Boolean):[];if(rows.length){entries=rows;channelId=inferred.channelId;channelName=inferred.channelName;channelSource="exact-name";archiveComplete=true;}}catch{}}}if(!entries.length){entries=searched;channelSource=teacher.searchOnly?"focused-search":"search";}}
+  const videos=normalizeVideos(entries,teacher,{channelId,channelName,strictChannel:Boolean(channelId&&archiveComplete&&!teacher.searchOnly)});let playlists=[];
+  if(channelId&&!teacher.searchOnly){try{const pdata=await ytdlp(`https://www.youtube.com/channel/${channelId}/playlists`,{limit:40,timeout:70000});playlists=normalizePlaylists(pdata?.entries);}catch{}}
   return {videos,playlists,channelId,channelName:channelName||videos[0]?.channel||teacher.name,channelSource,archiveComplete};
 }
+async function runPool(items,worker,limit){const results=new Array(items.length);let next=0;async function run(){while(next<items.length){const i=next++;results[i]=await worker(items[i],i);}}await Promise.all(Array.from({length:Math.min(limit,items.length)},()=>run()));return results;}
 
-async function runPool(items,worker,limit){
-  const results=new Array(items.length);let next=0;
-  async function run(){while(next<items.length){const i=next++;results[i]=await worker(items[i],i);}}
-  await Promise.all(Array.from({length:Math.min(limit,items.length)},()=>run()));
-  return results;
-}
-
-const rawFeed=JSON.parse(await readFile(FEED_PATH,"utf8"));
-const teachers=Object.entries(rawFeed.teachers||{}).map(([name,row])=>({name,...row}));
-if(!teachers.length)throw new Error("Hocalar v2 önizleme akışı boş");
-await rm(ARCHIVE_ROOT,{recursive:true,force:true});
-await mkdir(ARCHIVE_ROOT,{recursive:true});
-
-const results=await runPool(teachers,async teacher=>{
-  try{
-    const collected=await collectTeacher(teacher);
-    const slug=slugFor(teacher.name);
-    const dir=resolve(ARCHIVE_ROOT,slug);
-    await mkdir(dir,{recursive:true});
-    const pages=[];
-    for(let offset=0,pageNo=1;offset<collected.videos.length;offset+=PAGE_SIZE,pageNo++){
-      const file=`p${pageNo}.json`;
-      const pageVideos=collected.videos.slice(offset,offset+PAGE_SIZE);
-      await writeFile(resolve(dir,file),`${JSON.stringify({version:1,teacher:teacher.name,page:pageNo,pageSize:PAGE_SIZE,total:collected.videos.length,videos:pageVideos})}\n`,"utf8");
-      pages.push(`teachers-v2/${slug}/${file}`);
-    }
-    const index={
-      version:1,name:teacher.name,subject:teacher.subject,subjects:teacher.subjects||[],
-      channelName:collected.channelName,channelId:collected.channelId,
-      channelUrl:collected.channelId?`https://www.youtube.com/channel/${collected.channelId}`:String(teacher.channelUrl||""),
-      channelSource:collected.channelSource,archiveComplete:collected.archiveComplete,
-      refreshedAt:new Date().toISOString(),videoCount:collected.videos.length,playlistCount:collected.playlists.length,
-      pageSize:PAGE_SIZE,pageCount:pages.length,pages,playlists:collected.playlists
-    };
-    const indexPath=`teachers-v2/${slug}/index.json`;
-    await writeFile(resolve(dir,"index.json"),`${JSON.stringify(index)}\n`,"utf8");
-    console.log(`[teachers-v2-archive] ${teacher.name}: ${collected.videos.length} video · ${collected.playlists.length} playlist · ${pages.length} sayfa · ${collected.channelSource}`);
-    return {name:teacher.name,index,indexPath};
-  }catch(error){
-    console.warn(`[teachers-v2-archive] ${teacher.name}: arşiv üretilemedi (${error instanceof Error?error.message:String(error)})`);
-    return null;
-  }
-},CONCURRENCY);
-
-let totalVideos=0,totalPlaylists=0,success=0;
-for(const result of results){
-  if(!result)continue;
-  const target=rawFeed.teachers?.[result.name];
-  if(!target)continue;
-  success++;
-  totalVideos+=result.index.videoCount;totalPlaylists+=result.index.playlistCount;
-  target.archiveIndex=result.indexPath;
-  target.archiveComplete=result.index.archiveComplete;
-  target.videoCount=result.index.videoCount;
-  target.playlistCount=result.index.playlistCount;
-  target.channelId=result.index.channelId||target.channelId||"";
-  target.channelName=result.index.channelName||target.channelName||"";
-  target.channelUrl=result.index.channelUrl||target.channelUrl||"";
-  target.channelSource=result.index.channelSource;
-  target.playlists=(result.index.playlists||[]).slice(0,12);
-}
-rawFeed.version=4;
-rawFeed.archiveVersion=1;
-rawFeed.archiveTeacherCount=success;
-rawFeed.totalVideos=totalVideos;
-rawFeed.totalPlaylists=totalPlaylists;
-rawFeed.generatedAt=new Date().toISOString();
-await writeFile(FEED_PATH,`${JSON.stringify(rawFeed,null,2)}\n`,"utf8");
-console.log(`[teachers-v2-archive] sayfalı arşiv hazır: ${success}/${teachers.length} hoca · ${totalVideos} video · ${totalPlaylists} playlist · sayfa boyutu ${PAGE_SIZE}`);
+const rawFeed=JSON.parse(await readFile(FEED_PATH,"utf8")),teachers=Object.entries(rawFeed.teachers||{}).map(([name,row])=>({name,...row}));if(!teachers.length)throw new Error("Hocalar v2 önizleme akışı boş");await rm(ARCHIVE_ROOT,{recursive:true,force:true});await mkdir(ARCHIVE_ROOT,{recursive:true});
+const results=await runPool(teachers,async teacher=>{try{const collected=await collectTeacher(teacher),slug=slugFor(teacher.name),dir=resolve(ARCHIVE_ROOT,slug);await mkdir(dir,{recursive:true});const pages=[];for(let offset=0,pageNo=1;offset<collected.videos.length;offset+=PAGE_SIZE,pageNo++){const file=`p${pageNo}.json`,pageVideos=collected.videos.slice(offset,offset+PAGE_SIZE);await writeFile(resolve(dir,file),`${JSON.stringify({version:2,teacher:teacher.name,page:pageNo,pageSize:PAGE_SIZE,total:collected.videos.length,videos:pageVideos})}\n`,"utf8");pages.push(`teachers-v2/${slug}/${file}`);}const index={version:2,name:teacher.name,subject:teacher.subject,subjects:teacher.subjects||[],channelName:collected.channelName,channelId:collected.channelId,channelUrl:collected.channelId?`https://www.youtube.com/channel/${collected.channelId}`:String(teacher.channelUrl||""),channelSource:collected.channelSource,archiveComplete:collected.archiveComplete,refreshedAt:new Date().toISOString(),videoCount:collected.videos.length,playlistCount:collected.playlists.length,pageSize:PAGE_SIZE,pageCount:pages.length,pages,playlists:collected.playlists};const indexPath=`teachers-v2/${slug}/index.json`;await writeFile(resolve(dir,"index.json"),`${JSON.stringify(index)}\n`,"utf8");console.log(`[teachers-v2-archive] ${teacher.name}: ${collected.videos.length} video · ${collected.playlists.length} playlist · ${pages.length} sayfa · ${collected.channelSource}`);return {name:teacher.name,index,indexPath};}catch(error){console.warn(`[teachers-v2-archive] ${teacher.name}: arşiv üretilemedi (${error instanceof Error?error.message:String(error)})`);return null;}},CONCURRENCY);
+let totalVideos=0,totalPlaylists=0,success=0,playlistTeachers=0;for(const result of results){if(!result)continue;const target=rawFeed.teachers?.[result.name];if(!target)continue;success++;totalVideos+=result.index.videoCount;totalPlaylists+=result.index.playlistCount;if(result.index.playlistCount)playlistTeachers++;target.archiveIndex=result.indexPath;target.archiveComplete=result.index.archiveComplete;target.videoCount=result.index.videoCount;target.playlistCount=result.index.playlistCount;target.channelId=result.index.channelId||target.channelId||"";target.channelName=result.index.channelName||target.channelName||"";target.channelUrl=result.index.channelUrl||target.channelUrl||"";target.channelSource=result.index.channelSource;target.playlists=(result.index.playlists||[]).slice(0,16);}
+rawFeed.version=Math.max(7,Number(rawFeed.version||0));rawFeed.archiveVersion=2;rawFeed.archiveTeacherCount=success;rawFeed.playlistTeacherCount=playlistTeachers;rawFeed.totalVideos=totalVideos;rawFeed.totalPlaylists=totalPlaylists;rawFeed.generatedAt=new Date().toISOString();await writeFile(FEED_PATH,`${JSON.stringify(rawFeed,null,2)}\n`,"utf8");console.log(`[teachers-v2-archive] sayfalı arşiv hazır: ${success}/${teachers.length} hoca · ${totalVideos} video · ${totalPlaylists} playlist · ${playlistTeachers} playlistli hoca · sayfa boyutu ${PAGE_SIZE}`);
