@@ -37,7 +37,7 @@ export const VERIFIED_CHANNELS={
   "Kimya Dersleri · Sinan İhtiyaroğlu":{channelHandle:"@kimyadersleri",channelName:"Kimya Dersleri - Sinan İHTİYAROĞLU"},
   "Semih Balmuk Kimya":{channelId:"UCoholQ9DKzOGYK7y9rYgrmA",channelHandle:"@SemihBalmukKimya",channelName:"Semih Balmuk Kimya"},
   "Levent Özdede ile Kimya":{channelHandle:"@leventozdede",channelName:"Levent Özdede ile Kimya"},
-  "Görkem Şahin · Benim Hocam":{channelHandle:"@benimhocam",channelName:"Benim Hocam",focusTerms:["kimya","görkem","gorkem"]},
+  "Görkem Şahin · Benim Hocam":{channelHandle:"@benimhocam",channelName:"Benim Hocam",searchOnly:true,queryHint:"Görkem Şahin Kimya",focusTerms:["kimya","görkem","gorkem"]},
 
   "Biosem":{channelHandle:"@biosem",channelName:"Biosem Biyoloji"},
   "Dr. Biyoloji":{channelId:"UCY7Nh-CV3qqaWTxldlG4RCA",channelHandle:"@barishocabiyoloji",channelName:"Dr. Biyoloji"},
@@ -54,7 +54,7 @@ export const VERIFIED_CHANNELS={
   "Tonguç Akademi":{channelId:"UCm3vDH7Uvz_qwql5Qih4yGw",channelName:"tonguç AKADEMİ"}
 };
 
-/* Kanalın son 15 videosu ilgili dersi kaçırsa bile kullanıcİ boş ekran görmesin.
+/* Kanalın son 15 videosu ilgili dersi kaçırsa bile kullanıcı boş ekran görmesin.
    Bunlar doğrudan doğrulanmış YKS videolarıdır; RSS ile gelen güncel videoların
    önüne değil, aynı öğretmenin alakalı içerik havuzuna eklenir. */
 export const CURATED_VIDEOS={
