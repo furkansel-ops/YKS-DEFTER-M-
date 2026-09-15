@@ -34,11 +34,11 @@ test("Firebase geçici hatalarda jitterlı geri deneme kullanır",()=>{
 
 test("Kalıcı Firebase hatası otomatik retry döngüsüne girmez",()=>{
   const source=distHardening();
-  assert.match(source,/syncRetryBlocked=false,authRefreshUsed=false/);
+  assert.match(source,/syncRetryBlocked=false,authRefreshUsed=false,authRecoveryTimer=null/);
   assert.match(source,/syncRetryBlocked=!transient/);
   assert.match(source,/dirty&&!syncRetryBlocked/);
   assert.match(source,/syncRetryCount&&!syncRetryBlocked/);
-  assert.match(source,/if\(transient\)status\("Buluta tekrar bağlanıyor…"/);
+  assert.match(source,/if\(retryAfterAuth\)status\("Oturum doğrulanıyor…"/);
   assert.match(source,/else status\("Senkron hatası","error",detail\)/);
 });
 
@@ -50,14 +50,28 @@ test("Firebase oturum hatasında kimlik jetonunu yalnız bir kez tazeler",()=>{
   assert.match(source,/retryAfterAuth=false/);
 });
 
-test("Firebase tablet uykusu veya ağ dönüşünde bekleyen yerel kaydı yeniden sürdürür",()=>{
+test("İlk indirmede permission-denied olursa token yenilenince indirme bir kez daha denenir",()=>{
+  const source=distHardening();
+  assert.match(source,/authRecoveryTimer=setTimeout\(\(\)=>\{if\(user&&navigator\.onLine&&!loading\)downloadOrSeed\(\);\}/);
+  assert.match(source,/600\+Math\.floor\(Math\.random\(\)\*500\)/);
+  assert.match(source,/Firebase erişim izni reddedildi/);
+  assert.match(source,/Bulut oturumu doğrulanamadı/);
+});
+
+test("Kalıcı permission-denied görünürlük veya ağ dönüşünde tekrar tekrar tetiklenmez",()=>{
+  const source=distHardening();
+  assert.match(source,/function resumeCloudSync\(\)\{if\(!user\|\|loading\|\|uploading\|\|!dirty\|\|!navigator\.onLine\|\|syncRetryBlocked\)return/);
+  assert.match(source,/user=u;syncRetryBlocked=false;authRefreshUsed=false;clearTimeout\(authRecoveryTimer\);authRecoveryTimer=null/);
+});
+
+test("Firebase tablet uykusu veya ağ dönüşünde bekleyen geçici yerel kaydı yeniden sürdürür",()=>{
   const source=vite();
   const hardening=distHardening();
   assert.match(source,/function resumeCloudSync/);
   assert.match(source,/addEventListener\("online",resumeCloudSync\)/);
   assert.match(source,/visibilitychange/);
   assert.match(source,/document\.visibilityState===\"visible\"/);
-  assert.match(hardening,/resumeCloudSync\(\)\{if\(!user\|\|loading\|\|uploading\|\|!dirty\|\|!navigator\.onLine\)return;syncRetryBlocked=false;authRefreshUsed=false/);
+  assert.match(hardening,/function resumeCloudSync\(\)/);
 });
 
 test("Firebase çakışma birleştirmesinden sonra aynı anda yazan cihazlara jitter uygular",()=>{
