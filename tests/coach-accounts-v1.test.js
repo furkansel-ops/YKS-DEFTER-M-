@@ -5,13 +5,13 @@ const path=require("node:path");
 const root=path.resolve(__dirname,"..");
 const read=file=>fs.readFileSync(path.join(root,file),"utf8");
 
-test("normal giriş yeni hesapları yalnız öğrenci olarak oluşturur",()=>{
+test("normal kayıt yeni hesapları yalnız öğrenci olarak oluşturur; başlangıç giriş ekranına bağlı değildir",()=>{
   const loader=read("src/ui/coach-account-loader.ts"),auth=read("public/auth-session-runtime.js");
   assert.match(loader,/sessionStorage\.setItem\(PENDING_ROLE,"student"\)/);
   assert.match(loader,/sessionStorage\.removeItem\(PENDING_COACH\)/);
   assert.match(loader,/publicRegistration="student-only"/);
-  assert.match(auth,/yeni hesaplar Öğrenci hesabıdır/);
-  assert.match(auth,/özel, tek kullanımlık koç davet bağlantısıyla/);
+  assert.match(auth,/sessionGate:"removed"/);
+  assert.doesNotMatch(auth,/Hesabına giriş yap|Beni hatırla/);
 });
 
 test("koç kaydı ayrı sayfada 24 karakterlik davetle transaction içinde yapılır",()=>{
