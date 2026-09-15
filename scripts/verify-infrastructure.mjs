@@ -35,8 +35,15 @@ must(firebaseConfig?.firestore?.rules==="firestore.rules","firebase.json Firesto
 must(firebaseRc?.projects?.default==="yks-uygulamam","Firebase varsayılan projesi beklenen proje değil");
 must(/request\.auth\s*!=\s*null/.test(firestoreRules),"Firestore kuralları oturum zorunluluğunu korumuyor");
 must(/request\.auth\.uid\s*==\s*userId/.test(firestoreRules),"Firestore kuralları kullanıcı UID sınırını korumuyor");
+must(/request\.auth\.token\.email_verified\s*==\s*true/.test(firestoreRules),"Firestore kuralları doğrulanmış e-posta sınırını korumuyor");
 must(/match \/users\/\{userId\}\/sync\/meta/.test(firestoreRules),"Firestore sync/meta yolu tanımlı değil");
 must(/match \/users\/\{userId\}\/chunks\/\{chunkId\}/.test(firestoreRules),"Firestore chunks yolu tanımlı değil");
+must(/data\.format is int && data\.format == 4/.test(firestoreRules),"Firestore v4 format zorunluluğu eksik");
+must(/data\.count is int && data\.count >= 0 && data\.count <= 12/.test(firestoreRules),"Firestore parça sayısı production sınırıyla uyumlu değil");
+must(/data\.data is string && data\.data\.size\(\) <= 720000/.test(firestoreRules),"Firestore chunk boyutu production sınırıyla uyumlu değil");
+must(/let meta = nextMeta\(userId\)/.test(firestoreRules),"Firestore chunk doğrulaması getAfter meta durumunu kullanmıyor");
+must(/allow create: if ownsUserSpace\(userId\) && validChunk\(userId\)/.test(firestoreRules),"Firestore chunk create kuralı güvenli v4 doğrulamasını kullanmıyor");
+must(/allow update: if false/.test(firestoreRules),"Firestore aktif chunk üzerine yazmayı açık bırakıyor");
 must(/match \/\{document=\*\*\}[\s\S]*allow read, write: if false/.test(firestoreRules),"Firestore varsayılan reddetme kuralı eksik");
 must(!/allow\s+read\s*,\s*write\s*:\s*if\s+true/.test(firestoreRules),"Firestore kuralları herkese açık erişim içeriyor");
 
@@ -64,4 +71,4 @@ for(const [file,max] of Object.entries(budgets)){
   must(info.size<=max,`${file} ${info.size} bayt ile ${max} bayt kaynak bütçesini aştı`);
 }
 
-console.log(`Altyapı doğrulandı: Node 22 tabanı + Node 24 uyumluluğu, salt-okunur CI, ESM sınırı, güvenli Firestore kullanıcı sınırı, deterministik build ve ${Object.keys(budgets).length} kaynak bütçesi.`);
+console.log(`Altyapı doğrulandı: Node 22 tabanı + Node 24 uyumluluğu, salt-okunur CI, ESM sınırı, Firestore v4 senkron güvenliği, deterministik build ve ${Object.keys(budgets).length} kaynak bütçesi.`);

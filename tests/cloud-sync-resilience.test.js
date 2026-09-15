@@ -14,6 +14,16 @@ test("Firebase senkronu yeni yüklemelerde daha az ve güvenli boyutta parça ü
   assert.match(source,/parts\.length>12/);
 });
 
+test("Production Firebase çıktısı Firestore v4 protokolüne yükseltilir",()=>{
+  const source=distHardening();
+  assert.match(source,/const CLOUD_FORMAT=3,/);
+  assert.match(source,/const CLOUD_FORMAT=4,/);
+  assert.match(source,/\{data:part,revision:targetRev,index:i\}/);
+  assert.match(source,/\{data:part,revision:targetRev,index:i,format:CLOUD_FORMAT\}/);
+  assert.match(source,/Firestore v4 meta biçimi/);
+  assert.match(source,/Firestore v4 chunk biçimi/);
+});
+
 test("Firebase uzaktaki durumu bütün eski chunks koleksiyonunu taramadan okur",()=>{
   const source=vite();
   assert.match(source,/yalnız aktif revizyonu okuma/);

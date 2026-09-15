@@ -9,8 +9,25 @@ function replaceRequired(needle,replacement,label){
   source=source.replace(needle,replacement);
 }
 
+if(!source.includes('const CLOUD_FORMAT=4,')){
+  replaceRequired(
+    'const CLOUD_FORMAT=3,',
+    'const CLOUD_FORMAT=4,',
+    "Firestore v4 meta biçimi"
+  );
+}
+
+if(!source.includes('index:i,format:CLOUD_FORMAT')){
+  replaceRequired(
+    '{data:part,revision:targetRev,index:i}',
+    '{data:part,revision:targetRev,index:i,format:CLOUD_FORMAT}',
+    "Firestore v4 chunk biçimi"
+  );
+}
+
 if(source.includes("authRecoveryTimer=null")){
-  console.log("Firebase permission/auth kurtarma sınırı zaten uygulanmış.");
+  writeFileSync(file,source,"utf8");
+  console.log("Firebase v4 protokolü ve permission/auth kurtarma sınırı zaten uygulanmış.");
   process.exit(0);
 }
 
@@ -81,4 +98,4 @@ replaceRequired(
 );
 
 writeFileSync(file,source,"utf8");
-console.log("Firebase permission/auth kurtarma ve geçici hata retry sağlamlaştırması dist çıktısına uygulandı.");
+console.log("Firebase v4 protokolü, permission/auth kurtarma ve geçici hata retry sağlamlaştırması dist çıktısına uygulandı.");
