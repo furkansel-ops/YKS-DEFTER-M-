@@ -9,27 +9,33 @@ function replaceRequired(needle,replacement,label){
   source=source.replace(needle,replacement);
 }
 
-if(source.includes("syncRetryBlocked=false,authRefreshUsed=false")){
-  console.log("Firebase retry sınırı zaten uygulanmış.");
+if(source.includes("authRecoveryTimer=null")){
+  console.log("Firebase permission/auth kurtarma sınırı zaten uygulanmış.");
   process.exit(0);
 }
 
 replaceRequired(
   'let user=null,timer=null,loading=false,lastJSON="",uploading=false,uploadQueued=false,stopRealtime=null,syncRetryCount=0;',
-  'let user=null,timer=null,loading=false,lastJSON="",uploading=false,uploadQueued=false,stopRealtime=null,syncRetryCount=0,syncRetryBlocked=false,authRefreshUsed=false;',
-  "retry durum alanları"
+  'let user=null,timer=null,loading=false,lastJSON="",uploading=false,uploadQueued=false,stopRealtime=null,syncRetryCount=0,syncRetryBlocked=false,authRefreshUsed=false,authRecoveryTimer=null;',
+  "retry ve auth kurtarma durum alanları"
 );
 
 replaceRequired(
   'function markSynced(){syncRetryCount=0;lastSyncAt=Date.now();try{localStorage.setItem(LAST_SYNC_KEY,String(lastSyncAt));}catch(e){}status("Senkronize","synced",syncAgo(lastSyncAt));}',
-  'function markSynced(){syncRetryCount=0;syncRetryBlocked=false;authRefreshUsed=false;lastSyncAt=Date.now();try{localStorage.setItem(LAST_SYNC_KEY,String(lastSyncAt));}catch(e){}status("Senkronize","synced",syncAgo(lastSyncAt));}',
-  "başarı sonrası retry sıfırlama"
+  'function markSynced(){syncRetryCount=0;syncRetryBlocked=false;authRefreshUsed=false;clearTimeout(authRecoveryTimer);authRecoveryTimer=null;lastSyncAt=Date.now();try{localStorage.setItem(LAST_SYNC_KEY,String(lastSyncAt));}catch(e){}status("Senkronize","synced",syncAgo(lastSyncAt));}',
+  "başarı sonrası retry ve auth kurtarmayı sıfırlama"
+);
+
+replaceRequired(
+  'function syncErrorText(error){return String(error&&((error.code&&String(error.code).replace(/^firestore\\\//,""))||error.message)||"hata").slice(0,100);}',
+  'function syncErrorText(error){const code=String(error&&error.code||"").toLowerCase();if(code.includes("permission-denied"))return "Firebase erişim izni reddedildi";if(code.includes("unauthenticated"))return "Bulut oturumu doğrulanamadı";return String(error&&((error.code&&String(error.code).replace(/^firestore\\\//,""))||error.message)||"hata").slice(0,100);}',
+  "anlaşılır auth hata metni"
 );
 
 replaceRequired(
   'async function refreshCloudAuth(error){const code=String(error&&error.code||"");if(!user||typeof user.getIdToken!=="function"||(!code.includes("permission-denied")&&!code.includes("unauthenticated")))return false;try{await user.getIdToken(true);return true;}catch(_){return false;}}\nfunction reportSyncError(scope,error){syncRetryCount=Math.min(9,syncRetryCount+1);console.error(error);infraError(scope,error);const detail=syncErrorText(error),transient=transientSyncError(error);if(transient||syncRetryCount<=3)status("Buluta tekrar bağlanıyor…","syncing",detail+" · cihazda kayıtlı");else status("Senkron hatası","error",detail);}',
-  'async function refreshCloudAuth(error){const code=String(error&&error.code||"");if(authRefreshUsed||!user||typeof user.getIdToken!=="function"||(!code.includes("permission-denied")&&!code.includes("unauthenticated")))return false;authRefreshUsed=true;try{await user.getIdToken(true);return true;}catch(_){return false;}}\nfunction reportSyncError(scope,error,retryAfterAuth=false){const transient=transientSyncError(error)||retryAfterAuth;syncRetryBlocked=!transient;if(transient)syncRetryCount=Math.min(9,syncRetryCount+1);else syncRetryCount=0;console.error(error);infraError(scope,error);const detail=syncErrorText(error);if(transient)status("Buluta tekrar bağlanıyor…","syncing",detail+" · cihazda kayıtlı");else status("Senkron hatası","error",detail);}',
-  "geçici ve kalıcı hata ayrımı"
+  'async function refreshCloudAuth(error){const code=String(error&&error.code||"");if(authRefreshUsed||!user||typeof user.getIdToken!=="function"||(!code.includes("permission-denied")&&!code.includes("unauthenticated")))return false;authRefreshUsed=true;try{await user.getIdToken(true);return true;}catch(_){return false;}}\nfunction reportSyncError(scope,error,retryAfterAuth=false){const transient=transientSyncError(error)||retryAfterAuth;syncRetryBlocked=!transient;if(transient)syncRetryCount=Math.min(9,syncRetryCount+1);else syncRetryCount=0;console.error(error);infraError(scope,error);const detail=syncErrorText(error);if(retryAfterAuth)status("Oturum doğrulanıyor…","syncing","Bulut oturumu yenileniyor · cihazda kayıtlı");else if(transient)status("Buluta tekrar bağlanıyor…","syncing",detail+" · cihazda kayıtlı");else status("Senkron hatası","error",detail);}',
+  "geçici, kalıcı ve auth kurtarma hata ayrımı"
 );
 
 replaceRequired(
@@ -58,15 +64,21 @@ replaceRequired(
 
 replaceRequired(
   'window.yksCloudForceDirty=()=>{setDirty(true);if(user&&navigator.onLine){clearTimeout(timer);timer=setTimeout(upload,100);}};\nfunction resumeCloudSync(){if(!user||loading||uploading||!dirty||!navigator.onLine)return;clearTimeout(timer);timer=setTimeout(upload,300+Math.floor(Math.random()*500));}',
-  'window.yksCloudForceDirty=()=>{syncRetryBlocked=false;authRefreshUsed=false;setDirty(true);if(user&&navigator.onLine){clearTimeout(timer);timer=setTimeout(upload,100);}};\nfunction resumeCloudSync(){if(!user||loading||uploading||!dirty||!navigator.onLine)return;syncRetryBlocked=false;authRefreshUsed=false;clearTimeout(timer);timer=setTimeout(upload,300+Math.floor(Math.random()*500));}',
-  "yeni yerel değişiklik ve ağ dönüşü"
+  'window.yksCloudForceDirty=()=>{setDirty(true);if(user&&navigator.onLine&&!syncRetryBlocked){clearTimeout(timer);timer=setTimeout(upload,100);}};\nfunction resumeCloudSync(){if(!user||loading||uploading||!dirty||!navigator.onLine||syncRetryBlocked)return;clearTimeout(timer);timer=setTimeout(upload,300+Math.floor(Math.random()*500));}',
+  "kalıcı auth hatasını görünürlük/ağ dönüşünde tekrar tekrar tetiklememe"
 );
 
 replaceRequired(
   '}catch(e){await refreshCloudAuth(e);reportSyncError("firebase-download",e);}\n  finally{loading=false;if(user&&dirty&&navigator.onLine&&syncRetryCount){clearTimeout(timer);timer=setTimeout(upload,syncRetryDelay());}}',
-  '}catch(e){const authRetry=await refreshCloudAuth(e);reportSyncError("firebase-download",e,authRetry);}\n  finally{loading=false;if(user&&dirty&&navigator.onLine&&syncRetryCount&&!syncRetryBlocked){clearTimeout(timer);timer=setTimeout(upload,syncRetryDelay());}}',
-  "indirme retry sınırı"
+  '}catch(e){const authRetry=await refreshCloudAuth(e);reportSyncError("firebase-download",e,authRetry);if(authRetry){clearTimeout(authRecoveryTimer);authRecoveryTimer=setTimeout(()=>{if(user&&navigator.onLine&&!loading)downloadOrSeed();},600+Math.floor(Math.random()*500));}}\n  finally{loading=false;if(user&&dirty&&navigator.onLine&&syncRetryCount&&!syncRetryBlocked){clearTimeout(timer);timer=setTimeout(upload,syncRetryDelay());}}',
+  "ilk indirme permission-denied sonrası token yenileyip yeniden indirme"
+);
+
+replaceRequired(
+  '  user=u;\n  if(u){',
+  '  user=u;syncRetryBlocked=false;authRefreshUsed=false;clearTimeout(authRecoveryTimer);authRecoveryTimer=null;\n  if(u){',
+  "auth durumu değişince kurtarma kilidini sıfırlama"
 );
 
 writeFileSync(file,source,"utf8");
-console.log("Firebase geçici hata retry sağlamlaştırması dist çıktısına uygulandı.");
+console.log("Firebase permission/auth kurtarma ve geçici hata retry sağlamlaştırması dist çıktısına uygulandı.");
