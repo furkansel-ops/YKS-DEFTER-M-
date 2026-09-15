@@ -20,7 +20,7 @@ test('2027 YKS tarihleri sabittir ve eski tek net hedefi TYT hedefine taşınır
   assert.match(s,/blankNewUser\(s\).*Number\(s\.target\|\|0\)===150/);
 });
 
-test('Profil katmanı Vite başlangıcında fail-open kurulur',()=>{
+test('Profil katmanı Vite başlangıcında ayrı lazy chunk ve fail-open sınırında kurulur',()=>{
   const s=main();
-  assert.match(s,/installOnboardingProfileV45/);assert.match(s,/installOptional\("onboarding-profile"/);assert.match(s,/dataset\.onboardingProfileRuntime/);
+  assert.match(s,/import\("\.\/ui\/onboarding-profile-v45"\)/);assert.match(s,/installOptional\("onboarding-profile"/);assert.match(s,/dataset\.onboardingProfileRuntime/);
 });
