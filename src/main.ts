@@ -19,6 +19,7 @@ import {installV43SafeRuntime} from "./ui/v43-safe-runtime";
 import {installPlayStoreShell} from "./ui/play-store-shell";
 import {installParagraphProblemTracker} from "./ui/paragraph-problem-tracker";
 import {installTeachersV2} from "./ui/teachers-v2";
+import {installOnboardingProfileV45} from "./ui/onboarding-profile-v45";
 import "./ui/visual-stability-hotfix.css";
 import "./ui/recent-feature-stability.css";
 import "./ui/topics-toolbar-hotfix.css";
@@ -127,6 +128,8 @@ function loadTeachersV2Media():void{
 /* Çekirdek açılış zinciri yalnız kararlı altyapı modüllerinden oluşur.
    Ürün katmanları ve yardımcı arayüzler fail-open sınırlarında tutulur: tek bir yeni
    özellik hata verirse uygulamanın geri kalanı açılmaya devam eder. */
+const onboardingProfile=installOptional("onboarding-profile",()=>installOnboardingProfileV45(),{installed:false,examDate:"2027-06-19"});
+document.documentElement.dataset.onboardingProfileRuntime=onboardingProfile.installed?"ready":"deferred";
 const services=installLegacyServiceBridge();
 const data=installLegacyDataBridge();
 installScienceCards();
