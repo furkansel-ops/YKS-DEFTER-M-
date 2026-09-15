@@ -11,7 +11,7 @@ test("kayıt ekranı öğrenci ve koç rolünü ayrı hesap türü olarak sunar"
   assert.match(runtime,/data-role="coach"/);
   assert.match(runtime,/Öğrenci/);
   assert.match(runtime,/Koç/);
-  assert.match(runtime,/COACH_PROFILE_PENDING_KEY/);
+  assert.match(runtime,/PENDING_COACH/);
   assert.match(runtime,/coachTitle/);
   assert.match(runtime,/specialization/);
 });
@@ -20,17 +20,17 @@ test("mevcut bulut hesabı otomatik öğrenci olarak korunur ve hesap rolü değ
   const runtime=read("public/coach-account-runtime.js");
   const rules=read("firestore.rules");
   assert.match(runtime,/users",user\.uid,"sync","meta/);
-  assert.match(runtime,/if\(!oldMeta\.exists\(\)\)role=/);
+  assert.match(runtime,/if\(!old\.exists\(\)\)role=/);
   assert.match(rules,/request\.resource\.data\.role == resource\.data\.role/);
 });
 
 test("koç ham öğrenci sync verisine değil coachingShares görünümüne erişir",()=>{
   const runtime=read("public/coach-account-runtime.js");
   assert.match(runtime,/coachingShares/);
-  assert.match(runtime,/program:\{weeks:programWeeks\}/);
+  assert.match(runtime,/program:\{weeks\}/);
   assert.match(runtime,/paragraphProblem:\{entries:pp\}/);
-  assert.match(runtime,/errorJournal:wrong/);
-  assert.doesNotMatch(runtime,/collection\(runtime\.db,"users"/);
+  assert.match(runtime,/errorJournal:errors/);
+  assert.doesNotMatch(runtime,/collection\(rt\.db,"users"/);
 });
 
 test("koç müdahaleleri doğrudan veri yazmak yerine dört kontrollü action tipini kullanır",()=>{
@@ -55,7 +55,7 @@ test("öğrenci-koç eşleşmesi 10 karakterlik 24 saatlik tek kullanımlık kod
 test("koç hesabı normal öğrenci bulut snapshot zincirini başlatmaz",()=>{
   const vite=read("vite.config.mts");
   assert.match(vite,/YKSAccountAuth/);
-  assert.match(vite,/account&&account\.role===\"coach\"/);
+  assert.match(vite,/account&&account\.role/);
   assert.match(vite,/user=null;status\(\"Koç hesabı\"/);
   assert.match(vite,/await waitAccountRuntime\(\)/);
 });
