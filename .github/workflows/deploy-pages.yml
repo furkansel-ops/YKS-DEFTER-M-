@@ -20,7 +20,7 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - name: Kaynak kodu al
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -37,8 +37,6 @@ jobs:
       - name: Bağımlılıkları kur
         run: npm ci --no-audit --no-fund
 
-      # Normal kod push'u mevcut çalışan Hocalar paketini silmemeli. Önce canlı
-      # Pages feed + sayfalı arşiv geri alınır; erişilemiyorsa seed dosya korunur.
       - name: Son canlı Hocalar medya paketini koru
         if: github.event_name == 'push'
         continue-on-error: true
@@ -46,26 +44,22 @@ jobs:
           YKS_TEACHERS_MEDIA_BASE: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
         run: node scripts/restore-teachers-v2-live-media.mjs
 
-      # Tam YouTube taraması yalnız günlük cron veya elle çalıştırılan workflow'da.
-      # Push dağıtımı ağ hızına bağlı kalmaz ve son sağlam tam arşivi korur.
+      # Normal push hızlı kalır. [teachers-full-refresh] işaretli bakım merge'i,
+      # günlük cron ve elle çalıştırma ise gerçek YouTube arşivini yeniler.
       - name: Hocalar v2 medya akışını ağdan yenile
-        if: github.event_name != 'push'
+        if: github.event_name != 'push' || contains(github.event.head_commit.message, '[teachers-full-refresh]')
         continue-on-error: true
         run: |
           python3 -m pip install --disable-pip-version-check --quiet yt-dlp
           python3 -m yt_dlp --version
-          timeout --signal=TERM --kill-after=5s 90s node scripts/refresh-teachers-v2-feed.mjs \
+          timeout --signal=TERM --kill-after=5s 240s node scripts/refresh-teachers-v2-feed.mjs \
             || echo "[teachers-v2] yenileme süre bütçesini aştı; mevcut sağlam feed korunuyor"
 
-      # Doğrulanmış kanal kimliği olan hocaların son videolarını hafif YouTube RSS
-      # akışından günceller. yt-dlp gerekmez; Ferrum da bu katmanda doğrudan bağlıdır.
       - name: Hocalar v2 hızlı video önizlemesini hazırla
         run: node scripts/patch-teachers-v2-known-custom.mjs
 
-      # Tam arşiv ağırdır. Push'ta canlıdan geri alınan arşivi olduğu gibi koru;
-      # cron/manual çalışmada yt-dlp hazırken arşivi yeniden oluştur.
       - name: Hocalar v2 sayfalı tam arşivini yenile
-        if: github.event_name != 'push'
+        if: github.event_name != 'push' || contains(github.event.head_commit.message, '[teachers-full-refresh]')
         continue-on-error: true
         run: node scripts/build-teachers-v2-archives.mjs
 
@@ -123,7 +117,6 @@ jobs:
         with:
           node-version: 22
 
-      # deploy-pages job conclusion değeri GitHub tarafından yönetilir; eski Pages dağıtımı ayrıca beklenmez.
       - name: GitHub Pages'e dağıt
         id: deployment
         uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5
