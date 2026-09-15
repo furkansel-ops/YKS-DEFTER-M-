@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <title>YKS Defterim · Koç Kaydı</title>
+  <style>
+    :root{color-scheme:light dark;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    *{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:20px;background:linear-gradient(145deg,#07111f,#13223c);color:#111827}.card{width:min(560px,100%);background:#fff;border-radius:24px;padding:24px;box-shadow:0 30px 80px #0007}.brand{font-size:13px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:#2563eb}.pill{display:inline-flex;margin:8px 0 16px;padding:6px 10px;border-radius:999px;background:#eff6ff;color:#1d4ed8;font-size:12px;font-weight:800}h1{margin:0 0 8px;font-size:30px}.copy,.note{color:#667085;line-height:1.5}.form{display:grid;gap:11px;margin-top:18px}label{display:grid;gap:6px;font-size:13px;font-weight:700}input{width:100%;padding:12px;border:1px solid #dbe2ea;border-radius:12px;background:#fff;color:#111827;font:inherit}.remember{display:flex;gap:10px;align-items:flex-start;padding:12px;border:1px solid #dbe2ea;border-radius:14px;font-weight:600}.remember input{width:18px;height:18px;margin-top:2px}.btn{border:0;border-radius:13px;padding:13px 15px;background:#2563eb;color:#fff;font:inherit;font-weight:800;cursor:pointer}.btn:disabled{opacity:.55;cursor:wait}.status{margin-top:14px;padding:11px 12px;border-radius:12px;background:#f8fafc;color:#475467;font-size:13px;white-space:pre-wrap}.status.ok{background:#ecfdf3;color:#027a48}.status.err{background:#fef3f2;color:#b42318}.back{display:inline-block;margin-top:14px;color:#2563eb;text-decoration:none;font-weight:700}@media(max-width:560px){.card{padding:20px;border-radius:20px}}
+  </style>
+</head>
+<body>
+  <main class="card">
+    <div class="brand">YKS Defterim</div>
+    <span class="pill">Özel koç daveti</span>
+    <h1>Koç hesabını oluştur</h1>
+    <p class="copy">Bu sayfa yalnızca geçerli, tek kullanımlık bir koç davet bağlantısıyla çalışır. Davet kullanıldıktan sonra tekrar kullanılamaz.</p>
+    <form class="form" id="coachRegisterForm">
+      <label>Ad Soyad<input id="coachName" maxlength="80" autocomplete="name" required></label>
+      <label>Koçluk unvanı<input id="coachTitle" maxlength="100" placeholder="Örn. YKS Eğitim Koçu"></label>
+      <label>Uzmanlık<input id="coachSpecialization" maxlength="160" placeholder="Örn. Sayısal · Program ve deneme takibi"></label>
+      <label class="remember"><input id="rememberCoach" type="checkbox"><span>Bu cihazda beni hatırla<br><small class="note">Seçilmezse sonraki açılışta yeniden giriş istenir.</small></span></label>
+      <button class="btn" id="coachRegisterBtn" type="submit">Google ile koç hesabı oluştur</button>
+    </form>
+    <div class="status" id="coachRegisterStatus">Davet bağlantısı kontrol ediliyor…</div>
+    <a class="back" href="./">← YKS Defterim'e dön</a>
+  </main>
+  <script type="module" src="./coach-register.js"></script>
+</body>
+</html>
