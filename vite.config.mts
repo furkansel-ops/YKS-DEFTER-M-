@@ -55,7 +55,7 @@ function hardenFirebaseRuntime(source:string):string{
   );
 
   const helperNeedle='async function upload(){';
-  const helper='function syncErrorText(error){return String(error&&((error.code&&String(error.code).replace(/^firestore\\//,""))||error.message)||"hata").slice(0,100);}\nfunction transientSyncError(error){const code=String(error&&error.code||"").toLowerCase();return ["unavailable","deadline-exceeded","aborted","resource-exhausted","cancelled","internal","unknown","network-request-failed"].some(x=>code.includes(x));}\nfunction syncRetryDelay(){const step=Math.min(6,Math.max(0,syncRetryCount-1)),base=Math.min(90000,1000*Math.pow(2,step)),jitter=.8+Math.random()*.4;return Math.max(700,Math.round(base*jitter));}\nasync function refreshCloudAuth(error){const code=String(error&&error.code||"");if(!user||typeof user.getIdToken!=="function"||(!code.includes("permission-denied")&&!code.includes("unauthenticated")))return false;try{await user.getIdToken(true);return true;}catch(_){return false;}}\nfunction reportSyncError(scope,error){syncRetryCount=Math.min(9,syncRetryCount+1);console.error(error);infraError(scope,error);const detail=syncErrorText(error),transient=transientSyncError(error);if(transient||syncRetryCount<=3)status("Buluta tekrar bağlanıyor…","syncing",detail+" · cihazda kayıtlı");else status("Senkron hatası","error",detail);}\nasync function upload(){';
+  const helper='function syncErrorText(error){return String(error&&((error.code&&String(error.code).replace(/^firestore\\//,""))||error.message)||"hata").slice(0,100);}\nfunction transientSyncError(error){const code=String(error&&error.code||"").toLowerCase();return ["unavailable","deadline-exceeded","aborted","resource-exhausted","cancelled","internal","unknown","network-request-failed"].some(x=>code.includes(x));}\nfunction syncRetryDelay(){const step=Math.min(6,Math.max(0,syncRetryCount-1)),base=Math.min(90000,1000*Math.pow(2,step)),jitter=.8+Math.random()*.4;return Math.max(700,Math.round(base*jitter));}\nasync function refreshCloudAuth(error){const code=String(error&&error.code||"");if(!user||typeof user.getIdToken!=="function"||(!code.includes("permission-denied")&&!code.includes("unauthenticated")))return false;try{await user.getIdToken(true);return true;}catch(_){return false;}}\nfunction reportSyncError(scope,error){syncRetryCount=Math.min(9,Math.max(0,syncRetryCount)+1);console.error(error);infraError(scope,error);const detail=syncErrorText(error),transient=transientSyncError(error);if(transient||syncRetryCount<=3)status("Buluta tekrar bağlanıyor…","syncing",detail+" · cihazda kayıtlı");else status("Senkron hatası","error",detail);}\nasync function upload(){';
   next=replaceRequired(next,helperNeedle,helper,"kontrollü senkron hata yönetimi");
 
   next=replaceRequired(
@@ -95,6 +95,28 @@ function hardenFirebaseRuntime(source:string):string{
     '}catch(e){console.error(e);infraError("firebase-download",e);status("Senkron hatası","error",String(e.code||e.message||"hata").slice(0,100));}\n  finally{loading=false;}',
     '}catch(e){await refreshCloudAuth(e);reportSyncError("firebase-download",e);}\n  finally{loading=false;if(user&&dirty&&navigator.onLine&&syncRetryCount){clearTimeout(timer);timer=setTimeout(upload,syncRetryDelay());}}',
     "indirme hatası sonrası kontrollü kurtarma"
+  );
+
+  /* Hesap türü seçimi ayrı lazy runtime'dadır. Öğrenci mevcut senkron akışını
+     kullanmaya devam eder; koç hesabı ise ham öğrenci snapshot'ını kendi hesabına
+     tohumlamadan yalnız koçluk koleksiyonlarını kullanır. */
+  next=replaceRequired(
+    next,
+    'login?.addEventListener("click",async()=>{try{status("Google açılıyor…","connecting","Hesap seçimi bekleniyor");await setPersistence(auth,browserLocalPersistence);await signInWithPopup(auth,provider);}catch(e){console.error(e);infraError("firebase-login",e);status("Giriş hatası","error",authErrorText(e));}});',
+    'async function waitAccountRuntime(){try{if(window.__YKS_ACCOUNT_READY__)await Promise.race([window.__YKS_ACCOUNT_READY__,new Promise(resolve=>setTimeout(()=>resolve(false),2500))]);}catch(e){}}\nlogin?.addEventListener("click",async()=>{try{await waitAccountRuntime();const hook=window.YKSAccountAuth?.beforeSignIn;if(typeof hook==="function"){const handled=await hook({auth,provider,setPersistence,browserLocalPersistence,signInWithPopup,status,authErrorText});if(handled)return;}status("Google açılıyor…","connecting","Hesap seçimi bekleniyor");await setPersistence(auth,browserLocalPersistence);await signInWithPopup(auth,provider);}catch(e){console.error(e);infraError("firebase-login",e);status("Giriş hatası","error",authErrorText(e));}});',
+    "öğrenci-koç hesap seçimi"
+  );
+  next=replaceRequired(
+    next,
+    '    login.style.display="none";logout.style.display="inline-block";status("Bağlanıyor…","connecting",u.email||u.displayName||"Google hesabı");\n    if(navigator.onLine)await downloadOrSeed();else status("Çevrimdışı","offline","Değişiklikler cihazda saklanır");',
+    '    login.style.display="none";logout.style.display="inline-block";status("Bağlanıyor…","connecting",u.email||u.displayName||"Google hesabı");\n    await waitAccountRuntime();let account=null;try{account=await window.YKSAccountAuth?.onSignedIn?.({user:u,auth,db});}catch(e){console.error(e);infraError("account-profile",e);status("Hesap profili açılamadı","error",String(e.code||e.message||"hata").slice(0,100));await signOut(auth);return;}\n    if(account&&account.role==="coach"){user=null;status("Koç hesabı","synced",u.email||u.displayName||"Koçluk Paneli");return;}\n    if(navigator.onLine)await downloadOrSeed();else status("Çevrimdışı","offline","Değişiklikler cihazda saklanır");',
+    "koç hesabında öğrenci snapshot senkronunu ayırma"
+  );
+  next=replaceRequired(
+    next,
+    '  }else{login.style.display="inline-block";logout.style.display="none";status("Giriş yapılmadı","signedout","Bulut senkronu kapalı");}',
+    '  }else{try{window.YKSAccountAuth?.onSignedOut?.();}catch(e){}login.style.display="inline-block";logout.style.display="none";status("Giriş yapılmadı","signedout","Bulut senkronu kapalı");}',
+    "hesap çıkışı temizliği"
   );
 
   return next;
