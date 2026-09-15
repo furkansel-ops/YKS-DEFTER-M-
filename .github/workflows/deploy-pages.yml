@@ -37,9 +37,17 @@ jobs:
       - name: Bağımlılıkları kur
         run: npm ci --no-audit --no-fund
 
-      # Kod push'u YouTube ağ hızına bağlı kalmasın. Tam medya yenilemesi günlük cron
-      # veya elle çalıştırılan workflow sırasında yapılır; push'ta depodaki son sağlam
-      # feed kullanılır ve yalnız hızlı/yerel Ferrum yaması + arşiv üretimi uygulanır.
+      # Normal kod push'u mevcut çalışan Hocalar paketini silmemeli. Önce canlı
+      # Pages feed + sayfalı arşiv geri alınır; erişilemiyorsa seed dosya korunur.
+      - name: Son canlı Hocalar medya paketini koru
+        if: github.event_name == 'push'
+        continue-on-error: true
+        env:
+          YKS_TEACHERS_MEDIA_BASE: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
+        run: node scripts/restore-teachers-v2-live-media.mjs
+
+      # Tam YouTube taraması yalnız günlük cron veya elle çalıştırılan workflow'da.
+      # Push dağıtımı ağ hızına bağlı kalmaz ve son sağlam tam arşivi korur.
       - name: Hocalar v2 medya akışını ağdan yenile
         if: github.event_name != 'push'
         continue-on-error: true
@@ -49,10 +57,17 @@ jobs:
           timeout --signal=TERM --kill-after=5s 90s node scripts/refresh-teachers-v2-feed.mjs \
             || echo "[teachers-v2] yenileme süre bütçesini aştı; mevcut sağlam feed korunuyor"
 
-      - name: Hocalar v2 yerel feed ve arşivini hazırla
-        run: |
-          node scripts/patch-teachers-v2-known-custom.mjs
-          node scripts/build-teachers-v2-archives.mjs
+      # Doğrulanmış kanal kimliği olan hocaların son videolarını hafif YouTube RSS
+      # akışından günceller. yt-dlp gerekmez; Ferrum da bu katmanda doğrudan bağlıdır.
+      - name: Hocalar v2 hızlı video önizlemesini hazırla
+        run: node scripts/patch-teachers-v2-known-custom.mjs
+
+      # Tam arşiv ağırdır. Push'ta canlıdan geri alınan arşivi olduğu gibi koru;
+      # cron/manual çalışmada yt-dlp hazırken arşivi yeniden oluştur.
+      - name: Hocalar v2 sayfalı tam arşivini yenile
+        if: github.event_name != 'push'
+        continue-on-error: true
+        run: node scripts/build-teachers-v2-archives.mjs
 
       - name: Kararlı sürümü doğrula ve derle
         run: npm run release:check
@@ -108,7 +123,6 @@ jobs:
         with:
           node-version: 22
 
-      # deploy-pages job conclusion değeri GitHub tarafından yönetilir; eski Pages dağıtımı ayrıca beklenmez.
       - name: GitHub Pages'e dağıt
         id: deployment
         uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5
