@@ -47,7 +47,7 @@ test("Hızlı katman ağır medya modülünden önce başlatılır",()=>{
   const media=source.indexOf('import("./ui/teachers-v2-media")');
   assert.ok(fast>=0&&media>=0&&fast<media);
   assert.match(source,/dataset\.teachersV2CustomFast="deferred"/);
-  assert.match(pkg(),/vite --config vite\.runtime-hardening\.mts build/);
+  assert.match(pkg(),/vite build --config vite\.runtime-hardening\.mts/);
 });
 
 test("Ferrum medya yaması arşiv üretiminden önce çalışır",()=>{
