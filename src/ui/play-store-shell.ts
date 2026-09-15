@@ -55,7 +55,7 @@ function installLegacyCloudSyncBox():boolean{
       <span id="cloudSyncText">Giriş yapılmadı</span>
       <small id="cloudSyncMeta">Bulut senkronu kapalı</small>
     </span>
-    <button id="cloudLoginBtn" type="button">Google ile giriş</button>
+    <button id="cloudLoginBtn" type="button">Hesapla giriş</button>
     <button id="cloudLogoutBtn" class="secondary" type="button" style="display:none">Çıkış</button>`;
   document.body.append(box);
   return true;
@@ -97,6 +97,14 @@ function activateWebCloudSync():boolean{
   return true;
 }
 
+function activateAccountAwareCloudSync():boolean{
+  if(isNativeApp())return false;
+  void import("./coach-account-loader")
+    .then(({installCoachAccountLoader})=>{installCoachAccountLoader();activateWebCloudSync();})
+    .catch(error=>{console.error("Koç hesap katmanı yüklenemedi",error);activateWebCloudSync();});
+  return true;
+}
+
 function installPolicyCard():boolean{
   if(document.getElementById(CARD_ID))return true;
   const target=document.getElementById("mrp_veri")||document.getElementById("more");
@@ -121,13 +129,13 @@ function installPolicyCard():boolean{
 
 export function installPlayStoreShell():{installed:boolean;legacyCloudRemoved:boolean}{
   const cloudBoxInstalled=installLegacyCloudSyncBox();
-  const cloudRuntimeInstalled=cloudBoxInstalled&&activateWebCloudSync();
+  const cloudRuntimeInstalled=cloudBoxInstalled&&activateAccountAwareCloudSync();
   const installed=installPolicyCard();
 
   if(!installed||(!isNativeApp()&&(!cloudBoxInstalled||!cloudRuntimeInstalled))){
     const retry=()=>{
       const boxReady=installLegacyCloudSyncBox();
-      if(boxReady)activateWebCloudSync();
+      if(boxReady)activateAccountAwareCloudSync();
       installPolicyCard();
     };
     window.addEventListener("yks:v4-bootstrap",retry,{once:true});
