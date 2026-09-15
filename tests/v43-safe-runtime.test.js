@@ -47,7 +47,8 @@ test("tek özellik arızası çekirdek bootstrap veya yerel veri katmanını blo
   assert.match(safe,/Tek bir v4\.3 özelliği hata verse bile legacy çekirdek ve yerel veri katmanı çalışmaya devam eder/);
   assert.doesNotMatch(html,/type="module" id="firebaseSyncModule"/);
   assert.match(html,/type="application\/json" id="legacyFirebaseSyncModule" data-disabled="play-store-release"/);
-  assert.match(vite,/remove-disabled-cloud-runtime/);
+  assert.match(vite,/prepare-web-cloud-runtime/);
+  assert.match(vite,/waitAccountRuntime/);
 });
 
 test("release gate izole runtime tamamen hazır olana kadar bekler",()=>{

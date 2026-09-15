@@ -13,9 +13,6 @@ function replaceRequired(source:string,needle:string,replacement:string,label:st
 function hardenFirebaseRuntime(source:string):string{
   let next=source;
 
-  /* Firestore belge sınırı 1 MiB. Eski 240 KB parçalama aynı veriyi çok fazla
-     transaction yazısına bölüyordu. 640 KB hedef + 720 KB sert byte sınırı,
-     toplam isteği güvenli bölgede tutarken parça/yazma sayısını ciddi azaltır. */
   next=replaceRequired(
     next,
     'function splitUtf8(str,max=240000){const out=[];let start=0;while(start<str.length){let end=Math.min(str.length,start+max);while(end>start&&new Blob([str.slice(start,end)]).size>280000)end-=Math.max(1000,Math.floor((end-start)/10));/* UTF-16 surrogate çiftini iki Firestore parçasına bölme; emoji/özel karakter bozulmasın. */if(end<str.length&&end>start){const a=str.charCodeAt(end-1),b=str.charCodeAt(end);if(a>=0xD800&&a<=0xDBFF&&b>=0xDC00&&b<=0xDFFF)end--;}out.push(str.slice(start,end));start=end;}return out;}',
@@ -30,9 +27,6 @@ function hardenFirebaseRuntime(source:string):string{
     "transaction parça sınırı"
   );
 
-  /* readRemote daha önce chunks koleksiyonundaki bütün eski revizyonları indirip
-     tarayıcıda süzüyordu. Uzun kullanımda bu hem gereksiz okuma hem de kota/ağ
-     hatası üretebilir. Meta hangi revizyonu istiyorsa sadece o belge kimliklerini oku. */
   next=replaceRequired(
     next,
     'const snap=await getDocs(chunksCol(user.uid)); let docs=snap.docs;\n  if(format>=3&&rev>0){const p=revPrefix(rev);docs=docs.filter(d=>d.id.startsWith(p)).sort((a,b)=>a.id.localeCompare(b.id)).slice(0,count);}\n  else docs=docs.filter(d=>/^\\d{4}$/.test(d.id)).sort((a,b)=>a.id.localeCompare(b.id)).slice(0,count);\n  if(count&&docs.length!==count)throw new Error("Bulut kaydı eksik parça içeriyor");',
@@ -58,44 +52,16 @@ function hardenFirebaseRuntime(source:string):string{
   const helper='function syncErrorText(error){return String(error&&((error.code&&String(error.code).replace(/^firestore\\//,""))||error.message)||"hata").slice(0,100);}\nfunction transientSyncError(error){const code=String(error&&error.code||"").toLowerCase();return ["unavailable","deadline-exceeded","aborted","resource-exhausted","cancelled","internal","unknown","network-request-failed"].some(x=>code.includes(x));}\nfunction syncRetryDelay(){const step=Math.min(6,Math.max(0,syncRetryCount-1)),base=Math.min(90000,1000*Math.pow(2,step)),jitter=.8+Math.random()*.4;return Math.max(700,Math.round(base*jitter));}\nasync function refreshCloudAuth(error){const code=String(error&&error.code||"");if(!user||typeof user.getIdToken!=="function"||(!code.includes("permission-denied")&&!code.includes("unauthenticated")))return false;try{await user.getIdToken(true);return true;}catch(_){return false;}}\nfunction reportSyncError(scope,error){syncRetryCount=Math.min(9,syncRetryCount+1);console.error(error);infraError(scope,error);const detail=syncErrorText(error),transient=transientSyncError(error);if(transient||syncRetryCount<=3)status("Buluta tekrar bağlanıyor…","syncing",detail+" · cihazda kayıtlı");else status("Senkron hatası","error",detail);}\nasync function upload(){';
   next=replaceRequired(next,helperNeedle,helper,"kontrollü senkron hata yönetimi");
 
-  next=replaceRequired(
-    next,
-    'catch(x){console.error(x);infraError("firebase-conflict",x);status("Senkron hatası","error",String(x.code||x.message||"hata").slice(0,100));}',
-    'catch(x){await refreshCloudAuth(x);reportSyncError("firebase-conflict",x);}',
-    "çakışma hata kurtarma"
-  );
-  next=replaceRequired(
-    next,
-    'const r=await readRemote(latest);await applyMerged(r,safeJSONParse(json));uploadQueued=true;',
-    'const r=await readRemote(latest);await applyMerged(r,safeJSONParse(json));syncRetryCount=Math.max(syncRetryCount,1);uploadQueued=true;',
-    "çakışma sonrası jitter"
-  );
-  next=replaceRequired(
-    next,
-    '}else{console.error(e);infraError("firebase-upload",e);status("Senkron hatası","error",String(e.code||e.message||"hata").slice(0,100));}',
-    '}else{await refreshCloudAuth(e);reportSyncError("firebase-upload",e);}',
-    "yükleme hata kurtarma"
-  );
-  next=replaceRequired(
-    next,
-    'finally{uploading=false;if(uploadQueued||(!loading&&user&&dirty)){uploadQueued=false;clearTimeout(timer);timer=setTimeout(upload,120);}}',
-    'finally{uploading=false;if(uploadQueued||(!loading&&user&&dirty)){uploadQueued=false;clearTimeout(timer);timer=setTimeout(upload,syncRetryCount?syncRetryDelay():120);}}',
-    "senkron jitter geri-deneme gecikmesi"
-  );
+  next=replaceRequired(next,'catch(x){console.error(x);infraError("firebase-conflict",x);status("Senkron hatası","error",String(x.code||x.message||"hata").slice(0,100));}','catch(x){await refreshCloudAuth(x);reportSyncError("firebase-conflict",x);}',"çakışma hata kurtarma");
+  next=replaceRequired(next,'const r=await readRemote(latest);await applyMerged(r,safeJSONParse(json));uploadQueued=true;','const r=await readRemote(latest);await applyMerged(r,safeJSONParse(json));syncRetryCount=Math.max(syncRetryCount,1);uploadQueued=true;',"çakışma sonrası jitter");
+  next=replaceRequired(next,'}else{console.error(e);infraError("firebase-upload",e);status("Senkron hatası","error",String(e.code||e.message||"hata").slice(0,100));}','}else{await refreshCloudAuth(e);reportSyncError("firebase-upload",e);}',"yükleme hata kurtarma");
+  next=replaceRequired(next,'finally{uploading=false;if(uploadQueued||(!loading&&user&&dirty)){uploadQueued=false;clearTimeout(timer);timer=setTimeout(upload,120);}}','finally{uploading=false;if(uploadQueued||(!loading&&user&&dirty)){uploadQueued=false;clearTimeout(timer);timer=setTimeout(upload,syncRetryCount?syncRetryDelay():120);}}',"senkron jitter geri-deneme gecikmesi");
+  next=replaceRequired(next,'window.yksCloudForceDirty=()=>{setDirty(true);if(user&&navigator.onLine){clearTimeout(timer);timer=setTimeout(upload,100);}};\nasync function downloadOrSeed(){','window.yksCloudForceDirty=()=>{setDirty(true);if(user&&navigator.onLine){clearTimeout(timer);timer=setTimeout(upload,100);}};\nfunction resumeCloudSync(){if(!user||loading||uploading||!dirty||!navigator.onLine)return;clearTimeout(timer);timer=setTimeout(upload,300+Math.floor(Math.random()*500));}\nwindow.addEventListener("online",resumeCloudSync);\ndocument.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")resumeCloudSync();});\nasync function downloadOrSeed(){',"çevrimiçi ve görünür olunca senkronu sürdürme");
+  next=replaceRequired(next,'}catch(e){console.error(e);infraError("firebase-download",e);status("Senkron hatası","error",String(e.code||e.message||"hata").slice(0,100));}\n  finally{loading=false;}','}catch(e){await refreshCloudAuth(e);reportSyncError("firebase-download",e);}\n  finally{loading=false;if(user&&dirty&&navigator.onLine&&syncRetryCount){clearTimeout(timer);timer=setTimeout(upload,syncRetryDelay());}}',"indirme hatası sonrası kontrollü kurtarma");
 
-  next=replaceRequired(
-    next,
-    'window.yksCloudForceDirty=()=>{setDirty(true);if(user&&navigator.onLine){clearTimeout(timer);timer=setTimeout(upload,100);}};\nasync function downloadOrSeed(){',
-    'window.yksCloudForceDirty=()=>{setDirty(true);if(user&&navigator.onLine){clearTimeout(timer);timer=setTimeout(upload,100);}};\nfunction resumeCloudSync(){if(!user||loading||uploading||!dirty||!navigator.onLine)return;clearTimeout(timer);timer=setTimeout(upload,300+Math.floor(Math.random()*500));}\nwindow.addEventListener("online",resumeCloudSync);\ndocument.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")resumeCloudSync();});\nasync function downloadOrSeed(){',
-    "çevrimiçi ve görünür olunca senkronu sürdürme"
-  );
-
-  next=replaceRequired(
-    next,
-    '}catch(e){console.error(e);infraError("firebase-download",e);status("Senkron hatası","error",String(e.code||e.message||"hata").slice(0,100));}\n  finally{loading=false;}',
-    '}catch(e){await refreshCloudAuth(e);reportSyncError("firebase-download",e);}\n  finally{loading=false;if(user&&dirty&&navigator.onLine&&syncRetryCount){clearTimeout(timer);timer=setTimeout(upload,syncRetryDelay());}}',
-    "indirme hatası sonrası kontrollü kurtarma"
-  );
+  next=replaceRequired(next,'login?.addEventListener("click",async()=>{try{status("Google açılıyor…","connecting","Hesap seçimi bekleniyor");await setPersistence(auth,browserLocalPersistence);await signInWithPopup(auth,provider);}catch(e){console.error(e);infraError("firebase-login",e);status("Giriş hatası","error",authErrorText(e));}});','async function waitAccountRuntime(){try{if(window.__YKS_ACCOUNT_READY__)await Promise.race([window.__YKS_ACCOUNT_READY__,new Promise(resolve=>setTimeout(()=>resolve(false),2500))]);}catch(e){}}\nlogin?.addEventListener("click",async()=>{try{await waitAccountRuntime();const hook=window.YKSAccountAuth?.beforeSignIn;if(typeof hook==="function"){const handled=await hook({auth,provider,setPersistence,browserLocalPersistence,signInWithPopup,status,authErrorText});if(handled)return;}status("Google açılıyor…","connecting","Hesap seçimi bekleniyor");await setPersistence(auth,browserLocalPersistence);await signInWithPopup(auth,provider);}catch(e){console.error(e);infraError("firebase-login",e);status("Giriş hatası","error",authErrorText(e));}});',"öğrenci-koç hesap seçimi");
+  next=replaceRequired(next,'    login.style.display="none";logout.style.display="inline-block";status("Bağlanıyor…","connecting",u.email||u.displayName||"Google hesabı");\n    if(navigator.onLine)await downloadOrSeed();else status("Çevrimdışı","offline","Değişiklikler cihazda saklanır");','    login.style.display="none";logout.style.display="inline-block";status("Bağlanıyor…","connecting",u.email||u.displayName||"Google hesabı");\n    await waitAccountRuntime();let account=null;try{account=await window.YKSAccountAuth?.onSignedIn?.({user:u,auth,db});}catch(e){console.error(e);infraError("account-profile",e);status("Hesap profili açılamadı","error",String(e.code||e.message||"hata").slice(0,100));await signOut(auth);return;}\n    if(account&&account.role==="reauth"){user=null;status("Giriş gerekli","signedout","Devam etmek için giriş yap");return;}\n    if(account&&account.role==="coach"){user=null;status("Koç hesabı","synced",u.email||u.displayName||"Koçluk Paneli");return;}\n    if(navigator.onLine)await downloadOrSeed();else status("Çevrimdışı","offline","Değişiklikler cihazda saklanır");',"koç hesabında öğrenci snapshot senkronunu ayırma");
+  next=replaceRequired(next,'  }else{login.style.display="inline-block";logout.style.display="none";status("Giriş yapılmadı","signedout","Bulut senkronu kapalı");}','  }else{try{window.YKSAccountAuth?.onSignedOut?.();}catch(e){}login.style.display="inline-block";logout.style.display="none";status("Giriş yapılmadı","signedout","Bulut senkronu kapalı");}',"hesap çıkışı temizliği");
 
   return next;
 }
@@ -106,17 +72,11 @@ function extractFirebaseRuntime(html:string):string{
   if(!runtimeMatch||!sourceText)throw new Error("Legacy Firebase eşitleme kaynağı index.html içinde bulunamadı");
   const keyed=sourceText.replace(/apiKey:\s*"[^"]*"/,`apiKey:"${FIREBASE_WEB_API_KEY}"`);
   const source=hardenFirebaseRuntime(keyed);
-  if(!source.includes("signInWithPopup")||!source.includes("onAuthStateChanged")||!source.includes("runTransaction")){
-    throw new Error("Firebase eşitleme çalışma zamanı eksik veya bozuk");
-  }
+  if(!source.includes("signInWithPopup")||!source.includes("onAuthStateChanged")||!source.includes("runTransaction"))throw new Error("Firebase eşitleme çalışma zamanı eksik veya bozuk");
   return source;
 }
 
-/* Migration note: remove-disabled-cloud-runtime was the Play-only transition step.
-   Web Firebase sync is restored through prepare-web-cloud-runtime below. */
 function prepareWebCloudRuntime():Plugin{
-  /* Vite 8/rolldown generateBundle'i transformIndexHtml'den önce çalıştırabilir.
-     Kaynağı build başında hazırlamak hook sırasından bağımsız ve deterministik kalır. */
   let runtimeSource=extractFirebaseRuntime(readFileSync(resolve(process.cwd(),"index.html"),"utf8"));
   return {
     name:"prepare-web-cloud-runtime",
@@ -139,17 +99,7 @@ export default defineConfig({
   base:"./",
   publicDir:"public",
   plugins:[prepareWebCloudRuntime()],
-  build:{
-    outDir:"dist",
-    emptyOutDir:true,
-    sourcemap:true
-  },
-  server:{
-    host:"0.0.0.0",
-    port:4173
-  },
-  preview:{
-    host:"0.0.0.0",
-    port:4174
-  }
+  build:{outDir:"dist",emptyOutDir:true,sourcemap:true},
+  server:{host:"0.0.0.0",port:4173},
+  preview:{host:"0.0.0.0",port:4174}
 });

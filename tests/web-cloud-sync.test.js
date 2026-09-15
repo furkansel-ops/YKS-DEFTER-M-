@@ -29,6 +29,8 @@ test("Production build eski Firebase kodunu gerçek web modülüne çıkarır",(
   assert.match(vite,/onAuthStateChanged/);
   assert.match(vite,/runTransaction/);
   assert.match(vite,/cloudSyncBox/);
+  assert.match(vite,/YKSAccountAuth/);
+  assert.match(vite,/waitAccountRuntime/);
 });
 
 test("Web/PWA tek eski sağ-alt eşitleme kutusunu kullanır; ikinci gösterge oluşturulmaz",()=>{
@@ -39,7 +41,11 @@ test("Web/PWA tek eski sağ-alt eşitleme kutusunu kullanır; ikinci gösterge o
   assert.match(shell,/cloudSyncText/);
   assert.match(shell,/cloudSyncMeta/);
   assert.match(shell,/cloudLoginBtn/);
-  assert.match(shell,/Google ile giriş/);
+  assert.match(shell,/Hesapla giriş/);
+  assert.match(shell,/coach-account-loader/);
+  const loader=read("src/ui/coach-account-loader.ts");
+  assert.match(loader,/coach-account-runtime\.js/);
+  assert.match(loader,/__YKS_ACCOUNT_READY__/);
   assert.match(shell,/activateWebCloudSync/);
   assert.match(shell,/firebase-sync-runtime\.js/);
   assert.match(shell,/if\(isNativeApp\(\)\)return false/);
