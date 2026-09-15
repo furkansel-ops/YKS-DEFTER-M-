@@ -42,7 +42,12 @@ jobs:
         run: |
           python3 -m pip install --disable-pip-version-check --quiet yt-dlp
           python3 -m yt_dlp --version
-          node scripts/refresh-teachers-v2-feed.mjs
+          # YouTube tarafı yavaş/erişilemez olduğunda bir kod dağıtımı medya taramasını
+          # dakikalarca beklemesin. Script çıktıyı yalnız sonunda değiştirdiği için
+          # timeout halinde depodaki son sağlam feed korunur; Ferrum yaması ve arşiv
+          # üretimi yine devam eder.
+          timeout --signal=TERM --kill-after=5s 90s node scripts/refresh-teachers-v2-feed.mjs \
+            || echo "[teachers-v2] yenileme süre bütçesini aştı; mevcut sağlam feed korunuyor"
           node scripts/patch-teachers-v2-known-custom.mjs
           node scripts/build-teachers-v2-archives.mjs
 
