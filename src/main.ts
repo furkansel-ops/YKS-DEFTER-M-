@@ -127,6 +127,16 @@ function loadTeachersV2Media():void{
 /* Çekirdek açılış zinciri yalnız kararlı altyapı modüllerinden oluşur.
    Ürün katmanları ve yardımcı arayüzler fail-open sınırlarında tutulur: tek bir yeni
    özellik hata verirse uygulamanın geri kalanı açılmaya devam eder. */
+document.documentElement.dataset.onboardingProfileRuntime="loading";
+void import("./ui/onboarding-profile-v45")
+  .then(({installOnboardingProfileV45})=>{
+    const profile=installOptional("onboarding-profile",()=>installOnboardingProfileV45(),{installed:false,examDate:"2027-06-19"});
+    document.documentElement.dataset.onboardingProfileRuntime=profile.installed?"ready":"deferred";
+  })
+  .catch(error=>{
+    document.documentElement.dataset.onboardingProfileRuntime="deferred";
+    console.error("Onboarding profil katmanı yüklenemedi",error);
+  });
 const services=installLegacyServiceBridge();
 const data=installLegacyDataBridge();
 installScienceCards();
