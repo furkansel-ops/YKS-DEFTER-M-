@@ -46,6 +46,9 @@ test("Doğrulanmış hocaların hızlı önizlemesi yt-dlp yerine YouTube RSS ku
   assert.match(source,/teacher\.searchOnly/);
   assert.match(source,/mergeVideos\(seed,Array\.isArray\(old\.videos\)\?old\.videos:\[\],rss\)/);
   assert.match(source,/tam yenilemede bulunan seri listesi korunuyor/);
+  assert.match(source,/function mergePlaylists/);
+  assert.match(source,/videos:Array\.isArray\(old\.videos\)\?old\.videos:undefined/);
+  assert.match(source,/playlists=mergePlaylists\(playlists,freshPlaylists\)/);
 });
 
 test("Ortak kanal hocası odaklı aramayla 15 videoya tamamlanır",()=>{
@@ -58,6 +61,10 @@ test("Ortak kanal hocası odaklı aramayla 15 videoya tamamlanır",()=>{
   assert.match(pages,/ARCHIVE_VIDEO_LIMIT=240/);
   assert.match(pages,/teacher\.queryHint\|\|teacher\.name/);
   assert.match(pages,/teacher\.searchOnly\?"focused-search":"search"/);
+  assert.match(pages,/PLAYLIST_PREVIEW_COUNT=10/);
+  assert.match(pages,/feeds\/videos\.xml\?playlist_id=/);
+  assert.match(pages,/previewSource:"youtube-rss"/);
+  assert.match(pages,/listede video önizleme/);
 });
 
 test("Hoca medya motoru overlay açılışında yalnız hafif önizlemeyi yükler",()=>{
