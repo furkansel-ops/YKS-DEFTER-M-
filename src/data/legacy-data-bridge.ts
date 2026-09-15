@@ -91,8 +91,11 @@ export function installLegacyDataBridge():LegacyDataBridgeApi{
     });
     return pendingLegacyCapture;
   };
-  const applyCloudJSON=(json:string):Promise<ExternalApplyResult>=>enqueue(async()=>{await initialize();return coordinator.replaceFromExternal(json);});
-  const applyBackupJSON=(json:string):Promise<ExternalApplyResult>=>enqueue(async()=>{await initialize();return coordinator.replaceFromExternal(json,Date.now(),"backup");});
+  const signalDataChanged=(source:string)=>{
+    try{window.dispatchEvent(new CustomEvent("yks:data-changed",{detail:{source,at:Date.now()}}));}catch{}
+  };
+  const applyCloudJSON=(json:string):Promise<ExternalApplyResult>=>enqueue(async()=>{await initialize();const result=await coordinator.replaceFromExternal(json);if(result.ok)signalDataChanged("firebase");return result;});
+  const applyBackupJSON=(json:string):Promise<ExternalApplyResult>=>enqueue(async()=>{await initialize();const result=await coordinator.replaceFromExternal(json,Date.now(),"backup");if(result.ok)signalDataChanged("backup");return result;});
   const flush=async()=>{
     const pending=pendingLegacyCapture;
     if(pending)await pending.catch(()=>undefined);
@@ -111,7 +114,7 @@ export function installLegacyDataBridge():LegacyDataBridgeApi{
     keys:YKS_STORAGE_KEYS,
     ready:initialize(),
     read:()=>repository.read(),
-    write:state=>{const result=repository.write(state);if(result.ok)void captureLegacyWrite(result.json);return result;},
+    write:state=>{const result=repository.write(state);if(result.ok)void captureLegacyWrite(result.json).then(()=>signalDataChanged("bridge"));return result;},
     remove:()=>repository.remove(),
     snapshot:()=>repository.snapshot(),
     indexedSnapshot:()=>target.snapshot(),
@@ -128,7 +131,7 @@ export function installLegacyDataBridge():LegacyDataBridgeApi{
   const legacySave=window.save;
   if(typeof legacySave==="function")window.save=function(...args:unknown[]){
     const result=legacySave.apply(window,args);
-    if(result!==false)void captureLegacyWrite();
+    if(result!==false)void captureLegacyWrite().then(()=>signalDataChanged("legacy-save"));
     return result;
   };
   const errors=api.validate();
