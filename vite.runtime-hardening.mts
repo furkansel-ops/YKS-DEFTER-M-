@@ -8,30 +8,51 @@ function replaceRequired(source:string,needle:string,replacement:string,label:st
 
 function hardenTeacherMediaOnDemand(source:string):string{
   let next=source;
+
+  /* Overlay açılınca yalnız küçük teachers-v2-feed.json önizlemesini indir.
+     Tam arşiv indeksi ve sayfaları refresh / daha fazla eylemine kadar bekler. */
   next=replaceRequired(
     next,
-    'function enhanceOverlay(overlay:HTMLElement):void{',
-    'function ownTeacher(name:string):boolean{try{const rows=(window as Window&{allTeachers?:()=>Array<{a?:string;own?:boolean}>}).allTeachers?.();return Array.isArray(rows)&&rows.some(item=>item?.a===name&&item.own===true);}catch{return false;}}\nfunction enhanceOverlay(overlay:HTMLElement):void{',
-    "özel hoca tespiti"
+    'async function refreshOverlayMedia(overlay:HTMLElement,name:string,force=false):Promise<void>{',
+    'async function previewOverlayMedia(overlay:HTMLElement,name:string,force=false):Promise<void>{\n  const status=overlay.querySelector<HTMLElement>("#teachersV2MediaStatus");if(status&&!mediaFor(name))status.innerHTML=\'<span class="teachers-v2-media-dot pending"></span>Son videolar yükleniyor…\';\n  await loadFeed(force);decorateCards();if(!document.contains(overlay)||activeTeacher!==name)return;renderMediaSection(overlay,name);\n}\nasync function refreshOverlayMedia(overlay:HTMLElement,name:string,force=false):Promise<void>{',
+    "hafif video önizleme katmanı"
   );
+
   next=replaceRequired(
     next,
     'renderMediaSection(overlay,heading);void refreshOverlayMedia(overlay,heading,false);',
-    'renderMediaSection(overlay,heading);if(!ownTeacher(heading))void refreshOverlayMedia(overlay,heading,false);',
-    "özel hocada otomatik arşivi kapatma"
+    'renderMediaSection(overlay,heading);void previewOverlayMedia(overlay,heading,false);',
+    "overlay açılışında yalnız önizleme"
   );
+
   next=replaceRequired(
     next,
     '  void loadFeed(false).then(()=>{decorateCards();scan();});observer=new MutationObserver(scan);',
     '  decorateCards();observer=new MutationObserver(scan);',
-    "medya feedini başlangıçta indirmeme"
+    "medya feedini uygulama başlangıcında indirmeme"
   );
+
   next=replaceRequired(
     next,
     '  await loadFeed(force);if(!document.contains(overlay)||activeTeacher!==name)return;renderMediaSection(overlay,name);',
     '  await loadFeed(force);decorateCards();if(!document.contains(overlay)||activeTeacher!==name)return;renderMediaSection(overlay,name);',
-    "istek sonrası kartları güncelleme"
+    "tam arşiv isteği sonrası kartları güncelleme"
   );
+
+  next=replaceRequired(
+    next,
+    'loading=Boolean(manifest?.archiveIndex&&!stateFor(name));',
+    'loading=false;',
+    "bekleyen arşivi yanlışlıkla yükleniyor göstermeme"
+  );
+
+  next=replaceRequired(
+    next,
+    'window.addEventListener("online",()=>{void loadFeed(true).then(()=>{decorateCards();scan();});});window.addEventListener("storage",event=>{if(event.key==="yks")refreshWatchedUi();});',
+    'window.addEventListener("online",()=>{if(lastOverlay&&activeTeacher&&document.contains(lastOverlay))void previewOverlayMedia(lastOverlay,activeTeacher,true);});window.addEventListener("storage",event=>{if(event.key==="yks")refreshWatchedUi();});',
+    "ağ dönüşünde yalnız açık hoca önizlemesini yenileme"
+  );
+
   return next;
 }
 
