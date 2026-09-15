@@ -5,24 +5,23 @@ const path=require("node:path");
 const root=path.resolve(__dirname,"..");
 const read=file=>fs.readFileSync(path.join(root,file),"utf8");
 
-test("uygulama açılışında giriş kapısı ve Beni hatırla seçeneği vardır",()=>{
+test("uygulama açılışında zorunlu giriş kapısı devre dışıdır",()=>{
   const runtime=read("public/auth-session-runtime.js");
-  assert.match(runtime,/YKS Defterim/);
-  assert.match(runtime,/Hesabına giriş yap/);
-  assert.match(runtime,/Beni hatırla/);
-  assert.match(runtime,/yks_auth_remember_v1/);
-  assert.match(runtime,/showGate\(\)/);
+  assert.match(runtime,/AUTH_GATE_REQUIRED=false/);
+  assert.match(runtime,/hideGate\(\);\s*document\.documentElement\.dataset\.authSessionGate="disabled"/);
+  assert.match(runtime,/dataset\.authGate="optional"/);
+  assert.doesNotMatch(runtime,/if\(remembered\(\)\)hideGate\(\);else showGate\(\)/);
 });
 
-test("Beni hatırla kapalıysa Firebase session persistence kullanılır ve sonraki açılış reauth ister",()=>{
+test("oturum kalıcılığı korunur ama uygulama girişsiz kullanılabilir",()=>{
   const runtime=read("public/auth-session-runtime.js");
   const vite=read("vite.config.mts");
   assert.match(runtime,/browserSessionPersistence/);
   assert.match(runtime,/!remembered\(\)&&!manual/);
   assert.match(runtime,/signOut\(args\.auth\)/);
   assert.match(runtime,/role:"reauth"/);
+  assert.match(runtime,/Bulut ve koçluk özellikleri için isteğe bağlı giriş yapabilirsin/);
   assert.match(vite,/account&&account\.role===\"reauth\"/);
-  assert.match(vite,/Giriş gerekli/);
 });
 
 test("Beni hatırla açıkken local persistence korunur",()=>{
