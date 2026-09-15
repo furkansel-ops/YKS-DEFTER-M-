@@ -25,9 +25,36 @@ if(!source.includes('index:i,format:CLOUD_FORMAT')){
   );
 }
 
+/* v4 aktif bulut snapshot'larında FNV-1a yerine SHA-256 kullan.
+   Eski 8 haneli v3/v4 kayıtları okunabilir kalır; bir sonraki başarılı yazım
+   onları otomatik olarak 64 haneli SHA-256 meta hash'ine taşır. */
+if(!source.includes('async function cloudHash(txt)')){
+  replaceRequired(
+    'function revPrefix(rev){return String(Math.max(0,rev|0)).padStart(10,"0")+"_";}',
+    'async function cloudHash(txt){const subtle=globalThis.crypto&&globalThis.crypto.subtle;if(!subtle||typeof TextEncoder!=="function")throw new Error("Güvenli SHA-256 desteği bulunamadı");const bytes=new TextEncoder().encode(String(txt||"")),digest=await subtle.digest("SHA-256",bytes);return Array.from(new Uint8Array(digest),b=>b.toString(16).padStart(2,"0")).join("");}\nfunction revPrefix(rev){return String(Math.max(0,rev|0)).padStart(10,"0")+"_";}',
+    "SHA-256 bulut bütünlük özeti"
+  );
+}
+
+if(source.includes('if(format>=3&&md.hash&&String(md.hash)!==infraHash(json))throw new Error("Bulut veri bütünlüğü doğrulanamadı");')){
+  replaceRequired(
+    'if(format>=3&&md.hash&&String(md.hash)!==infraHash(json))throw new Error("Bulut veri bütünlüğü doğrulanamadı");',
+    'if(format>=3&&md.hash){const storedHash=String(md.hash);if(storedHash.length!==8&&storedHash.length!==64)throw new Error("Bulut bütünlük özeti geçersiz");const expectedHash=storedHash.length===64?await cloudHash(json):infraHash(json);if(storedHash!==expectedHash)throw new Error("Bulut veri bütünlüğü doğrulanamadı");}',
+    "eski hash uyumluluğu ve SHA-256 doğrulama"
+  );
+}
+
+if(source.includes('expectedStamp=remoteStamp,hash=infraHash(json);')){
+  replaceRequired(
+    'expectedStamp=remoteStamp,hash=infraHash(json);',
+    'expectedStamp=remoteStamp,hash=await cloudHash(json);',
+    "yeni snapshot SHA-256 hash üretimi"
+  );
+}
+
 if(source.includes("authRecoveryTimer=null")){
   writeFileSync(file,source,"utf8");
-  console.log("Firebase v4 protokolü ve permission/auth kurtarma sınırı zaten uygulanmış.");
+  console.log("Firebase v4 + SHA-256 protokolü ve permission/auth kurtarma sınırı zaten uygulanmış.");
   process.exit(0);
 }
 
@@ -98,4 +125,4 @@ replaceRequired(
 );
 
 writeFileSync(file,source,"utf8");
-console.log("Firebase v4 protokolü, permission/auth kurtarma ve geçici hata retry sağlamlaştırması dist çıktısına uygulandı.");
+console.log("Firebase v4 protokolü, SHA-256 bütünlüğü, permission/auth kurtarma ve geçici hata retry sağlamlaştırması dist çıktısına uygulandı.");
