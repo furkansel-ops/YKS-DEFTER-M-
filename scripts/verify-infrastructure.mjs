@@ -6,11 +6,13 @@ const read=path=>readFile(resolve(root,path),"utf8");
 const fail=message=>{throw new Error(`Altyapı doğrulaması: ${message}`);};
 const must=(value,message)=>{if(!value)fail(message);};
 
-const [pkgText,versionText,tsconfigText,srcPkgText,ci,deploy,nvmrc]=await Promise.all([
+const [pkgText,versionText,tsconfigText,srcPkgText,ci,deploy,nvmrc,firestoreRules,firebaseConfigText,firebaseRcText]=await Promise.all([
   read("package.json"),read("version.json"),read("tsconfig.json"),read("src/package.json"),
-  read(".github/workflows/ci.yml"),read(".github/workflows/deploy-pages.yml"),read(".nvmrc")
+  read(".github/workflows/ci.yml"),read(".github/workflows/deploy-pages.yml"),read(".nvmrc"),
+  read("firestore.rules"),read("firebase.json"),read(".firebaserc")
 ]);
 const pkg=JSON.parse(pkgText),version=JSON.parse(versionText),tsconfig=JSON.parse(tsconfigText),srcPkg=JSON.parse(srcPkgText);
+const firebaseConfig=JSON.parse(firebaseConfigText),firebaseRc=JSON.parse(firebaseRcText);
 const checkoutPin="actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1";
 const setupNodePin="actions/setup-node@820762786026740c76f36085b0efc47a31fe5020";
 
@@ -28,6 +30,15 @@ must(tsconfig.compilerOptions?.noUncheckedIndexedAccess===true,"noUncheckedIndex
 must(tsconfig.compilerOptions?.noFallthroughCasesInSwitch===true,"switch düşüş koruması kapatılmış");
 must(srcPkg.type==="module","src TypeScript ESM sınırı eksik");
 must(nvmrc.trim()==="22",".nvmrc Node 22 tabanını göstermiyor");
+
+must(firebaseConfig?.firestore?.rules==="firestore.rules","firebase.json Firestore kural dosyasına bağlı değil");
+must(firebaseRc?.projects?.default==="yks-uygulamam","Firebase varsayılan projesi beklenen proje değil");
+must(/request\.auth\s*!=\s*null/.test(firestoreRules),"Firestore kuralları oturum zorunluluğunu korumuyor");
+must(/request\.auth\.uid\s*==\s*userId/.test(firestoreRules),"Firestore kuralları kullanıcı UID sınırını korumuyor");
+must(/match \/users\/\{userId\}\/sync\/meta/.test(firestoreRules),"Firestore sync/meta yolu tanımlı değil");
+must(/match \/users\/\{userId\}\/chunks\/\{chunkId\}/.test(firestoreRules),"Firestore chunks yolu tanımlı değil");
+must(/match \/\{document=\*\*\}[\s\S]*allow read, write: if false/.test(firestoreRules),"Firestore varsayılan reddetme kuralı eksik");
+must(!/allow\s+read\s*,\s*write\s*:\s*if\s+true/.test(firestoreRules),"Firestore kuralları herkese açık erişim içeriyor");
 
 for(const [name,text] of [["CI",ci],["Pages",deploy]]){
   must(text.includes(checkoutPin),`${name} değişmez checkout SHA'sını kullanmıyor`);
@@ -53,4 +64,4 @@ for(const [file,max] of Object.entries(budgets)){
   must(info.size<=max,`${file} ${info.size} bayt ile ${max} bayt kaynak bütçesini aştı`);
 }
 
-console.log(`Altyapı doğrulandı: Node 22 tabanı + Node 24 uyumluluğu, salt-okunur CI, ESM sınırı, deterministik build ve ${Object.keys(budgets).length} kaynak bütçesi.`);
+console.log(`Altyapı doğrulandı: Node 22 tabanı + Node 24 uyumluluğu, salt-okunur CI, ESM sınırı, güvenli Firestore kullanıcı sınırı, deterministik build ve ${Object.keys(budgets).length} kaynak bütçesi.`);
