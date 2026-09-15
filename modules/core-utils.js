@@ -118,7 +118,7 @@
       if(!r[id]||!l[id]){out[id]=r[id]||l[id];continue;}
       const status=l[id].statusAt>=r[id].statusAt?l[id]:r[id];
       const favorite=l[id].favoriteAt>=r[id].favoriteAt?l[id]:r[id];
-      out[id]={status:status.status,statusAt:status.statusAt,favorite:favorite.favoriteAt:favorite.favoriteAt};
+      out[id]={status:status.status,statusAt:status.statusAt,favorite:favorite.favorite,favoriteAt:favorite.favoriteAt};
     }
     return out;
   }
