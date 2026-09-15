@@ -181,3 +181,12 @@
 
   return {mergeStates,mergeArray,mergeTopics,mergeWeeks,srsNext,addDays};
 });
+
+/* Küratörlü Hocalar kataloğunu parser aşamasında senkron yükle.
+   Böylece legacy app.js ana veri/Program mantığına dokunmadan yeni katalog
+   DOMContentLoaded tabanlı Hocalar çizimlerinden önce hazır olur. */
+try{
+  if(typeof document!=="undefined"&&document.readyState==="loading"){
+    document.write('<script vite-ignore src="./modules/teachers-curated-v3.js?v=4.4.0-r3"><\\/script>');
+  }
+}catch(error){try{console.error("[teachers-curated-loader]",error);}catch(_){}}

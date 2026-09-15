@@ -1,46 +1,18 @@
 import {spawn} from "node:child_process";
 import {readFile,writeFile,mkdir} from "node:fs/promises";
 import {dirname,resolve} from "node:path";
+import {VERIFIED_CHANNELS} from "./teachers-v2-sources.mjs";
 
 const ROOT=resolve(process.cwd());
 const OUTPUT=resolve(ROOT,"public/teachers-v2-feed.json");
-const APP_JS=resolve(ROOT,"app.js");
+const CURATED_CATALOG=resolve(ROOT,"modules/teachers-curated-v3.js");
 const MAX_VIDEOS=8;
 const MAX_PLAYLISTS=6;
 const CONCURRENCY=4;
 
 /* Kanal kimliği net olan hocaları arama sıralamasına bırakmıyoruz.
    Bazı eski kaynak adları ise gerçek bir tek kanal değil; onlar searchOnly kalır. */
-const CHANNEL_OVERRIDES={
-  "MatMan":{channelId:"UCi3OrIf5uqtIdR7tX9ZZyVA",channelName:"MatMan · Emre Sulukan"},
-  "Barış Çelenk":{channelId:"UCpogE5vw7rLYOuzYoDk1Ang",channelName:"Barış Çelenk ve Soruları"},
-  "Merkeze Teğet Geometri":{channelId:"UCGlM-klG4Q70q9WkXX9cTWA",channelName:"Merkeze Teğet"},
-  "Moz Akademi":{channelId:"UCSqWGILaJ5qZ_D9149h6RJg",channelName:"Moz Akademi"},
-  "İlyas Güneş":{channelId:"UCRTxepZJj8vWniao-0Tkp4g",channelName:"İlyas Güneş"},
-  "Matematiğin Güler Yüzü":{channelId:"UCdj-EiG6PCWM7ZqR5PzNOOw",channelName:"Matematiğin Güler Yüzü"},
-  "Rehber Matematik":{channelId:"UCzxj9SKkLuDhdxSDXxcmwqQ",channelName:"Rehber Matematik"},
-  "Eyüp B.":{channelId:"UCbv-0vMCnLqwlZXUWoI4a5w",channelName:"Eyüp B. Matematik Geometri"},
-  "Mert Hoca":{channelId:"UCzMVi_CPx_XB9uhMl4uWR9g",channelName:"Mert Hoca"},
-  "SML Hoca":{channelId:"UCSiatSbaEJZpI_tkQXwRbcw",channelName:"SML Matematik"},
-  "Bıyıklı Matematik":{channelId:"UCxHSLxJcuZ8SpF5zgJeQ8Cg",channelName:"Bıyıklı Matematik"},
-  "Yavuz Tuna Coğrafya":{channelId:"UCai5DYClxEjy-VH-eqz4MIA",channelName:"YAVUZ TUNA COĞRAFYA"},
-  "Coğrafyanın Kodları":{channelId:"UCIvX31CHx2RsFQM46qbjuJA",channelName:"Coğrafyanın Kodları"},
-  "KR Akademi":{channelId:"UC1NYzm_kEss5qScWlf-TtwA",channelName:"KR Akademi"},
-  "Hocalara Geldik":{channelId:"UCBcM2J8SHyq8GUSvrhWnwTg",channelName:"Hocalara Geldik"},
-  "Nurtaç Hoca":{channelId:"UCNgmALbCj_-cQpxiIpTqOSQ",channelName:"Nurtaç Hoca"},
-  "Deniz Hoca":{channelId:"UC_ke4VQZo9TewOf-p-LSx_Q",channelName:"Deniz Hoca"},
-  "Türkçenin Matematiği":{channelId:"UCCAmWzulVvB1DjnR5IQCTUQ",channelName:"Türkçenin Matematiği"},
-  "Altuğ Güneş":{channelId:"UCx4651yGDx7DR6KiyxG_CUA",channelName:"Altuğ Güneş FİZİK"},
-  "Fizikfinito":{channelId:"UC-zDbhn0rWs2EywjGQMrK7A",channelName:"Fizikfinito"},
-  "Fizik Evim":{channelId:"UCkRD9iVmodQfET17HeqxUrg",channelName:"FİZİK EVİM"},
-  "Tonguç Akademi":{channelId:"UCm3vDH7Uvz_qwql5Qih4yGw",channelName:"tonguç AKADEMİ"},
-
-  "Matematik Kafası":{searchOnly:true},
-  "3 Dakikada Matematik":{searchOnly:true},
-  "Felsefe Hocası":{searchOnly:true},
-  "Ferhat Yıldız":{searchOnly:true,queryHint:"YDT İngilizce"},
-  "Kimya Sarmal":{searchOnly:true}
-};
+const CHANNEL_OVERRIDES=VERIFIED_CHANNELS;
 
 function norm(value){
   return String(value||"")
@@ -52,10 +24,10 @@ function norm(value){
 }
 
 async function loadCatalog(){
-  const source=await readFile(APP_JS,"utf8");
-  const start=source.indexOf("const TEACHERS=[");
-  const end=source.indexOf("const TEACH_SUBJECTS",start);
-  if(start<0||end<0)throw new Error("app.js içindeki TEACHERS kataloğu bulunamadı");
+  const source=await readFile(CURATED_CATALOG,"utf8");
+  const start=source.indexOf("const CURATED_YKS_TEACHERS=[");
+  const end=source.indexOf(";\n  try{",start);
+  if(start<0||end<0)throw new Error("Küratörlü Hocalar kataloğu bulunamadı");
   const block=source.slice(start,end);
   const regex=/\{a:\"([^\"]+)\",d:\[([^\]]*)\]\s*,?\s*l:/g;
   const catalog=[];
@@ -73,7 +45,7 @@ async function loadCatalog(){
     });
   }
   if(!catalog.length)throw new Error("TEACHERS kataloğu ayrıştırılamadı");
-  console.log(`[teachers-v2] app.js ile senkron katalog: ${catalog.length} hoca`);
+  console.log(`[teachers-v2] küratörlü katalog: ${catalog.length} hoca`);
   return catalog;
 }
 
@@ -162,8 +134,8 @@ function ytdlp(target,{limit=12,timeout=30000}={}){
 }
 
 async function searchTeacher(teacher){
-  if(teacher.channelId&&!teacher.searchOnly){
-    const channelUrl=`https://www.youtube.com/channel/${teacher.channelId}`;
+  if((teacher.channelId||teacher.channelHandle)&&!teacher.searchOnly){
+    const channelUrl=teacher.channelId?`https://www.youtube.com/channel/${teacher.channelId}`:`https://www.youtube.com/${teacher.channelHandle}`;
     const direct=await ytdlp(`${channelUrl}/videos`,{limit:12,timeout:32000});
     const entries=Array.isArray(direct?.entries)?direct.entries.filter(Boolean):[];
     if(entries.length){
@@ -201,7 +173,7 @@ function normalizeVideos(entries,teacher){
     .filter(Boolean)
     .map(entry=>({entry,score:scoreEntry(entry,teacher)}))
     .sort((a,b)=>b.score-a.score);
-  const pinned=teacher.channelId&&!teacher.searchOnly;
+  const pinned=Boolean((teacher.channelId||teacher.channelHandle)&&!teacher.searchOnly);
   let selected=pinned
     ?rows.filter(row=>String(row.entry.channel_id||row.entry.uploader_id||"")===teacher.channelId)
     :rows.filter(row=>row.score>=4);
@@ -219,8 +191,8 @@ function normalizeVideos(entries,teacher){
       url:videoUrl(id,entry.webpage_url||entry.url),
       thumbnail:thumbFor(id,entry),
       channel:pinned?(teacher.channelName||rawChannel||teacher.name):(rawChannel||teacher.name),
-      channelId:pinned?teacher.channelId:String(entry.channel_id||entry.uploader_id||""),
-      channelUrl:pinned?`https://www.youtube.com/channel/${teacher.channelId}`:String(entry.channel_url||entry.uploader_url||""),
+      channelId:pinned?(teacher.channelId||String(entry.channel_id||entry.uploader_id||"")):String(entry.channel_id||entry.uploader_id||""),
+      channelUrl:pinned?(teacher.channelId?`https://www.youtube.com/channel/${teacher.channelId}`:`https://www.youtube.com/${teacher.channelHandle}`):String(entry.channel_url||entry.uploader_url||""),
       duration:Number.isFinite(entry.duration)?Number(entry.duration):null,
       timestamp:Number.isFinite(entry.timestamp)?Number(entry.timestamp):null
     };
@@ -255,7 +227,7 @@ async function refreshOne(teacher,previous){
     const videos=normalizeVideos(entries,teacher);
     if(!videos.length)throw new Error("arama sonuçları video kimliği içermedi");
 
-    const pinned=teacher.channelId&&!teacher.searchOnly;
+    const pinned=Boolean((teacher.channelId||teacher.channelHandle)&&!teacher.searchOnly);
     const channelUrl=pinned?`https://www.youtube.com/channel/${teacher.channelId}`:"";
     let playlists=[];
     if(channelUrl){
@@ -270,7 +242,8 @@ async function refreshOne(teacher,previous){
       subject:teacher.subject,
       subjects:teacher.subjects,
       channelName:pinned?(teacher.channelName||videos[0].channel||teacher.name):"",
-      channelId:pinned?teacher.channelId:"",
+      channelId:pinned?(teacher.channelId||videos[0]?.channelId||""):"",
+      channelHandle:pinned?(teacher.channelHandle||""):"",
       channelUrl,
       searchOnly:!!teacher.searchOnly,
       refreshedAt:new Date().toISOString(),

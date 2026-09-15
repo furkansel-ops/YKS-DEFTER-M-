@@ -7,6 +7,7 @@ const root=path.resolve(__dirname,"..");
 const custom=()=>fs.readFileSync(path.join(root,"src/ui/teachers-v2-custom-fast.ts"),"utf8");
 const patcher=()=>fs.readFileSync(path.join(root,"scripts/patch-teachers-v2-known-custom.mjs"),"utf8");
 const restore=()=>fs.readFileSync(path.join(root,"scripts/restore-teachers-v2-live-media.mjs"),"utf8");
+const sources=()=>fs.readFileSync(path.join(root,"scripts/teachers-v2-sources.mjs"),"utf8");
 const main=()=>fs.readFileSync(path.join(root,"src/main.ts"),"utf8");
 const runtimeHardening=()=>fs.readFileSync(path.join(root,"vite.runtime-hardening.mts"),"utf8");
 const pkg=()=>fs.readFileSync(path.join(root,"package.json"),"utf8");
@@ -26,10 +27,10 @@ test("Kendi eklenen hoca arşivi beklemeden hızlı erişim gösterir",()=>{
 
 test("Ferrum doğrulanmış kimya kanalıyla doğrudan hızlı erişime bağlanır",()=>{
   const source=custom();
-  const feedPatch=patcher();
+  const feedPatch=patcher(),sourceMap=sources();
   assert.match(source,/ferrum:\{subject:"Kimya",channelId:"UC0yco2kB3xW3WI__8E8HaKw",channelName:"Ferrum"\}/);
-  assert.match(feedPatch,/"Ferrum":\{channelId:"UC0yco2kB3xW3WI__8E8HaKw",channelName:"Ferrum",subject:"Kimya"/);
-  assert.match(feedPatch,/channelSource:"verified"/);
+  assert.match(sourceMap,/"Ferrum":\{channelId:"UC0yco2kB3xW3WI__8E8HaKw",channelName:"Ferrum"\}/);
+  assert.match(feedPatch,/channelSource:teacher\.channelId\?"verified":"verified-handle"/);
 });
 
 test("Doğrulanmış hocaların hızlı önizlemesi yt-dlp yerine YouTube RSS kullanır",()=>{
@@ -41,7 +42,7 @@ test("Doğrulanmış hocaların hızlı önizlemesi yt-dlp yerine YouTube RSS ku
   assert.match(source,/CONCURRENCY=8/);
   assert.doesNotMatch(source,/spawn\(/);
   assert.doesNotMatch(source,/yt_dlp/);
-  assert.match(source,/mevcut veri korundu/);
+  assert.match(source,/mevcut seri listesi korundu|ilgili sabit\/eski veri korunuyor/);
 });
 
 test("Hoca medya motoru overlay açılışında yalnız hafif önizlemeyi yükler",()=>{
