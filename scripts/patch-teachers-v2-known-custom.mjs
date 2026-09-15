@@ -33,11 +33,11 @@ function parseCatalog(source){
   const end=source.indexOf(";\n  try{",start);
   if(start<0||end<0)return new Map();
   const block=source.slice(start,end),rows=new Map();
-  const regex=/\{a:\"([^\"]+)\",d:\[([^\]]*)\]\s*,?\s*l:/g;
+  const regex=/\{a:"([^"]+)",d:\[([^\]]*)\]\s*,?\s*l:/g;
   let match;
   while((match=regex.exec(block))){
     const name=match[1].trim();
-    const subjects=[...match[2].matchAll(/\"([^\"]+)\"/g)].map(x=>x[1]).filter(Boolean);
+    const subjects=[...match[2].matchAll(/"([^"]+)"/g)].map(x=>x[1]).filter(Boolean);
     if(name&&subjects.length)rows.set(name,{subject:subjects.length===1?subjects[0]:"YKS",subjects});
   }
   return rows;
@@ -134,6 +134,25 @@ async function fetchChannelPlaylists(teacher){
   const html=await fetchText(`${base}/playlists`,PLAYLIST_TIMEOUT_MS,"text/html,application/xhtml+xml");
   return parsePlaylists(html,teacher);
 }
+function mergePlaylists(oldRows,freshRows){
+  const previous=new Map((Array.isArray(oldRows)?oldRows:[]).filter(row=>row?.id).map(row=>[String(row.id),row]));
+  const out=[],seen=new Set();
+  for(const fresh of Array.isArray(freshRows)?freshRows:[]){
+    if(!fresh?.id||seen.has(String(fresh.id)))continue;
+    const id=String(fresh.id),old=previous.get(id)||{};
+    seen.add(id);previous.delete(id);
+    out.push({...old,...fresh,
+      videos:Array.isArray(old.videos)?old.videos:undefined,
+      videoCount:Number(old.videoCount||0)||undefined,
+      previewSource:old.previewSource||undefined
+    });
+  }
+  for(const old of previous.values()){
+    if(!old?.id||seen.has(String(old.id)))continue;
+    seen.add(String(old.id));out.push(old);
+  }
+  return out.slice(0,MAX_PLAYLISTS);
+}
 async function runPool(items,worker,limit){
   const results=new Array(items.length);let next=0;
   async function run(){while(next<items.length){const i=next++;results[i]=await worker(items[i],i);}}
@@ -165,7 +184,7 @@ const rows=await runPool(entries,async([name,known])=>{
   const videos=mergeVideos(seed,Array.isArray(old.videos)?old.videos:[],rss);
   let playlists=Array.isArray(old.playlists)?old.playlists:[];
   if(!teacher.searchOnly){
-    try{const freshPlaylists=await fetchChannelPlaylists(teacher);if(freshPlaylists.length){playlists=freshPlaylists;playlistCount+=freshPlaylists.length;}}
+    try{const freshPlaylists=await fetchChannelPlaylists(teacher);if(freshPlaylists.length){playlists=mergePlaylists(playlists,freshPlaylists);playlistCount+=freshPlaylists.length;}}
     catch(error){console.warn(`[teachers-v2-fast] ${name}: playlist alınamadı; tam yenilemede bulunan seri listesi korunuyor (${error instanceof Error?error.message:String(error)})`);}
   }
   const subjects=Array.isArray(meta.subjects)?meta.subjects:(Array.isArray(old.subjects)?old.subjects:[]);
