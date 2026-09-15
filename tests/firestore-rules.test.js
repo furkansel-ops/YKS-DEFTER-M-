@@ -68,3 +68,45 @@ test("Firebase yapılandırması Firestore kurallarını doğru projeye bağlar"
   assert.equal(firebase.firestore.rules,"firestore.rules");
   assert.equal(rc.projects.default,"yks-uygulamam");
 });
+
+test("Koçluk hesap rolü Firestore seviyesinde kilitlidir",()=>{
+  const rules=read("firestore.rules");
+  assert.match(rules,/match \/accountProfiles\/\{userId\}/);
+  assert.match(rules,/validAccountRole/);
+  assert.match(rules,/roleName == 'student' \|\| roleName == 'coach'/);
+  assert.match(rules,/request\.resource\.data\.role == resource\.data\.role/);
+  assert.match(rules,/allow list: if false/);
+});
+
+test("Koç daveti 24 saatlik ve transaction içinde tek bağlantıya dönüşür",()=>{
+  const rules=read("firestore.rules");
+  assert.match(rules,/match \/coachInvites\/\{inviteCode\}/);
+  assert.ok(rules.includes("inviteCode.matches('^[A-Z2-9]{10}$')"));
+  assert.match(rules,/duration\.value\(24, 'h'\)/);
+  assert.match(rules,/resource\.data\.status == 'open'/);
+  assert.match(rules,/request\.resource\.data\.status == 'claimed'/);
+  assert.match(rules,/claimedInviteCreatesLink/);
+  assert.match(rules,/claimedInviteMatchesLink/);
+});
+
+test("Koç öğrencinin ham sync alanına değil yalnız paylaşım görünümüne erişir",()=>{
+  const rules=read("firestore.rules");
+  assert.match(rules,/match \/coachingShares\/\{studentUid\}/);
+  assert.match(rules,/activeCoachingLink\(studentUid, request\.auth\.uid\)/);
+  assert.match(rules,/request\.auth\.uid == studentUid[\s\S]*profileRole\(studentUid, 'student'\)/);
+  assert.match(rules,/match \/users\/\{userId\}\/sync\/meta[\s\S]*allow read: if ownsUserSpace\(userId\)/);
+  assert.doesNotMatch(rules,/match \/users\/\{userId\}\/sync\/meta[\s\S]{0,240}activeCoachingLink/);
+});
+
+test("Koç müdahalesi doğrudan öğrenci verisini yazmaz, kontrollü action kuyruğu kullanır",()=>{
+  const rules=read("firestore.rules");
+  assert.match(rules,/match \/coachingActions\/\{actionId\}/);
+  assert.match(rules,/program_task/);
+  assert.match(rules,/topic_deadline/);
+  assert.match(rules,/coach_note/);
+  assert.match(rules,/post_exam_task/);
+  assert.match(rules,/request\.resource\.data\.status == 'pending'/);
+  assert.match(rules,/request\.resource\.data\.status == 'applied'/);
+  assert.match(rules,/request\.resource\.data\.status == 'rejected'/);
+  assert.match(rules,/request\.resource\.data\.status == 'cancelled'/);
+});
