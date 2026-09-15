@@ -1,9 +1,14 @@
 type AccountWindow=Window&{
   __YKS_ACCOUNT_READY__?:Promise<boolean>;
+  YKSAccountAuth?:{
+    beforeSignIn?:(ctx:Record<string,any>)=>Promise<boolean>|boolean;
+  };
 };
 
 const COACH_SCRIPT_ID="coachAccountRuntime";
 const AUTH_SCRIPT_ID="authSessionRuntime";
+const PENDING_ROLE="yks_account_role_pending";
+const PENDING_COACH="yks_coach_profile_pending";
 
 function loadModuleScript(id:string,src:string):Promise<boolean>{
   const existing=document.getElementById(id) as HTMLScriptElement|null;
@@ -23,12 +28,33 @@ function loadModuleScript(id:string,src:string):Promise<boolean>{
   });
 }
 
+function forceStudentOnlyRegistration(win:AccountWindow):boolean{
+  const auth=win.YKSAccountAuth;
+  if(!auth)return false;
+  auth.beforeSignIn=async ctx=>{
+    try{
+      sessionStorage.setItem(PENDING_ROLE,"student");
+      sessionStorage.removeItem(PENDING_COACH);
+    }catch{}
+    try{
+      ctx.status?.("Google açılıyor…","connecting","Öğrenci hesabı");
+      await ctx.setPersistence(ctx.auth,ctx.browserLocalPersistence);
+      await ctx.signInWithPopup(ctx.auth,ctx.provider);
+    }catch(error){
+      ctx.status?.("Giriş hatası","error",ctx.authErrorText?.(error)||String((error as Error)?.message||"Giriş yapılamadı").slice(0,100));
+    }
+    return true;
+  };
+  document.documentElement.dataset.publicRegistration="student-only";
+  return true;
+}
+
 export function installCoachAccountLoader():boolean{
   const win=window as AccountWindow;
   if(win.__YKS_ACCOUNT_READY__)return true;
   win.__YKS_ACCOUNT_READY__=(async()=>{
     const coachReady=await loadModuleScript(COACH_SCRIPT_ID,"./coach-account-runtime.js");
-    if(!coachReady)return false;
+    if(!coachReady||!forceStudentOnlyRegistration(win))return false;
     return loadModuleScript(AUTH_SCRIPT_ID,"./auth-session-runtime.js");
   })();
   return true;

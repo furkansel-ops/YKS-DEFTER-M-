@@ -51,11 +51,25 @@ service cloud.firestore {
       return roleName == 'student' || roleName == 'coach';
     }
 
+    function validCoachRegistrationInvite(userId, inviteCode) {
+      let before = get(/databases/$(database)/documents/coachRegistrationInvites/$(inviteCode)).data;
+      let after = getAfter(/databases/$(database)/documents/coachRegistrationInvites/$(inviteCode)).data;
+      return inviteCode is string
+        && inviteCode.matches('^[A-Z2-9]{24}$')
+        && before.status == 'open'
+        && before.expiresAt is timestamp
+        && before.expiresAt > request.time
+        && after.status == 'used'
+        && after.usedBy == userId
+        && after.usedAt == request.time
+        && after.updatedAt == request.time;
+    }
+
     function validAccountProfile(data, userId) {
       return data.keys().hasAll(['uid', 'role', 'displayName', 'createdAt', 'updatedAt'])
         && data.keys().hasOnly([
           'uid', 'role', 'displayName', 'coachTitle', 'specialization',
-          'createdAt', 'updatedAt'
+          'registrationInvite', 'createdAt', 'updatedAt'
         ])
         && data.uid == userId
         && validAccountRole(data.role)
@@ -65,6 +79,8 @@ service cloud.firestore {
         && data.get('coachTitle', '').size() <= 100
         && data.get('specialization', '') is string
         && data.get('specialization', '').size() <= 160
+        && data.get('registrationInvite', '') is string
+        && data.get('registrationInvite', '').size() <= 24
         && data.createdAt is timestamp
         && data.updatedAt is timestamp;
     }
@@ -187,14 +203,43 @@ service cloud.firestore {
       allow create: if ownsUserSpace(userId)
         && validAccountProfile(request.resource.data, userId)
         && request.resource.data.createdAt == request.time
-        && request.resource.data.updatedAt == request.time;
+        && request.resource.data.updatedAt == request.time
+        && (
+          (request.resource.data.role == 'student'
+            && !request.resource.data.keys().hasAny(['registrationInvite']))
+          ||
+          (request.resource.data.role == 'coach'
+            && request.resource.data.keys().hasAll(['registrationInvite'])
+            && validCoachRegistrationInvite(userId, request.resource.data.registrationInvite))
+        );
       allow update: if ownsUserSpace(userId)
         && validAccountProfile(request.resource.data, userId)
         && request.resource.data.uid == resource.data.uid
         && request.resource.data.role == resource.data.role
         && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.get('registrationInvite', '') == resource.data.get('registrationInvite', '')
         && request.resource.data.updatedAt == request.time;
       allow delete: if false;
+    }
+
+    match /coachRegistrationInvites/{inviteCode} {
+      allow get: if verifiedUser()
+        && inviteCode.matches('^[A-Z2-9]{24}$');
+      allow list, create, delete: if false;
+      allow update: if verifiedUser()
+        && inviteCode.matches('^[A-Z2-9]{24}$')
+        && resource.data.status == 'open'
+        && resource.data.expiresAt is timestamp
+        && resource.data.expiresAt > request.time
+        && request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['status', 'usedBy', 'usedAt', 'updatedAt'])
+        && request.resource.data.status == 'used'
+        && request.resource.data.usedBy == request.auth.uid
+        && request.resource.data.usedAt == request.time
+        && request.resource.data.updatedAt == request.time
+        && getAfter(/databases/$(database)/documents/accountProfiles/$(request.auth.uid)).data.uid == request.auth.uid
+        && getAfter(/databases/$(database)/documents/accountProfiles/$(request.auth.uid)).data.role == 'coach'
+        && getAfter(/databases/$(database)/documents/accountProfiles/$(request.auth.uid)).data.registrationInvite == inviteCode;
     }
 
     match /coachInvites/{inviteCode} {

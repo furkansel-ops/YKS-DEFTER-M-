@@ -5,15 +5,44 @@ const path=require("node:path");
 const root=path.resolve(__dirname,"..");
 const read=file=>fs.readFileSync(path.join(root,file),"utf8");
 
-test("kayıt ekranı öğrenci ve koç rolünü ayrı hesap türü olarak sunar",()=>{
-  const runtime=read("public/coach-account-runtime.js");
-  assert.match(runtime,/data-role="student"/);
-  assert.match(runtime,/data-role="coach"/);
-  assert.match(runtime,/Öğrenci/);
-  assert.match(runtime,/Koç/);
-  assert.match(runtime,/PENDING_COACH/);
-  assert.match(runtime,/coachTitle/);
-  assert.match(runtime,/specialization/);
+test("normal giriş yeni hesapları yalnız öğrenci olarak oluşturur",()=>{
+  const loader=read("src/ui/coach-account-loader.ts"),auth=read("public/auth-session-runtime.js");
+  assert.match(loader,/sessionStorage\.setItem\(PENDING_ROLE,"student"\)/);
+  assert.match(loader,/sessionStorage\.removeItem\(PENDING_COACH\)/);
+  assert.match(loader,/publicRegistration="student-only"/);
+  assert.match(auth,/yeni hesaplar Öğrenci hesabıdır/);
+  assert.match(auth,/özel, tek kullanımlık koç davet bağlantısıyla/);
+});
+
+test("koç kaydı ayrı sayfada 24 karakterlik davetle transaction içinde yapılır",()=>{
+  const html=read("public/coach-register.html"),script=read("public/coach-register.js");
+  assert.match(html,/Özel koç daveti/);
+  assert.match(script,/coachRegistrationInvites/);
+  assert.match(script,/\^\[A-Z2-9\]\{24\}\$/);
+  assert.match(script,/runTransaction/);
+  assert.match(script,/role:"coach"/);
+  assert.match(script,/registrationInvite:invite/);
+  assert.match(script,/status:"used"/);
+});
+
+test("Firestore normal kullanıcıya koç rolü vermez; koç rolü yalnız önceden açılmış tek kullanımlık davetle oluşturulur",()=>{
+  const rules=read("firestore.rules");
+  assert.match(rules,/function validCoachRegistrationInvite/);
+  assert.match(rules,/match \/coachRegistrationInvites\/\{inviteCode\}/);
+  assert.match(rules,/allow list, create, delete: if false/);
+  assert.match(rules,/request\.resource\.data\.role == 'student'/);
+  assert.match(rules,/request\.resource\.data\.role == 'coach'/);
+  assert.match(rules,/validCoachRegistrationInvite\(userId, request\.resource\.data\.registrationInvite\)/);
+  assert.match(rules,/after\.usedBy == userId/);
+});
+
+test("davet yardımcı sayfası yalnız kod ve paylaşım linki üretir; yetkiyi Firebase belgesi belirler",()=>{
+  const html=read("public/coach-invites.html");
+  assert.match(html,/coachRegistrationInvites/);
+  assert.match(html,/Firebase Console/);
+  assert.match(html,/crypto\.getRandomValues/);
+  assert.match(html,/coach-register\.html/);
+  assert.doesNotMatch(html,/firebase-firestore\.js/);
 });
 
 test("mevcut bulut hesabı otomatik öğrenci olarak korunur ve hesap rolü değiştirilemez",()=>{
@@ -22,6 +51,7 @@ test("mevcut bulut hesabı otomatik öğrenci olarak korunur ve hesap rolü değ
   assert.match(runtime,/users",user\.uid,"sync","meta/);
   assert.match(runtime,/if\(!old\.exists\(\)\)role=/);
   assert.match(rules,/request\.resource\.data\.role == resource\.data\.role/);
+  assert.match(rules,/registrationInvite', ''\) == resource\.data\.get\('registrationInvite', ''\)/);
 });
 
 test("koç ham öğrenci sync verisine değil coachingShares görünümüne erişir",()=>{
