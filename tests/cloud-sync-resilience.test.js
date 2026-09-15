@@ -70,5 +70,5 @@ test("Firebase çakışma birleştirmesinden sonra aynı anda yazan cihazlara ji
 test("Web ve Android build zinciri Firebase dist sağlamlaştırmasını uygular",()=>{
   const source=pkg();
   assert.match(source,/scripts\/harden-firebase-dist\.mjs/);
-  assert.match(source,/vite --config vite\.runtime-hardening\.mts build/);
+  assert.match(source,/vite build --config vite\.runtime-hardening\.mts/);
 });
