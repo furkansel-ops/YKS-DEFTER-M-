@@ -6,10 +6,10 @@ const read=path=>readFile(resolve(root,path),"utf8");
 const fail=message=>{throw new Error(`Altyapı doğrulaması: ${message}`);};
 const must=(value,message)=>{if(!value)fail(message);};
 
-const [pkgText,versionText,tsconfigText,srcPkgText,ci,deploy,nvmrc,firestoreRules,firebaseConfigText,firebaseRcText]=await Promise.all([
+const [pkgText,versionText,tsconfigText,srcPkgText,ci,deploy,nvmrc,firestoreRules,firebaseConfigText,firebaseRcText,cloudHardener]=await Promise.all([
   read("package.json"),read("version.json"),read("tsconfig.json"),read("src/package.json"),
   read(".github/workflows/ci.yml"),read(".github/workflows/deploy-pages.yml"),read(".nvmrc"),
-  read("firestore.rules"),read("firebase.json"),read(".firebaserc")
+  read("firestore.rules"),read("firebase.json"),read(".firebaserc"),read("scripts/harden-firebase-dist.mjs")
 ]);
 const pkg=JSON.parse(pkgText),version=JSON.parse(versionText),tsconfig=JSON.parse(tsconfigText),srcPkg=JSON.parse(srcPkgText);
 const firebaseConfig=JSON.parse(firebaseConfigText),firebaseRc=JSON.parse(firebaseRcText);
@@ -40,12 +40,23 @@ must(/match \/users\/\{userId\}\/sync\/meta/.test(firestoreRules),"Firestore syn
 must(/match \/users\/\{userId\}\/chunks\/\{chunkId\}/.test(firestoreRules),"Firestore chunks yolu tanımlı değil");
 must(/data\.format is int && data\.format == 4/.test(firestoreRules),"Firestore v4 format zorunluluğu eksik");
 must(/data\.count is int && data\.count >= 0 && data\.count <= 12/.test(firestoreRules),"Firestore parça sayısı production sınırıyla uyumlu değil");
-must(/data\.data is string && data\.data\.size\(\) <= 720000/.test(firestoreRules),"Firestore chunk boyutu production sınırıyla uyumlu değil");
+must(firestoreRules.includes("data.hash.matches('^[0-9a-f]{64}$')"),"Firestore aktif meta SHA-256 zorunluluğu eksik");
+must(firestoreRules.includes("chunkId.matches('^[0-9]{10}_[0-9]{4}$')"),"Firestore chunk kimliği biçim doğrulaması eksik");
+must(/data\.data is string[\s\S]*data\.data\.size\(\) > 0 && data\.data\.size\(\) <= 720000/.test(firestoreRules),"Firestore chunk boyutu/boş içerik sınırı production sözleşmesiyle uyumlu değil");
 must(/let meta = nextMeta\(userId\)/.test(firestoreRules),"Firestore chunk doğrulaması getAfter meta durumunu kullanmıyor");
-must(/allow create: if ownsUserSpace\(userId\) && validChunk\(userId\)/.test(firestoreRules),"Firestore chunk create kuralı güvenli v4 doğrulamasını kullanmıyor");
+must(/meta\.updatedAt is timestamp && meta\.updatedAt == request\.time/.test(firestoreRules),"Firestore chunk yazımı aynı transaction meta zamanına bağlanmamış");
+must(/request\.resource\.data\.revision == resource\.data\.revision \+ 1/.test(firestoreRules),"Firestore meta revizyonları tek-adım ilerlemeye zorlanmıyor");
+must(/allow create: if ownsUserSpace\(userId\)[\s\S]*validChunk\(userId, chunkId\)/.test(firestoreRules),"Firestore chunk create kuralı güvenli v4 doğrulamasını kullanmıyor");
 must(/allow update: if false/.test(firestoreRules),"Firestore aktif chunk üzerine yazmayı açık bırakıyor");
+must(/allow delete: if false/.test(firestoreRules),"Firestore meta silmeyi açık bırakıyor");
+must(/function startsDeletion/.test(firestoreRules)&&/function completesDeletion/.test(firestoreRules),"Firestore güvenli silme/tombstone yaşam döngüsü eksik");
 must(/match \/\{document=\*\*\}[\s\S]*allow read, write: if false/.test(firestoreRules),"Firestore varsayılan reddetme kuralı eksik");
 must(!/allow\s+read\s*,\s*write\s*:\s*if\s+true/.test(firestoreRules),"Firestore kuralları herkese açık erişim içeriyor");
+
+must(/async function cloudHash\(txt\)/.test(cloudHardener),"Firebase production runtime SHA-256 bulut hash katmanını üretmiyor");
+must(/subtle\.digest\("SHA-256",bytes\)/.test(cloudHardener),"Firebase SHA-256 Web Crypto doğrulaması eksik");
+must(/hash=await cloudHash\(json\)/.test(cloudHardener),"Yeni Firebase snapshot'ları SHA-256 ile yazılmıyor");
+must(/storedHash\.length===64\?await cloudHash\(json\):infraHash\(json\)/.test(cloudHardener),"Eski 8 haneli bulut hash geçiş uyumluluğu eksik");
 
 for(const [name,text] of [["CI",ci],["Pages",deploy]]){
   must(text.includes(checkoutPin),`${name} değişmez checkout SHA'sını kullanmıyor`);
@@ -71,4 +82,4 @@ for(const [file,max] of Object.entries(budgets)){
   must(info.size<=max,`${file} ${info.size} bayt ile ${max} bayt kaynak bütçesini aştı`);
 }
 
-console.log(`Altyapı doğrulandı: Node 22 tabanı + Node 24 uyumluluğu, salt-okunur CI, ESM sınırı, Firestore v4 senkron güvenliği, deterministik build ve ${Object.keys(budgets).length} kaynak bütçesi.`);
+console.log(`Altyapı doğrulandı: Node 22 tabanı + Node 24 uyumluluğu, salt-okunur CI, SHA-256 bütünlüğü, transaction bağlı Firestore v4 güvenliği, deterministik build ve ${Object.keys(budgets).length} kaynak bütçesi.`);

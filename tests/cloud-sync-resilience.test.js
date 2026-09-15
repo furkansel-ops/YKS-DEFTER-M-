@@ -24,6 +24,16 @@ test("Production Firebase çıktısı Firestore v4 protokolüne yükseltilir",()
   assert.match(source,/Firestore v4 chunk biçimi/);
 });
 
+test("Yeni v4 bulut snapshot'ları SHA-256 ile korunur, eski 8 haneli hash okunabilir kalır",()=>{
+  const source=distHardening();
+  assert.match(source,/async function cloudHash\(txt\)/);
+  assert.match(source,/subtle\.digest\("SHA-256",bytes\)/);
+  assert.match(source,/storedHash\.length!==8&&storedHash\.length!==64/);
+  assert.match(source,/storedHash\.length===64\?await cloudHash\(json\):infraHash\(json\)/);
+  assert.match(source,/hash=await cloudHash\(json\)/);
+  assert.match(source,/Güvenli SHA-256 desteği bulunamadı/);
+});
+
 test("Firebase uzaktaki durumu bütün eski chunks koleksiyonunu taramadan okur",()=>{
   const source=vite();
   assert.match(source,/yalnız aktif revizyonu okuma/);

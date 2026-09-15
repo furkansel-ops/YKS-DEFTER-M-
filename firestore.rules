@@ -16,82 +16,142 @@ service cloud.firestore {
       return getAfter(/databases/$(database)/documents/users/$(userId)/sync/meta).data;
     }
 
-    function validMeta(data) {
-      return data.keys().hasAll(['format', 'revision', 'count', 'hash', 'clientId', 'appVersion', 'schemaVersion', 'updatedAt'])
-        && data.keys().hasOnly(['format', 'revision', 'count', 'hash', 'clientId', 'appVersion', 'schemaVersion', 'updatedAt', 'deleted', 'cleanupPending', 'deletedAt'])
+    function validMetaShape(data) {
+      return data.keys().hasAll([
+          'format', 'revision', 'count', 'hash', 'clientId',
+          'appVersion', 'schemaVersion', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'format', 'revision', 'count', 'hash', 'clientId',
+          'appVersion', 'schemaVersion', 'updatedAt',
+          'deleted', 'cleanupPending', 'deletedAt'
+        ])
         && data.format is int && data.format == 4
         && data.revision is int && data.revision >= 1
         && data.count is int && data.count >= 0 && data.count <= 12
         && data.hash is string && data.hash.size() <= 64
-        && data.clientId is string && data.clientId.size() <= 80
-        && data.appVersion is string && data.appVersion.size() <= 32
-        && data.schemaVersion is int && data.schemaVersion >= 1 && data.schemaVersion <= 100
-        && data.updatedAt is timestamp && data.updatedAt == request.time
-        && (
-          (!data.keys().hasAny(['deleted', 'cleanupPending', 'deletedAt']))
-          || (data.deleted == true && data.cleanupPending is bool && data.deletedAt is timestamp
-            && data.count == 0 && data.hash == '')
-        );
+        && data.clientId is string
+        && data.clientId.size() >= 8 && data.clientId.size() <= 80
+        && data.clientId.matches('^[A-Za-z0-9._:-]+$')
+        && data.appVersion is string
+        && data.appVersion.size() >= 1 && data.appVersion.size() <= 32
+        && data.appVersion.matches('^[0-9A-Za-z][0-9A-Za-z._+-]*$')
+        && data.schemaVersion is int
+        && data.schemaVersion >= 1 && data.schemaVersion <= 100
+        && data.updatedAt is timestamp
+        && data.updatedAt == request.time;
     }
 
-    function advancesRevision() {
-      return request.resource.data.revision > resource.data.revision
-        && (request.resource.data.get('deleted', false) == true
-          || resource.data.get('deleted', false) == false
+    function validActiveMeta(data) {
+      return validMetaShape(data)
+        && !data.keys().hasAny(['deleted', 'cleanupPending', 'deletedAt'])
+        && data.count >= 1 && data.count <= 12
+        // v4 aktif snapshot'lar SHA-256 kullanır.
+        && data.hash.matches('^[0-9a-f]{64}$');
+    }
+
+    function validDeletedMeta(data) {
+      return validMetaShape(data)
+        && data.keys().hasAll(['deleted', 'cleanupPending', 'deletedAt'])
+        && data.deleted == true
+        && data.cleanupPending is bool
+        && data.deletedAt is timestamp
+        && data.count == 0
+        && data.hash == '';
+    }
+
+    function advancesActiveRevision() {
+      return validActiveMeta(request.resource.data)
+        && request.resource.data.revision == resource.data.revision + 1
+        // Silinmiş veri yalnız cleanup tamamlandıktan sonra yeniden tohumlanabilir.
+        && (resource.data.get('deleted', false) == false
           || resource.data.get('cleanupPending', true) == false);
+    }
+
+    function startsDeletion() {
+      return resource.data.format == 4
+        && resource.data.get('deleted', false) == false
+        && validDeletedMeta(request.resource.data)
+        && request.resource.data.cleanupPending == true
+        && request.resource.data.deletedAt == request.time
+        && request.resource.data.revision == resource.data.revision + 1;
     }
 
     function completesDeletion() {
       return resource.data.format == 4
         && resource.data.get('deleted', false) == true
         && resource.data.get('cleanupPending', false) == true
+        && validDeletedMeta(request.resource.data)
         && request.resource.data.cleanupPending == false
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['cleanupPending', 'updatedAt']);
+        && request.resource.data.revision == resource.data.revision
+        && request.resource.data.deletedAt == resource.data.deletedAt
+        && request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['cleanupPending', 'updatedAt']);
     }
 
-    function validChunk(userId) {
+    function validChunk(userId, chunkId) {
       let data = request.resource.data;
       let meta = nextMeta(userId);
-      return data.keys().hasAll(['data', 'revision', 'index', 'format'])
+      return chunkId.matches('^[0-9]{10}_[0-9]{4}$')
+        && data.keys().hasAll(['data', 'revision', 'index', 'format'])
         && data.keys().hasOnly(['data', 'revision', 'index', 'format'])
         && data.format is int && data.format == 4
-        && data.data is string && data.data.size() <= 720000
+        && data.data is string
+        && data.data.size() > 0 && data.data.size() <= 720000
         && data.revision is int && data.revision >= 1
         && data.index is int && data.index >= 0 && data.index < 12
         && meta.format == 4
         && meta.get('deleted', false) == false
+        && meta.count >= 1 && meta.count <= 12
+        && meta.hash is string && meta.hash.matches('^[0-9a-f]{64}$')
         && meta.revision == data.revision
-        && data.index < meta.count;
+        && data.index < meta.count
+        // Chunk yalnız aynı transaction içinde yazılan yeni meta snapshot'a bağlanabilir.
+        && meta.updatedAt is timestamp && meta.updatedAt == request.time;
     }
 
-    match /users/{userId}/sync/meta {
-      allow read: if ownsUserSpace(userId);
-      allow create: if ownsUserSpace(userId) && validMeta(request.resource.data);
-      allow update: if ownsUserSpace(userId) && validMeta(request.resource.data)
-        && (advancesRevision() || completesDeletion());
-    }
-
-    match /users/{userId}/chunks/{chunkId} {
-      allow read: if ownsUserSpace(userId);
-      // Her revizyon farklı belge kimlikleri kullanır. Yalnız create izni,
-      // aktif snapshot parçasının sessizce üzerine yazılmasını engeller.
-      allow create: if ownsUserSpace(userId) && validChunk(userId);
-      allow update: if false;
-      allow delete: if ownsUserSpace(userId)
-        && currentMeta(userId).format == 4
+    function canDeleteChunk(userId, chunkId) {
+      let meta = currentMeta(userId);
+      return chunkId.matches('^[0-9]{10}_[0-9]{4}$')
+        && meta.format == 4
         && (
-          currentMeta(userId).get('deleted', false) == true
+          meta.get('deleted', false) == true
           || (
             resource.data.revision is int
-            && resource.data.revision < currentMeta(userId).revision - 2
+            && resource.data.revision < meta.revision - 2
           )
         );
     }
 
+    match /users/{userId}/sync/meta {
+      allow read: if ownsUserSpace(userId);
+      allow create: if ownsUserSpace(userId)
+        && validActiveMeta(request.resource.data);
+      allow update: if ownsUserSpace(userId)
+        && (
+          advancesActiveRevision()
+          || startsDeletion()
+          || completesDeletion()
+        );
+      allow delete: if false;
+    }
+
+    match /users/{userId}/chunks/{chunkId} {
+      allow read: if ownsUserSpace(userId);
+      // Her revizyon farklı belge kimlikleri kullanır. Aktif parça değiştirilemez.
+      allow create: if ownsUserSpace(userId)
+        && validChunk(userId, chunkId);
+      allow update: if false;
+      allow delete: if ownsUserSpace(userId)
+        && canDeleteChunk(userId, chunkId);
+    }
+
+    // Kullanıcının sync alanı dışında kalan tüm alt yollar kapalıdır.
     match /users/{userId}/{document=**} {
       allow read, write: if false;
     }
 
+    // Firestore kuralları eklemelidir; açık olmayan her yol varsayılan reddedilir.
     match /{document=**} {
       allow read, write: if false;
     }
