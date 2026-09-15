@@ -48,18 +48,44 @@
 @keyframes teachersV2Spin{to{transform:rotate(360deg)}}
 .teachers-v2-load-more{display:block;width:min(360px,100%);min-height:42px;margin:12px auto 0;padding:0 14px;border:1px solid color-mix(in srgb,var(--accent) 30%,var(--sep));border-radius:13px;background:color-mix(in srgb,var(--accent) 6%,var(--fill));color:var(--accent);font:800 11.5px var(--font);cursor:pointer}
 .teachers-v2-load-more[hidden]{display:none!important}
-.teachers-v2-playlist-head{display:flex;align-items:end;justify-content:space-between;gap:12px;margin:18px 0 9px}
+.teachers-v2-playlist-head{display:flex;align-items:end;justify-content:space-between;gap:12px;margin:20px 0 9px}
+.teachers-v2-playlist-head>div{min-width:0}
 .teachers-v2-playlist-head h4{margin:0;color:var(--label);font-size:14px}
 .teachers-v2-playlist-head span{font-size:10.5px;color:var(--label-3)}
+.teachers-v2-playlist-tools{margin-bottom:9px}
+.teachers-v2-playlist-search{display:flex;align-items:center;gap:8px;height:40px;padding:0 12px;border:1px solid var(--sep);border-radius:13px;background:var(--glass-strong)}
+.teachers-v2-playlist-search:focus-within{border-color:color-mix(in srgb,var(--accent) 46%,var(--sep));box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 10%,transparent)}
+.teachers-v2-playlist-search>span{color:var(--label-3);font-size:14px}
+.teachers-v2-playlist-search input{min-width:0;width:100%;height:100%;border:0;outline:0;background:transparent;color:var(--label);font:600 12px var(--font)}
 .teachers-v2-playlist-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
-.teachers-v2-playlist-wrap{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px;align-items:stretch;min-width:0}
-.teachers-v2-playlist-card,.teachers-v2-playlist-fallback{min-height:54px;border-radius:14px;border:1px solid var(--sep);background:var(--fill);color:var(--label);font:inherit;cursor:pointer;text-align:left}
-.teachers-v2-playlist-card{display:flex;align-items:center;gap:9px;padding:10px 12px;min-width:0}
-.teachers-v2-playlist-card span{width:28px;height:28px;flex:0 0 auto;border-radius:9px;display:grid;place-items:center;background:color-mix(in srgb,var(--accent) 10%,var(--glass));color:var(--accent);font-size:12px}
-.teachers-v2-playlist-card b{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;font-size:11.5px;line-height:1.35}
-.teachers-v2-playlist-plan{min-width:92px;padding:0 9px;border-radius:12px;border:1px solid color-mix(in srgb,var(--accent) 22%,var(--sep));background:var(--fill);color:var(--accent);font:750 10px var(--font);cursor:pointer}
-.teachers-v2-playlist-plan.on{color:var(--success);border-color:color-mix(in srgb,var(--success) 30%,var(--sep));background:color-mix(in srgb,var(--success) 7%,var(--fill))}
+.teachers-v2-playlist-grid.detail{display:block}
+.teachers-v2-playlist-wrap{position:relative;display:grid;grid-template-columns:minmax(0,1fr) 42px;gap:6px;align-items:stretch;min-width:0}
+.teachers-v2-playlist-card,.teachers-v2-playlist-fallback{min-height:62px;border-radius:15px;border:1px solid var(--sep);background:var(--glass-strong);color:var(--label);font:inherit;cursor:pointer;text-align:left}
+.teachers-v2-playlist-card{display:grid;grid-template-columns:32px minmax(0,1fr) 16px;align-items:center;gap:10px;padding:10px 12px;min-width:0;transition:border-color .14s ease,transform .14s ease}
+.teachers-v2-playlist-card:hover{transform:translateY(-1px);border-color:color-mix(in srgb,var(--accent) 28%,var(--sep))}
+.teachers-v2-playlist-card>span:first-child{width:32px;height:32px;flex:0 0 auto;border-radius:10px;display:grid;place-items:center;background:color-mix(in srgb,var(--accent) 10%,var(--glass));color:var(--accent);font-size:13px}
+.teachers-v2-playlist-copy{min-width:0;display:block}
+.teachers-v2-playlist-copy b{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;font-size:11.8px;line-height:1.35}
+.teachers-v2-playlist-copy small{display:block;margin-top:4px;color:var(--label-3);font-size:9.8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.teachers-v2-playlist-card>i{font-style:normal;color:var(--label-3);font-size:20px}
+.teachers-v2-playlist-plan{width:42px;min-width:42px;padding:0;border-radius:12px;border:1px solid color-mix(in srgb,var(--accent) 22%,var(--sep));background:var(--fill);color:var(--accent);font:800 15px var(--font);cursor:pointer}
+.teachers-v2-playlist-plan.on{color:var(--success);border-color:color-mix(in srgb,var(--success) 30%,var(--sep));background:color-mix(in srgb,var(--success) 7%,var(--fill));font-size:12px}
 .teachers-v2-playlist-fallback{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;padding:0 14px;font-weight:750;font-size:12px}
+.teachers-v2-playlist-empty{grid-column:1/-1;padding:20px;border:1px dashed var(--sep);border-radius:15px;background:var(--glass);text-align:center}
+.teachers-v2-playlist-empty b{display:block;color:var(--label);font-size:12px}
+.teachers-v2-playlist-empty span{display:block;margin-top:4px;color:var(--label-3);font-size:10.5px}
+.teachers-v2-playlist-detail{min-width:0}
+.teachers-v2-playlist-detail-head{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;align-items:center;gap:8px;margin-bottom:10px}
+.teachers-v2-playlist-detail-head>button{min-height:38px;padding:0 11px;border:1px solid var(--sep);border-radius:11px;background:var(--fill);color:var(--label-2);font:750 10.5px var(--font);cursor:pointer}
+.teachers-v2-playlist-detail-head>.teachers-v2-playlist-plan{width:auto;min-width:92px;color:var(--accent);border-color:color-mix(in srgb,var(--accent) 22%,var(--sep));font-size:10px}
+.teachers-v2-playlist-detail-head>.teachers-v2-playlist-plan.on{color:var(--success);font-size:10px}
+.teachers-v2-playlist-detail-head>div{min-width:0}
+.teachers-v2-playlist-detail-head b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--label);font-size:12px}
+.teachers-v2-playlist-detail-head small{display:block;margin-top:3px;color:var(--label-3);font-size:10px}
+.teachers-v2-playlist-video-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.teachers-v2-playlist-embed{border:1px solid var(--sep);border-radius:16px;overflow:hidden;background:var(--glass-strong)}
+.teachers-v2-playlist-embed iframe{display:block;width:100%;aspect-ratio:16/9;border:0;background:#000}
+.teachers-v2-playlist-embed p{margin:0;padding:10px 12px;color:var(--label-3);font-size:10.5px;line-height:1.45}
 .teachers-v2-media-skeleton{grid-column:1/-1;height:54px;border-radius:14px;background:linear-gradient(90deg,var(--fill),var(--glass-strong),var(--fill));background-size:200% 100%;animation:teachersV2Shimmer 1.3s linear infinite}
 @keyframes teachersV2Shimmer{to{background-position:-200% 0}}
 .teachers-v2-media-shortcuts{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}
@@ -73,7 +99,7 @@
 .teachers-v2-player-head button{height:36px;padding:0 11px;border-radius:11px;border:1px solid var(--sep);background:var(--fill);color:var(--label-2);font:750 11px var(--font);cursor:pointer}
 .teachers-v2-player-frame{aspect-ratio:16/9;background:#000}
 .teachers-v2-player-frame iframe{width:100%;height:100%;border:0;display:block}
-@media(max-width:820px){.teachers-v2-video-grid{grid-template-columns:1fr}.teachers-v2-playlist-grid{grid-template-columns:1fr}}
-@media(max-width:560px){.teachers-v2-video-main{grid-template-columns:116px minmax(0,1fr)}.teachers-v2-media-head{align-items:flex-start}.teachers-v2-media-head-actions{justify-content:flex-start}.teachers-v2-media-tools{align-items:stretch;flex-direction:column}.teachers-v2-video-result{padding-left:2px}.teachers-v2-player-overlay{padding:8px}.teachers-v2-player{border-radius:16px}.teachers-v2-player-head{align-items:flex-start;flex-direction:column}.teachers-v2-player-head>div{width:100%}.teachers-v2-player-head button{flex:1}.teachers-v2-playlist-wrap{grid-template-columns:1fr}.teachers-v2-playlist-plan{min-height:40px}}
+@media(max-width:820px){.teachers-v2-video-grid,.teachers-v2-playlist-video-grid{grid-template-columns:1fr}.teachers-v2-playlist-grid{grid-template-columns:1fr}}
+@media(max-width:560px){.teachers-v2-video-main{grid-template-columns:116px minmax(0,1fr)}.teachers-v2-media-head{align-items:flex-start}.teachers-v2-media-head-actions{justify-content:flex-start}.teachers-v2-media-tools{align-items:stretch;flex-direction:column}.teachers-v2-video-result{padding-left:2px}.teachers-v2-player-overlay{padding:8px}.teachers-v2-player{border-radius:16px}.teachers-v2-player-head{align-items:flex-start;flex-direction:column}.teachers-v2-player-head>div{width:100%}.teachers-v2-player-head button{flex:1}.teachers-v2-playlist-wrap{grid-template-columns:minmax(0,1fr) 44px}.teachers-v2-playlist-plan{min-height:44px}.teachers-v2-playlist-detail-head{grid-template-columns:1fr 1fr}.teachers-v2-playlist-detail-head>div{grid-column:1/-1;grid-row:1}.teachers-v2-playlist-detail-head>button{grid-row:2}.teachers-v2-playlist-detail-head>.teachers-v2-playlist-plan{width:100%;min-width:0}}
 @media(pointer:coarse){.teachers-v2-video-plan,.teachers-v2-video-watch,.teachers-v2-video-save{min-height:38px!important;padding:0 12px}.teachers-v2-media-filters button,.teachers-v2-media-head-actions button,.teachers-v2-media-shortcuts button,.teachers-v2-load-more,.teachers-v2-playlist-plan{min-height:44px}}
 @media(prefers-reduced-motion:reduce){.teachers-v2-video-card{transition:none}.teachers-v2-media-loading i,.teachers-v2-media-skeleton{animation:none}}
