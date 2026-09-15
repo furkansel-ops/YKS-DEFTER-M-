@@ -37,17 +37,20 @@ jobs:
       - name: Bağımlılıkları kur
         run: npm ci --no-audit --no-fund
 
-      - name: Hocalar v2 medya akışını yenile
+      # Kod push'u YouTube ağ hızına bağlı kalmasın. Tam medya yenilemesi günlük cron
+      # veya elle çalıştırılan workflow sırasında yapılır; push'ta depodaki son sağlam
+      # feed kullanılır ve yalnız hızlı/yerel Ferrum yaması + arşiv üretimi uygulanır.
+      - name: Hocalar v2 medya akışını ağdan yenile
+        if: github.event_name != 'push'
         continue-on-error: true
         run: |
           python3 -m pip install --disable-pip-version-check --quiet yt-dlp
           python3 -m yt_dlp --version
-          # YouTube tarafı yavaş/erişilemez olduğunda bir kod dağıtımı medya taramasını
-          # dakikalarca beklemesin. Script çıktıyı yalnız sonunda değiştirdiği için
-          # timeout halinde depodaki son sağlam feed korunur; Ferrum yaması ve arşiv
-          # üretimi yine devam eder.
           timeout --signal=TERM --kill-after=5s 90s node scripts/refresh-teachers-v2-feed.mjs \
             || echo "[teachers-v2] yenileme süre bütçesini aştı; mevcut sağlam feed korunuyor"
+
+      - name: Hocalar v2 yerel feed ve arşivini hazırla
+        run: |
           node scripts/patch-teachers-v2-known-custom.mjs
           node scripts/build-teachers-v2-archives.mjs
 
