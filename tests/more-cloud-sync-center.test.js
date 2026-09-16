@@ -43,16 +43,18 @@ test("eşitleme merkezi bağlantı ve hesap durumunu sadece sunum katmanında iz
   assert.match(shell,/Senkrona hazır/);
 });
 
-test("eşitleme merkezinin yeni görünümü eski fixed CSS kurallarını güvenli biçimde ezer",()=>{
+test("eşitleme merkezinin yeni görünümü ayrı CSS katmanında eski fixed kuralları güvenli biçimde ezer",()=>{
   const shell=read("src/ui/play-store-shell.ts");
-  assert.match(shell,/position:relative!important/);
-  assert.match(shell,/right:auto!important/);
-  assert.match(shell,/bottom:auto!important/);
-  assert.match(shell,/z-index:auto!important/);
-  assert.match(shell,/grid-template-columns:minmax\(0,1\.5fr\)/);
-  assert.match(shell,/ycc-account-card/);
-  assert.match(shell,/ycc-sync-panel/);
-  assert.match(shell,/prefers-reduced-motion:reduce/);
+  const css=read("src/ui/cloud-sync-center.css");
+  assert.match(shell,/import \"\.\/cloud-sync-center\.css\"/);
+  assert.doesNotMatch(shell,/style\.textContent=/);
+  assert.match(css,/position:relative!important/);
+  assert.match(css,/right:auto!important/);
+  assert.match(css,/bottom:auto!important/);
+  assert.match(css,/grid-template-columns:minmax\(0,1\.5fr\)/);
+  assert.match(css,/ycc-account-card/);
+  assert.match(css,/ycc-sync-panel/);
+  assert.match(css,/prefers-reduced-motion:reduce/);
 });
 
 test("Firebase runtime sözleşmesinin kritik cloudSync kimlikleri korunur",()=>{
