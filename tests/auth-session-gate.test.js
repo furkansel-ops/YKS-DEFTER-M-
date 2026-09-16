@@ -24,22 +24,33 @@ test("eski giriş kapısının kalıcı ve oturum işaretleri temizlenir",()=>{
   assert.doesNotMatch(runtime,/role:"reauth"/);
 });
 
-test("hesap altyapısı isteğe bağlı kalır ve Ayarlar çıkış işlemi korunur",()=>{
+test("hesap altyapısı isteğe bağlı kalır ve giriş çıkış işlemleri görünürdür",()=>{
   const runtime=read("public/auth-session-runtime.js");
   assert.match(runtime,/yksAccountSettingsCard/);
-  assert.match(runtime,/Bulut ve koçluk hesabı isteğe bağlıdır/);
-  assert.match(runtime,/Çıkış yap/);
+  assert.match(runtime,/Bulut hesabı bağlı değil/);
+  assert.match(runtime,/data-account-login/);
+  assert.match(runtime,/data-account-logout/);
+  assert.match(runtime,/cloudLoginBtn/);
   assert.match(runtime,/cloudLogoutBtn/);
   assert.match(runtime,/base\.onSignedIn/);
   assert.match(runtime,/base\.onSignedOut/);
+  assert.doesNotMatch(runtime,/Bulut ve koçluk hesabı/);
 });
 
-test("normal kayıt öğrenci-only kalır ve giriş ekranı olmayan runtime yeni cache anahtarıyla yüklenir",()=>{
+test("hesap durumu modern ayarlara olayla bildirilir",()=>{
+  const runtime=read("public/auth-session-runtime.js");
+  assert.match(runtime,/yks:auth-state/);
+  assert.match(runtime,/signedIn:Boolean\(currentUser\)/);
+  assert.match(runtime,/version:"1\.5\.0"/);
+});
+
+test("normal kayıt öğrenci-only kalır ve runtime yeni cache anahtarlarıyla yüklenir",()=>{
   const loader=read("src/ui/coach-account-loader.ts");
   assert.match(loader,/sessionStorage\.setItem\(PENDING_ROLE,"student"\)/);
   assert.match(loader,/sessionStorage\.removeItem\(PENDING_COACH\)/);
   assert.match(loader,/publicRegistration="student-only"/);
-  assert.match(loader,/auth-session-runtime\.js\?v=1\.4\.0/);
+  assert.match(loader,/auth-session-runtime\.js\?v=1\.5\.0/);
+  assert.match(loader,/settings-profile-runtime\.js\?v=2\.0\.0/);
   assert.match(loader,/__YKS_ACCOUNT_READY__/);
 });
 
