@@ -15,13 +15,14 @@ test("yeni Sayaç ve Kronometre başlangıcı önce Oturumu hazırla alanına y�
   assert.match(source,/Başlamadan önce dersini seç/);assert.match(source,/scrollIntoView/);
 });
 
-test("ders gerçekten seçilmeden ikinci Başlat çağrısı oturumu çalıştırmaz",()=>{
+test("ders gerçekten seçilmeden Başlat çağrısı oturumu çalıştırmaz",()=>{
   const source=guard();
   assert.match(source,/subjectConfirmed=false/);
-  assert.match(source,/pendingMode!==mode\|\|!subjectConfirmed/);
-  assert.match(source,/if\(pendingMode&&String\(subject\?\?""\)\.trim\(\)\)/);
+  assert.match(source,/if\(!subjectConfirmed\)\{requestPreparation\(mode\);return undefined;\}/);
+  assert.match(source,/const chosen=String\(subject\?\?""\)\.trim\(\)/);
+  assert.match(source,/if\(chosen\)\{/);
   assert.match(source,/subjectConfirmed=true/);
-  assert.match(source,/seçildi ✓ Şimdi Başlat'a bas/);
+  assert.match(source,/seçildi ✓ Başlatmaya hazırsın/);
 });
 
 test("duraklatılmış oturum, mola ve önceden hazırlanmış görev başlangıçları gereksiz seçim kapısına takılmaz",()=>{

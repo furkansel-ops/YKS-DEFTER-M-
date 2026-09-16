@@ -13,9 +13,10 @@ test("Sayaç ve Kronometre yeni oturumda ders seçmeden başlamaz",()=>{
   assert.match(source,/togglePomo/);
   assert.match(source,/swToggle/);
   assert.match(source,/setPomoSubject/);
-  assert.match(source,/pendingMode!==mode\|\|!subjectConfirmed/);
+  assert.match(source,/if\(!subjectConfirmed\)\{requestPreparation\(mode\);return undefined;\}/);
   assert.match(source,/Başlamadan önce dersini seç/);
-  assert.match(source,/seçildi ✓ Şimdi Başlat'a bas/);
+  assert.match(source,/subjectConfirmed=true/);
+  assert.match(source,/seçildi ✓ Başlatmaya hazırsın/);
 });
 
 test("duraklatma-devam ve Sayaç mola fazı yeniden ders seçimine zorlanmaz",()=>{
@@ -50,6 +51,7 @@ test("odak kapısı çekirdek bootstrap tamamlandıktan sonra fail-open runtime 
 test("tablet dokunma hedefi ve azaltılmış hareket desteği korunur",()=>{
   const style=read("src/ui/focus-session-guard-v43.css");
   assert.match(style,/@media \(pointer:coarse\)/);
-  assert.match(style,/min-height:44px/);
+  assert.match(style,/min-height:4[68]px/);
+  assert.match(style,/\.v46-choice-card/);
   assert.match(style,/@media \(prefers-reduced-motion:reduce\)/);
 });
