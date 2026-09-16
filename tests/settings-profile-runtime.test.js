@@ -27,6 +27,16 @@ test("eski görünüm, cihaz rolü, basit görünüm ve video ayarları arayüzd
   assert.doesNotMatch(src,/data-yms-coach/);
 });
 
+test("tema yalnız Ayarlar üzerinden değiştirilir ve üst tema düğmesi kaldırılır",()=>{
+  const src=read("public/settings-profile-runtime.js"),ui=read("src/ui/personalization-v43.ts");
+  assert.match(src,/getElementById\("themeBtn"\)\?\.remove\(\)/);
+  assert.match(src,/themeControl="settings-only"/);
+  assert.match(ui,/window\.setTheme\(theme\)/);
+  assert.match(ui,/Tema artık yalnız Ayarlar bölümünden değişir/);
+  assert.match(ui,/PRIMARY_THEMES/);
+  assert.match(ui,/EXTRA_THEMES/);
+});
+
 test("2027 YKS tarihleri bilgi olarak sabittir",()=>{
   const src=read("public/settings-profile-runtime.js");
   assert.match(src,/19 Haziran 2027/);
@@ -69,12 +79,14 @@ test("bildirimler modern kartta mevcut güvenli bildirim fonksiyonlarını kulla
   assert.match(src,/notifTime/);
 });
 
-test("kişiselleştirme paneli yeni ayarlar diliyle cilalanır",()=>{
+test("kişiselleştirme paneli tema dahil yeni ayarlar diliyle cilalanır",()=>{
   const src=read("public/settings-profile-runtime.js"),css=read("src/ui/personalization-v43.css");
-  assert.match(src,/Uygulamayı çalışma düzenine göre ayarla/);
+  assert.match(src,/Kendine göre ayarla/);
+  assert.match(src,/Tema, sınav kapsamı ve Bugün ekranındaki yardımcı alanları tek yerden düzenle/);
   assert.match(src,/Ayarları sıfırla/);
   assert.match(src,/ymsPersonalization="polished"/);
   assert.match(css,/data-yms-personalization="polished"/);
+  assert.match(css,/v43-theme-grid/);
 });
 
 test("uygulama kartı veri yedeği, sistem ve hakkında erişimini korur",()=>{
@@ -87,6 +99,6 @@ test("uygulama kartı veri yedeği, sistem ve hakkında erişimini korur",()=>{
 test("modern ayarlar hesap runtime zincirinden cache busting ile yüklenir",()=>{
   const loader=read("src/ui/coach-account-loader.ts");
   assert.match(loader,/SETTINGS_SCRIPT_ID="settingsProfileRuntime"/);
-  assert.match(loader,/settings-profile-runtime\.js\?v=2\.0\.0/);
+  assert.match(loader,/settings-profile-runtime\.js\?v=2\.1\.0/);
   assert.match(loader,/if\(!authReady\)return false/);
 });
