@@ -1,0 +1,6 @@
+.navbar .top-sync-indicator{display:inline-block;width:9px;height:9px;flex:0 0 9px;margin:0 3px;border-radius:50%;background:var(--danger);box-shadow:0 0 0 3px color-mix(in srgb,var(--danger) 14%,transparent);vertical-align:middle;transition:background .18s ease,box-shadow .18s ease,transform .18s ease}
+.navbar .top-sync-indicator[data-sync-state="active"]{background:var(--success);box-shadow:0 0 0 3px color-mix(in srgb,var(--success) 15%,transparent)}
+.navbar .top-sync-indicator[data-sync-state="syncing"]{background:var(--time);box-shadow:0 0 0 3px color-mix(in srgb,var(--time) 17%,transparent);animation:topSyncPulse 1.2s ease-in-out infinite}
+.navbar .top-sync-indicator[data-sync-state="off"]{background:var(--danger);box-shadow:0 0 0 3px color-mix(in srgb,var(--danger) 14%,transparent)}
+@keyframes topSyncPulse{0%,100%{transform:scale(1);opacity:.82}50%{transform:scale(1.18);opacity:1}}
+@media(prefers-reduced-motion:reduce){.navbar .top-sync-indicator{transition:none!important}.navbar .top-sync-indicator[data-sync-state="syncing"]{animation:none!important}}
