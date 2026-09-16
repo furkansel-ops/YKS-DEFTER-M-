@@ -5,10 +5,17 @@
 .v43-personal-head .eyebrow{display:inline-flex;align-items:center;gap:6px;padding:5px 8px;border-radius:999px;background:color-mix(in srgb,var(--accent) 9%,transparent);color:var(--accent)}
 .v43-personal-head .hint{margin:0;max-width:720px;line-height:1.45}
 .v43-personal-head .btn{border-radius:11px;min-height:38px}
+.v43-personal-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.v43-summary-item{display:grid;gap:2px;padding:11px 12px;border:1px solid color-mix(in srgb,var(--line) 84%,transparent);border-radius:14px;background:color-mix(in srgb,var(--accent) 4%,var(--card-2,var(--card)))}
+.v43-summary-item strong{font-size:14px;line-height:1.2}
+.v43-summary-item small{font-size:11.5px;color:var(--label-2)}
 .v43-personal-body{display:grid;gap:16px}
 .v43-personal-group{border:1px solid color-mix(in srgb,var(--line) 88%,transparent);padding:14px;margin:0;min-width:0;border-radius:16px;background:color-mix(in srgb,var(--card-2,var(--card)) 92%,transparent)}
 .v43-personal-group legend{font-weight:850;font-size:14px;margin-bottom:4px;padding:0 6px}
 .v43-personal-group>.hint{margin:0 0 11px;line-height:1.4}
+.v43-group-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:11px}
+.v43-group-head h3{margin:0 0 4px;font-size:14px;font-weight:850}
+.v43-group-head .hint{margin:0;line-height:1.4}
 .v43-personal-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
 .v43-personal-grid.exam-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
 .v43-personal-choice{display:flex;align-items:flex-start;gap:11px;padding:13px 14px;border:1px solid var(--line);border-radius:14px;background:var(--card-2,var(--card));cursor:pointer;min-height:68px;transition:border-color .16s ease,transform .16s ease,background .16s ease}
@@ -19,9 +26,36 @@
 .v43-personal-choice-copy{display:grid;gap:3px;line-height:1.25}
 .v43-personal-choice-copy strong{font-size:14px}
 .v43-personal-choice-copy small{font-size:12.5px;color:var(--label-2);line-height:1.38}
+.v43-theme-group{display:grid;gap:0}
+.v43-theme-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.v43-theme-choice{appearance:none;width:100%;display:grid;grid-template-columns:42px 1fr 24px;align-items:center;gap:11px;min-height:72px;padding:11px 12px;border:1px solid var(--line);border-radius:15px;background:var(--card-2,var(--card));color:inherit;text-align:left;font:inherit;cursor:pointer;transition:border-color .16s ease,transform .16s ease,background .16s ease}
+.v43-theme-choice:hover{border-color:color-mix(in srgb,var(--accent) 46%,var(--line));background:color-mix(in srgb,var(--accent) 4%,var(--card-2,var(--card)));transform:translateY(-1px)}
+.v43-theme-choice:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.v43-theme-choice.is-active{border-color:color-mix(in srgb,var(--accent) 52%,var(--line));background:color-mix(in srgb,var(--accent) 8%,var(--card-2,var(--card)))}
+.v43-theme-swatch{width:40px;height:40px;border-radius:12px;border:1px solid color-mix(in srgb,#000 10%,var(--line));box-shadow:inset 0 0 0 1px color-mix(in srgb,#fff 28%,transparent);overflow:hidden;position:relative}
+.v43-theme-swatch::after{content:"";position:absolute;inset:8px;border-radius:8px;background:color-mix(in srgb,#fff 30%,transparent);border:1px solid color-mix(in srgb,#fff 32%,transparent)}
+.swatch-system{background:linear-gradient(135deg,#f7f7f5 0 50%,#16181d 50% 100%)}
+.swatch-paper{background:linear-gradient(135deg,#f5efe4,#d5c3a8)}
+.swatch-night{background:linear-gradient(135deg,#0d0f13,#5c4b8a)}
+.swatch-forest{background:linear-gradient(135deg,#e9f0e8,#62846d)}
+.swatch-ocean{background:linear-gradient(135deg,#eaf3f9,#4f9eb8)}
+.swatch-lavender{background:linear-gradient(135deg,#f2eef9,#9785b5)}
+.swatch-sunset{background:linear-gradient(135deg,#faefe8,#d88965)}
+.swatch-graphite{background:linear-gradient(135deg,#2b2e34,#0f1115)}
+.v43-theme-copy{display:grid;gap:3px;min-width:0}
+.v43-theme-copy strong{font-size:13.5px}
+.v43-theme-copy small{font-size:11.5px;line-height:1.35;color:var(--label-2)}
+.v43-theme-check{width:22px;height:22px;display:grid;place-items:center;border-radius:999px;font-size:12px;font-weight:900;color:#fff;background:transparent}
+.v43-theme-choice.is-active .v43-theme-check{background:var(--accent)}
+.v43-theme-more{margin-top:10px;border-top:1px solid color-mix(in srgb,var(--line) 80%,transparent);padding-top:9px}
+.v43-theme-more summary{cursor:pointer;list-style:none;font-size:12.5px;font-weight:800;color:var(--label-2);padding:4px 2px}
+.v43-theme-more summary::-webkit-details-marker{display:none}
+.v43-theme-more summary::after{content:" +";font-weight:900;color:var(--accent)}
+.v43-theme-more[open] summary::after{content:" −"}
+.v43-theme-more .extra-grid{margin-top:9px}
 .v43-personal-status{min-height:18px;margin:0;padding:0 2px;font-size:12.5px;color:var(--label-2)}
-#v43Personalization[data-yms-personalization="polished"] .v43-personal-group:first-child legend::after{content:"  ·  Sınavlar";font-size:11px;font-weight:700;color:var(--label-2)}
-#v43Personalization[data-yms-personalization="polished"] .v43-personal-group:last-child legend::after{content:"  ·  Ana ekran";font-size:11px;font-weight:700;color:var(--label-2)}
-@media(max-width:760px){.v43-personalization{padding:15px!important}.v43-personal-head{display:grid}.v43-personal-head .btn{justify-self:start}.v43-personal-grid,.v43-personal-grid.exam-grid{grid-template-columns:1fr}.v43-personal-choice{min-height:62px}}
-@media(pointer:coarse){.v43-personal-choice{min-height:72px}.v43-personal-choice input{width:22px;height:22px;min-width:22px}}
-@media(prefers-reduced-motion:reduce){.v43-personal-choice{transition:none!important}.v43-personal-choice:hover{transform:none}}
+#v43Personalization[data-yms-personalization="polished"] .v43-personal-group:nth-of-type(2) legend::after{content:"  ·  Sınavlar";font-size:11px;font-weight:700;color:var(--label-2)}
+#v43Personalization[data-yms-personalization="polished"] .v43-personal-group:nth-of-type(3) legend::after{content:"  ·  Ana ekran";font-size:11px;font-weight:700;color:var(--label-2)}
+@media(max-width:760px){.v43-personalization{padding:15px!important}.v43-personal-head{display:grid}.v43-personal-head .btn{justify-self:start}.v43-personal-summary{grid-template-columns:1fr}.v43-personal-grid,.v43-personal-grid.exam-grid,.v43-theme-grid{grid-template-columns:1fr}.v43-personal-choice{min-height:62px}.v43-theme-choice{min-height:68px}}
+@media(pointer:coarse){.v43-personal-choice{min-height:72px}.v43-personal-choice input{width:22px;height:22px;min-width:22px}.v43-theme-choice{min-height:76px}}
+@media(prefers-reduced-motion:reduce){.v43-personal-choice,.v43-theme-choice{transition:none!important}.v43-personal-choice:hover,.v43-theme-choice:hover{transform:none}}
