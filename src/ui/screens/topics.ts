@@ -1,6 +1,7 @@
 import type {ScreenModule} from "./contracts";
 import {topicsLegacyAdapter} from "./legacy-adapters";
 import "../topics-hub-v46.css";
+import "../topics-hub-v46-extras.css";
 
 function ensureTopicsHub():void{
   const root=document.documentElement;
