@@ -56,9 +56,9 @@ export function installCoachAccountLoader():boolean{
   win.__YKS_ACCOUNT_READY__=(async()=>{
     const coachReady=await loadModuleScript(COACH_SCRIPT_ID,"./coach-account-runtime.js");
     if(!coachReady||!forceStudentOnlyRegistration(win))return false;
-    const authReady=await loadModuleScript(AUTH_SCRIPT_ID,"./auth-session-runtime.js?v=1.4.0");
+    const authReady=await loadModuleScript(AUTH_SCRIPT_ID,"./auth-session-runtime.js?v=1.5.0");
     if(!authReady)return false;
-    return loadModuleScript(SETTINGS_SCRIPT_ID,"./settings-profile-runtime.js");
+    return loadModuleScript(SETTINGS_SCRIPT_ID,"./settings-profile-runtime.js?v=2.0.0");
   })();
   return true;
 }
