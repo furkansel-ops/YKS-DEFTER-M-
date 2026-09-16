@@ -1,5 +1,3 @@
-import "./single-theme-runtime.css";
-
 const SIGNATURE_THEME="graphite";
 const SIGNATURE_THEME_COLOR="#121418";
 const SETTINGS_COPY="Hesap, hedefler, kişiselleştirme ve bildirimler";
