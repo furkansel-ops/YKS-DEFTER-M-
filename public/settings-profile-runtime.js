@@ -16,25 +16,27 @@ function account(){const title=document.querySelector("[data-account-title]")?.t
 function initials(name){const p=txt(name,80).split(/\s+/).filter(Boolean).slice(0,2);return(p.map(x=>x[0]?.toUpperCase()).join("")||"YK")}
 function syncText(){const a=document.getElementById("cloudSyncText")?.textContent?.trim(),b=document.getElementById("cloudSyncMeta")?.textContent?.trim();return[a,b].filter(Boolean).join(" · ")||"Bulut durumu hazırlanıyor"}
 function appVersion(){return document.getElementById("appVersionLabel")?.textContent?.trim()||"YKS Defterim"}
+function enforceSettingsOnlyTheme(){document.getElementById("themeBtn")?.remove();document.documentElement.dataset.themeControl="settings-only"}
 function hideCardFor(id,reason){const node=document.getElementById(id);const card=node?.closest?.(".card");if(card){card.hidden=true;card.dataset.ymsHidden="true";card.dataset.ymsHiddenReason=reason}}
 function hideLegacySettings(){
   const panel=document.getElementById("mrp_ayar");if(!panel)return;
+  enforceSettingsOnlyTheme();
   const old=document.getElementById("nameInput")?.closest(".card");if(old){old.hidden=true;old.dataset.ymsHidden="true"}
   hideCardFor("themeGrid","legacy-appearance");
   hideCardFor("sozToggle","legacy-appearance");
   hideCardFor("ytSrc","video-settings-private");
   hideCardFor("notifStatus","modern-notifications");
   ["roleSeg","roleHint","simpleToggle","simpleHint"].forEach(id=>{const node=document.getElementById(id);if(node){node.hidden=true;node.dataset.ymsHidden="true"}});
-  const sub=panel.querySelector(".v30-subhead p");if(sub)sub.textContent="Hesap, hedefler, kişiselleştirme ve bildirimler";
-  document.querySelectorAll(".v30-menu-card").forEach(card=>{if(card.getAttribute("onclick")?.includes("settings")){const small=card.querySelector("small");if(small)small.textContent="Hesap, hedefler, kişiselleştirme ve bildirimler"}});
+  const sub=panel.querySelector(".v30-subhead p");if(sub)sub.textContent="Hesap, hedefler, kişiselleştirme, tema ve bildirimler";
+  document.querySelectorAll(".v30-menu-card").forEach(card=>{if(card.getAttribute("onclick")?.includes("settings")){const small=card.querySelector("small");if(small)small.textContent="Hesap, hedefler, kişiselleştirme, tema ve bildirimler"}});
   document.querySelectorAll(".note").forEach(note=>{if(note.textContent?.includes("Uygulama içi video"))note.textContent="Bağlantısını bildiğin oynatma listelerini doğrudan izleyebilirsin. Hoca listesi öneri niteliğindedir, eksiksiz değildir ve bir onay anlamına gelmez."});
   polishPersonalization();
 }
 function polishPersonalization(){
   const panel=document.getElementById("v43Personalization");if(!panel)return;
   panel.dataset.ymsPersonalization="polished";
-  const title=panel.querySelector(".v43-personal-head h2");if(title)title.textContent="Uygulamayı çalışma düzenine göre ayarla";
-  const hint=panel.querySelector(".v43-personal-head .hint");if(hint)hint.textContent="Sınav kapsamını ve Bugün ekranındaki yardımcı kartları seç. Kayıtlı çalışma verilerin değişmez.";
+  const title=panel.querySelector(".v43-personal-head h2");if(title)title.textContent="Kendine göre ayarla";
+  const hint=panel.querySelector(".v43-personal-head .hint");if(hint)hint.textContent="Tema, sınav kapsamı ve Bugün ekranındaki yardımcı alanları tek yerden düzenle. Kayıtlı çalışma verilerin değişmez.";
   const reset=panel.querySelector(".v43-personal-head button");if(reset)reset.textContent="Ayarları sıfırla";
 }
 function notifEnabled(id){return Boolean(document.getElementById(id)?.classList.contains("on"))}
@@ -70,4 +72,4 @@ window.addEventListener("yks:auth-state",()=>setTimeout(render,0));
 window.addEventListener("yks:v43-personalization",()=>setTimeout(()=>{polishPersonalization()},0));
 window.addEventListener("yks:data-changed",event=>{if(event?.detail?.source!=="settings-profile")setTimeout(render,0)});
 [600,1500,3500,7000].forEach(ms=>setTimeout(render,ms));
-install();document.documentElement.dataset.modernSettings="ready";
+enforceSettingsOnlyTheme();install();document.documentElement.dataset.modernSettings="ready";
