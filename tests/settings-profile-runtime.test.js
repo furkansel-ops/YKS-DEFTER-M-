@@ -37,7 +37,7 @@ test("tek tema runtime eski tema kontrollerini kilitler ve kişiselleştirme se�
   assert.match(main,/installSingleThemeRuntime/);
   assert.doesNotMatch(ui,/PRIMARY_THEMES/);
   assert.doesNotMatch(ui,/EXTRA_THEMES/);
-  assert.doesNotMatch(ui,/v43-theme-choice/);
+  assert.doesNotMatch(ui,/makeThemeButton|data\.themeId|aria-pressed/);
 });
 
 test("2027 YKS tarihleri bilgi olarak sabittir",()=>{
