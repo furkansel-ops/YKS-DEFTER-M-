@@ -1,0 +1,9 @@
+#topics .v46-analysis-legacy{min-width:0;}
+#topics .v46-analysis-legacy.wide{grid-column:1/-1;}
+#topics .v46-analysis-legacy-head{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;padding:5px 4px 8px;}
+#topics .v46-analysis-legacy-head small,#topics .v46-analysis-legacy-head b{display:block;}
+#topics .v46-analysis-legacy-head small{font-size:8.5px;font-weight:850;letter-spacing:.08em;color:var(--accent);}
+#topics .v46-analysis-legacy-head b{margin-top:2px;font-size:12.5px;}
+#topics .v46-analysis-legacy>.card{margin:0;}
+#topics .v46-analysis-count{display:inline-flex!important;align-items:center;justify-content:center;min-width:27px;height:27px;padding:0 8px;border-radius:999px;background:var(--time-soft);color:var(--time);font-size:10px;font-weight:850;}
+@media(max-width:760px){#topics .v46-analysis-legacy.wide{grid-column:auto;}}
