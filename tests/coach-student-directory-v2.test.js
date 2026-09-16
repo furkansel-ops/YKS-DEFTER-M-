@@ -52,14 +52,28 @@ test("koç paneli Öğrencilerim alanında kalıcı öğrenci koduyla öğrenci 
   assert.match(runtime,/coachingLinks/);
 });
 
-test("yeni koç dizini eski hesap runtimeından sonra ve auth başlamadan önce yüklenir",()=>{
+test("koç bağlantı hotfixi olmayan linki okumadan güvenli şekilde oluşturur",()=>{
+  const hotfix=read("public/coach-student-link-hotfix.js");
+  assert.match(hotfix,/where\("coachUid","==",coachUid\)/);
+  assert.match(hotfix,/existingCoachLink/);
+  assert.doesNotMatch(hotfix,/getDoc\(linkRef\)/);
+  assert.doesNotMatch(hotfix,/tx\.get\(linkRef\)/);
+  assert.match(hotfix,/setDoc\(doc\(db,LINK_COLLECTION,`\$\{studentUid\}_\$\{user\.uid\}`\)/);
+  assert.match(hotfix,/updateDoc\(doc\(db,LINK_COLLECTION,existing\.id\)/);
+  assert.match(hotfix,/form\.dataset\.linkHotfix="1"/);
+});
+
+test("koç bağlantı hotfixi dizinden sonra ve auth başlamadan önce yüklenir",()=>{
   const loader=read("src/ui/coach-account-loader.ts");
   const coachAt=loader.indexOf("coach-account-runtime.js?v=1.0.0");
   const directoryAt=loader.indexOf("coach-student-directory-v2.js?v=2.0.1");
+  const hotfixAt=loader.indexOf("coach-student-link-hotfix.js?v=1.0.0");
   const authAt=loader.indexOf("auth-session-runtime.js?v=1.6.0");
-  assert.ok(coachAt>=0&&directoryAt>coachAt&&authAt>directoryAt);
+  assert.ok(coachAt>=0&&directoryAt>coachAt&&hotfixAt>directoryAt&&authAt>hotfixAt);
   assert.match(loader,/COACH_DIRECTORY_SCRIPT_ID/);
+  assert.match(loader,/COACH_LINK_HOTFIX_SCRIPT_ID/);
   assert.match(read("public/coach-student-directory-v2.js"),/version:"2\.0\.1"/);
+  assert.match(read("public/coach-student-link-hotfix.js"),/version:"1\.0\.0"/);
 });
 
 test("Firestore kalıcı öğrenci kodunu yalnız tam kodla okutur ve listelemeyi kapatır",()=>{
