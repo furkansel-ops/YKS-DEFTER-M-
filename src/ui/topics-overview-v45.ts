@@ -63,7 +63,10 @@ function toggleCard(card:HTMLElement,force?:boolean):void{
   }
   topics.classList.toggle("open",next);
   syncExpanded(card);
-  if(next)card.scrollIntoView({block:"start",behavior:"smooth"});
+  if(next){
+    const reduced=window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    card.scrollIntoView({block:"start",behavior:reduced?"auto":"smooth"});
+  }
 }
 
 function makeSummary(card:HTMLElement):HTMLElement{
@@ -141,7 +144,7 @@ function addDetailHead(card:HTMLElement):void{
 }
 
 function polishCard(card:HTMLElement,index:number):void{
-  card.dataset.v45CurriculumOrder=String(index);
+  if(!card.dataset.v45CurriculumOrder)card.dataset.v45CurriculumOrder=String(index);
   if(!card.hasAttribute(POLISHED_ATTR)){
     card.setAttribute(POLISHED_ATTR,"ready");
     const topics=card.querySelector<HTMLElement>(":scope>.topics");
@@ -185,6 +188,12 @@ function installSortControl(onChange:(mode:TopicSortMode)=>void):void{
   tools.insertBefore(wrap,info||null);
 }
 
+function containsFreshSubject(node:Node):boolean{
+  if(!(node instanceof HTMLElement))return false;
+  if(node.matches(`.subj:not([${POLISHED_ATTR}])`))return true;
+  return !!node.querySelector(`.subj:not([${POLISHED_ATTR}])`);
+}
+
 export function installTopicsOverviewV45():{installed:boolean;destroy:()=>void}{
   const list=document.getElementById(SUBJECT_LIST_ID);
   if(!(list instanceof HTMLElement))return {installed:false,destroy:()=>{}};
@@ -212,7 +221,8 @@ export function installTopicsOverviewV45():{installed:boolean;destroy:()=>void}{
 
   const observer=new MutationObserver(records=>{
     if(mutating)return;
-    if(records.some(record=>record.type==="childList"))schedule();
+    const fresh=records.some(record=>[...record.addedNodes].some(containsFreshSubject));
+    if(fresh)schedule();
   });
   observer.observe(list,{childList:true,subtree:true});
 
@@ -222,5 +232,11 @@ export function installTopicsOverviewV45():{installed:boolean;destroy:()=>void}{
   });
 
   window.addEventListener("yks:data-changed",schedule);
-  return {installed:true,destroy:()=>observer.disconnect()};
+  return {
+    installed:true,
+    destroy:()=>{
+      observer.disconnect();
+      window.removeEventListener("yks:data-changed",schedule);
+    }
+  };
 }
