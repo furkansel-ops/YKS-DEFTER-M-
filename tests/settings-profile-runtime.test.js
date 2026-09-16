@@ -20,7 +20,7 @@ test("ayarlar modern YKS profil bilgilerini gösterir",()=>{
 test("eski görünüm, cihaz rolü, basit görünüm ve video ayarları arayüzden gizlenir",()=>{
   const src=read("public/settings-profile-runtime.js"),index=read("index.html"),videos=read("public/teacher-videos.js");
   for(const id of ["themeGrid","sozToggle","roleSeg","roleHint","simpleToggle","simpleHint","ytSrc"])assert.match(src,new RegExp(id));
-  assert.match(src,/data\.ymsHidden="true"/);
+  assert.match(src,/dataset\.ymsHidden="true"/);
   assert.match(src,/video-settings-private/);
   assert.match(index,/id="ytSrc"/);
   assert.match(videos,/YouTube|youtube/);
