@@ -27,6 +27,14 @@ test("öğrenci kodu 12 karakterlik tekrar kullanılabilir kriptografik koddur",
   assert.doesNotMatch(runtime,/status:\s*["']claimed["']/);
 });
 
+test("yeni öğrenci kodu oluşturulurken rastgele aday belge önceden okunmaz",()=>{
+  const runtime=read("public/coach-student-directory-v2.js");
+  assert.match(runtime,/const candidateRef=doc\(state\.db,CODE_COLLECTION,candidate\)/);
+  assert.doesNotMatch(runtime,/candidateSnap=await tx\.get\(candidateRef\)/);
+  assert.match(runtime,/tx\.set\(candidateRef,\{code:candidate,studentUid:state\.user\.uid,active:true/);
+  assert.match(runtime,/permission-denied/);
+});
+
 test("kod yenileme eski öğrenci kodunu dizinden kaldırır ama mevcut koç bağlantısını silmez",()=>{
   const runtime=read("public/coach-student-directory-v2.js");
   assert.match(runtime,/tx\.delete\(oldRef\)/);
@@ -47,10 +55,11 @@ test("koç paneli Öğrencilerim alanında kalıcı öğrenci koduyla öğrenci 
 test("yeni koç dizini eski hesap runtimeından sonra ve auth başlamadan önce yüklenir",()=>{
   const loader=read("src/ui/coach-account-loader.ts");
   const coachAt=loader.indexOf("coach-account-runtime.js?v=1.0.0");
-  const directoryAt=loader.indexOf("coach-student-directory-v2.js?v=2.0.0");
+  const directoryAt=loader.indexOf("coach-student-directory-v2.js?v=2.0.1");
   const authAt=loader.indexOf("auth-session-runtime.js?v=1.6.0");
   assert.ok(coachAt>=0&&directoryAt>coachAt&&authAt>directoryAt);
   assert.match(loader,/COACH_DIRECTORY_SCRIPT_ID/);
+  assert.match(read("public/coach-student-directory-v2.js"),/version:"2\.0\.1"/);
 });
 
 test("Firestore kalıcı öğrenci kodunu yalnız tam kodla okutur ve listelemeyi kapatır",()=>{
