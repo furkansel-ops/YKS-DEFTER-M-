@@ -218,8 +218,7 @@ service cloud.firestore {
         && request.resource.data.createdAt == request.time
         && request.resource.data.updatedAt == request.time
         && (
-          (request.resource.data.role == 'student'
-            && !request.resource.data.keys().hasAny(['registrationInvite']))
+          !request.resource.data.keys().hasAny(['registrationInvite'])
           ||
           (request.resource.data.role == 'coach'
             && request.resource.data.keys().hasAll(['registrationInvite'])
