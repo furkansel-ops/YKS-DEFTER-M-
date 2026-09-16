@@ -27,14 +27,17 @@ test("eski görünüm, cihaz rolü, basit görünüm ve video ayarları arayüzd
   assert.doesNotMatch(src,/data-yms-coach/);
 });
 
-test("tema yalnız Ayarlar üzerinden değiştirilir ve üst tema düğmesi kaldırılır",()=>{
-  const src=read("public/settings-profile-runtime.js"),ui=read("src/ui/personalization-v43.ts");
+test("tek tema runtime eski tema kontrollerini kilitler ve kişiselleştirme seçici sunmaz",()=>{
+  const src=read("public/settings-profile-runtime.js"),ui=read("src/ui/personalization-v43.ts"),single=read("src/ui/single-theme-runtime.ts"),main=read("src/main.ts");
   assert.match(src,/getElementById\("themeBtn"\)\?\.remove\(\)/);
-  assert.match(src,/themeControl="settings-only"/);
-  assert.match(ui,/window\.setTheme\(theme\)/);
-  assert.match(ui,/Tema artık yalnız Ayarlar bölümünden değişir/);
-  assert.match(ui,/PRIMARY_THEMES/);
-  assert.match(ui,/EXTRA_THEMES/);
+  assert.match(single,/SIGNATURE_THEME="graphite"/);
+  assert.match(single,/win\.setTheme=\(\)=>apply\(\)/);
+  assert.match(single,/win\.cycleTheme=\(\)=>apply\(\)/);
+  assert.match(single,/dataset\.themeControl="single"/);
+  assert.match(main,/installSingleThemeRuntime/);
+  assert.doesNotMatch(ui,/PRIMARY_THEMES/);
+  assert.doesNotMatch(ui,/EXTRA_THEMES/);
+  assert.doesNotMatch(ui,/v43-theme-choice/);
 });
 
 test("2027 YKS tarihleri bilgi olarak sabittir",()=>{
@@ -79,23 +82,27 @@ test("bildirimler modern kartta mevcut güvenli bildirim fonksiyonlarını kulla
   assert.match(src,/notifTime/);
 });
 
-test("kişiselleştirme paneli tema dahil yeni ayarlar diliyle cilalanır",()=>{
-  const src=read("public/settings-profile-runtime.js"),css=read("src/ui/personalization-v43.css");
+test("kişiselleştirme paneli tek tema altında yeni ayarlar diliyle cilalanır",()=>{
+  const src=read("public/settings-profile-runtime.js"),ui=read("src/ui/personalization-v43.ts"),single=read("src/ui/single-theme-runtime.ts"),css=read("src/ui/personalization-v43.css");
   assert.match(src,/Kendine göre ayarla/);
-  assert.match(src,/Tema, sınav kapsamı ve Bugün ekranındaki yardımcı alanları tek yerden düzenle/);
+  assert.match(ui,/Sınav kapsamı ve Bugün ekranındaki yardımcı alanları tek yerden düzenle/);
+  assert.match(ui,/YKS Defterim imza temasında sabittir/);
   assert.match(src,/Ayarları sıfırla/);
   assert.match(src,/ymsPersonalization="polished"/);
+  assert.match(single,/PERSONALIZATION_COPY/);
   assert.match(css,/data-yms-personalization="polished"/);
-  assert.match(css,/v43-theme-grid/);
+  assert.doesNotMatch(css,/v43-theme-grid/);
 });
 
-test("modern Ayarlar kartları tüm temalarda uygulamanın yüzey ve metin tokenlarını kullanır",()=>{
-  const css=read("src/ui/personalization-v43.css"),runtime=read("public/settings-profile-runtime.js");
+test("modern Ayarlar kartları tek imza temanın yüzey ve metin tokenlarını kullanır",()=>{
+  const css=read("src/ui/personalization-v43.css"),runtime=read("public/settings-profile-runtime.js"),singleCss=read("src/ui/single-theme-runtime.css");
   assert.match(runtime,/var\(--surface,#fff\)/);
   assert.match(css,/#mrp_ayar \.yms-wrap,\.yms-modal\{--surface:var\(--card,var\(--glass,#fff\)\)\}/);
   assert.match(css,/#mrp_ayar \.yms-wrap\{color:var\(--label,var\(--ink,#111827\)\)\}/);
   assert.match(css,/\.yms-status-pill\.ok\{color:var\(--green-ink,#087443\)\}/);
   assert.match(css,/\.yms-actions button\.danger\{color:var\(--danger,var\(--red,#b42318\)\)\}/);
+  assert.match(singleCss,/--surface:var\(--card-2\)/);
+  assert.match(singleCss,/--label:#F5F7FB/);
 });
 
 test("uygulama kartı veri yedeği, sistem ve hakkında erişimini korur",()=>{
