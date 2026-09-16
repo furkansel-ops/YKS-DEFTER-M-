@@ -4,28 +4,43 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="robots" content="noindex,nofollow,noarchive">
+  <meta name="theme-color" content="#121418">
   <title>YKS Defterim · Koç Kaydı</title>
   <style>
-    :root{color-scheme:light dark;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-    *{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:20px;background:linear-gradient(145deg,#07111f,#13223c);color:#111827}.card{width:min(560px,100%);background:#fff;border-radius:24px;padding:24px;box-shadow:0 30px 80px #0007}.brand{font-size:13px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:#2563eb}.pill{display:inline-flex;margin:8px 0 16px;padding:6px 10px;border-radius:999px;background:#eff6ff;color:#1d4ed8;font-size:12px;font-weight:800}h1{margin:0 0 8px;font-size:30px}.copy,.note{color:#667085;line-height:1.5}.form{display:grid;gap:11px;margin-top:18px}label{display:grid;gap:6px;font-size:13px;font-weight:700}input{width:100%;padding:12px;border:1px solid #dbe2ea;border-radius:12px;background:#fff;color:#111827;font:inherit}.remember{display:flex;gap:10px;align-items:flex-start;padding:12px;border:1px solid #dbe2ea;border-radius:14px;font-weight:600}.remember input{width:18px;height:18px;margin-top:2px}.btn{border:0;border-radius:13px;padding:13px 15px;background:#2563eb;color:#fff;font:inherit;font-weight:800;cursor:pointer}.btn:disabled{opacity:.55;cursor:wait}.status{margin-top:14px;padding:11px 12px;border-radius:12px;background:#f8fafc;color:#475467;font-size:13px;white-space:pre-wrap}.status.ok{background:#ecfdf3;color:#027a48}.status.err{background:#fef3f2;color:#b42318}.back{display:inline-block;margin-top:14px;color:#2563eb;text-decoration:none;font-weight:700}@media(max-width:560px){.card{padding:20px;border-radius:20px}}
+    :root{color-scheme:dark;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;--bg:#121418;--panel:#1b1f26;--panel2:#222731;--line:#343b48;--text:#f5f7fb;--muted:#aab3c2;--accent:#69a9f5;--accent-soft:#69a9f526;--ok:#5fc48e;--danger:#ff716f}
+    *{box-sizing:border-box}
+    body{margin:0;min-height:100vh;display:grid;place-items:center;padding:22px;background:radial-gradient(circle at 20% 0,#23324a 0,transparent 38%),linear-gradient(145deg,#0d1015,#151a22);color:var(--text)}
+    .card{width:min(590px,100%);border:1px solid #ffffff17;border-radius:26px;padding:28px;background:#1b1f26ed;box-shadow:0 32px 90px #0009;backdrop-filter:blur(18px)}
+    .brand{font-size:12px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+    .pill{display:inline-flex;align-items:center;gap:7px;margin:10px 0 18px;padding:7px 11px;border:1px solid #69a9f544;border-radius:999px;background:var(--accent-soft);color:#9ac7ff;font-size:12px;font-weight:800}
+    h1{margin:0 0 9px;font-size:clamp(27px,5vw,36px);line-height:1.08}
+    .copy,.note{color:var(--muted);line-height:1.55}.copy{margin:0}.note{font-size:12px}
+    .secure{display:grid;grid-template-columns:auto 1fr;gap:10px;margin:18px 0 4px;padding:12px 13px;border:1px solid var(--line);border-radius:15px;background:#ffffff08}.secure b{display:block;margin-bottom:2px;font-size:12px}.secure span{font-size:11px;color:var(--muted);line-height:1.45}.lock{font-size:18px}
+    .form{display:grid;gap:12px;margin-top:18px}label{display:grid;gap:7px;font-size:12px;font-weight:800;color:#e9edf4}input{width:100%;padding:13px 14px;border:1px solid var(--line);border-radius:13px;outline:none;background:var(--panel2);color:var(--text);font:inherit}input:focus{border-color:#69a9f588;box-shadow:0 0 0 3px #69a9f51d}input::placeholder{color:#7f8999}
+    .remember{display:flex;gap:10px;align-items:flex-start;padding:12px 13px;border:1px solid var(--line);border-radius:14px;background:#ffffff05;font-weight:650}.remember input{width:18px;height:18px;margin:1px 0 0;accent-color:var(--accent)}
+    .btn{border:0;border-radius:13px;padding:14px 16px;background:linear-gradient(135deg,#69a9f5,#4b8fe4);color:#07111f;font:inherit;font-weight:900;cursor:pointer;box-shadow:0 10px 30px #4f98ee2b}.btn:hover{filter:brightness(1.05)}.btn:disabled{opacity:.55;cursor:wait}
+    .status{margin-top:14px;padding:12px 13px;border:1px solid var(--line);border-radius:13px;background:#ffffff06;color:var(--muted);font-size:12px;line-height:1.5;white-space:pre-wrap}.status.ok{border-color:#5fc48e55;background:#5fc48e16;color:#8bddae}.status.err{border-color:#ff716f55;background:#ff716f14;color:#ff9b99}
+    .back{display:inline-block;margin-top:16px;color:#8dbdF7;text-decoration:none;font-size:13px;font-weight:750}
+    @media(max-width:560px){body{padding:14px}.card{padding:21px;border-radius:21px}}
   </style>
 </head>
 <body>
   <main class="card">
     <div class="brand">YKS Defterim</div>
-    <span class="pill">Özel koç daveti</span>
+    <span class="pill">🧭 Koç hesabı</span>
     <h1>Koç hesabını oluştur</h1>
-    <p class="copy">Bu sayfa yalnızca geçerli, tek kullanımlık bir koç davet bağlantısıyla çalışır. Davet kullanıldıktan sonra tekrar kullanılamaz.</p>
+    <p class="copy">Bilgilerini doldur ve Google hesabınla devam et. Ayrı bir davet koduna ihtiyacın yok.</p>
+    <div class="secure"><span class="lock">🔒</span><div><b>Öğrenci verileri korumalıdır</b><span>Koç hesabı açmak öğrencilere otomatik erişim vermez. Bir öğrenciyi yalnızca onun paylaştığı Koç Kodum koduyla Öğrencilerim bölümüne ekleyebilirsin.</span></div></div>
     <form class="form" id="coachRegisterForm">
-      <label>Ad Soyad<input id="coachName" maxlength="80" autocomplete="name" required></label>
+      <label>Ad Soyad<input id="coachName" maxlength="80" autocomplete="name" placeholder="Adın ve soyadın" required></label>
       <label>Koçluk unvanı<input id="coachTitle" maxlength="100" placeholder="Örn. YKS Eğitim Koçu"></label>
       <label>Uzmanlık<input id="coachSpecialization" maxlength="160" placeholder="Örn. Sayısal · Program ve deneme takibi"></label>
-      <label class="remember"><input id="rememberCoach" type="checkbox"><span>Bu cihazda beni hatırla<br><small class="note">Seçilmezse sonraki açılışta yeniden giriş istenir.</small></span></label>
+      <label class="remember"><input id="rememberCoach" type="checkbox" checked><span>Bu cihazda beni hatırla<br><small class="note">Kapatırsan oturum yalnız bu tarayıcı oturumu boyunca saklanır.</small></span></label>
       <button class="btn" id="coachRegisterBtn" type="submit">Google ile koç hesabı oluştur</button>
     </form>
-    <div class="status" id="coachRegisterStatus">Davet bağlantısı kontrol ediliyor…</div>
+    <div class="status" id="coachRegisterStatus">Hazır. Doğrulanmış bir Google hesabıyla kayıt olabilirsin.</div>
     <a class="back" href="./">← YKS Defterim'e dön</a>
   </main>
-  <script type="module" src="./coach-register.js"></script>
+  <script type="module" src="./coach-register.js?v=2.0.0"></script>
 </body>
 </html>
