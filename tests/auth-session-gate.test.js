@@ -50,7 +50,7 @@ test("normal kayıt öğrenci-only kalır ve runtime yeni cache anahtarlarıyla 
   assert.match(loader,/sessionStorage\.removeItem\(PENDING_COACH\)/);
   assert.match(loader,/publicRegistration="student-only"/);
   assert.match(loader,/auth-session-runtime\.js\?v=1\.5\.0/);
-  assert.match(loader,/settings-profile-runtime\.js\?v=2\.0\.0/);
+  assert.match(loader,/settings-profile-runtime\.js\?v=2\.1\.0/);
   assert.match(loader,/__YKS_ACCOUNT_READY__/);
 });
 
