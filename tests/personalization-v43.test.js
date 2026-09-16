@@ -37,7 +37,7 @@ test("Ayarlar paneli tek tema altında üç sınav kapsamı ve beş Bugün kart�
   assert.doesNotMatch(ui,/EXTRA_THEMES/);
   assert.doesNotMatch(ui,/makeThemeButton/);
   assert.doesNotMatch(ui,/window\.setTheme/);
-  assert.doesNotMatch(ui,/v43-theme-choice/);
+  assert.doesNotMatch(ui,/data\.themeId|aria-pressed/);
   assert.doesNotMatch(css,/v43-theme-grid/);
   assert.match(css,/@media\(max-width:760px\)/);
   assert.match(css,/@media\(pointer:coarse\)/);
