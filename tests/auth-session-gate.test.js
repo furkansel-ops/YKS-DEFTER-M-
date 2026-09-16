@@ -41,7 +41,20 @@ test("hesap durumu modern ayarlara olayla bildirilir",()=>{
   const runtime=read("public/auth-session-runtime.js");
   assert.match(runtime,/yks:auth-state/);
   assert.match(runtime,/signedIn:Boolean\(currentUser\)/);
-  assert.match(runtime,/version:"1\.5\.0"/);
+  assert.match(runtime,/profileDegraded:currentAccount\?\.degraded===true/);
+  assert.match(runtime,/version:"1\.6\.0"/);
+});
+
+test("öğrenci profil bootstrap hatası bulut oturumunu düşürmez",()=>{
+  const runtime=read("public/auth-session-runtime.js");
+  assert.match(runtime,/function profileBootstrapRecoverable/);
+  assert.match(runtime,/permission-denied/);
+  assert.match(runtime,/failed-precondition/);
+  assert.match(runtime,/function fallbackStudentAccount/);
+  assert.match(runtime,/role:"student",profile:null,degraded:true/);
+  assert.match(runtime,/dataset\.accountProfile="degraded"/);
+  assert.match(runtime,/if\(!profileBootstrapRecoverable\(error\)\|\|knownCoachAccount\(\)\)throw error/);
+  assert.match(runtime,/currentUser=args\.user/);
 });
 
 test("normal kayıt öğrenci-only kalır ve runtime yeni cache anahtarlarıyla yüklenir",()=>{
@@ -49,7 +62,8 @@ test("normal kayıt öğrenci-only kalır ve runtime yeni cache anahtarlarıyla 
   assert.match(loader,/sessionStorage\.setItem\(PENDING_ROLE,"student"\)/);
   assert.match(loader,/sessionStorage\.removeItem\(PENDING_COACH\)/);
   assert.match(loader,/publicRegistration="student-only"/);
-  assert.match(loader,/auth-session-runtime\.js\?v=1\.5\.0/);
+  assert.match(loader,/coach-account-runtime\.js\?v=1\.0\.0/);
+  assert.match(loader,/auth-session-runtime\.js\?v=1\.6\.0/);
   assert.match(loader,/settings-profile-runtime\.js\?v=2\.1\.0/);
   assert.match(loader,/__YKS_ACCOUNT_READY__/);
 });
