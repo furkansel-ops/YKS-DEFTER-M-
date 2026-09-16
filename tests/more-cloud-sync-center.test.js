@@ -16,13 +16,17 @@ test("bulut eşitleme sağ-alt sabit kutu yerine Daha uygulama alanına taşın�
   assert.match(shell,/dataset\.cloudSyncPlacement=\"more\"/);
 });
 
-test("Daha içindeki eşitleme merkezi hesap bağlantı ve profil durumunu birlikte gösterir",()=>{
+test("Daha içindeki eşitleme merkezi hesap bağlantı profil ve son eşitlemeyi birlikte gösterir",()=>{
   const shell=read("src/ui/play-store-shell.ts");
   assert.match(shell,/Hesap ve Bulut Senkronizasyonu/);
   assert.match(shell,/cloudAccountLabel/);
+  assert.match(shell,/cloudAccountAvatar/);
+  assert.match(shell,/cloudAccountHint/);
   assert.match(shell,/cloudConnectionLabel/);
   assert.match(shell,/cloudProfileLabel/);
+  assert.match(shell,/cloudProfileHint/);
   assert.match(shell,/cloudSyncMeta/);
+  assert.match(shell,/Son eşitleme durumu/);
   assert.match(shell,/Google ile giriş yap/);
   assert.match(shell,/yks:auth-state/);
   assert.match(shell,/profileDegraded/);
@@ -30,13 +34,37 @@ test("Daha içindeki eşitleme merkezi hesap bağlantı ve profil durumunu birli
   assert.match(shell,/window\.addEventListener\(\"offline\"/);
 });
 
-test("eşitleme merkezinin yeni görünümü eski fixed CSS kurallarını güvenli biçimde ezer",()=>{
+test("eşitleme merkezi bağlantı ve hesap durumunu sadece sunum katmanında izler",()=>{
   const shell=read("src/ui/play-store-shell.ts");
-  assert.match(shell,/position:relative!important/);
-  assert.match(shell,/right:auto!important/);
-  assert.match(shell,/bottom:auto!important/);
-  assert.match(shell,/z-index:auto!important/);
-  assert.match(shell,/grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/);
+  assert.match(shell,/box\.dataset\.online=online\?\"online\":\"offline\"/);
+  assert.match(shell,/box\.dataset\.account=detail\.signedIn\?\"connected\":\"signedout\"/);
+  assert.match(shell,/function accountInitial\(email\?:string\)/);
+  assert.match(shell,/Bulut senkronu için giriş gerekli/);
+  assert.match(shell,/Senkrona hazır/);
+});
+
+test("eşitleme merkezinin yeni görünümü ayrı CSS katmanında eski fixed kuralları güvenli biçimde ezer",()=>{
+  const shell=read("src/ui/play-store-shell.ts");
+  const css=read("src/ui/cloud-sync-center.css");
+  assert.match(shell,/import \"\.\/cloud-sync-center\.css\"/);
+  assert.doesNotMatch(shell,/style\.textContent=/);
+  assert.match(css,/position:relative!important/);
+  assert.match(css,/right:auto!important/);
+  assert.match(css,/bottom:auto!important/);
+  assert.match(css,/grid-template-columns:minmax\(0,1\.5fr\)/);
+  assert.match(css,/ycc-account-card/);
+  assert.match(css,/ycc-sync-panel/);
+  assert.match(css,/prefers-reduced-motion:reduce/);
+});
+
+test("Firebase runtime sözleşmesinin kritik cloudSync kimlikleri korunur",()=>{
+  const shell=read("src/ui/play-store-shell.ts");
+  for(const id of ["cloudSyncBox","cloudSyncDot","cloudSyncText","cloudSyncMeta","cloudLoginBtn","cloudLogoutBtn"]){
+    assert.match(shell,new RegExp(id));
+  }
+  assert.match(shell,/activateAccountAwareCloudSync/);
+  assert.match(shell,/activateWebCloudSync/);
+  assert.match(shell,/firebase-sync-runtime\.js/);
 });
 
 test("gizlilik açıklaması kullanıcıyı yeni Daha eşitleme merkezine yönlendirir",()=>{

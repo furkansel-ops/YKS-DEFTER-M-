@@ -54,8 +54,9 @@ test("Web/PWA tek bulut eşitleme merkezi kullanır ve Firebase runtime sözleş
   assert.doesNotMatch(shell,/signInWithRedirect|getRedirectResult|patchLegacyCloudAuthSource/);
 });
 
-test("Eski fixed eşitleme CSS sözleşmesi korunur ama Daha merkezi runtime stiliyle konuma bağlı olmaktan çıkar",()=>{
+test("Eski fixed eşitleme CSS sözleşmesi korunur ama Daha merkezi ayrı CSS katmanıyla konuma bağlı olmaktan çıkar",()=>{
   const css=read("app.css");
+  const centerCss=read("src/ui/cloud-sync-center.css");
   const shell=read("src/ui/play-store-shell.ts");
   assert.match(css,/#cloudSyncBox\{position:fixed;right:12px;bottom:/);
   assert.match(css,/z-index:1000/);
@@ -64,9 +65,10 @@ test("Eski fixed eşitleme CSS sözleşmesi korunur ama Daha merkezi runtime sti
   assert.match(css,/data-state=\\?"syncing\\?"/);
   assert.match(css,/data-state=\\?"error\\?"/);
   assert.match(css,/backdrop-filter:var\(--blur-lite\)/);
-  assert.match(shell,/position:relative!important/);
-  assert.match(shell,/right:auto!important/);
-  assert.match(shell,/bottom:auto!important/);
+  assert.match(shell,/import \"\.\/cloud-sync-center\.css\"/);
+  assert.match(centerCss,/position:relative!important/);
+  assert.match(centerCss,/right:auto!important/);
+  assert.match(centerCss,/bottom:auto!important/);
 });
 
 test("Bulut yardımcı katmanı hata verirse ana uygulama açılışı devam eder",()=>{
