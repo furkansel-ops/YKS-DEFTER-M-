@@ -6,6 +6,7 @@ type AccountWindow=Window&{
 };
 
 const COACH_SCRIPT_ID="coachAccountRuntime";
+const COACH_DIRECTORY_SCRIPT_ID="coachStudentDirectoryV2";
 const AUTH_SCRIPT_ID="authSessionRuntime";
 const SETTINGS_SCRIPT_ID="settingsProfileRuntime";
 const PENDING_ROLE="yks_account_role_pending";
@@ -56,6 +57,8 @@ export function installCoachAccountLoader():boolean{
   win.__YKS_ACCOUNT_READY__=(async()=>{
     const coachReady=await loadModuleScript(COACH_SCRIPT_ID,"./coach-account-runtime.js?v=1.0.0");
     if(!coachReady||!forceStudentOnlyRegistration(win))return false;
+    const directoryReady=await loadModuleScript(COACH_DIRECTORY_SCRIPT_ID,"./coach-student-directory-v2.js?v=2.0.0");
+    if(!directoryReady)return false;
     const authReady=await loadModuleScript(AUTH_SCRIPT_ID,"./auth-session-runtime.js?v=1.6.0");
     if(!authReady)return false;
     return loadModuleScript(SETTINGS_SCRIPT_ID,"./settings-profile-runtime.js?v=2.1.0");
