@@ -1,9 +1,9 @@
 import Dexie from "dexie";
 import {YKS_DATABASE_NAME} from "../data/database";
+import "./cloud-sync-center.css";
 
 const CARD_ID="playStorePrivacyCard";
 const CLOUD_BOX_ID="cloudSyncBox";
-const CLOUD_STYLE_ID="yksCloudCenterStyles";
 const CLOUD_RUNTIME_ID="webCloudSyncRuntime";
 const LEGACY_CLOUD_SOURCE_ID="legacyFirebaseSyncModule";
 const FIREBASE_WEB_API_KEY="AIzaSyA0UMRKwah3Ji9Z8Sd3ZvgLJUKiC40fVSc";
@@ -41,64 +41,6 @@ async function deleteDeviceData(button:HTMLButtonElement):Promise<void>{
     console.error("Cihaz verileri silinemedi",error);
     alert("Veriler tamamen silinemedi. Uygulamayı yeniden açıp tekrar deneyebilirsin.");
   }
-}
-
-function installCloudCenterStyles():void{
-  if(document.getElementById(CLOUD_STYLE_ID))return;
-  const style=document.createElement("style");
-  style.id=CLOUD_STYLE_ID;
-  style.textContent=`
-#${CLOUD_BOX_ID}.yks-cloud-center{position:relative!important;right:auto!important;bottom:auto!important;z-index:auto!important;width:100%;display:block!important;margin:14px 0 20px;padding:0!important;border-radius:22px!important;overflow:hidden;background:linear-gradient(145deg,var(--glass-strong),color-mix(in srgb,var(--accent) 6%,var(--glass-strong)))!important;border:.5px solid var(--glass-line)!important;box-shadow:var(--shadow-2)!important;-webkit-backdrop-filter:var(--blur-lite)!important;backdrop-filter:var(--blur-lite)!important}
-#${CLOUD_BOX_ID}.yks-cloud-center::before{content:"";position:absolute;inset:0 0 auto;height:2px;background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--accent) 72%,transparent),transparent);pointer-events:none}
-#${CLOUD_BOX_ID}.yks-cloud-center .ycc-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;padding:18px 18px 15px;border-bottom:.5px solid var(--sep)}
-#${CLOUD_BOX_ID}.yks-cloud-center .ycc-brand{display:flex;align-items:flex-start;gap:12px;min-width:0}
-#${CLOUD_BOX_ID}.yks-cloud-center .ycc-cloud-mark{display:grid;place-items:center;width:42px;height:42px;flex:none;border-radius:14px;background:color-mix(in srgb,var(--accent) 12%,var(--fill));border:.5px solid color-mix(in srgb,var(--accent) 20%,var(--glass-line));font-size:21px;line-height:1;box-shadow:inset 0 1px 0 rgba(255,255,255,.18)}
-#${CLOUD_BOX_ID}.yks-cloud-center .ycc-title{min-width:0}
-#${CLOUD_BOX_ID}.yks-cloud-center .ycc-title .section-label{margin:0 0 4px}
-#${CLOUD_BOX_ID}.yks-cloud-center .ycc-title h3{margin:0;font-size:18px;letter-spacing:-.02em;line-height:1.24}
-#${CLOUD_BOX_ID}.yks-cloud-center .ycc-title p{margin:5px 0 0;color:var(--label-2);font-size:12px;line-height:1.5;max-width:620px}
-#${CLOUD_BOX_ID}.yks-cloud-center .ycc-status{display:flex;align-items:center;gap:8px;min-width:0;padding:8px 10px;border-radius:999px;background:var(--fill);border:.5px solid var(--sep);font-size:11px;font-weight:800;white-space:nowrap;transition:background .2s,border-color .2s}
-#${CLOUD_BOX_ID}.yks-cloud-center .cloudSyncDot{width:8px;height:8px;border-radius:50%;flex:none;background:var(--label-3);box-shadow:0 0 0 3px var(--fill);transition:background .2s,box-shadow .2s}
-#${CLOUD_BOX_ID}.yks-cloud-center[data-state="synced"] .ycc-status{background:var(--success-soft);border-color:color-mix(in srgb,var(--success) 24%,var(--sep))}
-#${CLOUD_BOX_ID}.yks-cloud-center[data-state="synced"] .cloudSyncDot{background:var(--success);box-shadow:0 0 0 3px var(--success-soft)}
-#${CLOUD_BOX_ID}.yks-cloud-center[data-state="syncing"] .ycc-status,#${CLOUD_BOX_ID}.yks-cloud-center[data-state="connecting"] .ycc-status{background:var(--time-soft);border-color:color-mix(in srgb,var(--time) 24%,var(--sep))}
-#${CLOUD_BOX_ID}.yks-cloud-center[data-state="syncing"] .cloudSyncDot,#${CLOUD_BOX_ID}.yks-cloud-center[data-state="connecting"] .cloudSyncDot{background:var(--time);box-shadow:0 0 0 3px var(--time-soft)}
-#${CLOUD_BOX_ID}.yks-cloud-center[data-state="error"] .ycc-status{background:var(--danger-soft);border-color:color-mix(in srgb,var(--danger) 24%,var(--sep))}
-#${CLOUD_BOX_ID}.yks-cloud-center[data-state="error"] .cloudSyncDot{background:var(--danger);box-shadow:0 0 0 3px var(--danger-soft)}
-#${CLOUD_BOX_ID}.yks-cloud-center .ycc-body{padding:15px 18px 17px}
-#${CLOUD_BOX_ID}.yks-cloud-center .ycc-overview{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(150px,.75fr) minmax(150px,.75fr);gap:9px}
-#${CLOUD_BOX_ID}.yks-cloud-center .ycc-info{min-width:0;padding:12px;border-radius:15px;background:color-mix(in srgb,var(--fill) 88%,transparent);border:.5px solid var(--sep)}
-#${CLOUD_BOX_ID}.yks-cloud-center .ycc-info-label{display:block;color:var(--label-3);font-size:9.5px;font-weight:800;letter-spacing:.055em;text-transform:uppercase;margin-bottom:4px}
-#${CLOUD_BOX_ID}.yks-cloud-center .ycc-info b{display:block;font-size:12.5px;line-height:1.35;overflow-wrap:anywhere}
-#${CLOUD_BOX_ID}.yks-cloud-center .ycc-info small{display:block;margin-top:3px;color:var(--label-3);font-size:10.5px;line-height:1.35}
-#${CLOUD_BOX_ID}.yks-cloud-center .ycc-account-row{display:flex;align-items:center;gap:10px;min-height:42px}
-#${CLOUD_BOX_ID}.yks-cloud-center .ycc-account-avatar{display:grid;place-items:center;width:38px;height:38px;flex:none;border-radius:50%;background:color-mix(in srgb,var(--accent) 13%,var(--fill));border:.5px solid color-mix(in srgb,var(--accent) 24%,var(--glass-line));font-weight:900;font-size:14px;color:var(--accent)}
-#${CLOUD_BOX_ID}.yks-cloud-center[data-account="connected"] .ycc-account-avatar{background:var(--success-soft);border-color:color-mix(in srgb,var(--success) 30%,var(--sep));color:var(--success)}
-#${CLOUD_BOX_ID}.yks-cloud-center .ycc-mini-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
-#${CLOUD_BOX_ID}.yks-cloud-center .ycc-mini-icon{display:grid;place-items:center;width:25px;height:25px;border-radius:9px;background:var(--fill);font-size:12px}
-#${CLOUD_BOX_ID}.yks-cloud-center[data-online="offline"] [data-ycc-kind="connection"]{border-color:color-mix(in srgb,var(--danger) 28%,var(--sep));background:color-mix(in srgb,var(--danger-soft) 45%,var(--fill))}
-#${CLOUD_BOX_ID}.yks-cloud-center .ycc-sync-panel{display:flex;align-items:flex-start;gap:11px;margin-top:9px;padding:12px 13px;border-radius:15px;background:color-mix(in srgb,var(--accent) 5%,var(--fill));border:.5px solid color-mix(in srgb,var(--accent) 16%,var(--sep))}
-#${CLOUD_BOX_ID}.yks-cloud-center .ycc-sync-icon{display:grid;place-items:center;width:31px;height:31px;flex:none;border-radius:10px;background:color-mix(in srgb,var(--accent) 10%,var(--fill));color:var(--accent);font-size:15px;font-weight:900}
-#${CLOUD_BOX_ID}.yks-cloud-center[data-state="synced"] .ycc-sync-icon{background:var(--success-soft);color:var(--success)}
-#${CLOUD_BOX_ID}.yks-cloud-center[data-state="error"] .ycc-sync-icon{background:var(--danger-soft);color:var(--danger)}
-#${CLOUD_BOX_ID}.yks-cloud-center .ycc-sync-copy{min-width:0;flex:1}
-#${CLOUD_BOX_ID}.yks-cloud-center .ycc-sync-copy .ycc-info-label{margin-bottom:2px}
-#${CLOUD_BOX_ID}.yks-cloud-center #cloudSyncText{display:block;max-width:none!important;white-space:normal!important;overflow:visible!important;text-overflow:clip!important;font-size:11px!important;color:inherit!important}
-#${CLOUD_BOX_ID}.yks-cloud-center #cloudSyncMeta{display:block;max-width:none!important;white-space:normal!important;overflow:visible!important;text-overflow:clip!important;margin:0!important;font-size:12.5px!important;line-height:1.45;color:var(--label)!important}
-#${CLOUD_BOX_ID}.yks-cloud-center .ycc-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:13px;padding-top:13px;border-top:.5px solid var(--sep)}
-#${CLOUD_BOX_ID}.yks-cloud-center .ycc-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-#${CLOUD_BOX_ID}.yks-cloud-center button{border:0!important;border-radius:12px!important;padding:9px 13px!important;min-height:36px;cursor:pointer!important;font:750 12px var(--font)!important;background:var(--accent)!important;color:#fff!important;box-shadow:0 5px 14px color-mix(in srgb,var(--accent) 18%,transparent)!important;transition:transform .15s,filter .15s}
-#${CLOUD_BOX_ID}.yks-cloud-center button:hover{filter:brightness(1.04)}
-#${CLOUD_BOX_ID}.yks-cloud-center button:active{transform:translateY(1px)}
-#${CLOUD_BOX_ID}.yks-cloud-center button:focus-visible{outline:2px solid color-mix(in srgb,var(--accent) 50%,transparent)!important;outline-offset:2px}
-#${CLOUD_BOX_ID}.yks-cloud-center button.secondary{background:var(--fill)!important;color:var(--label)!important;box-shadow:none!important;border:.5px solid var(--sep)!important}
-#${CLOUD_BOX_ID}.yks-cloud-center .ycc-note{display:flex;align-items:flex-start;gap:6px;max-width:390px;color:var(--label-3);font-size:10.5px;line-height:1.4;text-align:right}
-#${CLOUD_BOX_ID}.yks-cloud-center .ycc-note-lock{font-size:11px;line-height:1.3}
-@media(max-width:820px){#${CLOUD_BOX_ID}.yks-cloud-center .ycc-overview{grid-template-columns:1.2fr 1fr}#${CLOUD_BOX_ID}.yks-cloud-center .ycc-account-card{grid-column:1/-1}}
-@media(max-width:620px){#${CLOUD_BOX_ID}.yks-cloud-center .ycc-head{display:grid;padding:16px}#${CLOUD_BOX_ID}.yks-cloud-center .ycc-status{justify-self:start}#${CLOUD_BOX_ID}.yks-cloud-center .ycc-body{padding:13px 16px 16px}#${CLOUD_BOX_ID}.yks-cloud-center .ycc-overview{grid-template-columns:1fr}#${CLOUD_BOX_ID}.yks-cloud-center .ycc-account-card{grid-column:auto}#${CLOUD_BOX_ID}.yks-cloud-center .ycc-footer{align-items:stretch}#${CLOUD_BOX_ID}.yks-cloud-center .ycc-actions{width:100%}#${CLOUD_BOX_ID}.yks-cloud-center .ycc-note{max-width:none;width:100%;text-align:left}}
-@media(prefers-reduced-motion:reduce){#${CLOUD_BOX_ID}.yks-cloud-center *{transition:none!important}}
-`;
-  document.head.append(style);
 }
 
 function moreApplicationGrid():HTMLElement|null{
@@ -149,7 +91,6 @@ function installLegacyCloudSyncBox():boolean{
   if(document.getElementById(CLOUD_BOX_ID))return true;
   const target=moreApplicationGrid()||document.getElementById("more");
   if(!target)return false;
-  installCloudCenterStyles();
   const box=document.createElement("section");
   box.id=CLOUD_BOX_ID;
   box.className="restcard yks-cloud-center";
