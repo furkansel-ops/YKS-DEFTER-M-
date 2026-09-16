@@ -47,6 +47,19 @@ service cloud.firestore {
         && invite.coachUid == coachUid;
     }
 
+    function validStudentCoachCode(accessCode) {
+      return accessCode is string
+        && accessCode.matches('^[A-Z2-9]{12}$');
+    }
+
+    function reusableStudentCodeMatches(accessCode, studentUid) {
+      return validStudentCoachCode(accessCode)
+        && exists(/databases/$(database)/documents/studentCoachCodes/$(accessCode))
+        && get(/databases/$(database)/documents/studentCoachCodes/$(accessCode)).data.code == accessCode
+        && get(/databases/$(database)/documents/studentCoachCodes/$(accessCode)).data.studentUid == studentUid
+        && get(/databases/$(database)/documents/studentCoachCodes/$(accessCode)).data.active == true;
+    }
+
     function validAccountRole(roleName) {
       return roleName == 'student' || roleName == 'coach';
     }
@@ -281,6 +294,65 @@ service cloud.firestore {
         && request.auth.uid == resource.data.studentUid;
     }
 
+    match /studentCoachAccess/{studentUid} {
+      allow get: if ownsUserSpace(studentUid);
+      allow list: if false;
+      allow create: if ownsUserSpace(studentUid)
+        && profileRole(studentUid, 'student')
+        && request.resource.data.keys().hasAll([
+          'studentUid', 'code', 'active', 'createdAt', 'updatedAt'
+        ])
+        && request.resource.data.keys().hasOnly([
+          'studentUid', 'code', 'active', 'createdAt', 'updatedAt'
+        ])
+        && request.resource.data.studentUid == studentUid
+        && validStudentCoachCode(request.resource.data.code)
+        && request.resource.data.active == true
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time;
+      allow update: if ownsUserSpace(studentUid)
+        && profileRole(studentUid, 'student')
+        && request.resource.data.keys().hasAll([
+          'studentUid', 'code', 'active', 'createdAt', 'updatedAt'
+        ])
+        && request.resource.data.keys().hasOnly([
+          'studentUid', 'code', 'active', 'createdAt', 'updatedAt'
+        ])
+        && request.resource.data.studentUid == resource.data.studentUid
+        && request.resource.data.studentUid == studentUid
+        && request.resource.data.createdAt == resource.data.createdAt
+        && validStudentCoachCode(request.resource.data.code)
+        && request.resource.data.active == true
+        && request.resource.data.updatedAt == request.time;
+      allow delete: if ownsUserSpace(studentUid);
+    }
+
+    match /studentCoachCodes/{accessCode} {
+      allow get: if verifiedUser()
+        && (request.auth.uid == resource.data.studentUid
+          || profileRole(request.auth.uid, 'coach'));
+      allow list: if false;
+      allow create: if verifiedUser()
+        && profileRole(request.auth.uid, 'student')
+        && validStudentCoachCode(accessCode)
+        && request.resource.data.keys().hasAll([
+          'code', 'studentUid', 'active', 'createdAt', 'updatedAt'
+        ])
+        && request.resource.data.keys().hasOnly([
+          'code', 'studentUid', 'active', 'createdAt', 'updatedAt'
+        ])
+        && request.resource.data.code == accessCode
+        && request.resource.data.studentUid == request.auth.uid
+        && request.resource.data.active == true
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time
+        && getAfter(/databases/$(database)/documents/studentCoachAccess/$(request.auth.uid)).data.code == accessCode
+        && getAfter(/databases/$(database)/documents/studentCoachAccess/$(request.auth.uid)).data.active == true;
+      allow update: if false;
+      allow delete: if verifiedUser()
+        && request.auth.uid == resource.data.studentUid;
+    }
+
     match /coachingLinks/{linkId} {
       allow get, list: if verifiedUser()
         && (request.auth.uid == resource.data.studentUid
@@ -288,12 +360,7 @@ service cloud.firestore {
       allow create: if verifiedUser()
         && profileRole(request.auth.uid, 'coach')
         && request.resource.data.keys().hasAll([
-          'studentUid', 'coachUid', 'inviteCode', 'active',
-          'createdAt', 'updatedAt'
-        ])
-        && request.resource.data.keys().hasOnly([
-          'studentUid', 'coachUid', 'inviteCode', 'active',
-          'createdAt', 'updatedAt', 'endedAt'
+          'studentUid', 'coachUid', 'active', 'createdAt', 'updatedAt'
         ])
         && request.resource.data.coachUid == request.auth.uid
         && profileRole(request.resource.data.studentUid, 'student')
@@ -301,16 +368,63 @@ service cloud.firestore {
         && request.resource.data.active == true
         && request.resource.data.createdAt == request.time
         && request.resource.data.updatedAt == request.time
-        && claimedInviteMatchesLink(request.resource.data.inviteCode, request.resource.data.studentUid, request.auth.uid);
+        && (
+          (
+            request.resource.data.keys().hasAll(['inviteCode'])
+            && request.resource.data.keys().hasOnly([
+              'studentUid', 'coachUid', 'inviteCode', 'active',
+              'createdAt', 'updatedAt', 'endedAt'
+            ])
+            && claimedInviteMatchesLink(
+              request.resource.data.inviteCode,
+              request.resource.data.studentUid,
+              request.auth.uid
+            )
+          )
+          ||
+          (
+            request.resource.data.keys().hasAll(['accessCode'])
+            && request.resource.data.keys().hasOnly([
+              'studentUid', 'coachUid', 'accessCode', 'active',
+              'createdAt', 'updatedAt', 'endedAt'
+            ])
+            && reusableStudentCodeMatches(
+              request.resource.data.accessCode,
+              request.resource.data.studentUid
+            )
+          )
+        );
       allow update: if verifiedUser()
-        && (request.auth.uid == resource.data.studentUid
-          || request.auth.uid == resource.data.coachUid)
-        && resource.data.active == true
-        && request.resource.data.diff(resource.data).affectedKeys()
-          .hasOnly(['active', 'endedAt', 'updatedAt'])
-        && request.resource.data.active == false
-        && request.resource.data.endedAt == request.time
-        && request.resource.data.updatedAt == request.time;
+        && (
+          (
+            (request.auth.uid == resource.data.studentUid
+              || request.auth.uid == resource.data.coachUid)
+            && resource.data.active == true
+            && request.resource.data.diff(resource.data).affectedKeys()
+              .hasOnly(['active', 'endedAt', 'updatedAt'])
+            && request.resource.data.active == false
+            && request.resource.data.endedAt == request.time
+            && request.resource.data.updatedAt == request.time
+          )
+          ||
+          (
+            profileRole(request.auth.uid, 'coach')
+            && request.auth.uid == resource.data.coachUid
+            && resource.data.active == false
+            && request.resource.data.studentUid == resource.data.studentUid
+            && request.resource.data.coachUid == resource.data.coachUid
+            && request.resource.data.createdAt == resource.data.createdAt
+            && request.resource.data.active == true
+            && request.resource.data.updatedAt == request.time
+            && request.resource.data.diff(resource.data).affectedKeys()
+              .hasOnly(['active', 'accessCode', 'updatedAt'])
+            && validStudentCoachCode(request.resource.data.accessCode)
+            && reusableStudentCodeMatches(
+              request.resource.data.accessCode,
+              resource.data.studentUid
+            )
+          )
+        );
       allow delete: if false;
     }
 
