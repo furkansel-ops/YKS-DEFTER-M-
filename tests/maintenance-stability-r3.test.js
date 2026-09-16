@@ -33,13 +33,13 @@ test("Laboratuvar yardımcıları global her tıklamada veya çift navigation di
   assert.match(chemistry,/section\.addEventListener\("click",onClick\)/);
 });
 
-test("4.4.0-r3 release ve service worker Konular yenileme kimliği birlikte ilerler",()=>{
+test("4.4.0-r2 kimliği korunurken service worker Konular paketini yeniden tazeler",()=>{
   const version=read("src/release/version.ts"),json=JSON.parse(read("version.json")),sw=read("sw.js");
-  assert.match(version,/RELEASE_BUILD="4\.4\.0-r3"/);
-  assert.equal(json.build,"4.4.0-r3");
-  assert.match(sw,/APP_BUILD="4\.4\.0-r3"/);
-  assert.match(sw,/CACHE="yks-core-v4\.4\.0-r3"/);
-  assert.match(sw,/yks-core-v4\.4\.0-r2/);
+  assert.match(version,/RELEASE_BUILD="4\.4\.0-r2"/);
+  assert.equal(json.build,"4.4.0-r2");
+  assert.match(sw,/APP_BUILD="4\.4\.0-r2"/);
+  assert.match(sw,/CACHE="yks-core-v4\.4\.0-r2"/);
+  assert.match(sw,/yks-core-v4\.4\.0-r1/);
   assert.match(sw,/cache refresh epoch: 2026-09-16-topics-v46/);
   assert.match(sw,/bakım güncellemeleri de no-store ile mevcut cache/);
 });
