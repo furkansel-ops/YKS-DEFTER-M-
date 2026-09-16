@@ -36,7 +36,7 @@ function settingsCard(){
 }
 
 function emitAuthState(){
-  try{window.dispatchEvent(new CustomEvent("yks:auth-state",{detail:{signedIn:Boolean(currentUser),email:currentUser?.email||""}}))}catch{}
+  try{window.dispatchEvent(new CustomEvent("yks:auth-state",{detail:{signedIn:Boolean(currentUser),email:currentUser?.email||"",profileDegraded:currentAccount?.degraded===true}}))}catch{}
 }
 
 function renderSettings(){
@@ -45,7 +45,9 @@ function renderSettings(){
   const title=card.querySelector("[data-account-title]"),meta=card.querySelector("[data-account-meta]"),login=card.querySelector("[data-account-login]"),logout=card.querySelector("[data-account-logout]");
   if(currentUser){
     title.textContent=currentUser.displayName||currentUser.email||"Hesap";
-    meta.textContent=currentUser.email?`Bulut hesabı bağlı · ${currentUser.email}`:"Bulut hesabı bağlı";
+    meta.textContent=currentAccount?.degraded===true
+      ?(currentUser.email?`Bulut hesabı bağlı · ${currentUser.email} · profil beklemede`:"Bulut hesabı bağlı · profil beklemede")
+      :(currentUser.email?`Bulut hesabı bağlı · ${currentUser.email}`:"Bulut hesabı bağlı");
     login.hidden=true;
     logout.hidden=false;
   }else{
@@ -63,6 +65,21 @@ function installSettingsObserver(){
   setTimeout(renderSettings,0);
 }
 
+function profileBootstrapRecoverable(error){
+  const code=String(error?.code||"").toLowerCase();
+  return ["permission-denied","failed-precondition","unavailable","deadline-exceeded","unauthenticated","network-request-failed","aborted"].some(part=>code.includes(part));
+}
+function knownCoachAccount(){
+  try{return localStorage.getItem("yks_account_role_hint")==="coach"}catch{return false}
+}
+function fallbackStudentAccount(user,error){
+  console.warn("Hesap profili geçici olarak hazırlanamadı; öğrenci bulut senkronu devam edecek.",error);
+  document.documentElement.dataset.accountRole="student";
+  document.documentElement.dataset.accountProfile="degraded";
+  try{window.dispatchEvent(new CustomEvent("yks:account-profile-degraded",{detail:{code:String(error?.code||"profile-bootstrap"),email:user?.email||""}}))}catch{}
+  return{role:"student",profile:null,degraded:true};
+}
+
 clearLegacyGate();
 const base=window.YKSAccountAuth;
 if(base){
@@ -74,7 +91,14 @@ if(base){
     return originalBefore?originalBefore(ctx):false;
   };
   base.onSignedIn=async args=>{
-    const result=originalSignedIn?await originalSignedIn(args):null;
+    let result=null;
+    try{
+      result=originalSignedIn?await originalSignedIn(args):null;
+      delete document.documentElement.dataset.accountProfile;
+    }catch(error){
+      if(!profileBootstrapRecoverable(error)||knownCoachAccount())throw error;
+      result=fallbackStudentAccount(args.user,error);
+    }
     currentUser=args.user;
     currentAccount=result;
     clearLegacyGate();
@@ -84,10 +108,11 @@ if(base){
   base.onSignedOut=()=>{
     currentUser=currentAccount=null;
     try{originalSignedOut?.()}catch{}
+    delete document.documentElement.dataset.accountProfile;
     clearLegacyGate();
     renderSettings();
   };
 }
 
 installSettingsObserver();
-window.dispatchEvent(new CustomEvent("yks:auth-session-ready",{detail:{version:"1.5.0",publicRegistration:"student-only",sessionGate:"removed"}}));
+window.dispatchEvent(new CustomEvent("yks:auth-session-ready",{detail:{version:"1.6.0",publicRegistration:"student-only",sessionGate:"removed",profileFailOpen:"student-sync"}}));
