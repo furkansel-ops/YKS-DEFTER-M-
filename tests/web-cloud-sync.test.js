@@ -33,15 +33,16 @@ test("Production build eski Firebase kodunu gerçek web modülüne çıkarır",(
   assert.match(vite,/waitAccountRuntime/);
 });
 
-test("Web/PWA tek eski sağ-alt eşitleme kutusunu kullanır; ikinci gösterge oluşturulmaz",()=>{
+test("Web/PWA tek bulut eşitleme merkezi kullanır ve Firebase runtime sözleşmesini korur",()=>{
   const shell=read("src/ui/play-store-shell.ts");
   assert.match(shell,/installLegacyCloudSyncBox/);
   assert.match(shell,/CLOUD_BOX_ID="cloudSyncBox"/);
+  assert.match(shell,/yks-cloud-center/);
   assert.match(shell,/cloudSyncDot/);
   assert.match(shell,/cloudSyncText/);
   assert.match(shell,/cloudSyncMeta/);
   assert.match(shell,/cloudLoginBtn/);
-  assert.match(shell,/Hesapla giriş/);
+  assert.match(shell,/Google ile giriş yap/);
   assert.match(shell,/coach-account-loader/);
   const loader=read("src/ui/coach-account-loader.ts");
   assert.match(loader,/coach-account-runtime\.js/);
@@ -53,8 +54,9 @@ test("Web/PWA tek eski sağ-alt eşitleme kutusunu kullanır; ikinci gösterge o
   assert.doesNotMatch(shell,/signInWithRedirect|getRedirectResult|patchLegacyCloudAuthSource/);
 });
 
-test("Eski sağ-alt kutunun görünüm sözleşmesi app.css içinde korunur",()=>{
+test("Eski fixed eşitleme CSS sözleşmesi korunur ama Daha merkezi runtime stiliyle konuma bağlı olmaktan çıkar",()=>{
   const css=read("app.css");
+  const shell=read("src/ui/play-store-shell.ts");
   assert.match(css,/#cloudSyncBox\{position:fixed;right:12px;bottom:/);
   assert.match(css,/z-index:1000/);
   assert.match(css,/cloudSyncDot/);
@@ -62,6 +64,9 @@ test("Eski sağ-alt kutunun görünüm sözleşmesi app.css içinde korunur",()=
   assert.match(css,/data-state=\\?"syncing\\?"/);
   assert.match(css,/data-state=\\?"error\\?"/);
   assert.match(css,/backdrop-filter:var\(--blur-lite\)/);
+  assert.match(shell,/position:relative!important/);
+  assert.match(shell,/right:auto!important/);
+  assert.match(shell,/bottom:auto!important/);
 });
 
 test("Bulut yardımcı katmanı hata verirse ana uygulama açılışı devam eder",()=>{
