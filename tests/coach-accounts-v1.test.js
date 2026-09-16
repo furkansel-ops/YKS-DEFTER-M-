@@ -5,7 +5,7 @@ const path=require("node:path");
 const root=path.resolve(__dirname,"..");
 const read=file=>fs.readFileSync(path.join(root,file),"utf8");
 
-test("normal kayıt yeni hesapları yalnız öğrenci olarak oluşturur; başlangıç giriş ekranına bağlı değildir",()=>{
+test("normal uygulama kaydı yeni hesapları yalnız öğrenci olarak oluşturur; başlangıç giriş ekranına bağlı değildir",()=>{
   const loader=read("src/ui/coach-account-loader.ts"),auth=read("public/auth-session-runtime.js");
   assert.match(loader,/sessionStorage\.setItem\(PENDING_ROLE,"student"\)/);
   assert.match(loader,/sessionStorage\.removeItem\(PENDING_COACH\)/);
@@ -14,35 +14,35 @@ test("normal kayıt yeni hesapları yalnız öğrenci olarak oluşturur; başlan
   assert.doesNotMatch(auth,/Hesabına giriş yap|Beni hatırla/);
 });
 
-test("koç kaydı ayrı sayfada 24 karakterlik davetle transaction içinde yapılır",()=>{
+test("koç kaydı ayrı sayfada davet kodu istemeden doğrulanmış Google hesabıyla yapılır",()=>{
   const html=read("public/coach-register.html"),script=read("public/coach-register.js");
-  assert.match(html,/Özel koç daveti/);
-  assert.match(script,/coachRegistrationInvites/);
-  assert.match(script,/\^\[A-Z2-9\]\{24\}\$/);
+  assert.match(html,/Koç hesabını oluştur/);
+  assert.match(html,/Ayrı bir davet koduna ihtiyacın yok/);
+  assert.match(script,/emailVerified/);
   assert.match(script,/runTransaction/);
   assert.match(script,/role:"coach"/);
-  assert.match(script,/registrationInvite:invite/);
-  assert.match(script,/status:"used"/);
+  assert.match(script,/accountProfiles/);
+  assert.doesNotMatch(script,/coachRegistrationInvites/);
+  assert.doesNotMatch(script,/registrationInvite:invite/);
+  assert.doesNotMatch(script,/URLSearchParams/);
 });
 
-test("Firestore normal kullanıcıya koç rolü vermez; koç rolü yalnız önceden açılmış tek kullanımlık davetle oluşturulur",()=>{
+test("Firestore doğrulanmış kullanıcının kendi yeni profilini öğrenci veya koç olarak oluşturmasına izin verir; rol sonradan değiştirilemez",()=>{
   const rules=read("firestore.rules");
-  assert.match(rules,/function validCoachRegistrationInvite/);
-  assert.match(rules,/match \/coachRegistrationInvites\/\{inviteCode\}/);
-  assert.match(rules,/allow list, create, delete: if false/);
-  assert.match(rules,/request\.resource\.data\.role == 'student'/);
-  assert.match(rules,/request\.resource\.data\.role == 'coach'/);
-  assert.match(rules,/validCoachRegistrationInvite\(userId, request\.resource\.data\.registrationInvite\)/);
-  assert.match(rules,/after\.usedBy == userId/);
+  assert.match(rules,/match \/accountProfiles\/\{userId\}/);
+  assert.match(rules,/allow create: if ownsUserSpace\(userId\)/);
+  assert.match(rules,/validAccountRole/);
+  assert.match(rules,/!request\.resource\.data\.keys\(\)\.hasAny\(\['registrationInvite'\]\)/);
+  assert.match(rules,/request\.resource\.data\.role == resource\.data\.role/);
+  assert.match(rules,/allow list: if false/);
 });
 
-test("davet yardımcı sayfası yalnız kod ve paylaşım linki üretir; yetkiyi Firebase belgesi belirler",()=>{
+test("eski koç davet yardımcı adresi artık doğrudan normal koç kayıt sayfasına yönlendirir",()=>{
   const html=read("public/coach-invites.html");
-  assert.match(html,/coachRegistrationInvites/);
-  assert.match(html,/Firebase Console/);
-  assert.match(html,/crypto\.getRandomValues/);
   assert.match(html,/coach-register\.html/);
-  assert.doesNotMatch(html,/firebase-firestore\.js/);
+  assert.match(html,/Artık davet kodu gerekmiyor/);
+  assert.doesNotMatch(html,/Firebase Console/);
+  assert.doesNotMatch(html,/crypto\.getRandomValues/);
 });
 
 test("mevcut bulut hesabı otomatik öğrenci olarak korunur ve hesap rolü değiştirilemez",()=>{
@@ -72,7 +72,7 @@ test("koç müdahaleleri doğrudan veri yazmak yerine dört kontrollü action ti
   assert.match(runtime,/status:"rejected"/);
 });
 
-test("öğrenci-koç eşleşmesi 10 karakterlik 24 saatlik tek kullanımlık kodla transaction içinde kurulur",()=>{
+test("eski öğrenci-koç eşleşme modeli geriye uyumluluk için korunur",()=>{
   const runtime=read("public/coach-account-runtime.js");
   assert.match(runtime,/A-Z2-9/);
   assert.match(runtime,/24\*60\*60\*1000/);
