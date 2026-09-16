@@ -192,6 +192,20 @@ const playStoreShell=installOptional(
   {installed:false,legacyCloudRemoved:false}
 );
 document.documentElement.dataset.playStorePrivacy=playStoreShell.installed?"ready":"deferred";
+document.documentElement.dataset.topSyncIndicator="loading";
+void import("./ui/top-sync-indicator")
+  .then(({installTopSyncIndicator})=>{
+    const indicator=installOptional(
+      "top-sync-indicator",
+      ()=>installTopSyncIndicator(),
+      {installed:false,state:"off" as const}
+    );
+    document.documentElement.dataset.topSyncIndicator=indicator.installed?"ready":"deferred";
+  })
+  .catch(error=>{
+    document.documentElement.dataset.topSyncIndicator="deferred";
+    console.error("Üst senkron durum göstergesi yüklenemedi",error);
+  });
 const v43Runtime=installV43SafeRuntime();
 document.documentElement.dataset.v43RuntimeHost=String(v43Runtime.installed);
 const release=installReleaseRuntime();
