@@ -119,7 +119,12 @@ function buildPreparationUi():boolean{
       </section>
     </div>`;
 
-  legacySubjectLabel?.insertAdjacentElement("afterend",shell);
+  if(legacySubjectLabel)legacySubjectLabel.insertAdjacentElement("afterend",shell);
+  else{
+    const head=setup.querySelector(".v29-setup-head");
+    if(head)head.insertAdjacentElement("afterend",shell);
+    else setup.prepend(shell);
+  }
   shell.querySelector<HTMLElement>("[data-v46-subject-slot]")?.append(subjectPicker);
   shell.querySelector<HTMLElement>("[data-v46-topic-slot]")?.append(topic);
   shell.querySelector<HTMLElement>("[data-v46-task-slot]")?.append(task);
@@ -183,6 +188,8 @@ export function installFocusSessionGuardV43():FocusSessionGuardV43Api{
     decorateSubjectButtons();
     updateSelectedUi(false);
     syncModeUi();
+    const setup=setupCard();
+    if(setup?.dataset.v46FocusEnhancements==="ready")return;
     const picker=subjectPicker();
     if(picker&&!subjectObserver){
       subjectObserver=new MutationObserver(()=>{decorateSubjectButtons();updateSelectedUi();});
@@ -190,6 +197,7 @@ export function installFocusSessionGuardV43():FocusSessionGuardV43Api{
     }
     searchInput()?.addEventListener("input",applySubjectFilter);
     ["segPomo","segStop"].forEach(id=>document.getElementById(id)?.addEventListener("click",()=>window.setTimeout(syncModeUi,0)));
+    if(setup)setup.dataset.v46FocusEnhancements="ready";
   };
 
   installPickerEnhancements();
