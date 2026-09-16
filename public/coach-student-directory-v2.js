@@ -70,8 +70,6 @@ async function createOrRotateCode(force=false){
         }
         if(candidate===oldCode){const error=new Error("code-collision");error.code="code-collision";throw error}
         const candidateRef=doc(state.db,CODE_COLLECTION,candidate);
-        const candidateSnap=await tx.get(candidateRef);
-        if(candidateSnap.exists()){const error=new Error("code-collision");error.code="code-collision";throw error}
         let oldRef=null,oldSnap=null;
         if(CODE_RE.test(oldCode)){
           oldRef=doc(state.db,CODE_COLLECTION,oldCode);
@@ -87,7 +85,8 @@ async function createOrRotateCode(force=false){
       return result;
     }catch(error){
       lastError=error;
-      if(String(error?.code||error?.message)!=="code-collision")throw error;
+      const reason=String(error?.code||error?.message||"");
+      if(reason!=="code-collision"&&!reason.includes("permission-denied"))throw error;
     }
   }
   throw lastError||new Error("Koç kodu oluşturulamadı");
@@ -255,7 +254,7 @@ function install(){
   if(originalStudentPanel)auth.__legacyOpenStudentPanel=originalStudentPanel;
   window.addEventListener("yks:data-changed",()=>{if(state.profile?.role==="student"&&document.getElementById("studentCoachCodeSettings"))void renderStudentSettings()});
   document.documentElement.dataset.coachStudentCodes="ready";
-  window.dispatchEvent(new CustomEvent("yks:coach-student-directory-ready",{detail:{version:"2.0.0"}}));
+  window.dispatchEvent(new CustomEvent("yks:coach-student-directory-ready",{detail:{version:"2.0.1"}}));
   return true;
 }
 
