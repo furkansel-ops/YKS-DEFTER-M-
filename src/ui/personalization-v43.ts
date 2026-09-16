@@ -24,6 +24,7 @@ declare global{
     setV315DashType?:(type:V43ExamType|"BRANS")=>unknown;
     setDenemeType?:(type:V43ExamType|"BRANS")=>unknown;
     v320SetExam?:(type:V43ExamType)=>unknown;
+    setTheme?:(theme:string)=>unknown;
   }
 }
 
@@ -32,6 +33,21 @@ const DEFAULT_STATE:PersonalizationV43State={
   homeCards:{quote:true,actions:true,todayHub:true,todayPlan:true,alerts:true},
   updatedAt:0
 };
+
+type ThemeChoice={id:string;label:string;detail:string;swatch:string};
+const PRIMARY_THEMES:ThemeChoice[]=[
+  {id:"auto",label:"Sistem",detail:"Cihazın açık / koyu görünümünü takip eder",swatch:"system"},
+  {id:"paper",label:"Defter",detail:"Sıcak ve sade çalışma görünümü",swatch:"paper"},
+  {id:"night",label:"Gece",detail:"Koyu arka plan, düşük göz yorgunluğu",swatch:"night"},
+  {id:"forest",label:"Orman",detail:"Sakin yeşil tonlar",swatch:"forest"}
+];
+const EXTRA_THEMES:ThemeChoice[]=[
+  {id:"ocean",label:"Okyanus",detail:"Ferah mavi ve turkuaz tonlar",swatch:"ocean"},
+  {id:"lavender",label:"Lavanta",detail:"Yumuşak mor ve lila tonlar",swatch:"lavender"},
+  {id:"sunset",label:"Günbatımı",detail:"Sıcak turuncu ve krem tonlar",swatch:"sunset"},
+  {id:"graphite",label:"Grafit",detail:"Nötr ve koyu profesyonel görünüm",swatch:"graphite"}
+];
+const THEME_IDS=new Set([...PRIMARY_THEMES,...EXTRA_THEMES].map(theme=>theme.id));
 
 const HOME_TARGETS:Record<V43HomeCard,string[]>={
   quote:["#sozBox"],
@@ -102,6 +118,11 @@ function persistState(next:PersonalizationV43State):boolean{
   }catch{return false;}
 }
 
+function readTheme():string{
+  const value=document.documentElement.getAttribute("data-theme")||"auto";
+  return THEME_IDS.has(value)?value:"auto";
+}
+
 function setHidden(selector:string,hidden:boolean,attribute:string):void{
   document.querySelectorAll<HTMLElement>(selector).forEach(node=>{
     node.toggleAttribute(attribute,hidden);
@@ -155,6 +176,23 @@ function makeChoice(labelText:string,detail:string,checked:boolean,onChange:(che
   return label;
 }
 
+function makeThemeButton(theme:ThemeChoice,current:string,onSelect:(theme:string)=>void):HTMLButtonElement{
+  const button=element("button","v43-theme-choice");
+  button.type="button";
+  button.dataset.themeId=theme.id;
+  button.setAttribute("aria-pressed",current===theme.id?"true":"false");
+  if(current===theme.id)button.classList.add("is-active");
+  const swatch=element("span",`v43-theme-swatch swatch-${theme.swatch}`);
+  swatch.setAttribute("aria-hidden","true");
+  const copy=element("span","v43-theme-copy");
+  copy.append(element("strong","",theme.label),element("small","",theme.detail));
+  const check=element("span","v43-theme-check",current===theme.id?"✓":"");
+  check.setAttribute("aria-hidden","true");
+  button.append(swatch,copy,check);
+  button.addEventListener("click",()=>onSelect(theme.id));
+  return button;
+}
+
 function createSettingsPanel(getPrefs:()=>PersonalizationV43State,commit:(next:PersonalizationV43State,message:string)=>void):HTMLElement|null{
   const settings=document.getElementById("mrp_ayar");
   if(!(settings instanceof HTMLElement))return null;
@@ -166,19 +204,56 @@ function createSettingsPanel(getPrefs:()=>PersonalizationV43State,commit:(next:P
   panel.dataset.v43Personalization="ready";
   const head=element("div","v43-personal-head");
   const headCopy=element("div");
-  headCopy.append(element("p","eyebrow","Kişiselleştirme"),element("h2","","Görünümü bana göre sadeleştir"),element("p","hint","Bunlar yalnız görünümü değiştirir; kayıtlı konu, deneme ve Program verileri silinmez."));
-  const reset=element("button","btn ghost tiny","Varsayılana dön");
+  headCopy.append(element("p","eyebrow","Kişiselleştirme"),element("h2","","Kendine göre ayarla"),element("p","hint","Tema, sınav kapsamı ve Bugün ekranındaki yardımcı alanları tek yerden düzenle. Çalışma verilerin değişmez."));
+  const reset=element("button","btn ghost tiny","Ayarları sıfırla");
   reset.type="button";
   head.append(headCopy,reset);
+  const summary=element("div","v43-personal-summary");
   const status=element("p","v43-personal-status");
   status.setAttribute("role","status");
   status.setAttribute("aria-live","polite");
   const body=element("div","v43-personal-body");
-  panel.append(head,body,status);
+  panel.append(head,summary,body,status);
 
   const render=()=>{
     const prefs=getPrefs();
+    const activeExamCount=V43_EXAM_TYPES.filter(type=>prefs.examScope[type]).length;
+    const activeHomeCount=V43_HOME_CARDS.filter(key=>prefs.homeCards[key]).length;
+    const themeId=readTheme();
+    const allThemes=[...PRIMARY_THEMES,...EXTRA_THEMES];
+    const themeName=allThemes.find(theme=>theme.id===themeId)?.label||"Sistem";
+    summary.replaceChildren();
+    [[`${activeExamCount}/3`,`Sınav açık`],[`${activeHomeCount}/5`,`Bugün kartı`],[themeName,"Aktif tema"]].forEach(([value,label])=>{
+      const item=element("div","v43-summary-item");
+      item.append(element("strong","",value),element("small","",label));
+      summary.appendChild(item);
+    });
     body.replaceChildren();
+
+    const themeField=element("section","v43-personal-group v43-theme-group");
+    const themeHead=element("div","v43-group-head");
+    const themeCopy=element("div");
+    themeCopy.append(element("h3","","Tema"),element("p","hint","Uygulamanın genel görünümünü seç. Tema artık yalnız Ayarlar bölümünden değişir."));
+    themeHead.appendChild(themeCopy);
+    themeField.appendChild(themeHead);
+    const themeGrid=element("div","v43-theme-grid");
+    const selectTheme=(theme:string)=>{
+      if(typeof window.setTheme!=="function"){
+        status.textContent="Tema sistemi henüz hazır değil.";
+        return;
+      }
+      window.setTheme(theme);
+      status.textContent=`Tema ${[...PRIMARY_THEMES,...EXTRA_THEMES].find(item=>item.id===theme)?.label||theme} olarak değiştirildi.`;
+      render();
+    };
+    PRIMARY_THEMES.forEach(theme=>themeGrid.appendChild(makeThemeButton(theme,themeId,selectTheme)));
+    themeField.appendChild(themeGrid);
+    const extra=element("details","v43-theme-more");
+    const extraSummary=element("summary","","Diğer temaları göster");
+    const extraGrid=element("div","v43-theme-grid extra-grid");
+    EXTRA_THEMES.forEach(theme=>extraGrid.appendChild(makeThemeButton(theme,themeId,selectTheme)));
+    extra.append(extraSummary,extraGrid);
+    themeField.appendChild(extra);
 
     const examField=element("fieldset","v43-personal-group");
     const examLegend=element("legend","","Sınav kapsamı");
@@ -200,8 +275,8 @@ function createSettingsPanel(getPrefs:()=>PersonalizationV43State,commit:(next:P
     examField.appendChild(examGrid);
 
     const homeField=element("fieldset","v43-personal-group");
-    homeField.appendChild(element("legend","","Bugün ekranı kartları"));
-    homeField.appendChild(element("p","hint","Sayaç ve temel günlük özet her zaman görünür; aşağıdaki yardımcı alanları sen seçersin."));
+    homeField.appendChild(element("legend","","Bugün ekranı"));
+    homeField.appendChild(element("p","hint","Sayaç ve temel günlük özet her zaman görünür. Yardımcı kartlardan istediklerini açık bırak."));
     const homeGrid=element("div","v43-personal-grid");
     const labels:Record<V43HomeCard,[string,string]>={
       quote:["Günün sözü","Motivasyon kartını göster"],
@@ -218,7 +293,7 @@ function createSettingsPanel(getPrefs:()=>PersonalizationV43State,commit:(next:P
       render();
     })));
     homeField.appendChild(homeGrid);
-    body.append(examField,homeField);
+    body.append(themeField,examField,homeField);
   };
 
   reset.addEventListener("click",()=>{
@@ -238,6 +313,9 @@ export function installPersonalizationV43():{installed:boolean;validate:()=>stri
   let current=readStoredState();
   let panel:HTMLElement|null=null;
   let applying=false;
+
+  document.getElementById("themeBtn")?.remove();
+  document.documentElement.dataset.themeControl="settings-only";
 
   const apply=()=>{
     if(applying)return;
@@ -279,6 +357,8 @@ export function installPersonalizationV43():{installed:boolean;validate:()=>stri
       if(!window.__YKS_PERSONALIZATION_V43__)errors.push("personalization api missing");
       if(!V43_EXAM_TYPES.some(type=>current.examScope[type]))errors.push("personalization exam scope empty");
       if(document.querySelectorAll("#v43Personalization .v43-personal-choice").length!==8)errors.push("personalization choices incomplete");
+      if(document.querySelectorAll("#v43Personalization .v43-theme-choice").length!==8)errors.push("theme choices incomplete");
+      if(document.getElementById("themeBtn"))errors.push("top theme button should be removed");
       return errors;
     }
   };
