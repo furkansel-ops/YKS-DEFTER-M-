@@ -19,6 +19,7 @@ import {installV43SafeRuntime} from "./ui/v43-safe-runtime";
 import {installPlayStoreShell} from "./ui/play-store-shell";
 import {installParagraphProblemTracker} from "./ui/paragraph-problem-tracker";
 import {installTeachersV2} from "./ui/teachers-v2";
+import {installSingleThemeRuntime} from "./ui/single-theme-runtime";
 import "./ui/visual-stability-hotfix.css";
 import "./ui/recent-feature-stability.css";
 import "./ui/topics-toolbar-hotfix.css";
@@ -82,6 +83,13 @@ function installOptional<T>(name:string,installer:()=>T,fallback:T):T{
   }
 }
 document.documentElement.dataset.v4OptionalErrors="0";
+
+const signatureTheme=installOptional(
+  "single-theme",
+  ()=>installSingleThemeRuntime(),
+  {installed:false,theme:"graphite",destroy:()=>{}}
+);
+document.documentElement.dataset.signatureTheme=signatureTheme.installed?"ready":"deferred";
 
 function loadTeacherVideosRuntime():void{
   if(document.querySelector('script[data-yks-teacher-videos="true"]'))return;
