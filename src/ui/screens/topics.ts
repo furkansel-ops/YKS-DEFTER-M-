@@ -7,8 +7,12 @@ function ensureTopicsHub():void{
   if(root.dataset.topicsHubRuntime==="ready"||root.dataset.topicsHubRuntime==="loading")return;
   root.dataset.topicsHubRuntime="loading";
   void import("../topics-hub-v46")
-    .then(({installTopicsHubV46})=>{
+    .then(async({installTopicsHubV46})=>{
       const runtime=installTopicsHubV46();
+      if(runtime.installed){
+        const {installTopicLegacyPanelsV46}=await import("../topics-hub-v46-extras");
+        installTopicLegacyPanelsV46();
+      }
       root.dataset.topicsHubRuntime=runtime.installed?"ready":"deferred";
     })
     .catch(error=>{
