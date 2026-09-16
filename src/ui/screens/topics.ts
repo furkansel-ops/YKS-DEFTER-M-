@@ -1,5 +1,6 @@
 import type {ScreenModule} from "./contracts";
 import {topicsLegacyAdapter} from "./legacy-adapters";
+import {installTopicLegacyPanelsV46} from "../topics-hub-v46-extras";
 import "../topics-hub-v46.css";
 import "../topics-hub-v46-extras.css";
 
@@ -8,12 +9,9 @@ function ensureTopicsHub():void{
   if(root.dataset.topicsHubRuntime==="ready"||root.dataset.topicsHubRuntime==="loading")return;
   root.dataset.topicsHubRuntime="loading";
   void import("../topics-hub-v46")
-    .then(async({installTopicsHubV46})=>{
+    .then(({installTopicsHubV46})=>{
       const runtime=installTopicsHubV46();
-      if(runtime.installed){
-        const {installTopicLegacyPanelsV46}=await import("../topics-hub-v46-extras");
-        installTopicLegacyPanelsV46();
-      }
+      if(runtime.installed)installTopicLegacyPanelsV46();
       root.dataset.topicsHubRuntime=runtime.installed?"ready":"deferred";
     })
     .catch(error=>{
