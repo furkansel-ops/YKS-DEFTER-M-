@@ -89,6 +89,15 @@ test("kişiselleştirme paneli tema dahil yeni ayarlar diliyle cilalanır",()=>{
   assert.match(css,/v43-theme-grid/);
 });
 
+test("modern Ayarlar kartları tüm temalarda uygulamanın yüzey ve metin tokenlarını kullanır",()=>{
+  const css=read("src/ui/personalization-v43.css"),runtime=read("public/settings-profile-runtime.js");
+  assert.match(runtime,/var\(--surface,#fff\)/);
+  assert.match(css,/#mrp_ayar \.yms-wrap,\.yms-modal\{--surface:var\(--card,var\(--glass,#fff\)\)\}/);
+  assert.match(css,/#mrp_ayar \.yms-wrap\{color:var\(--label,var\(--ink,#111827\)\)\}/);
+  assert.match(css,/\.yms-status-pill\.ok\{color:var\(--green-ink,#087443\)\}/);
+  assert.match(css,/\.yms-actions button\.danger\{color:var\(--danger,var\(--red,#b42318\)\)\}/);
+});
+
 test("uygulama kartı veri yedeği, sistem ve hakkında erişimini korur",()=>{
   const src=read("public/settings-profile-runtime.js");
   assert.match(src,/data-yms-data/);
