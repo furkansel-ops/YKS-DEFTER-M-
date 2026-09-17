@@ -22,7 +22,7 @@ test("canlı Pages denetimi gerçek release sürümünü, güvenli runtime'ı ve
 test("canlı politika denetimi Android-local ve Web/PWA bulut ayrımının kaybolmasını reddeder",async()=>{
   const {verifyPolicyPages}=await import(scriptUrl);
   assert.throws(()=>verifyPolicyPages({privacy:"404",deletion:"404"}),/gizlilik politikası/);
-  assert.throws(()=>verifyPolicyPages({privacy:privacy.replace("Firebase Authentication","Kimlik doğrulama"),deletion}),/gizlilik politikası/);
+  assert.throws(()=>verifyPolicyPages({privacy:privacy.replace("Web/PWA sürümünde","Web sürümünde"),deletion}),/gizlilik politikası/);
   assert.throws(()=>verifyPolicyPages({privacy,deletion:deletion.replace("Web/PWA bulut verileri ve hesap","Bulut verileri")}),/veri silme sayfası/);
 });
 
