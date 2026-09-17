@@ -14,10 +14,11 @@ test("YKS Defterim normal girişini yalnız öğrenci hesabı olarak açar",()=>
   assert.doesNotMatch(runtime,/roleModal|Koçluk Paneli|coachDashboard/);
 });
 
-test("mevcut koç hesabı öğrenci uygulamasında panel açmaz, ayrı uygulamaya yönlenir",()=>{
+test("mevcut koç hesabı öğrenci uygulamasını açtığında otomatik olarak başka uygulamaya yönlendirilmez",()=>{
   const loader=read("src/ui/coach-account-loader.ts"),runtime=read("public/student-coaching-runtime.js");
-  assert.match(loader,/YKS-DEFTER-M-Ko-Paneli/);
-  assert.match(loader,/window\.location\.replace\(COACH_PANEL_URL\)/);
+  assert.doesNotMatch(loader,/YKS-DEFTER-M-Ko-Paneli/);
+  assert.doesNotMatch(loader,/window\.location\.(?:replace|assign)/);
+  assert.match(loader,/coachDashboard="external-only"/);
   assert.doesNotMatch(runtime,/yksCoachDashboard|Öğrencilerim|Öğrenciye müdahale/);
 });
 

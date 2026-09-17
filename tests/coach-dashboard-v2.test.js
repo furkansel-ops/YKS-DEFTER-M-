@@ -16,10 +16,10 @@ test("koç kayıt ve davet sayfaları öğrenci uygulamasından kaldırılmışt
   for(const file of["public/coach-register.html","public/coach-register.js","public/coach-invites.html"])assert.equal(exists(file),false,file);
 });
 
-test("koç hesabı ayrı YKS Koç Paneli adresine yönlendirilir",()=>{
+test("öğrenci uygulaması ayrı koç paneline otomatik yönlendirme yapmaz",()=>{
   const loader=read("src/ui/coach-account-loader.ts");
-  assert.match(loader,/https:\/\/furkansel-ops\.github\.io\/YKS-DEFTER-M-Ko-Paneli\//);
-  assert.match(loader,/window\.location\.replace\(COACH_PANEL_URL\)/);
+  assert.doesNotMatch(loader,/YKS-DEFTER-M-Ko-Paneli/);
+  assert.doesNotMatch(loader,/window\.location\.(?:replace|assign)/);
   assert.match(loader,/coachDashboard="external-only"/);
 });
 
