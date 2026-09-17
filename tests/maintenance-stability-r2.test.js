@@ -33,16 +33,16 @@ test("Laboratuvar yardımcıları global her tıklamada veya çift navigation di
   assert.match(chemistry,/section\.addEventListener\("click",onClick\)/);
 });
 
-test("4.4.0-r2 release kimliği korunurken service worker hotfix cache'i döndürülür",()=>{
+test("4.4.0-r2 release kimliği korunurken service worker eski shell cache'ini tazeler",()=>{
   const version=read("src/release/version.ts"),json=JSON.parse(read("version.json")),sw=read("sw.js");
   assert.match(version,/RELEASE_BUILD="4\.4\.0-r2"/);
   assert.equal(json.build,"4.4.0-r2");
   assert.match(sw,/APP_BUILD="4\.4\.0-r2"/);
-  assert.match(sw,/CACHE="yks-core-v4\.4\.0-r2-hf1"/);
-  assert.match(sw,/yks-core-v4\.4\.0-r2/);
+  assert.match(sw,/CACHE="yks-core-v4\.4\.0-r2"/);
   assert.match(sw,/cache refresh epoch: 2026-09-17-fresh-shell/);
   assert.match(sw,/cacheLatestShell/);
   assert.match(sw,/cacheCore\(\)\.then\(\(\)=>self\.skipWaiting\(\)\)/);
+  assert.match(sw,/networkFirstStatic/);
 });
 
 test("eşitleme göstergesinin eski cam görünümü son stabilizasyon katmanında ezilmez",()=>{
