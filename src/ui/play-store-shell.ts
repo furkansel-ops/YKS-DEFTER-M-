@@ -109,7 +109,7 @@ function installLegacyCloudSyncBox():boolean{
           <p>Google hesabınla giriş yaptığında YKS Defterim çalışma verilerini güvenli bulut alanınla otomatik olarak eşitler.</p>
         </div>
       </div>
-      <div class="ycc-status"><span class="cloudSyncDot" id="cloudSyncDot" aria-hidden="true">☁</span><span id="cloudSyncText">Giriş yapılmadı</span></div>
+      <div class="ycc-status"><span class="cloudSyncDot" id="cloudSyncDot" aria-hidden="true"></span><span id="cloudSyncText">Giriş yapılmadı</span></div>
     </div>
     <div class="ycc-body">
       <div class="ycc-overview">

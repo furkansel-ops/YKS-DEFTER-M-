@@ -12,6 +12,7 @@ const STUDENT_PROGRAM_SHARE_V2_SCRIPT_ID="studentProgramShareV2";
 const AUTH_SCRIPT_ID="authSessionRuntime";
 const SETTINGS_SCRIPT_ID="settingsProfileRuntime";
 const PENDING_ROLE="yks_account_role_pending";
+const LEGACY_PENDING_COACH="yks_coach_profile_pending";
 
 function loadModuleScript(id:string,src:string):Promise<boolean>{
   const existing=document.getElementById(id) as HTMLScriptElement|null;
@@ -35,7 +36,7 @@ function forceStudentOnlyRegistration(win:AccountWindow):boolean{
   const auth=win.YKSAccountAuth;
   if(!auth)return false;
   auth.beforeSignIn=async ctx=>{
-    try{sessionStorage.setItem(PENDING_ROLE,"student")}catch{}
+    try{sessionStorage.setItem(PENDING_ROLE,"student");sessionStorage.removeItem(LEGACY_PENDING_COACH)}catch{}
     try{
       ctx.status?.("Google açılıyor…","connecting","Öğrenci hesabı");
       await ctx.setPersistence(ctx.auth,ctx.browserLocalPersistence);
