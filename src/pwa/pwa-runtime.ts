@@ -81,6 +81,22 @@ async function cacheReady(navigatorRef:Navigator):Promise<boolean>{
   }
 }
 
+async function ensureFreshServiceWorker(windowRef:Window,documentRef:Document):Promise<void>{
+  if(!("serviceWorker" in windowRef.navigator))return;
+  const workers=windowRef.navigator.serviceWorker;
+  try{
+    /* GitHub Pages alt dizininde mutlak /sw.js yanlış scope'a gider. baseURI üzerinden
+       göreli URL kullanıp tarayıcının HTTP cache'ini SW güncellemesinde tamamen atla. */
+    const scriptUrl=new URL("./sw.js",documentRef.baseURI),scopeUrl=new URL("./",documentRef.baseURI);
+    const registration=await workers.register(scriptUrl.href,{scope:scopeUrl.href,updateViaCache:"none"});
+    registration.waiting?.postMessage({type:"SKIP_WAITING"});
+    await registration.update();
+    registration.waiting?.postMessage({type:"SKIP_WAITING"});
+  }catch{
+    /* Offline/Capacitor gibi SW kaydının kullanılamadığı ortamlarda uygulama açılışını bozma. */
+  }
+}
+
 export function installPwaRuntime(build:string,windowRef:Window=window,documentRef:Document=document):PwaRuntimeApi{
   let installPrompt:BeforeInstallPromptEvent|null=null,renderGeneration=0;
   const state=():InstallState=>isStandalone(windowRef)?"installed":installPrompt?"installable":"manual";
@@ -107,6 +123,7 @@ export function installPwaRuntime(build:string,windowRef:Window=window,documentR
   if("serviceWorker" in windowRef.navigator){
     const workers=windowRef.navigator.serviceWorker;
     workers.addEventListener("controllerchange",()=>void render());
+    void ensureFreshServiceWorker(windowRef,documentRef);
     void workers.ready.then(()=>render()).catch(()=>undefined);
   }
   const api:PwaRuntimeApi={build,promptInstall,refresh:render,installState:state};
