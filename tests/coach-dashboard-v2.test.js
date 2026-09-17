@@ -50,14 +50,16 @@ test("koç hızlı işlemleri mevcut güvenli coachingActions kanalını kullan�
   assert.doesNotMatch(runtime,/users\/.*sync/);
 });
 
-test("koç paneli v2.1 auth başlamadan önce yüklenir",()=>{
+test("ana uygulama gömülü koç panelini yüklemez ve koçları bağımsız panele yönlendirir",()=>{
   const loader=read("src/ui/coach-account-loader.ts");
-  const linkAt=loader.indexOf("coach-student-link-hotfix.js?v=1.0.0");
-  const dashboardAt=loader.indexOf("coach-dashboard-v2.js?v=2.1.0");
+  const programShareAt=loader.indexOf("coach-program-share-v2.js?v=2.0.0");
   const authAt=loader.indexOf("auth-session-runtime.js?v=1.6.0");
-  assert.ok(linkAt>=0&&dashboardAt>linkAt&&authAt>dashboardAt);
-  assert.match(loader,/COACH_DASHBOARD_V2_SCRIPT_ID/);
-  assert.match(read("public/coach-dashboard-v2.js"),/version:"2\.1\.0"/);
+  assert.ok(programShareAt>=0&&authAt>programShareAt);
+  assert.doesNotMatch(loader,/coach-dashboard-v2\.js/);
+  assert.doesNotMatch(loader,/COACH_DASHBOARD_V2_SCRIPT_ID/);
+  assert.match(loader,/YKS-DEFTER-M-Ko-Paneli/);
+  assert.match(loader,/window\.location\.replace\(COACH_PANEL_URL\)/);
+  assert.match(loader,/coach-program-share-v2\.js\?v=2\.0\.0/);
 });
 
 test("öğrenci seçildiğinde varsayılan görünüm özete döner ve canlı paylaşım yeniden bağlanır",()=>{
