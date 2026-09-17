@@ -70,12 +70,14 @@ test("Firebase oturum hatasında kimlik jetonunu yalnız bir kez tazeler",()=>{
   assert.match(source,/retryAfterAuth=false/);
 });
 
-test("İlk indirmede permission-denied olursa token yenilenince indirme bir kez daha denenir",()=>{
+test("İlk indirmede auth veya geçici ağ hatası olursa bulut indirmesi kontrollü tekrar denenir",()=>{
   const source=distHardening();
-  assert.match(source,/authRecoveryTimer=setTimeout\(\(\)=>\{if\(user&&navigator\.onLine&&!loading\)downloadOrSeed\(\);\}/);
-  assert.match(source,/600\+Math\.floor\(Math\.random\(\)\*500\)/);
+  assert.match(source,/if\(\(authRetry\|\|!syncRetryBlocked\)&&!dirty\)/);
+  assert.match(source,/authRecoveryTimer=setTimeout\(\(\)=>\{if\(user&&navigator\.onLine&&!loading&&!dirty\)downloadOrSeed\(\);\}/);
+  assert.match(source,/authRetry\?600\+Math\.floor\(Math\.random\(\)\*500\):syncRetryDelay\(\)/);
   assert.match(source,/Firebase erişim izni reddedildi/);
   assert.match(source,/Bulut oturumu doğrulanamadı/);
+  assert.match(source,/ilk indirme auth veya geçici ağ hatası sonrası kontrollü yeniden indirme/);
 });
 
 test("Kalıcı permission-denied görünürlük veya ağ dönüşünde tekrar tekrar tetiklenmez",()=>{
