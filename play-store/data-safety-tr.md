@@ -8,7 +8,7 @@ Google'ın resmî açıklamasına göre cihaz içinde kalan veri Data Safety kap
 - [Google Play User Data politikası](https://support.google.com/googleplay/android-developer/answer/10144311)
 - [Google Play hesap silme gereksinimi](https://support.google.com/googleplay/android-developer/answer/13327111)
 
-## 1. Son kaynak denetiminde görülen yerel veriler
+## 1. Android native paketinde görülen yerel veriler
 
 Uygulama aşağıdaki içerikleri işlevlerini sağlamak için cihaz içinde işleyebilir:
 
@@ -21,9 +21,11 @@ Uygulama aşağıdaki içerikleri işlevlerini sağlamak için cihaz içinde iş
 - Yerel JSON yedekleri, kurtarma kayıtları ve uygulama cache'leri
 - Kullanıcının açıkça başlattığı Markdown, ICS, Anki uyumlu metin, PNG çalışma kartı ve rapor dışa aktarımları/paylaşımları
 
-Ana depolar IndexedDB/Dexie ve uygulama local storage alanıdır. Kaynak denetiminde bu çalışma kayıtlarını YKS Defterim geliştiricisinin işlettiği bir backend'e gönderen aktif bir hesap, auth veya bulut senkronu bulunmaması hedeflenir. Bu cümle, üçüncü taraf ağ isteklerinin olmadığı anlamına gelmez ve son AAB üzerinde doğrulanmalıdır.
+Ana depolar IndexedDB/Dexie ve uygulama local storage alanıdır. Mevcut Android native shell, web/PWA için bulunan hesap ve Firebase cloud-sync çalışma yolunu etkinleştirmez (`native-local`). Bu nedenle Google Play'e gönderilen Android davranışı ile web/PWA davranışı birbirinden ayrıdır ve Data Safety formu signed AAB'nin gerçek davranışına göre doldurulmalıdır.
 
-## 2. Cihaz dışına çıkabilen kullanıcı başlatmalı istekler
+Web/PWA sürümünde isteğe bağlı Google ile giriş, Firebase Authentication, Cloud Firestore senkronu ve koç paylaşımı bulunabilir. Bu web davranışı gizlilik politikasında açıklanır; Android Data Safety beyanına web davranışı otomatik olarak kopyalanmamalıdır.
+
+## 2. Android cihaz dışına çıkabilen kullanıcı başlatmalı istekler
 
 ### Wikipedia / Wikimedia
 
@@ -42,19 +44,20 @@ Bu akışlar nedeniyle “uygulama hiçbir veriyi cihaz dışına iletmez” vey
 
 MEB, OGM, ÖSYM, YouTube, GitHub destek sayfası veya kullanıcının kendi eklediği `https://` bağlantısı cihazın tarayıcısı/uygun uygulamasıyla açılabilir. Kullanıcı açık webde gezinirken hedef hizmet kendi gizlilik koşullarına tabidir. Uygulama, kişisel çalışma kayıtlarını bu bağlantıların URL'sine bilinçli olarak eklememelidir; son paket bu açıdan test edilir.
 
-## 3. SDK ve first-party backend envanteri
+## 3. SDK, hesap ve backend envanteri
 
-Kaynak denetiminin doğrulaması gereken mevcut hedef durum:
+Signed Android AAB için kaynak denetiminin doğrulaması gereken mevcut hedef durum:
 
 - Reklam SDK'sı: yok
 - Analytics SDK'sı: yok
 - Crash reporting SDK'sı: yok
 - Push/mesajlaşma SDK'sı: yok
-- Kullanıcı hesabı / authentication: yok
-- Geliştiriciye ait çalışma verisi backend'i: yok
-- Firebase çalışma zamanı: Android yayın paketinde yok
+- Android native YKS Defterim kullanıcı hesabı/auth akışı: etkin değil
+- Android native çalışma verisi cloud-sync akışı: etkin değil
+- Web/PWA build varlıkları içinde Firebase senkron kodu bulunabilir; native shell bunu çalıştırmamalıdır
+- Web/PWA sürümünde isteğe bağlı Firebase Authentication + Firestore senkronu vardır
 
-Bu liste `npm` bağımlılık ağacı, Android Gradle bağımlılık raporu, merged manifest ve signed AAB içeriğiyle tekrar kontrol edilmeden Play Console cevabı sayılmaz.
+Bu liste `npm` bağımlılık ağacı, Android Gradle bağımlılık raporu, merged manifest, signed AAB içeriği ve gerçek ağ trafiğiyle tekrar kontrol edilmeden Play Console cevabı sayılmaz. Paket içinde bir web varlığının bulunması ile Android çalışma zamanında bu ağ yolunun etkin olması birbirinden ayrılmalıdır.
 
 ## 4. Form için karar notları
 
@@ -62,22 +65,22 @@ Bu liste `npm` bağımlılık ağacı, Android Gradle bağımlılık raporu, mer
 
 - Yalnız cihaz içinde işlenen çalışma verileri Play'in “on-device processing” istisnası kapsamında olabilir.
 - Wikipedia ve YouTube akışları kullanıcı başlatmalı olsa da cihaz dışına veri aktarır. Aktarımın Data Safety kategorileri, amaçları, ephemeral processing ve sharing istisnaları son form tanımına göre tek tek değerlendirilmelidir.
-- YKS Defterim geliştiricisinin veriyi almaması, üçüncü taraf SDK/API aktarımını otomatik olarak form dışı bırakmaz.
+- Android native shell'de Firebase auth/cloud-sync etkin değilse web/PWA'daki Firebase aktarımı signed AAB davranışı olarak varsayılmamalıdır; son ağ testi bunu doğrulamalıdır.
 - Dışa aktarılan yedeği kullanıcının kendi seçtiği depolama/uygulamaya kaydetmesi ayrıca değerlendirilir; uygulama yedeği sonradan okumuyor veya geliştiriciye göndermiyorsa Google'ın kullanıcı kontrollü aktarım açıklaması dikkate alınır.
 
 ### Şifreleme ve silme
 
 - “Aktarım sırasında şifrelenir” cevabı yalnız tüm cihaz dışı isteklerin HTTPS olduğu, cleartext trafiğin kapalı bulunduğu ve ağ testinde HTTP görülmediği doğrulanırsa seçilmelidir.
-- Uygulama hesap oluşturmaz. Play Console'daki account creation sorusuna bu gerçek davranışa göre cevap verilir; çevrimiçi hesap silme URL'si varmış gibi beyan verilmez.
+- Mevcut Android native paket çevrimiçi YKS Defterim hesabı oluşturmaz; Play Console'daki account creation sorusu signed AAB'nin bu gerçek davranışına göre cevaplanmalıdır. Web/PWA'da Google/Firebase hesabı bulunması gizlilik politikasında ayrıca açıklanır.
 - Kullanıcı **Daha → Veri → Cihaz verilerini sil** ile uygulama içi yerel verileri silebilir. Android Ayarları'ndan uygulama depolamasını temizleme ve uygulamayı kaldırma da cihaz içi depoyu etkiler.
-- Uygulama dışına aktarılmış JSON/yedek, Markdown, ICS, Anki uyumlu metin, PNG çalışma kartı ve rapor dosyaları otomatik silinmez. Kullanıcının seçtiği dosya/paylaşım hedefi ile Wikipedia, YouTube veya açılan diğer hizmetlerdeki verilerin saklama/silme politikası ilgili üçüncü tarafa aittir.
+- Cihaz verilerini silmek; web/PWA Firebase bulut verisini, Google hesabını veya uygulama dışına aktarılmış JSON/yedek, Markdown, ICS, Anki uyumlu metin, PNG çalışma kartı ve rapor dosyalarını otomatik silmez.
 
 ## 5. Signed AAB üzerinde zorunlu manuel doğrulama
 
 1. Internal Testing için üretilecek signed AAB'yi temiz bir test cihazına kurun.
 2. Android Studio Network Inspector, güvenilir bir proxy veya cihaz ağ günlüğüyle önce temiz açılışı gözlemleyin.
-3. Hesap/auth, reklam, analytics, crash veya beklenmeyen telemetri alan adı olmadığını doğrulayın.
-4. Program, Deneme, Odak, yedekleme ve silme akışlarını çalıştırın; çalışma kayıtlarının cihaz dışına çıkmadığını gözlemleyin.
+3. Android native shell'in Firebase auth/cloud-sync akışını etkinleştirmediğini ve beklenmeyen reklam, analytics, crash veya telemetri alan adı olmadığını doğrulayın.
+4. Program, Deneme, Odak, yedekleme ve silme akışlarını çalıştırın; çalışma kayıtlarının kullanıcı tarafından başlatılmayan bir backend aktarımına girmediğini gözlemleyin.
 5. Periyodik tablo element medyasını açın; Wikipedia/Wikimedia isteklerini kaydedin.
 6. YouTube araması, kullanıcı API anahtarlı Data API araması, video ve oynatma listesi embed akışlarını ayrı ayrı test edin.
 7. MEB/OGM/ÖSYM ve kullanıcı ekli dış bağlantıların uygulama içi WebView mı, sistem tarayıcısı mı açtığını kaydedin.
@@ -85,7 +88,7 @@ Bu liste `npm` bağımlılık ağacı, Android Gradle bağımlılık raporu, mer
 9. Her alan adı için gönderilen parametreleri, header/cookie davranışını, veri kategorisini, amacı, saklamayı ve sağlayıcı rolünü bir tabloya kaydedin.
 10. Privacy policy ile Data Safety formunu aynı signed commit/binary davranışına göre güncelleyin.
 
-İlk gözlemde özellikle şu alan adları aranmalıdır: `tr.wikipedia.org`, Wikimedia görsel alanları, `www.googleapis.com`, `www.youtube-nocookie.com`, `www.youtube.com`, MEB/OGM/ÖSYM alanları ve kullanıcının açtığı özel bağlantılar. Beklenmeyen `firebase`, reklam, analytics veya crash alan adları bir yayın engelidir.
+İlk gözlemde özellikle şu alan adları aranmalıdır: `tr.wikipedia.org`, Wikimedia görsel alanları, `www.googleapis.com`, `www.youtube-nocookie.com`, `www.youtube.com`, MEB/OGM/ÖSYM alanları ve kullanıcının açtığı özel bağlantılar. Android native başlangıcında beklenmeyen Firebase auth/Firestore, reklam, analytics veya crash trafiği bir yayın engeli olarak incelenmelidir.
 
 ## 6. Hesap sahibinin tamamlayacağı maddeler
 
@@ -93,6 +96,6 @@ Bu liste `npm` bağımlılık ağacı, Android Gradle bağımlılık raporu, mer
 - YouTube ve Wikimedia'nın güncel hizmet/gizlilik koşullarına göre üçüncü taraf rolü
 - Nihai yayıncı/geliştirici adı ve gizlilik iletişim kanalı
 - Son ağ gözlem kaydı ve Data Safety beyanının gönderimi
-- Yeni bir SDK veya özellik eklenirse formun yeniden değerlendirilmesi
+- Yeni bir SDK, native hesap veya native cloud-sync özelliği eklenirse formun yeniden değerlendirilmesi
 
 Bu çalışma kağıdı hukuki görüş veya Google Play onayı garantisi değildir.
