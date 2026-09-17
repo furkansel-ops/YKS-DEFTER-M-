@@ -1,5 +1,5 @@
 /* YKS Defterim — dayanıklı PWA katmanı | v4.4.0
-   cache refresh epoch: 2026-09-01-stability */
+   cache refresh epoch: 2026-09-17-fresh-shell */
 const APP_VERSION="4.4.0";
 const APP_BUILD="4.4.0-r2";
 const CACHE="yks-core-v4.4.0-r2";
@@ -21,11 +21,11 @@ function buildAssets(html){
 async function cacheCore(){
   const cache=await caches.open(CACHE);
   try{
-    const shell=await fetchWithTimeout("./index.html",{cache:"no-store"},6500);
+    const shell=await fetchWithTimeout("./index.html",{cache:"no-store"},9000);
     if(!shell||!shell.ok)throw new Error("Uygulama kabuğu indirilemedi");
     const html=await shell.clone().text(),required=[...new Set(CORE.concat(buildAssets(html)))];
     await Promise.all(required.map(async u=>{
-      const r=u==="./index.html"?shell.clone():await fetchWithTimeout(u,{cache:"no-store"},6500);
+      const r=u==="./index.html"?shell.clone():await fetchWithTimeout(u,{cache:"no-store"},9000);
       if(!r||!r.ok)throw new Error("Çevrimdışı dosya alınamadı: "+u);
       await cache.put(u,r.clone());
     }));
@@ -48,14 +48,25 @@ function isLegacyIndexEntry(url){
     return url.origin===root.origin&&url.pathname===entry.pathname;
   }catch(e){return false;}
 }
+async function cacheLatestShell(response){
+  try{
+    const cache=await caches.open(CACHE);
+    await Promise.all([cache.put("./index.html",response.clone()),cache.put("./",response.clone())]);
+  }catch(e){}
+}
 async function navigationResponse(req){
   const url=new URL(req.url);
   /* Eski Android/iOS ana ekran kurulumları ./index.html adresini saklamış olabilir.
      Uygulama kimliğini bozmadan bu eski giriş noktasını kanonik klasör köküne taşı. */
   if(isLegacyIndexEntry(url))return Response.redirect(appRootUrl(),302);
   try{
-    const res=await fetchWithTimeout(req,{cache:"no-store"},4500);
-    if(res&&res.ok)return res;
+    const res=await fetchWithTimeout(req,{cache:"no-store"},10000);
+    if(res&&res.ok){
+      /* Online açılış başarılıysa çevrimdışı kabuğu da aynı HTML ile hemen tazele.
+         Böylece kısa süreli ağ hatasında önceki deploy'un index.html'i geri dönmez. */
+      if(isAppEntry(url))await cacheLatestShell(res);
+      return res;
+    }
     /* Eski ana ekran kısayolu proje içinde artık var olmayan bir yola gidiyorsa
        404 sayfasını göstermek yerine kanonik uygulama köküne dön. */
     if(res&&(res.status===404||res.status===410)&&!isAppEntry(url))return Response.redirect(appRootUrl(),302);
@@ -72,16 +83,27 @@ function offlineResponse(){return new Response(OFFLINE_TEXT,{status:503,headers:
 async function currentCacheMatch(request){
   try{const cache=await caches.open(CACHE);return (await cache.match(request))||null;}catch(e){return null;}
 }
+function isCriticalAsset(url){
+  return /\/assets\//.test(url.pathname)||/\.(?:js|mjs|css)$/.test(url.pathname)||url.pathname.endsWith("/manifest.webmanifest");
+}
+async function networkFirstStatic(req){
+  try{
+    const res=await fetchWithTimeout(req,{cache:"no-cache"},8000);
+    if(res&&res.ok){
+      try{const cache=await caches.open(CACHE);await cache.put(req,res.clone());}catch(e){}
+      return res;
+    }
+  }catch(e){}
+  return (await currentCacheMatch(req))||offlineResponse();
+}
 
 self.addEventListener("install",event=>{
-  /* Yeni worker ancak temel uygulama kabuğu gerçekten hazırsa kurulmuş sayılır.
-     Aynı release build içinde yapılan bakım güncellemeleri de no-store ile mevcut cache
-     anahtarını tazeleyerek eski app.js + yeni Vite paketinin karışmasını engeller. */
-  event.waitUntil(cacheCore());
+  /* Her bakım deploy'unda çekirdek dosyalar no-store ile yeniden alınır ve worker beklemede kalmaz.
+     Böylece açık sekmeler olsa bile eski shell ile yeni bundle sırayla kullanılmaz. */
+  event.waitUntil(cacheCore().then(()=>self.skipWaiting()));
 });
 self.addEventListener("activate",event=>{
   event.waitUntil(caches.keys().then(keys=>Promise.all(
-    /* Güncel çekirdek dışında kalan önceki cache'ler ve aynı ailedeki eski çekirdekler temizlenir. */
     keys.filter(k=>k!==CACHE&&(CACHE_LINEAGE.includes(k)||k.startsWith("yks-core-"))).map(k=>caches.delete(k))
   )).then(()=>self.clients.claim()));
 });
@@ -105,7 +127,6 @@ self.addEventListener("fetch",event=>{
   const url=new URL(req.url);if(url.origin!==self.location.origin)return;
   /* Sürüm dosyası cache'e girmez ve kötü bağlantıda sonsuza kadar beklemez. */
   if(url.pathname.endsWith("/version.json")||url.pathname.endsWith("version.json")){
-    /* Sürüm kontrolü çevrimdışıyken rejected Response bırakmasın. */
     event.respondWith(fetchWithTimeout(req,{cache:"no-store"},3500).catch(()=>offlineResponse()));return;
   }
   if(req.mode==="navigate"){
@@ -128,7 +149,12 @@ self.addEventListener("fetch",event=>{
     event.waitUntil(response.then(()=>{}).catch(()=>{}));
     event.respondWith(response);return;
   }
-  /* Statik dosyalarda cache-first + arka planda yenileme: açılış hızlı, dosya güncel kalır. */
+  /* Uygulamanın davranışını ve görünümünü belirleyen JS/CSS dosyaları online iken
+     daima önce ağdan doğrulanır. Eski cache yalnız gerçek offline fallback'tir. */
+  if(isCriticalAsset(url)){
+    event.respondWith(networkFirstStatic(req));return;
+  }
+  /* Görsel ve diğer statik dosyalarda hızlı cache-first + arka planda yenileme yeterlidir. */
   const fresh=fetchWithTimeout(req,{cache:"no-cache"},5000).then(async res=>{
     if(res&&res.ok){try{const cache=await caches.open(CACHE);await cache.put(req,res.clone());}catch(e){}}
     return res;
