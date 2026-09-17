@@ -22,13 +22,10 @@ test("PWA elle kurulum yardımı cihaz türüne uygun Türkçe yol gösterir",as
   assert.match(manualInstallHint("Mozilla/5.0 Windows Chrome"),/adres çubuğundaki yükle simgesi/);
 });
 
-test("PWA runtime service worker güncellemesini HTTP cache dışından zorlar",()=>{
-  const source=fs.readFileSync(runtimePath,"utf8");
-  assert.match(source,/new URL\("\.\/sw\.js",documentRef\.baseURI\)/);
-  assert.match(source,/updateViaCache:"none"/);
-  assert.match(source,/await registration\.update\(\)/);
-  assert.match(source,/registration\.waiting\?\.postMessage\(\{type:"SKIP_WAITING"\}\)/);
-  assert.match(source,/void ensureFreshServiceWorker\(windowRef,documentRef\)/);
+test("mevcut uygulama kaydı service worker güncellemesini HTTP cache dışından zorlar",()=>{
+  const app=fs.readFileSync(path.resolve(__dirname,"../app.js"),"utf8");
+  assert.match(app,/navigator\.serviceWorker\.register\("sw\.js",\{updateViaCache:"none"\}\)/);
+  assert.match(app,/reg\.update\(\)\.catch\(\(\)=>\{\}\)/);
 });
 
 test("service worker online shell ve kritik JS CSS için eski cache'i öne almaz",()=>{
@@ -38,4 +35,5 @@ test("service worker online shell ve kritik JS CSS için eski cache'i öne almaz
   assert.match(sw,/function isCriticalAsset\(url\)/);
   assert.match(sw,/function networkFirstStatic\(req\)/);
   assert.match(sw,/if\(isCriticalAsset\(url\)\)[\s\S]*event\.respondWith\(networkFirstStatic\(req\)\)/);
+  assert.match(sw,/cacheCore\(\)\.then\(\(\)=>self\.skipWaiting\(\)\)/);
 });
