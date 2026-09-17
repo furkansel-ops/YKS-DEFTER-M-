@@ -35,7 +35,7 @@ test("Gizlilik politikası yerel, web bulut ve kullanıcı başlatmalı ağ eri�
   assert.match(privacy,/Wikipedia\/Wikimedia/);
   assert.match(privacy,/YouTube Data API/);
   assert.match(privacy,/MEB, OGM, ÖSYM/);
-  assert.match(privacy,/dışa aktardığı JSON\/yedek dosyası/);
+  assert.match(privacy,/JSON yedeği/);
   assert.match(privacy,/Markdown özeti/);
   assert.match(privacy,/Anki uyumlu metin/);
   assert.match(privacy,/PNG/);
