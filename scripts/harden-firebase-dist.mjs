@@ -114,8 +114,8 @@ replaceRequired(
 
 replaceRequired(
   '}catch(e){await refreshCloudAuth(e);reportSyncError("firebase-download",e);}\n  finally{loading=false;if(user&&dirty&&navigator.onLine&&syncRetryCount){clearTimeout(timer);timer=setTimeout(upload,syncRetryDelay());}}',
-  '}catch(e){const authRetry=await refreshCloudAuth(e);reportSyncError("firebase-download",e,authRetry);if(authRetry){clearTimeout(authRecoveryTimer);authRecoveryTimer=setTimeout(()=>{if(user&&navigator.onLine&&!loading)downloadOrSeed();},600+Math.floor(Math.random()*500));}}\n  finally{loading=false;if(user&&dirty&&navigator.onLine&&syncRetryCount&&!syncRetryBlocked){clearTimeout(timer);timer=setTimeout(upload,syncRetryDelay());}}',
-  "ilk indirme permission-denied sonrası token yenileyip yeniden indirme"
+  '}catch(e){const authRetry=await refreshCloudAuth(e);reportSyncError("firebase-download",e,authRetry);if((authRetry||!syncRetryBlocked)&&!dirty){clearTimeout(authRecoveryTimer);authRecoveryTimer=setTimeout(()=>{if(user&&navigator.onLine&&!loading&&!dirty)downloadOrSeed();},authRetry?600+Math.floor(Math.random()*500):syncRetryDelay());}}\n  finally{loading=false;if(user&&dirty&&navigator.onLine&&syncRetryCount&&!syncRetryBlocked){clearTimeout(timer);timer=setTimeout(upload,syncRetryDelay());}}',
+  "ilk indirme auth veya geçici ağ hatası sonrası kontrollü yeniden indirme"
 );
 
 replaceRequired(
