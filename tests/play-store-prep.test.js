@@ -62,12 +62,15 @@ test("Gizlilik ve gerçek cihaz veri silme akışı üretim paketine bağlıdır
   assert.match(shell,/cloudSyncBox/);
   assert.match(shell,/privacy\.html/);
   assert.match(shell,/data-deletion\.html/);
+  assert.match(shell,/isNativeApp\(\)\?"native-local"/);
   assert.match(main,/installPlayStoreShell/);
   assert.match(copy,/"privacy\.html"/);
   assert.match(copy,/"data-deletion\.html"/);
-  assert.match(privacy,/kullanıcı hesabı oluşturmaz/);
-  assert.doesNotMatch(privacy,/Firebase/i);
+  assert.match(privacy,/Android native paketinde/);
+  assert.match(privacy,/Firebase Authentication/);
+  assert.match(privacy,/Cloud Firestore/);
   assert.match(deletion,/IndexedDB/);
+  assert.match(deletion,/bulut.*otomatik olarak silmez/is);
 });
 
 test("Play Store hazırlık katmanı Program veya YKS çalışma verisi üretmez",()=>{

@@ -24,39 +24,48 @@ test("Play Store belgeleri 4.4.0 Android kimliği ve yayın sınırını doğru 
   assert.match(release,/tamamlanmadan “Play Store'da yayınlandı”/);
 });
 
-test("Gizlilik politikası yerel veriyi ve kullanıcı başlatmalı ağ erişimlerini açıklar",()=>{
+test("Gizlilik politikası yerel, web bulut ve kullanıcı başlatmalı ağ erişimlerini açıklar",()=>{
   const privacy=read("privacy.html");
   assert.match(privacy,/IndexedDB\/Dexie/);
-  assert.match(privacy,/kullanıcı hesabı oluşturmaz/);
+  assert.match(privacy,/Android native paketinde/);
+  assert.match(privacy,/Web\/PWA sürümünde/);
+  assert.match(privacy,/Firebase Authentication/);
+  assert.match(privacy,/Cloud Firestore/);
+  assert.match(privacy,/koç.*ham.*snapshot/is);
   assert.match(privacy,/Wikipedia\/Wikimedia/);
   assert.match(privacy,/YouTube Data API/);
   assert.match(privacy,/MEB, OGM, ÖSYM/);
-  assert.match(privacy,/dışa aktardığı JSON\/yedek dosyası/);
+  assert.match(privacy,/JSON yedeği/);
   assert.match(privacy,/Markdown özeti/);
   assert.match(privacy,/Anki uyumlu metin/);
   assert.match(privacy,/PNG/);
   assert.match(privacy,/Cihaz verilerini sil/i);
-  assert.doesNotMatch(privacy,/Firebase/i);
+  assert.match(privacy,/bulut kopyasını.*otomatik olarak kaldırmaz/is);
+  assert.doesNotMatch(privacy,/Bu sürüm kullanıcı hesabı oluşturmaz/);
   assert.doesNotMatch(privacy,/hiçbir veri (?:toplanmaz|paylaşılmaz)/i);
 });
 
-test("Data Safety çalışma kağıdı kesin cevap yerine signed AAB doğrulaması ister",()=>{
+test("Data Safety çalışma kağıdı Android native ve web bulut davranışını ayırır",()=>{
   const safety=read("play-store/data-safety-tr.md");
-  for(const marker of [
+  for(const marker of[
     "tr.wikipedia.org",
     "www.googleapis.com",
     "www.youtube-nocookie.com",
     "signed AAB",
     "merged manifest",
     "on-device processing",
-    "hesap oluşturmaz"
+    "Android native paket",
+    "Web/PWA",
+    "Firebase Authentication"
   ])assert.ok(safety.includes(marker),marker);
   assert.match(safety,/doğrudan kopyalanacak kesin cevap değildir/);
   assert.match(safety,/hiç veri toplanmıyor\/paylaşılmıyor/);
+  assert.match(safety,/native shell.*cloud-sync.*etkinleştirmez/is);
+  assert.doesNotMatch(safety,/Firebase çalışma zamanı: Android yayın paketinde yok/);
   assert.doesNotMatch(safety,/Önerilen Play Console cevap yönü/);
 });
 
-test("Veri silme sayfası uygulama deposu ile dışa aktarılan dosyayı ayırır",()=>{
+test("Veri silme sayfası yerel veri, bulut veri ve dışa aktarılan dosyayı ayırır",()=>{
   const deletion=read("data-deletion.html");
   assert.match(deletion,/İki ayrı kalıcı silme onayını/);
   assert.match(deletion,/IndexedDB\/Dexie/);
@@ -64,7 +73,10 @@ test("Veri silme sayfası uygulama deposu ile dışa aktarılan dosyayı ayırı
   assert.match(deletion,/otomatik olarak silmez/);
   assert.match(deletion,/Markdown/);
   assert.match(deletion,/Anki uyumlu/);
-  assert.match(deletion,/hesap silme talep formu değil/i);
+  assert.match(deletion,/Web\/PWA bulut verileri ve hesap/);
+  assert.match(deletion,/Firebase Authentication/);
+  assert.match(deletion,/Cihaz verilerini sil.*bulut.*otomatik/is);
+  assert.doesNotMatch(deletion,/Bu sürüm kullanıcı hesabı oluşturmadığı/);
 });
 
 test("Türkçe mağaza metinleri Play karakter sınırları içinde ve temkinlidir",()=>{

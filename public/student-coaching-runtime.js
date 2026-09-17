@@ -1,7 +1,7 @@
 import{collection,doc,getDoc,onSnapshot,query,where,setDoc,updateDoc,serverTimestamp}from"https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
 
 const PENDING_ROLE="yks_account_role_pending",ROLE_HINT="yks_account_role_hint",DAY=86400000;
-const rt={auth:null,db:null,user:null,profile:null,stops:[],shareTimer:null,sharing:false};
+const rt={auth:null,db:null,user:null,profile:null,stops:[],shareTimer:null,sharing:false,pending:false};
 const text=(v,n=160)=>String(v??"").trim().slice(0,n);
 const state=()=>{try{return window.YKSLegacyState?.readState?.()||window.S||null}catch{return window.S||null}};
 const save=()=>{try{return window.save?.()??window.YKSLegacyState?.save?.()}catch{return false}};
@@ -31,7 +31,7 @@ async function ensureProfile(user,db){
 
 function cleanup(){
   rt.stops.splice(0).forEach(fn=>{try{fn()}catch{}});
-  clearTimeout(rt.shareTimer);rt.shareTimer=null;rt.sharing=false;
+  clearTimeout(rt.shareTimer);rt.shareTimer=null;rt.sharing=false;rt.pending=false;
 }
 function sum(map,days){let n=0;for(let i=0;i<days;i++)n+=Number(map?.[new Date(Date.now()-i*DAY).toISOString().slice(0,10)]||0)||0;return n}
 function topicParts(k){const p=String(k||"").split("|");return{exam:p[0]||"YKS",subject:p[1]||"Ders",topic:p.slice(2).join("|")||p[1]||k}}
@@ -43,14 +43,18 @@ function sharePayload(s,u){
   return{studentUid:u.uid,version:1,profile:{name:text(s.name||u.displayName,80),track:text(s.puanTuru,8),targetNetTYT:Number(s.targetNetTYT??s.targetNet??0),targetNetAYT:Number(s.targetNetAYT||0),targetUniversity:text(s.targetUniversity,120),targetDepartment:text(s.targetDepartment,120)},exams,progress:{minutes7:sum(s.pomoMin,7),questions7:sum(s.solved,7),completedTopics:topics.filter(x=>x.st>=3).length,activeTopics:topics.filter(x=>x.st>0&&x.st<3).length,overdueTopics:topics.filter(x=>x.deadline&&x.deadline<today()&&x.st<3).length},paragraphProblem:{entries:pp},topics:{items:topics},errorJournal:errors,updatedAt:serverTimestamp()};
 }
 async function publishShare(){
-  if(rt.sharing||rt.profile?.role!=="student"||!rt.db||!rt.user)return;
+  if(rt.sharing){rt.pending=true;return}
+  if(rt.profile?.role!=="student"||!rt.db||!rt.user)return;
   const s=state();if(!s)return;rt.sharing=true;
   try{
     await setDoc(doc(rt.db,"coachingShares",rt.user.uid),sharePayload(s,rt.user),{merge:true});
     document.documentElement.dataset.coachShare="ready";
   }catch(error){
     console.error("Koç paylaşımı",error);document.documentElement.dataset.coachShare="error";
-  }finally{rt.sharing=false}
+  }finally{
+    rt.sharing=false;
+    if(rt.pending){rt.pending=false;scheduleShare(120)}
+  }
 }
 function scheduleShare(ms=900){clearTimeout(rt.shareTimer);rt.shareTimer=setTimeout(()=>void publishShare(),ms)}
 

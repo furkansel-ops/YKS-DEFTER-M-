@@ -32,6 +32,14 @@ test("öğrenci koç paylaşımı yalnız güvenli coachingShares görünümün�
   assert.doesNotMatch(runtime,/program:\{weeks\}/);
 });
 
+test("koç paylaşımı yazma sürerken gelen son öğrenci değişikliğini tekrar yayınlar",()=>{
+  const runtime=read("public/student-coaching-runtime.js");
+  assert.match(runtime,/sharing:false,pending:false/);
+  assert.match(runtime,/if\(rt\.sharing\)\{rt\.pending=true;return\}/);
+  assert.match(runtime,/rt\.sharing=false;\s*if\(rt\.pending\)\{rt\.pending=false;scheduleShare\(120\)\}/);
+  assert.match(runtime,/rt\.shareTimer=null;rt\.sharing=false;rt\.pending=false/);
+});
+
 test("Programım paylaşımı öğrenci köprüsünde tam yapıyı korur",()=>{
   const runtime=read("public/student-program-share-v2.js");
   for(const token of["PROGRAM_VERSION=2","MAX_PROGRAM_WEEKS=80","rowLabels","rows","weeks","done","dn","mv","coachingShares"])assert.ok(runtime.includes(token),token);

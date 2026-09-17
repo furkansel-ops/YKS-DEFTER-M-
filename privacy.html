@@ -11,54 +11,61 @@
 </head>
 <body><div class="wrap"><main>
   <h1>YKS Defterim Gizlilik Politikası</h1>
-  <small>Son güncelleme: 31 Ağustos 2026 · Kapsam: YKS Defterim 4.4.0 Android ve web sürümü</small>
+  <small>Son güncelleme: 17 Eylül 2026 · Kapsam: YKS Defterim 4.4.0 Android, web ve PWA sürümleri</small>
   <p>YKS Defterim; çalışma planı, konu takibi, deneme analizi, odak oturumları ve görsel öğrenme araçları sunan bağımsız bir eğitim uygulamasıdır. Bu uygulamanın veri sorumlusu/yayıncısı, Google Play'deki YKS Defterim mağaza kaydında gösterilen geliştiricidir. Bu politika uygulamanın verileri nasıl işlediğini ve kullanıcının hangi kontrolleri kullanabileceğini açıklar.</p>
 
-  <h2>1. Cihazda işlenen veriler</h2>
+  <h2>1. İşlenen çalışma verileri</h2>
   <p>Uygulama; kullanıcının isteğe bağlı olarak girdiği ad/profil bilgisi, çalışma planları, konu ilerlemesi, deneme sonuçları, yanlış ve kişisel notlar, odak oturumları, hedefler, favoriler, uygulama tercihleri, eklenen kaynak bağlantıları ve Öğrenme Laboratuvarı ilerlemesi gibi verileri işleyebilir. Kullanıcı YouTube Data API özelliğini seçerse kendi API anahtarını da cihazında saklayabilir.</p>
   <p class="note">Not ve serbest metin alanlarına gereksiz kişisel veya hassas bilgi yazılmaması önerilir.</p>
 
-  <h2>2. Yerel saklama ve saklama süresi</h2>
-  <p>Çalışma verileri uygulamanın cihazdaki yerel depolama alanlarında (örneğin IndexedDB/Dexie, yerel uygulama depolaması ve cache) tutulur. Bu sürüm kullanıcı hesabı oluşturmaz ve YKS Defterim geliştiricisinin işlettiği bir sunucuya çalışma kayıtlarını yükleyen bir bulut senkronu sunmaz.</p>
-  <p>Yerel veriler kullanıcı uygulama içinden silene, Android ayarlarından uygulama depolamasını temizleyene veya işletim sistemi uygulama verisini kaldırana kadar cihazda kalabilir. Kullanıcının dışa aktardığı JSON/yedek dosyası uygulama deposunun dışındadır; kullanıcı bu dosyayı ayrıca yönetir ve siler.</p>
+  <h2>2. Yerel saklama, hesap ve bulut senkronu</h2>
+  <p>Çalışma verilerinin ana yerel kopyası uygulamanın cihazdaki depolama alanlarında (örneğin IndexedDB/Dexie, yerel uygulama depolaması ve cache) tutulur.</p>
+  <p><b>Android native paketinde</b> hesap/bulut çalışma zamanı etkinleştirilmez; çalışma verileri cihazda tutulur. <b>Web/PWA sürümünde</b> kullanıcı isteğe bağlı olarak Google hesabıyla giriş yaparsa Firebase Authentication kimlik doğrulama için, Cloud Firestore ise hesaba bağlı senkronize çalışma durumunu saklamak için kullanılabilir. Giriş yapılmadığında web/PWA çalışma verileri de yerel kalır.</p>
+  <p>Web/PWA bulut senkronunda veri kullanıcı kimliği (UID) altında tutulur. Koç bağlantısı özelliği kullanılırsa koçla bağlantı bilgisi, güvenli özet görünümü, Programım paylaşımı ve koçtan gelen kontrollü görev/not işlemleri de Firestore'da saklanabilir. Koça doğrudan ham öğrenci senkron snapshot'ı açılmaz; koç yalnız bağlantı ve güvenlik kurallarının izin verdiği özet/paylaşım verilerine erişebilir.</p>
+  <p>Yerel veriler kullanıcı uygulama içinden silene, Android ayarlarından uygulama depolamasını temizleyene veya işletim sistemi uygulama verisini kaldırana kadar cihazda kalabilir. Bulut verisi yerel cihaz verisinden ayrıdır ve cihaz verilerini silmek bulut kopyasını otomatik olarak kaldırmaz.</p>
 
   <h2>3. Ağ erişimi ve üçüncü taraf hizmetleri</h2>
-  <p>Temel kayıt ve planlama işlevleri yerel çalışır. Aşağıdaki isteğe bağlı özellikler, kullanıcı ilgili işlemi başlattığında üçüncü taraf hizmetlere bağlanabilir:</p>
+  <p>Temel kayıt ve planlama işlevleri yerel çalışabilir. Aşağıdaki özellikler, ilgili işlem kullanıldığında ağ erişimi oluşturabilir:</p>
   <ul>
+    <li><b>Firebase/Google (web/PWA):</b> Kullanıcı Google ile giriş ve bulut senkronunu kullanırsa kimlik doğrulama, hesap profili ve senkronizasyon için Google Firebase hizmetlerine bağlantı kurulur.</li>
     <li><b>Wikipedia/Wikimedia:</b> Periyodik tabloda bir elementin medya bilgisini göstermek için seçilen element başlığı Türkçe Wikipedia API'sine gönderilebilir ve Wikimedia sunucusundan görsel yüklenebilir.</li>
     <li><b>YouTube/Google:</b> Video araması açıldığında öğretmen/ders/konu arama terimleri YouTube'a gönderilebilir. Kullanıcı kendi YouTube Data API anahtarını etkinleştirdiyse bu anahtar ve arama parametreleri Google API'sine iletilir. Video veya oynatma listesi açıldığında YouTube'un gömülü oynatıcısı yüklenebilir.</li>
     <li><b>Harici kaynaklar:</b> MEB, OGM, ÖSYM, YouTube, GitHub destek sayfası veya kullanıcının eklediği başka bir HTTPS bağlantısı sistem tarayıcısında ya da uygun uygulamada açılabilir.</li>
   </ul>
-  <p>Bu bağlantılarda hedef hizmet IP adresi, cihaz/tarayıcı bilgileri, istek zamanı, arama/medya seçimi ve kendi politikasında açıkladığı diğer verileri işleyebilir. YKS Defterim kişisel çalışma planını veya deneme kayıtlarını bu isteklere bilinçli olarak eklemez. Üçüncü taraf hizmetlerdeki işleme ve saklama, ilgili hizmetin koşullarına tabidir: <a href="https://foundation.wikimedia.org/wiki/Policy:Privacy_policy/tr" rel="noopener noreferrer">Wikimedia Gizlilik Politikası</a> ve <a href="https://policies.google.com/privacy?hl=tr" rel="noopener noreferrer">Google Gizlilik Politikası</a>.</p>
+  <p>Bu bağlantılarda hedef hizmet IP adresi, cihaz/tarayıcı bilgileri, istek zamanı ve kendi politikasında açıkladığı diğer bağlantı verilerini işleyebilir. Üçüncü taraf hizmetlerdeki işleme ve saklama, ilgili hizmetin koşullarına tabidir: <a href="https://foundation.wikimedia.org/wiki/Policy:Privacy_policy/tr" rel="noopener noreferrer">Wikimedia Gizlilik Politikası</a> ve <a href="https://policies.google.com/privacy?hl=tr" rel="noopener noreferrer">Google Gizlilik Politikası</a>.</p>
 
   <h2>4. Kullanım amacı</h2>
   <ul>
-    <li>Çalışma kayıtlarını, planı ve ilerlemeyi cihazda göstermek,</li>
-    <li>Deneme ve çalışma analizlerini cihaz üzerinde oluşturmak,</li>
-    <li>Odak ve öğrenme özelliklerini çalıştırmak,</li>
-    <li>Uygulama tercihlerini ve çevrimdışı temel işlevleri korumak,</li>
+    <li>Çalışma kayıtlarını, planı ve ilerlemeyi göstermek ve cihazda korumak,</li>
+    <li>Web/PWA'da kullanıcı isterse çalışma verisini kendi hesabı altında cihazlar arasında senkronize etmek,</li>
+    <li>Deneme ve çalışma analizleri ile odak/öğrenme özelliklerini çalıştırmak,</li>
+    <li>Koç bağlantısı etkinse öğrenci tarafından paylaşılan sınırlı çalışma özetini ve Programım verisini koça göstermek,</li>
     <li>Kullanıcının istediği dışa aktarma, geri yükleme ve harici içerik işlemlerini gerçekleştirmek.</li>
   </ul>
 
-  <h2>5. Reklam, analiz ve veri satışı</h2>
-  <p>Bu sürümde davranışsal reklam, uygulamalar arası izleme, analytics veya crash-reporting amacıyla bir SDK kullanılmaz. YKS Defterim geliştiricisi kişisel çalışma verilerini satmaz. Kullanıcının başlattığı üçüncü taraf ağ akışları, yukarıdaki hizmetlerin kendi veri işleme uygulamalarına tabidir.</p>
+  <h2>5. Koç paylaşımı</h2>
+  <p>Koç özelliği kullanıldığında yalnız aktif bağlantı kurulan koç; uygulamanın hazırladığı özet çalışma görünümünü, Programım paylaşımını ve izin verilen ilgili öğrenci verilerini görebilir. Koç, güvenlik kurallarıyla kapalı tutulan ham bulut snapshot'ına erişemez. Bağlantı kesildiğinde yeni koç erişimi sonlandırılır; geçmişte koçun kendi cihazında veya ekran görüntüsü gibi kullanıcı kontrollü yollarla oluşturduğu kopyalar YKS Defterim tarafından uzaktan silinemez.</p>
 
-  <h2>6. Yedekleme ve dışa aktarma</h2>
+  <h2>6. Reklam, analiz ve veri satışı</h2>
+  <p>Bu sürümde davranışsal reklam, uygulamalar arası izleme, analytics veya crash-reporting amacıyla bir SDK kullanılmaz. YKS Defterim geliştiricisi kişisel çalışma verilerini satmaz. Firebase ile kullanıcı tarafından başlatılan diğer üçüncü taraf ağ akışları ilgili hizmetlerin kendi veri işleme uygulamalarına tabidir.</p>
+
+  <h2>7. Yedekleme ve dışa aktarma</h2>
   <p>Kullanıcı çalışma verilerini JSON yedeği, Markdown özeti, ICS takvimi veya Anki uyumlu metin olarak dışa aktarabilir; çalışma kartı ve bazı raporları PNG ya da metin olarak indirebilir/paylaşabilir. Bu çıktılar ad/profil bilgisi, hedef veya çalışma özeti gibi kullanıcının uygulamaya girdiği verileri içerebilir. Dışa aktarma ve paylaşma yalnız kullanıcının başlattığı bir işlemdir. Dosyanın kaydedildiği, yedeklendiği veya başka bir uygulamayla paylaşıldığı konum kullanıcının ve ilgili işletim sistemi/hizmetin kontrolündedir. Uygulama içi veri silme işlemi dışa aktarılmış dosyaları otomatik olarak silmez.</p>
 
-  <h2>7. Verileri silme</h2>
-  <p>Uygulamadaki <b>Daha → Veri → Cihaz verilerini sil</b> seçeneği, iki aşamalı onaydan sonra YKS Defterim'in cihazdaki IndexedDB verisini, yerel/session storage kayıtlarını ve YKS cache'lerini temizler. Android ayarlarından uygulama depolamasını temizlemek de yerel uygulama verisini kaldırır. Ayrıntılar ve dışa aktarılmış dosyalarla ilgili sınırlar için <a href="./data-deletion.html">YKS Defterim verilerini silme</a> sayfasına bakılabilir.</p>
+  <h2>8. Verileri silme ve çıkış yapma</h2>
+  <p>Uygulamadaki <b>Daha → Veri → Cihaz verilerini sil</b> seçeneği, iki aşamalı onaydan sonra YKS Defterim'in o cihazdaki IndexedDB verisini, yerel/session storage kayıtlarını ve YKS cache'lerini temizler. Android ayarlarından uygulama depolamasını temizlemek de yerel uygulama verisini kaldırır.</p>
+  <p>Web/PWA'da Google hesabından <b>çıkış yapmak</b> veya yalnız cihaz verilerini silmek, Firestore'daki bulut kopyasını ya da Google hesabını otomatik olarak silmez. Bu sürümde tam Firebase hesap/bulut veri silme işlemi cihaz temizleme düğmesinden ayrı bir işlemdir. Ayrıntılar için <a href="./data-deletion.html">YKS Defterim verilerini silme</a> sayfasına bakılmalıdır.</p>
 
-  <h2>8. Hesaplar</h2>
-  <p>Bu sürüm çevrimiçi kullanıcı hesabı oluşturmaz. Bu nedenle YKS Defterim sunucularında kapatılması gereken bir hesap veya hesaba bağlı çalışma verisi bulunmaz. Cihaz verisi silme işlemi bir “hesap silme” işlemi değildir.</p>
+  <h2>9. Hesaplar ve saklama süresi</h2>
+  <p>Android native paketi çevrimiçi YKS Defterim hesabı açmaz. Web/PWA sürümünde Google ile giriş yapan kullanıcı için Firebase Authentication oturumu ve YKS Defterim hesap profili kullanılabilir. Bulut çalışma verisi kullanıcı hesabı kullanılmaya devam ettiği sürece veya ilgili bulut kayıtları silinene kadar saklanabilir. Cihazdaki ve buluttaki kayıtların yaşam döngüsü birbirinden ayrıdır.</p>
 
-  <h2>9. Öğrenciler ve çocukların gizliliği</h2>
-  <p>Uygulama YKS hazırlığı yapan öğrenciler için tasarlanmıştır. Hesap oluşturmadığı için kullanıcıdan doğum tarihi istemez. Yaş grubuna ilişkin nihai Google Play hedef kitle beyanı mağaza kaydında ayrıca yapılır. Reşit olmayan kullanıcıların cihaz, yedekleme ve harici bağlantı tercihlerini bir veliyle değerlendirmesi önerilir.</p>
+  <h2>10. Öğrenciler ve çocukların gizliliği</h2>
+  <p>Uygulama YKS hazırlığı yapan öğrenciler için tasarlanmıştır. Uygulama doğum tarihi istemez. Yaş grubuna ilişkin nihai Google Play hedef kitle beyanı mağaza kaydında ayrıca yapılır. Reşit olmayan kullanıcıların hesap, cihaz, yedekleme ve harici bağlantı tercihlerini bir veliyle değerlendirmesi önerilir.</p>
 
-  <h2>10. Güvenlik</h2>
-  <p>Yerel depolama, cihaz ve işletim sistemi güvenliğine bağlıdır. Kullanıcının cihaz kilidi kullanması, yedek dosyalarını güvenli bir yerde saklaması ve YouTube API anahtarını paylaşmaması önerilir. İnternet bağlantıları HTTPS olarak tasarlanır; hiçbir sistem mutlak güvenlik garantisi vermez.</p>
+  <h2>11. Güvenlik</h2>
+  <p>Yerel depolama, cihaz ve işletim sistemi güvenliğine bağlıdır. Web/PWA bulut erişimi doğrulanmış kullanıcı kimliği ve Firestore güvenlik kurallarıyla sınırlandırılır; senkron snapshot'larında bütünlük ve çakışma kontrolleri uygulanır. İnternet bağlantıları HTTPS olarak tasarlanır. Hiçbir sistem mutlak güvenlik garantisi vermez.</p>
 
-  <h2>11. Değişiklikler ve iletişim</h2>
-  <p>Uygulamanın veri davranışı değişirse bu politika ve Google Play Data Safety beyanı güncellenir. Kişisel bilgi içermeyen teknik veya gizlilik soruları için <a href="https://github.com/furkansel-ops/YKS-DEFTER-M-/issues">YKS Defterim destek sayfası</a> kullanılabilir. Bu sayfa herkese açıktır; kişisel veri, yedek dosyası, API anahtarı veya parola paylaşılmamalıdır.</p>
+  <h2>12. Değişiklikler ve iletişim</h2>
+  <p>Uygulamanın veri davranışı değişirse bu politika ve Google Play Data Safety beyanı güncellenir. Kişisel bilgi içermeyen teknik veya gizlilik soruları için <a href="https://github.com/furkansel-ops/YKS-DEFTER-M-/issues">YKS Defterim destek sayfası</a> kullanılabilir. Bu sayfa herkese açıktır; e-posta adresi, UID, kişisel çalışma verisi, yedek dosyası, API anahtarı veya parola paylaşılmamalıdır.</p>
 </main></div></body>
 </html>
