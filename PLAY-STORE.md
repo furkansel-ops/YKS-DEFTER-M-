@@ -1,6 +1,6 @@
 # YKS Defterim · Google Play yayın hazırlığı
 
-Bu belge, `codex/play-store-release-ready` dalındaki Android yayın adayının teknik ve Play Console kontrol listesidir. `main` dalına birleştirme, Play Console'a yükleme veya mağazada yayınlama bu belgenin parçası değildir.
+Bu belge, Android yayın adayının teknik ve Play Console kontrol listesidir. `main` dalına birleştirme, Play Console'a yükleme veya mağazada yayınlama bu belgenin parçası değildir.
 
 ## Sabit yayın kimliği
 
@@ -81,12 +81,12 @@ Internal Testing'e yalnız **signed** workflow'un başarılı çıktısı yükle
 
 ## Gizlilik, ağ ve Data Safety
 
-- Uygulama kullanıcı hesabı oluşturmaz; hesap silme şartı bu sürüm için uygulanabilir değildir.
-- Çalışma kayıtları, tercihler ve kullanıcı tarafından girilen isteğe bağlı bilgiler uygulamanın yerel depolamasında tutulur.
-- Uygulama içindeki **Daha → Veri → Cihaz verilerini sil** işlemi IndexedDB, yerel/session storage ve YKS cache'lerini iki aşamalı onayla temizler.
+- Mevcut **Android native paket** çevrimiçi YKS Defterim hesabı veya Firebase cloud-sync akışını etkinleştirmez; çalışma kayıtları cihazın yerel depolamasında tutulur.
+- Aynı proje içindeki **web/PWA sürümü** ise isteğe bağlı Google ile giriş, Firebase Authentication, Cloud Firestore senkronu ve koç paylaşımı kullanabilir. Bu ayrım gizlilik politikasında açıkça belirtilir.
+- Uygulama içindeki **Daha → Veri → Cihaz verilerini sil** işlemi IndexedDB, yerel/session storage ve YKS cache'lerini iki aşamalı onayla temizler. Bu yerel işlem web/PWA'daki Firebase bulut kopyasını otomatik olarak silmez.
 - Dışa aktarılmış JSON/yedek dosyaları uygulama depolamasının dışındadır ve kullanıcı tarafından ayrıca silinmelidir.
 - Kullanıcının başlattığı bazı özellikler Wikipedia/Wikimedia API'sine, YouTube/Google API ve gömülü oynatıcısına veya MEB/OGM/ÖSYM sayfalarına ağ isteği yapabilir.
-- Son beyan, kaynak kod varsayımıyla değil signed AAB üzerinde ağ gözlemi ve Play'in güncel tanımlarıyla doldurulur: `play-store/data-safety-tr.md`.
+- Android build çıktısında web/PWA için Firebase varlıkları bulunabilse de native shell bunları çalıştırmamalıdır. Son beyan yalnız kaynak kod varsayımıyla değil signed AAB üzerinde gerçek ağ gözlemi ve Play'in güncel tanımlarıyla doldurulur: `play-store/data-safety-tr.md`.
 - Gizlilik politikası ve veri silme sayfası uygulama içinde erişilebilirdir; Play Console'a verilmeden önce herkese açık, HTTPS ve coğrafi kısıtsız URL'lerde açıldıkları doğrulanır.
 
 Beklenen Pages adresleri (yayınlanmadan önce mutlaka açılıp kontrol edilir):
