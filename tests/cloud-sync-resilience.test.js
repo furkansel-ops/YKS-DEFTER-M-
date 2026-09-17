@@ -101,6 +101,18 @@ test("Firebase çakışma birleştirmesinden sonra aynı anda yazan cihazlara ji
   assert.match(hardening,/syncRetryBlocked=false;syncRetryCount=Math\.max\(syncRetryCount,1\);uploadQueued=true/);
 });
 
+test("Uygulama açılışında bekleyen yerel değişiklik bulut indirmesiyle ezilmez",()=>{
+  const source=vite();
+  assert.match(source,/if\(navigator\.onLine\)\{if\(dirty\)await upload\(\);else await downloadOrSeed\(\);\}/);
+});
+
+test("İlk bulut indirmesi sürerken yerel değişiklik oluşursa uzak kayıt yerine güvenli merge yapılır",()=>{
+  const source=vite();
+  assert.match(source,/if\(r&&r\.obj\)\{if\(dirty\)\{const localJSON=await cloudJSON\(\);conflictBackupAdd\(localJSON,r\.rev\);await applyMerged\(r,safeJSONParse\(localJSON\)\)/);
+  assert.match(source,/timer=setTimeout\(upload,syncRetryDelay\(\)\)/);
+  assert.match(source,/ilk indirmede bekleyen yerel değişikliği koruma/);
+});
+
 test("Web ve Android build zinciri Firebase dist sağlamlaştırmasını uygular",()=>{
   const source=pkg();
   assert.match(source,/scripts\/harden-firebase-dist\.mjs/);
