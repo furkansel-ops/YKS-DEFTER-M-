@@ -64,7 +64,7 @@ export function installCoachAccountLoader():boolean{
     if(!directoryReady)return false;
     const linkHotfixReady=await loadModuleScript(COACH_LINK_HOTFIX_SCRIPT_ID,"./coach-student-link-hotfix.js?v=1.0.0");
     if(!linkHotfixReady)return false;
-    const dashboardReady=await loadModuleScript(COACH_DASHBOARD_V2_SCRIPT_ID,"./coach-dashboard-v2.js?v=2.0.0");
+    const dashboardReady=await loadModuleScript(COACH_DASHBOARD_V2_SCRIPT_ID,"./coach-dashboard-v2.js?v=2.1.0");
     if(!dashboardReady)return false;
     const programShareReady=await loadModuleScript(COACH_PROGRAM_SHARE_V2_SCRIPT_ID,"./coach-program-share-v2.js?v=2.0.0");
     if(!programShareReady)return false;
