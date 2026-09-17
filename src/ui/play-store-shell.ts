@@ -190,9 +190,9 @@ function activateWebCloudSync():boolean{
 
 function activateAccountAwareCloudSync():boolean{
   if(isNativeApp())return false;
-  void import("./coach-account-loader")
-    .then(({installCoachAccountLoader})=>{installCoachAccountLoader();activateWebCloudSync();})
-    .catch(error=>{console.error("Koç hesap katmanı yüklenemedi",error);activateWebCloudSync();});
+  void import("./student-account-loader")
+    .then(({installStudentAccountLoader})=>{installStudentAccountLoader();activateWebCloudSync();})
+    .catch(error=>{console.error("Öğrenci hesap katmanı yüklenemedi",error);activateWebCloudSync();});
   return true;
 }
 

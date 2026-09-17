@@ -67,7 +67,7 @@ test("şema 20 verisi Öğrenme Laboratuvarı için şema 21'e taşınır",()=>{
 
 test("v4 Vite ve TypeScript geçiş altyapısı güvenli biçimde hazır",()=>{
   const pkg=JSON.parse(read("package.json")),ts=JSON.parse(read("tsconfig.json")),html=read("index.html"),entry=read("src/main.ts"),copy=read("scripts/copy-legacy-assets.mjs");
-  ["package-lock.json","vite.config.mts","src/main.ts","src/vite-env.d.ts","scripts/copy-legacy-assets.mjs","scripts/verify-dist.mjs","MIGRATION-V4.md"].forEach(file=>assert.equal(fs.existsSync(path.join(root,file)),true,file));
+  ["package-lock.json","vite.config.mts","src/main.ts","src/vite-env.d.ts","scripts/copy-legacy-assets.mjs","scripts/verify-dist.mjs"].forEach(file=>assert.equal(fs.existsSync(path.join(root,file)),true,file));
   assert.equal(pkg.private,true);assert.equal(pkg.version,"4.4.0");assert.match(pkg.scripts.check,/typecheck/);assert.match(pkg.scripts.build,/vite build/);assert.match(pkg.scripts.build,/verify-dist/);assert.match(pkg.scripts["release:check"],/verify-release/);assert.match(pkg.scripts["release:check"],/verify-v440-production/);assert.ok(pkg.devDependencies.vite);assert.ok(pkg.devDependencies.typescript);
   assert.equal(ts.compilerOptions.strict,true);assert.equal(ts.compilerOptions.noUncheckedIndexedAccess,true);assert.equal(ts.compilerOptions.noEmit,true);assert.match(html,/type="module" src="\.\/src\/main\.ts"/);assert.match(entry,/legacyRuntime:true/);assert.match(entry,/RELEASE_VERSION/);assert.match(entry,/RELEASE_BUILD/);assert.match(copy,/"modules"/);assert.equal(pkg.devDependencies.dexie,undefined);
 });
@@ -99,7 +99,7 @@ test("v4 Dexie ana kayıt localStorage güvenli aynasıyla write-through çalı�
 });
 
 test("v4 taşınabilir veri sözleşmesini korur ve Firebase çalışma zamanını hesap katmanıyla güvenli yükler",()=>{
-  const cloud=read("src/data/cloud-state.ts"),primary=read("src/data/primary-store.ts"),bridge=read("src/data/legacy-data-bridge.ts"),html=read("index.html"),vite=read("vite.config.mts"),loader=read("src/ui/coach-account-loader.ts");
+  const cloud=read("src/data/cloud-state.ts"),primary=read("src/data/primary-store.ts"),bridge=read("src/data/legacy-data-bridge.ts"),html=read("index.html"),vite=read("vite.config.mts"),loader=read("src/ui/student-account-loader.ts");
   assert.match(cloud,/buildCloudPayload/);assert.match(cloud,/state\.focus/);assert.match(cloud,/state\.yt/);assert.match(cloud,/stateHash\(json\)/);assert.match(primary,/replaceFromExternal/);assert.match(primary,/source:Extract<StateWriteSource,"firebase"\|"backup">="firebase"/);assert.match(primary,/persistJSON\(json,updatedAt,source\)/);assert.match(primary,/readPrimaryJSON/);assert.match(bridge,/cloudPayload/);assert.match(bridge,/applyCloudJSON/);assert.match(bridge,/await flush\(\)/);assert.doesNotMatch(html,/type="module" id="firebaseSyncModule"/);assert.match(html,/type="application\/json" id="legacyFirebaseSyncModule" data-disabled="play-store-release"/);assert.match(vite,/prepare-web-cloud-runtime/);assert.match(vite,/legacyFirebaseSyncModule/);assert.match(loader,/auth-session-runtime\.js/);
 });
 

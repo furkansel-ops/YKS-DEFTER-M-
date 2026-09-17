@@ -61,10 +61,10 @@ async function publishProgram(){
   rt.writing=true;
   try{
     await setDoc(doc(rt.db,"coachingShares",rt.user.uid),{program:programPayload(s),updatedAt:serverTimestamp()},{merge:true});
-    document.documentElement.dataset.coachProgramShare="ready";
+    document.documentElement.dataset.studentProgramShare="ready";
   }catch(error){
-    console.error("Koç program paylaşımı",error);
-    document.documentElement.dataset.coachProgramShare="error";
+    console.error("Program paylaşımı",error);
+    document.documentElement.dataset.studentProgramShare="error";
   }finally{
     rt.writing=false;
     if(rt.pending){rt.pending=false;schedule(120)}
@@ -85,7 +85,7 @@ function start(ctx){
     if(!snap.exists())return;
     const remote=snap.data()?.program;
     if(Number(remote?.version||0)!==PROGRAM_VERSION)schedule(120);
-  },error=>console.error("Koç program paylaşım dinleyicisi",error));
+  },error=>console.error("Program paylaşım dinleyicisi",error));
   const changed=()=>schedule();
   window.addEventListener("yks:data-changed",changed);
   rt.stopData=()=>window.removeEventListener("yks:data-changed",changed);
@@ -105,5 +105,5 @@ if(auth&&!auth.__programShareV2){
   auth.onSignedOut=(...args)=>{stop();return previousSignOut?.(...args)};
   auth.__programShareV2=true;
 }
-window.YKSCoachProgramShareV2={version:"2.0.0",publish:publishProgram,build:programPayload};
-document.documentElement.dataset.coachProgramSync="v2";
+window.YKSStudentProgramShareV2={version:"2.0.0",publish:publishProgram,build:programPayload};
+document.documentElement.dataset.studentProgramSync="v2";

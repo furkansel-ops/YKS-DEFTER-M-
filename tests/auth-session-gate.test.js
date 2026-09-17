@@ -58,9 +58,9 @@ test("öğrenci profil bootstrap hatası bulut oturumunu düşürmez",()=>{
 });
 
 test("normal kayıt öğrenci-only kalır ve öğrenci köprüleri yeni cache anahtarlarıyla yüklenir",()=>{
-  const loader=read("src/ui/coach-account-loader.ts");
+  const loader=read("src/ui/student-account-loader.ts");
   assert.match(loader,/sessionStorage\.setItem\(PENDING_ROLE,"student"\)/);
-  assert.match(loader,/sessionStorage\.removeItem\(PENDING_COACH\)/);
+  assert.match(loader,/sessionStorage\.removeItem\(LEGACY_PENDING_COACH\)/);
   assert.match(loader,/publicRegistration="student-only"/);
   assert.match(loader,/student-coaching-runtime\.js\?v=1\.1\.0/);
   assert.match(loader,/student-coach-link\.js\?v=1\.0\.0/);
@@ -71,11 +71,11 @@ test("normal kayıt öğrenci-only kalır ve öğrenci köprüleri yeni cache an
 });
 
 test("öğrenci uygulaması koç rolü algılasa bile ayrı koç paneline otomatik yönlendirme yapmaz",()=>{
-  const loader=read("src/ui/coach-account-loader.ts");
+  const loader=read("src/ui/student-account-loader.ts");
   assert.doesNotMatch(loader,/window\.location\.(?:replace|assign)/);
   assert.doesNotMatch(loader,/YKS-DEFTER-M-Ko-Paneli/);
   assert.doesNotMatch(loader,/routeCoachAccountsToStandalonePanel/);
-  assert.match(loader,/dataset\.coachDashboard="external-only"/);
+  assert.doesNotMatch(loader,/coachDashboard/);
 });
 
 test("Firebase production retry sözleşmesi dist hardener ile uyumludur",()=>{

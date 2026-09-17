@@ -8,11 +8,11 @@ type AccountWindow=Window&{
 
 const STUDENT_COACHING_RUNTIME_ID="studentCoachingRuntime";
 const STUDENT_COACH_LINK_ID="studentCoachLink";
-const COACH_PROGRAM_SHARE_V2_SCRIPT_ID="coachProgramShareV2";
+const STUDENT_PROGRAM_SHARE_V2_SCRIPT_ID="studentProgramShareV2";
 const AUTH_SCRIPT_ID="authSessionRuntime";
 const SETTINGS_SCRIPT_ID="settingsProfileRuntime";
 const PENDING_ROLE="yks_account_role_pending";
-const PENDING_COACH="yks_coach_profile_pending";
+const LEGACY_PENDING_COACH="yks_coach_profile_pending";
 
 function loadModuleScript(id:string,src:string):Promise<boolean>{
   const existing=document.getElementById(id) as HTMLScriptElement|null;
@@ -36,10 +36,7 @@ function forceStudentOnlyRegistration(win:AccountWindow):boolean{
   const auth=win.YKSAccountAuth;
   if(!auth)return false;
   auth.beforeSignIn=async ctx=>{
-    try{
-      sessionStorage.setItem(PENDING_ROLE,"student");
-      sessionStorage.removeItem(PENDING_COACH);
-    }catch{}
+    try{sessionStorage.setItem(PENDING_ROLE,"student");sessionStorage.removeItem(LEGACY_PENDING_COACH)}catch{}
     try{
       ctx.status?.("Google açılıyor…","connecting","Öğrenci hesabı");
       await ctx.setPersistence(ctx.auth,ctx.browserLocalPersistence);
@@ -50,11 +47,10 @@ function forceStudentOnlyRegistration(win:AccountWindow):boolean{
     return true;
   };
   document.documentElement.dataset.publicRegistration="student-only";
-  document.documentElement.dataset.coachDashboard="external-only";
   return true;
 }
 
-export function installCoachAccountLoader():boolean{
+export function installStudentAccountLoader():boolean{
   const win=window as AccountWindow;
   if(win.__YKS_ACCOUNT_READY__)return true;
   win.__YKS_ACCOUNT_READY__=(async()=>{
@@ -62,7 +58,7 @@ export function installCoachAccountLoader():boolean{
     if(!bridgeReady||!forceStudentOnlyRegistration(win))return false;
     const linkReady=await loadModuleScript(STUDENT_COACH_LINK_ID,"./student-coach-link.js?v=1.0.0");
     if(!linkReady)return false;
-    const programShareReady=await loadModuleScript(COACH_PROGRAM_SHARE_V2_SCRIPT_ID,"./coach-program-share-v2.js?v=2.0.0");
+    const programShareReady=await loadModuleScript(STUDENT_PROGRAM_SHARE_V2_SCRIPT_ID,"./student-program-share-v2.js?v=2.0.0");
     if(!programShareReady)return false;
     const authReady=await loadModuleScript(AUTH_SCRIPT_ID,"./auth-session-runtime.js?v=1.6.0");
     if(!authReady)return false;
