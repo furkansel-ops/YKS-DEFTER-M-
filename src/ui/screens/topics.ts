@@ -1,19 +1,22 @@
 import type {ScreenModule} from "./contracts";
 import {topicsLegacyAdapter} from "./legacy-adapters";
-import "../topics-overview-v45.css";
+import {installTopicLegacyPanelsV46} from "../topics-hub-v46-extras";
+import "../topics-hub-v46.css";
+import "../topics-hub-v46-extras.css";
 
-function ensureTopicsOverview():void{
+function ensureTopicsHub():void{
   const root=document.documentElement;
-  if(root.dataset.topicsOverviewRuntime==="ready"||root.dataset.topicsOverviewRuntime==="loading")return;
-  root.dataset.topicsOverviewRuntime="loading";
-  void import("../topics-overview-v45")
-    .then(({installTopicsOverviewV45})=>{
-      const runtime=installTopicsOverviewV45();
-      root.dataset.topicsOverviewRuntime=runtime.installed?"ready":"deferred";
+  if(root.dataset.topicsHubRuntime==="ready"||root.dataset.topicsHubRuntime==="loading")return;
+  root.dataset.topicsHubRuntime="loading";
+  void import("../topics-hub-v46")
+    .then(({installTopicsHubV46})=>{
+      const runtime=installTopicsHubV46();
+      if(runtime.installed)installTopicLegacyPanelsV46();
+      root.dataset.topicsHubRuntime=runtime.installed?"ready":"deferred";
     })
     .catch(error=>{
-      root.dataset.topicsOverviewRuntime="deferred";
-      console.error("Konular özet arayüzü yüklenemedi",error);
+      root.dataset.topicsHubRuntime="deferred";
+      console.error("Konu Haritası yüklenemedi",error);
     });
 }
 
@@ -22,6 +25,6 @@ export const topicsScreen:ScreenModule={
   required:topicsLegacyAdapter.required,
   render(environment){
     topicsLegacyAdapter.render(environment);
-    ensureTopicsOverview();
+    ensureTopicsHub();
   }
 };
