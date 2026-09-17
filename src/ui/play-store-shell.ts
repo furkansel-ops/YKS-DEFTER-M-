@@ -109,7 +109,7 @@ function installLegacyCloudSyncBox():boolean{
           <p>Google hesabınla giriş yaptığında YKS Defterim çalışma verilerini güvenli bulut alanınla otomatik olarak eşitler.</p>
         </div>
       </div>
-      <div class="ycc-status"><span class="cloudSyncDot" id="cloudSyncDot" aria-hidden="true"></span><span id="cloudSyncText">Giriş yapılmadı</span></div>
+      <div class="ycc-status"><span class="cloudSyncDot" id="cloudSyncDot" aria-hidden="true">☁</span><span id="cloudSyncText">Giriş yapılmadı</span></div>
     </div>
     <div class="ycc-body">
       <div class="ycc-overview">
@@ -190,9 +190,9 @@ function activateWebCloudSync():boolean{
 
 function activateAccountAwareCloudSync():boolean{
   if(isNativeApp())return false;
-  void import("./coach-account-loader")
-    .then(({installCoachAccountLoader})=>{installCoachAccountLoader();activateWebCloudSync();})
-    .catch(error=>{console.error("Koç hesap katmanı yüklenemedi",error);activateWebCloudSync();});
+  void import("./student-account-loader")
+    .then(({installStudentAccountLoader})=>{installStudentAccountLoader();activateWebCloudSync();})
+    .catch(error=>{console.error("Öğrenci hesap katmanı yüklenemedi",error);activateWebCloudSync();});
   return true;
 }
 
