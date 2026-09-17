@@ -28,8 +28,23 @@ export function verifyLiveAssets({index,bundle,legacyApp,serviceWorker=""}){
 }
 
 export function verifyPolicyPages({privacy,deletion}){
-  if(!privacy.includes("YKS Defterim Gizlilik Politikası")||!privacy.includes("IndexedDB/Dexie")||privacy.includes("Firebase"))throw new Error("Canlı gizlilik politikası eksik veya yayın sözleşmesiyle uyumsuz");
-  if(!deletion.includes("YKS Defterim cihaz verilerini silme")||!deletion.includes("Cihaz verilerini sil")||!deletion.includes("IndexedDB/Dexie"))throw new Error("Canlı veri silme sayfası eksik veya yayın sözleşmesiyle uyumsuz");
+  if(
+    !privacy.includes("YKS Defterim Gizlilik Politikası")||
+    !privacy.includes("IndexedDB/Dexie")||
+    !privacy.includes("Android native paketinde")||
+    !privacy.includes("Web/PWA sürümünde")||
+    !privacy.includes("Firebase Authentication")||
+    !privacy.includes("Cloud Firestore")||
+    !privacy.includes("Cihaz verilerini sil")
+  )throw new Error("Canlı gizlilik politikası eksik veya yayın sözleşmesiyle uyumsuz");
+  if(
+    !deletion.includes("YKS Defterim verilerini silme")||
+    !deletion.includes("Cihaz verilerini sil")||
+    !deletion.includes("IndexedDB/Dexie")||
+    !deletion.includes("Web/PWA bulut verileri ve hesap")||
+    !deletion.includes("Firebase Authentication")||
+    !deletion.includes("otomatik olarak silmez")
+  )throw new Error("Canlı veri silme sayfası eksik veya yayın sözleşmesiyle uyumsuz");
   return {privacy:true,deletion:true};
 }
 
