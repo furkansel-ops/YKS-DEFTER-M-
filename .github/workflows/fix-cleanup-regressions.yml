@@ -1,0 +1,88 @@
+name: Fix cleanup regressions
+
+on:
+  push:
+    branches:
+      - cleanup-student-repo-upgrade-v45
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fix-cleanup-regressions-v45
+  cancel-in-progress: true
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Kaynak kodu al
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: true
+
+      - name: Eski test referanslarını ve küçük regresyonu düzelt
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs=require('node:fs');
+          const replace=(file,from,to)=>{
+            let text=fs.readFileSync(file,'utf8');
+            if(!text.includes(from)) throw new Error(`${file}: beklenen metin bulunamadı: ${from}`);
+            text=text.split(from).join(to);
+            fs.writeFileSync(file,text);
+          };
+
+          for(const file of [
+            'tests/auth-session-gate.test.js',
+            'tests/package.test.js',
+            'tests/settings-profile-runtime.test.js',
+            'tests/web-cloud-sync.test.js'
+          ]){
+            replace(file,'coach-account-loader','student-account-loader');
+          }
+
+          replace(
+            'tests/auth-session-gate.test.js',
+            'assert.match(loader,/sessionStorage\\.removeItem\\(PENDING_COACH\\)/);',
+            'assert.match(loader,/sessionStorage\\.removeItem\\(LEGACY_PENDING_COACH\\)/);'
+          );
+          replace(
+            'tests/auth-session-gate.test.js',
+            'assert.match(loader,/dataset\\.coachDashboard="external-only"/);',
+            'assert.doesNotMatch(loader,/coachDashboard/);'
+          );
+          replace(
+            'tests/package.test.js',
+            ',"MIGRATION-V4.md"',
+            ''
+          );
+          replace(
+            'src/ui/student-account-loader.ts',
+            'const PENDING_ROLE="yks_account_role_pending";',
+            'const PENDING_ROLE="yks_account_role_pending";\nconst LEGACY_PENDING_COACH="yks_coach_profile_pending";'
+          );
+          replace(
+            'src/ui/student-account-loader.ts',
+            'try{sessionStorage.setItem(PENDING_ROLE,"student")}catch{}',
+            'try{sessionStorage.setItem(PENDING_ROLE,"student");sessionStorage.removeItem(LEGACY_PENDING_COACH)}catch{}'
+          );
+          replace(
+            'src/ui/play-store-shell.ts',
+            '<span class="cloudSyncDot" id="cloudSyncDot" aria-hidden="true">☁</span>',
+            '<span class="cloudSyncDot" id="cloudSyncDot" aria-hidden="true"></span>'
+          );
+          NODE
+
+      - name: Düzeltmeleri kaydet
+        run: |
+          if git diff --quiet; then
+            echo "Düzeltilecek fark yok."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tests/auth-session-gate.test.js tests/package.test.js tests/settings-profile-runtime.test.js tests/web-cloud-sync.test.js src/ui/student-account-loader.ts src/ui/play-store-shell.ts
+          git commit -m "test: align cleanup regression coverage"
+          git push
