@@ -70,6 +70,14 @@ test("normal kayıt öğrenci-only kalır ve öğrenci köprüleri yeni cache an
   assert.match(loader,/__YKS_ACCOUNT_READY__/);
 });
 
+test("öğrenci uygulaması koç rolü algılasa bile ayrı koç paneline otomatik yönlendirme yapmaz",()=>{
+  const loader=read("src/ui/coach-account-loader.ts");
+  assert.doesNotMatch(loader,/window\.location\.(?:replace|assign)/);
+  assert.doesNotMatch(loader,/YKS-DEFTER-M-Ko-Paneli/);
+  assert.doesNotMatch(loader,/routeCoachAccountsToStandalonePanel/);
+  assert.match(loader,/dataset\.coachDashboard="external-only"/);
+});
+
 test("Firebase production retry sözleşmesi dist hardener ile uyumludur",()=>{
   const vite=read("vite.config.mts");
   assert.match(vite,/syncRetryCount=Math\.min\(9,syncRetryCount\+1\)/);
