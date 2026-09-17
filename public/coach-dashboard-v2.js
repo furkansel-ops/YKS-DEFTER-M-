@@ -1,9 +1,10 @@
-import{collection,doc,getDoc,getDocs,query,where,setDoc,serverTimestamp}from"https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
+import{collection,doc,getDoc,getDocs,onSnapshot,query,where,setDoc,serverTimestamp}from"https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
 
 const LINK_COLLECTION="coachingLinks";
 const SHARE_COLLECTION="coachingShares";
 const PROFILE_COLLECTION="accountProfiles";
 const ACTION_COLLECTION="coachingActions";
+const DAYS=["Pazartesi","Salı","Çarşamba","Perşembe","Cuma","Cumartesi","Pazar"];
 const tabs=[
   ["summary","Özet"],
   ["program","Program"],
@@ -12,10 +13,13 @@ const tabs=[
   ["topics","Konular"],
   ["errors","Hata Defteri"]
 ];
-const runtime={ctx:null,profile:null,students:[],selected:0,tab:"summary"};
+const runtime={ctx:null,profile:null,students:[],selected:0,tab:"summary",stopShare:null,programWeeks:new Map()};
 const text=(value,max=220)=>String(value??"").trim().slice(0,max);
 const esc=value=>String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[char]));
-const today=()=>new Date().toISOString().slice(0,10);
+const today=()=>{
+  const d=new Date(),y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,"0"),day=String(d.getDate()).padStart(2,"0");
+  return`${y}-${m}-${day}`;
+};
 const num=value=>Number(value||0)||0;
 const toast=message=>{try{window.toast?.(message)}catch{console.info(message)}};
 
@@ -32,7 +36,11 @@ function styles(){
   .cd2-alert{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 12px;border-radius:12px;background:var(--fill,rgba(255,255,255,.04));margin:7px 0}.cd2-alert strong{font-size:12px}.cd2-alert small{display:block;margin-top:3px;color:var(--label-3,#7f8999);font-size:10.5px}.cd2-badge{flex:none;padding:5px 8px;border-radius:999px;background:var(--accent-soft,rgba(94,145,255,.13));color:var(--accent,#8fbaff);font:850 10px system-ui}
   .cd2-form{display:grid;gap:8px}.cd2-form input,.cd2-form select,.cd2-form textarea{box-sizing:border-box;width:100%;padding:9px 10px;border:1px solid var(--line,#2d3442);border-radius:10px;background:var(--fill,rgba(255,255,255,.035));color:inherit}.cd2-form textarea{min-height:82px;resize:vertical}.cd2-form button{min-height:38px;border:0;border-radius:10px;background:var(--accent,#5d8df5);color:#fff;font-weight:800;cursor:pointer}.cd2-form button:disabled{opacity:.55}.cd2-section-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}.cd2-section-title h3{margin:0}
   .cd2-table{display:grid;gap:6px}.cd2-item{padding:11px 12px;border:1px solid var(--line,#2d3442);border-radius:12px;background:var(--fill,rgba(255,255,255,.025))}.cd2-item b{display:block;font-size:12px}.cd2-item small{display:block;margin-top:4px;color:var(--label-3,#7f8999);font-size:10.5px}.cd2-target{margin-top:5px;color:var(--label-2,#a8b1c1);font-size:11px}
-  @media(max-width:900px){.cd2-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.cd2-grid{grid-template-columns:1fr}}@media(max-width:560px){.cd2-hero{display:block}.cd2-metrics{grid-template-columns:1fr 1fr}.cd2-metric b{font-size:21px}}
+  .cd2-live{display:inline-flex;align-items:center;gap:6px}.cd2-live::before{content:"";width:7px;height:7px;border-radius:50%;background:#44d17a;box-shadow:0 0 0 3px color-mix(in srgb,#44d17a 18%,transparent)}
+  .cd2-program-card{padding:0;overflow:hidden}.cd2-program-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:15px 16px;border-bottom:1px solid var(--line,#2d3442)}.cd2-program-head h3{margin:0}.cd2-program-nav{display:flex;align-items:center;gap:7px}.cd2-program-nav button,.cd2-program-nav select{height:36px;border:1px solid var(--line,#2d3442);border-radius:10px;background:var(--fill,rgba(255,255,255,.035));color:inherit;font:750 11px system-ui}.cd2-program-nav button{width:36px;cursor:pointer}.cd2-program-nav button:disabled{opacity:.35;cursor:default}.cd2-program-nav select{max-width:220px;padding:0 9px}
+  .cd2-program-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;padding:12px 16px;border-bottom:1px solid var(--line,#2d3442)}.cd2-program-stat{padding:10px 12px;border-radius:12px;background:var(--fill,rgba(255,255,255,.035))}.cd2-program-stat b{display:block;font-size:17px}.cd2-program-stat span{display:block;margin-top:3px;color:var(--label-3,#7f8999);font-size:10px}
+  .cd2-program-scroll{overflow:auto;padding:0 0 4px}.cd2-program-grid{display:grid;grid-template-columns:minmax(150px,190px) repeat(7,minmax(122px,1fr));min-width:1020px}.cd2-pg-cell{min-height:58px;padding:9px 10px;border-right:1px solid var(--line,#2d3442);border-bottom:1px solid var(--line,#2d3442);box-sizing:border-box}.cd2-pg-cell:nth-child(8n){border-right:0}.cd2-pg-day,.cd2-pg-label{position:sticky;background:var(--surface,#151a24);z-index:1}.cd2-pg-day{top:0;min-height:46px;font:850 11px system-ui;text-align:center}.cd2-pg-day small{display:block;margin-top:3px;color:var(--label-3,#7f8999);font-weight:650}.cd2-pg-label{left:0;font:800 11px system-ui}.cd2-pg-section{grid-column:1/-1;min-height:auto;padding:9px 12px;background:var(--fill,rgba(255,255,255,.045));border-bottom:1px solid var(--line,#2d3442);font:900 10px system-ui;letter-spacing:.07em;text-transform:uppercase}.cd2-pg-task{font-size:11px;line-height:1.35}.cd2-pg-task.is-done{opacity:.68;text-decoration:line-through}.cd2-pg-empty{color:var(--label-3,#7f8999);font-size:10px}.cd2-pg-meta{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}.cd2-pg-tag{padding:3px 5px;border-radius:999px;background:var(--accent-soft,rgba(94,145,255,.13));color:var(--accent,#8fbaff);font:800 9px system-ui}.cd2-pg-tag.done{background:color-mix(in srgb,#44d17a 15%,transparent);color:#67df91}.cd2-pg-daydone{display:flex;align-items:center;justify-content:center;min-height:45px;font:800 10px system-ui}.cd2-pg-daydone.on{color:#67df91}.cd2-pg-daydone small{display:block;color:var(--label-3,#7f8999);font-weight:600}
+  @media(max-width:900px){.cd2-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.cd2-grid{grid-template-columns:1fr}.cd2-program-stats{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:560px){.cd2-hero{display:block}.cd2-metrics{grid-template-columns:1fr 1fr}.cd2-metric b{font-size:21px}.cd2-program-head{align-items:flex-start;flex-direction:column}.cd2-program-nav{width:100%}.cd2-program-nav select{flex:1;max-width:none}}
   `;
   document.head.append(style);
 }
@@ -49,18 +57,123 @@ async function loadStudents(ctx){
   }));
 }
 
+function stopShareWatch(){
+  if(typeof runtime.stopShare==="function"){
+    try{runtime.stopShare()}catch{}
+  }
+  runtime.stopShare=null;
+}
+
+function watchSelectedShare(){
+  stopShareWatch();
+  const data=runtime.students[runtime.selected];
+  const uid=data?.link?.studentUid;
+  if(!uid||!runtime.ctx?.db)return;
+  runtime.stopShare=onSnapshot(doc(runtime.ctx.db,SHARE_COLLECTION,uid),snap=>{
+    const index=runtime.students.findIndex(item=>item.link?.studentUid===uid);
+    if(index<0)return;
+    runtime.students[index]={...runtime.students[index],share:snap.exists()?snap.data():null};
+    if(runtime.selected===index){
+      renderStudentList();
+      renderDetail();
+    }
+  },error=>console.warn("Koç canlı paylaşım dinleyicisi:",error));
+}
+
+function programWeeks(share){
+  const weeks=Array.isArray(share?.program?.weeks)?share.program.weeks:[];
+  return weeks
+    .filter(item=>item&&text(item.week,10))
+    .map(item=>({week:text(item.week,10),data:item.data&&typeof item.data==="object"?item.data:{}}))
+    .sort((a,b)=>a.week.localeCompare(b.week));
+}
+
 function programItems(share){
   const result=[];
-  for(const week of share?.program?.weeks||[]){
-    const rows=[...(week?.data?.r||[]),...(week?.data?.s||[])];
-    for(const row of rows){
-      for(const value of row||[]){
-        const task=text(value,220);
-        if(task)result.push({week:text(week.week,10),task});
-      }
+  const labels=share?.program?.rowLabels||{};
+  for(const week of programWeeks(share)){
+    for(const blk of["r","s"]){
+      const rows=Array.isArray(week.data?.[blk])?week.data[blk]:[];
+      rows.forEach((row,rowIndex)=>{
+        (Array.isArray(row)?row:[]).forEach((value,day)=>{
+          const task=text(value,220);
+          if(!task)return;
+          const cid=`${blk}-${rowIndex}-${day}`;
+          result.push({
+            week:week.week,task,day,
+            label:text(labels?.[blk]?.[rowIndex],80)||(blk==="r"?`Rutin ${rowIndex+1}`:`Ders ${rowIndex+1}`),
+            done:!!week.data?.dn?.[cid],
+            moved:week.data?.mv?.[cid]||null
+          });
+        });
+      });
     }
   }
-  return result.slice(-40).reverse();
+  return result.slice(-80).reverse();
+}
+
+function parseKey(value){
+  const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value||""));
+  if(!m)return null;
+  const d=new Date(Number(m[1]),Number(m[2])-1,Number(m[3]));
+  return Number.isNaN(d.getTime())?null:d;
+}
+function keyOf(d){
+  if(!(d instanceof Date)||Number.isNaN(d.getTime()))return"";
+  return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+}
+function addDays(key,amount){
+  const d=parseKey(key);
+  if(!d)return key;
+  d.setDate(d.getDate()+amount);
+  return keyOf(d);
+}
+function currentMondayKey(){
+  const d=new Date(),day=(d.getDay()+6)%7;
+  d.setHours(0,0,0,0);
+  d.setDate(d.getDate()-day);
+  return keyOf(d);
+}
+function shortDate(key){
+  const d=parseKey(key);
+  return d?new Intl.DateTimeFormat("tr-TR",{day:"numeric",month:"short"}).format(d):key;
+}
+function weekLabel(key){return`${shortDate(key)} – ${shortDate(addDays(key,6))}`}
+function programWeekKey(data,weeks){
+  const uid=data?.link?.studentUid||"";
+  const saved=runtime.programWeeks.get(uid);
+  if(saved&&weeks.some(item=>item.week===saved))return saved;
+  const current=currentMondayKey();
+  if(weeks.some(item=>item.week===current))return current;
+  const past=weeks.filter(item=>item.week<=current);
+  return(past.at(-1)||weeks.at(-1))?.week||"";
+}
+function programStats(week){
+  let filled=0,done=0,moved=0;
+  for(const blk of["r","s"]){
+    const rows=Array.isArray(week?.data?.[blk])?week.data[blk]:[];
+    rows.forEach((row,i)=>(Array.isArray(row)?row:[]).forEach((value,d)=>{
+      if(!text(value,220))return;
+      filled++;
+      const cid=`${blk}-${i}-${d}`;
+      if(week.data?.dn?.[cid])done++;
+      if(week.data?.mv?.[cid])moved++;
+    }));
+  }
+  const dayDone=(Array.isArray(week?.data?.done)?week.data.done:[]).filter(Boolean).length;
+  return{filled,done,moved,dayDone,pct:filled?Math.round(done/filled*100):0};
+}
+function dayTaskStats(week,day){
+  let filled=0,done=0;
+  for(const blk of["r","s"]){
+    const rows=Array.isArray(week?.data?.[blk])?week.data[blk]:[];
+    rows.forEach((row,i)=>{
+      if(!text(row?.[day],220))return;
+      filled++;
+      if(week.data?.dn?.[`${blk}-${i}-${day}`])done++;
+    });
+  }
+  return{filled,done};
 }
 
 function examInfo(share){
@@ -81,7 +194,7 @@ function topErrors(share){
     current.count+=Math.max(1,num(item.n));
     map.set(key,current);
   }
-  return [...map.values()].sort((a,b)=>b.count-a.count).slice(0,8);
+  return[...map.values()].sort((a,b)=>b.count-a.count).slice(0,8);
 }
 
 function topicStats(share){
@@ -138,7 +251,7 @@ function renderSummary(host,data){
         ${exams.delta!=null&&exams.delta<0?`<div class="cd2-alert"><div><strong>Son denemede net düşüşü</strong><small>${esc(exams.latest?.name||"Son deneme")}</small></div><span class="cd2-badge">${exams.delta.toFixed(1)}</span></div>`:""}
         ${!topics.overdue.length&&!errors.length&&!(exams.delta!=null&&exams.delta<0)?'<div class="cd2-empty">Şu anda öne çıkan kritik uyarı yok.</div>':""}
       </section>
-      <section class="cd2-card"><h3>🗓️ Programdan son görevler</h3>${rows(program,item=>`<div class="cd2-row"><span>${esc(item.task)}</span><b>${esc(item.week)}</b></div>`)}</section>
+      <section class="cd2-card"><h3>🗓️ Programdan son görevler</h3>${rows(program,item=>`<div class="cd2-row"><span>${esc(item.task)}</span><b>${item.done?"✓ ":""}${esc(item.label)}</b></div>`)}</section>
       <section class="cd2-card"><h3>📊 Son denemeler</h3>${rows((exams.exams||[]).slice(-4).reverse(),item=>`<div class="cd2-row"><span>${esc(item.date)} · ${esc(item.name||item.type||"Deneme")}</span><b>${num(item.totalNet).toFixed(1)} net</b></div>`)}</section>
       <section class="cd2-card"><h3>🧭 Hızlı işlemler</h3>
         <form class="cd2-form" data-quick="program_task"><input name="text" maxlength="220" required placeholder="Programa görev ekle"><input name="date" type="date" value="${today()}"><button type="submit">Görevi gönder</button></form>
@@ -154,9 +267,89 @@ function renderSummary(host,data){
   });
 }
 
+function programCell(week,blk,rowIndex,day){
+  const value=text(week?.data?.[blk]?.[rowIndex]?.[day],220);
+  if(!value)return'<div class="cd2-pg-cell"><span class="cd2-pg-empty">—</span></div>';
+  const cid=`${blk}-${rowIndex}-${day}`;
+  const done=!!week.data?.dn?.[cid];
+  const moved=week.data?.mv?.[cid];
+  const from=text(moved?.from,10);
+  return`<div class="cd2-pg-cell"><div class="cd2-pg-task ${done?"is-done":""}">${esc(value)}</div><div class="cd2-pg-meta">${done?'<span class="cd2-pg-tag done">✓ Tamamlandı</span>':""}${moved?`<span class="cd2-pg-tag">→ Taşındı${from?` · ${esc(shortDate(from))}`:""}</span>`:""}</div></div>`;
+}
+
 function renderProgram(host,data){
-  const items=programItems(data.share);
-  host.innerHTML=`<section class="cd2-card"><div class="cd2-section-title"><h3>Program</h3><span class="cd2-muted">Son kayıtlar</span></div><div class="cd2-table">${rows(items.slice(0,30),item=>`<div class="cd2-item"><b>${esc(item.task)}</b><small>Hafta · ${esc(item.week)}</small></div>`)}</div></section>`;
+  const share=data.share;
+  const program=share?.program;
+  const weeks=programWeeks(share);
+  if(!program||num(program.version)<2){
+    host.innerHTML='<div class="cd2-empty">Program paylaşımı henüz v2 biçiminde oluşmadı. Öğrenci YKS Defterim’i açtığında otomatik güncellenecek.</div>';
+    return;
+  }
+  if(!weeks.length){
+    host.innerHTML='<section class="cd2-card"><div class="cd2-section-title"><h3>Program</h3><span class="cd2-live cd2-muted">Canlı eşitleme açık</span></div><div class="cd2-empty">Öğrencinin Programım bölümünde henüz dolu bir hafta yok.</div></section>';
+    return;
+  }
+  const uid=data.link.studentUid;
+  const selectedKey=programWeekKey(data,weeks);
+  runtime.programWeeks.set(uid,selectedKey);
+  const selectedIndex=Math.max(0,weeks.findIndex(item=>item.week===selectedKey));
+  const week=weeks[selectedIndex];
+  const labels=program.rowLabels||{r:[],s:[]};
+  const rowCounts=program.rows||{r:0,s:0};
+  const rCount=Math.max(num(rowCounts.r),(week.data?.r||[]).length,(labels.r||[]).length);
+  const sCount=Math.max(num(rowCounts.s),(week.data?.s||[]).length,(labels.s||[]).length);
+  const stats=programStats(week);
+  const options=weeks.map(item=>`<option value="${esc(item.week)}" ${item.week===selectedKey?"selected":""}>${esc(weekLabel(item.week))}</option>`).join("");
+  const dayHeaders=DAYS.map((name,d)=>`<div class="cd2-pg-cell cd2-pg-day">${esc(name)}<small>${esc(shortDate(addDays(week.week,d)))}</small></div>`).join("");
+  const section=(blk,title,count)=>{
+    let html=`<div class="cd2-pg-section">${esc(title)}</div>`;
+    for(let i=0;i<count;i++){
+      const fallback=blk==="r"?`Rutin ${i+1}`:`Ders ${i+1}`;
+      html+=`<div class="cd2-pg-cell cd2-pg-label">${esc(text(labels?.[blk]?.[i],80)||fallback)}</div>`;
+      for(let d=0;d<7;d++)html+=programCell(week,blk,i,d);
+    }
+    return html;
+  };
+  const dayDone=Array.from({length:7},(_,d)=>{
+    const x=dayTaskStats(week,d),done=!!week.data?.done?.[d];
+    return`<div class="cd2-pg-cell cd2-pg-daydone ${done?"on":""}">${done?"✓ Gün tamamlandı":"Gün açık"}${x.filled?`<small>${x.done}/${x.filled} görev</small>`:""}</div>`;
+  }).join("");
+
+  host.innerHTML=`<section class="cd2-card cd2-program-card">
+    <div class="cd2-program-head">
+      <div><h3>Programım · tam görünüm</h3><span class="cd2-live cd2-muted">Canlı eşitleme açık</span></div>
+      <div class="cd2-program-nav">
+        <button type="button" data-program-prev aria-label="Önceki hafta" ${selectedIndex<=0?"disabled":""}>‹</button>
+        <select data-program-week aria-label="Program haftası">${options}</select>
+        <button type="button" data-program-next aria-label="Sonraki hafta" ${selectedIndex>=weeks.length-1?"disabled":""}>›</button>
+      </div>
+    </div>
+    <div class="cd2-program-stats">
+      <div class="cd2-program-stat"><b>${stats.done}/${stats.filled}</b><span>Tamamlanan görev</span></div>
+      <div class="cd2-program-stat"><b>%${stats.pct}</b><span>Haftalık görev ilerlemesi</span></div>
+      <div class="cd2-program-stat"><b>${stats.dayDone}/7</b><span>Tamamlanan gün</span></div>
+      <div class="cd2-program-stat"><b>${stats.moved}</b><span>Yarına taşınan görev</span></div>
+    </div>
+    <div class="cd2-program-scroll">
+      <div class="cd2-program-grid">
+        <div class="cd2-pg-cell cd2-pg-day">Satır</div>${dayHeaders}
+        ${section("r","Rutinler",rCount)}
+        ${section("s","Ders Programım",sCount)}
+        <div class="cd2-pg-cell cd2-pg-label">Gün durumu</div>${dayDone}
+      </div>
+    </div>
+  </section>`;
+  const select=host.querySelector("[data-program-week]");
+  const setWeek=next=>{
+    if(!next)return;
+    runtime.programWeeks.set(uid,next);
+    renderProgram(host,runtime.students[runtime.selected]||data);
+  };
+  if(select)select.onchange=()=>setWeek(select.value);
+  const prev=host.querySelector("[data-program-prev]");
+  const next=host.querySelector("[data-program-next]");
+  if(prev)prev.onclick=()=>setWeek(weeks[selectedIndex-1]?.week);
+  if(next)next.onclick=()=>setWeek(weeks[selectedIndex+1]?.week);
 }
 
 function renderExams(host,data){
@@ -213,7 +406,13 @@ function renderStudentList(){
   if(!list)return;
   if(!runtime.students.length){list.innerHTML='<div class="ca-muted">Henüz öğrenci yok.</div>';return}
   list.innerHTML=runtime.students.map((data,index)=>`<button type="button" class="ca-student ${runtime.selected===index?"on":""}" data-cd2-student="${index}"><b>${esc(studentName(data))}</b><div class="ca-muted">${esc(track(data))}</div></button>`).join("");
-  list.querySelectorAll("[data-cd2-student]").forEach(button=>button.onclick=()=>{runtime.selected=Number(button.dataset.cd2Student)||0;runtime.tab="summary";renderStudentList();renderDetail()});
+  list.querySelectorAll("[data-cd2-student]").forEach(button=>button.onclick=()=>{
+    runtime.selected=Number(button.dataset.cd2Student)||0;
+    runtime.tab="summary";
+    watchSelectedShare();
+    renderStudentList();
+    renderDetail();
+  });
 }
 
 async function refresh(){
@@ -224,15 +423,17 @@ async function refresh(){
   runtime.selected=nextIndex>=0?nextIndex:0;
   renderStudentList();
   renderDetail();
+  watchSelectedShare();
 }
 
 function takeover(ctx,result){
   if(result?.role!=="coach")return false;
   styles();
+  stopShareWatch();
   runtime.ctx=ctx;runtime.profile=result.profile;runtime.tab="summary";
   const dashboard=document.getElementById("yksCoachDashboard");
   if(!dashboard)return false;
-  dashboard.dataset.coachDashboard="v2";
+  dashboard.dataset.coachDashboard="v2.1";
   const refreshButton=dashboard.querySelector("[data-refresh]");
   if(refreshButton)refreshButton.onclick=()=>void refresh();
   void refresh();
@@ -253,7 +454,7 @@ function install(){
     return result;
   };
   document.documentElement.dataset.coachDashboardV2="ready";
-  window.dispatchEvent(new CustomEvent("yks:coach-dashboard-v2-ready",{detail:{version:"2.0.0"}}));
+  window.dispatchEvent(new CustomEvent("yks:coach-dashboard-v2-ready",{detail:{version:"2.1.0"}}));
   return true;
 }
 
