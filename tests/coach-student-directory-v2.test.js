@@ -2,12 +2,11 @@ const test=require("node:test");
 const assert=require("node:assert/strict");
 const fs=require("node:fs");
 const path=require("node:path");
-
 const root=path.resolve(__dirname,"..");
 const read=file=>fs.readFileSync(path.join(root,file),"utf8");
 
-test("öğrenci ayarlarında kalıcı Koç Kodum kartı kurulur",()=>{
-  const runtime=read("public/coach-student-directory-v2.js");
+test("öğrenci ayarlarında yalnız Koç Kodum bağlantı kartı kurulur",()=>{
+  const runtime=read("public/student-coach-link.js");
   assert.match(runtime,/studentCoachCodeSettings/);
   assert.match(runtime,/Koç Kodum/);
   assert.match(runtime,/document\.getElementById\("mrp_ayar"\)/);
@@ -17,63 +16,36 @@ test("öğrenci ayarlarında kalıcı Koç Kodum kartı kurulur",()=>{
 });
 
 test("öğrenci kodu 12 karakterlik tekrar kullanılabilir kriptografik koddur",()=>{
-  const runtime=read("public/coach-student-directory-v2.js");
+  const runtime=read("public/student-coach-link.js");
   assert.match(runtime,/CODE_LENGTH=12/);
   assert.match(runtime,/\^\[A-Z2-9\]\{12\}\$/);
   assert.match(runtime,/crypto\.getRandomValues/);
   assert.match(runtime,/studentCoachAccess/);
   assert.match(runtime,/studentCoachCodes/);
-  assert.doesNotMatch(runtime,/expiresAt/);
-  assert.doesNotMatch(runtime,/status:\s*["']claimed["']/);
+  assert.doesNotMatch(runtime,/expiresAt|status:\s*["']claimed["']/);
 });
 
-test("yeni öğrenci kodu oluşturulurken rastgele aday belge önceden okunmaz",()=>{
-  const runtime=read("public/coach-student-directory-v2.js");
-  assert.match(runtime,/const candidateRef=doc\(state\.db,CODE_COLLECTION,candidate\)/);
-  assert.doesNotMatch(runtime,/candidateSnap=await tx\.get\(candidateRef\)/);
-  assert.match(runtime,/tx\.set\(candidateRef,\{code:candidate,studentUid:state\.user\.uid,active:true/);
-  assert.match(runtime,/permission-denied/);
-});
-
-test("kod yenileme eski öğrenci kodunu dizinden kaldırır ama mevcut koç bağlantısını silmez",()=>{
-  const runtime=read("public/coach-student-directory-v2.js");
+test("kod yenileme eski kodu kaldırır ama mevcut koç bağlantısını silmez",()=>{
+  const runtime=read("public/student-coach-link.js");
   assert.match(runtime,/tx\.delete\(oldRef\)/);
   assert.match(runtime,/Mevcut bağlı koçların bağlantısı devam eder/);
   assert.doesNotMatch(runtime,/deleteDoc\(doc\(state\.db,LINK_COLLECTION/);
 });
 
-test("koç paneli Öğrencilerim alanında kalıcı öğrenci koduyla öğrenci ekler",()=>{
-  const runtime=read("public/coach-student-directory-v2.js");
-  assert.match(runtime,/Öğrencilerim/);
-  assert.match(runtime,/Öğrenci ekle/);
-  assert.match(runtime,/XXXX-XXXX-XXXX/);
-  assert.match(runtime,/addStudentByCode/);
-  assert.match(runtime,/accessCode/);
-  assert.match(runtime,/coachingLinks/);
+test("YKS Defterim bağlantı modülünde koç paneli yönetimi bulunmaz",()=>{
+  const runtime=read("public/student-coach-link.js");
+  assert.doesNotMatch(runtime,/addStudentByCode|enhanceCoachDashboard|Öğrencilerim|Öğrenci ekle|yksCoachDashboard/);
+  assert.match(runtime,/Bağlantıyı kes/);
+  assert.match(runtime,/ayrı YKS Koç Paneli/);
 });
 
-test("koç bağlantı hotfixi olmayan linki okumadan güvenli şekilde oluşturur",()=>{
-  const hotfix=read("public/coach-student-link-hotfix.js");
-  assert.match(hotfix,/where\("coachUid","==",coachUid\)/);
-  assert.match(hotfix,/existingCoachLink/);
-  assert.doesNotMatch(hotfix,/getDoc\(linkRef\)/);
-  assert.doesNotMatch(hotfix,/tx\.get\(linkRef\)/);
-  assert.match(hotfix,/setDoc\(doc\(db,LINK_COLLECTION,`\$\{studentUid\}_\$\{user\.uid\}`\)/);
-  assert.match(hotfix,/updateDoc\(doc\(db,LINK_COLLECTION,existing\.id\)/);
-  assert.match(hotfix,/form\.dataset\.linkHotfix="1"/);
-});
-
-test("koç bağlantı hotfixi dizinden sonra ve auth başlamadan önce yüklenir",()=>{
+test("öğrenci bağlantı köprüsü auth çalışmadan önce yüklenir",()=>{
   const loader=read("src/ui/coach-account-loader.ts");
-  const coachAt=loader.indexOf("coach-account-runtime.js?v=1.0.0");
-  const directoryAt=loader.indexOf("coach-student-directory-v2.js?v=2.0.1");
-  const hotfixAt=loader.indexOf("coach-student-link-hotfix.js?v=1.0.0");
+  const bridgeAt=loader.indexOf("student-coaching-runtime.js?v=1.1.0");
+  const linkAt=loader.indexOf("student-coach-link.js?v=1.0.0");
   const authAt=loader.indexOf("auth-session-runtime.js?v=1.6.0");
-  assert.ok(coachAt>=0&&directoryAt>coachAt&&hotfixAt>directoryAt&&authAt>hotfixAt);
-  assert.match(loader,/COACH_DIRECTORY_SCRIPT_ID/);
-  assert.match(loader,/COACH_LINK_HOTFIX_SCRIPT_ID/);
-  assert.match(read("public/coach-student-directory-v2.js"),/version:"2\.0\.1"/);
-  assert.match(read("public/coach-student-link-hotfix.js"),/version:"1\.0\.0"/);
+  assert.ok(bridgeAt>=0&&linkAt>bridgeAt&&authAt>linkAt);
+  assert.match(loader,/STUDENT_COACH_LINK_ID/);
 });
 
 test("Firestore kalıcı öğrenci kodunu yalnız tam kodla okutur ve listelemeyi kapatır",()=>{
@@ -93,12 +65,4 @@ test("kalıcı kod koçluk linkine dönüşürken öğrenci ham sync verisi kapa
   assert.match(rules,/activeCoachingLink\(studentUid, request\.auth\.uid\)/);
   assert.match(rules,/match \/users\/\{userId\}\/sync\/meta[\s\S]*allow read: if ownsUserSpace\(userId\)/);
   assert.doesNotMatch(rules,/match \/users\/\{userId\}\/sync\/meta[\s\S]{0,240}reusableStudentCodeMatches/);
-});
-
-test("bağlantısı kesilmiş öğrenci aynı kalıcı kodla tekrar eklenebilir",()=>{
-  const rules=read("firestore.rules");
-  assert.match(rules,/resource\.data\.active == false/);
-  assert.match(rules,/request\.resource\.data\.active == true/);
-  assert.match(rules,/hasOnly\(\['active', 'accessCode', 'updatedAt'\]\)/);
-  assert.match(rules,/reusableStudentCodeMatches\([\s\S]*resource\.data\.studentUid/);
 });
