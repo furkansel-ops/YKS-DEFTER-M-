@@ -2,93 +2,38 @@ const test=require("node:test");
 const assert=require("node:assert/strict");
 const fs=require("node:fs");
 const path=require("node:path");
-
 const root=path.resolve(__dirname,"..");
 const read=file=>fs.readFileSync(path.join(root,file),"utf8");
+const exists=file=>fs.existsSync(path.join(root,file));
 
-test("koç ana paneli yalnız önemli özet metriklerini öne çıkarır",()=>{
-  const runtime=read("public/coach-dashboard-v2.js");
-  assert.match(runtime,/7 gün çalışma/);
-  assert.match(runtime,/7 gün soru/);
-  assert.match(runtime,/Son deneme/);
-  assert.match(runtime,/Geciken konu/);
-  assert.match(runtime,/Dikkat edilmesi gerekenler/);
-  assert.match(runtime,/Programdan son görevler/);
-  assert.match(runtime,/Son denemeler/);
-  assert.match(runtime,/Hızlı işlemler/);
-});
-
-test("ayrıntılar tek ekrana yığılmak yerine sekmelere ayrılır",()=>{
-  const runtime=read("public/coach-dashboard-v2.js");
-  for(const label of["Özet","Program","Deneme","İlerleme","Konular","Hata Defteri"]){
-    assert.ok(runtime.includes(`\"${label}\"`));
-  }
-  assert.match(runtime,/function renderSummary/);
-  assert.match(runtime,/function renderProgram/);
-  assert.match(runtime,/function renderExams/);
-  assert.match(runtime,/function renderProgress/);
-  assert.match(runtime,/function renderTopics/);
-  assert.match(runtime,/function renderErrors/);
-});
-
-test("özet panel dikkat gerektiren konu, hata ve net düşüşünü hesaplar",()=>{
-  const runtime=read("public/coach-dashboard-v2.js");
-  assert.match(runtime,/topicStats/);
-  assert.match(runtime,/topErrors/);
-  assert.match(runtime,/exams\.delta!=null&&exams\.delta<0/);
-  assert.match(runtime,/En çok hata yapılan konu/);
-  assert.match(runtime,/Son denemede net düşüşü/);
-});
-
-test("koç hızlı işlemleri mevcut güvenli coachingActions kanalını kullanır",()=>{
-  const runtime=read("public/coach-dashboard-v2.js");
-  assert.match(runtime,/coachingActions/);
-  assert.match(runtime,/program_task/);
-  assert.match(runtime,/coach_note/);
-  assert.match(runtime,/post_exam_task/);
-  assert.match(runtime,/topic_deadline/);
-  assert.doesNotMatch(runtime,/users\/.*sync/);
-});
-
-test("ana uygulama gömülü koç panelini yüklemez ve koçları bağımsız panele yönlendirir",()=>{
+test("YKS Defterim içinde gömülü koç dashboardu bulunmaz",()=>{
+  assert.equal(exists("public/coach-dashboard-v2.js"),false);
   const loader=read("src/ui/coach-account-loader.ts");
-  const programShareAt=loader.indexOf("coach-program-share-v2.js?v=2.0.0");
-  const authAt=loader.indexOf("auth-session-runtime.js?v=1.6.0");
-  assert.ok(programShareAt>=0&&authAt>programShareAt);
-  assert.doesNotMatch(loader,/coach-dashboard-v2\.js/);
-  assert.doesNotMatch(loader,/COACH_DASHBOARD_V2_SCRIPT_ID/);
-  assert.match(loader,/YKS-DEFTER-M-Ko-Paneli/);
+  assert.doesNotMatch(loader,/coach-dashboard-v2\.js|COACH_DASHBOARD_V2_SCRIPT_ID|yksCoachDashboard/);
+});
+
+test("koç kayıt ve davet sayfaları öğrenci uygulamasından kaldırılmıştır",()=>{
+  for(const file of["public/coach-register.html","public/coach-register.js","public/coach-invites.html"])assert.equal(exists(file),false,file);
+});
+
+test("koç hesabı ayrı YKS Koç Paneli adresine yönlendirilir",()=>{
+  const loader=read("src/ui/coach-account-loader.ts");
+  assert.match(loader,/https:\/\/furkansel-ops\.github\.io\/YKS-DEFTER-M-Ko-Paneli\//);
   assert.match(loader,/window\.location\.replace\(COACH_PANEL_URL\)/);
-  assert.match(loader,/coach-program-share-v2\.js\?v=2\.0\.0/);
+  assert.match(loader,/coachDashboard="external-only"/);
 });
 
-test("öğrenci seçildiğinde varsayılan görünüm özete döner ve canlı paylaşım yeniden bağlanır",()=>{
-  const runtime=read("public/coach-dashboard-v2.js");
-  assert.match(runtime,/runtime\.tab="summary"/);
-  assert.match(runtime,/watchSelectedShare\(\)/);
-  assert.match(runtime,/data-cd2-student/);
+test("öğrenci uygulaması yalnız paylaşım ve bağlantı köprülerini yükler",()=>{
+  const loader=read("src/ui/coach-account-loader.ts");
+  const bridgeAt=loader.indexOf("student-coaching-runtime.js?v=1.1.0");
+  const linkAt=loader.indexOf("student-coach-link.js?v=1.0.0");
+  const programAt=loader.indexOf("coach-program-share-v2.js?v=2.0.0");
+  const authAt=loader.indexOf("auth-session-runtime.js?v=1.6.0");
+  assert.ok(bridgeAt>=0&&linkAt>bridgeAt&&programAt>linkAt&&authAt>programAt);
+  assert.doesNotMatch(loader,/coach-account-runtime|coach-student-directory|coach-student-link-hotfix/);
 });
 
-test("program ekranı Programım v2 verisini tam haftalık grid olarak kullanır",()=>{
-  const runtime=read("public/coach-dashboard-v2.js");
-  assert.match(runtime,/Programım · tam görünüm/);
-  assert.match(runtime,/const DAYS=\["Pazartesi","Salı","Çarşamba","Perşembe","Cuma","Cumartesi","Pazar"\]/);
-  assert.match(runtime,/program\.rowLabels/);
-  assert.match(runtime,/program\.rows/);
-  assert.match(runtime,/week\.data\?\.dn/);
-  assert.match(runtime,/week\.data\?\.mv/);
-  assert.match(runtime,/week\.data\?\.done/);
-  assert.match(runtime,/data-program-week/);
-  assert.match(runtime,/Rutinler/);
-  assert.match(runtime,/Ders Programım/);
-  assert.match(runtime,/Gün tamamlandı/);
-  assert.match(runtime,/Yarına taşınan görev/);
-});
-
-test("seçili öğrencinin coachingShares belgesi Firestore onSnapshot ile canlı izlenir",()=>{
-  const runtime=read("public/coach-dashboard-v2.js");
-  assert.match(runtime,/getDocs,onSnapshot,query/);
-  assert.match(runtime,/onSnapshot\(doc\(runtime\.ctx\.db,SHARE_COLLECTION,uid\)/);
-  assert.match(runtime,/stopShareWatch/);
-  assert.match(runtime,/renderDetail\(\)/);
+test("Programım v2 paylaşım sözleşmesi aynen korunur",()=>{
+  const runtime=read("public/coach-program-share-v2.js");
+  for(const token of["PROGRAM_VERSION=2","rowLabels","weeks","done","dn","mv","coachingShares"])assert.ok(runtime.includes(token),token);
 });

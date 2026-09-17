@@ -45,7 +45,9 @@ test("Web/PWA tek bulut eşitleme merkezi kullanır ve Firebase runtime sözleş
   assert.match(shell,/Google ile giriş yap/);
   assert.match(shell,/coach-account-loader/);
   const loader=read("src/ui/coach-account-loader.ts");
-  assert.match(loader,/coach-account-runtime\.js/);
+  assert.match(loader,/student-coaching-runtime\.js/);
+  assert.match(loader,/student-coach-link\.js/);
+  assert.doesNotMatch(loader,/coach-account-runtime\.js/);
   assert.match(loader,/__YKS_ACCOUNT_READY__/);
   assert.match(shell,/activateWebCloudSync/);
   assert.match(shell,/firebase-sync-runtime\.js/);
