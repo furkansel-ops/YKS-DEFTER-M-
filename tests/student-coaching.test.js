@@ -119,3 +119,17 @@ test("Ana koç paylaşımı Programım verisini doğrudan taşır",()=>{
   assert.match(runtime,/programWeekHasData/);
   assert.match(runtime,/cleanProgramMatrix/);
 });
+
+
+test("Koç eşitleme runtime ana bootstrap'ta garanti edilir ve save sinyali üretir",()=>{
+  const main=read("src/main.ts");
+  const loader=read("src/ui/student-account-loader.ts");
+  const runtime=read("public/student-coaching-runtime.js");
+  const app=read("app.js");
+  assert.match(main,/installStudentAccountLoader/);
+  assert.match(main,/installStudentAccountLoader\(\)/);
+  assert.match(loader,/student-coaching-runtime\.js\?v=1\.2\.0/);
+  assert.match(runtime,/version:\"1\.2\.0\"/);
+  assert.match(app,/CustomEvent\(\"yks:data-changed\"/);
+  assert.match(app,/source:\"save\"/);
+});
