@@ -172,18 +172,6 @@ const domain=installLegacyDomainBridge();
 const progressAnalysis=installLegacyProgressAnalysisBridge();
 const examAnalysis=installLegacyExamAnalysisBridge();
 const pwa=installPwaRuntime(RELEASE_BUILD);
-/* Koç/öğrenci hesap köprüsü artık Daha ekranının açılmasına bağlı değil. Ana bootstrap
-   sırasında ayrı chunk olarak yüklenir; böylece başlangıç JS bütçesi korunur. */
-document.documentElement.dataset.studentAccountBootstrap="loading";
-void import("./ui/student-account-loader")
-  .then(({installStudentAccountLoader})=>{
-    installStudentAccountLoader();
-    document.documentElement.dataset.studentAccountBootstrap="ready";
-  })
-  .catch(error=>{
-    document.documentElement.dataset.studentAccountBootstrap="deferred";
-    console.error("Öğrenci/koç hesap köprüsü başlatılamadı",error);
-  });
 
 /* P & P ekran kabuğunun navigasyon doğrulamasından önce kurulması gerekir; ancak
    kurulum hatası artık çekirdek açılışı durdurmaz. */
