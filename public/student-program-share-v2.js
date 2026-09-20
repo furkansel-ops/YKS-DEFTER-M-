@@ -3,7 +3,7 @@ import{doc,onSnapshot,setDoc,serverTimestamp}from"https://www.gstatic.com/fireba
 const PROGRAM_VERSION=3;
 const MAX_PROGRAM_WEEKS=80;
 const DATE_RE=/^\d{4}-\d{2}-\d{2}$/;
-const rt={db:null,user:null,shareReady:false,timer:null,stopShare:null,stopData:null,writing:false,pending:false,lastHash:""};
+const rt={db:null,user:null,shareReady:false,timer:null,watchTimer:null,stopShare:null,stopData:null,writing:false,pending:false,lastHash:""};
 const state=()=>{try{return window.YKSLegacyState?.readState?.()||window.S||null}catch{return window.S||null}};
 const txt=(v,n=220)=>String(v??"").trim().slice(0,n);
 const int=(v,fallback)=>{const n=Math.floor(Number(v));return Number.isFinite(n)&&n>0?n:fallback};
@@ -87,8 +87,17 @@ function schedule(ms=1250){
   clearTimeout(rt.timer);
   rt.timer=setTimeout(()=>void publishProgram(),ms);
 }
+function localProgramHash(){
+  const s=state();if(!s)return"";
+  return stableProgramHash(programPayload(s));
+}
+function watchLocalProgram(){
+  if(!rt.shareReady||!rt.db||!rt.user)return;
+  const hash=localProgramHash();
+  if(hash&&hash!==rt.lastHash)schedule(80);
+}
 function stop(){
-  clearTimeout(rt.timer);rt.timer=null;
+  clearTimeout(rt.timer);rt.timer=null;clearInterval(rt.watchTimer);rt.watchTimer=null;
   try{rt.stopShare?.()}catch{}rt.stopShare=null;
   try{rt.stopData?.()}catch{}rt.stopData=null;
   rt.db=null;rt.user=null;rt.shareReady=false;rt.writing=false;rt.pending=false;rt.lastHash="";
@@ -100,13 +109,16 @@ function start(ctx){
     rt.shareReady=snap.exists();
     if(!snap.exists())return;
     const remote=snap.data()?.program;
-    if(Number(remote?.version||0)===PROGRAM_VERSION)rt.lastHash=stableProgramHash(remote);
-    else schedule(120);
+    const remoteHash=Number(remote?.version||0)===PROGRAM_VERSION?stableProgramHash(remote):"";
+    const currentHash=localProgramHash();
+    rt.lastHash=remoteHash;
+    if(!remoteHash||remoteHash!==currentHash)schedule(120);
   },error=>console.error("Program paylaşım dinleyicisi",error));
   const changed=()=>schedule();
   window.addEventListener("yks:data-changed",changed);
   rt.stopData=()=>window.removeEventListener("yks:data-changed",changed);
-  schedule(650);
+  rt.watchTimer=setInterval(watchLocalProgram,1500);
+  schedule(250);
 }
 
 const auth=window.YKSAccountAuth;
@@ -122,5 +134,5 @@ if(auth&&!auth.__programShareV2){
   auth.onSignedOut=(...args)=>{stop();return previousSignOut?.(...args)};
   auth.__programShareV2=true;
 }
-window.YKSStudentProgramShareV2={version:"3.0.0",publish:publishProgram,build:programPayload};
+window.YKSStudentProgramShareV2={version:"3.1.0",publish:publishProgram,build:programPayload};
 document.documentElement.dataset.studentProgramSync="v3";
