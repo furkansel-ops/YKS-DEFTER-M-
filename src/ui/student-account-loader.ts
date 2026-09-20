@@ -58,7 +58,7 @@ export function installStudentAccountLoader():boolean{
     if(!bridgeReady||!forceStudentOnlyRegistration(win))return false;
     const linkReady=await loadModuleScript(STUDENT_COACH_LINK_ID,"./student-coach-link.js?v=1.0.0");
     if(!linkReady)return false;
-    const programShareReady=await loadModuleScript(STUDENT_PROGRAM_SHARE_V2_SCRIPT_ID,"./student-program-share-v2.js?v=2.0.0");
+    const programShareReady=await loadModuleScript(STUDENT_PROGRAM_SHARE_V2_SCRIPT_ID,"./student-program-share-v2.js?v=3.0.0");
     if(!programShareReady)return false;
     const authReady=await loadModuleScript(AUTH_SCRIPT_ID,"./auth-session-runtime.js?v=1.6.0");
     if(!authReady)return false;
