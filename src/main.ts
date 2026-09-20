@@ -19,7 +19,6 @@ import {installV43SafeRuntime} from "./ui/v43-safe-runtime";
 import {installPlayStoreShell} from "./ui/play-store-shell";
 import {installParagraphProblemTracker} from "./ui/paragraph-problem-tracker";
 import {installTeachersV2} from "./ui/teachers-v2";
-import {installStudentAccountLoader} from "./ui/student-account-loader";
 import "./ui/single-theme-runtime.css";
 import "./ui/visual-stability-hotfix.css";
 import "./ui/recent-feature-stability.css";
@@ -173,8 +172,18 @@ const domain=installLegacyDomainBridge();
 const progressAnalysis=installLegacyProgressAnalysisBridge();
 const examAnalysis=installLegacyExamAnalysisBridge();
 const pwa=installPwaRuntime(RELEASE_BUILD);
-/* Koç/öğrenci hesap köprüsü artık Daha ekranının açılmasına bağlı değil. PWA ve normal web açılışlarında ana bootstrap ile garanti edilir. */
-installStudentAccountLoader();
+/* Koç/öğrenci hesap köprüsü artık Daha ekranının açılmasına bağlı değil. Ana bootstrap
+   sırasında ayrı chunk olarak yüklenir; böylece başlangıç JS bütçesi korunur. */
+document.documentElement.dataset.studentAccountBootstrap="loading";
+void import("./ui/student-account-loader")
+  .then(({installStudentAccountLoader})=>{
+    installStudentAccountLoader();
+    document.documentElement.dataset.studentAccountBootstrap="ready";
+  })
+  .catch(error=>{
+    document.documentElement.dataset.studentAccountBootstrap="deferred";
+    console.error("Öğrenci/koç hesap köprüsü başlatılamadı",error);
+  });
 
 /* P & P ekran kabuğunun navigasyon doğrulamasından önce kurulması gerekir; ancak
    kurulum hatası artık çekirdek açılışı durdurmaz. */
