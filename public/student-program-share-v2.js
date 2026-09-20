@@ -1,9 +1,9 @@
 import{doc,onSnapshot,setDoc,serverTimestamp}from"https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
 
-const PROGRAM_VERSION=2;
+const PROGRAM_VERSION=3;
 const MAX_PROGRAM_WEEKS=80;
 const DATE_RE=/^\d{4}-\d{2}-\d{2}$/;
-const rt={db:null,user:null,shareReady:false,timer:null,stopShare:null,stopData:null,writing:false,pending:false};
+const rt={db:null,user:null,shareReady:false,timer:null,stopShare:null,stopData:null,writing:false,pending:false,lastHash:""};
 const state=()=>{try{return window.YKSLegacyState?.readState?.()||window.S||null}catch{return window.S||null}};
 const txt=(v,n=220)=>String(v??"").trim().slice(0,n);
 const int=(v,fallback)=>{const n=Math.floor(Number(v));return Number.isFinite(n)&&n>0?n:fallback};
@@ -52,9 +52,9 @@ function programPayload(s){
       mv:cleanMap(raw.mv)
     }};
   });
-  return{version:PROGRAM_VERSION,rows,rowLabels:labels,weeks};
+  return{version:PROGRAM_VERSION,rows,rowLabels:labels,weeks,syncedAt:Date.now()};
 }
-async function publishProgram(){
+function payloadHash(value){try{return JSON.stringify(value)}catch{return""}}\nasync function publishProgram(){
   if(rt.writing){rt.pending=true;return}
   if(!rt.shareReady||!rt.db||!rt.user)return;
   const s=state();if(!s)return;
@@ -75,7 +75,7 @@ function stop(){
   clearTimeout(rt.timer);rt.timer=null;
   try{rt.stopShare?.()}catch{}rt.stopShare=null;
   try{rt.stopData?.()}catch{}rt.stopData=null;
-  rt.db=null;rt.user=null;rt.shareReady=false;rt.writing=false;rt.pending=false;
+  rt.db=null;rt.user=null;rt.shareReady=false;rt.writing=false;rt.pending=false;rt.lastHash="";
 }
 function start(ctx){
   stop();rt.db=ctx.db;rt.user=ctx.user;
