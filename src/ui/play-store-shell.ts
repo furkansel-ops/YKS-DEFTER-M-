@@ -189,10 +189,10 @@ function activateWebCloudSync():boolean{
 }
 
 function activateAccountAwareCloudSync():boolean{
-  if(isNativeApp())return false;
+  const native=isNativeApp();
   void import("./student-account-loader")
-    .then(({installStudentAccountLoader})=>{installStudentAccountLoader();activateWebCloudSync();})
-    .catch(error=>{console.error("Öğrenci hesap katmanı yüklenemedi",error);activateWebCloudSync();});
+    .then(({installStudentAccountLoader})=>{installStudentAccountLoader();if(!native)activateWebCloudSync();})
+    .catch(error=>{console.error("Öğrenci hesap katmanı yüklenemedi",error);if(!native)activateWebCloudSync();});
   return true;
 }
 
@@ -220,7 +220,7 @@ function installPolicyCard():boolean{
 
 export function installPlayStoreShell():{installed:boolean;legacyCloudRemoved:boolean}{
   const cloudBoxInstalled=installLegacyCloudSyncBox();
-  const cloudRuntimeInstalled=cloudBoxInstalled&&activateAccountAwareCloudSync();
+  const cloudRuntimeInstalled=activateAccountAwareCloudSync();
   const installed=installPolicyCard();
 
   if(!installed||(!isNativeApp()&&(!cloudBoxInstalled||!cloudRuntimeInstalled))){
