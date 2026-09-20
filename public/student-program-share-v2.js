@@ -23,7 +23,10 @@ function cleanMap(value){
   const out={};
   Object.entries(value).slice(0,600).forEach(([key,val])=>{
     const k=txt(key,80);if(!k)return;
-    if(val&&typeof val==="object")out[k]=cloneValue(val,{});else if(typeof val==="boolean")out[k]=val;else if(Number.isFinite(Number(val)))out[k]=Number(val);else out[k]=txt(val,160);
+    if(val&&typeof val==="object")out[k]=cloneValue(val,{});
+    else if(typeof val==="boolean")out[k]=val;
+    else if(Number.isFinite(Number(val)))out[k]=Number(val);
+    else out[k]=txt(val,160);
   });
   return out;
 }
@@ -54,13 +57,23 @@ function programPayload(s){
   });
   return{version:PROGRAM_VERSION,rows,rowLabels:labels,weeks,syncedAt:Date.now()};
 }
-function payloadHash(value){try{return JSON.stringify(value)}catch{return""}}\nasync function publishProgram(){
+function payloadHash(value){
+  try{return JSON.stringify(value)}catch{return""}
+}
+function stableProgramHash(program){
+  if(!program||typeof program!=="object")return"";
+  return payloadHash({...program,syncedAt:0});
+}
+async function publishProgram(){
   if(rt.writing){rt.pending=true;return}
   if(!rt.shareReady||!rt.db||!rt.user)return;
   const s=state();if(!s)return;
+  const program=programPayload(s),hash=stableProgramHash(program);
+  if(hash&&hash===rt.lastHash)return;
   rt.writing=true;
   try{
-    await setDoc(doc(rt.db,"coachingShares",rt.user.uid),{program:programPayload(s),updatedAt:serverTimestamp()},{merge:true});
+    await setDoc(doc(rt.db,"coachingShares",rt.user.uid),{program,updatedAt:serverTimestamp()},{merge:true});
+    rt.lastHash=hash;
     document.documentElement.dataset.studentProgramShare="ready";
   }catch(error){
     console.error("Program paylaşımı",error);
@@ -70,7 +83,10 @@ function payloadHash(value){try{return JSON.stringify(value)}catch{return""}}\na
     if(rt.pending){rt.pending=false;schedule(120)}
   }
 }
-function schedule(ms=1250){clearTimeout(rt.timer);rt.timer=setTimeout(()=>void publishProgram(),ms)}
+function schedule(ms=1250){
+  clearTimeout(rt.timer);
+  rt.timer=setTimeout(()=>void publishProgram(),ms);
+}
 function stop(){
   clearTimeout(rt.timer);rt.timer=null;
   try{rt.stopShare?.()}catch{}rt.stopShare=null;
@@ -84,7 +100,8 @@ function start(ctx){
     rt.shareReady=snap.exists();
     if(!snap.exists())return;
     const remote=snap.data()?.program;
-    if(Number(remote?.version||0)!==PROGRAM_VERSION)schedule(120);
+    if(Number(remote?.version||0)===PROGRAM_VERSION)rt.lastHash=stableProgramHash(remote);
+    else schedule(120);
   },error=>console.error("Program paylaşım dinleyicisi",error));
   const changed=()=>schedule();
   window.addEventListener("yks:data-changed",changed);
@@ -105,5 +122,5 @@ if(auth&&!auth.__programShareV2){
   auth.onSignedOut=(...args)=>{stop();return previousSignOut?.(...args)};
   auth.__programShareV2=true;
 }
-window.YKSStudentProgramShareV2={version:"2.0.0",publish:publishProgram,build:programPayload};
-document.documentElement.dataset.studentProgramSync="v2";
+window.YKSStudentProgramShareV2={version:"3.0.0",publish:publishProgram,build:programPayload};
+document.documentElement.dataset.studentProgramSync="v3";
