@@ -19,7 +19,7 @@ test("öğrenci hesap köprüleri auth başlamadan önce güvenli sırada yükle
   const loader=read("src/ui/student-account-loader.ts");
   const bridgeAt=loader.indexOf("student-coaching-runtime.js?v=1.1.0");
   const linkAt=loader.indexOf("student-coach-link.js?v=1.0.0");
-  const programAt=loader.indexOf("student-program-share-v2.js?v=2.0.0");
+  const programAt=loader.indexOf("student-program-share-v2.js?v=3.0.0");
   const authAt=loader.indexOf("auth-session-runtime.js?v=1.6.0");
   assert.ok(bridgeAt>=0&&linkAt>bridgeAt&&programAt>linkAt&&authAt>programAt);
 });
@@ -42,7 +42,7 @@ test("koç paylaşımı yazma sürerken gelen son öğrenci değişikliğini tek
 
 test("Programım paylaşımı öğrenci köprüsünde tam yapıyı korur",()=>{
   const runtime=read("public/student-program-share-v2.js");
-  for(const token of["PROGRAM_VERSION=2","MAX_PROGRAM_WEEKS=80","rowLabels","rows","weeks","done","dn","mv","coachingShares"])assert.ok(runtime.includes(token),token);
+  for(const token of["PROGRAM_VERSION=3","MAX_PROGRAM_WEEKS=80","rowLabels","rows","weeks","done","dn","mv","coachingShares"])assert.ok(runtime.includes(token),token);
   assert.match(runtime,/version:PROGRAM_VERSION,rows,rowLabels:labels,weeks/);
   assert.match(runtime,/yks:data-changed/);
   assert.match(runtime,/onSnapshot\(ref/);
@@ -95,4 +95,12 @@ test("koç hesabı normal öğrenci bulut snapshot zincirini başlatmaz",()=>{
   assert.match(vite,/account&&account\.role/);
   assert.match(vite,/user=null;status\("Koç hesabı"/);
   assert.match(vite,/await waitAccountRuntime\(\)/);
+});
+
+
+test("Programım v3 koç aynası için değişiklikleri canlı ve tekrarsız yayınlar",()=>{
+  const runtime=read("public/student-program-share-v2.js");
+  for(const token of["PROGRAM_VERSION=3","syncedAt:Date.now()","payloadHash","lastHash","studentProgramSync=\"v3\""])assert.ok(runtime.includes(token),token);
+  assert.match(runtime,/if\(hash&&hash===rt\.lastHash\)return/);
+  assert.match(runtime,/rt\.lastHash=hash/);
 });
