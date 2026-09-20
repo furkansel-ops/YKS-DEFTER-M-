@@ -19,7 +19,7 @@ test("öğrenci hesap köprüleri auth başlamadan önce güvenli sırada yükle
   const loader=read("src/ui/student-account-loader.ts");
   const bridgeAt=loader.indexOf("student-coaching-runtime.js?v=1.1.0");
   const linkAt=loader.indexOf("student-coach-link.js?v=1.0.0");
-  const programAt=loader.indexOf("student-program-share-v2.js?v=3.0.0");
+  const programAt=loader.indexOf("student-program-share-v2.js?v=3.1.0");
   const authAt=loader.indexOf("auth-session-runtime.js?v=1.6.0");
   assert.ok(bridgeAt>=0&&linkAt>bridgeAt&&programAt>linkAt&&authAt>programAt);
 });
@@ -103,4 +103,11 @@ test("Programım v3 koç aynası için değişiklikleri canlı ve tekrarsız yay
   for(const token of["PROGRAM_VERSION=3","syncedAt:Date.now()","payloadHash","lastHash","studentProgramSync=\"v3\""])assert.ok(runtime.includes(token),token);
   assert.match(runtime,/if\(hash&&hash===rt\.lastHash\)return/);
   assert.match(runtime,/rt\.lastHash=hash/);
+});
+
+
+test("Programım paylaşımı yerel değişiklikleri event olmasa da izler",()=>{
+  const runtime=read("public/student-program-share-v2.js");
+  for(const token of["watchLocalProgram","setInterval(watchLocalProgram,1500)","localProgramHash","version:\"3.1.0\""])assert.ok(runtime.includes(token),token);
+  assert.match(runtime,/remoteHash!==currentHash/);
 });
