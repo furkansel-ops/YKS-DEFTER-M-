@@ -7,6 +7,8 @@ const state=()=>{try{return window.YKSLegacyState?.readState?.()||window.S||null
 const save=()=>{try{return window.save?.()??window.YKSLegacyState?.save?.()}catch{return false}};
 const toast=m=>{try{window.toast?.(m)}catch{console.info(m)}};
 const today=()=>new Date().toISOString().slice(0,10);
+const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+async function waitForState(timeout=4000){const started=Date.now();while(Date.now()-started<timeout){if(state())return true;await wait(50)}return!!state()}
 
 async function beforeSignIn(ctx){
   try{sessionStorage.setItem(PENDING_ROLE,"student")}catch{}
@@ -100,7 +102,7 @@ function sharePayload(s,u){
 async function publishShare(){
   if(rt.sharing){rt.pending=true;return}
   if(rt.profile?.role!=="student"||!rt.db||!rt.user)return;
-  const s=state();if(!s)return;rt.sharing=true;
+  const s=state();if(!s){scheduleShare(500);return}rt.sharing=true;
   try{
     await setDoc(doc(rt.db,"coachingShares",rt.user.uid),sharePayload(s,rt.user),{merge:true});
     document.documentElement.dataset.coachShare="ready";
@@ -138,7 +140,8 @@ async function handleAction(change){
     try{await updateDoc(change.doc.ref,{status:"rejected",updatedAt:serverTimestamp(),handledAt:serverTimestamp(),result:text(error?.message||"Uygulanamadı",500)})}catch{}
   }
 }
-function startStudent(){
+async function startStudent(){
+  await waitForState();
   scheduleShare(200);
   const changed=()=>scheduleShare();window.addEventListener("yks:data-changed",changed);rt.stops.push(()=>window.removeEventListener("yks:data-changed",changed));
   const q=query(collection(rt.db,"coachingActions"),where("studentUid","==",rt.user.uid));
@@ -151,11 +154,13 @@ async function onSignedIn({user,auth,db}){
   const profile=await ensureProfile(user,db);rt.profile=profile;
   try{localStorage.setItem(ROLE_HINT,profile.role);sessionStorage.removeItem(PENDING_ROLE)}catch{}
   document.documentElement.dataset.accountRole=profile.role;
-  if(profile.role==="student")startStudent();
+  if(profile.role==="student")await startStudent();
   return{role:profile.role,profile};
 }
 function onSignedOut(){cleanup();rt.user=rt.auth=rt.db=rt.profile=null;delete document.documentElement.dataset.accountRole}
 
+let resolveAccountReady;try{window.__YKS_ACCOUNT_READY__=new Promise(resolve=>{resolveAccountReady=resolve})}catch{}
 window.YKSAccountAuth={version:"1.2.0",beforeSignIn,onSignedIn,onSignedOut,publishShare};
+try{resolveAccountReady?.(window.YKSAccountAuth)}catch{}
 document.documentElement.dataset.studentCoachingBridge="ready";
 window.dispatchEvent(new CustomEvent("yks:student-coaching-ready",{detail:{version:"1.2.0"}}));
