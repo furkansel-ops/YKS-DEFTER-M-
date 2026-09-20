@@ -35,12 +35,67 @@ function cleanup(){
 }
 function sum(map,days){let n=0;for(let i=0;i<days;i++)n+=Number(map?.[new Date(Date.now()-i*DAY).toISOString().slice(0,10)]||0)||0;return n}
 function topicParts(k){const p=String(k||"").split("|");return{exam:p[0]||"YKS",subject:p[1]||"Ders",topic:p.slice(2).join("|")||p[1]||k}}
+function cleanProgramMatrix(value,rowCount){
+  const src=Array.isArray(value)?value:[];
+  return Array.from({length:rowCount},(_,r)=>{
+    const row=Array.isArray(src[r])?src[r]:[];
+    return Array.from({length:7},(_,d)=>text(row[d],220));
+  });
+}
+function cleanProgramMap(value){
+  if(!value||typeof value!=="object"||Array.isArray(value))return{};
+  const out={};
+  Object.entries(value).slice(0,600).forEach(([key,val])=>{
+    const k=text(key,80);if(!k)return;
+    if(val&&typeof val==="object")out[k]=JSON.parse(JSON.stringify(val));
+    else if(typeof val==="boolean")out[k]=val;
+    else if(Number.isFinite(Number(val)))out[k]=Number(val);
+    else out[k]=text(val,160);
+  });
+  return out;
+}
+function programWeekHasData(week){
+  if(!week||typeof week!=="object")return false;
+  const cells=[...(week.r||[]),...(week.s||[])];
+  return cells.some(row=>Array.isArray(row)&&row.some(cell=>text(cell,220)))
+    ||(Array.isArray(week.done)&&week.done.some(Boolean))
+    ||Object.keys(week.dn||{}).length>0
+    ||Object.keys(week.mv||{}).length>0;
+}
+function buildProgramShare(s){
+  const rr=Math.max(1,Math.min(24,Number(s?.rows?.r)||2));
+  const sr=Math.max(1,Math.min(24,Number(s?.rows?.s)||4));
+  const weeks=Object.keys(s?.weeks||{})
+    .filter(k=>/^\d{4}-\d{2}-\d{2}$/.test(k)&&programWeekHasData(s.weeks[k]))
+    .sort().slice(-80)
+    .map(week=>{
+      const raw=s.weeks[week]||{};
+      return{week,data:{
+        r:cleanProgramMatrix(raw.r,rr),
+        s:cleanProgramMatrix(raw.s,sr),
+        done:Array.from({length:7},(_,d)=>Boolean(raw?.done?.[d])),
+        dn:cleanProgramMap(raw.dn),
+        mv:cleanProgramMap(raw.mv)
+      }};
+    });
+  return{
+    version:3,
+    rows:{r:rr,s:sr},
+    rowLabels:{
+      r:Array.from({length:rr},(_,i)=>text(s?.rowLabels?.r?.[i],80)),
+      s:Array.from({length:sr},(_,i)=>text(s?.rowLabels?.s?.[i],80))
+    },
+    weeks,
+    syncedAt:Date.now()
+  };
+}
+
 function sharePayload(s,u){
   const topics=Object.entries(s.topics||{}).slice(0,500).map(([key,v])=>({key:text(key,220),...topicParts(key),st:Number(v?.st||0),deadline:text(v?.dl,10)}));
   const exams=(s.denemeler||[]).slice(-24).map(d=>({id:String(d.id||""),type:text(d.type,16),name:text(d.name,100),date:text(d.date,10),totalNet:Number(d.totalNet||0),subjectResults:(d.subjectResults||[]).slice(0,16).map(x=>({name:text(x.name,60),net:Number(x.net||0)}))}));
   const pp=(s.lab?.paragraphLog||[]).slice(-100);
   const errors=(s.wrongLog||[]).slice(-100).map(x=>({date:text(x.date,10),subject:text(x.subject,60),topic:text(x.topic,100),n:Number(x.n||1)}));
-  return{studentUid:u.uid,version:1,profile:{name:text(s.name||u.displayName,80),track:text(s.puanTuru,8),targetNetTYT:Number(s.targetNetTYT??s.targetNet??0),targetNetAYT:Number(s.targetNetAYT||0),targetUniversity:text(s.targetUniversity,120),targetDepartment:text(s.targetDepartment,120)},exams,progress:{minutes7:sum(s.pomoMin,7),questions7:sum(s.solved,7),completedTopics:topics.filter(x=>x.st>=3).length,activeTopics:topics.filter(x=>x.st>0&&x.st<3).length,overdueTopics:topics.filter(x=>x.deadline&&x.deadline<today()&&x.st<3).length},paragraphProblem:{entries:pp},topics:{items:topics},errorJournal:errors,updatedAt:serverTimestamp()};
+  return{studentUid:u.uid,version:1,profile:{name:text(s.name||u.displayName,80),track:text(s.puanTuru,8),targetNetTYT:Number(s.targetNetTYT??s.targetNet??0),targetNetAYT:Number(s.targetNetAYT||0),targetUniversity:text(s.targetUniversity,120),targetDepartment:text(s.targetDepartment,120)},program:buildProgramShare(s),exams,progress:{minutes7:sum(s.pomoMin,7),questions7:sum(s.solved,7),completedTopics:topics.filter(x=>x.st>=3).length,activeTopics:topics.filter(x=>x.st>0&&x.st<3).length,overdueTopics:topics.filter(x=>x.deadline&&x.deadline<today()&&x.st<3).length},paragraphProblem:{entries:pp},topics:{items:topics},errorJournal:errors,updatedAt:serverTimestamp()};
 }
 async function publishShare(){
   if(rt.sharing){rt.pending=true;return}
