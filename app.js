@@ -648,6 +648,7 @@ function save(){
     lastPersistedJSON=json;
     persistStateHashMaybe(json,false);
     if(window.yksCloudSchedule)window.yksCloudSchedule();
+    try{window.dispatchEvent(new CustomEvent("yks:data-changed",{detail:{source:"save",at:Date.now()}}));}catch(e){}
     scheduleInfraHealth(false);
     PERF_STATE.lastSaveMs=((typeof performance!=="undefined"&&performance.now)?performance.now():Date.now())-__saveT;
     return true;
