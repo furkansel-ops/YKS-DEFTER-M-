@@ -111,3 +111,11 @@ test("Programım paylaşımı yerel değişiklikleri event olmasa da izler",()=>
   for(const token of["watchLocalProgram","setInterval(watchLocalProgram,1500)","localProgramHash","version:\"3.1.0\""])assert.ok(runtime.includes(token),token);
   assert.match(runtime,/remoteHash!==currentHash/);
 });
+
+
+test("Ana koç paylaşımı Programım verisini doğrudan taşır",()=>{
+  const runtime=read("public/student-coaching-runtime.js");
+  for(const token of["buildProgramShare","program:buildProgramShare(s)","version:3","rowLabels","weeks"])assert.ok(runtime.includes(token),token);
+  assert.match(runtime,/programWeekHasData/);
+  assert.match(runtime,/cleanProgramMatrix/);
+});
