@@ -165,7 +165,7 @@ function createSettingsPanel(getPrefs:()=>PersonalizationV43State,commit:(next:P
   headCopy.append(
     element("p","eyebrow","Kişiselleştirme"),
     element("h2","","Kendine göre ayarla"),
-    element("p","hint","Sınav kapsamı ve Bugün ekranındaki yardımcı alanları tek yerden düzenle. Uygulamanın görünümü YKS Defterim imza temasında sabittir.")
+    element("p","hint","Tema seçimini Ayarlar > Görünüm bölümünden; sınav kapsamı ve Bugün ekranındaki yardımcı alanları buradan düzenle.")
   );
   const reset=element("button","btn ghost tiny","Ayarları sıfırla");
   reset.type="button";
@@ -248,7 +248,7 @@ export function installPersonalizationV43():{installed:boolean;validate:()=>stri
   let applying=false;
 
   document.getElementById("themeBtn")?.remove();
-  document.documentElement.dataset.themeControl="single";
+  document.documentElement.dataset.themeControl="settings-only";
 
   const apply=()=>{
     if(applying)return;
@@ -290,7 +290,7 @@ export function installPersonalizationV43():{installed:boolean;validate:()=>stri
       if(!window.__YKS_PERSONALIZATION_V43__)errors.push("personalization api missing");
       if(!V43_EXAM_TYPES.some(type=>current.examScope[type]))errors.push("personalization exam scope empty");
       if(document.querySelectorAll("#v43Personalization .v43-personal-choice").length!==8)errors.push("personalization choices incomplete");
-      if(document.querySelector("#v43Personalization .v43-theme-choice,.v43-theme-group"))errors.push("single theme picker should be absent");
+      if(!document.getElementById("themeGrid"))errors.push("settings theme picker missing");
       if(document.getElementById("themeBtn"))errors.push("top theme button should be removed");
       return errors;
     }
