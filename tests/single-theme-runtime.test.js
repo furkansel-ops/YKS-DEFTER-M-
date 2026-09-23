@@ -6,47 +6,28 @@ const path=require("node:path");
 const root=path.resolve(__dirname,"..");
 const read=file=>fs.readFileSync(path.join(root,file),"utf8");
 
-test("tek imza tema bootstrap sırasında kurulup graphite görünümü kilitler",()=>{
-  const main=read("src/main.ts"),runtime=read("src/ui/single-theme-runtime.ts");
-  assert.match(main,/installSingleThemeRuntime/);
-  assert.match(main,/dataset\.signatureTheme=signatureTheme\.installed\?"ready":"deferred"/);
-  assert.match(runtime,/SIGNATURE_THEME="graphite"/);
-  assert.match(runtime,/SIGNATURE_THEME_COLOR="#121418"/);
-  assert.match(runtime,/setAttribute\("data-theme",SIGNATURE_THEME\)/);
-  assert.match(runtime,/style\.colorScheme="dark"/);
-  assert.match(runtime,/dataset\.themeMode="single"/);
-  assert.match(runtime,/dataset\.themeName="yks-defterim"/);
-  assert.match(runtime,/dataset\.themeControl="single"/);
+test("tema seçimi graphite kilidi olmadan kayıtlı seçimi korur",()=>{
+  const main=read("src/main.ts"),index=read("index.html");
+  assert.doesNotMatch(main,/installSingleThemeRuntime|data-theme","graphite"|themeMode="single"/);
+  assert.match(main,/dataset\.themeControl="settings-only"/);
+  assert.match(index,/\["auto","paper","night","forest","ocean","lavender","sunset","graphite"\]/);
 });
 
-test("eski kayıtlı tema değeri güvenli şekilde tek temaya taşınır",()=>{
-  const runtime=read("src/ui/single-theme-runtime.ts");
-  assert.match(runtime,/state\.theme=SIGNATURE_THEME/);
-  assert.match(runtime,/YKSLegacyState\?\.save\?\.\(\)/);
-  assert.match(runtime,/win\.setTheme=\(\)=>apply\(\)/);
-  assert.match(runtime,/win\.cycleTheme=\(\)=>apply\(\)/);
-  assert.match(runtime,/MutationObserver/);
-  assert.match(runtime,/attributeFilter:\["data-theme"\]/);
+test("tema değiştirme kontrolü yalnız Ayarlar görünüm kartında kalır",()=>{
+  const index=read("index.html"),settings=read("public/settings-profile-runtime.js");
+  assert.doesNotMatch(index,/id="themeBtn"/);
+  assert.match(index,/id="themeGrid"/);
+  for(const id of ["thAuto","thPaper","thNight","thForest","thOcean","thLavender","thSunset","thGraphite"])assert.match(index,new RegExp('id="'+id+'"'));
+  assert.match(settings,/getElementById\("themeBtn"\)\?\.remove\(\)/);
+  assert.match(settings,/themeCard\.hidden=false/);
+  assert.doesNotMatch(settings,/hideCardFor\("themeGrid"/);
 });
 
-test("tek tema arayüzü eski tema seçicilerini ve tema metinlerini temizler",()=>{
-  const runtime=read("src/ui/single-theme-runtime.ts"),personal=read("src/ui/personalization-v43.ts");
-  assert.match(runtime,/getElementById\("themeBtn"\)\?\.remove\(\)/);
-  assert.match(runtime,/getElementById\("themeGrid"\)/);
-  assert.match(runtime,/querySelectorAll\("\.v43-theme-group"\)/);
-  assert.match(runtime,/Hesap, hedefler, kişiselleştirme ve bildirimler/);
-  assert.match(runtime,/YKS Defterim imza temasında sabittir/);
-  assert.doesNotMatch(personal,/PRIMARY_THEMES|EXTRA_THEMES|makeThemeButton|Aktif tema/);
-});
-
-test("imza tema yüksek kontrastlı yüzey ve semantik renk tokenlarını tanımlar",()=>{
-  const css=read("src/ui/single-theme-runtime.css");
-  for(const token of ["--bg:#121418","--label:#F5F7FB","--accent:#69A9F5","--success:#5FC48E","--danger:#FF6B68","--card-2:rgba(36,40,47,.92)"]){
-    assert.ok(css.includes(token),token);
-  }
-  assert.match(css,/:root\[data-theme-mode="single"\]/);
-  assert.match(css,/#themeBtn/);
-  assert.match(css,/#themeGrid/);
-  assert.match(css,/\.v43-theme-group/);
-  assert.match(css,/@media\(prefers-reduced-motion:reduce\)/);
+test("sekiz çalışma teması yenilenmiş renk tokenlarını taşır",()=>{
+  const css=read("app.css");
+  for(const theme of ["paper","night","forest","ocean","lavender","sunset","graphite"])assert.match(css,new RegExp('data-theme="'+theme+'"'));
+  assert.match(css,/themes20260923-settings-refresh/);
+  assert.match(css,/#mrp_ayar #themeGrid \.theme-card\.on::after/);
+  assert.match(css,/@media\(min-width:900px\)/);
+  assert.match(css,/@media\(max-width:520px\)/);
 });
