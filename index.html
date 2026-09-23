@@ -21,7 +21,7 @@
 var t=s.theme||"auto";
 if(t==="light")t="paper";
 if(t==="dark")t="night";
-if(["auto","paper","night","forest"].indexOf(t)<0)t="auto";
+if(["auto","paper","night","forest","ocean","lavender","sunset","graphite"].indexOf(t)<0)t="auto";
 document.documentElement.setAttribute("data-theme",t);}catch(e){}})();
 </script>
 <link rel="stylesheet" href="./app.css" id="themes20260821">
@@ -90,8 +90,7 @@ document.documentElement.setAttribute("data-theme",t);}catch(e){}})();
 
 <header class="navbar">
   <span class="nt" id="navTitle">Bugün</span>
-  <span class="navtools"><button class="themebtn searchbtn" type="button" onclick="openGlobalSearch()" aria-label="Uygulamada ara">⌕</button>
-  <button class="themebtn" id="themeBtn" onclick="cycleTheme()" aria-label="Tema değiştir"></button></span>
+  <span class="navtools"><button class="themebtn searchbtn" type="button" onclick="openGlobalSearch()" aria-label="Uygulamada ara">⌕</button></span>
 </header>
 
 <div class="wrap" id="mainWrap">
