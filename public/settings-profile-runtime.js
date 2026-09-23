@@ -22,7 +22,7 @@ function hideLegacySettings(){
   const panel=document.getElementById("mrp_ayar");if(!panel)return;
   enforceSettingsOnlyTheme();
   const old=document.getElementById("nameInput")?.closest(".card");if(old){old.hidden=true;old.dataset.ymsHidden="true"}
-  hideCardFor("themeGrid","legacy-appearance");
+  const themeGrid=document.getElementById("themeGrid"),themeCard=themeGrid?.closest?.(".card");if(themeCard){themeCard.hidden=false;delete themeCard.dataset.ymsHidden;delete themeCard.dataset.ymsHiddenReason}
   hideCardFor("sozToggle","legacy-appearance");
   hideCardFor("ytSrc","video-settings-private");
   hideCardFor("notifStatus","modern-notifications");
@@ -36,7 +36,7 @@ function polishPersonalization(){
   const panel=document.getElementById("v43Personalization");if(!panel)return;
   panel.dataset.ymsPersonalization="polished";
   const title=panel.querySelector(".v43-personal-head h2");if(title)title.textContent="Kendine göre ayarla";
-  const hint=panel.querySelector(".v43-personal-head .hint");if(hint)hint.textContent="Tema, sınav kapsamı ve Bugün ekranındaki yardımcı alanları tek yerden düzenle. Kayıtlı çalışma verilerin değişmez.";
+  const hint=panel.querySelector(".v43-personal-head .hint");if(hint)hint.textContent="Tema seçimini Görünüm kartından; sınav kapsamı ve Bugün ekranındaki yardımcı alanları bu bölümden düzenle. Kayıtlı çalışma verilerin değişmez.";
   const reset=panel.querySelector(".v43-personal-head button");if(reset)reset.textContent="Ayarları sıfırla";
 }
 function notifEnabled(id){return Boolean(document.getElementById(id)?.classList.contains("on"))}
