@@ -17,7 +17,7 @@ test("öğrenci uygulaması yalnız öğrenci hesabı olarak açılır ve koç p
 
 test("öğrenci hesap köprüleri auth başlamadan önce güvenli sırada yüklenir",()=>{
   const loader=read("src/ui/student-account-loader.ts");
-  const bridgeAt=loader.indexOf("student-coaching-runtime.js?v=1.2.0");
+  const bridgeAt=loader.indexOf("student-coaching-runtime.js?v=1.2.1");
   const linkAt=loader.indexOf("student-coach-link.js?v=1.0.0");
   const programAt=loader.indexOf("student-program-share-v2.js?v=3.1.0");
   const authAt=loader.indexOf("auth-session-runtime.js?v=1.6.0");
@@ -129,8 +129,8 @@ test("Koç eşitleme runtime web ve native açılışta garanti edilir ve save s
   assert.match(shell,/import\("\.\/student-account-loader"\)/);
   assert.match(shell,/installStudentAccountLoader\(\)/);
   assert.match(shell,/const native=isNativeApp\(\)/);
-  assert.match(loader,/student-coaching-runtime\.js\?v=1\.2\.0/);
-  assert.match(runtime,/version:\"1\.2\.0\"/);
+  assert.match(loader,/student-coaching-runtime\.js\?v=1\.2\.1/);
+  assert.match(runtime,/version:\"1\.2\.1\"/);
   assert.match(app,/CustomEvent\(\"yks:data-changed\"/);
   assert.match(app,/source:\"save\"/);
 });
