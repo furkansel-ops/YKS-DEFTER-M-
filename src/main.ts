@@ -19,7 +19,6 @@ import {installV43SafeRuntime} from "./ui/v43-safe-runtime";
 import {installPlayStoreShell} from "./ui/play-store-shell";
 import {installParagraphProblemTracker} from "./ui/paragraph-problem-tracker";
 import {installTeachersV2} from "./ui/teachers-v2";
-import "./ui/single-theme-runtime.css";
 import "./ui/visual-stability-hotfix.css";
 import "./ui/recent-feature-stability.css";
 import "./ui/topics-toolbar-hotfix.css";
@@ -84,27 +83,8 @@ function installOptional<T>(name:string,installer:()=>T,fallback:T):T{
 }
 document.documentElement.dataset.v4OptionalErrors="0";
 
-/* Tek temanın renk tokenları ana CSS ile birlikte yüklenir. Koruma/migrasyon kodu ayrı
-   chunk kalır; böylece görünüm hemen graphite olurken başlangıç JS bütçesi korunur. */
-document.documentElement.setAttribute("data-theme","graphite");
-document.documentElement.style.colorScheme="dark";
-document.documentElement.dataset.themeMode="single";
-document.documentElement.dataset.themeName="yks-defterim";
-document.documentElement.dataset.themeControl="single";
-document.documentElement.dataset.signatureTheme="loading";
-void import("./ui/single-theme-runtime")
-  .then(({installSingleThemeRuntime})=>{
-    const signatureTheme=installOptional(
-      "single-theme",
-      ()=>installSingleThemeRuntime(),
-      {installed:false,theme:"graphite",destroy:()=>{}}
-    );
-    document.documentElement.dataset.signatureTheme=signatureTheme.installed?"ready":"deferred";
-  })
-  .catch(error=>{
-    document.documentElement.dataset.signatureTheme="deferred";
-    console.error("Tek tema koruma katmanı yüklenemedi",error);
-  });
+/* Tema seçimi yalnız Ayarlar > Görünüm bölümündedir; kayıtlı tema açılışta korunur. */
+document.documentElement.dataset.themeControl="settings-only";
 
 function loadTeacherVideosRuntime():void{
   if(document.querySelector('script[data-yks-teacher-videos="true"]'))return;
