@@ -46,7 +46,7 @@ test("2027 YKS tarihleri bilgi olarak sabittir",()=>{
   assert.match(src,/20 Haziran 2027/);
   assert.match(src,/10:15/);
   assert.match(src,/15:45/);
-  assert.match(src,/Sınav tarihleri sabittir/);
+  assert.match(src,/Sınav tarihleri bilgi amaçlı sabittir/);
 });
 
 test("profil düzenleme yeni onboarding alanlarını kaydeder ve eski net alanıyla uyumluluğu korur",()=>{
