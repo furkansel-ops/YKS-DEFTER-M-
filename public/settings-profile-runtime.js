@@ -22,7 +22,6 @@ function styles(){if(document.getElementById("yksModernSettingsStyles"))return;c
 @media(prefers-reduced-motion:reduce){.yms-toggle::after{transition:none}}
 \`;document.head.append(s)}
 
-function account()
 function account(){const title=document.querySelector("[data-account-title]")?.textContent?.trim()||"",meta=document.querySelector("[data-account-meta]")?.textContent?.trim()||"";const email=(meta.match(/[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}/)||[])[0]||"";const signedIn=Boolean(email||(title&&title!=="Giriş yapılmadı"));return{title,email,meta,signedIn}}
 function initials(name){const p=txt(name,80).split(/\s+/).filter(Boolean).slice(0,2);return(p.map(x=>x[0]?.toUpperCase()).join("")||"YK")}
 function syncText(){const a=document.getElementById("cloudSyncText")?.textContent?.trim(),b=document.getElementById("cloudSyncMeta")?.textContent?.trim();return[a,b].filter(Boolean).join(" · ")||"Bulut durumu hazırlanıyor"}
@@ -45,7 +44,6 @@ function hideLegacySettings(){
   polishPersonalization();
 }
 
-function polishPersonalization()
 function polishPersonalization(){
   const panel=document.getElementById("v43Personalization");if(!panel)return;
   panel.dataset.ymsPersonalization="polished";
@@ -55,7 +53,6 @@ function polishPersonalization(){
   const host=document.querySelector("[data-yms-personal-slot]");if(host&&!host.contains(panel)){host.replaceChildren(panel)}
 }
 
-function notifEnabled
 function notifEnabled(id){return Boolean(document.getElementById(id)?.classList.contains("on"))}
 function notifPermission(){try{if(!("Notification" in window))return"unsupported";return Notification.permission||"default"}catch{return"unsupported"}}
 function notifPermissionText(){const p=notifPermission();if(p==="granted")return"İzin verildi";if(p==="denied")return"İzin engellendi";if(p==="unsupported")return"Desteklenmiyor";return"İzin bekleniyor"}
@@ -112,7 +109,6 @@ root.querySelector("[data-yms-data]")?.addEventListener("click",()=>{if(typeof w
 root.querySelector("[data-yms-demo-load]")?.addEventListener("click",()=>window.loadDemo?.());root.querySelector("[data-yms-demo-clear]")?.addEventListener("click",()=>window.clearDemo?.());root.querySelector("[data-yms-wizard]")?.addEventListener("click",()=>window.openWizard?.());
 return true}
 
-function openEditor()
 function openEditor(){styles();document.getElementById(MODAL_ID)?.remove();const s=st(),w=document.createElement("div");w.id=MODAL_ID;w.className="yms-modal";w.innerHTML=`<div class="yms-dialog"><div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start"><div><p class="eyebrow">Profilim</p><h2 style="margin:2px 0 12px">Bilgileri düzenle</h2></div><button class="yms-edit" type="button" data-close>×</button></div><div class="yms-form"><div class="yms-field full"><label>Ad Soyad</label><input name="name" maxlength="80" value="${esc(s.name||"")}" autocomplete="name"></div><div class="yms-field"><label>Alan / puan türü</label><select name="track"><option value="SAY">SAY</option><option value="EA">EA</option><option value="SÖZ">SÖZ</option><option value="DİL">DİL</option></select></div><div class="yms-field"><label>Haftada çalışma günü</label><input name="days" type="number" min="1" max="7" value="${esc(String(s.workdays||6))}"></div><div class="yms-field"><label>TYT hedef net</label><input name="tyt" type="number" min="0" max="120" step="0.25" value="${esc(String(s.targetNetTYT??s.targetNet??""))}"></div><div class="yms-field"><label>AYT hedef net</label><input name="ayt" type="number" min="0" max="80" step="0.25" value="${esc(String(s.targetNetAYT??""))}"></div><div class="yms-field full"><label>Hedef üniversite / okul</label><input name="uni" maxlength="120" value="${esc(s.targetUniversity||"")}" placeholder="Örn. İstanbul Teknik Üniversitesi"></div><div class="yms-field full"><label>Hedef bölüm</label><input name="dept" maxlength="120" value="${esc(s.targetDepartment||"")}" placeholder="Örn. Bilgisayar Mühendisliği"></div><div class="yms-field"><label>OBP (0–100)</label><input name="obp" type="number" min="0" max="100" step="0.01" value="${esc(String(s.obp||""))}"></div></div><p class="yms-note">Sınav tarihleri buradan değiştirilemez.</p><div class="yms-actions" style="justify-content:flex-end"><button type="button" data-close>Vazgeç</button><button class="primary" type="button" data-save>Kaydet</button></div></div>`;w.querySelector('select[name="track"]').value=["SAY","EA","SÖZ","DİL"].includes(s.puanTuru)?s.puanTuru:"SAY";w.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click",()=>w.remove()));w.querySelector("[data-save]").addEventListener("click",()=>{const q=n=>w.querySelector(`[name="${n}"]`);s.name=txt(q("name").value,80);s.puanTuru=q("track").value;s.workdays=Math.round(num(q("days").value,1,7))||6;s.targetNetTYT=num(q("tyt").value,0,120);s.targetNetAYT=num(q("ayt").value,0,80);s.targetNet=s.targetNetTYT;s.targetUniversity=txt(q("uni").value,120);s.targetDepartment=txt(q("dept").value,120);s.obp=num(q("obp").value,0,100);const legacyName=document.getElementById("nameInput");if(legacyName)legacyName.value=s.name;const legacyNet=document.getElementById("targetNetInput");if(legacyNet)legacyNet.value=s.targetNetTYT||"";const wd=document.getElementById("workdaysInput");if(wd)wd.value=s.workdays;save();try{window.renderEffective?.();window.renderHome?.();window.renderScore?.()}catch{}w.remove();render();toast("Profil ve hedefler güncellendi")});document.body.append(w)}
 
 function install(){if(render())return;let n=0;const t=setInterval(()=>{n++;if(render()||n>40)clearInterval(t)},250)}
