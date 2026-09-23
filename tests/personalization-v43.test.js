@@ -25,11 +25,11 @@ test("kişiselleştirme mevcut state ve save zincirini kullanır; veri katmanlar
   assert.doesNotMatch(ui,/\.rows\s*\[/);
 });
 
-test("Ayarlar paneli tek tema altında üç sınav kapsamı ve beş Bugün kartı seçeneği sunar",()=>{
+test("Ayarlar paneli tema seçiminden bağımsız üç sınav kapsamı ve beş Bugün kartı seçeneği sunar",()=>{
   const ui=read("src/ui/personalization-v43.ts"),css=read("src/ui/personalization-v43.css");
   assert.match(ui,/V43_EXAM_TYPES=\["TYT","AYT","YDT"\]/);
   assert.match(ui,/V43_HOME_CARDS=\["quote","actions","todayHub","todayPlan","alerts"\]/);
-  assert.match(ui,/YKS Defterim imza temasında sabittir/);
+  assert.match(ui,/Tema seçimini Ayarlar > Görünüm bölümünden/);
   assert.match(ui,/panel\.id="v43Personalization"/);
   assert.match(ui,/Ayarları sıfırla/);
   assert.match(ui,/length!==8/);
@@ -51,7 +51,7 @@ test("kişiselleştirme özeti yalnız sınav ve Bugün ayarlarını gösterir",
   assert.match(ui,/Bugün kartı/);
   assert.doesNotMatch(ui,/Aktif tema/);
   assert.match(ui,/document\.getElementById\("themeBtn"\)\?\.remove\(\)/);
-  assert.match(ui,/dataset\.themeControl="single"/);
+  assert.match(ui,/dataset\.themeControl="settings-only"/);
   assert.match(css,/grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
   assert.match(css,/v43-summary-item/);
 });
