@@ -82,15 +82,32 @@ test("bildirimler modern kartta mevcut güvenli bildirim fonksiyonlarını kulla
   assert.match(src,/notifTime/);
 });
 
-test("kişiselleştirme paneli tema seçimini Görünüm kartına yönlendirir",()=>{
+test("kişiselleştirme paneli yeni Ayarlar düzenine taşınır",()=>{
   const src=read("public/settings-profile-runtime.js"),ui=read("src/ui/personalization-v43.ts"),css=read("src/ui/personalization-v43.css");
   assert.match(src,/Kendine göre ayarla/);
   assert.match(ui,/Tema seçimini Ayarlar > Görünüm bölümünden/);
-  assert.match(src,/Tema seçimini Görünüm kartından/);
+  assert.match(src,/Sınav kapsamını ve Bugün ekranındaki yardımcı alanları buradan düzenle/);
+  assert.match(src,/data-yms-personal-slot/);
+  assert.match(src,/host\.replaceChildren\(panel\)/);
   assert.match(src,/Ayarları sıfırla/);
   assert.match(src,/ymsPersonalization="polished"/);
   assert.match(css,/data-yms-personalization="polished"/);
   assert.doesNotMatch(css,/v43-theme-grid/);
+});
+
+
+test("ayarlar arayüzü kategori menüsü ve tek modern akış kullanır",()=>{
+  const src=read("public/settings-profile-runtime.js");
+  for(const label of ["Profil","Görünüm","Kişiselleştir","Bildirimler","Uygulama","Profil ve hedefler","Veri & yedek","Sistem durumu"]){
+    assert.ok(src.includes(label),label);
+  }
+  for(const id of ["ymsProfile","ymsAppearance","ymsPersonal","ymsNotifications","ymsApplication"]){
+    assert.match(src,new RegExp(id));
+  }
+  assert.match(src,/data-yms-jump/);
+  assert.match(src,/scrollIntoView/);
+  assert.match(src,/data-yms-theme-slot/);
+  assert.match(src,/modern-app-tools/);
 });
 
 test("modern Ayarlar kartları seçili temanın yüzey ve metin tokenlarını kullanır",()=>{
@@ -114,6 +131,6 @@ test("uygulama kartı veri yedeği, sistem ve hakkında erişimini korur",()=>{
 test("modern ayarlar hesap runtime zincirinden cache busting ile yüklenir",()=>{
   const loader=read("src/ui/student-account-loader.ts");
   assert.match(loader,/SETTINGS_SCRIPT_ID="settingsProfileRuntime"/);
-  assert.match(loader,/settings-profile-runtime\.js\?v=2\.1\.1/);
+  assert.match(loader,/settings-profile-runtime\.js\?v=2\.2\.0/);
   assert.match(loader,/if\(!authReady\)return false/);
 });
