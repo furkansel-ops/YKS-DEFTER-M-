@@ -198,8 +198,9 @@ function appendStudyRow(s:LegacyState,shape:ReturnType<typeof ensureStateShape>)
 }
 function clearStudyWeek(week:LegacyWeek):void{
   week.s.forEach(row=>row.fill(""));
+  week.done=new Array(7).fill(false);
   Object.keys(week.dn).forEach(key=>{if(key.startsWith("s-"))delete week.dn[key];});
-  if(week.mv)Object.keys(week.mv).forEach(key=>{if(key.startsWith("s-"))delete week.mv?.[key];});
+  if(week.mv)Object.keys(week.mv).forEach(key=>{if(key.startsWith("s-"))delete week.mv![key];});
 }
 function applyPreview(preview:PlannedTask[][],prefs:PlannerPrefs):{added:number;skipped:number}{
   const s=state();
@@ -221,6 +222,7 @@ function applyPreview(preview:PlannedTask[][],prefs:PlannerPrefs):{added:number;
       }
       if(row<0){skipped++;continue;}
       week.s[row][day]=task.text;
+      week.done[day]=false;
       delete week.dn[`s-${row}-${day}`];
       if(week.mv)delete week.mv[`s-${row}-${day}`];
       added++;
