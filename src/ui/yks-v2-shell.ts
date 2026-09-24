@@ -59,6 +59,9 @@ declare global{
 }
 
 function win():LegacyWindow{return window as LegacyWindow;}
+function legacyApi():LegacyApi|undefined{
+  return (window as unknown as {YKSLegacyState?:LegacyApi}).YKSLegacyState;
+}
 function byId<T extends HTMLElement=HTMLElement>(id:string):T|null{
   const node=document.getElementById(id);
   return node instanceof HTMLElement?node as T:null;
@@ -86,11 +89,11 @@ function blankWeek(rows:{r:number;s:number}):LegacyWeek{
   };
 }
 function state():LegacyState|null{
-  try{return win().YKSLegacyState?.readState?.()??null;}catch{return null;}
+  try{return legacyApi()?.readState?.()??null;}catch{return null;}
 }
 function catalogs():PlannerSubject[]{
   let raw:CatalogItem[]=[];
-  try{raw=win().YKSLegacyState?.subjects?.()??[];}catch{}
+  try{raw=legacyApi()?.subjects?.()??[];}catch{}
   const map=new Map<string,PlannerSubject>();
   raw.forEach((item,index)=>{
     const name=String(item.name||"").trim();
@@ -136,29 +139,30 @@ function buildPreview(subjects:PlannerSubject[],prefs:PlannerPrefs):PlannedTask[
   const cursors=new Map<string,number>();
   let rotate=0;
   for(let day=0;day<7;day++){
+    const dayTasks=days[day]!;
     const target=Math.max(1,prefs.lightWeekend&&day>=5?prefs.daily-1:prefs.daily);
     const used=new Set<string>();
     if(prefs.mathDaily&&math){
       const topic=topicFor(math,cursors);
-      days[day].push({subject:math.name,topic,text:topic?`${math.name} · ${topic}`:math.name});
+      dayTasks.push({subject:math.name,topic,text:topic?`${math.name} · ${topic}`:math.name});
       used.add(math.id);
     }
     let guard=0;
-    while(days[day].length<target&&guard<100){
+    while(dayTasks.length<target&&guard<100){
       guard++;
       const pool=others.length?others:picked;
       const candidate=pool[rotate%pool.length];
       rotate++;
       if(!candidate)break;
       const duplicate=used.has(candidate.id);
-      if(duplicate&&pool.length>days[day].length)continue;
-      if(prefs.noTripleScience&&isScience(candidate.name)&&days[day].filter(t=>isScience(t.subject)).length>=2)continue;
+      if(duplicate&&pool.length>dayTasks.length)continue;
+      if(prefs.noTripleScience&&isScience(candidate.name)&&dayTasks.filter(t=>isScience(t.subject)).length>=2)continue;
       const topic=topicFor(candidate,cursors);
-      days[day].push({subject:candidate.name,topic,text:topic?`${candidate.name} · ${topic}`:candidate.name});
+      dayTasks.push({subject:candidate.name,topic,text:topic?`${candidate.name} · ${topic}`:candidate.name});
       used.add(candidate.id);
     }
     if(prefs.review&&(day===1||day===3||day===6)){
-      days[day].push({subject:"Tekrar",topic:"Günlük kısa tekrar",text:"Tekrar · Günlük kısa tekrar"});
+      dayTasks.push({subject:"Tekrar",topic:"Günlük kısa tekrar",text:"Tekrar · Günlük kısa tekrar"});
     }
   }
   return days;
@@ -213,7 +217,7 @@ function applyPreview(preview:PlannedTask[][],prefs:PlannerPrefs):{added:number;
   if(prefs.replace)clearStudyWeek(week);
   let added=0,skipped=0;
   for(let day=0;day<7;day++){
-    for(const task of preview[day]){
+    for(const task of preview[day]??[]){
       let row=week.s.findIndex(items=>!String(items[day]||"").trim());
       if(row<0){
         if(!appendStudyRow(s,shape)){skipped++;continue;}
@@ -221,14 +225,16 @@ function applyPreview(preview:PlannedTask[][],prefs:PlannerPrefs):{added:number;
         row=week.s.findIndex(items=>!String(items[day]||"").trim());
       }
       if(row<0){skipped++;continue;}
-      week.s[row][day]=task.text;
+      const targetRow=week.s[row];
+      if(!targetRow){skipped++;continue;}
+      targetRow[day]=task.text;
       week.done[day]=false;
       delete week.dn[`s-${row}-${day}`];
       if(week.mv)delete week.mv[`s-${row}-${day}`];
       added++;
     }
   }
-  win().YKSLegacyState?.save?.();
+  legacyApi()?.save?.();
   try{win().renderPlan?.();win().renderTodayPlan?.();win().renderHome?.();}catch{}
   return {added,skipped};
 }
@@ -336,12 +342,12 @@ function openPlanner():void{
           ["lightWeekend","Hafta sonu daha hafif olsun","Cumartesi ve pazar günlük yükü bir azaltır."],
           ["review","Kısa tekrarlar ekle","Salı, perşembe ve pazara kısa tekrar bloğu ekler."],
           ["replace","Mevcut ders programını değiştir","Kapalıysa yalnız boş hücrelere ekler; rutinlere dokunmaz."]
-        ].map(([key,title,copy])=>`<label class="yks-v2-pref"><span><b>${title}</b><small>${copy}</small></span><input type="checkbox" data-pref="${key}" ${(prefs as unknown as Record<string,boolean>)[key]?"checked":""}></label>`).join("")}
+        ] as const).map(([key,title,copy])=>`<label class="yks-v2-pref"><span><b>${title}</b><small>${copy}</small></span><input type="checkbox" data-pref="${key}" ${(prefs as unknown as Record<string,boolean>)[key]?"checked":""}></label>`).join("")}
       </div>`
     :`
       <div class="yks-v2-wizard-intro"><span class="yks-v2-eyebrow">4 · ÖNİZLEME</span><h2>Haftan hazır</h2><p>Programı kaydetmeden önce dağılımı kontrol et. Beğenmezsen geri dönüp yoğunluğu veya dersleri değiştirebilirsin.</p></div>
       <div class="yks-v2-preview">
-        ${preview.map((tasks,day)=>`<article><header><b>${DAY_NAMES[day]}</b><span>${tasks.length} görev</span></header><div>${tasks.map(task=>`<span class="yks-v2-task" data-tone="${subjectTone(task.subject)}"><i></i><span><b>${esc(task.subject)}</b><small>${esc(task.topic||"Genel çalışma")}</small></span></span>`).join("")||'<em>Boş gün</em>'}</div></article>`).join("")}
+        ${preview.map((tasks,day)=>`<article><header><b>${DAY_NAMES[day]??""}</b><span>${tasks.length} görev</span></header><div>${tasks.map(task=>`<span class="yks-v2-task" data-tone="${subjectTone(task.subject)}"><i></i><span><b>${esc(task.subject)}</b><small>${esc(task.topic||"Genel çalışma")}</small></span></span>`).join("")||'<em>Boş gün</em>'}</div></article>`).join("")}
       </div>`;
     modal.innerHTML=`
       <div class="yks-v2-planner-backdrop" data-close></div>
