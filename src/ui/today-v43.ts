@@ -7,6 +7,10 @@ type AppWindow=Window&{
   saveJournal?:()=>unknown;
   shareCard?:()=>unknown;
 };
+type HomeState={
+  pomoMin?:Record<string,number>;
+  coachNotes?:Array<Record<string,unknown>>;
+};
 
 function byId<T extends HTMLElement=HTMLElement>(id:string):T|null{
   const node=document.getElementById(id);
@@ -18,6 +22,26 @@ function txt(id:string,fallback="—"):string{
 }
 function dateText():string{
   return new Intl.DateTimeFormat("tr-TR",{weekday:"long",day:"numeric",month:"long"}).format(new Date());
+}
+function dateKey(offset=0):string{
+  const d=new Date();
+  d.setHours(12,0,0,0);
+  d.setDate(d.getDate()+offset);
+  const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,"0"),day=String(d.getDate()).padStart(2,"0");
+  return `${y}-${m}-${day}`;
+}
+function readHomeState():HomeState{
+  try{return (window.YKSLegacyState?.readState?.()||{}) as HomeState;}catch{return {};}
+}
+function minutesLabel(value:number):string{
+  const min=Math.max(0,Math.round(value||0));
+  if(min<60)return min+" dk";
+  const h=Math.floor(min/60),rest=min%60;
+  return rest?`${h} sa ${rest} dk`:`${h} sa`;
+}
+function noteStamp(value:unknown):number{
+  const n=Number(value);
+  return Number.isFinite(n)?n:0;
 }
 function subjectTone(value:string):string{
   const text=value.toLocaleLowerCase("tr-TR");
@@ -94,8 +118,8 @@ function createProgram():HTMLElement{
 }
 function createQuick():HTMLElement{
   const card=document.createElement("section");
-  card.className="v7-card v7-quick";
-  card.innerHTML='<header><span>HIZLI İŞLEMLER</span><h2>Devam et</h2></header><div class="v7-bottom-grid"><button type="button" class="v7-focus-card" data-route="pomo"><i>◉</i><span><b>Odak Oturumu</b><small>25 dk odaklan, 5 dk mola</small><em>▶ Pomodoroyu Başlat</em></span></button><button type="button" class="v7-note-card" data-route="notes"><i>✎</i><span><b>Günün Notu</b><small id="v7NotePreview">Bugünün kısa notunu ekle.</small><em>Notlarım ›</em></span></button></div><div class="v7-quick-grid"><button type="button" data-route="program"><i>▦</i><span><b>Programım</b><small>Planı düzenle</small></span><em>›</em></button><button type="button" data-route="progress"><i>⌁</i><span><b>İstatistik</b><small>Gelişimini incele</small></span><em>›</em></button></div>';
+  card.className="v7-card v7-quick v7-insights";
+  card.innerHTML='<header><span>BUGÜNÜN KONTROL MERKEZİ</span><h2>Öne çıkanlar</h2></header><div class="v7-insight-stack"><button type="button" class="v7-insight-card repeat" data-route="topics"><i>↻</i><span><small>Akıllı Tekrar</small><b id="v7ReviewCount">0 tekrar</b><em id="v7ReviewSub">Bugün bekleyen tekrar yok.</em></span><strong>›</strong></button><button type="button" class="v7-insight-card tempo" data-route="progress"><i>▥</i><span><small>Haftalık Tempo</small><b id="v7WeekMinutes">0 dk</b><em id="v7WeekDelta">Bu hafta</em><span class="v7-week-bars" aria-hidden="true"><u></u><u></u><u></u><u></u><u></u><u></u><u></u></span></span><strong>›</strong></button><button type="button" class="v7-insight-card coach" data-route="more"><i>◉</i><span><small>Koç Notu</small><b id="v7CoachTitle">Son not</b><em id="v7CoachNote">Koçundan bir not geldiğinde burada göreceksin.</em><u id="v7CoachMeta">Koç bağlantısı</u></span><strong>›</strong></button></div><div class="v7-bottom-grid"><button type="button" class="v7-focus-card" data-route="pomo"><i>◷</i><span><b>Odak Oturumu</b><small>25 dk odaklan, 5 dk mola</small><em>▶ Pomodoroyu Başlat</em></span></button><button type="button" class="v7-note-card" data-route="notes"><i>✎</i><span><b>Günün Notu</b><small id="v7NotePreview">Bugünün kısa notunu ekle.</small><em>Notlarım ›</em></span></button></div><div class="v7-quick-grid"><button type="button" data-route="progress"><i>⌁</i><span><b>İstatistik</b><small>Tüm analizi aç</small></span><em>›</em></button><button type="button" data-route="program"><i>▦</i><span><b>Programım</b><small>Planı düzenle</small></span><em>›</em></button></div>';
   return card;
 }
 function createCountdown():HTMLElement{
@@ -187,6 +211,48 @@ function syncNotePreview(home:HTMLElement):void{
   const preview=home.querySelector<HTMLElement>("#v7NotePreview");
   const note=(byId<HTMLTextAreaElement>("journalInput")?.value||"").trim();
   if(preview)preview.textContent=note?note.slice(0,84)+(note.length>84?"…":""):"Bugünün kısa notunu ekle.";
+}
+function syncInsights(home:HTMLElement):void{
+  const set=(selector:string,value:string)=>{const node=home.querySelector<HTMLElement>(selector);if(node)node.textContent=value;};
+  const state=readHomeState();
+
+  const reviewRaw=txt("todayHubReview","0");
+  const reviewCount=Math.max(0,parseInt(reviewRaw.replace(/\D+/g,""),10)||0);
+  set("#v7ReviewCount",reviewCount?reviewCount+" tekrar":"Tekrar yok");
+  const reviewSub=txt("todayHubReviewSub","").trim();
+  set("#v7ReviewSub",reviewCount?(reviewSub||"Bugün tamamlanmayı bekleyen tekrarların var."):"Bugün bekleyen tekrar bulunmuyor.");
+
+  const current:number[]=[],previous:number[]=[];
+  for(let offset=-6;offset<=0;offset++)current.push(Math.max(0,Number(state.pomoMin?.[dateKey(offset)])||0));
+  for(let offset=-13;offset<=-7;offset++)previous.push(Math.max(0,Number(state.pomoMin?.[dateKey(offset)])||0));
+  const week=current.reduce((sum,value)=>sum+value,0),prev=previous.reduce((sum,value)=>sum+value,0);
+  set("#v7WeekMinutes",minutesLabel(week));
+  if(prev>0){
+    const delta=Math.round((week-prev)/prev*100);
+    set("#v7WeekDelta",delta===0?"Geçen haftayla aynı":`Geçen haftaya göre ${delta>0?"+":""}${delta}%`);
+  }else{
+    set("#v7WeekDelta",week?"Bu haftaki ilk tempo verin":"Bu hafta henüz odak kaydı yok");
+  }
+  const bars=home.querySelectorAll<HTMLElement>(".v7-week-bars u"),max=Math.max(1,...current);
+  bars.forEach((bar,index)=>{
+    const value=current[index]||0;
+    bar.style.setProperty("--v7-bar",Math.max(value?12:4,Math.round(value/max*100))+"%");
+    bar.title=minutesLabel(value);
+  });
+
+  const notes=Array.isArray(state.coachNotes)?state.coachNotes:[];
+  const latest=[...notes].sort((a,b)=>Math.max(noteStamp(b["at"]),noteStamp(b["updatedAt"]))-Math.max(noteStamp(a["at"]),noteStamp(a["updatedAt"])))[0];
+  const noteText=latest?String(latest["text"]??latest["note"]??"").trim():"";
+  if(noteText){
+    set("#v7CoachTitle","Koçundan son not");
+    set("#v7CoachNote",noteText.slice(0,180)+(noteText.length>180?"…":""));
+    const stamp=Math.max(noteStamp(latest?.["at"]),noteStamp(latest?.["updatedAt"]));
+    set("#v7CoachMeta",stamp?new Intl.DateTimeFormat("tr-TR",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}).format(new Date(stamp)):"Koç notu");
+  }else{
+    set("#v7CoachTitle","Henüz not yok");
+    set("#v7CoachNote","Koçundan bir not geldiğinde ana sayfada burada görünecek.");
+    set("#v7CoachMeta","Koç bağlantısı");
+  }
 }
 function syncCountdown(home:HTMLElement):void{
   const set=(selector:string,value:string)=>{const node=home.querySelector<HTMLElement>(selector);if(node)node.textContent=value;};
@@ -304,6 +370,7 @@ function syncAll(home:HTMLElement):void{
   syncHeader(home);
   syncCountdown(home);
   syncPlan(home);
+  syncInsights(home);
   syncNotePreview(home);
 }
 function observeLegacy(home:HTMLElement,bridge:HTMLElement):void{
@@ -341,6 +408,9 @@ export function installTodayV43():{installed:boolean;validate:()=>string[]}{
     if(!home.querySelector(":scope > [data-v7-home-view]"))errors.push("v7 view missing");
     if(!home.querySelector(".v7-program"))errors.push("v7 program missing");
     if(!home.querySelector(".v7-quick"))errors.push("v7 quick actions missing");
+    if(!home.querySelector(".v7-insight-card.repeat"))errors.push("smart repeat card missing");
+    if(!home.querySelector(".v7-insight-card.tempo"))errors.push("weekly tempo card missing");
+    if(!home.querySelector(".v7-insight-card.coach"))errors.push("coach note card missing");
     return errors;
   }};
 }
