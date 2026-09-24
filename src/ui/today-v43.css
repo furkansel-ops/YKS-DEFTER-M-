@@ -549,6 +549,14 @@
   .v6-home-side{
     display:contents;
   }
+  .v6-goal-card,
+  .v6-program-card,
+  .v6-quick-actions,
+  .v6-countdown-card{
+    width:100%!important;
+    max-width:none!important;
+    align-self:stretch!important;
+  }
   .v6-goal-card{order:1;}
   .v6-program-card{order:2;}
   .v6-quick-actions{order:3;}
