@@ -9165,6 +9165,33 @@ function sozRememberIndex(i){
   sozRecentAuthors.push(a);
   if(sozRecentAuthors.length>SOZ_AUTHOR_GUARD)sozRecentAuthors.splice(0,sozRecentAuthors.length-SOZ_AUTHOR_GUARD);
 }
+const LEGACY_SAFE_QUOTES=[
+  "Bugün çözdüğün her soru, sınav günündeki hızına yatırımdır.",
+  "Yanlış yaptığın soruyu öğrenmeden geçme; net artışı çoğu zaman orada başlar.",
+  "Deneme sonucu moral notu değil, çalışma yönünü gösteren veridir.",
+  "Sınava kalan günleri saymak yerine, o günlerin içini doldur.",
+  "Her deneme, gerçek sınavdan önce yapılmış ücretsiz bir provadır.",
+  "Netini yükselten şey yalnızca daha çok soru değil, daha doğru analizdir.",
+  "Bir konu zor geliyorsa kaçma; netini artıracak yer büyük ihtimalle orasıdır.",
+  "Sınavda hız, bugün yaptığın düzenli soru çözümünün sonucudur.",
+  "Her yanlışın yanına bir cümlelik neden yaz; aynı hatayı yakalamak kolaylaşır.",
+  "Sınav hazırlığında istikrar, bir günlük aşırı çalışmadan daha güçlüdür.",
+  "Bir soruda takılı kalmak yerine zamanı yönetmek de sınav becerisidir.",
+  "Bugünün çalışması mükemmel olmak zorunda değil; tamamlanmış olmak zorunda."
+];
+let legacySafeQuoteIndex=sozRand(LEGACY_SAFE_QUOTES.length);
+function legacySafeQuote(){
+  const q=LEGACY_SAFE_QUOTES[legacySafeQuoteIndex]||LEGACY_SAFE_QUOTES[0]||"";
+  return {q:q,a:"YKS",c:"YKS"};
+}
+function legacySafeQuoteNext(){
+  if(LEGACY_SAFE_QUOTES.length<=1){legacySafeQuoteIndex=0;return legacySafeQuoteIndex;}
+  let next=sozRand(LEGACY_SAFE_QUOTES.length-1);
+  if(next>=legacySafeQuoteIndex)next++;
+  legacySafeQuoteIndex=next%LEGACY_SAFE_QUOTES.length;
+  return legacySafeQuoteIndex;
+}
+
 let sozCurrentIndex=-1;
 function sozSetRandom(exclude=sozCurrentIndex){
   const i=sozRandomIndex(exclude,sozRecentAuthors);
@@ -9176,10 +9203,10 @@ function sozIndex(){
   if(sozCurrentIndex<0||sozCurrentIndex>=SOZLER.length){sozRecentAuthors=[];sozSetRandom(-1)}
   return sozCurrentIndex;
 }
-function gununSozu(){ const i=sozIndex(); return i>=0?SOZLER[i].q:""; }
+function gununSozu(){ return legacySafeQuote().q; }
 function yeniSoz(){
-  /* Son 3 yazarı da engelleyerek gerçek rastgele insan sözü seç. */
-  sozSetRandom(sozIndex());
+  /* Yeni motivasyon modülü yüklenene kadar yalnız YKS odaklı güvenli fallback kullan. */
+  legacySafeQuoteNext();
   renderSoz();
   return true;
 }
@@ -9188,7 +9215,7 @@ function renderSoz(){
   const w=el("sozBox"); if(!w)return;
   if(S.sozKapali){ w.style.display="none"; return; }
   w.style.display="flex";
-  const soz=SOZLER[aktifSozIndex()];
+  const soz=legacySafeQuote();
   w.innerHTML='<span class="szwrap"><span class="sz">“'+esc(soz.q)+'”</span>'+
     '<span class="sza">— '+esc(soz.a)+'</span></span>'+
     '<button class="szr" onclick="yeniSoz()" title="Başka bir söz" aria-label="Başka bir söz">↻</button>';
@@ -10932,8 +10959,8 @@ const V319_VERSION="3.2.7";
 renderSoz=function(){
   const w=el("sozBox");if(!w)return false;
   if(S.sozKapali){w.style.display="none";return true}
-  w.style.display="flex";const soz=SOZLER[aktifSozIndex()];if(!soz)return false;
-  w.innerHTML='<span class="szwrap"><span class="szlabel">Günün sözü <span class="szcat">'+esc(soz.c||"Söz")+'</span></span><span class="sz">“'+esc(soz.q)+'”</span><span class="sza">— '+esc(soz.a||"Anonim")+'</span></span><button class="szr" type="button" onclick="yeniSoz()" title="Başka bir söz" aria-label="Başka bir söz">↻</button>';
+  w.style.display="flex";const soz=legacySafeQuote();if(!soz)return false;
+  w.innerHTML='<span class="szwrap"><span class="szlabel">Günün sözü <span class="szcat">YKS</span></span><span class="sz">“'+esc(soz.q)+'”</span><span class="sza">— YKS</span></span><button class="szr" type="button" onclick="yeniSoz()" title="Başka bir söz" aria-label="Başka bir söz">↻</button>';
   return true;
 };
 
