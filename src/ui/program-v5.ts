@@ -322,12 +322,20 @@ function installProgramShell(program:HTMLElement):void{
   installMobilePlanner(program,main,week);
 }
 
+function renameProgramNavigation():void{
+  const tab=document.querySelector<HTMLElement>('.tabbar .tab[data-s="program"]');
+  const label=tab?.querySelector<HTMLElement>(".tl");
+  if(label)label.textContent="Programım";
+  if(tab)tab.setAttribute("aria-label","Programım");
+}
+
 export function installProgramV5():{installed:boolean;validate:()=>string[]}{
   const program=byId("program");
   if(!program)return {installed:false,validate:()=>["program screen missing"]};
 
   program.classList.add("v5-program");
   program.dataset.v5Program="ready";
+  renameProgramNavigation();
   createHeader(program);
   installProgramShell(program);
 
