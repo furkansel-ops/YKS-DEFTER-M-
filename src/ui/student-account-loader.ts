@@ -53,7 +53,7 @@ function forceStudentOnlyRegistration(win:AccountWindow):boolean{
 export function installStudentAccountLoader():boolean{
   const win=window as AccountWindow;
   if(win.__YKS_ACCOUNT_READY__)return true;
-  const settingsReady=loadModuleScript(SETTINGS_SCRIPT_ID,"./settings-profile-runtime.js?v=2.5.0");
+  const settingsReady=loadModuleScript(SETTINGS_SCRIPT_ID,"./settings-profile-runtime.js?v=2.6.0");
   win.__YKS_ACCOUNT_READY__=(async()=>{
     const bridgeReady=await loadModuleScript(STUDENT_COACHING_RUNTIME_ID,"./student-coaching-runtime.js?v=1.2.1");
     if(!bridgeReady)return settingsReady;
