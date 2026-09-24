@@ -1,0 +1,75 @@
+#deneme.v5-exams{
+  --v5e-line:color-mix(in srgb,var(--label) 8%,transparent);
+  --v5e-shadow:0 1px 2px rgba(15,23,42,.03),0 22px 52px -42px color-mix(in srgb,var(--label) 38%,transparent);
+  gap:11px;
+}
+#deneme.v5-exams.active{display:flex;flex-direction:column;}
+.v5-exams-header{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;padding:5px 2px 2px;}
+.v5-exams-header span,.v5-exams-form-head span,.v5-exams-latest>header span,.v5-exams-analysis>header span{
+  display:block;color:var(--accent);font-size:8px;font-weight:850;letter-spacing:.11em;
+}
+.v5-exams-header h1{margin:5px 0 0;font-size:clamp(27px,3.8vw,38px);letter-spacing:-.055em;line-height:1;}
+.v5-exams-header p{margin:7px 0 0;color:var(--label-2);font-size:11px;max-width:620px;}
+.v5-exams-add{min-height:40px;padding:0 14px;border:0;border-radius:12px;background:var(--accent);color:#fff;font:inherit;font-size:10px;font-weight:820;}
+#deneme .v5-exams-dashboard{margin:0;}
+#deneme .v5-exams-dashboard>.card{
+  margin:0;padding:15px;border:1px solid var(--v5e-line);border-radius:21px;background:var(--glass-strong);box-shadow:var(--v5e-shadow);
+}
+#deneme .v315-dash-head{padding-bottom:10px;border-bottom:1px solid var(--v5e-line);}
+#deneme .v315-dash-title .eyebrow{font-size:8px!important;color:var(--accent)!important;}
+#deneme .v315-dash-title h2{font-size:18px!important;letter-spacing:-.035em;}
+#deneme .v315-filterbar{gap:7px;margin-top:10px;}
+#deneme .v315-filterbar .seg{padding:4px;border-radius:12px;background:var(--fill);box-shadow:none;}
+#deneme .v315-filterbar .seg button{min-height:32px;border-radius:8px;font-size:8.5px;}
+#deneme .v315-kpis{gap:7px;}
+#deneme .v315-kpis>*{border-radius:14px!important;box-shadow:none!important;}
+#deneme .v315-dash-grid{gap:8px;}
+#deneme .v315-dash-grid>.card{border:1px solid var(--v5e-line);border-radius:16px;box-shadow:none;background:color-mix(in srgb,var(--fill) 25%,var(--glass-strong));}
+#deneme .v5-exams-form{
+  margin:0;padding:14px;border:1px solid var(--v5e-line);border-radius:19px;background:var(--glass-strong);box-shadow:none;scroll-margin-top:80px;
+}
+.v5-exams-form-head{margin-bottom:11px;padding-bottom:10px;border-bottom:1px solid var(--v5e-line);}
+.v5-exams-form-head h2,.v5-exams-latest>header h2,.v5-exams-analysis>header h2{margin:3px 0 0;font-size:14px;letter-spacing:-.025em;}
+.v5-exams-form-head p,.v5-exams-latest>header p,.v5-exams-analysis>header p{margin:3px 0 0;color:var(--label-3);font-size:8px;}
+#deneme .v5-exams-form input,#deneme .v5-exams-form select{min-height:40px;border-radius:11px;}
+#deneme .v5-exams-form>.seg{padding:4px;border-radius:12px;background:var(--fill);}
+#deneme .v5-exams-form>.seg button{min-height:33px;border-radius:8px;}
+#deneme .v5-exams-journal{
+  margin:0;padding:14px;border:1px solid var(--v5e-line);border-radius:19px;background:color-mix(in srgb,var(--glass-strong) 97%,transparent);box-shadow:none;
+}
+#deneme .v5-exams-journal .error-journal-form{box-shadow:none;border:1px solid var(--v5e-line);border-radius:15px;background:var(--fill);}
+#deneme .v5-exams-journal .error-journal-kpi{border-color:var(--v5e-line);box-shadow:none;background:var(--glass-strong);}
+.v5-exams-latest,.v5-exams-analysis{
+  padding:14px;border:1px solid var(--v5e-line);border-radius:19px;background:var(--glass-strong);box-shadow:var(--v5e-shadow);
+}
+.v5-exams-latest>header,.v5-exams-analysis>header{margin-bottom:10px;}
+.v5-exams-latest>.card{margin:0 0 8px;padding:11px;border:1px solid var(--v5e-line);border-radius:14px;box-shadow:none;}
+.v5-exams-analysis>.seg{margin:0 0 10px;padding:4px;border-radius:12px;background:var(--fill);overflow:auto;scrollbar-width:none;}
+.v5-exams-analysis>.seg::-webkit-scrollbar{display:none;}
+.v5-exams-analysis>.seg button{min-width:max-content;min-height:34px;border-radius:8px;font-size:8.5px;}
+.v5-exams-analysis [id^="anp_"]>.card,
+.v5-exams-analysis [id^="anp_"] .card{border:1px solid var(--v5e-line);border-radius:15px;box-shadow:none;}
+@media(min-width:1180px){.wrap:has(#deneme.active){max-width:1180px!important;}}
+@media(max-width:760px){
+  .wrap:has(#deneme.active){padding-left:14px!important;padding-right:14px!important;}
+  #deneme.v5-exams{gap:9px;padding-top:6px;}
+  .v5-exams-header{align-items:center;}
+  .v5-exams-header h1{font-size:22px;}
+  .v5-exams-header p{display:none;}
+  .v5-exams-add{min-height:34px;padding:0 10px;font-size:8.5px;}
+  #deneme .v5-exams-dashboard>.card{padding:11px;border-radius:17px;box-shadow:none;}
+  #deneme .v315-dash-head{display:block;}
+  #deneme .v315-add-btn{display:none;}
+  #deneme .v315-filterbar{display:block;}
+  #deneme .v315-filterbar .seg{margin-bottom:6px;overflow:auto;}
+  #deneme .v315-dash-grid{grid-template-columns:1fr!important;}
+  #deneme .v5-exams-form,#deneme .v5-exams-journal,.v5-exams-latest,.v5-exams-analysis{padding:10px;border-radius:16px;box-shadow:none;}
+  #deneme .error-journal-form .row2,#deneme .v5-exams-form .row2{grid-template-columns:1fr;}
+  #deneme .error-journal-kpis{grid-template-columns:1fr 1fr;}
+}
+@media(max-width:420px){
+  #deneme .v315-kpis{grid-template-columns:1fr 1fr!important;}
+}
+@media(prefers-reduced-motion:reduce){
+  .v5-exams-add,.v5-exams-analysis button{transition:none!important;}
+}
