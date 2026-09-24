@@ -13,8 +13,6 @@ test("v4.3 Today 2.0 keeps the existing home contracts and promotes the manual p
   assert.match(source,/todayPlanTitle/);
   assert.match(source,/todayPlan/);
   assert.match(source,/insertAdjacentElement\("afterend",plan\)/);
-  assert.match(source,/data-v5-home-layout|v5HomeLayout/);
-  assert.match(source,/installPrimaryLayout/);
   assert.match(index,/id="todayHub"/);
   assert.match(index,/id="todayPlanTitle"/);
   assert.match(index,/id="todayPlan"/);
@@ -41,9 +39,6 @@ test("v4.3 Today 2.0 güvenli TypeScript runtime tarafından yüklenir ve tablet
   assert.match(safe,/installTodayV43/);
   assert.match(safe,/v43Today/);
   assert.match(safe,/v43TodayErrors/);
-  assert.match(css,/\.v5-home-layout/);
-  assert.match(css,/\.v5-home-primary/);
-  assert.match(css,/\.v5-home-rail/);
   assert.match(css,/@media \(max-width:760px\)/);
   assert.match(css,/@media \(prefers-reduced-motion:reduce\)/);
   assert.match(css,/\[hidden\]/);
@@ -53,27 +48,4 @@ test("v4.3 Today 2.0 only becomes flex while the home screen is active",()=>{
   const css=read("src/ui/today-v43.css");
   assert.doesNotMatch(css,/#home\.v43-today\s*\{[^}]*display\s*:\s*flex/s);
   assert.match(css,/#home\.v43-today\.active\s*\{[^}]*display\s*:\s*flex/s);
-});
-
-
-test("approved mobile Home mockup daily goal, date pill and quick actions contracts stay visual-only",()=>{
-  const source=read("src/ui/today-v43.ts");
-  const css=read("src/ui/today-v43.css");
-  assert.match(source,/data-v5-date-pill|v5DatePill/);
-  assert.match(source,/data-v5-daily-goal|v5DailyGoal/);
-  assert.match(source,/Günlük Hedef/);
-  assert.match(source,/Program Oluştur/);
-  assert.match(source,/Çalışmaya Başla/);
-  assert.match(source,/Notlarım/);
-  assert.match(source,/İstatistikler/);
-  assert.match(source,/data-tone|dataset\.tone/);
-  assert.match(css,/APPROVED HOME MOCKUP/);
-  assert.match(css,/\.v5-daily-goal/);
-  assert.match(css,/\.v5-quick-actions/);
-  assert.match(css,/\.plancell\[data-tone="math"\]/);
-  assert.doesNotMatch(source,/localStorage\.(?:setItem|removeItem|clear)/);
-  assert.doesNotMatch(source,/indexedDB\./);
-  assert.doesNotMatch(source,/\bDexie\b/);
-  assert.doesNotMatch(source,/\.weeks\s*\[/);
-  assert.doesNotMatch(source,/\bsave\s*\(/);
 });

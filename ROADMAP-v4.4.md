@@ -45,7 +45,7 @@ Final kapı commit'i: `e441b4e005f293f8f03b4a228b613be27ecdda62`
 ## Korunan sözleşmeler
 
 - Veri şeması **21** olarak kaldı.
-- **Program manuel düzenlemeyi korur**; kullanıcı tarafından açılan Akıllı Oluştur taslağı önizlenir ve yalnız son onayla Program'a uygulanır. Arka plandaki v4.4 özellikleri kendiliğinden Program üretmez veya Program verisini değiştirmez.
+- **Program manuel** kaldı; v4.4 özellikleri otomatik Program üretmez veya Program verisini değiştirmez.
 - v4.4 öğretici katmanları çalışma/Dexie/Firebase kayıtlarına doğrudan yazmaz.
 - 9 organ / 52 yapı / 24 AYT Biyoloji konusu korunur.
 - Büyük 3B varlıklar çekirdek PWA kurulumuna alınmaz; ihtiyaç halinde yüklenir.
