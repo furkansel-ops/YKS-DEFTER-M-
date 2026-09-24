@@ -19,6 +19,113 @@ function styles(){if(document.getElementById("yksModernSettingsStyles"))return;c
 @media(max-width:900px){.yms-shell{grid-template-columns:1fr}.yms-side{position:sticky;top:8px;display:block;padding:7px;overflow:hidden}.yms-side-head,.yms-side-foot{display:none}.yms-nav{display:flex;gap:5px;overflow:auto;scrollbar-width:none}.yms-nav::-webkit-scrollbar{display:none}.yms-nav-btn{width:auto;white-space:nowrap;padding:7px 9px;flex:0 0 auto}.yms-nav-ic{width:25px;height:25px}.yms-section{scroll-margin-top:72px}.yms-action-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:680px){.yms-grid,.yms-form,.yms-exam{grid-template-columns:1fr}.yms-hero{align-items:flex-start;flex-wrap:wrap;padding:17px}.yms-avatar{width:54px;height:54px;border-radius:17px}.yms-edit{margin-left:auto}.yms-section{padding:14px;border-radius:18px}.yms-section-head{margin-bottom:11px}.yms-action-grid{grid-template-columns:1fr}.yms-action-tile{min-height:60px}}
 @media(pointer:coarse){.yms-nav-btn,.yms-actions button,.yms-edit,.yms-action-tile{min-height:44px}}
+
+/* mobile-premium-settings-v1 */
+#mrp_ayar .v30-subhead{margin-bottom:4px}
+.yms-shell{grid-template-columns:190px minmax(0,1fr);gap:22px}
+.yms-side{top:76px;padding:8px;border:0;border-radius:14px;background:transparent;box-shadow:none;backdrop-filter:none}
+.yms-side-head{padding:5px 8px 10px}
+.yms-side-kicker{display:none}
+.yms-side-title{font-size:15px;font-weight:780;letter-spacing:-.01em;color:var(--label-2,#667085)}
+.yms-nav{gap:2px}
+.yms-nav-btn{position:relative;gap:9px;padding:9px 10px;border-radius:10px;font-size:13px;font-weight:680;color:var(--label-2,#667085)}
+.yms-nav-btn:hover{background:color-mix(in srgb,var(--label,#111827) 4%,transparent)}
+.yms-nav-btn.is-active{background:color-mix(in srgb,var(--label,#111827) 6%,transparent);color:var(--label,var(--ink,#111827))}
+.yms-nav-dot{width:6px;height:6px;border-radius:999px;background:color-mix(in srgb,var(--label-2,#667085) 45%,transparent);flex:0 0 auto}
+.yms-nav-btn.is-active .yms-nav-dot{background:var(--accent,#2563eb)}
+.yms-nav-ic{display:none!important}
+.yms-side-foot{display:none}
+.yms-content{gap:24px}
+.yms-hero{padding:6px 2px 18px;border:0;border-bottom:1px solid color-mix(in srgb,var(--line,#dde3ea) 80%,transparent);border-radius:0;background:transparent;box-shadow:none;overflow:visible}
+.yms-hero::after{display:none}
+.yms-avatar{width:52px;height:52px;border-radius:50%;background:color-mix(in srgb,var(--accent,#2563eb) 11%,var(--surface,#fff));color:var(--accent,#2563eb);font-size:17px;font-weight:780;box-shadow:none;border:1px solid color-mix(in srgb,var(--accent,#2563eb) 14%,var(--line,#dde3ea))}
+.yms-hero-main h2{font-size:20px;font-weight:780;letter-spacing:-.022em}
+.yms-hero-main p{font-size:12.5px}
+.yms-chiprow{margin-top:7px;gap:5px}
+.yms-chip{padding:3px 7px;border:0;background:color-mix(in srgb,var(--label,#111827) 5%,transparent);font-size:10.5px;font-weight:650;color:var(--label-2,#667085)}
+.yms-edit{border:0;background:color-mix(in srgb,var(--label,#111827) 5%,transparent);border-radius:10px;padding:9px 11px;font-size:12.5px;font-weight:700;box-shadow:none}
+.yms-edit:hover{border:0;background:color-mix(in srgb,var(--label,#111827) 8%,transparent)}
+.yms-section{padding:0;border:0;border-radius:0;background:transparent;box-shadow:none;scroll-margin-top:82px}
+.yms-section-head{margin:0 0 9px;padding:0 2px 8px;border-bottom:0}
+.yms-section-title{gap:0}
+.yms-section-icon{display:none}
+.yms-section-head h3{font-size:13px;font-weight:760;letter-spacing:.005em;color:var(--label-2,#667085)}
+.yms-section-head p{margin-top:2px;font-size:11.5px;color:color-mix(in srgb,var(--label-2,#667085) 84%,transparent)}
+.yms-grid{gap:1px;background:color-mix(in srgb,var(--line,#dde3ea) 72%,transparent);border:1px solid color-mix(in srgb,var(--line,#dde3ea) 84%,transparent);border-radius:16px;overflow:hidden}
+.yms-grid[style]{margin-top:10px!important}
+.yms-card{padding:14px 15px;border:0;border-radius:0;background:var(--surface,#fff)}
+.yms-title{margin-bottom:5px;font-size:10.5px;font-weight:760;letter-spacing:.03em;text-transform:none;color:var(--label-2,#667085)}
+.yms-row{padding:10px 0;font-size:13px;border-bottom:1px solid color-mix(in srgb,var(--line,#dde3ea) 66%,transparent)}
+.yms-row b{font-weight:650}
+.yms-actions{margin-top:10px}
+.yms-actions button{border:0;border-radius:9px;background:color-mix(in srgb,var(--label,#111827) 5%,transparent);padding:9px 11px;font-size:12px;font-weight:680}
+.yms-actions button.primary{background:var(--accent,#2563eb);color:#fff}
+.yms-actions button.danger{background:transparent;color:var(--danger,#b42318);padding-left:0}
+.yms-exam{gap:6px}
+.yms-exam div{padding:9px 10px;border:0;border-radius:10px;background:color-mix(in srgb,var(--label,#111827) 4%,transparent)}
+.yms-notif-card{padding:0;border:1px solid color-mix(in srgb,var(--line,#dde3ea) 84%,transparent);border-radius:16px;overflow:hidden;background:var(--surface,#fff)}
+.yms-notif-list{gap:0}
+.yms-notif-item{padding:13px 15px;border:0;border-bottom:1px solid color-mix(in srgb,var(--line,#dde3ea) 66%,transparent);border-radius:0;background:transparent}
+.yms-notif-item:last-child{border-bottom:0}
+.yms-notif-item b{font-size:13px;font-weight:680}
+.yms-notif-item small{font-size:11.5px}
+.yms-status-pill{padding:4px 7px;border-radius:8px;font-size:10.5px;font-weight:680;background:color-mix(in srgb,var(--label,#111827) 5%,transparent)}
+.yms-toggle{width:44px;height:26px;background:color-mix(in srgb,var(--label-2,#667085) 28%,transparent)}
+.yms-toggle.is-on{background:var(--accent,#2563eb)}
+.yms-time-row{padding:0 15px 13px;margin-top:12px}
+.yms-notif-card>.yms-note{display:block;padding:11px 15px 0;margin:0}
+.yms-notif-card>.yms-actions{padding:0 15px 15px;margin-top:0}
+.yms-action-grid{grid-template-columns:1fr;border:1px solid color-mix(in srgb,var(--line,#dde3ea) 84%,transparent);border-radius:16px;overflow:hidden;gap:0;background:var(--surface,#fff)}
+.yms-action-tile{position:relative;min-height:0;padding:13px 38px 13px 15px;border:0;border-bottom:1px solid color-mix(in srgb,var(--line,#dde3ea) 66%,transparent);border-radius:0;background:transparent}
+.yms-action-tile:last-child{border-bottom:0}
+.yms-action-tile::after{content:"›";position:absolute;right:15px;top:50%;transform:translateY(-50%);font-size:20px;font-weight:350;color:var(--label-2,#667085)}
+.yms-action-tile b{font-size:13px;font-weight:680}
+.yms-action-tile small{font-size:11.5px}
+.yms-theme-host>.card{background:transparent!important}
+.yms-theme-host #themeGrid{gap:8px!important}
+.yms-theme-host .theme-card{min-height:64px!important;border-radius:13px!important;box-shadow:none!important;background:var(--surface,#fff)!important}
+.yms-theme-host .theme-card.on{box-shadow:inset 0 0 0 1px var(--accent)!important}
+.yms-theme-host .theme-card::after{width:20px!important;height:20px!important;font-size:11px!important}
+.yms-personal-host .v43-personal-head{border-bottom:0!important;padding-bottom:8px!important}
+.yms-personal-host .v43-personal-head .eyebrow{display:none!important}
+.yms-personal-host .v43-personal-head h2{font-size:15px!important;margin:0 0 3px!important}
+.yms-personal-host .v43-personal-summary{gap:6px!important}
+.yms-personal-host .v43-summary-item{padding:9px 10px!important;border-radius:11px!important;background:color-mix(in srgb,var(--label,#111827) 4%,transparent)!important}
+.yms-personal-host .v43-personal-group{padding:0!important;border:1px solid color-mix(in srgb,var(--line,#dde3ea) 84%,transparent)!important;border-radius:16px!important;overflow:hidden!important;background:var(--surface,#fff)!important}
+.yms-personal-host .v43-personal-group legend{padding:12px 14px 4px!important;font-size:12px!important}
+.yms-personal-host .v43-personal-group>.hint{padding:0 14px 10px!important;margin:0!important;font-size:11.5px!important}
+.yms-personal-host .v43-personal-grid,.yms-personal-host .v43-personal-grid.exam-grid{gap:0!important}
+.yms-personal-host .v43-personal-choice{min-height:58px!important;padding:11px 14px!important;border:0!important;border-top:1px solid color-mix(in srgb,var(--line,#dde3ea) 62%,transparent)!important;border-radius:0!important;background:transparent!important;transform:none!important}
+.yms-personal-host .v43-personal-choice:has(input:checked){background:color-mix(in srgb,var(--accent,#2563eb) 4%,transparent)!important}
+.yms-personal-host .v43-personal-choice input{width:18px!important;height:18px!important;min-width:18px!important}
+.yms-modal{padding:0;align-items:end;background:#08101d73;backdrop-filter:blur(6px)}
+.yms-dialog{width:100%;max-width:680px;max-height:92vh;border:0;border-radius:24px 24px 0 0;padding:20px 18px calc(20px + env(safe-area-inset-bottom));box-shadow:0 -18px 60px #0003}
+.yms-field input,.yms-field select{min-height:46px;border-radius:12px;background:color-mix(in srgb,var(--label,#111827) 4%,var(--surface,#fff))}
+@media(max-width:900px){
+  .yms-shell{display:block}
+  .yms-side{position:sticky;top:0;z-index:18;margin:0 -2px 18px;padding:4px 0 7px;background:color-mix(in srgb,var(--bg,var(--surface,#fff)) 90%,transparent);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+  .yms-nav{display:flex;gap:2px;overflow:auto;padding:0 2px;scrollbar-width:none}
+  .yms-nav-btn{padding:8px 10px;border-radius:10px;font-size:12px}
+  .yms-nav-dot{display:none}
+}
+@media(max-width:680px){
+  #mrp_ayar .v30-subhead{padding-bottom:6px}
+  .yms-wrap{margin-top:6px}
+  .yms-content{gap:22px}
+  .yms-hero{padding:8px 2px 16px;gap:12px;align-items:center;flex-wrap:nowrap}
+  .yms-avatar{width:48px;height:48px}
+  .yms-hero-main h2{font-size:19px}
+  .yms-chiprow .yms-chip:nth-child(3){display:none}
+  .yms-edit{margin-left:auto;white-space:nowrap;padding:8px 9px}
+  .yms-section-head p{max-width:92%}
+  .yms-grid,.yms-form,.yms-exam{grid-template-columns:1fr}
+  .yms-grid{gap:1px}
+  .yms-card{padding:13px 14px}
+  .yms-row{padding:9px 0}
+  .yms-action-grid{grid-template-columns:1fr}
+  .yms-dialog{border-radius:22px 22px 0 0}
+  .yms-form{gap:11px}
+}
 @media(prefers-reduced-motion:reduce){.yms-toggle::after{transition:none}}
 \`;document.head.append(s)}
 
@@ -65,11 +172,11 @@ const name=val(s.name||a.title,"YKS öğrencisi"),track=val(s.puanTuru,"Belirlen
   <aside class="yms-side" aria-label="Ayar kategorileri">
     <div class="yms-side-head"><span class="yms-side-kicker">YKS Defterim</span><b class="yms-side-title">Ayarlar</b></div>
     <nav class="yms-nav">
-      <button class="yms-nav-btn is-active" type="button" data-yms-jump="ymsProfile"><span class="yms-nav-ic">👤</span>Profil</button>
-      <button class="yms-nav-btn" type="button" data-yms-jump="ymsAppearance"><span class="yms-nav-ic">◐</span>Görünüm</button>
-      <button class="yms-nav-btn" type="button" data-yms-jump="ymsPersonal"><span class="yms-nav-ic">✦</span>Kişiselleştir</button>
-      <button class="yms-nav-btn" type="button" data-yms-jump="ymsNotifications"><span class="yms-nav-ic">◉</span>Bildirimler</button>
-      <button class="yms-nav-btn" type="button" data-yms-jump="ymsApplication"><span class="yms-nav-ic">⚙</span>Uygulama</button>
+      <button class="yms-nav-btn is-active" type="button" data-yms-jump="ymsProfile"><span class="yms-nav-dot" aria-hidden="true"></span>Profil</button>
+      <button class="yms-nav-btn" type="button" data-yms-jump="ymsAppearance"><span class="yms-nav-dot" aria-hidden="true"></span>Görünüm</button>
+      <button class="yms-nav-btn" type="button" data-yms-jump="ymsPersonal"><span class="yms-nav-dot" aria-hidden="true"></span>Kişiselleştir</button>
+      <button class="yms-nav-btn" type="button" data-yms-jump="ymsNotifications"><span class="yms-nav-dot" aria-hidden="true"></span>Bildirimler</button>
+      <button class="yms-nav-btn" type="button" data-yms-jump="ymsApplication"><span class="yms-nav-dot" aria-hidden="true"></span>Uygulama</button>
     </nav>
     <div class="yms-side-foot">Ayarların bu cihazda saklanır. Bulut hesabın bağlıysa desteklenen hesap bilgileri eşitlenebilir.</div>
   </aside>
@@ -80,16 +187,16 @@ const name=val(s.name||a.title,"YKS öğrencisi"),track=val(s.puanTuru,"Belirlen
       <button class="yms-edit" type="button" data-yms-edit>Profili düzenle</button>
     </section>
     <section class="yms-section" aria-labelledby="ymsProfileTitle">
-      <div class="yms-section-head"><div class="yms-section-title"><span class="yms-section-icon">◎</span><div><h3 id="ymsProfileTitle">Profil ve hedefler</h3><p>Temel bilgilerin, YKS hedeflerin ve hesap durumun tek yerde.</p></div></div></div>
+      <div class="yms-section-head"><div class="yms-section-title"><div><h3 id="ymsProfileTitle">Profil ve hedefler</h3><p>Temel bilgilerin, YKS hedeflerin ve hesap durumun tek yerde.</p></div></div></div>
       <div class="yms-grid"><section class="yms-card"><div class="yms-title">Kişisel bilgiler</div><div class="yms-row"><span>Ad Soyad</span><b>${esc(name)}</b></div><div class="yms-row"><span>E-posta</span><b>${esc(a.email||"—")}</b></div><div class="yms-row"><span>Alan / puan türü</span><b>${esc(track)}</b></div><div class="yms-row"><span>OBP</span><b>${Number(s.obp)>0?esc(String(s.obp)):"—"}</b></div><div class="yms-row"><span>Haftalık çalışma</span><b>${esc(String(s.workdays||6))} gün</b></div></section>
       <section class="yms-card"><div class="yms-title">YKS hedeflerim</div><div class="yms-row"><span>TYT hedef net</span><b>${esc(net(s.targetNetTYT??s.targetNet))}</b></div><div class="yms-row"><span>AYT hedef net</span><b>${esc(net(s.targetNetAYT))}</b></div><div class="yms-row"><span>Hedef üniversite</span><b>${esc(val(s.targetUniversity))}</b></div><div class="yms-row"><span>Hedef bölüm</span><b>${esc(val(s.targetDepartment))}</b></div><div class="yms-actions"><button class="primary" type="button" data-yms-edit>Hedefleri düzenle</button></div></section></div>
       <div class="yms-grid" style="margin-top:11px"><section class="yms-card"><div class="yms-title">Hesap & güvenlik</div><div class="yms-row"><span>Oturum</span><b class="yms-account-status"><i class="yms-account-dot${a.signedIn?" on":""}"></i>${esc(a.signedIn?"Giriş yapıldı":"Giriş yapılmadı")}</b></div><div class="yms-row"><span>Bulut</span><b>${esc(syncText())}</b></div><div class="yms-actions">${a.signedIn?'<button class="danger" type="button" data-yms-logout>Çıkış yap</button>':'<button class="primary" type="button" data-yms-login>Google ile giriş yap</button>'}</div></section>
       <section class="yms-card"><div class="yms-title">2027 YKS tarihleri</div><div class="yms-exam"><div><b>TYT</b>19 Haziran 2027<br>10:15</div><div><b>AYT</b>20 Haziran 2027<br>10:15</div><div><b>YDT</b>20 Haziran 2027<br>15:45</div></div><p class="yms-note">Sınav tarihleri bilgi amaçlı sabittir; profil ayarından değiştirilmez.</p></section></div>
     </section>
-    <section class="yms-section" id="ymsAppearance"><div class="yms-section-head"><div class="yms-section-title"><span class="yms-section-icon">◐</span><div><h3>Görünüm</h3><p>Tema ve yazı boyutunu seç. Tema değişimi yalnız bu Ayarlar ekranından yapılır.</p></div></div></div><div class="yms-theme-host" data-yms-theme-slot></div></section>
-    <section class="yms-section" id="ymsPersonal"><div class="yms-section-head"><div class="yms-section-title"><span class="yms-section-icon">✦</span><div><h3>Kişiselleştirme</h3><p>Hangi sınavların ve Bugün kartlarının görüneceğini belirle.</p></div></div></div><div class="yms-personal-host" data-yms-personal-slot><div class="yms-empty">Kişiselleştirme seçenekleri hazırlanıyor…</div></div></section>
-    <section class="yms-section" id="ymsNotifications"><div class="yms-section-head"><div class="yms-section-title"><span class="yms-section-icon">◉</span><div><h3>Bildirimler</h3><p>Yalnız gerçekten işine yarayan hatırlatmaları açık bırak.</p></div></div><span class="yms-status-pill${permission==="granted"?" ok":""}">${esc(permissionText)}</span></div><div class="yms-card yms-notif-card"><div class="yms-notif-list">${notifButton("pomo","Pomodoro bitişi","Odak oturumu veya mola tamamlandığında haber ver","notifPomo")}${notifButton("review","Tekrar zamanı","Planlı konu tekrarlarını hatırlat","notifReview")}${notifButton("evening","Gün sonu hatırlatması","Günü kapatmayı ve kaydı tamamlamayı hatırlat","notifEvening")}</div><label class="yms-note" for="ymsNotifTime">Akşam hatırlatma saati</label><div class="yms-time-row"><input id="ymsNotifTime" type="time" value="${esc(notifTime())}" aria-label="Akşam hatırlatma saati"><button class="yms-edit" type="button" data-yms-notif-time>Kaydet</button></div><div class="yms-actions"><button type="button" data-yms-notif-permission ${permission==="granted"?"disabled":""}>${permission==="granted"?"Bildirim izni açık":"Bildirim izni ver"}</button><button type="button" data-yms-notif-test>Deneme bildirimi</button><button type="button" data-yms-notif-refresh>Durumu yenile</button></div></div></section>
-    <section class="yms-section" id="ymsApplication"><div class="yms-section-head"><div class="yms-section-title"><span class="yms-section-icon">⚙</span><div><h3>Uygulama</h3><p>Veri, yedek, sistem kontrolleri ve deneme araçları.</p></div></div><span class="yms-status-pill">${esc(appVersion())}</span></div>
+    <section class="yms-section" id="ymsAppearance"><div class="yms-section-head"><div class="yms-section-title"><div><h3>Görünüm</h3><p>Tema ve yazı boyutunu seç. Tema değişimi yalnız bu Ayarlar ekranından yapılır.</p></div></div></div><div class="yms-theme-host" data-yms-theme-slot></div></section>
+    <section class="yms-section" id="ymsPersonal"><div class="yms-section-head"><div class="yms-section-title"><div><h3>Kişiselleştirme</h3><p>Hangi sınavların ve Bugün kartlarının görüneceğini belirle.</p></div></div></div><div class="yms-personal-host" data-yms-personal-slot><div class="yms-empty">Kişiselleştirme seçenekleri hazırlanıyor…</div></div></section>
+    <section class="yms-section" id="ymsNotifications"><div class="yms-section-head"><div class="yms-section-title"><div><h3>Bildirimler</h3><p>Yalnız gerçekten işine yarayan hatırlatmaları açık bırak.</p></div></div><span class="yms-status-pill${permission==="granted"?" ok":""}">${esc(permissionText)}</span></div><div class="yms-card yms-notif-card"><div class="yms-notif-list">${notifButton("pomo","Pomodoro bitişi","Odak oturumu veya mola tamamlandığında haber ver","notifPomo")}${notifButton("review","Tekrar zamanı","Planlı konu tekrarlarını hatırlat","notifReview")}${notifButton("evening","Gün sonu hatırlatması","Günü kapatmayı ve kaydı tamamlamayı hatırlat","notifEvening")}</div><label class="yms-note" for="ymsNotifTime">Akşam hatırlatma saati</label><div class="yms-time-row"><input id="ymsNotifTime" type="time" value="${esc(notifTime())}" aria-label="Akşam hatırlatma saati"><button class="yms-edit" type="button" data-yms-notif-time>Kaydet</button></div><div class="yms-actions"><button type="button" data-yms-notif-permission ${permission==="granted"?"disabled":""}>${permission==="granted"?"Bildirim izni açık":"Bildirim izni ver"}</button><button type="button" data-yms-notif-test>Deneme bildirimi</button><button type="button" data-yms-notif-refresh>Durumu yenile</button></div></div></section>
+    <section class="yms-section" id="ymsApplication"><div class="yms-section-head"><div class="yms-section-title"><div><h3>Uygulama</h3><p>Veri, yedek, sistem kontrolleri ve deneme araçları.</p></div></div><span class="yms-status-pill">${esc(appVersion())}</span></div>
       <div class="yms-action-grid"><button class="yms-action-tile" type="button" data-yms-data><b>Veri & yedek</b><small>Dışa aktar, içe al ve yedeklerini yönet.</small></button><button class="yms-action-tile" type="button" data-yms-system><b>Sistem durumu</b><small>Uygulama sağlığı ve bağlantı durumunu kontrol et.</small></button><button class="yms-action-tile" type="button" data-yms-about><b>Hakkında</b><small>Sürüm ve uygulama bilgilerini gör.</small></button><button class="yms-action-tile" type="button" data-yms-demo-load><b>Örnek veri</b><small>Uygulamayı dolu veriyle hızlıca dene.</small></button><button class="yms-action-tile" type="button" data-yms-demo-clear><b>Örnek veriyi temizle</b><small>Deneme verilerini tek dokunuşla kaldır.</small></button><button class="yms-action-tile" type="button" data-yms-wizard><b>Kurulumu tekrar aç</b><small>İlk kurulum adımlarını yeniden çalıştır.</small></button></div>
     </section>
   </main>
