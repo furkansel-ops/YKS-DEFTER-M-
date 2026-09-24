@@ -106,7 +106,10 @@ jobs:
           });
 
           await page.waitForTimeout(400);
-          await page.screenshot({path:"v6-home-real.png",fullPage:true});
+          await page.screenshot({path:"v6-home-real-top.png",fullPage:false});
+          await page.locator("[data-v6-program-card]").scrollIntoViewIfNeeded();
+          await page.waitForTimeout(250);
+          await page.screenshot({path:"v6-home-real-program.png",fullPage:false});
           await browser.close();
           NODE
           node .v6-capture.mjs
@@ -115,6 +118,8 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: v6-home-real-screenshot
-          path: v6-home-real.png
+          path: |
+            v6-home-real-top.png
+            v6-home-real-program.png
           if-no-files-found: error
           retention-days: 7
