@@ -202,7 +202,6 @@ function installScreenShell():HTMLElement|null{
     screen.innerHTML=trackerTemplate();
     more.parentElement.insertBefore(screen,more);
   }
-  if(screen)screen.classList.add("v5-pp");
   const tabbar=document.querySelector<HTMLElement>(".tabbar"),moreTab=tabbar?.querySelector<HTMLButtonElement>('.tab[data-s="more"]');
   if(tabbar&&moreTab&&!tabbar.querySelector('.tab[data-s="pp"]')){
     const tab=document.createElement("button");
