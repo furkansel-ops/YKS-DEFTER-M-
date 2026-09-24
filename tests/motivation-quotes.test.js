@@ -83,5 +83,6 @@ test('eski app.js fallbackı genel insan sözlerini ekrana basmaz',()=>{
   const v319Block=app.slice(v319Render,v319End);
   assert.match(v319Block,/legacySafeQuote\(\)/);
   assert.match(v319Block,/soz\.c\|\|"Futbol"/);
-  assert.doesNotMatch(v319Block,/SOZLER\[aktifSozIndex\(\)\]/);\n  assert.doesNotMatch(safeBlock,/a:"YKS"|c:"YKS"|yalnız YKS/);
+  assert.doesNotMatch(v319Block,/SOZLER\[aktifSozIndex\(\)\]/);
+  assert.doesNotMatch(safeBlock,/a:"YKS"|c:"YKS"|yalnız YKS/);
 });
