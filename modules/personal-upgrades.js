@@ -81,7 +81,7 @@
   }
   function addProgramHint(){
     const overview=$("programWeekOverview");if(!overview||$("programFastEntryHint"))return;
-    const hint=document.createElement("div");hint.id="programFastEntryHint";hint.className="program-fast-entry-hint";hint.innerHTML='<span>⌨️ PC hızlı giriş</span><b>Enter ↓</b><b>Tab →</b><small>Programı yalnız sen doldurursun; uygulama sadece kaydeder ve Bugün ekranına taşır.</small>';
+    const hint=document.createElement("div");hint.id="programFastEntryHint";hint.className="program-fast-entry-hint";hint.innerHTML='<span>⌨️ PC hızlı giriş</span><b>Enter ↓</b><b>Tab →</b><small>Programı kendin doldurabilir veya onaylı Akıllı Oluştur taslağını kullanabilirsin; uygulama onayın olmadan programa yazmaz.</small>';
     overview.insertAdjacentElement("afterend",hint);
   }
   function enhanceTodayPlan(){
