@@ -336,7 +336,7 @@ function openPlanner():void{
         ${[2,3,4,5].map(n=>`<button type="button" class="yks-v2-load ${prefs.daily===n?"is-selected":""}" data-daily="${n}"><b>${n}</b><span>görev / gün</span></button>`).join("")}
       </div>
       <div class="yks-v2-pref-list">
-        ${[
+        ${([
           ["mathDaily","Matematik her gün olsun","Matematik seçiliyse her güne bir blok ekler."],
           ["noTripleScience","Fizik, Kimya, Biyoloji aynı güne yığılmasın","Bir günde en fazla iki fen dersi olacak şekilde dengeler."],
           ["lightWeekend","Hafta sonu daha hafif olsun","Cumartesi ve pazar günlük yükü bir azaltır."],
