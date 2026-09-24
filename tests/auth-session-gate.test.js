@@ -66,7 +66,7 @@ test("normal kayıt öğrenci-only kalır ve öğrenci köprüleri yeni cache an
   assert.match(loader,/student-coach-link\.js\?v=1\.0\.0/);
   assert.doesNotMatch(loader,/coach-account-runtime\.js/);
   assert.match(loader,/auth-session-runtime\.js\?v=1\.6\.0/);
-  assert.match(loader,/settings-profile-runtime\.js\?v=2\.3\.0/);
+  assert.match(loader,/settings-profile-runtime\.js\?v=2\.4\.0/);
   assert.match(loader,/__YKS_ACCOUNT_READY__/);
 });
 
