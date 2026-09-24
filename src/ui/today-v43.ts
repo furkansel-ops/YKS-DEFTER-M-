@@ -32,6 +32,8 @@ function makeDisclosure(label:string,body:HTMLElement,className:string):HTMLButt
 function installTodayDetails(todayHub:HTMLElement):void{
   if(todayHub.querySelector("[data-v43-today-details]"))return;
   const nodes=[
+    byId("todayRemaining"),
+    byId("todayNext"),
     byId("todayReviewWrap"),
     todayHub.querySelector<HTMLElement>(".today-detail-grid"),
     todayHub.querySelector<HTMLElement>(".today-timeline-panel"),
