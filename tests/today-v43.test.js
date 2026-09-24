@@ -13,6 +13,8 @@ test("v4.3 Today 2.0 keeps the existing home contracts and promotes the manual p
   assert.match(source,/todayPlanTitle/);
   assert.match(source,/todayPlan/);
   assert.match(source,/insertAdjacentElement\("afterend",plan\)/);
+  assert.match(source,/data-v5-home-layout|v5HomeLayout/);
+  assert.match(source,/installPrimaryLayout/);
   assert.match(index,/id="todayHub"/);
   assert.match(index,/id="todayPlanTitle"/);
   assert.match(index,/id="todayPlan"/);
@@ -39,6 +41,9 @@ test("v4.3 Today 2.0 güvenli TypeScript runtime tarafından yüklenir ve tablet
   assert.match(safe,/installTodayV43/);
   assert.match(safe,/v43Today/);
   assert.match(safe,/v43TodayErrors/);
+  assert.match(css,/\.v5-home-layout/);
+  assert.match(css,/\.v5-home-primary/);
+  assert.match(css,/\.v5-home-rail/);
   assert.match(css,/@media \(max-width:760px\)/);
   assert.match(css,/@media \(prefers-reduced-motion:reduce\)/);
   assert.match(css,/\[hidden\]/);
