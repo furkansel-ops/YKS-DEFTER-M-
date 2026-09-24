@@ -162,20 +162,6 @@ const paragraphProblem=installOptional(
 );
 const screens=installScreenRuntime();
 const ui=installLegacyUiBridge(screens);
-document.documentElement.dataset.yksV2Shell="loading";
-void import("./ui/yks-v2-shell")
-  .then(({installYksV2Shell})=>{
-    const shell=installOptional(
-      "yks-v2-shell",
-      ()=>installYksV2Shell(),
-      {installed:false,version:"deferred",openPlanner:()=>{},refresh:()=>{}}
-    );
-    document.documentElement.dataset.yksV2Shell=shell.installed?"ready":"deferred";
-  })
-  .catch(error=>{
-    document.documentElement.dataset.yksV2Shell="deferred";
-    console.error("YKS V2 arayüz katmanı yüklenemedi",error);
-  });
 const teachersV2=installOptional(
   "teachers-v2",
   ()=>installTeachersV2(),
