@@ -7,14 +7,10 @@ const mod=fs.readFileSync(path.join(root,"modules/personal-upgrades.js"),"utf8")
 const stability=fs.readFileSync(path.join(root,"modules/stability.js"),"utf8");
 const app=fs.readFileSync(path.join(root,"app.js"),"utf8");
 
-test("Program manuel kalır; Akıllı Oluştur yalnız açık kullanıcı onayıyla eklenir",()=>{
-  const builder=fs.readFileSync(path.join(root,"src/ui/program-builder-v5.ts"),"utf8");
-  assert.match(mod,/onayın olmadan programa yazmaz/);
+test("Program manuel kalır ve otomatik program üreticisi eklenmez",()=>{
+  assert.doesNotMatch(mod,/generateProgram|autoProgram|akıllı program oluştur/i);
+  assert.match(mod,/Programı yalnız sen doldurursun/);
   assert.match(app,/contenteditable="true"/);
-  assert.match(builder,/Bu programı kullan/);
-  assert.match(builder,/applyDraft/);
-  assert.match(builder,/data-next/);
-  assert.doesNotMatch(builder,/setInterval|localStorage\.setItem|indexedDB\.open/);
 });
 
 test("PC program girişi Enter dikey ve Tab yatay gezinir",()=>{

@@ -1,5 +1,4 @@
 import "./learning-cycle-v43.css";
-import {installExamsV5} from "./exams-v5";
 import {learningCycleAnalysisService,type LearningCycleStatus,type LearningCycleTopic} from "../domain/learning-cycle-analysis-service";
 import type {YksStateCandidate} from "../data/contracts";
 
@@ -69,7 +68,6 @@ export function renderLearningCycleV43():boolean{
 
 export function installLearningCycleV43():{installed:boolean;validate:()=>string[]}{
   const deneme=byId("deneme"),journal=byId("errorJournal");if(!deneme)return {installed:false,validate:()=>["deneme screen missing"]};let root=byId("v43LearningCycle");if(!root){root=node("section","v43-learning-cycle");root.id="v43LearningCycle";root.dataset.v43LearningCycle="ready";if(journal)journal.insertAdjacentElement("afterend",root);else deneme.prepend(root);}renderLearningCycleV43();
-  installExamsV5();
   return {installed:true,validate:()=>{const errors:string[]=[];if(root?.dataset.v43LearningCycle!=="ready")errors.push("learning cycle marker missing");if(!byId("errorJournal"))errors.push("error journal missing");if(typeof legacy()["errorJournalOpenTopic"]!=="function")errors.push("error journal topic bridge missing");return errors;}};
 }
 

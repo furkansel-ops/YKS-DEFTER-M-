@@ -12,7 +12,7 @@ Bu belge, Android yayın adayının teknik ve Play Console kontrol listesidir. `
 - Minimum Android SDK: **24**
 - Compile SDK / Target SDK: **36 / 36**
 - Veri şeması: **21**
-- Program davranışı: **manuel + kullanıcı onaylı Akıllı Oluştur taslağı**
+- Program davranışı: **manuel**
 
 `applicationId`, ilk paket Play Console'a yüklendikten sonra uygulamanın kalıcı kimliğidir. `versionCode` ise her yeni Play yüklemesinde artırılmalıdır. Varsayılan türetme kuralı:
 

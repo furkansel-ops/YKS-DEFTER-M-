@@ -50,12 +50,6 @@ async function loadAll():Promise<V43RuntimeReport>{
   features.push(await loadFeature("v43Today","v43TodayErrors",async()=>{
     const mod=await import("./today-v43");return mod.installTodayV43();
   }));
-  features.push(await loadFeature("v5Program","v5ProgramErrors",async()=>{
-    const mod=await import("./program-v5");return mod.installProgramV5();
-  }));
-  features.push(await loadFeature("v5ProgramBuilder","v5ProgramBuilderErrors",async()=>{
-    const mod=await import("./program-builder-v5");return mod.installProgramBuilderV5();
-  }));
   features.push(await loadFeature("v43Analysis","v43AnalysisErrors",async()=>{
     const mod=await import("./analysis-center-v43");
     window.__YKS_V43_RENDER_ANALYSIS__=mod.renderAnalysisCenterV43;
@@ -77,9 +71,6 @@ async function loadAll():Promise<V43RuntimeReport>{
   }));
   features.push(await loadFeature("v43FocusSessionGuard","v43FocusSessionGuardErrors",async()=>{
     const mod=await import("./focus-session-guard-v43");return mod.installFocusSessionGuardV43();
-  }));
-  features.push(await loadFeature("v5Focus","v5FocusErrors",async()=>{
-    const mod=await import("./focus-v5");return mod.installFocusV5();
   }));
   features.push(await loadFeature("v431Resilience","v431ResilienceErrors",async()=>{
     const mod=await import("./runtime-resilience-v431");return mod.installRuntimeResilienceV431();
