@@ -8,7 +8,7 @@ const read=p=>fs.readFileSync(path.join(root,p),"utf8");
 test("v4.3 ürün modülleri ana bootstrap içinde statik kurulmaz",()=>{
   const main=read("src/main.ts");
   assert.match(main,/installV43SafeRuntime/);
-  for(const file of ["today-v43","program-v5","analysis-center-v43","learning-cycle-v43","lab-quiz-v43","navigation-v43","personalization-v43","focus-session-guard-v43"]){
+  for(const file of ["today-v43","program-v5","program-builder-v5","analysis-center-v43","learning-cycle-v43","lab-quiz-v43","navigation-v43","personalization-v43","focus-session-guard-v43"]){
     assert.doesNotMatch(main,new RegExp(`from ["']\\.\\/ui\\/${file}["']`));
   }
   assert.match(main,/window\.__YKS_V4_BOOTSTRAP__=bootstrap/);
