@@ -137,32 +137,55 @@ function createUi(program:HTMLElement):void{
   const shell=document.createElement("div");
   shell.className="v45-program-shell";
   fill(shell,`
-    <header class="v45-program-header">
-      <div class="v45-brand-row">
-        <div class="v45-brand"><i>Y</i><span><b>YKS <em>Defterim</em></b><small>Daha planlı, daha güçlü, daha sen.</small></span></div>
-        <div class="v45-head-tools"><button type="button" data-v45-calendar>▣ <span>Takvim</span></button><button type="button" data-v45-legacy>•••</button></div>
+    <header class="v45-program-header v46-program-header">
+      <div class="v46-topline">
+        <div class="v46-title-copy">
+          <span>PROGRAMIM</span>
+          <h1>Programım</h1>
+          <p>Bugünkü görevlerin ve haftalık planın.</p>
+        </div>
+        <div class="v46-header-actions">
+          <button type="button" class="primary" data-v45-add>＋ Görev Ekle</button>
+          <button type="button" data-v45-today>Bugün</button>
+          <button type="button" data-v45-calendar>▣ Takvim</button>
+          <button type="button" class="icon" data-v45-legacy aria-label="Gelişmiş araçlar">•••</button>
+        </div>
       </div>
-      <div class="v45-title-row"><div><h1>Programım</h1><p>Saatlere değil, hedeflerine göre ilerle.</p></div><button type="button" class="v45-today" data-v45-today>▣ Bugünün Planı</button></div>
-      <div class="v45-week-nav"><button type="button" data-v45-prev aria-label="Önceki hafta">‹</button><div class="v45-week-days" data-v45-week-days></div><button type="button" data-v45-next aria-label="Sonraki hafta">›</button></div>
+      <div class="v45-week-nav v46-week-nav">
+        <button type="button" data-v45-prev aria-label="Önceki hafta">‹</button>
+        <div class="v45-week-days" data-v45-week-days></div>
+        <button type="button" data-v45-next aria-label="Sonraki hafta">›</button>
+      </div>
     </header>
-    <section class="v45-program-hero">
-      <div class="v45-hero-copy"><span>ESNEK ÇALIŞMA PLANI</span><h2>Görev sırasını takip et,<br>sürelerini sen yönet.</h2><p>İstersen saat ekle; programını saate kilitleme.</p></div>
-      <div class="v45-progress-ring" data-v45-ring style="--v45-p:0deg"><b data-v45-pct>%0</b><small>Bugünkü<br>ilerleme</small></div>
-      <div class="v45-hero-stats">
-        <article><i>✓</i><span><b data-v45-count>0 görev</b><small data-v45-done>0 tamamlandı</small></span></article>
-        <article><i>◷</i><span><b data-v45-duration>0 dk</b><small>Toplam tahmini süre</small></span></article>
-        <article><i>◎</i><span><b data-v45-questions>0 soru</b><small>Bugünkü soru kaydı</small></span></article>
+
+    <section class="v46-summary">
+      <div class="v46-summary-grid">
+        <article><span>Toplam Görev</span><b data-v45-count>0 görev</b><small>Seçili gün</small></article>
+        <article><span>Tamamlanan</span><b data-v45-done>0 tamamlandı</b><small>Bugünkü ilerleme</small></article>
+        <article><span>Toplam Süre</span><b data-v45-duration>0 dk</b><small>Tahmini çalışma</small></article>
+        <article><span>Soru</span><b data-v45-questions>0 soru</b><small>Bugünkü kayıt</small></article>
+      </div>
+      <div class="v46-progress-row">
+        <span>İlerleme</span>
+        <div class="v46-progressbar"><i data-v45-progress-fill></i></div>
+        <b data-v45-pct>%0</b>
       </div>
     </section>
-    <section class="v45-plan-card">
-      <header><div><span>BUGÜNKÜ SIRA</span><h2 data-v45-day-title>Bugünkü Sıra</h2></div><div class="v45-plan-actions"><b data-v45-progress>0 / 0 tamamlandı</b><button type="button" data-v45-add>＋ Görev Ekle</button></div></header>
+
+    <section class="v45-plan-card v46-plan-card">
+      <header>
+        <div><span>BUGÜNKÜ GÖREVLER</span><h2 data-v45-day-title>Bugünkü Görevler</h2></div>
+        <div class="v45-plan-actions"><b data-v45-progress>0 / 0 tamamlandı</b><button type="button" data-v45-add>＋ Görev Ekle</button></div>
+      </header>
       <div class="v45-task-list" data-v45-task-list></div>
     </section>
-    <section class="v45-bottom-cards">
+
+    <section class="v45-bottom-cards v46-bottom-cards">
       <article><i class="repeat">↻</i><div><span>Akıllı Tekrar</span><b data-v45-review>Bugün sana özel tekrar önerileri</b><small>Eksiklerini Konular ekranından tamamla.</small></div><button type="button" data-v45-topics>›</button></article>
       <article><i class="coach">✦</i><div><span>Koç Yorumu</span><b data-v45-coach>Koçundan gelen son not burada görünecek.</b><small>Program paylaşımı mevcut senkron hattını kullanır.</small></div><button type="button" data-v45-coach-open>›</button></article>
     </section>
-    <footer class="v45-program-footer"><button type="button" data-v45-legacy>Klasik / gelişmiş plan araçları</button><small>Hazır kamp, şablonlar, haftayı kopyalama ve klasik tablo korunur.</small></footer>`);
+
+    <footer class="v45-program-footer"><button type="button" data-v45-legacy>Gelişmiş araçlar</button><small>Klasik tablo, hazır kamp, şablonlar ve haftayı kopyalama.</small></footer>`)
   program.appendChild(shell);
 
   const editor=document.createElement("div");
@@ -281,7 +304,7 @@ function renderTasks(shell:HTMLElement):void{
   set("[data-v45-done]",done+" tamamlandı");
   set("[data-v45-duration]",fmtMinutes(total));
   set("[data-v45-progress]",done+" / "+list.length+" tamamlandı");
-  const ring=shell.querySelector<HTMLElement>("[data-v45-ring]");if(ring)ring.style.setProperty("--v45-p",(pct*3.6)+"deg");
+  const progressFill=shell.querySelector<HTMLElement>("[data-v45-progress-fill]");if(progressFill)progressFill.style.width=pct+"%";
   const date=dayDate();
   set("[data-v45-day-title]",`${date.getDate()} ${MONTHS[date.getMonth()]} · ${DAYS[(date.getDay()+6)%7]}`);
   set("[data-v45-questions]",Math.max(0,Number(state().solved?.[dateKey(date)])||0)+" soru");
