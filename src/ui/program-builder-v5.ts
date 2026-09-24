@@ -308,6 +308,16 @@ export function installProgramBuilderV5():{installed:boolean;validate:()=>string
     button.addEventListener("click",openProgramBuilderV5);
     header?.appendChild(button);
   }
+  const planner=program.querySelector<HTMLElement>("[data-v5-mobile-planner]");
+  if(planner&&!planner.querySelector("[data-v5-builder-inline]")){
+    const inline=document.createElement("button");
+    inline.type="button";
+    inline.className="v5-builder-inline-trigger";
+    inline.dataset.v5BuilderInline="true";
+    inline.textContent="+ Program Oluştur";
+    inline.addEventListener("click",openProgramBuilderV5);
+    planner.prepend(inline);
+  }
   window.addEventListener("yks:open-program-builder",openProgramBuilderV5);
   return {installed:true,validate:()=>program.querySelector("[data-v5-builder-trigger]")?[]:["program builder trigger missing"]};
 }
