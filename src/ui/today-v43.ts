@@ -3,13 +3,8 @@ import "./today-v43.css";
 type AppWindow=Window&{
   go?:(screen:string)=>unknown;
   openGun?:()=>unknown;
-  openGlobalSearch?:()=>unknown;
   saveJournal?:()=>unknown;
   shareCard?:()=>unknown;
-};
-type HomeState={
-  pomoMin?:Record<string,number>;
-  coachNotes?:Array<Record<string,unknown>>;
 };
 
 function byId<T extends HTMLElement=HTMLElement>(id:string):T|null{
@@ -23,50 +18,14 @@ function txt(id:string,fallback="—"):string{
 function dateText():string{
   return new Intl.DateTimeFormat("tr-TR",{weekday:"long",day:"numeric",month:"long"}).format(new Date());
 }
-function dateKey(offset=0):string{
-  const d=new Date();
-  d.setHours(12,0,0,0);
-  d.setDate(d.getDate()+offset);
-  const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,"0"),day=String(d.getDate()).padStart(2,"0");
-  return `${y}-${m}-${day}`;
-}
-function readHomeState():HomeState{
-  try{return (window.YKSLegacyState?.readState?.()||{}) as HomeState;}catch{return {};}
-}
-function minutesLabel(value:number):string{
-  const min=Math.max(0,Math.round(value||0));
-  if(min<60)return min+" dk";
-  const h=Math.floor(min/60),rest=min%60;
-  return rest?`${h} sa ${rest} dk`:`${h} sa`;
-}
-function noteStamp(value:unknown):number{
-  const n=Number(value);
-  return Number.isFinite(n)?n:0;
-}
 function subjectTone(value:string):string{
   const text=value.toLocaleLowerCase("tr-TR");
-  if(text.includes("matematik")||text.includes("geometri")||text.includes("problem"))return "math";
+  if(text.includes("matematik"))return "math";
   if(text.includes("fizik"))return "physics";
   if(text.includes("kimya"))return "chemistry";
   if(text.includes("biyoloji"))return "biology";
-  if(text.includes("türk")||text.includes("paragraf")||text.includes("edebiyat"))return "turkish";
-  if(text.includes("deneme"))return "exam";
+  if(text.includes("türk")||text.includes("paragraf"))return "turkish";
   return "other";
-}
-function subjectIcon(tone:string):string{
-  if(tone==="math")return "∑";
-  if(tone==="physics")return "⚛";
-  if(tone==="chemistry")return "⚗";
-  if(tone==="biology")return "⌁";
-  if(tone==="turkish")return "▤";
-  if(tone==="exam")return "≡";
-  return "•";
-}
-function taskParts(value:string):{detail:string;time:string}{
-  const raw=value.trim();
-  const match=raw.match(/(?:^|\s)(\d{1,2}:\d{2}\s*(?:[-–]\s*\d{1,2}:\d{2})?)(?:\s|$)/);
-  if(!match)return {detail:raw,time:""};
-  return {detail:raw.replace(match[0]," ").replace(/\s{2,}/g," ").trim(),time:(match[1]||"").replace(/-/g,"–")};
 }
 function makeBridge(home:HTMLElement):HTMLElement{
   const existing=home.querySelector<HTMLElement>(":scope > .v7-home-legacy");
@@ -92,15 +51,22 @@ function metric(label:string,id:string,subId:string):HTMLElement{
 function createHeader():HTMLElement{
   const header=document.createElement("header");
   header.className="v7-home-header";
-  header.innerHTML='<div class="v7-brand-row"><div class="v7-brand" aria-label="YKS Defterim"><i class="v7-brand-mark" aria-hidden="true">Y</i><span><b>YKS <em>Defterim</em></b><small>Daha planlı, daha güçlü, daha sen.</small></span></div><div class="v7-header-tools"><button type="button" data-v7-search aria-label="Uygulamada ara">⌕</button><button type="button" data-v7-profile aria-label="Daha fazla">●</button></div></div><div class="v7-day-row"><div class="v7-greeting"><span>ANA SAYFA</span><h1>Bugün</h1><p data-v7-date-label></p></div><button type="button" class="v7-date" data-open-program><span aria-hidden="true">▣</span><b>Bugünün Planı</b><em>⌄</em></button></div>';
-  const date=header.querySelector<HTMLElement>("[data-v7-date-label]");
+  header.innerHTML='<div class="v7-greeting"><span>BUGÜN</span><h1>Merhaba</h1><p>Bugünkü odağın net olsun; gerisi sırayla gelir.</p></div><div class="v7-date"><span>BUGÜN</span><b></b></div>';
+  const date=header.querySelector(".v7-date b");
   if(date)date.textContent=dateText();
   return header;
 }
 function createGoal():HTMLElement{
   const card=document.createElement("section");
   card.className="v7-card v7-goal";
-  card.innerHTML='<div class="v7-hero-panel"><div class="v7-hero-copy"><span>BUGÜN</span><h2>Günlük hedef</h2><h3 id="v7HeroTitle">Bugün de hedeflerine<br>bir adım daha yaklaş!</h3><p id="v7HeroCopy">Disiplin, hayallerini gerçeğe dönüştürür.</p><button type="button" class="v7-details" data-day-details>Günün detayları</button></div><div class="v7-hero-progress" id="v7TodayRing" style="--v7-progress:0deg"><div><b id="v7TodayPct">%0</b><span>Bugünkü<br>ilerleme</span></div></div><div class="v7-hero-art" aria-hidden="true"><i></i><i></i><i></i></div></div><div class="v7-metrics"><article class="v7-metric target"><i>◎</i><span><small>Günlük Hedef</small><b id="v7TargetCount">0 görev</b><em>Planlanan çalışma</em></span></article><article class="v7-metric done"><i>✓</i><span><small>Tamamlanan</small><b id="v7DoneCount">0 görev</b><em id="v7DoneSub">%0 tamamlandı</em></span></article><article class="v7-metric focus"><i>◷</i><span><small>Çalışma Süresi</small><b id="v7FocusMinutes">0 dk</b><em>Bugünkü odak</em></span></article></div><div class="v7-day-pulse" aria-label="Bugünün kısa özeti"><span><i>✎</i><small>Soru</small><b id="v7QuestionCount">0</b></span><span><i>↗</i><small>Plan Serisi</small><b id="v7PlanStreakInline">0 gün</b></span><span><i>◷</i><small>YKS</small><b id="v7CountdownInline">— gün</b></span></div><div class="v7-next-strip"><span class="v7-next-label">SIRADAKİ</span><div><b id="v7NextTitle">Program hazırlanıyor</b><small id="v7NextDetail">Bugünkü plan yükleniyor</small></div><em id="v7Remaining">—</em><button type="button" data-open-program aria-label="Bugünün planını aç">›</button></div>';
+  card.innerHTML='<header><div><span>BUGÜN</span><h2>Günlük hedef</h2></div></header><div class="v7-metrics"></div><button type="button" class="v7-details" data-day-details>Günün detayları</button>';
+  const grid=card.querySelector<HTMLElement>(".v7-metrics");
+  grid?.append(
+    metric("Soru","todayHubQ","todayHubQSub"),
+    metric("Odak","todayHubMin","todayHubMinSub"),
+    metric("Program","todayHubPlan","todayHubPlanSub"),
+    metric("Tekrar","todayHubReview","todayHubReviewSub")
+  );
   card.querySelector<HTMLButtonElement>("[data-day-details]")?.addEventListener("click",()=>{
     (window as AppWindow).openGun?.();
   });
@@ -110,7 +76,7 @@ function createProgram():HTMLElement{
   const card=document.createElement("section");
   card.className="v7-card v7-program";
   card.dataset.v7Program="true";
-  card.innerHTML='<header class="v7-card-head"><div><span>BUGÜNKÜ PROGRAM</span><h2>Bugünkü Planım</h2><p>Bugün ne yapıyorum?</p></div><button type="button" data-open-program><b id="v7ProgramCount">0 görev</b><em>›</em></button></header><div class="v7-plan-list"></div>';
+  card.innerHTML='<header class="v7-card-head"><div><span>BUGÜNKÜ PROGRAM</span><h2>Bugün ne yapıyorum?</h2></div><button type="button" data-open-program>Tüm program</button></header><div class="v7-plan-list"></div>';
   card.querySelector<HTMLButtonElement>("[data-open-program]")?.addEventListener("click",()=>{
     (window as AppWindow).go?.("program");
   });
@@ -118,8 +84,22 @@ function createProgram():HTMLElement{
 }
 function createQuick():HTMLElement{
   const card=document.createElement("section");
-  card.className="v7-card v7-quick v7-insights";
-  card.innerHTML='<header><span>BUGÜNÜN KONTROL MERKEZİ</span><h2>Öne çıkanlar</h2></header><div class="v7-insight-stack"><button type="button" class="v7-insight-card repeat" data-route="topics"><i>↻</i><span><small>Akıllı Tekrar</small><b id="v7ReviewCount">0 tekrar</b><em id="v7ReviewSub">Bugün bekleyen tekrar yok.</em></span><strong>›</strong></button><button type="button" class="v7-insight-card tempo" data-route="progress"><i>▥</i><span><small>Haftalık Tempo</small><b id="v7WeekMinutes">0 dk</b><em id="v7WeekDelta">Bu hafta</em><span class="v7-week-bars" aria-hidden="true"><u></u><u></u><u></u><u></u><u></u><u></u><u></u></span></span><strong>›</strong></button><button type="button" class="v7-insight-card coach" data-route="more"><i>◉</i><span><small>Koç Notu</small><b id="v7CoachTitle">Son not</b><em id="v7CoachNote">Koçundan bir not geldiğinde burada göreceksin.</em><u id="v7CoachMeta">Koç bağlantısı</u></span><strong>›</strong></button></div><div class="v7-bottom-grid"><button type="button" class="v7-focus-card" data-route="pomo"><i>◷</i><span><b>Odak Oturumu</b><small>25 dk odaklan, 5 dk mola</small><em>▶ Pomodoroyu Başlat</em></span></button><button type="button" class="v7-note-card" data-route="notes"><i>✎</i><span><b>Günün Notu</b><small id="v7NotePreview">Bugünün kısa notunu ekle.</small><em>Notlarım ›</em></span></button></div><div class="v7-quick-grid"><button type="button" data-route="progress"><i>⌁</i><span><b>İstatistik</b><small>Tüm analizi aç</small></span><em>›</em></button><button type="button" data-route="program"><i>▦</i><span><b>Programım</b><small>Planı düzenle</small></span><em>›</em></button></div>';
+  card.className="v7-card v7-quick";
+  card.innerHTML='<header><span>HIZLI İŞLEMLER</span><h2>Devam et</h2></header><div class="v7-quick-grid"></div>';
+  const grid=card.querySelector<HTMLElement>(".v7-quick-grid");
+  const items=[
+    ["program","▦","Programım","Bugünkü planı düzenle"],
+    ["pomo","◎","Çalış","Odak oturumu başlat"],
+    ["notes","✎","Notlarım","Günün notunu yaz"],
+    ["progress","⌁","İstatistik","Gelişimini incele"]
+  ] as const;
+  for(const [route,icon,title,copy] of items){
+    const button=document.createElement("button");
+    button.type="button";
+    button.dataset.route=route;
+    button.innerHTML="<i>"+icon+"</i><span><b>"+title+"</b><small>"+copy+"</small></span><em>›</em>";
+    grid?.appendChild(button);
+  }
   return card;
 }
 function createCountdown():HTMLElement{
@@ -170,15 +150,6 @@ function closeNotes(home:HTMLElement):void{
   document.documentElement.classList.remove("v7-note-open");
 }
 function bindActions(home:HTMLElement):void{
-  home.querySelectorAll<HTMLButtonElement>("[data-open-program]").forEach(button=>button.addEventListener("click",()=>{
-    (window as AppWindow).go?.("program");
-  }));
-  home.querySelector<HTMLButtonElement>("[data-v7-search]")?.addEventListener("click",()=>{
-    (window as AppWindow).openGlobalSearch?.();
-  });
-  home.querySelector<HTMLButtonElement>("[data-v7-profile]")?.addEventListener("click",()=>{
-    (window as AppWindow).go?.("more");
-  });
   home.querySelector(".v7-quick")?.addEventListener("click",event=>{
     const button=(event.target as Element|null)?.closest<HTMLButtonElement>("button[data-route]");
     if(!button)return;
@@ -195,7 +166,6 @@ function bindActions(home:HTMLElement):void{
     const legacy=byId<HTMLTextAreaElement>("journalInput");
     if(input&&legacy)legacy.value=input.value;
     (window as AppWindow).saveJournal?.();
-    syncNotePreview(home);
     closeNotes(home);
   });
   home.querySelector("[data-note-share]")?.addEventListener("click",()=>{
@@ -203,66 +173,24 @@ function bindActions(home:HTMLElement):void{
   });
   window.addEventListener("keydown",event=>{if(event.key==="Escape")closeNotes(home);});
 }
-function syncHeader(home:HTMLElement):void{
-  const date=home.querySelector<HTMLElement>("[data-v7-date-label]");
-  if(date)date.textContent=dateText();
-}
-function syncNotePreview(home:HTMLElement):void{
-  const preview=home.querySelector<HTMLElement>("#v7NotePreview");
-  const note=(byId<HTMLTextAreaElement>("journalInput")?.value||"").trim();
-  if(preview)preview.textContent=note?note.slice(0,84)+(note.length>84?"…":""):"Bugünün kısa notunu ekle.";
-}
-function syncInsights(home:HTMLElement):void{
-  const set=(selector:string,value:string)=>{const node=home.querySelector<HTMLElement>(selector);if(node)node.textContent=value;};
-  const state=readHomeState();
-
-  const reviewRaw=txt("todayHubReview","0");
-  const reviewCount=Math.max(0,parseInt(reviewRaw.replace(/\D+/g,""),10)||0);
-  set("#v7ReviewCount",reviewCount?reviewCount+" tekrar":"Tekrar yok");
-  const reviewSub=txt("todayHubReviewSub","").trim();
-  set("#v7ReviewSub",reviewCount?(reviewSub||"Bugün tamamlanmayı bekleyen tekrarların var."):"Bugün bekleyen tekrar bulunmuyor.");
-
-  const current:number[]=[],previous:number[]=[];
-  for(let offset=-6;offset<=0;offset++)current.push(Math.max(0,Number(state.pomoMin?.[dateKey(offset)])||0));
-  for(let offset=-13;offset<=-7;offset++)previous.push(Math.max(0,Number(state.pomoMin?.[dateKey(offset)])||0));
-  const week=current.reduce((sum,value)=>sum+value,0),prev=previous.reduce((sum,value)=>sum+value,0);
-  set("#v7WeekMinutes",minutesLabel(week));
-  if(prev>0){
-    const delta=Math.round((week-prev)/prev*100);
-    set("#v7WeekDelta",delta===0?"Geçen haftayla aynı":`Geçen haftaya göre ${delta>0?"+":""}${delta}%`);
-  }else{
-    set("#v7WeekDelta",week?"Bu haftaki ilk tempo verin":"Bu hafta henüz odak kaydı yok");
-  }
-  const bars=home.querySelectorAll<HTMLElement>(".v7-week-bars u"),max=Math.max(1,...current);
-  bars.forEach((bar,index)=>{
-    const value=current[index]||0;
-    bar.style.setProperty("--v7-bar",Math.max(value?12:4,Math.round(value/max*100))+"%");
-    bar.title=minutesLabel(value);
+function syncMetrics(home:HTMLElement):void{
+  const greeting=home.querySelector<HTMLElement>(".v7-greeting h1");
+  if(greeting)greeting.textContent=txt("greeting","Merhaba");
+  home.querySelectorAll<HTMLElement>(".v7-metric").forEach(item=>{
+    const valueId=item.dataset.valueId||"";
+    const subId=item.dataset.subId||"";
+    const value=item.querySelector("b");
+    const sub=item.querySelector("small");
+    if(value)value.textContent=txt(valueId,"—");
+    if(sub)sub.textContent=txt(subId,"—");
   });
-
-  const notes=Array.isArray(state.coachNotes)?state.coachNotes:[];
-  const latest=[...notes].sort((a,b)=>Math.max(noteStamp(b["at"]),noteStamp(b["updatedAt"]))-Math.max(noteStamp(a["at"]),noteStamp(a["updatedAt"])))[0];
-  const noteText=latest?String(latest["text"]??latest["note"]??"").trim():"";
-  if(noteText){
-    set("#v7CoachTitle","Koçundan son not");
-    set("#v7CoachNote",noteText.slice(0,180)+(noteText.length>180?"…":""));
-    const stamp=Math.max(noteStamp(latest?.["at"]),noteStamp(latest?.["updatedAt"]));
-    set("#v7CoachMeta",stamp?new Intl.DateTimeFormat("tr-TR",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}).format(new Date(stamp)):"Koç notu");
-  }else{
-    set("#v7CoachTitle","Henüz not yok");
-    set("#v7CoachNote","Koçundan bir not geldiğinde ana sayfada burada görünecek.");
-    set("#v7CoachMeta","Koç bağlantısı");
-  }
 }
 function syncCountdown(home:HTMLElement):void{
   const set=(selector:string,value:string)=>{const node=home.querySelector<HTMLElement>(selector);if(node)node.textContent=value;};
   set("#v7Countdown",txt("countdown","—"));
   set("#v7ExamDate",txt("examDateLabel","—"));
-  const planStreak=txt("streakPlan","0"),countdown=txt("countdown","—");
-  set("#v7PlanStreak",planStreak);
+  set("#v7PlanStreak",txt("streakPlan","0"));
   set("#v7TargetStreak",txt("streakTarget","0"));
-  set("#v7PlanStreakInline",planStreak+" gün");
-  set("#v7CountdownInline",countdown==="—"?"—":countdown+" gün");
   const legacyLine=byId("timeline");
   const line=home.querySelector<HTMLElement>(".v7-count-line i");
   if(line&&legacyLine)line.style.width=legacyLine.style.width||"0%";
@@ -273,95 +201,39 @@ function syncPlan(home:HTMLElement):void{
   if(!legacy||!list)return;
 
   const rows=Array.from(legacy.querySelectorAll<HTMLElement>(".plancell"));
-  const doneCount=rows.filter(row=>row.classList.contains("pd")).length;
-  const currentIndex=rows.findIndex(row=>!row.classList.contains("pd"));
-  const pct=rows.length?Math.round(doneCount/rows.length*100):0;
-  const set=(selector:string,value:string)=>{const node=home.querySelector<HTMLElement>(selector);if(node)node.textContent=value;};
-  set("#v7TargetCount",rows.length+" görev");
-  set("#v7DoneCount",doneCount+" görev");
-  set("#v7DoneSub","%"+pct+" tamamlandı");
-  set("#v7ProgramCount",rows.length+" görev");
-  set("#v7TodayPct","%"+pct);
-  set("#v7FocusMinutes",txt("todayHubMin","0 dk"));
-  set("#v7QuestionCount",txt("todayHubQ","0"));
-  const ring=home.querySelector<HTMLElement>("#v7TodayRing");
-  if(ring)ring.style.setProperty("--v7-progress",(pct*3.6)+"deg");
-
-  const remaining=Math.max(0,rows.length-doneCount);
-  const heroTitle=home.querySelector<HTMLElement>("#v7HeroTitle");
-  const heroCopy=home.querySelector<HTMLElement>("#v7HeroCopy");
-  if(heroTitle)heroTitle.innerHTML=pct>=100?"Bugünün planı<br>tamamlandı!":pct>=60?"Harika gidiyorsun,<br>ritmi koru!":"Bugün de hedeflerine<br>bir adım daha yaklaş!";
-  if(heroCopy)heroCopy.textContent=pct>=100?"Bugünü tamamladın. Yarın için küçük bir hazırlık yeter.":pct>=60?"Planın büyük kısmı bitti. Kalanları sırayla tamamla.":"Disiplin, hayallerini gerçeğe dönüştürür.";
-  set("#v7Remaining",remaining?remaining+" görev kaldı":"Plan tamam");
-  const currentRow=currentIndex>=0?rows[currentIndex]:null;
-  if(currentRow){
-    const nextLabel=(currentRow.querySelector(".pl")?.textContent||currentRow.querySelector("b")?.textContent||"Sıradaki çalışma").trim();
-    const nextRaw=(currentRow.querySelector(".pt")?.textContent||currentRow.querySelector("small")?.textContent||"").trim();
-    const nextParts=taskParts(nextRaw);
-    set("#v7NextTitle",nextLabel);
-    set("#v7NextDetail",[nextParts.detail,nextParts.time].filter(Boolean).join(" · ")||"Sıradaki çalışma");
-  }else{
-    set("#v7NextTitle",rows.length?"Bugünün planı tamamlandı 🎉":"Bugün için görev yok");
-    set("#v7NextDetail",rows.length?"Eline sağlık. İstersen yarına göz atabilirsin.":"Programım ekranından bugüne görev ekleyebilirsin.");
-  }
-
   list.replaceChildren();
   if(!rows.length){
     const empty=document.createElement("div");
     empty.className="v7-plan-empty";
-    empty.innerHTML='<i>▦</i><b>Bugün için görev görünmüyor.</b><span>Programım ekranından bugüne görev ekleyebilirsin.</span><button type="button">Programı aç</button>';
-    empty.querySelector("button")?.addEventListener("click",()=>{(window as AppWindow).go?.("program");});
+    empty.innerHTML="<b>Bugün için görev görünmüyor.</b><span>Programım ekranından bugüne görev ekleyebilirsin.</span>";
     list.appendChild(empty);
     return;
   }
 
   rows.forEach((row,index)=>{
     const label=(row.querySelector(".pl")?.textContent||row.querySelector("b")?.textContent||"Görev").trim();
-    const rawTask=(row.querySelector(".pt")?.textContent||row.querySelector("small")?.textContent||"").trim();
-    const parts=taskParts(rawTask);
-    const done=row.classList.contains("pd");
-    const current=!done&&index===currentIndex;
-    const tone=subjectTone(label+" "+parts.detail);
+    const task=(row.querySelector(".pt")?.textContent||row.querySelector("small")?.textContent||"").trim();
     const item=document.createElement("article");
     item.className="v7-plan-item";
-    item.classList.toggle("done",done);
-    item.classList.toggle("current",current);
-    if(current)item.setAttribute("aria-current","step");
-    item.dataset.tone=tone;
-    item.innerHTML='<button type="button" class="v7-plan-status" aria-label="Görevin tamamlanma durumunu değiştir"><span>✓</span></button><div class="v7-plan-main"><i class="v7-subject-icon" aria-hidden="true"></i><div class="v7-plan-copy"><b></b><span></span><small></small></div></div><div class="v7-plan-tools"></div>';
-    const icon=item.querySelector<HTMLElement>(".v7-subject-icon");
-    const b=item.querySelector<HTMLElement>(".v7-plan-copy b");
-    const detail=item.querySelector<HTMLElement>(".v7-plan-copy span");
-    const time=item.querySelector<HTMLElement>(".v7-plan-copy small");
-    if(icon)icon.textContent=subjectIcon(tone);
+    item.classList.toggle("done",row.classList.contains("pd"));
+    item.dataset.tone=subjectTone(label+" "+task);
+    item.innerHTML='<div><b></b><span></span></div><div class="v7-plan-tools"></div>';
+    const b=item.querySelector("b"),span=item.querySelector("span");
     if(b)b.textContent=label;
-    if(detail)detail.textContent=parts.detail||"Plan görevi";
-    if(time)time.textContent=parts.time||"Bugünkü plan";
-
-    item.querySelector<HTMLButtonElement>(".v7-plan-status")?.addEventListener("click",event=>{
-      event.stopPropagation();
-      rows[index]?.click();
-    });
+    if(span)span.textContent=task||"Plan görevi";
 
     const tools=item.querySelector<HTMLElement>(".v7-plan-tools");
     const video=row.querySelector<HTMLButtonElement>(".cvid");
-    const tomorrow=row.querySelector<HTMLButtonElement>(".plan-tomorrow");
-    if(done){
-      const badge=document.createElement("span");badge.className="v7-plan-done";badge.textContent="✓ Tamamlandı";tools?.appendChild(badge);
-    }else if(current){
-      const btn=document.createElement("button");btn.type="button";btn.className="v7-plan-continue";btn.textContent="▶ Şimdi Devam Et";
-      btn.addEventListener("click",event=>{event.stopPropagation();if(video)video.click();else (window as AppWindow).go?.("pomo");});
+    if(video){
+      const btn=document.createElement("button");btn.type="button";btn.textContent="▶";btn.title="Videoyu aç";
+      btn.addEventListener("click",event=>{event.stopPropagation();video.click();});
       tools?.appendChild(btn);
-    }else{
-      if(video){
-        const btn=document.createElement("button");btn.type="button";btn.className="v7-tool-icon";btn.textContent="▶";btn.title="Videoyu aç";
-        btn.addEventListener("click",event=>{event.stopPropagation();video.click();});tools?.appendChild(btn);
-      }
-      const arrow=document.createElement("span");arrow.className="v7-plan-arrow";arrow.textContent="›";tools?.appendChild(arrow);
     }
+    const tomorrow=row.querySelector<HTMLButtonElement>(".plan-tomorrow");
     if(tomorrow){
-      const btn=document.createElement("button");btn.type="button";btn.className="v7-tomorrow";btn.textContent="Yarın";btn.title="Yarına taşı";
-      btn.addEventListener("click",event=>{event.stopPropagation();tomorrow.click();});tools?.appendChild(btn);
+      const btn=document.createElement("button");btn.type="button";btn.textContent="Yarın";btn.title="Yarına taşı";
+      btn.addEventListener("click",event=>{event.stopPropagation();tomorrow.click();});
+      tools?.appendChild(btn);
     }
     item.addEventListener("click",event=>{
       if((event.target as Element).closest("button"))return;
@@ -371,11 +243,9 @@ function syncPlan(home:HTMLElement):void{
   });
 }
 function syncAll(home:HTMLElement):void{
-  syncHeader(home);
+  syncMetrics(home);
   syncCountdown(home);
   syncPlan(home);
-  syncInsights(home);
-  syncNotePreview(home);
 }
 function observeLegacy(home:HTMLElement,bridge:HTMLElement):void{
   let queued=false;
@@ -412,9 +282,6 @@ export function installTodayV43():{installed:boolean;validate:()=>string[]}{
     if(!home.querySelector(":scope > [data-v7-home-view]"))errors.push("v7 view missing");
     if(!home.querySelector(".v7-program"))errors.push("v7 program missing");
     if(!home.querySelector(".v7-quick"))errors.push("v7 quick actions missing");
-    if(!home.querySelector(".v7-insight-card.repeat"))errors.push("smart repeat card missing");
-    if(!home.querySelector(".v7-insight-card.tempo"))errors.push("weekly tempo card missing");
-    if(!home.querySelector(".v7-insight-card.coach"))errors.push("coach note card missing");
     return errors;
   }};
 }
