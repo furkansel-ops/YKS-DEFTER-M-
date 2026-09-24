@@ -10,6 +10,7 @@
   box-shadow:0 18px 48px -34px color-mix(in srgb,var(--quote-accent) 42%,transparent);
 }
 .sozbox[data-quote-type="coach"]{--quote-accent:var(--success);}
+.sozbox[data-quote-type="player"]{--quote-accent:var(--time);}
 .sozbox[data-quote-type]::before{color:color-mix(in srgb,var(--quote-accent) 9%,transparent);}
 .sozbox[data-quote-type] .szlabel{color:var(--quote-accent);}
 .sozbox[data-quote-type] .szcat{
@@ -18,7 +19,8 @@
   color:color-mix(in srgb,var(--quote-accent) 78%,var(--label));
   font-weight:750;
 }
-.sozbox[data-quote-type="coach"] .sza{
+.sozbox[data-quote-type="coach"] .sza,
+.sozbox[data-quote-type="player"] .sza{
   width:max-content;
   max-width:100%;
   padding:5px 9px;
