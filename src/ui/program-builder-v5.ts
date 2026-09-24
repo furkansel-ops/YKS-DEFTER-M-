@@ -221,7 +221,7 @@ export function openProgramBuilderV5():void{
         ["lightWeekend","Hafta sonu daha hafif olsun","Cumartesi ve pazar yükünü bir azaltır."],
         ["reviews","Kısa tekrarlar ekle","Salı, perşembe ve pazara tekrar ekler."],
         ["replace","Mevcut ders programını değiştir","Kapalıysa yalnız boş hücreleri kullanır."]
-      ];
+      ] as const;
       for(const [id,title,copy] of rows){
         body+='<label><span><b>'+title+'</b><small>'+copy+'</small></span><input type="checkbox" data-pref="'+id+'" '+((prefs as unknown as Record<string,boolean>)[id]?"checked":"")+'></label>';
       }
