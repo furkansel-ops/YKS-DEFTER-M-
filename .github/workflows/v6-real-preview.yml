@@ -1,9 +1,10 @@
-name: V6 gerçek tarayıcı önizleme
+name: V7 Bugün gerçek tarayıcı önizleme
 
 on:
   push:
     branches:
       - redesign/v6-real-preview
+      - today/v7-hard-replace
   workflow_dispatch:
 
 permissions:
@@ -39,17 +40,17 @@ jobs:
 
       - name: Preview sunucusunu başlat
         run: |
-          npm run preview -- --host 127.0.0.1 --port 4174 > /tmp/v6-preview.log 2>&1 &
+          npm run preview -- --host 127.0.0.1 --port 4174 > /tmp/v7-preview.log 2>&1 &
           for i in {1..40}; do
             if curl -fsS http://127.0.0.1:4174/ >/dev/null; then exit 0; fi
             sleep 1
           done
-          cat /tmp/v6-preview.log
+          cat /tmp/v7-preview.log
           exit 1
 
       - name: Gerçek mobil ekran görüntüsü al
         run: |
-          cat > .v6-capture.mjs <<'NODE'
+          cat > .v7-capture.mjs <<'NODE'
           import { chromium } from "playwright";
 
           const browser=await chromium.launch({headless:true});
@@ -61,7 +62,7 @@ jobs:
           });
 
           await page.goto("http://127.0.0.1:4174/",{waitUntil:"networkidle"});
-          await page.waitForSelector('#home[data-v6-home="ready"]',{timeout:15000});
+          await page.waitForSelector('#home[data-v7-home="ready"]',{timeout:15000});
 
           await page.evaluate(()=>{
             document.querySelectorAll(".screen").forEach(node=>node.classList.remove("active"));
@@ -94,32 +95,33 @@ jobs:
             const plan=document.getElementById("todayPlan");
             if(plan){
               plan.innerHTML=[
-                '<div class="plancell"><div><b>Matematik</b><small>Problemler · 30 soru</small></div></div>',
-                '<div class="plancell"><div><b>Fizik</b><small>Kuvvet ve Hareket · 40 dk</small></div></div>',
-                '<div class="plancell"><div><b>Biyoloji</b><small>Hücre · kısa tekrar</small></div></div>',
-                '<div class="plancell pd"><div><b>Türkçe</b><small>Paragraf · 25 soru</small></div></div>'
+                '<div class="plancell"><span class="pl">Matematik</span><span class="pt">Problemler · 30 soru</span></div>',
+                '<div class="plancell"><span class="pl">Fizik</span><span class="pt">Kuvvet ve Hareket · 40 dk</span></div>',
+                '<div class="plancell"><span class="pl">Biyoloji</span><span class="pt">Hücre · kısa tekrar</span></div>',
+                '<div class="plancell pd"><span class="pl">Türkçe</span><span class="pt">Paragraf · 25 soru</span></div>'
               ].join("");
             }
 
             document.documentElement.setAttribute("data-theme","paper");
+            document.documentElement.dataset.activeScreen="home";
             window.scrollTo(0,0);
           });
 
           await page.waitForTimeout(400);
-          await page.screenshot({path:"v6-home-real-top.png",fullPage:false});
-          await page.locator("[data-v6-program-card]").scrollIntoViewIfNeeded();
+          await page.screenshot({path:"v7-home-real-top.png",fullPage:false});
+          await page.locator("[data-v7-program]").scrollIntoViewIfNeeded();
           await page.waitForTimeout(250);
-          await page.screenshot({path:"v6-home-real-program.png",fullPage:false});
+          await page.screenshot({path:"v7-home-real-program.png",fullPage:false});
           await browser.close();
           NODE
-          node .v6-capture.mjs
+          node .v7-capture.mjs
 
       - name: Screenshot artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
-          name: v6-home-real-screenshot
+          name: v7-home-real-screenshot
           path: |
-            v6-home-real-top.png
-            v6-home-real-program.png
+            v7-home-real-top.png
+            v7-home-real-program.png
           if-no-files-found: error
           retention-days: 7
