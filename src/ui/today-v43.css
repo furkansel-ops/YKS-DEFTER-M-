@@ -267,16 +267,16 @@
   background:color-mix(in srgb,var(--success) 13%,transparent);
   color:var(--success);
 }
-.v7-plan-item>div:nth-child(2){min-width:0;}
-.v7-plan-item>div:nth-child(2)>b,
-.v7-plan-item>div:nth-child(2)>span{display:block;}
-.v7-plan-item>div:nth-child(2)>b{
+.v7-plan-item>div:first-child{min-width:0;}
+.v7-plan-item>div:first-child>b,
+.v7-plan-item>div:first-child>span{display:block;}
+.v7-plan-item>div:first-child>b{
   overflow:hidden;
   font-size:10.5px;
   text-overflow:ellipsis;
   white-space:nowrap;
 }
-.v7-plan-item>div:nth-child(2)>span{
+.v7-plan-item>div:first-child>span{
   margin-top:3px;
   overflow:hidden;
   color:var(--v7-muted);
@@ -629,8 +629,8 @@ body:has(#home.active)>.navbar .searchbtn{
     padding:9px 10px 9px 17px;
     border-radius:12px;
   }
-  .v7-plan-item>div:nth-child(2)>b{font-size:10px;}
-  .v7-plan-item>div:nth-child(2)>span{font-size:7.2px;}
+  .v7-plan-item>div:first-child>b{font-size:10px;}
+  .v7-plan-item>div:first-child>span{font-size:7.2px;}
   .v7-plan-tools button{min-width:28px;min-height:28px;padding:0 6px;font-size:6.5px;}
 
   .v7-quick{padding:8px;}
