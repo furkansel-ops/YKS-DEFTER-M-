@@ -1,0 +1,35 @@
+name: Eski stabil kaynak paketini dışa aktar
+
+on:
+  push:
+    branches:
+      - export/stable-826e650
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Stabil sürümü al
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: 826e6507bec3a700d4da72e21acc5edd26203f6b
+
+      - name: Kaynak kodu ZIP yap
+        run: |
+          mkdir -p /tmp/export/YKS-Defterim-eski-stabil
+          rsync -a --exclude='.git' ./ /tmp/export/YKS-Defterim-eski-stabil/
+          cd /tmp/export
+          zip -qr "$GITHUB_WORKSPACE/YKS-Defterim-eski-stabil-826e650.zip" YKS-Defterim-eski-stabil
+
+      - name: ZIP artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: yks-defterim-eski-stabil-826e650
+          path: YKS-Defterim-eski-stabil-826e650.zip
+          if-no-files-found: error
+          retention-days: 7
