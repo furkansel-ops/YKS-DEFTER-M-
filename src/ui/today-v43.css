@@ -284,6 +284,20 @@
 .v6-program-card #todayPlan .plancell.v6-biology::before{background:#22a06b;}
 .v6-program-card #todayPlan .plancell.v6-turkish::before{background:#ef5b78;}
 .v6-program-card #todayPlan .plancell.v6-other::before{background:#64748b;}
+.v6-program-card #todayPlan .plancell b,
+.v6-program-card #todayPlan .plancell small{
+  display:block;
+}
+.v6-program-card #todayPlan .plancell b{
+  font-size:11px;
+  line-height:1.25;
+}
+.v6-program-card #todayPlan .plancell small{
+  margin-top:3px;
+  color:var(--label-3);
+  font-size:8px;
+  line-height:1.3;
+}
 .v6-program-card #todayPlan .plancell.pd{
   opacity:.62;
   background:color-mix(in srgb,var(--green) 6%,var(--glass-strong));
@@ -468,11 +482,63 @@
   .v6-home-date span{font-size:6.5px;}
   .v6-home-date b{margin-top:2px;font-size:8px;}
 
-  #home.v6-home>#sozBox{
-    padding:8px 10px;
-    border-radius:12px;
-    font-size:8px;
+  #home.v6-home>#sozBox,
+  #home.v6-home>#morningBox{
+    display:none!important;
   }
+
+  :root{--rail:0px;}
+  body{
+    padding-left:0!important;
+    padding-bottom:calc(78px + env(safe-area-inset-bottom))!important;
+  }
+  .navbar{left:0!important;}
+  .tabbar{
+    top:auto!important;
+    left:10px!important;
+    right:10px!important;
+    bottom:calc(8px + env(safe-area-inset-bottom))!important;
+    width:auto!important;
+    height:62px!important;
+    display:flex!important;
+    flex-direction:row!important;
+    align-items:center!important;
+    justify-content:flex-start!important;
+    gap:2px!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+    padding:5px 6px!important;
+    border:1px solid var(--v6-line)!important;
+    border-radius:20px!important;
+    box-shadow:0 14px 38px -24px rgba(15,23,42,.5)!important;
+  }
+  .tabbar::before{display:none!important;}
+  .tabbar>.tab:first-of-type,
+  .tabbar>.tab:last-of-type{margin:0!important;}
+  .tabbar .tab{
+    width:56px!important;
+    min-width:56px!important;
+    height:52px!important;
+    flex:0 0 56px!important;
+    padding:4px 2px!important;
+    gap:1px!important;
+  }
+  .tabbar .tab::before{
+    left:50%!important;
+    top:0!important;
+    width:20px!important;
+    height:3px!important;
+    border-radius:0 0 4px 4px!important;
+    transform:translateX(-50%)!important;
+    opacity:0;
+  }
+  .tabbar .tab.active::before{height:3px!important;opacity:1;}
+  .tabbar .tab .ic{
+    width:36px!important;
+    height:31px!important;
+  }
+  .tabbar .tab svg{width:20px!important;height:20px!important;}
+  .tabbar .tab .tl{display:block!important;font-size:7.5px!important;}
 
   .v6-home-layout{
     display:flex;
