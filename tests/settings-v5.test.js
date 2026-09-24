@@ -42,9 +42,13 @@ test("Ayarlar V5 mevcut ayar verisini yazmaz veya senkron sözleşmesini değiş
   assert.doesNotMatch(source,/\.weeks\s*\[/);
 });
 
-test("Ayarlar V5 Merkez ayar paneli açıldığında yeniden uygulanır",()=>{
+test("Ayarlar V5 kişiselleştirme lazy sınırından yüklenir ve Merkez paneli açıldığında yeniden uygulanır",()=>{
   const source=read("src/ui/settings-v5.ts");
+  const personal=read("src/ui/personalization-v43.ts");
   const css=read("src/ui/settings-v5.css");
+  assert.match(personal,/import\("\.\/settings-v5"\)/);
+  assert.match(personal,/installSettingsV5/);
+  assert.match(personal,/\.catch\(\(\)=>\{\}\)/);
   assert.match(source,/yks:more-after/);
   assert.match(source,/detail\?\.to==="ayar"/);
   assert.match(source,/yks:auth-state/);
