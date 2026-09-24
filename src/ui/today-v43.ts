@@ -76,7 +76,7 @@ function createHeader():HTMLElement{
 function createGoal():HTMLElement{
   const card=document.createElement("section");
   card.className="v7-card v7-goal";
-  card.innerHTML='<div class="v7-hero-panel"><div class="v7-hero-copy"><span>BUGÜN</span><h2>Günlük hedef</h2><h3>Bugün de hedeflerine<br>bir adım daha yaklaş!</h3><p>Disiplin, hayallerini gerçeğe dönüştürür.</p><button type="button" class="v7-details" data-day-details>Günün detayları</button></div><div class="v7-hero-progress" id="v7TodayRing" style="--v7-progress:0deg"><div><b id="v7TodayPct">%0</b><span>Bugünkü<br>ilerleme</span></div></div><div class="v7-hero-art" aria-hidden="true"><i></i><i></i><i></i></div></div><div class="v7-metrics"><article class="v7-metric target"><i>◎</i><span><small>Günlük Hedef</small><b id="v7TargetCount">0 görev</b><em>Planlanan çalışma</em></span></article><article class="v7-metric done"><i>✓</i><span><small>Tamamlanan</small><b id="v7DoneCount">0 görev</b><em id="v7DoneSub">%0 tamamlandı</em></span></article><article class="v7-metric focus"><i>◷</i><span><small>Çalışma Süresi</small><b id="v7FocusMinutes">0 dk</b><em>Bugünkü odak</em></span></article></div>';
+  card.innerHTML='<div class="v7-hero-panel"><div class="v7-hero-copy"><span>BUGÜN</span><h2>Günlük hedef</h2><h3 id="v7HeroTitle">Bugün de hedeflerine<br>bir adım daha yaklaş!</h3><p id="v7HeroCopy">Disiplin, hayallerini gerçeğe dönüştürür.</p><button type="button" class="v7-details" data-day-details>Günün detayları</button></div><div class="v7-hero-progress" id="v7TodayRing" style="--v7-progress:0deg"><div><b id="v7TodayPct">%0</b><span>Bugünkü<br>ilerleme</span></div></div><div class="v7-hero-art" aria-hidden="true"><i></i><i></i><i></i></div></div><div class="v7-metrics"><article class="v7-metric target"><i>◎</i><span><small>Günlük Hedef</small><b id="v7TargetCount">0 görev</b><em>Planlanan çalışma</em></span></article><article class="v7-metric done"><i>✓</i><span><small>Tamamlanan</small><b id="v7DoneCount">0 görev</b><em id="v7DoneSub">%0 tamamlandı</em></span></article><article class="v7-metric focus"><i>◷</i><span><small>Çalışma Süresi</small><b id="v7FocusMinutes">0 dk</b><em>Bugünkü odak</em></span></article></div><div class="v7-next-strip"><span class="v7-next-label">SIRADAKİ</span><div><b id="v7NextTitle">Program hazırlanıyor</b><small id="v7NextDetail">Bugünkü plan yükleniyor</small></div><em id="v7Remaining">—</em><button type="button" data-open-program aria-label="Bugünün planını aç">›</button></div>';
   card.querySelector<HTMLButtonElement>("[data-day-details]")?.addEventListener("click",()=>{
     (window as AppWindow).openGun?.();
   });
@@ -217,6 +217,24 @@ function syncPlan(home:HTMLElement):void{
   const ring=home.querySelector<HTMLElement>("#v7TodayRing");
   if(ring)ring.style.setProperty("--v7-progress",(pct*3.6)+"deg");
 
+  const remaining=Math.max(0,rows.length-doneCount);
+  const heroTitle=home.querySelector<HTMLElement>("#v7HeroTitle");
+  const heroCopy=home.querySelector<HTMLElement>("#v7HeroCopy");
+  if(heroTitle)heroTitle.innerHTML=pct>=100?"Bugünün planı<br>tamamlandı!":pct>=60?"Harika gidiyorsun,<br>ritmi koru!":"Bugün de hedeflerine<br>bir adım daha yaklaş!";
+  if(heroCopy)heroCopy.textContent=pct>=100?"Bugünü tamamladın. Yarın için küçük bir hazırlık yeter.":pct>=60?"Planın büyük kısmı bitti. Kalanları sırayla tamamla.":"Disiplin, hayallerini gerçeğe dönüştürür.";
+  set("#v7Remaining",remaining?remaining+" görev kaldı":"Plan tamam");
+  const currentRow=currentIndex>=0?rows[currentIndex]:null;
+  if(currentRow){
+    const nextLabel=(currentRow.querySelector(".pl")?.textContent||currentRow.querySelector("b")?.textContent||"Sıradaki çalışma").trim();
+    const nextRaw=(currentRow.querySelector(".pt")?.textContent||currentRow.querySelector("small")?.textContent||"").trim();
+    const nextParts=taskParts(nextRaw);
+    set("#v7NextTitle",nextLabel);
+    set("#v7NextDetail",[nextParts.detail,nextParts.time].filter(Boolean).join(" · ")||"Sıradaki çalışma");
+  }else{
+    set("#v7NextTitle",rows.length?"Bugünün planı tamamlandı 🎉":"Bugün için görev yok");
+    set("#v7NextDetail",rows.length?"Eline sağlık. İstersen yarına göz atabilirsin.":"Programım ekranından bugüne görev ekleyebilirsin.");
+  }
+
   list.replaceChildren();
   if(!rows.length){
     const empty=document.createElement("div");
@@ -238,6 +256,7 @@ function syncPlan(home:HTMLElement):void{
     item.className="v7-plan-item";
     item.classList.toggle("done",done);
     item.classList.toggle("current",current);
+    if(current)item.setAttribute("aria-current","step");
     item.dataset.tone=tone;
     item.innerHTML='<button type="button" class="v7-plan-status" aria-label="Görevin tamamlanma durumunu değiştir"><span>✓</span></button><div class="v7-plan-main"><i class="v7-subject-icon" aria-hidden="true"></i><div class="v7-plan-copy"><b></b><span></span><small></small></div></div><div class="v7-plan-tools"></div>';
     const icon=item.querySelector<HTMLElement>(".v7-subject-icon");
