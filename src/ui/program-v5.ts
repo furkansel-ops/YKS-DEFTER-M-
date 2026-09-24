@@ -2,11 +2,48 @@ import "./program-v5.css";
 
 type LegacyProgramWindow=Window&{
   thisWeek?:()=>unknown;
+  shiftWeek?:(n:number)=>unknown;
+  setProgTab?:(tab:"week"|"cal")=>unknown;
 };
+
+const DAYS=["Pzt","Sal","Çar","Per","Cum","Cmt","Paz"];
+const MONTHS=["Oca","Şub","Mar","Nis","May","Haz","Tem","Ağu","Eyl","Eki","Kas","Ara"];
 
 function byId<T extends HTMLElement=HTMLElement>(id:string):T|null{
   const node=document.getElementById(id);
   return node instanceof HTMLElement?node as T:null;
+}
+
+function norm(value:unknown):string{
+  return String(value??"").trim().toLocaleLowerCase("tr-TR");
+}
+
+function monday(date=new Date()):Date{
+  const d=new Date(date);
+  d.setHours(12,0,0,0);
+  const offset=(d.getDay()+6)%7;
+  d.setDate(d.getDate()-offset);
+  return d;
+}
+
+function tone(text:string):string{
+  const value=norm(text);
+  if(value.includes("matematik"))return"math";
+  if(value.includes("fizik"))return"physics";
+  if(value.includes("kimya"))return"chemistry";
+  if(value.includes("biyoloji"))return"biology";
+  if(value.includes("türk"))return"turkish";
+  if(value.includes("mola"))return"break";
+  if(value.includes("soru")||value.includes("deneme"))return"practice";
+  return"other";
+}
+
+function splitTask(text:string):{title:string;sub:string}{
+  const clean=String(text||"").trim();
+  if(!clean)return {title:"",sub:""};
+  const parts=clean.split(/\s*[·|:]\s*|\s+-\s+/).filter(Boolean);
+  if(parts.length===1)return {title:parts[0]||clean,sub:""};
+  return {title:parts[0]||clean,sub:parts.slice(1).join(" · ")};
 }
 
 function sectionForGrid(gridId:string,title:string,copy:string):HTMLElement|null{
@@ -72,8 +109,8 @@ function createHeader(program:HTMLElement):HTMLElement{
   head.innerHTML=
     '<div class="v5-program-header-copy">'+
       '<span>PROGRAMIM</span>'+
-      '<h1>Haftanı tek yerde kur</h1>'+
-      '<p>Plan ana ekranda, yardımcı araçlar yanında. Veri yapın ve koç senkronun değişmez.</p>'+
+      '<h1>Programım</h1>'+
+      '<p>Haftanı sade bir zaman çizelgesinde gör, gerektiğinde düzenle.</p>'+
     '</div>'+
     '<div class="v5-program-header-actions"></div>';
 
@@ -84,20 +121,168 @@ function createHeader(program:HTMLElement):HTMLElement{
   thisWeek.textContent="Bu haftaya dön";
   thisWeek.addEventListener("click",()=>{(window as LegacyProgramWindow).thisWeek?.();});
 
-  const edit=document.createElement("button");
-  edit.type="button";
-  edit.className="btn green";
-  edit.textContent="Ders eklemeye başla";
-  edit.addEventListener("click",()=>{
-    const first=document.querySelector<HTMLElement>("#gridS .gtx");
-    if(!first)return;
-    first.scrollIntoView({behavior:"smooth",block:"center",inline:"center"});
-    window.setTimeout(()=>first.focus(),220);
-  });
-
-  actions?.append(thisWeek,edit);
+  actions?.append(thisWeek);
   program.prepend(head);
   return head;
+}
+
+function getStudyLabel(index:number):string{
+  const label=document.querySelector<HTMLElement>('#gridS [data-lbl="s"][data-i="'+index+'"]');
+  return String(label?.textContent||"").trim();
+}
+
+function taskTime(block:"r"|"s",index:number,ordinal:number):string{
+  const label=block==="s"?getStudyLabel(index):"";
+  const direct=label.match(/\b([01]?\d|2[0-3]):[0-5]\d(?:\s*[-–]\s*([01]?\d|2[0-3]):[0-5]\d)?\b/);
+  if(direct)return direct[0];
+  const start=9+ordinal*2;
+  const h=Math.min(22,start);
+  return String(h).padStart(2,"0")+":00";
+}
+
+function collectDayTasks(day:number):Array<{block:"r"|"s";index:number;text:string;done:boolean;time:string}>{
+  const out:Array<{block:"r"|"s";index:number;text:string;done:boolean;time:string}>=[];
+  let ordinal=0;
+  for(const block of ["r","s"] as const){
+    document.querySelectorAll<HTMLElement>('#grid'+block.toUpperCase()+' [data-blk="'+block+'"][data-d="'+day+'"]').forEach(cell=>{
+      const text=String(cell.querySelector<HTMLElement>(".gtx")?.textContent||"").trim();
+      if(!text)return;
+      const index=Number(cell.dataset.i||0);
+      out.push({
+        block,index,text,
+        done:cell.classList.contains("cdone"),
+        time:taskTime(block,index,ordinal)
+      });
+      ordinal++;
+    });
+  }
+  return out;
+}
+
+function focusEditorCell(day:number):void{
+  const program=byId("program");
+  const editor=program?.querySelector<HTMLElement>("[data-v5-program-editor]");
+  if(editor)editor.hidden=false;
+  const cells=Array.from(document.querySelectorAll<HTMLElement>('#gridS [data-blk="s"][data-d="'+day+'"] .gtx'));
+  const target=cells.find(cell=>!String(cell.textContent||"").trim())??cells[0];
+  if(!target)return;
+  target.scrollIntoView({behavior:"smooth",block:"center",inline:"center"});
+  window.setTimeout(()=>target.focus(),220);
+}
+
+function installMobilePlanner(program:HTMLElement,main:HTMLElement,week:HTMLElement):HTMLElement{
+  const existing=program.querySelector<HTMLElement>("[data-v5-mobile-planner]");
+  if(existing)return existing;
+
+  let selected=Math.max(0,Math.min(6,(new Date().getDay()+6)%7));
+  let weekOffset=0;
+  let mode:"day"|"week"|"month"="week";
+
+  const planner=document.createElement("section");
+  planner.className="v5-mobile-planner";
+  planner.dataset.v5MobilePlanner="true";
+  planner.innerHTML=
+    '<div class="v5-program-mode" role="tablist">'+
+      '<button type="button" data-mode="day">Günlük</button>'+
+      '<button type="button" data-mode="week" class="is-active">Haftalık</button>'+
+      '<button type="button" data-mode="month">Aylık</button>'+
+    '</div>'+
+    '<div class="v5-week-strip-head"><button type="button" data-week-prev aria-label="Önceki hafta">‹</button><div class="v5-week-strip" data-week-strip></div><button type="button" data-week-next aria-label="Sonraki hafta">›</button></div>'+
+    '<div class="v5-timeline" data-timeline></div>'+
+    '<button type="button" class="v5-program-fab" data-add aria-label="Programa ders ekle">+</button>';
+
+  const strip=planner.querySelector<HTMLElement>("[data-week-strip]");
+  const timeline=planner.querySelector<HTMLElement>("[data-timeline]");
+
+  const renderStrip=()=>{
+    if(!strip)return;
+    const base=monday();
+    base.setDate(base.getDate()+weekOffset*7);
+    strip.innerHTML=DAYS.map((name,index)=>{
+      const date=new Date(base);
+      date.setDate(base.getDate()+index);
+      const current=weekOffset===0&&index===(new Date().getDay()+6)%7;
+      return '<button type="button" data-day="'+index+'" class="'+(selected===index?"is-selected ":"")+(current?"is-today":"")+'"><span>'+name+'</span><b>'+date.getDate()+'</b></button>';
+    }).join("");
+    strip.querySelectorAll<HTMLButtonElement>("[data-day]").forEach(button=>button.addEventListener("click",()=>{
+      selected=Number(button.dataset.day||0);
+      renderStrip();
+      renderTimeline();
+    }));
+  };
+
+  const renderTimeline=()=>{
+    if(!timeline)return;
+    if(mode==="month"){
+      timeline.innerHTML='<div class="v5-program-empty"><b>Aylık görünüm</b><span>Takvim görünümü aşağıda açıldı.</span></div>';
+      return;
+    }
+    const tasks=collectDayTasks(selected);
+    if(!tasks.length){
+      timeline.innerHTML='<div class="v5-program-empty"><b>Bu gün boş</b><span>Sağ alttaki + ile ders ekleyebilirsin.</span></div>';
+      return;
+    }
+    timeline.innerHTML=tasks.map((task,index)=>{
+      const parts=splitTask(task.text);
+      const t=tone(task.text);
+      const endTime=(()=>{const [h,m]=task.time.split(":").map(Number);const d=new Date(2000,0,1,h||9,m||0);d.setMinutes(d.getMinutes()+90);return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0");})();
+      return '<article class="v5-time-row '+(task.done?"is-done":"")+'" data-tone="'+t+'">'+
+        '<div class="v5-time-label"><b>'+task.time+'</b><span>'+endTime+'</span></div>'+
+        '<div class="v5-time-card"><i></i><div><b>'+parts.title+'</b><span>'+(parts.sub||task.block==="r"?"Rutin":"Ders")+'</span><small>'+task.time+' - '+endTime+'</small></div>'+(task.done?'<em>✓</em>':'')+'</div>'+
+      '</article>';
+    }).join("");
+  };
+
+  const setMode=(next:"day"|"week"|"month")=>{
+    mode=next;
+    planner.querySelectorAll<HTMLButtonElement>("[data-mode]").forEach(button=>button.classList.toggle("is-active",button.dataset.mode===next));
+    planner.classList.toggle("is-day",next==="day");
+    planner.classList.toggle("is-month",next==="month");
+    if(next==="month"){
+      (window as LegacyProgramWindow).setProgTab?.("cal");
+    }else{
+      (window as LegacyProgramWindow).setProgTab?.("week");
+    }
+    renderTimeline();
+  };
+
+  planner.querySelectorAll<HTMLButtonElement>("[data-mode]").forEach(button=>button.addEventListener("click",()=>setMode(button.dataset.mode as "day"|"week"|"month")));
+  planner.querySelector<HTMLButtonElement>("[data-week-prev]")?.addEventListener("click",()=>{
+    weekOffset--;
+    (window as LegacyProgramWindow).shiftWeek?.(-1);
+    renderStrip();
+    window.setTimeout(renderTimeline,40);
+  });
+  planner.querySelector<HTMLButtonElement>("[data-week-next]")?.addEventListener("click",()=>{
+    weekOffset++;
+    (window as LegacyProgramWindow).shiftWeek?.(1);
+    renderStrip();
+    window.setTimeout(renderTimeline,40);
+  });
+  planner.querySelector<HTMLButtonElement>("[data-add]")?.addEventListener("click",()=>focusEditorCell(selected));
+
+  const editor=document.createElement("section");
+  editor.className="v5-program-editor";
+  editor.dataset.v5ProgramEditor="true";
+  editor.hidden=true;
+  const editorHead=document.createElement("div");
+  editorHead.className="v5-program-editor-head";
+  editorHead.innerHTML='<div><b>Programı düzenle</b><span>Mevcut hücre düzenleyici · kayıt ve senkron aynı kalır</span></div><button type="button">Kapat</button>';
+  editorHead.querySelector("button")?.addEventListener("click",()=>{editor.hidden=true;});
+  editor.append(editorHead,week);
+
+  main.prepend(planner);
+  main.appendChild(editor);
+
+  const observer=new MutationObserver(()=>renderTimeline());
+  for(const gridId of ["gridR","gridS"]){
+    const grid=byId(gridId);
+    if(grid)observer.observe(grid,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:["class"]});
+  }
+
+  renderStrip();
+  renderTimeline();
+  return planner;
 }
 
 function installProgramShell(program:HTMLElement):void{
@@ -134,6 +319,7 @@ function installProgramShell(program:HTMLElement):void{
 
   shell.append(main,rail);
   program.appendChild(shell);
+  installMobilePlanner(program,main,week);
 }
 
 export function installProgramV5():{installed:boolean;validate:()=>string[]}{
@@ -152,6 +338,8 @@ export function installProgramV5():{installed:boolean;validate:()=>string[]}{
       if(program.dataset.v5Program!=="ready")errors.push("program v5 marker missing");
       if(!program.querySelector("[data-v5-program-header]"))errors.push("program v5 header missing");
       if(!program.querySelector("[data-v5-program-shell]"))errors.push("program v5 shell missing");
+      if(!program.querySelector("[data-v5-mobile-planner]"))errors.push("mobile planner missing");
+      if(!program.querySelector("[data-v5-program-editor]"))errors.push("program editor missing");
       if(!program.querySelector('[data-grid="gridR"]'))errors.push("routine block missing");
       if(!program.querySelector('[data-grid="gridS"]'))errors.push("study block missing");
       return errors;
