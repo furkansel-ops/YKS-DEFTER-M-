@@ -166,6 +166,11 @@ function installQuickActions(primary:HTMLElement):HTMLElement{
         }
         return;
       }
+      if(id==="program"){
+        (window as HomeActionWindow).go?.("program");
+        window.setTimeout(()=>window.dispatchEvent(new CustomEvent("yks:open-program-builder")),80);
+        return;
+      }
       (window as HomeActionWindow).go?.(id);
     });
     quick.appendChild(button);
