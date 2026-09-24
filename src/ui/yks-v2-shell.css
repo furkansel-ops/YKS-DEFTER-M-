@@ -1095,3 +1095,269 @@ html.yks-v2-modal-open body{
     min-height:102px;
   }
 }
+
+
+/* ==================== V2 CANLI PROGRAM POLISH · 2.0.1 ==================== */
+#program.yks-v2-program .plantitle{
+  display:none;
+}
+
+#program.yks-v2-program>#fh_kamp,
+#program.yks-v2-program>#fh_sablon{
+  min-height:44px;
+  margin:2px 0 8px;
+  padding:0 12px;
+  border:1px solid var(--v2-line);
+  border-radius:14px;
+  background:color-mix(in srgb,var(--fill) 42%,transparent);
+}
+
+#program.yks-v2-program>#fh_kamp .ft,
+#program.yks-v2-program>#fh_sablon .ft{
+  font-size:12px;
+  font-weight:760;
+  color:var(--label-2);
+}
+
+#program.yks-v2-program .weeknav{
+  min-height:52px;
+  margin:8px 0 12px;
+  padding:6px;
+  border:1px solid var(--v2-line);
+  border-radius:17px;
+  background:var(--glass-strong);
+}
+
+#program.yks-v2-program .weeknav .wk{
+  font-size:14px;
+  font-weight:760;
+  color:var(--label);
+}
+
+#program.yks-v2-program .weeknav .wk small{
+  color:var(--label-3);
+  font-size:10px;
+}
+
+#program.yks-v2-program .weeknav button{
+  width:40px;
+  height:40px;
+  border:1px solid var(--v2-line);
+  border-radius:12px;
+  background:color-mix(in srgb,var(--fill) 62%,var(--glass-strong));
+}
+
+#program.yks-v2-program .program-week-overview{
+  padding:15px;
+  border-radius:19px;
+  box-shadow:none;
+}
+
+#program.yks-v2-program .program-week-top strong{
+  font-size:24px;
+  letter-spacing:-.05em;
+}
+
+#program.yks-v2-program .program-day-chips{
+  gap:7px;
+}
+
+#program.yks-v2-program .program-day-chip{
+  min-height:48px;
+  padding:7px 6px;
+  border:1px solid var(--v2-line);
+  border-radius:12px;
+  background:color-mix(in srgb,var(--fill) 35%,var(--glass-strong));
+}
+
+#program.yks-v2-program .program-day-chip.today{
+  border-color:color-mix(in srgb,var(--accent) 55%,var(--v2-line));
+  background:var(--accent-soft);
+}
+
+#program.yks-v2-program .scroller{
+  margin:0;
+  padding:2px 0 9px;
+  overflow-x:auto;
+  background:transparent;
+  border:0;
+  scrollbar-width:thin;
+}
+
+#program.yks-v2-program .gtable{
+  grid-template-columns:92px repeat(5,minmax(124px,1fr)) 10px repeat(2,minmax(124px,1fr));
+  gap:8px;
+  min-width:1080px;
+  padding:2px;
+  background:transparent;
+  border:0;
+}
+
+#program.yks-v2-program .gcell{
+  min-height:58px;
+  padding:10px 11px;
+  border:1px solid var(--v2-line);
+  border-radius:14px;
+  background:color-mix(in srgb,var(--fill) 28%,var(--glass-strong));
+  box-shadow:none;
+  font-size:12px;
+  line-height:1.38;
+}
+
+#program.yks-v2-program .ghead{
+  min-height:44px;
+  padding:8px 6px;
+  flex-direction:column;
+  gap:2px;
+  border-color:transparent;
+  background:color-mix(in srgb,var(--accent) 8%,var(--glass-strong));
+  color:var(--label-2);
+  font-size:11px;
+  font-weight:780;
+}
+
+#program.yks-v2-program .ghead small{
+  color:var(--label-3);
+  font-size:9.5px;
+}
+
+#program.yks-v2-program .gbar{
+  min-height:42px;
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  padding:0 14px;
+  border:1px solid color-mix(in srgb,var(--accent) 14%,var(--v2-line));
+  border-radius:14px;
+  background:color-mix(in srgb,var(--accent) 6%,var(--glass-strong));
+  color:var(--label);
+  font-size:11px;
+  font-weight:820;
+  letter-spacing:.08em;
+}
+
+#program.yks-v2-program .glabel,
+#program.yks-v2-program .gtag{
+  border-color:transparent;
+  background:color-mix(in srgb,var(--time) 8%,var(--glass-strong));
+  color:color-mix(in srgb,var(--time) 68%,var(--label));
+}
+
+#program.yks-v2-program .glabel{
+  font-size:11px;
+  font-weight:800;
+}
+
+#program.yks-v2-program .gtag{
+  font-size:10px;
+  font-weight:850;
+}
+
+#program.yks-v2-program .gc{
+  min-height:72px;
+  padding:10px 30px 10px 11px;
+  border-left-width:4px!important;
+}
+
+#program.yks-v2-program .gc:has(.gtx:empty){
+  min-height:58px;
+  border-left-width:1px!important;
+  border-style:dashed;
+  background:color-mix(in srgb,var(--fill) 18%,transparent);
+}
+
+#program.yks-v2-program .gc .gtx{
+  min-height:18px;
+  font-weight:620;
+  color:var(--label);
+  display:-webkit-box;
+  -webkit-box-orient:vertical;
+  -webkit-line-clamp:4;
+  overflow:hidden;
+}
+
+#program.yks-v2-program .gc:focus-within .gtx{
+  display:block;
+  overflow:visible;
+  -webkit-line-clamp:unset;
+}
+
+#program.yks-v2-program .gc .tick{
+  top:8px;
+  right:8px;
+  width:20px;
+  height:20px;
+  border-radius:7px;
+  border-color:color-mix(in srgb,var(--label) 18%,transparent);
+}
+
+#program.yks-v2-program .gc.cdone{
+  opacity:.82;
+  background:color-mix(in srgb,var(--success) 8%,var(--glass-strong))!important;
+}
+
+#program.yks-v2-program .gdone{
+  min-height:54px;
+  padding:8px;
+  border:1px solid var(--v2-line);
+  border-radius:13px;
+  background:color-mix(in srgb,var(--fill) 25%,var(--glass-strong));
+  color:var(--label-2);
+}
+
+#program.yks-v2-program .rowtools{
+  margin:4px 0 14px;
+  gap:7px;
+}
+
+#program.yks-v2-program .rowtools .btn{
+  min-height:36px;
+  padding:7px 10px;
+  border-radius:11px;
+  font-size:10.5px;
+}
+
+#program.yks-v2-program #weekFid{
+  margin-top:3px;
+  padding:10px 12px;
+  border:1px solid var(--v2-line);
+  border-radius:13px;
+  background:color-mix(in srgb,var(--fill) 24%,var(--glass-strong));
+}
+
+:root.yks-v2 .tabbar[data-yks-v2-nav="stable"]{
+  overscroll-behavior:none;
+}
+
+@media(max-width:1024px){
+  #program.yks-v2-program .gtable{
+    grid-template-columns:88px repeat(5,118px) 10px repeat(2,118px);
+    min-width:998px;
+  }
+
+  #program.yks-v2-program .gc{
+    min-height:66px;
+  }
+}
+
+@media(max-width:760px){
+  #program.yks-v2-program>#fh_kamp,
+  #program.yks-v2-program>#fh_sablon{
+    min-height:42px;
+  }
+
+  #program.yks-v2-program .gtable{
+    grid-template-columns:82px repeat(5,114px) 8px repeat(2,114px);
+    min-width:950px;
+    gap:6px;
+  }
+
+  #program.yks-v2-program .gcell{
+    border-radius:12px;
+  }
+
+  #program.yks-v2-program .program-day-chips{
+    overflow-x:auto;
+    grid-template-columns:repeat(7,minmax(70px,1fr));
+  }
+}

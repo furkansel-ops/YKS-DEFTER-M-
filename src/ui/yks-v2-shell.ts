@@ -41,7 +41,7 @@ type PlannerPrefs={
 };
 type PlannedTask={subject:string;topic:string;text:string};
 
-const VERSION="2.0.0";
+const VERSION="2.0.1";
 const MAX_ROWS=20;
 const DAYS=["Pzt","Sal","Çar","Per","Cum","Cmt","Paz"];
 const DAY_NAMES=["Pazartesi","Salı","Çarşamba","Perşembe","Cuma","Cumartesi","Pazar"];
@@ -274,6 +274,21 @@ function installProgramHeader():void{
   head.querySelector("[data-yks-v2-manual]")?.addEventListener("click",focusFirstEmptyCell);
   head.querySelector("[data-yks-v2-smart]")?.addEventListener("click",openPlanner);
 }
+function stabilizePrimaryNavigation():void{
+  const bars=[...document.querySelectorAll<HTMLElement>(".tabbar")];
+  const primary=bars[0];
+  if(!primary)return;
+  for(const duplicateBar of bars.slice(1))duplicateBar.remove();
+
+  const seen=new Set<string>();
+  primary.querySelectorAll<HTMLElement>(".tab[data-s]").forEach(tab=>{
+    const key=String(tab.dataset.s||"").trim();
+    if(!key)return;
+    if(seen.has(key)){tab.remove();return;}
+    seen.add(key);
+  });
+  primary.dataset.yksV2Nav="stable";
+}
 function installScreenMarkers():void{
   byId("home")?.classList.add("yks-v2-home");
   byId("program")?.classList.add("yks-v2-program");
@@ -400,6 +415,7 @@ function openPlanner():void{
 function refresh():void{
   document.documentElement.classList.add("yks-v2");
   document.documentElement.dataset.yksV2Shell="ready";
+  stabilizePrimaryNavigation();
   installScreenMarkers();
   installProgramHeader();
 }

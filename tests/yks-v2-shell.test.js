@@ -63,3 +63,18 @@ test("V2 ikinci faz Çalış, İstatistik, Ayarlar ve Günün Notu yüzeylerini 
   assert.match(css,/#home\.yks-v2-home #journalInput/);
   assert.match(css,/@media\(max-width:620px\)/);
 });
+
+
+test("canlı Programım görünümü navigasyon çoğalmasını engeller ve haftalık ızgarayı V2 düzenine taşır",()=>{
+  const source=read("src/ui/yks-v2-shell.ts");
+  const css=read("src/ui/yks-v2-shell.css");
+  assert.match(source,/stabilizePrimaryNavigation/);
+  assert.match(source,/seen\.has\(key\)/);
+  assert.match(source,/duplicateBar\.remove\(\)/);
+  assert.match(source,/dataset\.yksV2Nav="stable"/);
+  assert.match(css,/V2 CANLI PROGRAM POLISH/);
+  assert.match(css,/#program\.yks-v2-program \.gtable/);
+  assert.match(css,/min-width:1080px/);
+  assert.match(css,/#program\.yks-v2-program \.gc:has\(\.gtx:empty\)/);
+  assert.match(css,/@media\(max-width:1024px\)/);
+});
