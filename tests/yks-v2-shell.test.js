@@ -52,3 +52,14 @@ test("V2 tasarım sistemi açık tema, mobil yerleşim ve azaltılmış hareket 
   assert.match(css,/@media\(max-width:760px\)/);
   assert.match(css,/@media\(prefers-reduced-motion:reduce\)/);
 });
+
+
+test("V2 ikinci faz Çalış, İstatistik, Ayarlar ve Günün Notu yüzeylerini ortak tasarım diline taşır",()=>{
+  const css=read("src/ui/yks-v2-shell.css");
+  assert.match(css,/#pomo\.yks-v2-focus \.focuscard/);
+  assert.match(css,/#progress\.yks-v2-progress \.progress-stats/);
+  assert.match(css,/#more\.yks-v2-more \.v30-menu-card/);
+  assert.match(css,/#mrp_ayar #themeGrid \.theme-card/);
+  assert.match(css,/#home\.yks-v2-home #journalInput/);
+  assert.match(css,/@media\(max-width:620px\)/);
+});
