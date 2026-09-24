@@ -212,7 +212,7 @@ function installScreenShell():HTMLElement|null{
     tab.setAttribute("role","tab");
     tab.setAttribute("aria-label","Paragraf ve Problem");
     tab.setAttribute("aria-selected","false");
-    tab.innerHTML=`<span class="ic"><svg viewBox="0 0 24 24"><path d="M5 5h10M5 10h14M5 15h8M17 14v6M14 17h6"/></svg></span><span class="tl">P&amp;P</span>`;
+    tab.innerHTML=`<span class="ic"><svg viewBox="0 0 24 24"><path d="M5 5h10M5 10h14M5 15h8M17 14v6M14 17h6"/></svg></span><span class="tl">P &amp; P</span>`;
     tab.addEventListener("click",()=>win.go?.("pp"));
     tabbar.insertBefore(tab,moreTab);
   }
