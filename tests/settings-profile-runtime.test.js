@@ -110,6 +110,17 @@ test("ayarlar arayüzü kategori menüsü ve tek modern akış kullanır",()=>{
   assert.match(src,/modern-app-tools/);
 });
 
+test("ayarlar mobile premium görsel dilini kullanır",()=>{
+  const src=read("public/settings-profile-runtime.js");
+  assert.match(src,/mobile-premium-settings-v1/);
+  assert.match(src,/yms-nav-dot/);
+  assert.doesNotMatch(src,/yms-nav-ic">👤/);
+  assert.match(src,/\.yms-hero\{padding:6px 2px 18px;border:0/);
+  assert.match(src,/\.yms-action-tile::after\{content:"›"/);
+  assert.match(src,/\.yms-dialog\{width:100%;max-width:680px/);
+  assert.match(src,/\.yms-theme-host \.theme-card\{min-height:64px/);
+});
+
 test("modern Ayarlar kartları seçili temanın yüzey ve metin tokenlarını kullanır",()=>{
   const css=read("src/ui/personalization-v43.css"),runtime=read("public/settings-profile-runtime.js"),appCss=read("app.css");
   assert.match(runtime,/var\(--surface,#fff\)/);
@@ -131,6 +142,6 @@ test("uygulama kartı veri yedeği, sistem ve hakkında erişimini korur",()=>{
 test("modern ayarlar hesap runtime zincirinden cache busting ile yüklenir",()=>{
   const loader=read("src/ui/student-account-loader.ts");
   assert.match(loader,/SETTINGS_SCRIPT_ID="settingsProfileRuntime"/);
-  assert.match(loader,/settings-profile-runtime\.js\?v=2\.2\.0/);
+  assert.match(loader,/settings-profile-runtime\.js\?v=2\.3\.0/);
   assert.match(loader,/if\(!authReady\)return false/);
 });
