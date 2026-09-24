@@ -81,6 +81,9 @@ async function loadAll():Promise<V43RuntimeReport>{
   features.push(await loadFeature("v5Focus","v5FocusErrors",async()=>{
     const mod=await import("./focus-v5");return mod.installFocusV5();
   }));
+  features.push(await loadFeature("v5Progress","v5ProgressErrors",async()=>{
+    const mod=await import("./progress-v5");return mod.installProgressV5();
+  }));
   features.push(await loadFeature("v431Resilience","v431ResilienceErrors",async()=>{
     const mod=await import("./runtime-resilience-v431");return mod.installRuntimeResilienceV431();
   }));
