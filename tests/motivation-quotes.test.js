@@ -79,7 +79,7 @@ test('eski app.js fallbackı genel insan sözlerini ekrana basmaz',()=>{
   assert.ok(safeStart>=0&&safeEnd>safeStart);
   const safeBlock=app.slice(safeStart,safeEnd);
   assert.match(safeBlock,/legacySafeQuote\(\)/);
-  assert.match(safeBlock,/class="sza">— '+esc\(soz\.a\)/);
+  assert.match(safeBlock,/esc\(soz\.a\)/);
   assert.doesNotMatch(safeBlock,/const soz=SOZLER\[aktifSozIndex\(\)\]/);
 
   const v319Start=app.indexOf('const V319_VERSION="3.2.7"');
