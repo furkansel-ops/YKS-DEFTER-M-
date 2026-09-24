@@ -9,8 +9,10 @@ const read=file=>fs.readFileSync(path.join(root,file),"utf8");
 test("YKS V2 kabuğu ana runtime tarafından yüklenir",()=>{
   const main=read("src/main.ts");
   const source=read("src/ui/yks-v2-shell.ts");
+  assert.match(main,/import\("\.\/ui\/yks-v2-shell"\)/);
   assert.match(main,/installYksV2Shell/);
   assert.match(main,/yksV2Shell/);
+  assert.doesNotMatch(main,/from "\.\/ui\/yks-v2-shell"/);
   assert.match(source,/installYksV2Shell/);
   assert.match(source,/data-yks-v2-smart|yksV2Smart|data-yks-v2-smart/i);
   assert.match(source,/Akıllı oluştur/);
