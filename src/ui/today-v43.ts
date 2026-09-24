@@ -158,12 +158,7 @@ function installQuickActions(primary:HTMLElement):HTMLElement{
     button.innerHTML='<span class="v5-quick-icon">'+icon+'</span><b>'+label+'</b>';
     button.addEventListener("click",()=>{
       if(id==="notes"){
-        const secondary=document.querySelector<HTMLElement>(".v43-secondary-body");
-        if(secondary?.hidden)document.querySelector<HTMLButtonElement>(".v43-secondary-toggle")?.click();
-        const note=getElement<HTMLElement>("fh_gunluk");
-        if(note){
-          window.setTimeout(()=>{note.scrollIntoView({behavior:"smooth",block:"center"});},80);
-        }
+        window.dispatchEvent(new CustomEvent("yks:open-notes"));
         return;
       }
       if(id==="program"){
@@ -297,6 +292,7 @@ export function installTodayV43():{installed:boolean;validate:()=>string[]}{
   });
 
   installSecondaryArea(home,preserved);
+  void import("./notes-v5").then(mod=>{mod.installNotesV5();}).catch(()=>{});
 
   return {
     installed:true,
