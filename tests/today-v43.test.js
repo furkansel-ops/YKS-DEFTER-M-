@@ -18,11 +18,13 @@ test("v4.3 Today 2.0 keeps the existing home contracts and promotes the manual p
   assert.match(index,/id="todayPlan"/);
 });
 
-test("v4.3 Today 2.0 collapses secondary information without writing study data",()=>{
+test("v4.3 Today refresh collapses secondary information without writing study data",()=>{
   const source=read("src/ui/today-v43.ts");
-  assert.match(source,/Günün detaylarını göster/);
-  assert.match(source,/Diğer araçları aç/);
+  assert.match(source,/Gün detayları/);
+  assert.match(source,/Diğer araçlar/);
+  assert.match(source,/Bugünün planı ve ilerlemen/);
   assert.match(source,/data-v43-secondary|v43Secondary/);
+  assert.doesNotMatch(source,/İkincil alan/);
   assert.doesNotMatch(source,/localStorage\.(?:setItem|removeItem|clear)/);
   assert.doesNotMatch(source,/indexedDB\./);
   assert.doesNotMatch(source,/\bDexie\b/);
@@ -31,7 +33,7 @@ test("v4.3 Today 2.0 collapses secondary information without writing study data"
   assert.doesNotMatch(source,/\baddToDay\s*\(/);
 });
 
-test("v4.3 Today 2.0 güvenli TypeScript runtime tarafından yüklenir ve tablet erişilebilirliğini korur",()=>{
+test("v4.3 Today refresh is loaded by the safe TypeScript runtime and keeps mobile accessibility",()=>{
   const main=read("src/main.ts"),safe=read("src/ui/v43-safe-runtime.ts"),css=read("src/ui/today-v43.css");
   assert.match(main,/installV43SafeRuntime/);
   assert.doesNotMatch(main,/from "\.\/ui\/today-v43"/);
@@ -44,8 +46,15 @@ test("v4.3 Today 2.0 güvenli TypeScript runtime tarafından yüklenir ve tablet
   assert.match(css,/\[hidden\]/);
 });
 
-test("v4.3 Today 2.0 only becomes flex while the home screen is active",()=>{
+test("v4.3 Today refresh only becomes flex while the home screen is active",()=>{
   const css=read("src/ui/today-v43.css");
   assert.doesNotMatch(css,/#home\.v43-today\s*\{[^}]*display\s*:\s*flex/s);
   assert.match(css,/#home\.v43-today\.active\s*\{[^}]*display\s*:\s*flex/s);
+});
+
+test("v4.3 Today refresh removes glassy dashboard styling from primary surfaces",()=>{
+  const css=read("src/ui/today-v43.css");
+  assert.match(css,/#home\.v43-today>\.home-overview \.hero\{[\s\S]*?background:transparent;[\s\S]*?box-shadow:none;/);
+  assert.match(css,/#home\.v43-today>#todayHub\{[\s\S]*?box-shadow:none;[\s\S]*?backdrop-filter:none;/);
+  assert.match(css,/#home\.v43-today>#todayHub \.today-summary\{[\s\S]*?background:transparent;/);
 });
