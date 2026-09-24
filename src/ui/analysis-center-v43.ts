@@ -100,5 +100,6 @@ export function installAnalysisCenterV43():{installed:boolean;validate:()=>strin
   const progress=byId("progress");if(!progress)return {installed:false,validate:()=>["progress screen missing"]};
   let root=byId("v43AnalysisCenter");if(!root){root=node("section","v43-analysis-center");root.id="v43AnalysisCenter";root.dataset.v43Analysis="ready";progress.prepend(root);}renderAnalysisCenterV43();
   if(!personalizationListenerInstalled){personalizationListenerInstalled=true;window.addEventListener("yks:v43-personalization",()=>{selectedExamType=null;renderAnalysisCenterV43();});}
+  void import("./progress-v5").then(mod=>{mod.installProgressV5();}).catch(()=>{});
   return {installed:true,validate:()=>{const errors:string[]=[];if(root?.dataset.v43Analysis!=="ready")errors.push("analysis center marker missing");if(!window.__YKS_PROGRESS_ANALYSIS__)errors.push("progress analysis api missing");if(!window.__YKS_EXAM_ANALYSIS__)errors.push("exam analysis api missing");return errors;}};
 }
