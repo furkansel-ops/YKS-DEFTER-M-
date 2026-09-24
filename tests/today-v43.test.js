@@ -28,7 +28,7 @@ test("V7 görünen ekran yalnız yeni şablon bloklarından oluşur",()=>{
 
 test("V7 program görünümü legacy çalışan planı aynalar ve tıklamayı ona yollar",()=>{
   const source=read("src/ui/today-v43.ts");
-  assert.match(source,/legacy\.querySelectorAll<HTMLElement>\("\\.plancell"\)/);
+  assert.match(source,/legacy\.querySelectorAll<HTMLElement>\("\.plancell"\)/);
   assert.match(source,/rows\[index\]\?\.click\(\)/);
   assert.match(source,/legacyDone\?\.click\(\)/);
   assert.match(source,/MutationObserver/);
