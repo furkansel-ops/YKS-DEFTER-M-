@@ -126,6 +126,178 @@ function styles(){if(document.getElementById("yksModernSettingsStyles"))return;c
   .yms-dialog{border-radius:22px 22px 0 0}
   .yms-form{gap:11px}
 }
+
+/* mobile-premium-settings-v2: structural mobile redesign */
+@media(max-width:900px){
+  #mrp_ayar{padding-bottom:calc(28px + env(safe-area-inset-bottom))}
+  #mrp_ayar>.v30-subhead{display:none!important}
+  .yms-wrap{margin:0!important;padding:0 2px}
+  .yms-shell{display:block!important}
+  .yms-side{display:none!important}
+  .yms-content{gap:30px!important}
+  .yms-hero{
+    display:grid!important;
+    grid-template-columns:52px minmax(0,1fr) auto;
+    gap:12px!important;
+    align-items:center!important;
+    margin:2px 0 0!important;
+    padding:18px 16px!important;
+    border:1px solid color-mix(in srgb,var(--line,#dde3ea) 82%,transparent)!important;
+    border-radius:20px!important;
+    background:var(--surface,#fff)!important;
+    box-shadow:0 1px 2px color-mix(in srgb,#000 5%,transparent)!important;
+  }
+  .yms-avatar{width:52px!important;height:52px!important}
+  .yms-hero-main h2{font-size:18px!important;line-height:1.15}
+  .yms-hero-main p{margin-top:3px!important;font-size:12px!important}
+  .yms-chiprow{margin-top:6px!important}
+  .yms-chip{display:none!important}
+  .yms-chip:first-child{display:inline-flex!important;background:transparent!important;padding:0!important;color:var(--label-2,#667085)!important;font-size:11px!important}
+  .yms-edit{
+    min-height:36px!important;
+    padding:8px 10px!important;
+    border:0!important;
+    border-radius:10px!important;
+    background:color-mix(in srgb,var(--accent,#2563eb) 9%,transparent)!important;
+    color:var(--accent,#2563eb)!important;
+    font-size:12px!important;
+    font-weight:720!important
+  }
+
+  .yms-section{display:block!important}
+  .yms-section-head{
+    display:block!important;
+    margin:0 0 8px!important;
+    padding:0 4px!important;
+  }
+  .yms-section-head h3{
+    margin:0!important;
+    font-size:12px!important;
+    line-height:1.2!important;
+    font-weight:760!important;
+    letter-spacing:.06em!important;
+    text-transform:uppercase!important;
+    color:var(--label-2,#667085)!important
+  }
+  .yms-section-head p{display:none!important}
+  .yms-section-head>.yms-status-pill{display:inline-flex!important;margin-top:6px!important}
+
+  .yms-grid{
+    display:block!important;
+    overflow:hidden!important;
+    border:1px solid color-mix(in srgb,var(--line,#dde3ea) 84%,transparent)!important;
+    border-radius:18px!important;
+    background:var(--surface,#fff)!important;
+    box-shadow:0 1px 2px color-mix(in srgb,#000 4%,transparent)!important
+  }
+  .yms-grid[style]{margin-top:10px!important}
+  .yms-grid .yms-card{
+    border:0!important;
+    border-radius:0!important;
+    background:transparent!important;
+    padding:0 15px!important
+  }
+  .yms-grid .yms-card+.yms-card{
+    border-top:8px solid color-mix(in srgb,var(--bg,var(--surface,#fff)) 96%,var(--line,#dde3ea))!important
+  }
+  .yms-title{
+    margin:0!important;
+    padding:13px 0 6px!important;
+    font-size:11px!important;
+    font-weight:730!important;
+    color:var(--label-2,#667085)!important
+  }
+  .yms-row{
+    min-height:44px!important;
+    padding:11px 0!important;
+    align-items:center!important;
+    font-size:13px!important
+  }
+  .yms-row span{font-size:13px!important}
+  .yms-row b{font-size:13px!important;font-weight:620!important}
+  .yms-actions{padding-bottom:12px!important;margin-top:6px!important}
+  .yms-actions button{
+    min-height:38px!important;
+    border-radius:10px!important;
+    padding:8px 10px!important
+  }
+  .yms-exam{
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+    padding-bottom:12px!important
+  }
+  .yms-exam div{
+    text-align:center!important;
+    padding:10px 5px!important;
+    border-radius:10px!important;
+    font-size:10.5px!important
+  }
+  .yms-exam b{font-size:12px!important}
+
+  #ymsAppearance .yms-theme-host{
+    border:1px solid color-mix(in srgb,var(--line,#dde3ea) 84%,transparent)!important;
+    border-radius:18px!important;
+    padding:10px!important;
+    overflow:hidden!important;
+    background:var(--surface,#fff)!important;
+    box-shadow:0 1px 2px color-mix(in srgb,#000 4%,transparent)!important
+  }
+  #ymsAppearance #themeGrid{
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:8px!important
+  }
+  #ymsAppearance .theme-card{
+    min-height:70px!important;
+    padding:10px!important;
+    border:1px solid color-mix(in srgb,var(--line,#dde3ea) 82%,transparent)!important;
+    border-radius:14px!important;
+    background:color-mix(in srgb,var(--label,#111827) 2%,var(--surface,#fff))!important
+  }
+  #ymsAppearance .theme-card.on{
+    border-color:var(--accent,#2563eb)!important;
+    background:color-mix(in srgb,var(--accent,#2563eb) 5%,var(--surface,#fff))!important
+  }
+
+  #ymsPersonal .yms-personal-host{
+    border:1px solid color-mix(in srgb,var(--line,#dde3ea) 84%,transparent)!important;
+    border-radius:18px!important;
+    overflow:hidden!important;
+    background:var(--surface,#fff)!important;
+    box-shadow:0 1px 2px color-mix(in srgb,#000 4%,transparent)!important
+  }
+  #ymsPersonal .v43-personalization{padding:0!important;gap:0!important}
+  #ymsPersonal .v43-personal-head{padding:14px 15px 10px!important}
+  #ymsPersonal .v43-personal-summary{padding:0 15px 12px!important}
+  #ymsPersonal .v43-personal-body{gap:10px!important;padding:0 10px 10px!important}
+  #ymsPersonal .v43-personal-status{padding:0 14px 12px!important}
+
+  #ymsNotifications .yms-notif-card{
+    border-radius:18px!important;
+    box-shadow:0 1px 2px color-mix(in srgb,#000 4%,transparent)!important
+  }
+  .yms-notif-item{min-height:54px!important}
+  .yms-notif-item span{gap:3px!important}
+  .yms-notif-item small{max-width:240px!important}
+  .yms-time-row input{min-height:42px!important;border:0!important;background:color-mix(in srgb,var(--label,#111827) 4%,transparent)!important}
+
+  #ymsApplication .yms-action-grid{
+    border-radius:18px!important;
+    box-shadow:0 1px 2px color-mix(in srgb,#000 4%,transparent)!important
+  }
+  .yms-action-tile{
+    min-height:58px!important;
+    padding:12px 42px 12px 15px!important
+  }
+  .yms-action-tile b{font-size:13px!important}
+  .yms-action-tile small{margin-top:2px!important}
+
+  .yms-modal{align-items:end!important}
+  .yms-dialog{
+    max-width:none!important;
+    border-radius:24px 24px 0 0!important;
+    padding:18px 16px calc(18px + env(safe-area-inset-bottom))!important
+  }
+}
 @media(prefers-reduced-motion:reduce){.yms-toggle::after{transition:none}}
 \`;document.head.append(s)}
 
