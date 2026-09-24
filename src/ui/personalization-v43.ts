@@ -276,6 +276,7 @@ export function installPersonalizationV43():{installed:boolean;validate:()=>stri
   window.__YKS_PERSONALIZATION_V43__=api;
   panel=createSettingsPanel(()=>current,commit);
   apply();
+  void import("./settings-v5").then(mod=>{mod.installSettingsV5();}).catch(()=>{});
 
   const refreshFromPrimary=()=>{current=readStoredState();apply();};
   window.addEventListener("yks:data-primary-ready",refreshFromPrimary);
