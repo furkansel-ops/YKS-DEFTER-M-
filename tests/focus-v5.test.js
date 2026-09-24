@@ -49,3 +49,11 @@ test("Çalış V5 premium ve mobil düzeni kapsar",()=>{
   assert.match(css,/@media\(max-width:760px\)/);
   assert.match(css,/@media\(prefers-reduced-motion:reduce\)/);
 });
+
+
+test("Çalış V5 ana navigasyon etiketini Çalış olarak tekleştirir",()=>{
+  const source=read("src/ui/focus-v5.ts");
+  assert.match(source,/data-s="pomo"/);
+  assert.match(source,/label\.textContent="Çalış"/);
+  assert.match(source,/aria-label","Çalış"/);
+});
