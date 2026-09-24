@@ -117,6 +117,10 @@ function installShell(screen:HTMLElement):HTMLElement|null{
 
   shell.append(main,side);
   screen.appendChild(shell);
+  for(const heading of Array.from(screen.querySelectorAll<HTMLElement>(":scope > h2"))){
+    const label=heading.textContent?.trim()||"";
+    if(label==="Bugünün oturumları"||label==="Gün sonu özeti")heading.remove();
+  }
   return shell;
 }
 
