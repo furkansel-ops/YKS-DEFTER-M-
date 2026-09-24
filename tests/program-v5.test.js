@@ -69,3 +69,11 @@ test("Program V5 mobil zaman çizelgesi mevcut gridlerden okur ve ikinci veri mo
   assert.doesNotMatch(source,/XMLHttpRequest/);
   assert.doesNotMatch(source,/coachingShares/);
 });
+
+
+test("Program V5 ana navigasyon etiketini Programım olarak tekleştirir",()=>{
+  const source=read("src/ui/program-v5.ts");
+  assert.match(source,/data-s="program"/);
+  assert.match(source,/label\.textContent="Programım"/);
+  assert.match(source,/aria-label","Programım"/);
+});
