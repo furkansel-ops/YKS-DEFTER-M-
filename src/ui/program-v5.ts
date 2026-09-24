@@ -228,7 +228,7 @@ function installMobilePlanner(program:HTMLElement,main:HTMLElement,week:HTMLElem
       const endTime=(()=>{const [h,m]=task.time.split(":").map(Number);const d=new Date(2000,0,1,h||9,m||0);d.setMinutes(d.getMinutes()+90);return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0");})();
       return '<article class="v5-time-row '+(task.done?"is-done":"")+'" data-tone="'+t+'">'+
         '<div class="v5-time-label"><b>'+task.time+'</b><span>'+endTime+'</span></div>'+
-        '<div class="v5-time-card"><i></i><div><b>'+parts.title+'</b><span>'+(parts.sub||task.block==="r"?"Rutin":"Ders")+'</span><small>'+task.time+' - '+endTime+'</small></div>'+(task.done?'<em>✓</em>':'')+'</div>'+
+        '<div class="v5-time-card"><i></i><div><b>'+parts.title+'</b><span>'+(parts.sub||(task.block==="r"?"Rutin":"Ders"))+'</span><small>'+task.time+' - '+endTime+'</small></div>'+(task.done?'<em>✓</em>':'')+'</div>'+
       '</article>';
     }).join("");
   };
@@ -264,7 +264,7 @@ function installMobilePlanner(program:HTMLElement,main:HTMLElement,week:HTMLElem
   const editor=document.createElement("section");
   editor.className="v5-program-editor";
   editor.dataset.v5ProgramEditor="true";
-  editor.hidden=true;
+  editor.hidden=window.matchMedia("(max-width:760px)").matches;
   const editorHead=document.createElement("div");
   editorHead.className="v5-program-editor-head";
   editorHead.innerHTML='<div><b>Programı düzenle</b><span>Mevcut hücre düzenleyici · kayıt ve senkron aynı kalır</span></div><button type="button">Kapat</button>';
