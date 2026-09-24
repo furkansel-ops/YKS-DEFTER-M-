@@ -102,24 +102,10 @@ self.addEventListener("install",event=>{
      Böylece açık sekmeler olsa bile eski shell ile yeni bundle sırayla kullanılmaz. */
   event.waitUntil(cacheCore().then(()=>self.skipWaiting()));
 });
-const UI_RESTORE_MARKER="./__ui_restore_2026_09_24__";
 self.addEventListener("activate",event=>{
-  event.waitUntil((async()=>{
-    const keys=await caches.keys();
-    await Promise.all(keys.filter(k=>k!==CACHE&&(CACHE_LINEAGE.includes(k)||k.startsWith("yks-core-"))).map(k=>caches.delete(k)));
-    await self.clients.claim();
-    /* 24 Eylül arayüz geri dönüşünde aynı release/cache kimliği korunuyordu.
-       Eski sekmeler ve kurulu PWA yeni arayüz cache'ini taşımaya devam etmesin diye
-       restore yalnız bir kez açık pencereleri güncel shell'e yönlendirir. */
-    const cache=await caches.open(CACHE);
-    const restored=await cache.match(UI_RESTORE_MARKER);
-    if(restored)return;
-    await cache.put(UI_RESTORE_MARKER,new Response("old-ui-restored",{headers:{"Content-Type":"text/plain;charset=utf-8"}}));
-    const windows=await self.clients.matchAll({type:"window",includeUncontrolled:true});
-    await Promise.all(windows.map(async client=>{
-      try{if("navigate" in client&&typeof client.navigate==="function")await client.navigate(client.url);}catch(e){}
-    }));
-  })());
+  event.waitUntil(caches.keys().then(keys=>Promise.all(
+    keys.filter(k=>k!==CACHE&&(CACHE_LINEAGE.includes(k)||k.startsWith("yks-core-"))).map(k=>caches.delete(k))
+  )).then(()=>self.clients.claim()));
 });
 self.addEventListener("message",event=>{
   const t=event.data&&event.data.type;
