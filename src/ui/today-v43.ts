@@ -100,7 +100,7 @@ function createHeader():HTMLElement{
 function createGoal():HTMLElement{
   const card=document.createElement("section");
   card.className="v7-card v7-goal";
-  card.innerHTML='<div class="v7-hero-panel"><div class="v7-hero-copy"><span>BUGÜN</span><h2>Günlük hedef</h2><h3 id="v7HeroTitle">Bugün de hedeflerine<br>bir adım daha yaklaş!</h3><p id="v7HeroCopy">Disiplin, hayallerini gerçeğe dönüştürür.</p><button type="button" class="v7-details" data-day-details>Günün detayları</button></div><div class="v7-hero-progress" id="v7TodayRing" style="--v7-progress:0deg"><div><b id="v7TodayPct">%0</b><span>Bugünkü<br>ilerleme</span></div></div><div class="v7-hero-art" aria-hidden="true"><i></i><i></i><i></i></div></div><div class="v7-metrics"><article class="v7-metric target"><i>◎</i><span><small>Günlük Hedef</small><b id="v7TargetCount">0 görev</b><em>Planlanan çalışma</em></span></article><article class="v7-metric done"><i>✓</i><span><small>Tamamlanan</small><b id="v7DoneCount">0 görev</b><em id="v7DoneSub">%0 tamamlandı</em></span></article><article class="v7-metric focus"><i>◷</i><span><small>Çalışma Süresi</small><b id="v7FocusMinutes">0 dk</b><em>Bugünkü odak</em></span></article></div><div class="v7-next-strip"><span class="v7-next-label">SIRADAKİ</span><div><b id="v7NextTitle">Program hazırlanıyor</b><small id="v7NextDetail">Bugünkü plan yükleniyor</small></div><em id="v7Remaining">—</em><button type="button" data-open-program aria-label="Bugünün planını aç">›</button></div>';
+  card.innerHTML='<div class="v7-hero-panel"><div class="v7-hero-copy"><span>BUGÜN</span><h2>Günlük hedef</h2><h3 id="v7HeroTitle">Bugün de hedeflerine<br>bir adım daha yaklaş!</h3><p id="v7HeroCopy">Disiplin, hayallerini gerçeğe dönüştürür.</p><button type="button" class="v7-details" data-day-details>Günün detayları</button></div><div class="v7-hero-progress" id="v7TodayRing" style="--v7-progress:0deg"><div><b id="v7TodayPct">%0</b><span>Bugünkü<br>ilerleme</span></div></div><div class="v7-hero-art" aria-hidden="true"><i></i><i></i><i></i></div></div><div class="v7-metrics"><article class="v7-metric target"><i>◎</i><span><small>Günlük Hedef</small><b id="v7TargetCount">0 görev</b><em>Planlanan çalışma</em></span></article><article class="v7-metric done"><i>✓</i><span><small>Tamamlanan</small><b id="v7DoneCount">0 görev</b><em id="v7DoneSub">%0 tamamlandı</em></span></article><article class="v7-metric focus"><i>◷</i><span><small>Çalışma Süresi</small><b id="v7FocusMinutes">0 dk</b><em>Bugünkü odak</em></span></article></div><div class="v7-day-pulse" aria-label="Bugünün kısa özeti"><span><i>✎</i><small>Soru</small><b id="v7QuestionCount">0</b></span><span><i>↗</i><small>Plan Serisi</small><b id="v7PlanStreakInline">0 gün</b></span><span><i>◷</i><small>YKS</small><b id="v7CountdownInline">— gün</b></span></div><div class="v7-next-strip"><span class="v7-next-label">SIRADAKİ</span><div><b id="v7NextTitle">Program hazırlanıyor</b><small id="v7NextDetail">Bugünkü plan yükleniyor</small></div><em id="v7Remaining">—</em><button type="button" data-open-program aria-label="Bugünün planını aç">›</button></div>';
   card.querySelector<HTMLButtonElement>("[data-day-details]")?.addEventListener("click",()=>{
     (window as AppWindow).openGun?.();
   });
@@ -258,8 +258,11 @@ function syncCountdown(home:HTMLElement):void{
   const set=(selector:string,value:string)=>{const node=home.querySelector<HTMLElement>(selector);if(node)node.textContent=value;};
   set("#v7Countdown",txt("countdown","—"));
   set("#v7ExamDate",txt("examDateLabel","—"));
-  set("#v7PlanStreak",txt("streakPlan","0"));
+  const planStreak=txt("streakPlan","0"),countdown=txt("countdown","—");
+  set("#v7PlanStreak",planStreak);
   set("#v7TargetStreak",txt("streakTarget","0"));
+  set("#v7PlanStreakInline",planStreak+" gün");
+  set("#v7CountdownInline",countdown==="—"?"—":countdown+" gün");
   const legacyLine=byId("timeline");
   const line=home.querySelector<HTMLElement>(".v7-count-line i");
   if(line&&legacyLine)line.style.width=legacyLine.style.width||"0%";
@@ -280,6 +283,7 @@ function syncPlan(home:HTMLElement):void{
   set("#v7ProgramCount",rows.length+" görev");
   set("#v7TodayPct","%"+pct);
   set("#v7FocusMinutes",txt("todayHubMin","0 dk"));
+  set("#v7QuestionCount",txt("todayHubQ","0"));
   const ring=home.querySelector<HTMLElement>("#v7TodayRing");
   if(ring)ring.style.setProperty("--v7-progress",(pct*3.6)+"deg");
 
