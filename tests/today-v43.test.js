@@ -30,7 +30,6 @@ test("V7 program görünümü legacy çalışan planı aynalar ve tıklamayı on
   const source=read("src/ui/today-v43.ts");
   assert.match(source,/legacy\.querySelectorAll<HTMLElement>\("\.plancell"\)/);
   assert.match(source,/rows\[index\]\?\.click\(\)/);
-  assert.match(source,/legacyDone\?\.click\(\)/);
   assert.match(source,/MutationObserver/);
   assert.match(source,/yks:data-changed/);
 });
@@ -60,4 +59,18 @@ test("V7 güvenli Today runtime üzerinden yüklenir",()=>{
   assert.match(main,/installV43SafeRuntime/);
   assert.match(safe,/import\("\.\/today-v43"\)/);
   assert.match(safe,/installTodayV43/);
+});
+
+
+test("V7 onaylı fotoğraf hiyerarşisini korur",()=>{
+  const source=read("src/ui/today-v43.ts");
+  const css=read("src/ui/today-v43.css");
+  assert.match(source,/BUGÜN<\/span><h2>Günlük hedef<\/h2>/);
+  assert.match(source,/Günün detayları/);
+  assert.match(source,/BUGÜNKÜ PROGRAM/);
+  assert.match(source,/Bugün ne yapıyorum\?/);
+  assert.doesNotMatch(source,/v7DoneBadge|v7-plan-progress|v7-plan-check|v7-day-done/);
+  assert.match(css,/\.navbar \.nt::after/);
+  assert.match(css,/\.navbar \.searchbtn/);
+  assert.match(css,/\.v7-details/);
 });
