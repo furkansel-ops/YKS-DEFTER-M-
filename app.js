@@ -9166,23 +9166,20 @@ function sozRememberIndex(i){
   if(sozRecentAuthors.length>SOZ_AUTHOR_GUARD)sozRecentAuthors.splice(0,sozRecentAuthors.length-SOZ_AUTHOR_GUARD);
 }
 const LEGACY_SAFE_QUOTES=[
-  "Bugün çözdüğün her soru, sınav günündeki hızına yatırımdır.",
-  "Yanlış yaptığın soruyu öğrenmeden geçme; net artışı çoğu zaman orada başlar.",
-  "Deneme sonucu moral notu değil, çalışma yönünü gösteren veridir.",
-  "Sınava kalan günleri saymak yerine, o günlerin içini doldur.",
-  "Her deneme, gerçek sınavdan önce yapılmış ücretsiz bir provadır.",
-  "Netini yükselten şey yalnızca daha çok soru değil, daha doğru analizdir.",
-  "Bir konu zor geliyorsa kaçma; netini artıracak yer büyük ihtimalle orasıdır.",
-  "Sınavda hız, bugün yaptığın düzenli soru çözümünün sonucudur.",
-  "Her yanlışın yanına bir cümlelik neden yaz; aynı hatayı yakalamak kolaylaşır.",
-  "Sınav hazırlığında istikrar, bir günlük aşırı çalışmadan daha güçlüdür.",
-  "Bir soruda takılı kalmak yerine zamanı yönetmek de sınav becerisidir.",
-  "Bugünün çalışması mükemmel olmak zorunda değil; tamamlanmış olmak zorunda."
+  {q:"Hayal etmeden hiçbir şey olmaz.",a:"Fatih Terim",c:"Teknik Direktör"},
+  {q:"Çok çalışmak da bir yetenektir.",a:"Sir Alex Ferguson",c:"Teknik Direktör"},
+  {q:"Şüphe edenlerden inananlara dönüşmeliyiz.",a:"Jürgen Klopp",c:"Teknik Direktör"},
+  {q:"Yapabileceğine inanmıyorsan zaten hiç şansın yoktur.",a:"Arsène Wenger",c:"Teknik Direktör"},
+  {q:"Bu seviyeye ulaşmak için çok çalışmalısın.",a:"Pep Guardiola",c:"Teknik Direktör"},
+  {q:"Hayalin için çok çalışmalısın.",a:"Lionel Messi",c:"Futbolcu"},
+  {q:"Fedakârlık olmadan hiçbir şey başaramazsın.",a:"Cristiano Ronaldo",c:"Futbolcu"},
+  {q:"Bulunduğum yere gelmek için gerçekten çok çalıştım.",a:"Luka Modrić",c:"Futbolcu"},
+  {q:"Her gün işe gelip kendimi zorlamak beni harekete geçiriyor.",a:"Mohamed Salah",c:"Futbolcu"},
+  {q:"Bütün sezon boyunca çok çalışmalısın.",a:"Ferran Torres",c:"Futbolcu"}
 ];
 let legacySafeQuoteIndex=sozRand(LEGACY_SAFE_QUOTES.length);
 function legacySafeQuote(){
-  const q=LEGACY_SAFE_QUOTES[legacySafeQuoteIndex]||LEGACY_SAFE_QUOTES[0]||"";
-  return {q:q,a:"YKS",c:"YKS"};
+  return LEGACY_SAFE_QUOTES[legacySafeQuoteIndex]||LEGACY_SAFE_QUOTES[0]||{q:"",a:"",c:"Futbol"};
 }
 function legacySafeQuoteNext(){
   if(LEGACY_SAFE_QUOTES.length<=1){legacySafeQuoteIndex=0;return legacySafeQuoteIndex;}
@@ -9205,7 +9202,7 @@ function sozIndex(){
 }
 function gununSozu(){ return legacySafeQuote().q; }
 function yeniSoz(){
-  /* Yeni motivasyon modülü yüklenene kadar yalnız YKS odaklı güvenli fallback kullan. */
+  /* Yeni motivasyon modülü yüklenene kadar yalnız futbolcu ve teknik direktör fallback'i kullan. */
   legacySafeQuoteNext();
   renderSoz();
   return true;
@@ -10960,7 +10957,7 @@ renderSoz=function(){
   const w=el("sozBox");if(!w)return false;
   if(S.sozKapali){w.style.display="none";return true}
   w.style.display="flex";const soz=legacySafeQuote();if(!soz)return false;
-  w.innerHTML='<span class="szwrap"><span class="szlabel">Günün sözü <span class="szcat">YKS</span></span><span class="sz">“'+esc(soz.q)+'”</span><span class="sza">— YKS</span></span><button class="szr" type="button" onclick="yeniSoz()" title="Başka bir söz" aria-label="Başka bir söz">↻</button>';
+  w.innerHTML='<span class="szwrap"><span class="szlabel">Günün sözü <span class="szcat">'+esc(soz.c||"Futbol")+'</span></span><span class="sz">“'+esc(soz.q)+'”</span><span class="sza">— '+esc(soz.a||"")+'</span></span><button class="szr" type="button" onclick="yeniSoz()" title="Başka bir söz" aria-label="Başka bir söz">↻</button>';
   return true;
 };
 
