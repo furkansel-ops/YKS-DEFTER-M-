@@ -3,6 +3,39 @@
   const READY_FLAG="__YKS_MOTIVATION_QUOTES_READY__";
   const STYLE_HREF="./modules/motivation-quotes-v2.css?v=4.1.0-r2";
 
+  const MOTIVATION_QUOTES=[
+    "Başlamak için mükemmel anı bekleme; başladığın an ilerleme başlar.",
+    "Küçük ama düzenli adımlar, büyük hedefleri ulaşılabilir hale getirir.",
+    "Bugün gösterdiğin çaba, yarınki rahatlığının temelidir.",
+    "Zorlanıyor olman ilerlemediğin anlamına gelmez.",
+    "Bir kötü gün, bütün emeğini geçersiz kılmaz.",
+    "Disiplin, isteğin olmadığı günlerde de devam edebilmektir.",
+    "Hedefine yaklaşmanın en güvenilir yolu bugün bir adım atmaktır.",
+    "Kendinle yarış; dünkü halinden biraz daha iyi olman yeter.",
+    "Yavaş ilerlemek, yerinde saymaktan daha iyidir.",
+    "Sonucu kontrol edemezsin ama bugün verdiğin emeği kontrol edebilirsin.",
+    "Vazgeçme isteği geldiğinde neden başladığını hatırla.",
+    "Başarı çoğu zaman görünmeyen küçük tekrarların sonucudur.",
+    "Her gün yeniden başlama hakkın var.",
+    "Bir işi bitirmek, kusursuz yapmaya çalışıp hiç bitirememekten iyidir.",
+    "Kendine verdiğin sözü tutmak özgüveni büyütür.",
+    "Motivasyon geçicidir; alışkanlık seni devam ettirir.",
+    "Bugün yapabildiğinin en iyisini yap; yarın üzerine koyarsın.",
+    "Büyük değişimler çoğu zaman sıradan günlerde yapılan küçük seçimlerle başlar.",
+    "Yorulmak bırakman gerektiği anlamına gelmez; bazen sadece kısa bir mola gerekir.",
+    "İlerlemeni küçümseme; dün yapamadığın bir şeyi bugün yapabiliyorsan gelişiyorsun.",
+    "Kendini başkalarıyla değil, kendi yolunla kıyasla.",
+    "İlk denemede olmaması, olmayacağı anlamına gelmez.",
+    "Sabır, emekle birleştiğinde sonuç üretir.",
+    "Cesaret korkmamak değil, korkuya rağmen devam etmektir.",
+    "Bugünün emeği görünmese bile birikir.",
+    "Kendine güvenmek, her şeyi bilmek değil öğrenebileceğini bilmektir.",
+    "Bir hedefi küçük parçalara bölmek onu daha kolay yönetilebilir yapar.",
+    "Zor günlerde attığın küçük adımlar en çok değer kazananlardır.",
+    "Başarı tek bir büyük hamle değil, tekrar edilen doğru seçimlerdir.",
+    "Düşmek sürecin parçasıdır; önemli olan yeniden ayağa kalkmaktır."
+  ];
+
   const COACH_QUOTES=[
     {q:"Hayal etmeden hiçbir şey olmaz.",a:"Fatih Terim"},
     {q:"Sabredeceğiz ve çok çalışacağız. Yapacak başka bir şey yok.",a:"Fatih Terim"},
@@ -29,8 +62,8 @@
     {q:"Bütün sezon boyunca çok çalışmalısın.",a:"Ferran Torres"}
   ];
 
-  let current={type:"coach",index:-1};
-  const recentCoach=[],recentPlayer=[];
+  let current={type:"motivation",index:-1};
+  const recentMotivation=[],recentCoach=[],recentPlayer=[];
 
   function ensureStyles(){
     if(typeof document==="undefined"||!document.head||typeof document.createElement!=="function")return false;
@@ -52,12 +85,14 @@
   }
   function pick(){
     const roll=rand(100);
-    if(roll<50)current={type:"coach",index:pickIndex(COACH_QUOTES,recentCoach)};
+    if(roll<50)current={type:"motivation",index:pickIndex(MOTIVATION_QUOTES,recentMotivation)};
+    else if(roll<75)current={type:"coach",index:pickIndex(COACH_QUOTES,recentCoach)};
     else current={type:"player",index:pickIndex(PLAYER_QUOTES,recentPlayer)};
     return current;
   }
   function item(){
     if(current.index<0)pick();
+    if(current.type==="motivation")return {q:MOTIVATION_QUOTES[current.index]||"",a:"",type:"motivation"};
     if(current.type==="coach")return {q:COACH_QUOTES[current.index]?.q||"",a:COACH_QUOTES[current.index]?.a||"",type:"coach"};
     return {q:PLAYER_QUOTES[current.index]?.q||"",a:PLAYER_QUOTES[current.index]?.a||"",type:"player"};
   }
@@ -67,19 +102,21 @@
       setTimeout(boot,50);return;
     }
     ensureStyles();
-    window[READY_FLAG]={version:"2.4.0",coachPool:COACH_QUOTES.length,playerPool:PLAYER_QUOTES.length,scope:"football-only",style:"v2"};
+    window[READY_FLAG]={version:"2.5.0",motivationPool:MOTIVATION_QUOTES.length,coachPool:COACH_QUOTES.length,playerPool:PLAYER_QUOTES.length,scope:"motivation+football",style:"v2"};
     gununSozu=function(){return item().q;};
     yeniSoz=function(){pick();renderSoz();return true;};
     renderSoz=function(){
       const w=el("sozBox");if(!w)return false;
       if(S.sozKapali){w.style.display="none";return true;}
-      const x=item(),cat=x.type==="coach"?"Teknik Direktör":"Futbolcu";
+      const x=item(),cat=x.type==="motivation"?"Motivasyon":x.type==="coach"?"Teknik Direktör":"Futbolcu";
       w.style.display="flex";
       if(w.dataset)w.dataset.quoteType=x.type;
       if(typeof w.setAttribute==="function"){
-        const aria=x.type==="coach"
-          ?"Teknik direktör motivasyon sözü"
-          :"Futbolcu motivasyon sözü";
+        const aria=x.type==="motivation"
+          ?"Genel motivasyon sözü"
+          :x.type==="coach"
+            ?"Teknik direktör motivasyon sözü"
+            :"Futbolcu motivasyon sözü";
         w.setAttribute("role","group");
         w.setAttribute("aria-label",aria);
       }
@@ -87,7 +124,7 @@
       return true;
     };
     pick();
-    try{renderSoz();}catch(e){try{infraError("football-quotes-render",e);}catch(_){}}
+    try{renderSoz();}catch(e){try{infraError("motivation-football-quotes-render",e);}catch(_){}}
   }
 
   ensureStyles();
