@@ -75,6 +75,9 @@ async function loadAll():Promise<V43RuntimeReport>{
   features.push(await loadFeature("v43Personalization","v43PersonalizationErrors",async()=>{
     const mod=await import("./personalization-v43");return mod.installPersonalizationV43();
   }));
+  features.push(await loadFeature("v5Settings","v5SettingsErrors",async()=>{
+    const mod=await import("./settings-v5");return mod.installSettingsV5();
+  }));
   features.push(await loadFeature("v43FocusSessionGuard","v43FocusSessionGuardErrors",async()=>{
     const mod=await import("./focus-session-guard-v43");return mod.installFocusSessionGuardV43();
   }));
