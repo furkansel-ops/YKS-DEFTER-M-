@@ -32,11 +32,11 @@ test("İstatistikler V5 hesaplama veya çalışma verisini değiştirmez",()=>{
 });
 
 test("İstatistikler V5 ekran açılışında lazy ve fail-open yüklenir",()=>{
-  const screen=read("src/ui/screens/progress.ts");
+  const lazy=read("src/ui/analysis-center-v43.ts");
   const css=read("src/ui/progress-v5.css");
-  assert.match(screen,/import\("\.\.\/progress-v5"\)/);
-  assert.match(screen,/installProgressV5/);
-  assert.match(screen,/\.catch\(\(\)=>\{\}\)/);
+  assert.match(lazy,/import\("\.\/progress-v5"\)/);
+  assert.match(lazy,/installProgressV5/);
+  assert.match(lazy,/\.catch\(\(\)=>\{\}\)/);
   assert.match(css,/\.v5-progress-visuals/);
   assert.match(css,/\.v5-progress-kpis/);
   assert.match(css,/\.v5-progress-insight-grid/);
