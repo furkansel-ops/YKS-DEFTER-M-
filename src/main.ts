@@ -22,7 +22,6 @@ import {installTeachersV2} from "./ui/teachers-v2";
 import "./ui/visual-stability-hotfix.css";
 import "./ui/recent-feature-stability.css";
 import "./ui/topics-toolbar-hotfix.css";
-import {installYksV2Shell} from "./ui/yks-v2-shell";
 
 type BootstrapState={
   version:typeof RELEASE_VERSION;
@@ -163,12 +162,20 @@ const paragraphProblem=installOptional(
 );
 const screens=installScreenRuntime();
 const ui=installLegacyUiBridge(screens);
-const v2Shell=installOptional(
-  "yks-v2-shell",
-  ()=>installYksV2Shell(),
-  {installed:false,version:"deferred",openPlanner:()=>{},refresh:()=>{}}
-);
-document.documentElement.dataset.yksV2Shell=v2Shell.installed?"ready":"deferred";
+document.documentElement.dataset.yksV2Shell="loading";
+void import("./ui/yks-v2-shell")
+  .then(({installYksV2Shell})=>{
+    const shell=installOptional(
+      "yks-v2-shell",
+      ()=>installYksV2Shell(),
+      {installed:false,version:"deferred",openPlanner:()=>{},refresh:()=>{}}
+    );
+    document.documentElement.dataset.yksV2Shell=shell.installed?"ready":"deferred";
+  })
+  .catch(error=>{
+    document.documentElement.dataset.yksV2Shell="deferred";
+    console.error("YKS V2 arayüz katmanı yüklenemedi",error);
+  });
 const teachersV2=installOptional(
   "teachers-v2",
   ()=>installTeachersV2(),
