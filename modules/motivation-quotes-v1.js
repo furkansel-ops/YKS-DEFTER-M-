@@ -1,7 +1,7 @@
 (function(){
   "use strict";
   const READY_FLAG="__YKS_MOTIVATION_QUOTES_READY__";
-  const STYLE_HREF="./modules/motivation-quotes-v2.css?v=4.1.0-r1";
+  const STYLE_HREF="./modules/motivation-quotes-v2.css?v=4.1.0-r2";
 
   const EXAM_QUOTES=[
     "Bugün çözdüğün her soru, sınav günündeki hızına yatırımdır.",
@@ -94,11 +94,24 @@
     {q:"Birlikte büyük şeyler başarabileceğimize inanmanızı istiyorum.",a:"Jürgen Klopp"},
     {q:"Olumlu olun ve oyunu yaşamaya bakın.",a:"Jürgen Klopp"},
     {q:"Yapabileceğine inanmıyorsan zaten hiç şansın yoktur.",a:"Arsène Wenger"},
-    {q:"Başarı, her gün aynı ciddiyetle çalışmayı gerektirir.",a:"Arsène Wenger"}
+    {q:"Başarı, her gün aynı ciddiyetle çalışmayı gerektirir.",a:"Arsène Wenger"},
+    {q:"Bu seviyeye ulaşmak için çok çalışmalısın.",a:"Pep Guardiola"},
+    {q:"Tarihin neredeyse imkânsız dediği şeyi denemek zorundayız.",a:"Carlo Ancelotti"}
+  ];
+
+  const PLAYER_QUOTES=[
+    {q:"Hayalin için çok çalışmalısın.",a:"Lionel Messi"},
+    {q:"Başarı için fedakârlık etmeli, çok çalışmalı ve biraz da şanslı olmalısın.",a:"Lionel Messi"},
+    {q:"Fedakârlık olmadan hiçbir şey başaramazsın.",a:"Cristiano Ronaldo"},
+    {q:"Her zaman gelişmek ve en üst seviyede olmak istiyorum.",a:"Cristiano Ronaldo"},
+    {q:"Bulunduğum yere gelmek için gerçekten çok çalıştım.",a:"Luka Modrić"},
+    {q:"Ne kadar zor olsa da burada başarılı olmak istediğimi hep biliyordum.",a:"Andrés Iniesta"},
+    {q:"Her gün işe gelip kendimi zorlamak beni harekete geçiriyor.",a:"Mohamed Salah"},
+    {q:"Bütün sezon boyunca çok çalışmalısın.",a:"Ferran Torres"}
   ];
 
   let current={type:"exam",index:-1};
-  const recentExam=[],recentCoach=[];
+  const recentExam=[],recentCoach=[],recentPlayer=[];
 
   function ensureStyles(){
     if(typeof document==="undefined"||!document.head||typeof document.createElement!=="function")return false;
@@ -119,15 +132,16 @@
     recent.push(i);if(recent.length>5)recent.shift();return i;
   }
   function pick(){
-    const coach=rand(100)<35;
-    current=coach
-      ?{type:"coach",index:pickIndex(COACH_QUOTES,recentCoach)}
-      :{type:"exam",index:pickIndex(EXAM_QUOTES,recentExam)};
+    const roll=rand(100);
+    if(roll<60)current={type:"exam",index:pickIndex(EXAM_QUOTES,recentExam)};
+    else if(roll<80)current={type:"coach",index:pickIndex(COACH_QUOTES,recentCoach)};
+    else current={type:"player",index:pickIndex(PLAYER_QUOTES,recentPlayer)};
     return current;
   }
   function item(){
     if(current.index<0)pick();
     if(current.type==="coach")return {q:COACH_QUOTES[current.index]?.q||"",a:COACH_QUOTES[current.index]?.a||"",type:"coach"};
+    if(current.type==="player")return {q:PLAYER_QUOTES[current.index]?.q||"",a:PLAYER_QUOTES[current.index]?.a||"",type:"player"};
     return {q:EXAM_QUOTES[current.index]||"",a:"",type:"exam"};
   }
 
@@ -136,18 +150,23 @@
       setTimeout(boot,50);return;
     }
     ensureStyles();
-    window[READY_FLAG]={version:"2.2.0",examPool:EXAM_QUOTES.length,coachPool:COACH_QUOTES.length,scope:"YKS+coaches",style:"v2"};
+    window[READY_FLAG]={version:"2.3.0",examPool:EXAM_QUOTES.length,coachPool:COACH_QUOTES.length,playerPool:PLAYER_QUOTES.length,scope:"YKS+football",style:"v2"};
     gununSozu=function(){return item().q;};
     yeniSoz=function(){pick();renderSoz();return true;};
     renderSoz=function(){
       const w=el("sozBox");if(!w)return false;
       if(S.sozKapali){w.style.display="none";return true;}
-      const x=item(),cat=x.type==="coach"?"Teknik Direktör":"YKS";
+      const x=item(),cat=x.type==="coach"?"Teknik Direktör":x.type==="player"?"Futbolcu":"YKS";
       w.style.display="flex";
       if(w.dataset)w.dataset.quoteType=x.type;
       if(typeof w.setAttribute==="function"){
+        const aria=x.type==="coach"
+          ?"Teknik direktör motivasyon sözü"
+          :x.type==="player"
+            ?"Futbolcu motivasyon sözü"
+            :"YKS çalışma motivasyon sözü";
         w.setAttribute("role","group");
-        w.setAttribute("aria-label",x.type==="coach"?"Teknik direktör motivasyon sözü":"YKS çalışma motivasyon sözü");
+        w.setAttribute("aria-label",aria);
       }
       w.innerHTML='<span class="szwrap" aria-live="polite" aria-atomic="true"><span class="szlabel">Günün sözü <span class="szcat">'+cat+'</span></span><span class="sz">“'+esc(x.q)+'”</span>'+(x.a?'<span class="sza">— '+esc(x.a)+'</span>':'')+'</span><button class="szr" type="button" onclick="yeniSoz()" title="Başka bir motivasyon sözü" aria-label="Başka bir motivasyon sözü">↻</button>';
       return true;
