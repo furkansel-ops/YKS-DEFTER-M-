@@ -1286,6 +1286,7 @@ html[data-active-screen="home"] .tabbar>.tab.active,body:has(#home.active) .tabb
   html[data-active-screen="home"] body,
   body:has(#home.active){
     padding-left:var(--rail)!important;
+    padding-top:0!important;
   }
   html[data-active-screen="home"] .tabbar,
   body:has(#home.active) .tabbar{
