@@ -17,7 +17,7 @@ Bu dal, v4.4.0 web uygulamasını Capacitor tabanlı Android App Bundle olarak p
 - Manuel YKS çalışma programı, konu takibi, deneme analizi ve odak araçları korunur.
 - Öğrenme Laboratuvarı; 9 organ / 52 yapılık Biyoloji Atlası, AYT görsel konu haritaları, 16 fizik kartına bağlı etkileşimli deneyler, kimya molekül/bağ görselleri, periyodik tablo karşılaştırması ve kronoloji akışı içerir.
 - Büyük 3B anatomi motoru ve laboratuvar katmanları ihtiyaç halinde yüklenir; ana açılış paketine alınmaz.
-- Program tamamen manuel kalır. Öğrenme ve analiz katmanları Program'a görev eklemez, silmez veya düzenlemez.
+- Program manuel düzenlemeyi korur. Kullanıcının açıkça başlattığı “Akıllı Oluştur” yalnız önizleme ve son onaydan sonra mevcut Program hücrelerine yazar; öğrenme ve analiz katmanları kendiliğinden görev eklemez, silmez veya düzenlemez.
 - Veri şeması 21 ve mevcut yerel veri/yedek uyumluluğu korunur.
 
 ## Play Store hazırlığı
