@@ -13,5 +13,6 @@ export const progressScreen:ScreenModule={
     progressLegacyAdapter.render(environment);
     renderAnalysisCenterV43();
     renderProgressDashboard();
+    void import("../progress-v5").then(mod=>{mod.installProgressV5();}).catch(()=>{});
   }
 };
