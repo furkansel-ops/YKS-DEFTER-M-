@@ -9166,6 +9166,11 @@ function sozRememberIndex(i){
   if(sozRecentAuthors.length>SOZ_AUTHOR_GUARD)sozRecentAuthors.splice(0,sozRecentAuthors.length-SOZ_AUTHOR_GUARD);
 }
 const LEGACY_SAFE_QUOTES=[
+  {q:"Başlamak için mükemmel anı bekleme; başladığın an ilerleme başlar.",a:"",c:"Motivasyon"},
+  {q:"Küçük ama düzenli adımlar, büyük hedefleri ulaşılabilir hale getirir.",a:"",c:"Motivasyon"},
+  {q:"Bir kötü gün, bütün emeğini geçersiz kılmaz.",a:"",c:"Motivasyon"},
+  {q:"Motivasyon geçicidir; alışkanlık seni devam ettirir.",a:"",c:"Motivasyon"},
+  {q:"Başarı çoğu zaman görünmeyen küçük tekrarların sonucudur.",a:"",c:"Motivasyon"},
   {q:"Hayal etmeden hiçbir şey olmaz.",a:"Fatih Terim",c:"Teknik Direktör"},
   {q:"Çok çalışmak da bir yetenektir.",a:"Sir Alex Ferguson",c:"Teknik Direktör"},
   {q:"Şüphe edenlerden inananlara dönüşmeliyiz.",a:"Jürgen Klopp",c:"Teknik Direktör"},
@@ -9179,7 +9184,7 @@ const LEGACY_SAFE_QUOTES=[
 ];
 let legacySafeQuoteIndex=sozRand(LEGACY_SAFE_QUOTES.length);
 function legacySafeQuote(){
-  return LEGACY_SAFE_QUOTES[legacySafeQuoteIndex]||LEGACY_SAFE_QUOTES[0]||{q:"",a:"",c:"Futbol"};
+  return LEGACY_SAFE_QUOTES[legacySafeQuoteIndex]||LEGACY_SAFE_QUOTES[0]||{q:"",a:"",c:"Motivasyon"};
 }
 function legacySafeQuoteNext(){
   if(LEGACY_SAFE_QUOTES.length<=1){legacySafeQuoteIndex=0;return legacySafeQuoteIndex;}
@@ -9202,7 +9207,7 @@ function sozIndex(){
 }
 function gununSozu(){ return legacySafeQuote().q; }
 function yeniSoz(){
-  /* Yeni motivasyon modülü yüklenene kadar yalnız futbolcu ve teknik direktör fallback'i kullan. */
+  /* Yeni motivasyon modülü yüklenene kadar temiz motivasyon + futbol fallback'i kullan. */
   legacySafeQuoteNext();
   renderSoz();
   return true;
@@ -9214,7 +9219,7 @@ function renderSoz(){
   w.style.display="flex";
   const soz=legacySafeQuote();
   w.innerHTML='<span class="szwrap"><span class="sz">“'+esc(soz.q)+'”</span>'+
-    '<span class="sza">— '+esc(soz.a)+'</span></span>'+
+    (soz.a?'<span class="sza">— '+esc(soz.a)+'</span>':'')+'</span>'+
     '<button class="szr" onclick="yeniSoz()" title="Başka bir söz" aria-label="Başka bir söz">↻</button>';
 }
 function toggleSoz(){
@@ -10957,7 +10962,7 @@ renderSoz=function(){
   const w=el("sozBox");if(!w)return false;
   if(S.sozKapali){w.style.display="none";return true}
   w.style.display="flex";const soz=legacySafeQuote();if(!soz)return false;
-  w.innerHTML='<span class="szwrap"><span class="szlabel">Günün sözü <span class="szcat">'+esc(soz.c||"Futbol")+'</span></span><span class="sz">“'+esc(soz.q)+'”</span><span class="sza">— '+esc(soz.a||"")+'</span></span><button class="szr" type="button" onclick="yeniSoz()" title="Başka bir söz" aria-label="Başka bir söz">↻</button>';
+  w.innerHTML='<span class="szwrap"><span class="szlabel">Günün sözü <span class="szcat">'+esc(soz.c||"Motivasyon")+'</span></span><span class="sz">“'+esc(soz.q)+'”</span>'+(soz.a?'<span class="sza">— '+esc(soz.a)+'</span>':'')+'</span><button class="szr" type="button" onclick="yeniSoz()" title="Başka bir söz" aria-label="Başka bir söz">↻</button>';
   return true;
 };
 
