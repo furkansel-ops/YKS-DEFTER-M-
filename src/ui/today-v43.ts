@@ -3,6 +3,7 @@ import "./today-v43.css";
 type AppWindow=Window&{
   go?:(screen:string)=>unknown;
   openGun?:()=>unknown;
+  openGlobalSearch?:()=>unknown;
   saveJournal?:()=>unknown;
   shareCard?:()=>unknown;
 };
@@ -20,12 +21,28 @@ function dateText():string{
 }
 function subjectTone(value:string):string{
   const text=value.toLocaleLowerCase("tr-TR");
-  if(text.includes("matematik"))return "math";
+  if(text.includes("matematik")||text.includes("geometri")||text.includes("problem"))return "math";
   if(text.includes("fizik"))return "physics";
   if(text.includes("kimya"))return "chemistry";
   if(text.includes("biyoloji"))return "biology";
-  if(text.includes("türk")||text.includes("paragraf"))return "turkish";
+  if(text.includes("türk")||text.includes("paragraf")||text.includes("edebiyat"))return "turkish";
+  if(text.includes("deneme"))return "exam";
   return "other";
+}
+function subjectIcon(tone:string):string{
+  if(tone==="math")return "∑";
+  if(tone==="physics")return "⚛";
+  if(tone==="chemistry")return "⚗";
+  if(tone==="biology")return "⌁";
+  if(tone==="turkish")return "▤";
+  if(tone==="exam")return "≡";
+  return "•";
+}
+function taskParts(value:string):{detail:string;time:string}{
+  const raw=value.trim();
+  const match=raw.match(/(?:^|\s)(\d{1,2}:\d{2}\s*(?:[-–]\s*\d{1,2}:\d{2})?)(?:\s|$)/);
+  if(!match)return {detail:raw,time:""};
+  return {detail:raw.replace(match[0]," ").replace(/\s{2,}/g," ").trim(),time:(match[1]||"").replace(/-/g,"–")};
 }
 function makeBridge(home:HTMLElement):HTMLElement{
   const existing=home.querySelector<HTMLElement>(":scope > .v7-home-legacy");
@@ -51,22 +68,15 @@ function metric(label:string,id:string,subId:string):HTMLElement{
 function createHeader():HTMLElement{
   const header=document.createElement("header");
   header.className="v7-home-header";
-  header.innerHTML='<div class="v7-greeting"><span>BUGÜN</span><h1>Merhaba</h1><p>Bugünkü odağın net olsun; gerisi sırayla gelir.</p></div><div class="v7-date"><span>BUGÜN</span><b></b></div>';
-  const date=header.querySelector(".v7-date b");
+  header.innerHTML='<div class="v7-brand-row"><div class="v7-brand" aria-label="YKS Defterim"><i class="v7-brand-mark" aria-hidden="true">Y</i><span><b>YKS <em>Defterim</em></b><small>Daha planlı, daha güçlü, daha sen.</small></span></div><div class="v7-header-tools"><button type="button" data-v7-search aria-label="Uygulamada ara">⌕</button><button type="button" data-v7-profile aria-label="Daha fazla">●</button></div></div><div class="v7-day-row"><div class="v7-greeting"><span>ANA SAYFA</span><h1>Bugün</h1><p data-v7-date-label></p></div><button type="button" class="v7-date" data-open-program><span aria-hidden="true">▣</span><b>Bugünün Planı</b><em>⌄</em></button></div>';
+  const date=header.querySelector<HTMLElement>("[data-v7-date-label]");
   if(date)date.textContent=dateText();
   return header;
 }
 function createGoal():HTMLElement{
   const card=document.createElement("section");
   card.className="v7-card v7-goal";
-  card.innerHTML='<header><div><span>BUGÜN</span><h2>Günlük hedef</h2></div></header><div class="v7-metrics"></div><button type="button" class="v7-details" data-day-details>Günün detayları</button>';
-  const grid=card.querySelector<HTMLElement>(".v7-metrics");
-  grid?.append(
-    metric("Soru","todayHubQ","todayHubQSub"),
-    metric("Odak","todayHubMin","todayHubMinSub"),
-    metric("Program","todayHubPlan","todayHubPlanSub"),
-    metric("Tekrar","todayHubReview","todayHubReviewSub")
-  );
+  card.innerHTML='<div class="v7-hero-panel"><div class="v7-hero-copy"><span>BUGÜN</span><h2>Günlük hedef</h2><h3>Bugün de hedeflerine<br>bir adım daha yaklaş!</h3><p>Disiplin, hayallerini gerçeğe dönüştürür.</p><button type="button" class="v7-details" data-day-details>Günün detayları</button></div><div class="v7-hero-progress" id="v7TodayRing" style="--v7-progress:0deg"><div><b id="v7TodayPct">%0</b><span>Bugünkü<br>ilerleme</span></div></div><div class="v7-hero-art" aria-hidden="true"><i></i><i></i><i></i></div></div><div class="v7-metrics"><article class="v7-metric target"><i>◎</i><span><small>Günlük Hedef</small><b id="v7TargetCount">0 görev</b><em>Planlanan çalışma</em></span></article><article class="v7-metric done"><i>✓</i><span><small>Tamamlanan</small><b id="v7DoneCount">0 görev</b><em id="v7DoneSub">%0 tamamlandı</em></span></article><article class="v7-metric focus"><i>◷</i><span><small>Çalışma Süresi</small><b id="v7FocusMinutes">0 dk</b><em>Bugünkü odak</em></span></article></div>';
   card.querySelector<HTMLButtonElement>("[data-day-details]")?.addEventListener("click",()=>{
     (window as AppWindow).openGun?.();
   });
@@ -76,7 +86,7 @@ function createProgram():HTMLElement{
   const card=document.createElement("section");
   card.className="v7-card v7-program";
   card.dataset.v7Program="true";
-  card.innerHTML='<header class="v7-card-head"><div><span>BUGÜNKÜ PROGRAM</span><h2>Bugün ne yapıyorum?</h2></div><button type="button" data-open-program>Tüm program</button></header><div class="v7-plan-list"></div>';
+  card.innerHTML='<header class="v7-card-head"><div><span>BUGÜNKÜ PROGRAM</span><h2>Bugünkü Planım</h2><p>Bugün ne yapıyorum?</p></div><button type="button" data-open-program><b id="v7ProgramCount">0 görev</b><em>›</em></button></header><div class="v7-plan-list"></div>';
   card.querySelector<HTMLButtonElement>("[data-open-program]")?.addEventListener("click",()=>{
     (window as AppWindow).go?.("program");
   });
@@ -85,21 +95,7 @@ function createProgram():HTMLElement{
 function createQuick():HTMLElement{
   const card=document.createElement("section");
   card.className="v7-card v7-quick";
-  card.innerHTML='<header><span>HIZLI İŞLEMLER</span><h2>Devam et</h2></header><div class="v7-quick-grid"></div>';
-  const grid=card.querySelector<HTMLElement>(".v7-quick-grid");
-  const items=[
-    ["program","▦","Programım","Bugünkü planı düzenle"],
-    ["pomo","◎","Çalış","Odak oturumu başlat"],
-    ["notes","✎","Notlarım","Günün notunu yaz"],
-    ["progress","⌁","İstatistik","Gelişimini incele"]
-  ] as const;
-  for(const [route,icon,title,copy] of items){
-    const button=document.createElement("button");
-    button.type="button";
-    button.dataset.route=route;
-    button.innerHTML="<i>"+icon+"</i><span><b>"+title+"</b><small>"+copy+"</small></span><em>›</em>";
-    grid?.appendChild(button);
-  }
+  card.innerHTML='<header><span>HIZLI İŞLEMLER</span><h2>Devam et</h2></header><div class="v7-bottom-grid"><button type="button" class="v7-focus-card" data-route="pomo"><i>◉</i><span><b>Odak Oturumu</b><small>25 dk odaklan, 5 dk mola</small><em>▶ Pomodoroyu Başlat</em></span></button><button type="button" class="v7-note-card" data-route="notes"><i>✎</i><span><b>Günün Notu</b><small id="v7NotePreview">Bugünün kısa notunu ekle.</small><em>Notlarım ›</em></span></button></div><div class="v7-quick-grid"><button type="button" data-route="program"><i>▦</i><span><b>Programım</b><small>Planı düzenle</small></span><em>›</em></button><button type="button" data-route="progress"><i>⌁</i><span><b>İstatistik</b><small>Gelişimini incele</small></span><em>›</em></button></div>';
   return card;
 }
 function createCountdown():HTMLElement{
@@ -150,6 +146,15 @@ function closeNotes(home:HTMLElement):void{
   document.documentElement.classList.remove("v7-note-open");
 }
 function bindActions(home:HTMLElement):void{
+  home.querySelectorAll<HTMLButtonElement>("[data-open-program]").forEach(button=>button.addEventListener("click",()=>{
+    (window as AppWindow).go?.("program");
+  }));
+  home.querySelector<HTMLButtonElement>("[data-v7-search]")?.addEventListener("click",()=>{
+    (window as AppWindow).openGlobalSearch?.();
+  });
+  home.querySelector<HTMLButtonElement>("[data-v7-profile]")?.addEventListener("click",()=>{
+    (window as AppWindow).go?.("more");
+  });
   home.querySelector(".v7-quick")?.addEventListener("click",event=>{
     const button=(event.target as Element|null)?.closest<HTMLButtonElement>("button[data-route]");
     if(!button)return;
@@ -166,6 +171,7 @@ function bindActions(home:HTMLElement):void{
     const legacy=byId<HTMLTextAreaElement>("journalInput");
     if(input&&legacy)legacy.value=input.value;
     (window as AppWindow).saveJournal?.();
+    syncNotePreview(home);
     closeNotes(home);
   });
   home.querySelector("[data-note-share]")?.addEventListener("click",()=>{
@@ -173,17 +179,14 @@ function bindActions(home:HTMLElement):void{
   });
   window.addEventListener("keydown",event=>{if(event.key==="Escape")closeNotes(home);});
 }
-function syncMetrics(home:HTMLElement):void{
-  const greeting=home.querySelector<HTMLElement>(".v7-greeting h1");
-  if(greeting)greeting.textContent=txt("greeting","Merhaba");
-  home.querySelectorAll<HTMLElement>(".v7-metric").forEach(item=>{
-    const valueId=item.dataset.valueId||"";
-    const subId=item.dataset.subId||"";
-    const value=item.querySelector("b");
-    const sub=item.querySelector("small");
-    if(value)value.textContent=txt(valueId,"—");
-    if(sub)sub.textContent=txt(subId,"—");
-  });
+function syncHeader(home:HTMLElement):void{
+  const date=home.querySelector<HTMLElement>("[data-v7-date-label]");
+  if(date)date.textContent=dateText();
+}
+function syncNotePreview(home:HTMLElement):void{
+  const preview=home.querySelector<HTMLElement>("#v7NotePreview");
+  const note=(byId<HTMLTextAreaElement>("journalInput")?.value||"").trim();
+  if(preview)preview.textContent=note?note.slice(0,84)+(note.length>84?"…":""):"Bugünün kısa notunu ekle.";
 }
 function syncCountdown(home:HTMLElement):void{
   const set=(selector:string,value:string)=>{const node=home.querySelector<HTMLElement>(selector);if(node)node.textContent=value;};
@@ -201,39 +204,75 @@ function syncPlan(home:HTMLElement):void{
   if(!legacy||!list)return;
 
   const rows=Array.from(legacy.querySelectorAll<HTMLElement>(".plancell"));
+  const doneCount=rows.filter(row=>row.classList.contains("pd")).length;
+  const currentIndex=rows.findIndex(row=>!row.classList.contains("pd"));
+  const pct=rows.length?Math.round(doneCount/rows.length*100):0;
+  const set=(selector:string,value:string)=>{const node=home.querySelector<HTMLElement>(selector);if(node)node.textContent=value;};
+  set("#v7TargetCount",rows.length+" görev");
+  set("#v7DoneCount",doneCount+" görev");
+  set("#v7DoneSub","%"+pct+" tamamlandı");
+  set("#v7ProgramCount",rows.length+" görev");
+  set("#v7TodayPct","%"+pct);
+  set("#v7FocusMinutes",txt("todayHubMin","0 dk"));
+  const ring=home.querySelector<HTMLElement>("#v7TodayRing");
+  if(ring)ring.style.setProperty("--v7-progress",(pct*3.6)+"deg");
+
   list.replaceChildren();
   if(!rows.length){
     const empty=document.createElement("div");
     empty.className="v7-plan-empty";
-    empty.innerHTML="<b>Bugün için görev görünmüyor.</b><span>Programım ekranından bugüne görev ekleyebilirsin.</span>";
+    empty.innerHTML='<i>▦</i><b>Bugün için görev görünmüyor.</b><span>Programım ekranından bugüne görev ekleyebilirsin.</span><button type="button">Programı aç</button>';
+    empty.querySelector("button")?.addEventListener("click",()=>{(window as AppWindow).go?.("program");});
     list.appendChild(empty);
     return;
   }
 
   rows.forEach((row,index)=>{
     const label=(row.querySelector(".pl")?.textContent||row.querySelector("b")?.textContent||"Görev").trim();
-    const task=(row.querySelector(".pt")?.textContent||row.querySelector("small")?.textContent||"").trim();
+    const rawTask=(row.querySelector(".pt")?.textContent||row.querySelector("small")?.textContent||"").trim();
+    const parts=taskParts(rawTask);
+    const done=row.classList.contains("pd");
+    const current=!done&&index===currentIndex;
+    const tone=subjectTone(label+" "+parts.detail);
     const item=document.createElement("article");
     item.className="v7-plan-item";
-    item.classList.toggle("done",row.classList.contains("pd"));
-    item.dataset.tone=subjectTone(label+" "+task);
-    item.innerHTML='<div><b></b><span></span></div><div class="v7-plan-tools"></div>';
-    const b=item.querySelector("b"),span=item.querySelector("span");
+    item.classList.toggle("done",done);
+    item.classList.toggle("current",current);
+    item.dataset.tone=tone;
+    item.innerHTML='<button type="button" class="v7-plan-status" aria-label="Görevin tamamlanma durumunu değiştir"><span>✓</span></button><div class="v7-plan-main"><i class="v7-subject-icon" aria-hidden="true"></i><div class="v7-plan-copy"><b></b><span></span><small></small></div></div><div class="v7-plan-tools"></div>';
+    const icon=item.querySelector<HTMLElement>(".v7-subject-icon");
+    const b=item.querySelector<HTMLElement>(".v7-plan-copy b");
+    const detail=item.querySelector<HTMLElement>(".v7-plan-copy span");
+    const time=item.querySelector<HTMLElement>(".v7-plan-copy small");
+    if(icon)icon.textContent=subjectIcon(tone);
     if(b)b.textContent=label;
-    if(span)span.textContent=task||"Plan görevi";
+    if(detail)detail.textContent=parts.detail||"Plan görevi";
+    if(time)time.textContent=parts.time||"Bugünkü plan";
+
+    item.querySelector<HTMLButtonElement>(".v7-plan-status")?.addEventListener("click",event=>{
+      event.stopPropagation();
+      rows[index]?.click();
+    });
 
     const tools=item.querySelector<HTMLElement>(".v7-plan-tools");
     const video=row.querySelector<HTMLButtonElement>(".cvid");
-    if(video){
-      const btn=document.createElement("button");btn.type="button";btn.textContent="▶";btn.title="Videoyu aç";
-      btn.addEventListener("click",event=>{event.stopPropagation();video.click();});
-      tools?.appendChild(btn);
-    }
     const tomorrow=row.querySelector<HTMLButtonElement>(".plan-tomorrow");
-    if(tomorrow){
-      const btn=document.createElement("button");btn.type="button";btn.textContent="Yarın";btn.title="Yarına taşı";
-      btn.addEventListener("click",event=>{event.stopPropagation();tomorrow.click();});
+    if(done){
+      const badge=document.createElement("span");badge.className="v7-plan-done";badge.textContent="✓ Tamamlandı";tools?.appendChild(badge);
+    }else if(current){
+      const btn=document.createElement("button");btn.type="button";btn.className="v7-plan-continue";btn.textContent="▶ Şimdi Devam Et";
+      btn.addEventListener("click",event=>{event.stopPropagation();if(video)video.click();else (window as AppWindow).go?.("pomo");});
       tools?.appendChild(btn);
+    }else{
+      if(video){
+        const btn=document.createElement("button");btn.type="button";btn.className="v7-tool-icon";btn.textContent="▶";btn.title="Videoyu aç";
+        btn.addEventListener("click",event=>{event.stopPropagation();video.click();});tools?.appendChild(btn);
+      }
+      const arrow=document.createElement("span");arrow.className="v7-plan-arrow";arrow.textContent="›";tools?.appendChild(arrow);
+    }
+    if(tomorrow){
+      const btn=document.createElement("button");btn.type="button";btn.className="v7-tomorrow";btn.textContent="Yarın";btn.title="Yarına taşı";
+      btn.addEventListener("click",event=>{event.stopPropagation();tomorrow.click();});tools?.appendChild(btn);
     }
     item.addEventListener("click",event=>{
       if((event.target as Element).closest("button"))return;
@@ -243,9 +282,10 @@ function syncPlan(home:HTMLElement):void{
   });
 }
 function syncAll(home:HTMLElement):void{
-  syncMetrics(home);
+  syncHeader(home);
   syncCountdown(home);
   syncPlan(home);
+  syncNotePreview(home);
 }
 function observeLegacy(home:HTMLElement,bridge:HTMLElement):void{
   let queued=false;
