@@ -304,7 +304,7 @@ function renderTasks(shell:HTMLElement):void{
   set("[data-v45-done]",done+" tamamlandı");
   set("[data-v45-duration]",fmtMinutes(total));
   set("[data-v45-progress]",done+" / "+list.length+" tamamlandı");
-  const fill=shell.querySelector<HTMLElement>("[data-v45-progress-fill]");if(fill)fill.style.width=pct+"%";
+  const progressFill=shell.querySelector<HTMLElement>("[data-v45-progress-fill]");if(progressFill)progressFill.style.width=pct+"%";
   const date=dayDate();
   set("[data-v45-day-title]",`${date.getDate()} ${MONTHS[date.getMonth()]} · ${DAYS[(date.getDay()+6)%7]}`);
   set("[data-v45-questions]",Math.max(0,Number(state().solved?.[dateKey(date)])||0)+" soru");
