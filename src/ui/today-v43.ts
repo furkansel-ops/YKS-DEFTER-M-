@@ -42,7 +42,7 @@ function taskParts(value:string):{detail:string;time:string}{
   const raw=value.trim();
   const match=raw.match(/(?:^|\s)(\d{1,2}:\d{2}\s*(?:[-–]\s*\d{1,2}:\d{2})?)(?:\s|$)/);
   if(!match)return {detail:raw,time:""};
-  return {detail:raw.replace(match[0]," ").replace(/\s{2,}/g," ").trim(),time:match[1].replace(/-/g,"–")};
+  return {detail:raw.replace(match[0]," ").replace(/\s{2,}/g," ").trim(),time:(match[1]||"").replace(/-/g,"–")};
 }
 function makeBridge(home:HTMLElement):HTMLElement{
   const existing=home.querySelector<HTMLElement>(":scope > .v7-home-legacy");
