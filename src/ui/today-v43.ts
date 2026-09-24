@@ -48,6 +48,44 @@ function installTodayDetails(todayHub:HTMLElement):void{
   todayHub.appendChild(wrap);
 }
 
+function installPrimaryLayout(home:HTMLElement,todayHub:HTMLElement,planTitle:HTMLElement,plan:HTMLElement):HTMLElement{
+  const existing=home.querySelector<HTMLElement>("[data-v5-home-layout]");
+  if(existing)return existing;
+
+  const layout=document.createElement("section");
+  layout.className="v5-home-layout";
+  layout.dataset.v5HomeLayout="true";
+
+  const primary=document.createElement("main");
+  primary.className="v5-home-primary";
+
+  const intro=document.createElement("div");
+  intro.className="v5-home-primary-head";
+  intro.innerHTML='<span>BUGÜN</span><div><h2>Önce bugünü bitir</h2><p>Programın, kalan işlerin ve gün içi ilerlemen tek yerde.</p></div>';
+
+  primary.append(intro,todayHub,planTitle,plan);
+
+  const rail=document.createElement("aside");
+  rail.className="v5-home-rail";
+  rail.setAttribute("aria-label","Hafta ve hedef özeti");
+
+  const railHead=document.createElement("div");
+  railHead.className="v5-home-rail-head";
+  railHead.innerHTML='<span>HAFTA</span><b>Genel durum</b>';
+  rail.appendChild(railHead);
+
+  const quote=getElement<HTMLElement>("sozBox");
+  const overview=home.querySelector<HTMLElement>(":scope > .home-overview");
+  if(quote)rail.appendChild(quote);
+  if(overview)rail.appendChild(overview);
+
+  layout.append(primary,rail);
+  const actions=home.querySelector<HTMLElement>(":scope > .home-actions");
+  if(actions)actions.insertAdjacentElement("afterend",layout);
+  else home.prepend(layout);
+  return layout;
+}
+
 function installSecondaryArea(home:HTMLElement,preserved:Set<HTMLElement>):void{
   if(home.querySelector("[data-v43-secondary]"))return;
 
@@ -96,9 +134,11 @@ export function installTodayV43():{installed:boolean;validate:()=>string[]}{
 
   const planTitle=getElement<HTMLElement>("todayPlanTitle");
   const plan=getElement<HTMLElement>("todayPlan");
+  let primaryLayout:HTMLElement|null=null;
   if(todayHub&&planTitle&&plan){
     todayHub.insertAdjacentElement("afterend",plan);
     todayHub.insertAdjacentElement("afterend",planTitle);
+    primaryLayout=installPrimaryLayout(home,todayHub,planTitle,plan);
   }
 
   const preserved=new Set<HTMLElement>();
@@ -109,6 +149,7 @@ export function installTodayV43():{installed:boolean;validate:()=>string[]}{
       node.id==="sozBox"||
       node.classList.contains("home-overview")||
       node.classList.contains("home-actions")||
+      node===primaryLayout||
       node.id==="todayHub"||
       node.id==="todayPlanTitle"||
       node.id==="todayPlan"||
@@ -127,6 +168,7 @@ export function installTodayV43():{installed:boolean;validate:()=>string[]}{
       const errors:string[]=[];
       if(home.dataset.v43Today!=="ready")errors.push("today v4.3 marker missing");
       if(!home.querySelector("[data-v43-secondary]"))errors.push("today secondary area missing");
+      if(todayHub&&planTitle&&plan&&!home.querySelector("[data-v5-home-layout]"))errors.push("v5 primary layout missing");
       if(todayHub&&!todayHub.querySelector("[data-v43-today-details]"))errors.push("today detail disclosure missing");
       if(planTitle&&plan&&planTitle.nextElementSibling!==plan)errors.push("today plan order invalid");
       return errors;
