@@ -1,3 +1,5 @@
+import "../../modules/ui-polish-program-v1.css";
+
 type LooseWindow=Window&Record<string,unknown>;
 type ProgramState={
   rowLabels?:{r?:string[];s?:string[]};
@@ -122,8 +124,16 @@ function writeLabel(row:number,value:string):void{
   target.dispatchEvent(new Event("input",{bubbles:true}));
   target.dispatchEvent(new Event("blur",{bubbles:true}));
 }
+function markLegacySurfaces(program:HTMLElement):void{
+  Array.from(program.children).forEach(child=>{
+    if(!(child instanceof HTMLElement))return;
+    if(child.matches(".v45-program-shell,.v45-editor-overlay,.v45-return"))return;
+    child.classList.add("v45-legacy-surface");
+  });
+}
 function createUi(program:HTMLElement):void{
   if(program.querySelector(".v45-program-shell"))return;
+  markLegacySurfaces(program);
   const shell=document.createElement("div");
   shell.className="v45-program-shell";
   fill(shell,`
@@ -215,11 +225,13 @@ function saveEditor(program:HTMLElement):void{
   closeEditor(program);scheduleSync(120);
 }
 function showLegacy(program:HTMLElement,calendar=false):void{
+  markLegacySurfaces(program);
   program.classList.add("v45-legacy-open");
   const back=program.querySelector<HTMLButtonElement>(".v45-return");if(back)back.hidden=false;
   call("setProgTab",calendar?"cal":"week");
 }
 function hideLegacy(program:HTMLElement):void{
+  markLegacySurfaces(program);
   program.classList.remove("v45-legacy-open");
   const back=program.querySelector<HTMLButtonElement>(".v45-return");if(back)back.hidden=true;
   call("setProgTab","week");scheduleSync();
@@ -310,6 +322,7 @@ function installProgramFlex():void{
   const program=byId("program");if(!program)return;
   if(program.dataset.v45Flex!=="ready"){
     createUi(program);program.dataset.v45Flex="ready";
+    markLegacySurfaces(program);
     for(const id of ["gridR","gridS"]){
       const node=byId(id);if(node)new MutationObserver(()=>scheduleSync(70)).observe(node,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:["class"]});
     }

@@ -324,8 +324,9 @@
 
 
 /* v4.5 — Programım: esnek görev sırası görünümü */
-#program[data-v45-flex="ready"]:not(.v45-legacy-open)>:not(.v45-program-shell):not(.v45-editor-overlay):not(.v45-return){display:none!important}
+#program[data-v45-flex="ready"]:not(.v45-legacy-open)>.v45-legacy-surface{display:none!important}
 #program.v45-legacy-open>.v45-program-shell{display:none!important}
+#program.v45-legacy-open>.v45-editor-overlay{display:none!important}
 #program .v45-return[hidden],#program .v45-editor-overlay[hidden]{display:none!important}
 .v45-program-shell{--v45-blue:#2878f0;--v45-blue-strong:#1166df;--v45-ink:#10233f;--v45-muted:#7487a3;--v45-line:#e1eaf5;--v45-soft:#f6f9fd;display:grid;gap:12px;width:min(100%,1080px);margin:0 auto;color:var(--v45-ink)}
 .v45-program-header{display:grid;gap:17px;padding:6px 2px 0}
