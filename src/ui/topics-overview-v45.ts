@@ -1,3 +1,4 @@
+import {installTopicsV5} from "./topics-v5";
 type TopicSortMode="curriculum"|"remaining"|"progress"|"name";
 
 const SUBJECT_LIST_ID="subjectList";
@@ -218,6 +219,7 @@ export function installTopicsOverviewV45():{installed:boolean;destroy:()=>void}{
 
   installSortControl(mode=>{sortMode=mode;polish();});
   polish();
+  installTopicsV5();
 
   const observer=new MutationObserver(records=>{
     if(mutating)return;

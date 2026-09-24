@@ -1,4 +1,5 @@
 import "./navigation-v43.css";
+import {installMoreV5} from "./more-v5";
 
 type CategoryId="learning"|"analysis"|"settings"|"system";
 type MoreAction="lab"|"resources"|"tactics"|"archive"|"success"|"reports"|"settings"|"about"|"data"|"system"|"backup"|"log"|"progress";
@@ -97,6 +98,7 @@ export function installNavigationV43():NavigationRuntime{
     if(detail?.to==="home")refresh();
   });
   mount();
+  installMoreV5();
   const api:NavigationRuntime={installed:true,version:VERSION,validate(){const issues:string[]=[];if(!document.getElementById("v43MoreHub"))issues.push("hub");if(document.querySelectorAll("[data-v43-more-category]").length!==4)issues.push("categories");const more=document.querySelector<HTMLElement>('[data-s="more"]');if(more&&more.getAttribute("aria-label")!=="Merkez")issues.push("nav-label");return issues;},refresh};
   window.__YKS_NAV_V43__=api;return api;
 }

@@ -5,3 +5,4 @@
 @media(max-width:430px){.pp-kpis{grid-template-columns:1fr}.pp-kind-detail{grid-template-columns:1fr 1fr}.pp-live{display:grid;grid-template-columns:repeat(3,1fr)}.pp-live span{min-width:0}.pp-period-header,.pp-period-row{grid-template-columns:1.05fr repeat(3,.72fr);gap:4px;padding-inline:7px}.pp-period-row{font-size:10px}.pp-history-summary{display:grid;grid-template-columns:1fr 1fr}.pp-history-summary span{justify-content:center}.pp-entry{grid-template-columns:1fr}.pp-entry button{justify-self:start}}
 @media(pointer:coarse){.pp-segment button,.pp-entry button,.pp-form input,.pp-form select,.pp-form .btn{min-height:44px}.pp-kind-card,.pp-kpi{transform:none!important}}
 @media(prefers-reduced-motion:reduce){.pp-trend-bars i{transition:none}.pp-dashboard *{scroll-behavior:auto!important}}
+
