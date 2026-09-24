@@ -70,3 +70,24 @@ test('motivasyon kartı kategori, mobil ve erişilebilirlik durumlarını kapsar
   assert.match(css,/@media \(max-width:759px\)/);assert.match(css,/prefers-reduced-motion/);
   assert.match(stability,/motivation-quotes-v1\.js\?v=4\.1\.0-r3/);
 });
+
+
+test('eski app.js fallbackı genel insan sözlerini ekrana basmaz',()=>{
+  const app=fs.readFileSync(path.join(root,'app.js'),'utf8');
+  const safeStart=app.indexOf('const LEGACY_SAFE_QUOTES=');
+  const safeEnd=app.indexOf('function toggleSoz(){',safeStart);
+  assert.ok(safeStart>=0&&safeEnd>safeStart);
+  const safeBlock=app.slice(safeStart,safeEnd);
+  assert.match(safeBlock,/legacySafeQuote\(\)/);
+  assert.match(safeBlock,/class="sza">— '+esc\(soz\.a\)/);
+  assert.doesNotMatch(safeBlock,/const soz=SOZLER\[aktifSozIndex\(\)\]/);
+
+  const v319Start=app.indexOf('const V319_VERSION="3.2.7"');
+  const v319Render=app.indexOf('renderSoz=function(){',v319Start);
+  const v319End=app.indexOf('function v319XpForLevel',v319Render);
+  assert.ok(v319Render>=0&&v319End>v319Render);
+  const v319Block=app.slice(v319Render,v319End);
+  assert.match(v319Block,/legacySafeQuote\(\)/);
+  assert.match(v319Block,/szcat">YKS/);
+  assert.doesNotMatch(v319Block,/SOZLER\[aktifSozIndex\(\)\]/);
+});
