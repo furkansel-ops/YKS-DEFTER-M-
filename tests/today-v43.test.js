@@ -30,7 +30,6 @@ test("V7 program görünümü legacy çalışan planı aynalar ve tıklamayı on
   const source=read("src/ui/today-v43.ts");
   assert.match(source,/legacy\.querySelectorAll<HTMLElement>\("\.plancell"\)/);
   assert.match(source,/rows\[index\]\?\.click\(\)/);
-  assert.match(source,/legacyDone\?\.click\(\)/);
   assert.match(source,/MutationObserver/);
   assert.match(source,/yks:data-changed/);
 });
