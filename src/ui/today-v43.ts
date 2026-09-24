@@ -7,22 +7,17 @@ function getElement<T extends HTMLElement>(id:string):T|null{
   return node instanceof HTMLElement?node as T:null;
 }
 
-function makeToggle(
-  closedLabel:string,
-  openLabel:string,
-  target:HTMLElement,
-  className:string
-):HTMLButtonElement{
+function makeToggle(label:string,target:HTMLElement,className:string):HTMLButtonElement{
   const button=document.createElement("button");
   button.type="button";
   button.className=className;
   button.setAttribute("aria-expanded","false");
-  button.textContent=closedLabel;
+  button.textContent=label;
   button.addEventListener("click",()=>{
     const willOpen=target.hidden;
     target.hidden=!willOpen;
     button.setAttribute("aria-expanded",String(willOpen));
-    button.textContent=willOpen?openLabel:closedLabel;
+    button.textContent=willOpen?`${label} · Kapat`:label;
   });
   return button;
 }
@@ -48,7 +43,7 @@ function installTodayDetails(todayHub:HTMLElement):void{
   body.hidden=true;
   detailNodes.forEach(node=>body.appendChild(node));
 
-  const toggle=makeToggle("Gün detayları","Detayları gizle",body,"v43-disclosure");
+  const toggle=makeToggle("Günün detaylarını göster",body,"v43-disclosure");
   wrap.append(toggle,body);
   todayHub.appendChild(wrap);
 }
@@ -68,17 +63,21 @@ function installSecondaryArea(home:HTMLElement,preserved:Set<HTMLElement>):void{
 
   const heading=document.createElement("div");
   heading.className="v43-secondary-head";
-
+  const copy=document.createElement("div");
+  const eyebrow=document.createElement("span");
+  eyebrow.className="v43-secondary-eyebrow";
+  eyebrow.textContent="İkincil alan";
   const title=document.createElement("strong");
-  title.textContent="Diğer araçlar";
+  title.textContent="Analizler ve hızlı giriş araçları";
+  copy.append(eyebrow,title);
 
   const body=document.createElement("div");
   body.className="v43-secondary-body";
   body.hidden=true;
   candidates.forEach(node=>body.appendChild(node));
 
-  const toggle=makeToggle("Göster","Gizle",body,"v43-secondary-toggle");
-  heading.append(title,toggle);
+  const toggle=makeToggle("Diğer araçları aç",body,"v43-secondary-toggle");
+  heading.append(copy,toggle);
   shell.append(heading,body);
   home.appendChild(shell);
 }
@@ -92,14 +91,8 @@ export function installTodayV43():{installed:boolean;validate:()=>string[]}{
   home.classList.add("v43-today");
   home.dataset.v43Today="ready";
 
-  const kicker=home.querySelector<HTMLElement>(".home-kicker");
-  if(kicker)kicker.textContent="Bugünün planı ve ilerlemen.";
-
   const todayHub=getElement<HTMLElement>("todayHub");
-  if(todayHub){
-    todayHub.setAttribute("aria-label","Bugün özeti");
-    installTodayDetails(todayHub);
-  }
+  if(todayHub)installTodayDetails(todayHub);
 
   const planTitle=getElement<HTMLElement>("todayPlanTitle");
   const plan=getElement<HTMLElement>("todayPlan");
