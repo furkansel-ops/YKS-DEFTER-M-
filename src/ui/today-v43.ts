@@ -2,6 +2,7 @@ import "./today-v43.css";
 
 type AppWindow=Window&{
   go?:(screen:string)=>unknown;
+  openGun?:()=>unknown;
   saveJournal?:()=>unknown;
   shareCard?:()=>unknown;
 };
@@ -58,7 +59,7 @@ function createHeader():HTMLElement{
 function createGoal():HTMLElement{
   const card=document.createElement("section");
   card.className="v7-card v7-goal";
-  card.innerHTML='<header><div><span>GÜNLÜK HEDEF</span><h2>Bugünün özeti</h2></div><em id="v7DoneBadge">Devam ediyor</em></header><div class="v7-metrics"></div>';
+  card.innerHTML='<header><div><span>BUGÜN</span><h2>Günlük hedef</h2></div></header><div class="v7-metrics"></div><button type="button" class="v7-details" data-day-details>Günün detayları</button>';
   const grid=card.querySelector<HTMLElement>(".v7-metrics");
   grid?.append(
     metric("Soru","todayHubQ","todayHubQSub"),
@@ -66,13 +67,16 @@ function createGoal():HTMLElement{
     metric("Program","todayHubPlan","todayHubPlanSub"),
     metric("Tekrar","todayHubReview","todayHubReviewSub")
   );
+  card.querySelector<HTMLButtonElement>("[data-day-details]")?.addEventListener("click",()=>{
+    (window as AppWindow).openGun?.();
+  });
   return card;
 }
 function createProgram():HTMLElement{
   const card=document.createElement("section");
   card.className="v7-card v7-program";
   card.dataset.v7Program="true";
-  card.innerHTML='<header class="v7-card-head"><div><span>BUGÜNKÜ PROGRAM</span><h2>Bugün ne yapıyorum?</h2><p>Görevlerini sırayla tamamla.</p></div><button type="button" data-open-program>Tüm program</button></header><div class="v7-plan-progress"><i><em></em></i><span>Program hazırlanıyor…</span></div><div class="v7-plan-list"></div><button type="button" class="v7-day-done" data-day-done>Günü tamamladım</button>';
+  card.innerHTML='<header class="v7-card-head"><div><span>BUGÜNKÜ PROGRAM</span><h2>Bugün ne yapıyorum?</h2></div><button type="button" data-open-program>Tüm program</button></header><div class="v7-plan-list"></div>';
   card.querySelector<HTMLButtonElement>("[data-open-program]")?.addEventListener("click",()=>{
     (window as AppWindow).go?.("program");
   });
@@ -180,13 +184,6 @@ function syncMetrics(home:HTMLElement):void{
     if(value)value.textContent=txt(valueId,"—");
     if(sub)sub.textContent=txt(subId,"—");
   });
-  const badge=home.querySelector<HTMLElement>("#v7DoneBadge");
-  const legacyBadge=byId("todayDoneBadge");
-  if(badge){
-    const done=legacyBadge&&getComputedStyle(legacyBadge).display!=="none";
-    badge.textContent=done?"Bugün tamamlandı ✓":"Devam ediyor";
-    badge.classList.toggle("done",Boolean(done));
-  }
 }
 function syncCountdown(home:HTMLElement):void{
   const set=(selector:string,value:string)=>{const node=home.querySelector<HTMLElement>(selector);if(node)node.textContent=value;};
@@ -201,67 +198,49 @@ function syncCountdown(home:HTMLElement):void{
 function syncPlan(home:HTMLElement):void{
   const legacy=byId("todayPlan");
   const list=home.querySelector<HTMLElement>(".v7-plan-list");
-  const progress=home.querySelector<HTMLElement>(".v7-plan-progress");
-  const doneButton=home.querySelector<HTMLButtonElement>("[data-day-done]");
-  if(!legacy||!list||!progress)return;
+  if(!legacy||!list)return;
 
   const rows=Array.from(legacy.querySelectorAll<HTMLElement>(".plancell"));
-  const legacyFid=legacy.querySelector<HTMLElement>(".fid");
-  const fidText=(legacyFid?.querySelector("span")?.textContent||"").trim();
-  const fidWidth=legacyFid?.querySelector<HTMLElement>(".bar i")?.style.width||"0%";
-  const pLine=progress.querySelector<HTMLElement>("i em");
-  const pText=progress.querySelector<HTMLElement>("span");
-  if(pLine)pLine.style.width=fidWidth;
-  if(pText)pText.textContent=fidText||(!rows.length?"Bugün için görev yok":"Bugünün programı");
-
   list.replaceChildren();
   if(!rows.length){
     const empty=document.createElement("div");
     empty.className="v7-plan-empty";
     empty.innerHTML="<b>Bugün için görev görünmüyor.</b><span>Programım ekranından bugüne görev ekleyebilirsin.</span>";
     list.appendChild(empty);
-  }else{
-    rows.forEach((row,index)=>{
-      const label=(row.querySelector(".pl")?.textContent||"Görev").trim();
-      const task=(row.querySelector(".pt")?.textContent||"").trim();
-      const item=document.createElement("article");
-      item.className="v7-plan-item";
-      item.classList.toggle("done",row.classList.contains("pd"));
-      item.dataset.tone=subjectTone(label+" "+task);
-      item.innerHTML='<button type="button" class="v7-plan-check" aria-label="Görev durumunu değiştir"><i>✓</i></button><div><b></b><span></span></div><div class="v7-plan-tools"></div>';
-      const b=item.querySelector("b"),span=item.querySelector("span");
-      if(b)b.textContent=label;
-      if(span)span.textContent=task||"Plan görevi";
-      item.querySelector<HTMLButtonElement>(".v7-plan-check")?.addEventListener("click",()=>rows[index]?.click());
+    return;
+  }
 
-      const tools=item.querySelector<HTMLElement>(".v7-plan-tools");
-      const video=row.querySelector<HTMLButtonElement>(".cvid");
-      if(video){
-        const btn=document.createElement("button");btn.type="button";btn.textContent="▶";btn.title="Videoyu aç";
-        btn.addEventListener("click",event=>{event.stopPropagation();video.click();});
-        tools?.appendChild(btn);
-      }
-      const tomorrow=row.querySelector<HTMLButtonElement>(".plan-tomorrow");
-      if(tomorrow){
-        const btn=document.createElement("button");btn.type="button";btn.textContent="Yarın";btn.title="Yarına taşı";
-        btn.addEventListener("click",event=>{event.stopPropagation();tomorrow.click();});
-        tools?.appendChild(btn);
-      }
-      item.addEventListener("click",event=>{
-        if((event.target as Element).closest("button"))return;
-        rows[index]?.click();
-      });
-      list.appendChild(item);
+  rows.forEach((row,index)=>{
+    const label=(row.querySelector(".pl")?.textContent||row.querySelector("b")?.textContent||"Görev").trim();
+    const task=(row.querySelector(".pt")?.textContent||row.querySelector("small")?.textContent||"").trim();
+    const item=document.createElement("article");
+    item.className="v7-plan-item";
+    item.classList.toggle("done",row.classList.contains("pd"));
+    item.dataset.tone=subjectTone(label+" "+task);
+    item.innerHTML='<div><b></b><span></span></div><div class="v7-plan-tools"></div>';
+    const b=item.querySelector("b"),span=item.querySelector("span");
+    if(b)b.textContent=label;
+    if(span)span.textContent=task||"Plan görevi";
+
+    const tools=item.querySelector<HTMLElement>(".v7-plan-tools");
+    const video=row.querySelector<HTMLButtonElement>(".cvid");
+    if(video){
+      const btn=document.createElement("button");btn.type="button";btn.textContent="▶";btn.title="Videoyu aç";
+      btn.addEventListener("click",event=>{event.stopPropagation();video.click();});
+      tools?.appendChild(btn);
+    }
+    const tomorrow=row.querySelector<HTMLButtonElement>(".plan-tomorrow");
+    if(tomorrow){
+      const btn=document.createElement("button");btn.type="button";btn.textContent="Yarın";btn.title="Yarına taşı";
+      btn.addEventListener("click",event=>{event.stopPropagation();tomorrow.click();});
+      tools?.appendChild(btn);
+    }
+    item.addEventListener("click",event=>{
+      if((event.target as Element).closest("button"))return;
+      rows[index]?.click();
     });
-  }
-
-  const legacyDone=Array.from(legacy.querySelectorAll<HTMLButtonElement>("button")).find(button=>/Günü tamamladım/.test(button.textContent||""));
-  if(doneButton){
-    doneButton.hidden=!legacyDone;
-    doneButton.textContent=legacyDone?.textContent||"Günü tamamladım";
-    doneButton.classList.toggle("done",Boolean(legacyDone?.classList.contains("ghost")));
-    doneButton.onclick=()=>legacyDone?.click();
-  }
+    list.appendChild(item);
+  });
 }
 function syncAll(home:HTMLElement):void{
   syncMetrics(home);
