@@ -40,6 +40,7 @@ function byId<T extends HTMLElement=HTMLElement>(id:string):T|null{
 function state():ProgramState{
   try{return (window.YKSLegacyState?.readState?.()||{}) as ProgramState;}catch{return {};}
 }
+function fill(node:Element,markup:string):void{node.insertAdjacentHTML("afterbegin",markup);}
 function weekMonday(offset=weekOffset):Date{
   const d=new Date();d.setHours(12,0,0,0);
   d.setDate(d.getDate()-((d.getDay()+6)%7)+offset*7);
@@ -128,7 +129,7 @@ function createUi(program:HTMLElement):void{
   if(program.querySelector(".v45-program-shell"))return;
   const shell=document.createElement("div");
   shell.className="v45-program-shell";
-  shell.innerHTML=`
+  fill(shell,`
     <header class="v45-program-header">
       <div class="v45-brand-row">
         <div class="v45-brand"><i>Y</i><span><b>YKS <em>Defterim</em></b><small>Daha planlı, daha güçlü, daha sen.</small></span></div>
@@ -154,13 +155,13 @@ function createUi(program:HTMLElement):void{
       <article><i class="repeat">↻</i><div><span>Akıllı Tekrar</span><b data-v45-review>Bugün sana özel tekrar önerileri</b><small>Eksiklerini Konular ekranından tamamla.</small></div><button type="button" data-v45-topics>›</button></article>
       <article><i class="coach">✦</i><div><span>Koç Yorumu</span><b data-v45-coach>Koçundan gelen son not burada görünecek.</b><small>Program paylaşımı mevcut senkron hattını kullanır.</small></div><button type="button" data-v45-coach-open>›</button></article>
     </section>
-    <footer class="v45-program-footer"><button type="button" data-v45-legacy>Klasik / gelişmiş plan araçları</button><small>Hazır kamp, şablonlar, haftayı kopyalama ve klasik tablo korunur.</small></footer>`;
+    <footer class="v45-program-footer"><button type="button" data-v45-legacy>Klasik / gelişmiş plan araçları</button><small>Hazır kamp, şablonlar, haftayı kopyalama ve klasik tablo korunur.</small></footer>`);
   program.appendChild(shell);
 
   const editor=document.createElement("div");
   editor.className="v45-editor-overlay";
   editor.hidden=true;
-  editor.innerHTML=`<section class="v45-editor" role="dialog" aria-modal="true" aria-labelledby="v45EditorTitle"><header><div><span>GÖREV</span><h2 id="v45EditorTitle">Görevi düzenle</h2></div><button type="button" data-v45-close>×</button></header><label>Ders<input data-v45-subject maxlength="80" placeholder="Matematik"></label><label>Görev / konu<input data-v45-detail maxlength="220" placeholder="Trigonometri - Konu Çalışması"></label><div class="v45-editor-row"><label>Tahmini süre (dk)<input data-v45-minutes type="number" min="5" max="480" step="5" value="45"></label><label>Saat <small>(isteğe bağlı)</small><input data-v45-time type="time"></label></div><div class="v45-editor-actions"><button type="button" data-v45-cancel>Vazgeç</button><button type="button" data-v45-save>Kaydet</button></div></section>`;
+  fill(editor,`<section class="v45-editor" role="dialog" aria-modal="true" aria-labelledby="v45EditorTitle"><header><div><span>GÖREV</span><h2 id="v45EditorTitle">Görevi düzenle</h2></div><button type="button" data-v45-close>×</button></header><label>Ders<input data-v45-subject maxlength="80" placeholder="Matematik"></label><label>Görev / konu<input data-v45-detail maxlength="220" placeholder="Trigonometri - Konu Çalışması"></label><div class="v45-editor-row"><label>Tahmini süre (dk)<input data-v45-minutes type="number" min="5" max="480" step="5" value="45"></label><label>Saat <small>(isteğe bağlı)</small><input data-v45-time type="time"></label></div><div class="v45-editor-actions"><button type="button" data-v45-cancel>Vazgeç</button><button type="button" data-v45-save>Kaydet</button></div></section>`);
   program.appendChild(editor);
 
   const back=document.createElement("button");
@@ -258,7 +259,7 @@ function renderWeek(shell:HTMLElement):void{
     const date=new Date(start);date.setDate(start.getDate()+i);
     const button=document.createElement("button");
     button.type="button";button.dataset.v45Day=String(i);if(i===selectedDay)button.className="active";
-    button.innerHTML=`<small>${DAYS[i]}</small><b>${date.getDate()}</b><i></i>`;
+    fill(button,`<small>${DAYS[i]}</small><b>${date.getDate()}</b><i></i>`);
     root.appendChild(button);
   }
 }
@@ -278,7 +279,7 @@ function renderTasks(shell:HTMLElement):void{
   root.replaceChildren();
   if(!list.length){
     const empty=document.createElement("div");empty.className="v45-empty";
-    empty.innerHTML='<i>＋</i><b>Bu gün için görev yok.</b><span>Görev ekleyip süre belirleyebilirsin; saat vermek zorunda değilsin.</span><button type="button" data-v45-add>İlk görevi ekle</button>';
+    fill(empty,'<i>＋</i><b>Bu gün için görev yok.</b><span>Görev ekleyip süre belirleyebilirsin; saat vermek zorunda değilsin.</span><button type="button" data-v45-add>İlk görevi ekle</button>');
     root.appendChild(empty);return;
   }
   const current=list.findIndex(task=>!task.done);
@@ -286,7 +287,7 @@ function renderTasks(shell:HTMLElement):void{
     const item=document.createElement("article");
     item.className="v45-task";item.dataset.tone=task.tone;
     if(task.done)item.classList.add("done");if(index===current)item.classList.add("current");
-    item.innerHTML=`<span class="v45-order">${index+1}</span><button type="button" class="v45-check" data-v45-done="${index}" aria-label="Tamamlandı durumunu değiştir">${task.done?"✓":""}</button><i class="v45-subject-icon">${icon(task.tone)}</i><div class="v45-task-copy"><b></b><span></span><em></em></div><div class="v45-task-meta"><span>◷ ${fmtMinutes(task.minutes)}</span>${task.time?`<span class="time">▣ ${task.time}</span>`:`<button type="button" data-v45-edit="${index}">▣ Saat ekle</button>`}</div><div class="v45-task-end">${task.done?'<span class="v45-done-chip">✓ Tamamlandı</span>':index===current?'<button type="button" class="v45-start" data-v45-start>▶ Şimdi Başla</button>':""}<button type="button" class="v45-edit" data-v45-edit="${index}" aria-label="Görevi düzenle">›</button></div>`;
+    fill(item,`<span class="v45-order">${index+1}</span><button type="button" class="v45-check" data-v45-done="${index}" aria-label="Tamamlandı durumunu değiştir">${task.done?"✓":""}</button><i class="v45-subject-icon">${icon(task.tone)}</i><div class="v45-task-copy"><b></b><span></span><em></em></div><div class="v45-task-meta"><span>◷ ${fmtMinutes(task.minutes)}</span>${task.time?`<span class="time">▣ ${task.time}</span>`:`<button type="button" data-v45-edit="${index}">▣ Saat ekle</button>`}</div><div class="v45-task-end">${task.done?'<span class="v45-done-chip">✓ Tamamlandı</span>':index===current?'<button type="button" class="v45-start" data-v45-start>▶ Şimdi Başla</button>':""}<button type="button" class="v45-edit" data-v45-edit="${index}" aria-label="Görevi düzenle">›</button></div>`);
     item.querySelector<HTMLElement>(".v45-task-copy b")!.textContent=task.subject;
     item.querySelector<HTMLElement>(".v45-task-copy span")!.textContent=task.detail||task.raw;
     item.querySelector<HTMLElement>(".v45-task-copy em")!.textContent=task.kind;
