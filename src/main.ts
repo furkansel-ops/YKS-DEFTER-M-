@@ -195,6 +195,17 @@ const playStoreShell=installOptional(
   {installed:false,legacyCloudRemoved:false}
 );
 document.documentElement.dataset.playStorePrivacy=playStoreShell.installed?"ready":"deferred";
+document.documentElement.dataset.programFlexRuntime="loading";
+void import("./ui/program-flex-v45")
+  .then(({installProgramFlexV45})=>{
+    installProgramFlexV45();
+    document.documentElement.dataset.programFlexRuntime="ready";
+  })
+  .catch(error=>{
+    document.documentElement.dataset.programFlexRuntime="deferred";
+    console.error("Esnek Programım arayüzü yüklenemedi",error);
+  });
+
 document.documentElement.dataset.topSyncIndicator="loading";
 void import("./ui/top-sync-indicator")
   .then(({installTopSyncIndicator})=>{
