@@ -16,7 +16,13 @@ test("Program V5 mevcut haftalık plan DOM sözleşmesini koruyarak yapısal kab
   assert.match(source,/data-v5-program-shell|v5ProgramShell/);
   assert.match(source,/sectionForGrid\("gridR"/);
   assert.match(source,/sectionForGrid\("gridS"/);
-  assert.match(source,/Ders eklemeye başla/);
+  assert.match(source,/data-v5-mobile-planner|v5MobilePlanner/);
+  assert.match(source,/data-v5-program-editor|v5ProgramEditor/);
+  assert.match(source,/Günlük/);
+  assert.match(source,/Haftalık/);
+  assert.match(source,/Aylık/);
+  assert.match(source,/collectDayTasks/);
+  assert.match(source,/focusEditorCell/);
 });
 
 test("Program V5 yalnız görünüm katmanıdır; program veya senkron verisine doğrudan yazmaz",()=>{
@@ -40,6 +46,26 @@ test("Program V5 fail-open runtime üzerinden yüklenir ve mobil düzen içerir"
   assert.match(css,/\.v5-program-shell/);
   assert.match(css,/\.v5-program-main/);
   assert.match(css,/\.v5-program-rail/);
+  assert.match(css,/APPROVED PROGRAM MOCKUP/);
+  assert.match(css,/\.v5-mobile-planner/);
+  assert.match(css,/\.v5-week-strip/);
+  assert.match(css,/\.v5-timeline/);
+  assert.match(css,/\.v5-program-fab/);
+  assert.match(css,/\.v5-time-row\[data-tone="math"\]/);
   assert.match(css,/@media \(max-width:760px\)/);
   assert.match(css,/@media \(prefers-reduced-motion:reduce\)/);
+});
+
+
+test("Program V5 mobil zaman çizelgesi mevcut gridlerden okur ve ikinci veri modeli oluşturmaz",()=>{
+  const source=read("src/ui/program-v5.ts");
+  assert.match(source,/querySelectorAll<HTMLElement>\('#grid'\+block\.toUpperCase\(\)/);
+  assert.match(source,/\.gtx/);
+  assert.match(source,/\.glabel|data-lbl/);
+  assert.match(source,/MutationObserver/);
+  assert.match(source,/setProgTab/);
+  assert.match(source,/shiftWeek/);
+  assert.doesNotMatch(source,/\bfetch\s*\(/);
+  assert.doesNotMatch(source,/XMLHttpRequest/);
+  assert.doesNotMatch(source,/coachingShares/);
 });
