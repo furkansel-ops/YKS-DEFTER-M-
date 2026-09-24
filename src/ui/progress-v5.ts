@@ -36,7 +36,7 @@ function buildKpiStrip(screen:HTMLElement):HTMLElement|null{
     ["prMin","Çalışma süresi","Bu dönemde"],
     ["prQ","Çözülen soru","Toplam"],
     ["prDays","Aktif gün","Düzen"]
-  ];
+  ] as const;
   for(const [id,title,meta] of labels){
     const value=byId(id);
     const stat=value?.closest<HTMLElement>(".stat");
