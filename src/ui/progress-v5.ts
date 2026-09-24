@@ -11,6 +11,13 @@ function closestSection(id:string):HTMLElement|null{
   return section instanceof HTMLElement?section:null;
 }
 
+function renameNavigation():void{
+  const tab=document.querySelector<HTMLElement>('.tabbar .tab[data-s="progress"]');
+  const label=tab?.querySelector<HTMLElement>(".tl");
+  if(label)label.textContent="İstatistik";
+  if(tab)tab.setAttribute("aria-label","İstatistik");
+}
+
 function renameHeader(screen:HTMLElement):void{
   const head=screen.querySelector<HTMLElement>(":scope > .progress-head");
   if(!head)return;
@@ -106,6 +113,7 @@ export function installProgressV5():{installed:boolean;validate:()=>string[]}{
   const screen=byId("progress");
   if(!screen)return {installed:false,validate:()=>["progress screen missing"]};
   screen.classList.add("v5-progress");
+  renameNavigation();
   screen.dataset.v5Progress="ready";
   renameHeader(screen);
   buildKpiStrip(screen);
