@@ -62,7 +62,7 @@ export function installStudentAccountLoader():boolean{
     if(!programShareReady)return false;
     const authReady=await loadModuleScript(AUTH_SCRIPT_ID,"./auth-session-runtime.js?v=1.6.0");
     if(!authReady)return false;
-    return loadModuleScript(SETTINGS_SCRIPT_ID,"./settings-profile-runtime.js?v=2.2.0");
+    return loadModuleScript(SETTINGS_SCRIPT_ID,"./settings-profile-runtime.js?v=2.3.0");
   })();
   return true;
 }
