@@ -45,3 +45,12 @@ test("V6 Ana Sayfa yalnız aktif ekranda flex olur",()=>{
   assert.doesNotMatch(css,/#home\.v43-today\.v6-home\s*\{[^}]*display\s*:\s*flex/s);
   assert.match(css,/#home\.v43-today\.v6-home\.active\s*\{[^}]*display\s*:\s*flex/s);
 });
+
+
+test("V6 mobil navigasyon stili yalnız Bugün ekranında aktiftir",()=>{
+  const css=read("src/ui/today-v43.css");
+  assert.match(css,/html\[data-active-screen="home"\] \.tabbar/);
+  assert.match(css,/html\[data-active-screen="home"\] body/);
+  assert.match(css,/html\[data-active-screen="home"\] \.navbar/);
+  assert.doesNotMatch(css,/\n\s*:root\{--rail:0px;\}/);
+});
