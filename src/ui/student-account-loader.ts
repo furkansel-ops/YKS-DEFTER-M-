@@ -53,16 +53,17 @@ function forceStudentOnlyRegistration(win:AccountWindow):boolean{
 export function installStudentAccountLoader():boolean{
   const win=window as AccountWindow;
   if(win.__YKS_ACCOUNT_READY__)return true;
+  const settingsReady=loadModuleScript(SETTINGS_SCRIPT_ID,"./settings-profile-runtime.js?v=2.5.0");
   win.__YKS_ACCOUNT_READY__=(async()=>{
     const bridgeReady=await loadModuleScript(STUDENT_COACHING_RUNTIME_ID,"./student-coaching-runtime.js?v=1.2.1");
-    if(!bridgeReady||!forceStudentOnlyRegistration(win))return false;
+    if(!bridgeReady)return settingsReady;
+    forceStudentOnlyRegistration(win);
     const linkReady=await loadModuleScript(STUDENT_COACH_LINK_ID,"./student-coach-link.js?v=1.0.0");
-    if(!linkReady)return false;
+    if(!linkReady)return settingsReady;
     const programShareReady=await loadModuleScript(STUDENT_PROGRAM_SHARE_V2_SCRIPT_ID,"./student-program-share-v2.js?v=3.1.0");
-    if(!programShareReady)return false;
-    const authReady=await loadModuleScript(AUTH_SCRIPT_ID,"./auth-session-runtime.js?v=1.6.0");
-    if(!authReady)return false;
-    return loadModuleScript(SETTINGS_SCRIPT_ID,"./settings-profile-runtime.js?v=2.4.0");
+    if(!programShareReady)return settingsReady;
+    await loadModuleScript(AUTH_SCRIPT_ID,"./auth-session-runtime.js?v=1.6.0");
+    return settingsReady;
   })();
   return true;
 }
