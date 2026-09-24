@@ -159,11 +159,19 @@ function installSecondary(screen:HTMLElement,shell:HTMLElement):void{
   screen.appendChild(secondary);
 }
 
+function renameFocusNavigation():void{
+  const tab=document.querySelector<HTMLElement>('.tabbar .tab[data-s="pomo"]');
+  const label=tab?.querySelector<HTMLElement>(".tl");
+  if(label)label.textContent="Çalış";
+  if(tab)tab.setAttribute("aria-label","Çalış");
+}
+
 export function installFocusV5():{installed:boolean;validate:()=>string[]}{
   const screen=byId("pomo");
   if(!screen)return {installed:false,validate:()=>["focus screen missing"]};
   screen.classList.add("v5-focus");
   screen.dataset.v5Focus="ready";
+  renameFocusNavigation();
   createHeader(screen);
   const shell=installShell(screen);
   if(shell)installSecondary(screen,shell);
