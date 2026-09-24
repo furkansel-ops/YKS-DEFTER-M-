@@ -21,7 +21,7 @@ test("akıllı program mevcut S.weeks sözleşmesini ve save senkron hattını k
   assert.match(source,/YKSLegacyState/);
   assert.match(source,/readState/);
   assert.match(source,/weeks/);
-  assert.match(source,/YKSLegacyState\?\.save\?\.\(\)/);
+  assert.match(source,/legacyApi\(\)\?\.save\?\.\(\)/);
   assert.match(source,/renderPlan/);
   assert.match(source,/renderTodayPlan/);
   assert.doesNotMatch(source,/localStorage\.(?:setItem|removeItem|clear)/);
