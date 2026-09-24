@@ -142,6 +142,6 @@ test("uygulama kartı veri yedeği, sistem ve hakkında erişimini korur",()=>{
 test("modern ayarlar hesap runtime zincirinden cache busting ile yüklenir",()=>{
   const loader=read("src/ui/student-account-loader.ts");
   assert.match(loader,/SETTINGS_SCRIPT_ID="settingsProfileRuntime"/);
-  assert.match(loader,/settings-profile-runtime\.js\?v=2\.4\.0/);
-  assert.match(loader,/if\(!authReady\)return false/);
+  assert.match(loader,/settings-profile-runtime\.js\?v=2\.5\.0/);
+  assert.match(loader,/const settingsReady=loadModuleScript/);\n  assert.match(loader,/return settingsReady/);
 });
