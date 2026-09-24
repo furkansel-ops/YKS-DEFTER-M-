@@ -31,12 +31,12 @@ test("İstatistikler V5 hesaplama veya çalışma verisini değiştirmez",()=>{
   assert.doesNotMatch(source,/setDoc|updateDoc|coachingShares/);
 });
 
-test("İstatistikler V5 fail-open runtime ve mobil görünümü içerir",()=>{
-  const safe=read("src/ui/v43-safe-runtime.ts");
+test("İstatistikler V5 ekran açılışında lazy ve fail-open yüklenir",()=>{
+  const screen=read("src/ui/screens/progress.ts");
   const css=read("src/ui/progress-v5.css");
-  assert.match(safe,/import\("\.\/progress-v5"\)/);
-  assert.match(safe,/installProgressV5/);
-  assert.match(safe,/v5ProgressErrors/);
+  assert.match(screen,/import\("\.\.\/progress-v5"\)/);
+  assert.match(screen,/installProgressV5/);
+  assert.match(screen,/\.catch\(\(\)=>\{\}\)/);
   assert.match(css,/\.v5-progress-visuals/);
   assert.match(css,/\.v5-progress-kpis/);
   assert.match(css,/\.v5-progress-insight-grid/);
