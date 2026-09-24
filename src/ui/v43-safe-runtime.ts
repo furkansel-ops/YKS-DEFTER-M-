@@ -53,6 +53,9 @@ async function loadAll():Promise<V43RuntimeReport>{
   features.push(await loadFeature("v5Program","v5ProgramErrors",async()=>{
     const mod=await import("./program-v5");return mod.installProgramV5();
   }));
+  features.push(await loadFeature("v5ProgramBuilder","v5ProgramBuilderErrors",async()=>{
+    const mod=await import("./program-builder-v5");return mod.installProgramBuilderV5();
+  }));
   features.push(await loadFeature("v43Analysis","v43AnalysisErrors",async()=>{
     const mod=await import("./analysis-center-v43");
     window.__YKS_V43_RENDER_ANALYSIS__=mod.renderAnalysisCenterV43;
