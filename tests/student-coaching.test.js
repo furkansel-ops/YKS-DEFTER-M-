@@ -17,9 +17,9 @@ test("öğrenci uygulaması yalnız öğrenci hesabı olarak açılır ve koç p
 
 test("öğrenci hesap köprüleri auth başlamadan önce güvenli sırada yüklenir",()=>{
   const loader=read("src/ui/student-account-loader.ts");
-  const bridgeAt=loader.indexOf("student-coaching-runtime.js?v=1.2.5");
-  const linkAt=loader.indexOf("student-coach-link.js?v=1.1.0");
-  const programAt=loader.indexOf("student-program-share-v2.js?v=3.5.0");
+  const bridgeAt=loader.indexOf("student-coaching-runtime.js?v=1.2.6");
+  const linkAt=loader.indexOf("student-coach-link.js?v=1.2.0");
+  const programAt=loader.indexOf("student-program-share-v2.js?v=3.6.0");
   const authAt=loader.indexOf("auth-session-runtime.js?v=1.6.0");
   assert.ok(bridgeAt>=0&&linkAt>bridgeAt&&programAt>linkAt&&authAt>programAt);
 });
@@ -163,7 +163,7 @@ test("öğrenci koça bilgileri manuel paylaşabilir ve program paylaşımı zor
   const program=read("public/student-program-share-v2.js");
   assert.match(link,/Koça bilgileri paylaş/);
   assert.match(link,/data-coach-share-now/);
-  assert.match(link,/YKSAccountAuth\?\.publishShare/);
+  assert.match(link,/YKSAccountAuth\?\.publishShare/);\n  assert.match(link,/publishShare\(\{manual:true\}\)/);
   assert.match(link,/YKSStudentProgramShareV2\?\.publish/);
   assert.match(link,/publish\(true\)/);
   assert.match(link,/dataset\.coachShare==="error"/);
@@ -172,4 +172,17 @@ test("öğrenci koça bilgileri manuel paylaşabilir ve program paylaşımı zor
   assert.match(program,/async function publishProgram\(force=false\)/);
   assert.match(program,/if\(!force&&hash&&hash===rt\.lastHash\)return/);
   assert.match(program,/version:"3\.5\.0"/);
+});
+
+
+test("manuel koç paylaşımı devam eden otomatik yazımı bekler ve gerçek Firebase hatasını döndürür",()=>{
+  const runtime=read("public/student-coaching-runtime.js");
+  const program=read("public/student-program-share-v2.js");
+  assert.match(runtime,/rt\.inFlight/);
+  assert.match(runtime,/options\?\.manual===true/);
+  assert.match(runtime,/if\(manual&&rt\.inFlight\)await rt\.inFlight/);
+  assert.match(runtime,/dataset\.coachShareError/);
+  assert.match(program,/if\(manual&&rt\.inFlight\)await rt\.inFlight/);
+  assert.match(program,/dataset\.studentProgramShareError/);
+  assert.match(program,/version:"3\.6\.0"/);
 });
