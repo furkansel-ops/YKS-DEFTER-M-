@@ -29,5 +29,5 @@ test("Konular cila katmanı tablet, mobil, dokunmatik ve azaltılmış hareket d
 
 test("Konular cila katmanı ana stil zincirinden yüklenir",()=>{
   const study=read("modules/study-intelligence-v5.css");
-  assert.match(study,/ui-polish-topics-v1\.css\?v=4\.1\.0-r1/);
+  assert.match(study,/ui-polish-topics-v1\.css"/);
 });

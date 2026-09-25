@@ -28,8 +28,11 @@ export function stateHash(text:string):string{
 }
 
 export function stateSchema(value:YksStateCandidate):number{
-  const schema=Number(value.v??1);
-  return Number.isFinite(schema)&&schema>0?Math.floor(schema):1;
+  const raw:unknown=value.v;
+  if(raw==null)return 1;
+  if(typeof raw!=="number"&&typeof raw!=="string")return NaN;
+  const schema=Number(raw);
+  return Number.isSafeInteger(schema)&&schema>0?schema:NaN;
 }
 
 export function decodeState(text:string|null,currentSchema=DATA_SCHEMA_VERSION):StateDecodeResult{
@@ -40,15 +43,17 @@ export function decodeState(text:string|null,currentSchema=DATA_SCHEMA_VERSION):
   try{value=JSON.parse(text);}catch{return {ok:false,kind:"invalid-json",message:"Ana kayıt geçerli JSON değil"};}
   if(!isRecord(value))return {ok:false,kind:"invalid-shape",message:"Ana kayıt bir nesne olmalı"};
   const state=value as YksStateCandidate,schema=stateSchema(state);
+  if(!Number.isFinite(schema))return {ok:false,kind:"invalid-shape",message:"Veri şeması geçerli bir pozitif tam sayı olmalı"};
   if(schema>currentSchema)return {ok:false,kind:"future-schema",message:"Kayıt daha yeni bir veri şemasına ait",schema};
   return {ok:true,kind:"state",state,json:text,schema,chars:text.length,bytes:textBytes(text)};
 }
 
 export function encodeState(state:YksStateCandidate,currentSchema=DATA_SCHEMA_VERSION):StateEncodeResult{
   if(!isRecord(state))return {ok:false,message:"Kaydedilecek veri bir nesne olmalı"};
-  const schema=stateSchema(state);
-  if(schema>currentSchema)return {ok:false,message:"Daha yeni şemadaki veri bu sürümle kaydedilemez"};
   try{
+    const schema=stateSchema(state);
+    if(!Number.isFinite(schema))return {ok:false,message:"Veri şeması geçerli bir pozitif tam sayı olmalı"};
+    if(schema>currentSchema)return {ok:false,message:"Daha yeni şemadaki veri bu sürümle kaydedilemez"};
     const json=JSON.stringify(state);
     if(!json)return {ok:false,message:"Veri JSON biçimine dönüştürülemedi"};
     if(json.length>MAX_REASONABLE_STATE_CHARS)return {ok:false,message:"Veri boyutu güvenli sınırı aştı"};

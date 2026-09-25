@@ -20,5 +20,5 @@ test("Odak ekranı premium cila katmanı tablet, mobil ve erişilebilirlik durum
 
 test("Odak cila katmanı ana stil zincirinden yüklenir",()=>{
   const study=read("modules/study-intelligence-v5.css");
-  assert.match(study,/ui-polish-focus-v1\.css\?v=4\.1\.0-r1/);
+  assert.match(study,/ui-polish-focus-v1\.css"/);
 });

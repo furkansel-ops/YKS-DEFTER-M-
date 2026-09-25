@@ -1,6 +1,7 @@
 import {access,readFile,readdir} from "node:fs/promises";
 import {resolve} from "node:path";
 import {verifyAnatomyAssets} from "./verify-anatomy-assets.mjs";
+import {verifyLocalCssImports} from "./verify-css-imports.mjs";
 
 const root=resolve(import.meta.dirname,".."),dist=resolve(root,"dist");
 const localRelease=JSON.parse(await readFile(resolve(root,"version.json"),"utf8"));
@@ -18,6 +19,7 @@ const required=[
 ];
 
 for(const file of required)await access(resolve(dist,file));
+await verifyLocalCssImports(dist);
 const index=await readFile(resolve(dist,"index.html"),"utf8");
 if(!/assets\/index-[^"']+\.js/.test(index))throw new Error("TypeScript üretim paketi index.html içine bağlanmadı");
 if(!index.includes('./app.js?v=4.1.0-r20')||!index.includes('./modules/stability.js?v=4.1.0-r28')||!index.includes('./modules/learning-lab.js?v=4.1.0-r26')||!index.includes('./modules/error-journal.js?v=4.1.0-r20'))throw new Error("Uygulama çalışma zamanı üretim paketinde bağlı değil");
@@ -63,10 +65,10 @@ for(const file of polishCore)if(!sw.includes(`${file}?v=4.1.0-r1`))throw new Err
 if(!sw.includes('motivation-quotes-v1.js?v=4.1.0-r5')||!sw.includes('motivation-quotes-v2.css?v=4.1.0-r2')||!stability.includes('motivation-quotes-v1.js?v=4.1.0-r5'))throw new Error("Günün sözü çalışma zamanı/PWA çekirdeğine bağlı değil");
 if(!motivation.includes('const MOTIVATION_QUOTES=')||motivation.includes('const EXAM_QUOTES=')||!motivation.includes('const COACH_QUOTES=')||!motivation.includes('const PLAYER_QUOTES=')||!motivation.includes('scope:"motivation+football"')||!motivation.includes('style:"v2"')||!motivation.includes('Motivasyon')||!motivation.includes('Teknik Direktör')||!motivation.includes('Futbolcu')||!motivation.includes('yeniSoz=function'))throw new Error("Motivasyon + futbol söz havuzu eksik veya paketlenmedi");
 if(!motivationCss.includes('[data-quote-type="coach"]')||!motivationCss.includes('[data-quote-type="player"]')||!motivationCss.includes('focus-visible')||!motivationCss.includes('@media (max-width:759px)')||!motivationCss.includes('prefers-reduced-motion'))throw new Error("Motivasyon kartı v2 cila/erişilebilirlik katmanı paketlenmedi");
-if(!studyCss.includes('ui-polish-v1.css?v=4.1.0-r1')||!studyCss.includes('ui-polish-home-v2.css?v=4.1.0-r1')||!studyCss.includes('ui-polish-progress-v2.css?v=4.1.0-r1')||!studyCss.includes('ui-polish-learning-lab-v1.css?v=4.1.0-r1')||!studyCss.includes('ui-polish-final-v1.css?v=4.1.0-r1')||!polishCss.includes('prefers-reduced-motion')||!polishCss.includes('.today-hub')||!polishCss.includes('.v315-dashboard'))throw new Error("Görsel cila katmanı üretim paketine doğru bağlanmadı");
+if(!studyCss.includes('@import url("./ui-polish-v1.css");')||!studyCss.includes('@import url("./ui-polish-home-v2.css");')||!studyCss.includes('@import url("./ui-polish-progress-v2.css");')||!studyCss.includes('@import url("./ui-polish-learning-lab-v1.css");')||!studyCss.includes('@import url("./ui-polish-final-v1.css");')||!polishCss.includes('prefers-reduced-motion')||!polishCss.includes('.today-hub')||!polishCss.includes('.v315-dashboard'))throw new Error("Görsel cila katmanı üretim paketine doğru bağlanmadı");
 if(!homePolishCss.includes('#home .home-overview')||!homePolishCss.includes('grid-template-areas')||!homePolishCss.includes('#home .today-summary-grid')||!homePolishCss.includes('prefers-reduced-motion'))throw new Error("Bugün ekranı premium cila katmanı eksik veya eksik paketlendi");
 if(!progressPolishCss.includes('#progress .desktop-progress-grid')||!progressPolishCss.includes('prefers-reduced-motion:reduce')||!progressModernCss.includes('#progress>.v4-progress-overview')||!progressModernCss.includes('#progress .v4-progress-kpi')||!progressModernCss.includes('#progress .v4-subject-callout'))throw new Error("İlerleme ekranı modern premium cila katmanı eksik veya eksik paketlendi");
-if(!progressModernCss.includes('ui-polish-program-v1.css?v=4.1.0-r1')||!programPolishCss.includes('#program .weeknav')||!programPolishCss.includes('#program .gtable')||!programPolishCss.includes('#program #progCal')||!programPolishCss.includes('prefers-reduced-motion:reduce'))throw new Error("Program ekranı premium cila katmanı eksik veya eksik paketlendi");
+if(!progressModernCss.includes('@import url("./ui-polish-program-v1.css");')||!programPolishCss.includes('#program .weeknav')||!programPolishCss.includes('#program .gtable')||!programPolishCss.includes('#program #progCal')||!programPolishCss.includes('prefers-reduced-motion:reduce'))throw new Error("Program ekranı premium cila katmanı eksik veya eksik paketlendi");
 if(!labPolishCss.includes('#mrp_lab .v320-course-browser')||!labPolishCss.includes('#mrp_lab .v4-science-card')||!labPolishCss.includes('#mrp_lab .v320-element-grid')||!labPolishCss.includes('#mrp_lab #v320Timeline.v4-history-timeline')||!labPolishCss.includes('#mrp_lab #v320PanelAtlas .atlas-model-stage')||!labPolishCss.includes('prefers-reduced-motion:reduce'))throw new Error("Öğrenme Laboratuvarı premium cila katmanı eksik veya eksik paketlendi");
 if(!finalPolishCss.includes('.v26-topic-modal')||!finalPolishCss.includes('.toast')||!finalPolishCss.includes('.tabbar .tab')||!finalPolishCss.includes('pointer:coarse')||!finalPolishCss.includes('prefers-reduced-motion:reduce')||!finalPolishCss.includes('data-theme="dark"'))throw new Error("Uygulama geneli final tutarlılık/erişilebilirlik cilası eksik veya eksik paketlendi");
 if(!index.includes("core-utils.js?v=4.1.0-r27")||!sw.includes("core-utils.js?v=4.1.0-r27"))throw new Error("Bilim kartlarının senkronizasyon güncellemesi pakette eksik");

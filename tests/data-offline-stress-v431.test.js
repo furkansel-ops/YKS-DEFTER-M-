@@ -41,12 +41,19 @@ test("v4.3.1 legacy save fırtınası tek kuyrukta birleşir ve bulut çıktıs�
   assert.match(bridge,/await initialize\(\);await flush\(\);/);
 });
 
-test("v4.3.1 PWA çekirdeği atomik kurulur, bozuk yeni cache silinir ve eski cache soyu temizlenir",()=>{
+test("PWA varlıkları atomik hazırlanır, shell ve hazır işareti en son yazılır, çalışan cache korunur",()=>{
   const sw=read("sw.js");
   assert.match(sw,/const READY_KEY="\.\/__offline_ready__"/);
-  assert.match(sw,/await Promise\.all\(required\.map/);
-  assert.match(sw,/await cache\.put\(READY_KEY,new Response\(APP_BUILD/);
-  assert.match(sw,/catch\(error\)\{await caches\.delete\(CACHE\);throw error;\}/);
+  assert.match(sw,/await cache\.addAll\(urls\.map/);
+  const core=sw.slice(sw.indexOf("async function cacheCore()"),sw.indexOf("function appRootUrl()"));
+  const batch=core.indexOf("await cacheAssetBatch(cache,required)");
+  const index=core.indexOf('await cache.put("./index.html",shell.clone())');
+  const root=core.indexOf('await cache.put("./",shell.clone())');
+  const ready=core.indexOf("await cache.put(READY_KEY,new Response(APP_BUILD");
+  assert.ok(batch>=0&&index>batch&&root>index&&ready>root,"atomik varlıklar → index → kök → offline hazır sırası korunmalı");
+  assert.doesNotMatch(sw,/caches\.delete\(CACHE\)/);
+  assert.match(sw,/cacheCore\(\)\.then\(\(\)=>self\.skipWaiting\(\)\)/);
+  assert.match(sw,/keys\.filter\(k=>k!==CACHE/);
   assert.match(sw,/k\.startsWith\("yks-core-"\)/);
   assert.match(sw,/\/version\.json/);
   assert.match(sw,/cache:"no-store"/);

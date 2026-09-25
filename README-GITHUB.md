@@ -1,6 +1,8 @@
-# YKS Defterim v4.1.0
+# YKS Defterim v4.4.0
 
 Kaynak proje Vite ile derlenir; statik hosting'e yayımlanacak klasör `dist/` klasörüdür. Kaynak `index.html` dosyasını doğrudan yayımlamayın. Mevcut GitHub Actions iş akışı testleri, derlemeyi ve GitHub Pages dağıtımını yürütür.
+
+Veri koruması, senkronizasyon, çevrimdışı güncelleme ve yayın hattı incelemesi: [18 Eylül 2026 güvenilirlik denetimi](RELIABILITY_AUDIT.md).
 
 ## Biyoloji Atlası
 

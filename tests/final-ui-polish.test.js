@@ -16,7 +16,7 @@ test('final tutarlılık cilası form, modal, navigasyon ve erişilebilirliği k
   assert.match(css,/pointer:coarse/);
   assert.match(css,/data-theme="dark"/);
   assert.match(css,/prefers-reduced-motion:reduce/);
-  assert.match(study,/ui-polish-final-v1\.css\?v=4\.1\.0-r1/);
+  assert.match(study,/ui-polish-final-v1\.css"/);
   assert.match(sw,/ui-polish-final-v1\.css\?v=4\.1\.0-r1/);
   assert.match(sw,/const APP_VERSION="4\.4\.0"/);
   assert.match(sw,/const APP_BUILD="4\.4\.0-r2"/);

@@ -24,9 +24,18 @@ test("Play Store hazırlığı sabit Android kimliği ve API 36 sözleşmesini k
   assert.equal(version.schema,21);
 });
 
-test("Android CI takip edilen Capacitor 8.5.0 projesinden imzalı AAB üretir",()=>{
+test("Android CI paket ve kilit dosyasıyla aynı Capacitor sürümünden imzalı AAB üretir",()=>{
   const workflow=read(".github/workflows/build-android.yml");
-  assert.match(workflow,/CAPACITOR_VERSION:\s*"8\.5\.0"/);
+  const expected=workflow.match(/CAPACITOR_VERSION:\s*"([^"]+)"/)?.[1];
+  const pkg=JSON.parse(read("package.json")),lock=JSON.parse(read("package-lock.json"));
+  assert.ok(expected);
+  for(const name of ["@capacitor/core","@capacitor/android","@capacitor/cli"]){
+    assert.equal(pkg.dependencies?.[name]??pkg.devDependencies?.[name],expected,name);
+    assert.equal(lock.packages[`node_modules/${name}`].version,expected,name);
+  }
+  const buildConfig=pkg.scripts["build:assets"].match(/vite build --config\s+(\S+)/)?.[1];
+  assert.ok(buildConfig);
+  assert.ok(workflow.includes(`- "${buildConfig}"`),"Gerçek build config değişikliği Android PR kapısını çalıştırmalı");
   assert.match(workflow,/platforms;android-36/);
   assert.match(workflow,/build-tools;36\.0\.0/);
   assert.match(workflow,/npm run release:check/);
@@ -47,7 +56,26 @@ test("Android CI takip edilen Capacitor 8.5.0 projesinden imzalı AAB üretir",(
   assert.match(workflow,/github\.ref_protected/);
   assert.match(workflow,/bundletool\.jar" validate/);
   assert.match(workflow,/dump manifest/);
-  assert.match(workflow,/YKS-Defterim-4\.4\.0-4040001\.aab/);
+  assert.ok(workflow.includes('YKS-Defterim-${m.versionName}-${m.versionCode}.aab'));
+});
+
+test("Android AAB doğrulaması güncel release revizyonunu kabul eder, eski/yanlış manifesti reddeder",()=>{
+  const vm=require("node:vm"),workflow=read(".github/workflows/build-android.yml");
+  const script=workflow.match(/node -e '\s*\n(\s*const fs = require\("node:fs"\);[\s\S]*?)\n\s*' "\$metadata" "\$manifest"/)?.[1];
+  assert.ok(script,"İmzalı AAB doğrulama kodu bulunmalı");
+  const release=JSON.parse(read("version.json"));
+  const [major,minor,patch]=release.version.split(".").map(Number);
+  const code=major*1_000_000+minor*10_000+patch*100+Number(release.build.match(/-r(\d+)$/)[1]);
+  const metadata={signed:true,appId:"com.furkansel.yksdefterim",versionName:release.version,versionCode:code,compileSdk:36,targetSdk:36,minSdk:24};
+  const manifest=`<manifest package="${metadata.appId}" versionName="${release.version}" versionCode="${code}"><uses-sdk minSdkVersion="24" targetSdkVersion="36"/><application usesCleartextTraffic="false" allowBackup="false"/></manifest>`;
+  const verify=(xml,meta=metadata)=>vm.runInNewContext(script,{
+    require:name=>{assert.equal(name,"node:fs");return {readFileSync:file=>file==="meta"?JSON.stringify(meta):file==="manifest"?xml:JSON.stringify(release)};},
+    process:{argv:["node","meta","manifest"]}
+  });
+  assert.doesNotThrow(()=>verify(manifest));
+  assert.throws(()=>verify(manifest.replace(`versionCode="${code}"`,`versionCode="${code-1}"`)),/AAB versionCode/);
+  assert.throws(()=>verify(manifest,{...metadata,versionCode:code-1}),/versionCode uyuşmuyor/);
+  assert.throws(()=>verify(manifest,{...metadata,signed:false}),/imzasız/);
 });
 
 test("Gizlilik ve gerçek cihaz veri silme akışı üretim paketine bağlıdır",()=>{

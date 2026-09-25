@@ -5,7 +5,7 @@ const APP_BUILD="4.4.0-r2";
 const CACHE="yks-core-v4.4.0-r2";
 const CACHE_LINEAGE=["yks-core-v4.1.0-r20","yks-core-v4.1.0-r21","yks-core-v4.1.0-r22","yks-core-v4.1.0-r23","yks-core-v4.1.0-r24","yks-core-v4.1.0-r25","yks-core-v4.1.0-r26","yks-core-v4.1.0-r27","yks-core-v4.1.0-r28","yks-core-v4.1.0-r29","yks-core-v4.1.0-r30","yks-core-v4.1.0-r31","yks-core-v4.1.0-r32","yks-core-v4.1.0-r33","yks-core-v4.1.0-r34","yks-core-v4.1.0-r35","yks-core-v4.1.0-r36","yks-core-v4.1.0-r37","yks-core-v4.1.0-r38","yks-core-v4.1.0-r39","yks-core-v4.1.0-r40","yks-core-v4.2.0-r1","yks-core-v4.3.0-r1","yks-core-v4.3.1-r1","yks-core-v4.4.0-r1"];
 const READY_KEY="./__offline_ready__";
-const CORE=["./","./index.html","./app.css","./app.js?v=4.1.0-r20","./teacher-videos.js","./modules/core-utils.js?v=4.1.0-r27","./modules/teachers-curated-v3.js?v=4.4.0-r3","./modules/stability.js?v=4.1.0-r28","./modules/topic-guides.js?v=4.1.0-r20","./modules/learning-lab.js?v=4.1.0-r26","./modules/learning-lab-v2.js?v=4.1.0-r24","./modules/learning-lab-v3.js?v=4.1.0-r28","./modules/target-center.js?v=4.1.0-r20","./modules/export-center.js?v=4.1.0-r20","./modules/error-journal.js?v=4.1.0-r20","./modules/personal-upgrades.js?v=4.1.0-r20","./modules/progress-v2.js?v=4.1.0-r20","./modules/global-search-v42.js?v=4.2.0-r1","./modules/smart-repeat-v42.js?v=4.2.0-r1","./modules/error-topic-lab-v42.js?v=4.2.0-r1","./modules/exam-analysis-v42.js?v=4.2.0-r1","./modules/progress-v42.js?v=4.2.0-r1","./modules/learning-lab-flow-v42.js?v=4.2.0-r1","./modules/release-selftest.js?v=4.1.0-r20","./modules/motivation-quotes-v1.js?v=4.1.0-r5","./modules/motivation-quotes-v2.css?v=4.1.0-r2","./modules/study-intelligence-v5.css?v=4.1.0-r1","./modules/ui-polish-v1.css?v=4.1.0-r1","./modules/ui-polish-home-v2.css?v=4.1.0-r1","./modules/ui-polish-focus-v1.css?v=4.1.0-r1","./modules/ui-polish-exam-v1.css?v=4.1.0-r1","./modules/ui-polish-topics-v1.css?v=4.1.0-r1","./modules/ui-polish-error-journal-v1.css?v=4.1.0-r1","./modules/ui-polish-progress-v1.css?v=4.1.0-r1","./modules/ui-polish-progress-v2.css?v=4.1.0-r1","./modules/ui-polish-more-v1.css?v=4.1.0-r1","./modules/ui-polish-program-v1.css?v=4.1.0-r1","./modules/ui-polish-learning-lab-v1.css?v=4.1.0-r1","./modules/ui-polish-final-v1.css?v=4.1.0-r1","./manifest.webmanifest","./icon-192.png","./icon-512.png","./icon-maskable-512.png","./apple-touch-icon.png"];
+const CORE=["./","./index.html","./app.css","./app.js?v=4.1.0-r20","./teacher-videos.js?v=4.4.0-r2-hotfix4","./settings-profile-runtime.js?v=2.6.0","./modules/core-utils.js?v=4.1.0-r27","./modules/teachers-curated-v3.js?v=4.4.0-r3","./modules/stability.js?v=4.1.0-r28","./modules/topic-guides.js?v=4.1.0-r20","./modules/learning-lab.js?v=4.1.0-r26","./modules/learning-lab-v2.js?v=4.1.0-r24","./modules/learning-lab-v3.js?v=4.1.0-r28","./modules/target-center.js?v=4.1.0-r20","./modules/export-center.js?v=4.1.0-r20","./modules/error-journal.js?v=4.1.0-r20","./modules/personal-upgrades.js?v=4.1.0-r20","./modules/progress-v2.js?v=4.1.0-r20","./modules/global-search-v42.js?v=4.2.0-r1","./modules/smart-repeat-v42.js?v=4.2.0-r1","./modules/error-topic-lab-v42.js?v=4.2.0-r1","./modules/exam-analysis-v42.js?v=4.2.0-r1","./modules/progress-v42.js?v=4.2.0-r1","./modules/learning-lab-flow-v42.js?v=4.2.0-r1","./modules/release-selftest.js?v=4.1.0-r20","./modules/motivation-quotes-v1.js?v=4.1.0-r5","./modules/motivation-quotes-v2.css?v=4.1.0-r2","./modules/study-intelligence-v5.css?v=4.1.0-r1","./modules/ui-polish-v1.css?v=4.1.0-r1","./modules/ui-polish-home-v2.css?v=4.1.0-r1","./modules/ui-polish-focus-v1.css?v=4.1.0-r1","./modules/ui-polish-exam-v1.css?v=4.1.0-r1","./modules/ui-polish-topics-v1.css?v=4.1.0-r1","./modules/ui-polish-error-journal-v1.css?v=4.1.0-r1","./modules/ui-polish-progress-v1.css?v=4.1.0-r1","./modules/ui-polish-progress-v2.css?v=4.1.0-r1","./modules/ui-polish-more-v1.css?v=4.1.0-r1","./modules/ui-polish-program-v1.css?v=4.1.0-r1","./modules/ui-polish-learning-lab-v1.css?v=4.1.0-r1","./modules/ui-polish-final-v1.css?v=4.1.0-r1","./manifest.webmanifest","./icon-192.png","./icon-512.png","./icon-maskable-512.png","./apple-touch-icon.png"];
 const OFFLINE_TEXT="Çevrimdışı";
 
 async function fetchWithTimeout(request,options={},timeoutMs=4500){
@@ -15,22 +15,60 @@ async function fetchWithTimeout(request,options={},timeoutMs=4500){
   finally{clearTimeout(timer);}
 }
 function buildAssets(html){
-  const out=[];for(const match of String(html||"").matchAll(/(?:src|href)=["'](?:\.\/)?(assets\/[^"']+)["']/g))out.push("./"+match[1]);
+  const out=[],root=new URL(appRootUrl());
+  for(const match of String(html||"").matchAll(/<(?:script|link)\b[^>]*?\b(?:src|href)\s*=\s*["']([^"']+)["'][^>]*>/gi)){
+    try{
+      const url=new URL(match[1],root);
+      if(url.origin===root.origin&&url.pathname.startsWith(root.pathname)&&isCriticalAsset(url)){
+        out.push("./"+url.pathname.slice(root.pathname.length)+url.search);
+      }
+    }catch(e){}
+  }
   return [...new Set(out)];
+}
+function startupAssets(manifest,html){
+  const validPath=value=>typeof value==="string"&&/^\.\/assets\/[A-Za-z0-9][A-Za-z0-9._-]*\.(?:js|css)$/.test(value);
+  if(!manifest||manifest.version!==1||!validPath(manifest.entry)||!manifest.entry.endsWith(".js")
+    ||!Array.isArray(manifest.assets)||!manifest.assets.length||manifest.assets.length>160
+    ||!manifest.assets.every(validPath)||!manifest.assets.includes(manifest.entry)
+    ||!buildAssets(html).includes(manifest.entry))throw new Error("Başlangıç dosyaları uygulama kabuğuyla uyuşmuyor");
+  const root=new URL(appRootUrl());
+  for(const asset of manifest.assets){
+    const url=new URL(asset,root);
+    if(url.origin!==root.origin||!url.pathname.startsWith(root.pathname+"assets/"))throw new Error("Başlangıç dosyası uygulama kapsamı dışında");
+  }
+  return [...new Set(manifest.assets)];
+}
+async function fetchStartupAssets(html){
+  /* Üretim build'i bu manifesti zorunlu üretir. Eksik/uyuşmayan bir dağıtımda
+     eski offline shell korunur; eksik başlangıç kodu hazır kabul edilmez. */
+  const response=await fetchWithTimeout("./offline-startup-assets.json",{cache:"no-store"},9000);
+  if(!response||!response.ok)throw new Error("Başlangıç dosyaları manifesti indirilemedi");
+  return startupAssets(await response.json(),html);
+}
+async function cacheAssetBatch(cache,urls){
+  if(!urls.length)return;
+  const ctl=typeof AbortController!=="undefined"?new AbortController():null;
+  const timer=ctl?setTimeout(()=>ctl.abort(),9000):null;
+  try{
+    /* addAll bütün yanıtları doğrulayıp tek atomik işlemde yazar. Bir dosya
+       alınamazsa aynı revizyondaki çalışan uygulamanın cache'i değişmez. */
+    await cache.addAll(urls.map(url=>new Request(new URL(url,appRootUrl()),{
+      cache:"no-store",...(ctl?{signal:ctl.signal}:{})
+    })));
+  }finally{if(timer!==null)clearTimeout(timer);}
 }
 async function cacheCore(){
   const cache=await caches.open(CACHE);
-  try{
-    const shell=await fetchWithTimeout("./index.html",{cache:"no-store"},9000);
-    if(!shell||!shell.ok)throw new Error("Uygulama kabuğu indirilemedi");
-    const html=await shell.clone().text(),required=[...new Set(CORE.concat(buildAssets(html)))];
-    await Promise.all(required.map(async u=>{
-      const r=u==="./index.html"?shell.clone():await fetchWithTimeout(u,{cache:"no-store"},9000);
-      if(!r||!r.ok)throw new Error("Çevrimdışı dosya alınamadı: "+u);
-      await cache.put(u,r.clone());
-    }));
-    await cache.put(READY_KEY,new Response(APP_BUILD,{headers:{"Content-Type":"text/plain;charset=utf-8"}}));
-  }catch(error){await caches.delete(CACHE);throw error;}
+  const shell=await fetchWithTimeout("./index.html",{cache:"no-store"},9000);
+  if(!shell||!shell.ok)throw new Error("Uygulama kabuğu indirilemedi");
+  const html=await shell.clone().text(),startup=await fetchStartupAssets(html);
+  const required=[...new Set(CORE.concat(buildAssets(html),startup))].filter(url=>url!=="./"&&url!=="./index.html");
+  await cacheAssetBatch(cache,required);
+  /* HTML en son yazılır; iki giriş de varlıkları doğrulanan aynı shell'i açar. */
+  await cache.put("./index.html",shell.clone());
+  await cache.put("./",shell.clone());
+  await cache.put(READY_KEY,new Response(APP_BUILD,{headers:{"Content-Type":"text/plain;charset=utf-8"}}));
 }
 function appRootUrl(){
   try{return self.registration&&self.registration.scope?self.registration.scope:new URL("./",self.location.href).href;}
@@ -51,6 +89,12 @@ function isLegacyIndexEntry(url){
 async function cacheLatestShell(response){
   try{
     const cache=await caches.open(CACHE);
+    const html=await response.clone().text(),startup=await fetchStartupAssets(html);
+    const assets=[...new Set(buildAssets(html).concat(startup))],missing=[];
+    for(const asset of assets)if(!await cache.match(asset))missing.push(asset);
+    /* Yeni deploy'un hash'li giriş dosyaları hazır olmadan eski offline HTML'i
+       değiştirme; yarım ağ yanıtı bir sonraki offline açılışı bozmamalı. */
+    await cacheAssetBatch(cache,missing);
     await Promise.all([cache.put("./index.html",response.clone()),cache.put("./",response.clone())]);
   }catch(e){}
 }

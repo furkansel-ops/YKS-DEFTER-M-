@@ -91,3 +91,36 @@ test('eski app.js fallbackı genel insan sözlerini ekrana basmaz',()=>{
   assert.match(safeBlock,/c:"Motivasyon"/);
   assert.doesNotMatch(safeBlock,/a:"YKS"|c:"YKS"|yalnız YKS/);
 });
+
+function infrastructureQuoteCheck(pool,current=()=>pool?.[0]?.q){
+  const app=fs.readFileSync(path.join(root,'app.js'),'utf8');
+  const archive=app.match(/const SOZLER=(\[[\s\S]*?\]);\r?\ntry\{ window\.SOZLER/);
+  const helperStart=app.indexOf('function infraQuotePoolValid(');
+  const start=helperStart>=0?helperStart:app.indexOf('function runInfrastructureSelfTest(');
+  const source=app.slice(start,app.indexOf('function renderInfraHealth(',start));
+  const context={LEGACY_SAFE_QUOTES:pool,SOZLER:vm.runInNewContext(archive[1]),gununSozu:current};
+  return vm.runInNewContext(source+'\nrunInfrastructureSelfTest().checks.find(check=>check.name==="Söz havuzu")',context);
+}
+
+function currentFallbackPool(){
+  const app=fs.readFileSync(path.join(root,'app.js'),'utf8');
+  return vm.runInNewContext(app.match(/const LEGACY_SAFE_QUOTES=(\[[\s\S]*?\]);/)[1]);
+}
+
+test('sistem sağlığı ekranda kullanılan anonim motivasyon ve futbol sözlerini doğrular',()=>{
+  const pool=currentFallbackPool();
+  assert.ok(pool.some(quote=>quote.a===''));
+  assert.equal(infrastructureQuoteCheck(pool).ok,true);
+  for(const roll of [0,50,75]){
+    const {context}=runWithRandom(max=>max===100?roll:0);
+    assert.equal(infrastructureQuoteCheck(pool,context.gununSozu).ok,true);
+  }
+});
+
+test('sistem sağlığı boş, yinelenen veya bozuk söz havuzunu ve boş görünen sözü reddeder',()=>{
+  const pool=currentFallbackPool(),quote=pool[0];
+  const invalid=[null,{},[],Array(1),[null],[{q:''}],[{q:'   '}],[{q:123}],
+    [quote,{...quote,q:' '+quote.q+' '}],[{...quote,a:{name:'Geçersiz'}}]];
+  for(const candidate of invalid)assert.equal(infrastructureQuoteCheck(candidate,()=>quote.q).ok,false);
+  for(const current of ['', '   ', null, 123])assert.equal(infrastructureQuoteCheck(pool,()=>current).ok,false);
+});

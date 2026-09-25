@@ -11,6 +11,7 @@ on:
       - "package-lock.json"
       - "version.json"
       - "vite.config.mts"
+      - "vite.runtime-hardening.mts"
       - "index.html"
       - "app.js"
       - "app.css"
@@ -130,7 +131,7 @@ jobs:
     timeout-minutes: 35
     environment: google-play-internal
     env:
-      CAPACITOR_VERSION: "8.5.0"
+      CAPACITOR_VERSION: "8.5.2"
       BUNDLETOOL_VERSION: "1.18.3"
       BUNDLETOOL_SHA256: "a099cfa1543f55593bc2ed16a70a7c67fe54b1747bb7301f37fdfd6d91028e29"
     steps:
@@ -177,7 +178,7 @@ jobs:
       - name: Bağımlılıkları kilit dosyasından kur
         run: npm ci --no-audit --no-fund
 
-      - name: Capacitor 8.5.0 sözleşmesini doğrula
+      - name: Capacitor sürüm sözleşmesini doğrula
         run: |
           node -e '
             const pkg = require("./package.json");
@@ -307,10 +308,10 @@ jobs:
             if (!Number.isInteger(expectedVersionCode) || metadata.versionCode !== expectedVersionCode) {
               throw new Error(`versionCode uyuşmuyor: ${metadata.versionCode} != ${expectedVersionCode}`);
             }
+            if (!manifest.includes(`versionName="${metadata.versionName}"`)) throw new Error("AAB versionName doğrulanamadı");
+            if (!manifest.includes(`versionCode="${metadata.versionCode}"`)) throw new Error("AAB versionCode doğrulanamadı");
             for (const [pattern, label] of [
               [/package="com\.furkansel\.yksdefterim"/, "AAB applicationId"],
-              [/versionName="4\.4\.0"/, "AAB versionName"],
-              [/versionCode="4040001"/, "AAB versionCode"],
               [/minSdkVersion="24"/, "AAB minSdk"],
               [/targetSdkVersion="36"/, "AAB targetSdk"],
               [/usesCleartextTraffic="false"/, "AAB cleartext"],
@@ -338,7 +339,7 @@ jobs:
           test "$actual_fingerprint" = "$expected_fingerprint"
 
           artifact_dir="$RUNNER_TEMP/play-internal-artifact"
-          artifact_name="YKS-Defterim-4.4.0-4040001.aab"
+          artifact_name="$(node -e 'const fs=require("node:fs");const m=JSON.parse(fs.readFileSync(process.argv[1],"utf8"));process.stdout.write(`YKS-Defterim-${m.versionName}-${m.versionCode}.aab`)' "$metadata")"
           mkdir -p "$artifact_dir"
           cp "$aab" "$artifact_dir/$artifact_name"
           cp "$metadata" "$artifact_dir/release-metadata.json"

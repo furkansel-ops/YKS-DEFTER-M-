@@ -55,13 +55,39 @@ test("Hocalar arayüzü TYT ve AYT derslerini öğrencinin gördüğü etikette 
   assert.match(source,/Video merkezi/);
 });
 
-test("küratörlü katalog app.js sonrasındaki klasik core-utils zincirinden yüklenir ve PWA çekirdeğinde çevrimdışı korunur",()=>{
+test("küratörlü katalog core-utils ve stability arasında açık senkron script ile yüklenir",()=>{
   const index=fs.readFileSync(path.join(root,"index.html"),"utf8");
   const core=fs.readFileSync(path.join(root,"modules/core-utils.js"),"utf8");
   const sw=fs.readFileSync(path.join(root,"sw.js"),"utf8");
-  assert.match(index,/app\.js\?v=4\.1\.0-r20/);
-  assert.match(index,/modules\/core-utils\.js\?v=4\.1\.0-r27/);
-  assert.match(core,/teachers-curated-v3\.js\?v=4\.4\.0-r3/);
-  assert.match(core,/document\.write/);
+  const scripts=[...index.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)].map(match=>({attributes:match[1],body:match[2],src:match[1].match(/\bsrc="([^"]+)"/)?.[1]}));
+  const urls=["./app.js?v=4.1.0-r20","./modules/core-utils.js?v=4.1.0-r27","./modules/teachers-curated-v3.js?v=4.4.0-r3","./modules/stability.js?v=4.1.0-r28"];
+  const positions=urls.map(url=>scripts.findIndex(script=>script.src===url));
+  assert.ok(positions.every(position=>position>=0));
+  assert.ok(positions[0]<positions[1]);
+  assert.equal(positions[2],positions[1]+1);
+  assert.equal(positions[3],positions[2]+1);
+  for(const position of positions){
+    const script=scripts[position];
+    assert.doesNotMatch(script.attributes,/\b(?:async|defer)\b|type="module"/);
+    assert.equal(script.body.trim(),"","Sonraki script öncekinin gövdesine yutulmamalı");
+  }
+  assert.doesNotMatch(core,/document\.write/);
   assert.match(sw,/teachers-curated-v3\.js\?v=4\.4\.0-r3/);
+});
+
+test("klasik çekirdek zinciri HTML yazmadan kataloğu ve kararlılık servisini hazırlar",()=>{
+  const vm=require("node:vm"),writes=[],events=[];
+  const document={readyState:"loading",documentElement:{dataset:{}},write:value=>writes.push(value),addEventListener:(...args)=>events.push(args)};
+  const window={};
+  const context=vm.createContext({window,document,TEACHERS:[],TEACH_SUBJECTS:[],console});
+  for(const file of ["core-utils.js","teachers-curated-v3.js","stability.js"]){
+    vm.runInContext(fs.readFileSync(path.join(root,"modules",file),"utf8"),context,{filename:file});
+  }
+  assert.equal(writes.length,0);
+  assert.equal(context.TEACHERS.length,43);
+  assert.equal(window.__YKS_CURATED_TEACHERS__.length,43);
+  assert.equal(document.documentElement.dataset.teachersCatalog,"curated-v3");
+  assert.equal(typeof window.YKSCore.mergeStates,"function");
+  assert.equal(typeof window.YKSStability.restoreRuntime,"function");
+  assert.ok(events.some(([event])=>event==="DOMContentLoaded"));
 });

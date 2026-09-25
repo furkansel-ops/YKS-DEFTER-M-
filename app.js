@@ -2723,6 +2723,15 @@ function infraRecoveryLabel(){
   if(src==="primary"||src==="new")return "Ana kayıt sağlam";
   return "Kurtarma kullanıldı: "+src;
 }
+function infraQuotePoolValid(pool){
+  if(!Array.isArray(pool)||!pool.length)return false;
+  const texts=new Set();
+  for(const item of pool){
+    if(!item||typeof item.q!=="string"||!item.q.trim()||(item.a!==undefined&&typeof item.a!=="string"))return false;
+    const text=item.q.trim();if(texts.has(text))return false;texts.add(text);
+  }
+  return true;
+}
 function runInfrastructureSelfTest(){
   const checks=[];
   const add=(name,ok,detail)=>checks.push({name:name,ok:!!ok,detail:detail||""});
@@ -2734,7 +2743,7 @@ function runInfrastructureSelfTest(){
   try{add("Yedek sistemi",typeof autoBackupRun==="function"&&typeof parseBackupPayload==="function");}catch(e){add("Yedek sistemi",false,e.message);}
   try{add("Güncelleme katmanı",typeof registerSW==="function"&&typeof checkRemoteVersion==="function");}catch(e){add("Güncelleme katmanı",false,e.message);}
   try{add("Performans katmanı",typeof perfIdle==="function"&&typeof perfRAF==="function"&&typeof renderStartup==="function"&&typeof renderAfterExternalState==="function");}catch(e){add("Performans katmanı",false,e.message);}
-  try{add("Söz havuzu",Array.isArray(SOZLER)&&SOZLER.length>=50&&new Set(SOZLER.map(x=>x.q)).size===SOZLER.length&&!SOZLER.some(x=>!x.a||x.a==="YKS Defterim"));}catch(e){add("Söz havuzu",false,e.message);}
+  try{const current=gununSozu();add("Söz havuzu",infraQuotePoolValid(LEGACY_SAFE_QUOTES)&&typeof current==="string"&&!!current.trim());}catch(e){add("Söz havuzu",false,e.message);}
   return {ok:checks.every(x=>x.ok),checks:checks};
 }
 function renderInfraHealth(){
