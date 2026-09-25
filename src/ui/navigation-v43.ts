@@ -9,7 +9,7 @@ type LegacyWindow=Window&{v30Action?:(action:string)=>unknown;go?:(screen:string
 type RouteDetail={to?:string};
 declare global{interface Window{__YKS_NAV_V43__?:NavigationRuntime;}}
 
-const VERSION="4.3.0-stage5";
+const VERSION="4.3.0-refined";
 const CATEGORIES:readonly MoreCategory[]=[
   {id:"learning",label:"Öğrenme",description:"Laboratuvar, kaynaklar ve yanlışlardan öğrenme",icon:"◎",items:[
     {action:"lab",label:"Öğrenme Laboratuvarı",description:"Konu atlası, 3B organlar ve bilim kartları",icon:"⌁"},
@@ -68,10 +68,12 @@ export function installNavigationV43():NavigationRuntime{
     hub=document.getElementById("v43MoreHub");
     if(!hub){
       hub=document.createElement("section");hub.id="v43MoreHub";hub.className="v43-more-hub";hub.setAttribute("aria-label","Merkez kategorileri");
-      hub.innerHTML=`<header class="v43-more-head"><div><span>MERKEZ</span><h1>Ne yapmak istiyorsun?</h1><p>Kalabalık araç listesi yerine alanını seç; yalnız ihtiyacın olan seçenekleri gör.</p></div></header><div class="v43-more-categories" role="group" aria-label="Merkez kategorileri">${CATEGORIES.map(category=>`<button type="button" data-v43-more-category="${category.id}" aria-pressed="${category.id===current}"><span aria-hidden="true">${esc(category.icon)}</span><span><b>${esc(category.label)}</b><small>${esc(category.description)}</small></span></button>`).join("")}</div><section id="v43MoreTools" class="v43-more-tools" aria-live="polite"></section><section class="v43-more-quick"><div class="v43-more-quick-head"><span>HIZLI ERİŞİM</span><b>Sık kullandıkların</b></div><div id="v43MoreQuickSlot"></div></section>`;
+      hub.innerHTML=`<header class="v43-more-head"><h1>Merkez</h1><p>Çalışmana yardımcı olan her şey.</p></header><div class="v43-more-shortcuts" aria-label="Sık kullanılan ekranlar"><button type="button" data-v43-screen="pomo"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M9 2h6m-3 6v5l3 2"/></svg><span>Odaklan</span></button><button type="button" data-v43-screen="progress"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10m8 10V4m8 16v-7"/></svg><span>İlerleme</span></button><button type="button" data-v43-screen="pp"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v16H4zM8 8h8m-8 4h8m-8 4h4"/></svg><span>Paragraf & problem</span></button></div><button type="button" class="v43-more-settings" data-v43-more-action="settings"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M9 3h6l1 3 3 1 2 5-2 5-3 1-1 3H9l-1-3-3-1-2-5 2-5 3-1Z"/></svg><span><b>Ayarlar</b><small>Profil, görünüm ve uygulama tercihleri</small></span><i aria-hidden="true">›</i></button><div class="v43-more-categories" role="group" aria-label="Merkez kategorileri">${CATEGORIES.map(category=>`<button type="button" data-v43-more-category="${category.id}" aria-pressed="${category.id===current}">${esc(category.label)}</button>`).join("")}</div><section id="v43MoreTools" class="v43-more-tools" aria-live="polite"></section><details class="v43-more-quick"><summary>Kişisel kısayollarım</summary><div id="v43MoreQuickSlot"></div></details>`;
       const status=document.getElementById("v30MoreStatus");if(status&&status.parentElement===home)status.insertAdjacentElement("afterend",hub);else home.prepend(hub);
       hub.addEventListener("click",event=>{
         if(!(event.target instanceof Element))return;
+        const screen=event.target.closest<HTMLElement>("[data-v43-screen]")?.dataset.v43Screen;
+        if(screen){legacy().go?.(screen);return;}
         const categoryButton=event.target.closest<HTMLElement>("[data-v43-more-category]");
         if(categoryButton?.dataset.v43MoreCategory){current=categoryButton.dataset.v43MoreCategory as CategoryId;renderCategory();return;}
         const actionButton=event.target.closest<HTMLElement>("[data-v43-more-action]");const action=actionButton?.dataset.v43MoreAction as MoreAction|undefined;if(!action)return;
@@ -79,6 +81,13 @@ export function installNavigationV43():NavigationRuntime{
       });
     }
     const quick=document.getElementById("v30QuickGrid"),slot=document.getElementById("v43MoreQuickSlot");if(quick&&slot&&quick.parentElement!==slot)slot.appendChild(quick);
+    const status=document.getElementById("v30MoreStatus");if(status&&slot&&status.parentElement!==slot)slot.append(status);
+    const search=document.querySelector<HTMLElement>("#more > .v30-search-card");
+    if(search){
+      const disclosure=document.createElement("details");disclosure.className="v43-more-quick";
+      const summary=document.createElement("summary");summary.textContent="Kayıtlarımda ara";
+      disclosure.append(summary,search);hub.append(disclosure);
+    }
     renderCategory();renameNavigation();return true;
   }
   let queued=false;

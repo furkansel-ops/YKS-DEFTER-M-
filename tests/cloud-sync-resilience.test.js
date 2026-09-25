@@ -37,7 +37,7 @@ test("Yeni v4 bulut snapshot'ları SHA-256 ile korunur, eski 8 haneli hash okuna
 test("Firebase uzaktaki durumu bütün eski chunks koleksiyonunu taramadan okur",()=>{
   const source=vite();
   assert.match(source,/yalnız aktif revizyonu okuma/);
-  assert.match(source,/ids\.slice\(i,i\+8\)\.map\(id=>getDoc\(chunkRef\(user\.uid,id\)\)\)/);
+  assert.match(source,/ids\.slice\(i,i\+8\)\.map\(id=>getDoc\(chunkRef\(uid,id\)\)\)/);
   assert.match(source,/docs\.some\(d=>!d\.exists\(\)\)/);
 });
 
@@ -99,7 +99,7 @@ test("Firebase tablet uykusu veya ağ dönüşünde bekleyen geçici yerel kayd�
 test("Firebase çakışma birleştirmesinden sonra aynı anda yazan cihazlara jitter uygular",()=>{
   const source=vite();
   const hardening=distHardening();
-  assert.match(source,/applyMerged\(r,safeJSONParse\(json\)\);syncRetryCount=Math\.max\(syncRetryCount,1\);uploadQueued=true/);
+  assert.match(source,/if\(await mergeUploadConflict\(r\)\)\{syncRetryCount=Math\.max\(syncRetryCount,1\);uploadQueued=true/);
   assert.match(hardening,/syncRetryBlocked=false;syncRetryCount=Math\.max\(syncRetryCount,1\);uploadQueued=true/);
 });
 

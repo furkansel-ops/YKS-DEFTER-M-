@@ -83,26 +83,26 @@ replaceRequired(
 );
 
 replaceRequired(
-  'catch(x){await refreshCloudAuth(x);reportSyncError("firebase-conflict",x);}',
-  'catch(x){const authRetry=await refreshCloudAuth(x);reportSyncError("firebase-conflict",x,authRetry);}',
+  'catch(x){if(!isCurrent())return;await refreshCloudAuth(x);if(!isCurrent())return;reportSyncError("firebase-conflict",x);}',
+  'catch(x){if(!isCurrent())return;const authRetry=await refreshCloudAuth(x);if(!isCurrent())return;reportSyncError("firebase-conflict",x,authRetry);}',
   "çakışma auth retry"
 );
 
 replaceRequired(
-  'const r=await readRemote(latest);await applyMerged(r,safeJSONParse(json));syncRetryCount=Math.max(syncRetryCount,1);uploadQueued=true;',
-  'const r=await readRemote(latest);await applyMerged(r,safeJSONParse(json));syncRetryBlocked=false;syncRetryCount=Math.max(syncRetryCount,1);uploadQueued=true;',
+  'const r=await readRemote(latest,uploadUser.uid);if(await mergeUploadConflict(r)){syncRetryCount=Math.max(syncRetryCount,1);uploadQueued=true;}',
+  'const r=await readRemote(latest,uploadUser.uid);if(await mergeUploadConflict(r)){syncRetryBlocked=false;syncRetryCount=Math.max(syncRetryCount,1);uploadQueued=true;}',
   "çakışma retry kilidi"
 );
 
 replaceRequired(
-  '}else{await refreshCloudAuth(e);reportSyncError("firebase-upload",e);}',
-  '}else{const authRetry=await refreshCloudAuth(e);reportSyncError("firebase-upload",e,authRetry);}',
+  '}else{await refreshCloudAuth(e);if(!isCurrent())return;reportSyncError("firebase-upload",e);}',
+  '}else{const authRetry=await refreshCloudAuth(e);if(!isCurrent())return;reportSyncError("firebase-upload",e,authRetry);}',
   "yükleme auth retry"
 );
 
 replaceRequired(
-  'finally{uploading=false;if(uploadQueued||(!loading&&user&&dirty)){uploadQueued=false;clearTimeout(timer);timer=setTimeout(upload,syncRetryCount?syncRetryDelay():120);}}',
-  'finally{uploading=false;if(uploadQueued||(!loading&&user&&dirty&&!syncRetryBlocked)){uploadQueued=false;clearTimeout(timer);timer=setTimeout(upload,syncRetryCount?syncRetryDelay():120);}}',
+  'finally{if(isCurrent()){uploading=false;if(uploadQueued||(!loading&&user&&dirty)){uploadQueued=false;clearTimeout(timer);timer=setTimeout(upload,syncRetryCount?syncRetryDelay():120);}}}',
+  'finally{if(isCurrent()){uploading=false;if(uploadQueued||(!loading&&user&&dirty&&!syncRetryBlocked)){uploadQueued=false;clearTimeout(timer);timer=setTimeout(upload,syncRetryCount?syncRetryDelay():120);}}}',
   "kalıcı hatada otomatik retry durdurma"
 );
 

@@ -9,7 +9,7 @@ test('Öğrenme Laboratuvarı premium cila ders, fen araçları ve Atlas yüzeyl
   assert.equal(fs.existsSync(cssPath),true);
   const css=fs.readFileSync(cssPath,'utf8');
   const study=fs.readFileSync(path.join(root,'modules/study-intelligence-v5.css'),'utf8');
-  assert.match(study,/ui-polish-learning-lab-v1\.css\?v=4\.1\.0-r1/);
+  assert.match(study,/ui-polish-learning-lab-v1\.css"/);
   assert.match(css,/#mrp_lab \.v320-course-browser/);
   assert.match(css,/#mrp_lab \.v320-subject-card/);
   assert.match(css,/#mrp_lab \.v4-science-card/);

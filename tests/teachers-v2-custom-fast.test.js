@@ -18,6 +18,7 @@ const workflow=()=>fs.readFileSync(path.join(root,".github/workflows/deploy-page
 test("Kendi eklenen hoca arşivi beklemeden hızlı erişim gösterir",()=>{
   const source=custom();
   assert.match(source,/isOwnTeacher/);
+  assert.match(source,/section\.dataset\.mediaBrowser==="restored"/);
   assert.match(source,/!name\|\|!isOwnTeacher\(name\)/);
   assert.match(source,/Kendi hocan · hızlı erişim hazır, arşiv yalnız istersen yüklenir/);
   assert.match(source,/data-custom-fast-url/);
@@ -67,14 +68,15 @@ test("Ortak kanal hocası odaklı aramayla 15 videoya tamamlanır",()=>{
   assert.match(pages,/listede video önizleme/);
 });
 
-test("Hoca medya motoru overlay açılışında yalnız hafif önizlemeyi yükler",()=>{
+test("Geliştirme ve yayın aynı isteğe bağlı medya yükleyicisini kullanır",()=>{
   const hardening=runtimeHardening();
-  assert.match(hardening,/async function previewOverlayMedia/);
-  assert.match(hardening,/renderMediaSection\(overlay,heading\);void previewOverlayMedia\(overlay,heading,false\)/);
-  assert.match(hardening,/medya feedini uygulama başlangıcında indirmeme/);
-  assert.match(hardening,/Son videolar yükleniyor/);
-  assert.match(hardening,/ağ dönüşünde yalnız açık hoca önizlemesini yenileme/);
-  assert.doesNotMatch(hardening,/if\(!ownTeacher\(heading\)\)/);
+  const source=fs.readFileSync(path.join(root,"src/ui/teachers-v2-media.ts"),"utf8");
+  assert.match(hardening,/export \{default\} from "\.\/vite\.config\.mts"/);
+  assert.doesNotMatch(hardening,/replaceRequired|hardenTeacherMediaOnDemand/);
+  assert.match(source,/async function previewOverlayMedia/);
+  assert.match(source,/renderMediaSection\(overlay,heading\);void previewOverlayMedia\(overlay,heading,false\)/);
+  assert.match(source,/function install\(\):void\{\s*decorateCards\(\);/);
+  assert.match(source,/window\.addEventListener\("online",\(\)=>\{if\(lastOverlay&&activeTeacher/);
 });
 
 test("Normal kod deploy'u son çalışan Hocalar feed ve arşivini korur",()=>{

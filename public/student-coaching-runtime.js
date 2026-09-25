@@ -1,16 +1,18 @@
 import{collection,doc,getDoc,onSnapshot,query,where,setDoc,updateDoc,serverTimestamp}from"https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
 
 const PENDING_ROLE="yks_account_role_pending",ROLE_HINT="yks_account_role_hint",DAY=86400000;
-const rt={auth:null,db:null,user:null,profile:null,stops:[],shareTimer:null,shareInterval:null,sharing:false,pending:false,inFlight:null};
+const rt={auth:null,db:null,user:null,profile:null,stops:[],shareTimer:null,shareInterval:null,sharing:false,pending:false,inFlight:null,session:0};
 const text=(v,n=160)=>String(v??"").trim().slice(0,n);
 const list=v=>Array.isArray(v)?v:[];
 const finite=(v,fallback=0)=>Number.isFinite(Number(v))?Number(v):fallback;
 const state=()=>{try{return window.YKSLegacyState?.readState?.()||window.S||null}catch{return window.S||null}};
 const save=()=>{try{return window.save?.()??window.YKSLegacyState?.save?.()}catch{return false}};
 const toast=m=>{try{window.toast?.(m)}catch{console.info(m)}};
-const today=()=>new Date().toISOString().slice(0,10);
+const dateKey=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+const today=()=>dateKey(new Date());
 const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
-async function waitForState(timeout=4000){const started=Date.now();while(Date.now()-started<timeout){if(state())return true;await wait(50)}return!!state()}
+async function waitForState(timeout=4000,session=rt.session){const started=Date.now();while(session===rt.session&&Date.now()-started<timeout){if(state())return true;await wait(50)}return!!state()}
+function requireSession(session){if(session!==rt.session){const error=new Error("Hesap oturumu değişti");error.code="account-session-changed";throw error}}
 
 async function beforeSignIn(ctx){
   try{sessionStorage.setItem(PENDING_ROLE,"student")}catch{}
@@ -34,6 +36,7 @@ async function ensureProfile(user,db){
 }
 
 function cleanup(){
+  rt.session++;
   rt.stops.splice(0).forEach(fn=>{try{fn()}catch{}});
   clearTimeout(rt.shareTimer);rt.shareTimer=null;clearInterval(rt.shareInterval);rt.shareInterval=null;rt.sharing=false;rt.pending=false;rt.inFlight=null;
 }
@@ -104,10 +107,11 @@ function sharePayload(s,u){
   return{studentUid:u.uid,version:1,profile:{name:text(s.name||u.displayName,80),track:text(s.puanTuru,8),targetNetTYT:Number(s.targetNetTYT??s.targetNet??0),targetNetAYT:Number(s.targetNetAYT||0),targetUniversity:text(s.targetUniversity,120),targetDepartment:text(s.targetDepartment,120)},program:buildProgramShare(s),exams,progress:{minutes7:sum(s.pomoMin,7),questions7:sum(s.solved,7),completedTopics:topics.filter(x=>x.st>=3).length,activeTopics:topics.filter(x=>x.st>0&&x.st<3).length,overdueTopics:topics.filter(x=>x.deadline&&x.deadline<today()&&x.st<3).length},paragraphProblem:{entries:pp},topics:{items:topics},errorJournal:errors,updatedAt:serverTimestamp()};
 }
 async function publishShare(options={}){
-  const manual=options?.manual===true;
+  const manual=options?.manual===true,session=rt.session;
   if(rt.sharing){
     rt.pending=true;
     if(manual&&rt.inFlight)await rt.inFlight;
+    if(session!==rt.session){if(manual)requireSession(session);return false}
     if(manual&&document.documentElement.dataset.coachShare==="error")throw new Error(document.documentElement.dataset.coachShareError||"Öğrenci bilgileri gönderilemedi");
     return document.documentElement.dataset.coachShare==="ready";
   }
@@ -128,13 +132,16 @@ async function publishShare(options={}){
       try{
         await setDoc(ref,payload,{merge:true});
       }catch(mergeError){
+        if(session!==rt.session){if(manual)requireSession(session);return false}
         console.warn("Koç paylaşımı eski belgeyle çakıştı; belge güncel şemayla yeniden kuruluyor.",mergeError);
         await setDoc(ref,payload);
       }
+      if(session!==rt.session){if(manual)requireSession(session);return false}
       document.documentElement.dataset.coachShare="ready";
       delete document.documentElement.dataset.coachShareError;
       return true;
     }catch(error){
+      if(session!==rt.session){if(manual)requireSession(session);return false}
       const code=text(error?.code||error?.message||"unknown",120);
       console.error("Koç paylaşımı",error);
       document.documentElement.dataset.coachShare="error";
@@ -143,25 +150,35 @@ async function publishShare(options={}){
       if(manual)throw error;
       return false;
     }finally{
-      rt.sharing=false;
-      rt.inFlight=null;
-      if(rt.pending){rt.pending=false;scheduleShare(120)}
+      if(session===rt.session){
+        rt.sharing=false;
+        rt.inFlight=null;
+        if(rt.pending){rt.pending=false;scheduleShare(120)}
+      }
     }
   })();
   return rt.inFlight;
 }
 function scheduleShare(ms=900){clearTimeout(rt.shareTimer);rt.shareTimer=setTimeout(()=>void publishShare(),ms)}
 
-function dateInfo(date){const d=new Date(date+"T12:00:00"),day=(d.getDay()+6)%7,t=new Date(d);t.setDate(t.getDate()-day);return{day,week:t.toISOString().slice(0,10)}}
+function dateInfo(date){
+  const d=new Date(date+"T12:00:00");
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||!Number.isFinite(d.getTime())||dateKey(d)!==date)throw new Error("Görev tarihi geçersiz");
+  const now=new Date(),day=(d.getDay()+6)%7,currentDay=(now.getDay()+6)%7;
+  const targetMonday=Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()-day);
+  const currentMonday=Date.UTC(now.getFullYear(),now.getMonth(),now.getDate()-currentDay);
+  return{day,weekOffset:Math.round((targetMonday-currentMonday)/(7*DAY))};
+}
 function applyAction(a){
   const s=state();if(!s)throw new Error("Öğrenci verisi hazır değil");const p=a.payload||{};
   if(a.type==="program_task"||a.type==="post_exam_task"){
     const v=text(p.text,220),di=dateInfo(text(p.date,10)||today());if(!v)throw new Error("Görev boş");
     if(typeof window.addToDay!=="function")throw new Error("Program işlevi hazır değil");
     const prefix=a.type==="post_exam_task"?"Koç · Deneme sonrası · ":"Koç · ";
-    if(window.addToDay(prefix+v,di.day,di.week)===false)throw new Error("Programda boş satır bulunamadı");
+    if(window.addToDay(prefix+v,di.day,di.weekOffset)===false)throw new Error("Programda boş satır bulunamadı");
   }else if(a.type==="topic_deadline"){
     const k=text(p.key,220),d=text(p.date,10);if(!k||!/^\d{4}-\d{2}-\d{2}$/.test(d))throw new Error("Konu hedefi geçersiz");
+    dateInfo(d);
     s.topics??={};s.topics[k]??={st:0,conf:0,ts:null,rev:[]};s.topics[k].dl=d;save();
   }else if(a.type==="coach_note"){
     const v=text(p.text,500);if(!v)throw new Error("Not boş");s.coachNotes??=[];s.coachNotes.push({id:`coach-${Date.now()}`,at:Date.now(),coachUid:a.coachUid,text:v});s.coachNotes=s.coachNotes.slice(-80);save();
@@ -177,8 +194,9 @@ async function handleAction(change){
     try{await updateDoc(change.doc.ref,{status:"rejected",updatedAt:serverTimestamp(),handledAt:serverTimestamp(),result:text(error?.message||"Uygulanamadı",500)})}catch{}
   }
 }
-async function startStudent(){
-  await waitForState();
+async function startStudent(session){
+  await waitForState(4000,session);
+  requireSession(session);
   scheduleShare(200);
   const changed=()=>scheduleShare();window.addEventListener("yks:data-changed",changed);rt.stops.push(()=>window.removeEventListener("yks:data-changed",changed));
   rt.shareInterval=setInterval(()=>scheduleShare(120),60000);
@@ -187,12 +205,17 @@ async function startStudent(){
 }
 
 async function onSignedIn({user,auth,db}){
-  cleanup();rt.user=user;rt.auth=auth;rt.db=db;
+  cleanup();const session=rt.session;rt.user=user;rt.auth=auth;rt.db=db;
   if(!user?.emailVerified)throw new Error("Doğrulanmış Google hesabı gerekli");
-  const profile=await ensureProfile(user,db);rt.profile=profile;
+  let profile,profileError;
+  try{profile=await ensureProfile(user,db)}catch(error){profileError=error}
+  requireSession(session);
+  if(profileError)throw profileError;
+  rt.profile=profile;
   try{localStorage.setItem(ROLE_HINT,profile.role);sessionStorage.removeItem(PENDING_ROLE)}catch{}
   document.documentElement.dataset.accountRole=profile.role;
-  if(profile.role==="student")await startStudent();
+  if(profile.role==="student")await startStudent(session);
+  requireSession(session);
   return{role:profile.role,profile};
 }
 function onSignedOut(){cleanup();rt.user=rt.auth=rt.db=rt.profile=null;delete document.documentElement.dataset.accountRole}

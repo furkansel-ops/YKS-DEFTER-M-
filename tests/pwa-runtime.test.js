@@ -13,6 +13,7 @@ test("PWA yapı karşılaştırması aynı uygulama sürümündeki revizyonları
   assert.equal(compareBuildVersions("4.0.0-r19","4.0.0-r18"),1);
   assert.equal(compareBuildVersions("4.0.0-r19","4.0.0-r19"),0);
   assert.equal(compareBuildVersions("4.1.0-r1","4.0.0-r99"),1);
+  assert.equal(compareBuildVersions("4.4.0-r3","4.4.0-r2"),1);
 });
 
 test("PWA elle kurulum yardımı cihaz türüne uygun Türkçe yol gösterir",async()=>{

@@ -67,9 +67,12 @@ export function installReleaseOverlay():void{
   if(document.documentElement.dataset.v42ReleaseOverlay==="ready")return;
   patchUpdateRuntime();
   wrapAfter("renderSettings",patchVersionUi);
+  wrapAfter("v30RenderAbout",patchVersionUi);
   wrapAfter("renderInfraHealth",()=>{patchVersionUi();patchInfrastructureVersion();});
   patchDiagnosticsRuntime();
   patchVersionUi();patchInfrastructureVersion();
-  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>{patchVersionUi();patchInfrastructureVersion();},{once:true});
+  /* Modül scripti interactive aşamasında çalışır; klasik finalBoot henüz
+     DOMContentLoaded kuyruğundaysa sürüm etiketini sonrasında düzelt. */
+  if(document.readyState!=="complete")document.addEventListener("DOMContentLoaded",()=>queueMicrotask(()=>{patchVersionUi();patchInfrastructureVersion();}),{once:true});
   window.addEventListener("yks:v4-bootstrap",()=>{patchVersionUi();patchInfrastructureVersion();});
 }

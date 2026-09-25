@@ -1,4 +1,4 @@
-import {DATA_SCHEMA_VERSION,type YksStateCandidate} from "./contracts.ts";
+import type {YksStateCandidate} from "./contracts.ts";
 import {decodeState,isRecord,stateHash,textBytes} from "./codec.ts";
 
 export const BACKUP_FORMAT_VERSION=3 as const;
@@ -87,6 +87,14 @@ function sanitizedState(source:YksStateCandidate):YksStateCandidate{
   return state;
 }
 
+function isStateBackup(value:Record<string,unknown>):boolean{
+  if(Object.hasOwn(value,"v")&&value.v!=null)return true;
+  /* İlk sürümlerde şema etiketi bulunmayabilir; yalnız tanınan kayıt yapıları
+     eski yedek olarak kabul edilir. Rastgele JSON varsayılan duruma dönüşmesin. */
+  return ["solved","pomoMin","topics","weeks","sessions","learning"].some(key=>isRecord(value[key]))
+    ||["denemeler","wrongLog","books","qbank"].some(key=>Array.isArray(value[key]));
+}
+
 export function createBackupPackage(sourceJSON:string,appVersion:string,now:()=>Date=()=>new Date()):BackupBuildResult{
   const decoded=decodeState(sourceJSON);
   if(!decoded.ok)return {ok:false,message:decoded.message};
@@ -106,10 +114,13 @@ export function inspectBackupPackage(text:string):BackupInspectResult{
   try{parsed=JSON.parse(text);}catch{return {ok:false,kind:"invalid-json",message:"Dosya geçerli JSON değil"};}
   if(!isRecord(parsed))return {ok:false,kind:"invalid-package",message:"Yedek içeriği bir veri nesnesi olmalı"};
 
-  const format=Number(parsed.format??1);
+  const rawFormat=parsed.format??1;
+  const format=typeof rawFormat==="number"||typeof rawFormat==="string"?Number(rawFormat):NaN;
+  if(!Number.isInteger(format)||format<1||format>BACKUP_FORMAT_VERSION)return {ok:false,kind:"invalid-package",message:"Yedek biçimi geçersiz veya bu sürümde desteklenmiyor"};
   const wrapped=format>=2;
   const candidate=wrapped?parsed.data:parsed;
   if(!isRecord(candidate))return {ok:false,kind:"invalid-package",message:"Yedekte uygulama verisi bulunamadı"};
+  if(!isStateBackup(candidate))return {ok:false,kind:"invalid-package",message:"Dosyada tanınan YKS Defterim kaydı bulunamadı"};
   const json=JSON.stringify(candidate),decoded=decodeState(json);
   if(!decoded.ok){
     if(decoded.kind==="future-schema")return {ok:false,kind:"future-schema",message:decoded.message};

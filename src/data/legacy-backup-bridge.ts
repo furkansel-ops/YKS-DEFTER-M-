@@ -40,15 +40,15 @@ export function installLegacyBackupBridge(data:LegacyDataBridgeApi,appVersion:st
       const before=await data.primaryJSON();
       const result=await data.applyBackupJSON(inspected.json);
       if(!result.ok){
-        let rolledBack=false;
-        if(before.ok){
+        let rolledBack=result.rolledBack===true;
+        if(!rolledBack&&before.ok){
           const after=await data.primaryJSON();
           if(after.ok&&after.hash!==before.hash){
             const rollback=await data.applyBackupJSON(before.json);
             rolledBack=rollback.ok;
           }
         }
-        const suffix=rolledBack?" Önceki kayıt otomatik geri alındı.":"";
+        const suffix=rolledBack&&!result.rolledBack?" Önceki kayıt otomatik geri alındı.":"";
         return {ok:false,kind:"restore",message:result.message+suffix,rolledBack};
       }
       return {ok:true,summary:inspected.summary,result:result as ExternalApplyResult&{ok:true},previousHash:before.ok?before.hash:undefined};

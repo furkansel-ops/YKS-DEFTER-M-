@@ -47,6 +47,6 @@ test("İlerleme cila katmanı tablet, mobil, dokunmatik ve azaltılmış hareket
 
 test("İlerleme cila katmanları ana stil zincirinden yüklenir",()=>{
   const study=read("modules/study-intelligence-v5.css");
-  assert.match(study,/ui-polish-progress-v1\.css\?v=4\.1\.0-r1/);
-  assert.match(study,/ui-polish-progress-v2\.css\?v=4\.1\.0-r1/);
+  assert.match(study,/ui-polish-progress-v1\.css"/);
+  assert.match(study,/ui-polish-progress-v2\.css"/);
 });

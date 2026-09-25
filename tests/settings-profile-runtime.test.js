@@ -2,150 +2,154 @@ const test=require("node:test");
 const assert=require("node:assert/strict");
 const fs=require("node:fs");
 const path=require("node:path");
+const vm=require("node:vm");
 const root=path.resolve(__dirname,"..");
 const read=file=>fs.readFileSync(path.join(root,file),"utf8");
+const source=read("public/settings-profile-runtime.js");
+const categoryIds=["profile","account","appearance","study","notifications","coach","data","application"];
 
-test("ayarlar modern YKS profil bilgilerini gösterir",()=>{
-  const src=read("public/settings-profile-runtime.js");
-  for(const label of ["Kişisel bilgiler","YKS hedeflerim","Hesap & güvenlik","TYT hedef net","AYT hedef net","Hedef üniversite","Hedef bölüm","Alan / puan türü","OBP","Haftalık çalışma"]){
-    assert.ok(src.includes(label),label);
+function harness(){
+  const ids=new Map(),listeners=new Map(),scrolled=[];
+  const document={documentElement:{dataset:{}},activeElement:null,getElementById:id=>ids.get(id)||null,querySelector:()=>null,querySelectorAll:()=>[],head:{append(){}},createElement:()=>new Node()};
+  class Node{
+    dataset={};hidden=false;textContent="";value="";children=[];selectors=new Map();collections=new Map();events=new Map();attributes={};classes=new Set();writes=0;
+    classList={contains:name=>this.classes.has(name),toggle:(name,on)=>{if(on)this.classes.add(name);else this.classes.delete(name)}};
+    set innerHTML(value){this.html=value;this.writes++}get innerHTML(){return this.html||""}
+    querySelector(selector){if(selector.startsWith("[data-yms-category=")){const id=selector.match(/"([^"]+)"/)[1];return this.collections.get("[data-yms-category]")?.find(node=>node.dataset.ymsCategory===id&&!node.hidden)||null}return this.selectors.get(selector)||null}
+    querySelectorAll(selector){return this.collections.get(selector)||(this.querySelector(selector)?[this.querySelector(selector)]:[])}
+    addEventListener(name,fn){this.events.set(name,fn)}
+    emit(name,event={}){return this.events.get(name)?.({target:this,currentTarget:this,...event})}
+    focus(){document.activeElement=this}
+    scrollIntoView(){scrolled.push("detail")}
+    setAttribute(name,value){this.attributes[name]=value}
+    contains(node){return this.children.includes(node)}
+    append(node){this.children.push(node)}
+    replaceChildren(...nodes){this.children=nodes}
   }
-  assert.match(src,/targetNetTYT/);
-  assert.match(src,/targetNetAYT/);
-  assert.match(src,/targetUniversity/);
-  assert.match(src,/targetDepartment/);
-  assert.match(src,/puanTuru/);
+  const window={S:{name:"Deniz Öğrenci",target:150,theme:"auto"},scrollY:320,scrollTo:options=>scrolled.push(options.top),addEventListener:(name,fn)=>listeners.set(name,fn)};
+  const context=vm.createContext({window,document,setInterval:()=>1,clearInterval(){},queueMicrotask,console,CustomEvent:class{constructor(type,options){this.type=type;this.detail=options?.detail}}});
+  vm.runInContext(source,context);
+  const rootNode=new Node();ids.set("yksModernSettings",rootNode);
+  for(const selector of ["[data-yms-overview]","[data-yms-detail]","#ymsDetailTitle","#ymsDetailDescription","#ymsSearch",".yms-category-list","[data-yms-no-results]","#ymsNotifTime","#ymsQuestionTarget","[data-yms-notif-status]","[data-yms-notif-permission]","[data-yms-coach-empty]","[data-yms-account-empty]","[data-yms-theme-slot]","[data-yms-personal-slot]","[data-yms-coach-slot]","[data-yms-account-slot]"])rootNode.selectors.set(selector,new Node());
+  rootNode.collections.set("[data-yms-section]",categoryIds.map(id=>{const node=new Node();node.dataset.ymsSection=id;node.hidden=true;return node}));
+  rootNode.collections.set("[data-yms-category]",categoryIds.map(id=>{const node=new Node();node.dataset.ymsCategory=id;return node}));
+  return {context,window,document,ids,listeners,root:rootNode,Node,scrolled,run:code=>vm.runInContext(code,context)};
+}
+
+test("ayar araması Türkçe ve aksansız yazımları bulur, sözcükleri birlikte eşleştirir",()=>{
+  const h=harness();
+  assert.deepEqual(Array.from(h.run('matchingCategories("GÖRÜNÜM")')),["appearance"]);
+  assert.deepEqual(Array.from(h.run('matchingCategories("gorunum")')),["appearance"]);
+  assert.deepEqual(Array.from(h.run('matchingCategories("gunluk hedef")')),["study"]);
+  assert.deepEqual(Array.from(h.run('matchingCategories("kod")')),["coach"]);
+  assert.deepEqual(Array.from(h.run('matchingCategories("yedek")')),["data"]);
+  assert.deepEqual(Array.from(h.run('matchingCategories("olmayan ayar")')),[]);
 });
 
-test("eski yardımcı ayarlar gizlenir, tema seçimi Görünüm kartında korunur",()=>{
-  const src=read("public/settings-profile-runtime.js"),index=read("index.html"),videos=read("public/teacher-videos.js");
-  for(const id of ["themeGrid","sozToggle","roleSeg","roleHint","simpleToggle","simpleHint","ytSrc"])assert.match(src,new RegExp(id));
-  assert.doesNotMatch(src,/hideCardFor\("themeGrid"/);
-  assert.match(src,/themeCard\.hidden=false/);
-  assert.match(src,/dataset\.ymsHidden="true"/);
-  assert.match(src,/video-settings-private/);
-  assert.match(index,/id="ytSrc"/);
-  assert.match(videos,/YouTube|youtube/);
-  assert.doesNotMatch(src,/data-yms-coach/);
+test("ayar kategorisi tek ayrıntı açar, geri dönüş arama ve odak konumunu korur",()=>{
+  const h=harness();h.run('view.query="bildirim";filterCategories(document.getElementById(ROOT_ID))');
+  assert.equal(h.window.__YKS_SETTINGS__.open("notifications"),true);
+  assert.equal(h.root.dataset.category,"notifications");
+  assert.equal(h.root.querySelector("[data-yms-overview]").hidden,true);
+  assert.deepEqual(h.root.querySelectorAll("[data-yms-section]").filter(node=>!node.hidden).map(node=>node.dataset.ymsSection),["notifications"]);
+  assert.equal(h.document.activeElement,h.root.querySelector("#ymsDetailTitle"));
+  h.window.__YKS_SETTINGS__.back();
+  assert.equal(h.root.querySelector("[data-yms-detail]").hidden,true);
+  assert.equal(h.root.querySelector("[data-yms-overview]").hidden,false);
+  assert.equal(h.document.activeElement.dataset.ymsCategory,"notifications");
+  assert.equal(h.run("view.query"),"bildirim");
+  assert.equal(h.scrolled.at(-1),320);
 });
 
-test("tema kontrolü yalnız Ayarlar ekranında tutulur",()=>{
-  const src=read("public/settings-profile-runtime.js"),ui=read("src/ui/personalization-v43.ts"),main=read("src/main.ts"),index=read("index.html");
-  assert.match(src,/getElementById\("themeBtn"\)\?\.remove\(\)/);
-  assert.match(src,/dataset\.themeControl="settings-only"/);
-  assert.match(ui,/dataset\.themeControl="settings-only"/);
-  assert.match(main,/dataset\.themeControl="settings-only"/);
-  assert.doesNotMatch(main,/installSingleThemeRuntime/);
-  assert.doesNotMatch(index,/id="themeBtn"/);
-  assert.match(index,/id="themeGrid"/);
+test("geçersiz kategori geçerli ekranı değiştirmez ve arama boş durumunu gösterir",()=>{
+  const h=harness();h.run('showCategory("study",false)');
+  assert.equal(h.window.__YKS_SETTINGS__.open("missing"),false);
+  assert.equal(h.root.dataset.category,"study");
+  h.run('view.query="bulunmayan sözcük";filterCategories(document.getElementById(ROOT_ID))');
+  assert.equal(h.root.querySelector("[data-yms-no-results]").hidden,false);
+  assert.equal(h.root.querySelector(".yms-category-list").hidden,true);
+  h.run('view.query="";filterCategories(document.getElementById(ROOT_ID))');
+  assert.ok(h.root.querySelectorAll("[data-yms-category]").every(node=>!node.hidden));
+  assert.equal(h.root.querySelector("[data-yms-no-results]").hidden,true);
 });
 
-test("2027 YKS tarihleri bilgi olarak sabittir",()=>{
-  const src=read("public/settings-profile-runtime.js");
-  assert.match(src,/19 Haziran 2027/);
-  assert.match(src,/20 Haziran 2027/);
-  assert.match(src,/10:15/);
-  assert.match(src,/15:45/);
-  assert.match(src,/Sınav tarihleri bilgi amaçlı sabittir/);
+test("arka plan güncellemesi kaydedilmemiş saat ve hedef girişlerini korur",()=>{
+  const h=harness(),time=h.root.querySelector("#ymsNotifTime"),target=h.root.querySelector("#ymsQuestionTarget");
+  time.value="18:45";target.value="300";target.dataset.dirty="true";
+  h.run('view.timeDirty=true;showCategory("notifications",false);refresh(document.getElementById(ROOT_ID))');
+  assert.equal(time.value,"18:45");assert.equal(target.value,"300");
+  assert.equal(h.root.dataset.category,"notifications");assert.equal(h.root.writes,0);
+  h.run('view.timeDirty=false');target.dataset.dirty="false";
+  h.run('refresh(document.getElementById(ROOT_ID))');
+  assert.equal(time.value,"21:00");assert.equal(target.value,"150");
+  time.value="19:30";h.document.activeElement=time;
+  h.run('refresh(document.getElementById(ROOT_ID))');assert.equal(time.value,"19:30");
 });
 
-test("profil düzenleme yeni onboarding alanlarını kaydeder ve eski net alanıyla uyumluluğu korur",()=>{
-  const src=read("public/settings-profile-runtime.js");
-  assert.match(src,/s\.name=/);
-  assert.match(src,/s\.puanTuru=/);
-  assert.match(src,/s\.targetNetTYT=/);
-  assert.match(src,/s\.targetNetAYT=/);
-  assert.match(src,/s\.targetUniversity=/);
-  assert.match(src,/s\.targetDepartment=/);
-  assert.match(src,/s\.targetNet=s\.targetNetTYT/);
-  assert.match(src,/yks:data-changed/);
+test("hesap güncellemesi mevcut düğmeleri ve kullanıcı odağını değiştirmeden metni yeniler",()=>{
+  const h=harness(),name=new h.Node(),initials=new h.Node();name.dataset.ymsValue="name";initials.dataset.ymsValue="initials";
+  h.root.collections.set("[data-yms-value]",[name,initials]);
+  const target=h.root.querySelector("#ymsQuestionTarget");target.focus();
+  h.run('refresh(document.getElementById(ROOT_ID))');assert.equal(name.textContent,"Deniz Öğrenci");
+  h.window.S.name="İpek Yılmaz";h.run('refresh(document.getElementById(ROOT_ID))');
+  assert.equal(name.textContent,"İpek Yılmaz");assert.equal(initials.textContent,"İY");
+  assert.equal(h.document.activeElement,target);assert.equal(h.root.writes,0);
 });
 
-test("hesap güvenliği giriş ve çıkış sunar, koçluk düğmesi sunmaz",()=>{
-  const src=read("public/settings-profile-runtime.js");
-  assert.match(src,/data-yms-login/);
-  assert.match(src,/data-yms-logout/);
-  assert.match(src,/cloudLoginBtn/);
-  assert.match(src,/cloudLogoutBtn/);
-  assert.doesNotMatch(src,/data-yms-coach/);
-  assert.doesNotMatch(src,/>Koçluk</);
+test("tema, hesap ve koç panelleri klonlanmadan taşınır; mevcut dinleyiciler korunur",()=>{
+  const h=harness(),theme=new h.Node(),themeGrid=new h.Node();theme.hidden=true;theme.dataset.ymsHidden="true";themeGrid.closest=()=>theme;h.ids.set("themeGrid",themeGrid);
+  const coach=new h.Node(),cloud=new h.Node(),account=new h.Node();let clicks=0;coach.addEventListener("click",()=>clicks++);
+  h.ids.set("studentCoachCodeSettings",coach);h.ids.set("cloudSyncBox",cloud);h.ids.set("yksAccountSettingsCard",account);
+  h.run('adoptPanels(document.getElementById(ROOT_ID));adoptPanels(document.getElementById(ROOT_ID))');
+  assert.deepEqual(h.root.querySelector("[data-yms-theme-slot]").children,[theme]);assert.equal(theme.hidden,false);
+  assert.deepEqual(h.root.querySelector("[data-yms-coach-slot]").children,[coach]);coach.emit("click");assert.equal(clicks,1);
+  assert.deepEqual(h.root.querySelector("[data-yms-account-slot]").children,[cloud,account]);
+  assert.equal(h.root.querySelector("[data-yms-coach-empty]").hidden,true);
+  assert.equal(h.root.querySelector("[data-yms-account-empty]").hidden,true);
 });
 
-test("bildirimler modern kartta mevcut güvenli bildirim fonksiyonlarını kullanır",()=>{
-  const src=read("public/settings-profile-runtime.js");
-  for(const key of ["pomo","review","evening"])assert.match(src,new RegExp(`notifButton\\(\\"${key}\\"`));
-  assert.match(src,/window\.toggleNotif/);
-  assert.match(src,/window\.askNotif/);
-  assert.match(src,/window\.saveEveningAt/);
-  assert.match(src,/window\.testNotif/);
-  assert.match(src,/window\.notifDiag/);
-  assert.match(src,/notifTime/);
+test("bildirim durum yenilemesi erişilebilir anahtarları gerçek eski durumla eşitler",()=>{
+  const h=harness(),legacy=new h.Node(),button=new h.Node();h.ids.set("notifPomo",legacy);button.dataset.ymsNotifSource="notifPomo";
+  h.root.collections.set("[data-yms-notif]",[button]);legacy.classes.add("on");
+  h.run('refresh(document.getElementById(ROOT_ID))');assert.equal(button.attributes["aria-checked"],"true");assert.ok(button.classes.has("is-on"));
+  legacy.classes.delete("on");h.run('refresh(document.getElementById(ROOT_ID))');assert.equal(button.attributes["aria-checked"],"false");
 });
 
-test("kişiselleştirme paneli yeni Ayarlar düzenine taşınır",()=>{
-  const src=read("public/settings-profile-runtime.js"),ui=read("src/ui/personalization-v43.ts"),css=read("src/ui/personalization-v43.css");
-  assert.match(src,/Kendine göre ayarla/);
-  assert.match(ui,/Tema seçimini Ayarlar > Görünüm bölümünden/);
-  assert.match(src,/Sınav kapsamını ve Bugün ekranındaki yardımcı alanları buradan düzenle/);
-  assert.match(src,/data-yms-personal-slot/);
-  assert.match(src,/host\.replaceChildren\(panel\)/);
-  assert.match(src,/Ayarları sıfırla/);
-  assert.match(src,/ymsPersonalization="polished"/);
-  assert.match(css,/data-yms-personalization="polished"/);
-  assert.doesNotMatch(css,/v43-theme-grid/);
+test("ayar bağlantıları mevcut program, yedek, sistem ve bildirim işlemlerine ulaşır",()=>{
+  const h=harness(),calls=[];
+  const selectors=["[data-yms-program]","[data-yms-data]","[data-yms-system]","[data-yms-about]","[data-yms-notif-test]"];
+  selectors.forEach(selector=>h.root.selectors.set(selector,new h.Node()));
+  h.window.go=screen=>calls.push(screen);h.window.v30Action=action=>calls.push(action);h.window.testNotif=()=>calls.push("notification");
+  h.run('bind(document.getElementById(ROOT_ID))');selectors.forEach(selector=>h.root.querySelector(selector).emit("click"));
+  assert.deepEqual(calls,["program","data","system","about","notification"]);
 });
 
-
-test("ayarlar arayüzü kategori menüsü ve tek modern akış kullanır",()=>{
-  const src=read("public/settings-profile-runtime.js");
-  for(const label of ["Profil","Görünüm","Kişiselleştir","Bildirimler","Uygulama","Profil ve hedefler","Veri & yedek","Sistem durumu"]){
-    assert.ok(src.includes(label),label);
-  }
-  for(const id of ["ymsProfile","ymsAppearance","ymsPersonal","ymsNotifications","ymsApplication"]){
-    assert.match(src,new RegExp(id));
-  }
-  assert.match(src,/data-yms-jump/);
-  assert.match(src,/scrollIntoView/);
-  assert.match(src,/data-yms-theme-slot/);
-  assert.match(src,/modern-app-tools/);
+test("günlük soru hedefi kayıt hatasında eski değeri korur ve başarılı kayıtta günceller",()=>{
+  const h=harness(),target=h.root.querySelector("#ymsQuestionTarget"),button=new h.Node(),status=new h.Node();
+  h.root.selectors.set("[data-yms-target-save]",button);h.root.selectors.set("[data-yms-target-status]",status);target.checkValidity=()=>true;target.reportValidity=()=>{};target.value="225";target.dataset.dirty="true";
+  h.window.save=()=>false;h.run('bind(document.getElementById(ROOT_ID))');button.emit("click");
+  assert.equal(h.window.S.target,150);assert.equal(target.value,"225");assert.match(status.textContent,/kaydedilemedi/);
+  h.window.save=()=>true;button.emit("click");assert.equal(h.window.S.target,225);assert.equal(target.dataset.dirty,"false");assert.match(status.textContent,/kaydedildi/);
 });
 
-test("ayarlar gerçek uygulama hissi veren sade grup düzenini kullanır",()=>{
-  const src=read("public/settings-profile-runtime.js");
-  assert.match(src,/mobile-premium-settings-v1/);
-  assert.match(src,/native-settings-v3/);
-  assert.match(src,/--yms-group-radius:18px/);
-  assert.match(src,/\.yms-action-grid\{grid-template-columns:1fr;gap:0\}/);
-  assert.match(src,/yms-nav-dot/);
-  assert.doesNotMatch(src,/yms-nav-ic">👤/);
-  assert.match(src,/\.yms-hero\{padding:6px 2px 18px;border:0/);
-  assert.match(src,/\.yms-action-tile::after\{content:"›"/);
-  assert.match(src,/\.yms-dialog\{width:100%;max-width:680px/);
-  assert.match(src,/\.yms-theme-host \.theme-card\{min-height:64px/);
+test("profil, tema ve bildirim işlevleri sadeleştirilmiş ayarlarda korunur",()=>{
+  for(const label of ["Kişisel bilgiler","YKS hedeflerim","TYT hedef net","AYT hedef net","Hedef üniversite","Hedef bölüm","Alan / puan türü","OBP","Haftalık çalışma"])assert.ok(source.includes(label),label);
+  for(const key of ["name","puanTuru","targetNetTYT","targetNetAYT","targetUniversity","targetDepartment"])assert.match(source,new RegExp(`s\\.${key}=`));
+  assert.match(source,/s\.targetNet=s\.targetNetTYT/);
+  assert.match(source,/data-yms-theme-slot/);assert.match(source,/themeCard\.hidden=false/);
+  assert.doesNotMatch(source,/hideCardFor\("themeGrid"/);
+  assert.match(source,/getElementById\("themeBtn"\)\?\.remove\(\)/);
+  for(const method of ["toggleNotif","askNotif","saveEveningAt","testNotif","notifDiag"])assert.match(source,new RegExp(`window\\.${method}`));
+  assert.match(source,/host\.replaceChildren\(panel\)/);
+  assert.match(source,/19 Haziran 2027/);assert.match(source,/20 Haziran 2027/);
+  assert.doesNotMatch(source,/\[600,1500,3500,7000\]/);
 });
 
-test("modern Ayarlar kartları seçili temanın yüzey ve metin tokenlarını kullanır",()=>{
-  const css=read("src/ui/personalization-v43.css"),runtime=read("public/settings-profile-runtime.js"),appCss=read("app.css");
-  assert.match(runtime,/var\(--surface,#fff\)/);
-  assert.match(css,/#mrp_ayar \.yms-wrap,\.yms-modal\{--surface:var\(--card,var\(--glass,#fff\)\)\}/);
-  assert.match(css,/#mrp_ayar \.yms-wrap\{color:var\(--label,var\(--ink,#111827\)\)\}/);
-  assert.match(css,/\.yms-status-pill\.ok\{color:var\(--green-ink,#087443\)\}/);
-  assert.match(css,/\.yms-actions button\.danger\{color:var\(--danger,var\(--red,#b42318\)\)\}/);
-  assert.match(appCss,/themes20260923-settings-refresh/);
-  assert.match(appCss,/#mrp_ayar #themeGrid/);
-});
-
-test("uygulama kartı veri yedeği, sistem ve hakkında erişimini korur",()=>{
-  const src=read("public/settings-profile-runtime.js");
-  assert.match(src,/data-yms-data/);
-  assert.match(src,/data-yms-system/);
-  assert.match(src,/data-yms-about/);
-});
-
-test("modern ayarlar hesap runtime zincirinden cache busting ile yüklenir",()=>{
-  const loader=read("src/ui/student-account-loader.ts");
-  assert.match(loader,/SETTINGS_SCRIPT_ID="settingsProfileRuntime"/);
-  assert.match(loader,/settings-profile-runtime\.js\?v=2\.6\.0/);
+test("ayarlar seçili temanın tokenlarını ve güncel hesap yükleyicisini kullanır",()=>{
+  const css=read("src/ui/personalization-v43.css"),loader=read("src/ui/student-account-loader.ts");
+  assert.match(source,/var\(--rb-surface,var\(--card,#fff\)\)/);
+  assert.match(source,/var\(--rb-ink,var\(--label,#10203f\)\)/);
+  assert.match(css,/var\(--rb-accent,var\(--accent\)\)/);
+  assert.match(loader,/settings-profile-runtime\.js\?v=3\.0\.0/);
   assert.match(loader,/const settingsReady=loadModuleScript/);
-  assert.match(loader,/return settingsReady/);
 });

@@ -21,5 +21,5 @@ test("Deneme ekranı premium cila katmanı analiz, karşılaştırma ve responsi
 
 test("Deneme cila katmanı ana stil zincirinden yüklenir",()=>{
   const study=read("modules/study-intelligence-v5.css");
-  assert.match(study,/ui-polish-exam-v1\.css\?v=4\.1\.0-r1/);
+  assert.match(study,/ui-polish-exam-v1\.css"/);
 });

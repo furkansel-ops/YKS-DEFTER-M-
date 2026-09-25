@@ -1,0 +1,112 @@
+/* Nested teaching resources keep the day picker above the teacher sheet. */
+body.teachers-v2-open #dayPick { z-index:1400; }
+body.teachers-v2-open #playOverlay,
+#teachersV2MediaPlayer { z-index:1500; }
+.teachers-v2-media-panel[hidden],
+.teachers-v2-media-panel [hidden] { display:none!important; }
+
+/* Use the same surfaces and rhythm as the approved app theme. */
+:root[data-visual-system="refined-blue"] .teachers-v2-shell { gap:14px; }
+:root[data-visual-system="refined-blue"] .teachers-v2-hero {
+  padding:0 0 8px; background:none; border:0; border-radius:0; box-shadow:none;
+}
+:root[data-visual-system="refined-blue"] .teachers-v2-hero::after { display:none; }
+:root[data-visual-system="refined-blue"] .teachers-v2-title { font-size:26px; font-weight:710; letter-spacing:-.035em; }
+:root[data-visual-system="refined-blue"] .teachers-v2-sub { max-width:620px; font-size:14px; line-height:1.55; color:var(--rb-muted); }
+:root[data-visual-system="refined-blue"] .teachers-v2-meta { gap:10px; }
+:root[data-visual-system="refined-blue"] .teachers-v2-meta span { background:none; border:0; padding:0; color:var(--rb-muted); font-weight:550; }
+:root[data-visual-system="refined-blue"] .teachers-v2-card {
+  padding:17px; border:1px solid var(--rb-line); border-radius:20px;
+  background:var(--rb-surface); box-shadow:var(--rb-shadow);
+}
+:root[data-visual-system="refined-blue"] .teachers-v2-card:hover { transform:none; border-color:var(--rb-accent); box-shadow:var(--rb-shadow); }
+:root[data-visual-system="refined-blue"] .teachers-v2-name { font-size:16px; font-weight:670; }
+:root[data-visual-system="refined-blue"] .teachers-v2-avatar { border:0; background:var(--rb-accent-soft); color:var(--rb-accent); box-shadow:none; }
+:root[data-visual-system="refined-blue"] :is(.teachers-v2-note,.teachers-v2-tag,.teachers-v2-card-meta) { color:var(--rb-muted); }
+:root[data-visual-system="refined-blue"] .teachers-v2-filter-row { flex-wrap:nowrap; overflow:auto; scrollbar-width:thin; padding:2px 0 6px; }
+:root[data-visual-system="refined-blue"] .teachers-v2-chip { min-height:40px; flex-shrink:0; font-weight:600; }
+:root[data-visual-system="refined-blue"] .teachers-v2-chip.on { background:var(--rb-accent-soft); color:var(--rb-accent); border-color:var(--rb-accent-soft); }
+:root[data-visual-system="refined-blue"] :is(.teachers-v2-search,.teachers-v2-fav-toggle) { min-height:46px; border-radius:14px; background:var(--rb-surface); border-color:var(--rb-line); }
+:root[data-visual-system="refined-blue"] .teachers-v2-overlay { background:rgba(12,26,48,.42); backdrop-filter:blur(5px); }
+:root[data-visual-system="refined-blue"] .teachers-v2-detail { border-radius:22px; background:var(--rb-bg); border:1px solid var(--rb-line); }
+:root[data-visual-system="refined-blue"] .teachers-v2-detail-head { background:var(--rb-surface); border-color:var(--rb-line); backdrop-filter:none; }
+:root[data-visual-system="refined-blue"] .teachers-v2-close { min-height:44px; border-radius:12px; font-weight:600; }
+:root[data-visual-system="refined-blue"] .teachers-v2-profile { grid-template-columns:48px minmax(0,1fr) auto; gap:12px; }
+:root[data-visual-system="refined-blue"] .teachers-v2-profile .teachers-v2-avatar { width:48px; height:48px; border-radius:15px; font-size:17px; }
+:root[data-visual-system="refined-blue"] .teachers-v2-profile h2 { font-size:24px; }
+:root[data-visual-system="refined-blue"] .teachers-v2-profile p { font-size:13px; line-height:1.5; margin-top:9px; }
+:root[data-visual-system="refined-blue"] .teachers-v2-section { margin-top:18px; padding-top:18px; border-color:var(--rb-line); }
+:root[data-visual-system="refined-blue"] .teachers-v2-section-head { align-items:start; }
+:root[data-visual-system="refined-blue"] .teachers-v2-media-head { flex-wrap:wrap; gap:12px; }
+:root[data-visual-system="refined-blue"] :is(.teachers-v2-media-head-actions button,.teachers-v2-media-shortcuts button,.teachers-v2-media-filters button,.teachers-v2-playlist-detail-head>button) {
+  min-height:44px; font-size:12px; font-weight:600; color:var(--rb-muted);
+  background:var(--rb-surface); border-color:var(--rb-line); border-radius:12px;
+}
+:root[data-visual-system="refined-blue"] .teachers-v2-media-status { line-height:1.55; font-size:12px; }
+:root[data-visual-system="refined-blue"] .teachers-v2-media-progress span { font-weight:550; background:none; padding-left:0; border:0; }
+:root[data-visual-system="refined-blue"] .teachers-v2-media-tabs {
+  display:flex; gap:4px; padding:4px; margin:12px 0 18px; border-radius:14px;
+  background:var(--rb-surface-alt); border:1px solid var(--rb-line);
+}
+:root[data-visual-system="refined-blue"] .teachers-v2-media-tabs button {
+  flex:1; min-height:44px; padding:8px 12px; border:0; border-radius:10px;
+  color:var(--rb-muted); background:transparent; font:600 13px/1.3 var(--font); cursor:pointer;
+}
+:root[data-visual-system="refined-blue"] .teachers-v2-media-tabs button[aria-selected="true"] {
+  color:var(--rb-accent); background:var(--rb-surface); box-shadow:var(--rb-shadow);
+}
+:root[data-visual-system="refined-blue"] .teachers-v2-media-panel { min-width:0; }
+:root[data-visual-system="refined-blue"] .teachers-v2-playlist-head { margin-top:0; align-items:start; }
+:root[data-visual-system="refined-blue"] .teachers-v2-playlist-head span { font-size:12px; line-height:1.5; }
+:root[data-visual-system="refined-blue"] :is(.teachers-v2-playlist-search,.teachers-v2-video-search) { min-height:46px; background:var(--rb-surface); border-color:var(--rb-line); }
+:root[data-visual-system="refined-blue"] :is(.teachers-v2-playlist-search,.teachers-v2-video-search) input { font-size:14px; font-weight:500; }
+:root[data-visual-system="refined-blue"] .teachers-v2-playlist-grid { gap:10px; }
+:root[data-visual-system="refined-blue"] .teachers-v2-playlist-wrap { grid-template-columns:minmax(0,1fr); gap:0; padding:6px; border:1px solid var(--rb-line); border-radius:16px; background:var(--rb-surface); }
+:root[data-visual-system="refined-blue"] .teachers-v2-playlist-card { min-height:74px; background:var(--rb-surface); border:0; border-radius:12px; }
+:root[data-visual-system="refined-blue"] .teachers-v2-playlist-card:hover { transform:none; }
+:root[data-visual-system="refined-blue"] .teachers-v2-playlist-copy b { font-size:13px; line-height:1.45; font-weight:630; }
+:root[data-visual-system="refined-blue"] .teachers-v2-playlist-copy small { font-size:11px; margin-top:5px; }
+:root[data-visual-system="refined-blue"] .teachers-v2-playlist-plan { width:100%; min-width:44px; min-height:44px; font-size:12px; border-color:var(--rb-line); background:var(--rb-accent-soft); color:var(--rb-accent); }
+:root[data-visual-system="refined-blue"] .teachers-v2-playlist-detail-head>.teachers-v2-playlist-plan { width:auto; padding-inline:12px; }
+:root[data-visual-system="refined-blue"] .teachers-v2-playlist-detail-head b { white-space:normal; font-size:14px; line-height:1.45; }
+:root[data-visual-system="refined-blue"] :is(.teachers-v2-playlist-more,.teachers-v2-load-more) {
+  display:block; width:100%; min-height:46px; margin:14px 0 0; padding:10px 14px;
+  border:1px solid var(--rb-line); border-radius:14px; background:var(--rb-surface);
+  color:var(--rb-accent); font:600 13px/1.4 var(--font); cursor:pointer;
+}
+:root[data-visual-system="refined-blue"] .teachers-v2-link-form { padding:0 14px; margin:14px 0; border:1px solid var(--rb-line); border-radius:14px; background:var(--rb-surface); }
+:root[data-visual-system="refined-blue"] .teachers-v2-link-form summary { padding:14px 0; min-height:48px; cursor:pointer; font-size:13px; font-weight:600; color:var(--rb-accent); }
+:root[data-visual-system="refined-blue"] .teachers-v2-link-form[open] { padding-bottom:14px; }
+:root[data-visual-system="refined-blue"] .teachers-v2-link-form label { display:block; padding:12px 0 6px; }
+:root[data-visual-system="refined-blue"] .teachers-v2-link-form>div { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+:root[data-visual-system="refined-blue"] .teachers-v2-link-form>div button { flex:1; }
+:root[data-visual-system="refined-blue"] #teachersV2LinkFeedback:empty { display:none; }
+:root[data-visual-system="refined-blue"] .teachers-v2-link-form label { margin:0; font-size:13px; font-weight:600; color:var(--rb-ink); }
+:root[data-visual-system="refined-blue"] .teachers-v2-link-form input { width:100%; min-width:0; min-height:46px; padding:10px 12px; border:1px solid var(--rb-line); border-radius:12px; background:var(--rb-bg); color:var(--rb-ink); font:400 14px/1.5 var(--font); }
+:root[data-visual-system="refined-blue"] .teachers-v2-link-form button { min-height:46px; padding:10px 16px; border:1px solid var(--rb-line); border-radius:12px; background:var(--rb-accent-soft); color:var(--rb-accent); font:600 13px/1.4 var(--font); cursor:pointer; }
+:root[data-visual-system="refined-blue"] .teachers-v2-link-form button:last-child { background:var(--rb-accent); color:var(--rb-on-accent); border-color:var(--rb-accent); }
+:root[data-visual-system="refined-blue"] .teachers-v2-link-form p { margin:0; color:var(--rb-muted); font-size:12px; line-height:1.6; }
+:root[data-visual-system="refined-blue"] .teachers-v2-video-card { display:grid; grid-template-columns:1fr 1fr; gap:8px; padding:0 10px 10px; background:var(--rb-surface); border-color:var(--rb-line); border-radius:18px; }
+:root[data-visual-system="refined-blue"] .teachers-v2-video-card:hover { transform:none; box-shadow:none; }
+:root[data-visual-system="refined-blue"] .teachers-v2-video-main { grid-column:1/-1; width:calc(100% + 20px); margin:0 -10px; grid-template-columns:118px minmax(0,1fr); }
+:root[data-visual-system="refined-blue"] .teachers-v2-video-copy { padding:12px 10px 12px 0; }
+:root[data-visual-system="refined-blue"] .teachers-v2-video-copy b { font-size:13px; font-weight:630; }
+:root[data-visual-system="refined-blue"] :is(.teachers-v2-video-plan,.teachers-v2-video-watch,.teachers-v2-video-save) { position:static; min-height:44px!important; padding:8px 10px; font-size:12px; font-weight:600; border-radius:12px; }
+:root[data-visual-system="refined-blue"] .teachers-v2-video-plan { color:var(--rb-accent); background:var(--rb-accent-soft); border-color:var(--rb-accent-soft); }
+:root[data-visual-system="refined-blue"] .teachers-v2-video-save { grid-column:1/-1; box-shadow:none!important; background:transparent; }
+:root[data-visual-system="refined-blue"] .teachers-v2-media-filters button.on { color:var(--rb-accent); background:var(--rb-accent-soft); border-color:var(--rb-accent-soft); }
+:root[data-visual-system="refined-blue"] .teachers-v2-player { background:var(--rb-surface); }
+:root[data-visual-system="refined-blue"] .teachers-v2-player-head button { min-height:44px; font-weight:600; }
+@media(max-width:680px) {
+  :root[data-visual-system="refined-blue"] .teachers-v2-overlay { padding:8px; }
+  :root[data-visual-system="refined-blue"] .teachers-v2-detail { max-height:calc(100dvh - 16px); border-radius:20px; }
+  :root[data-visual-system="refined-blue"] .teachers-v2-detail-body { padding:16px; }
+  :root[data-visual-system="refined-blue"] .teachers-v2-profile h2 { font-size:21px; }
+  :root[data-visual-system="refined-blue"] .teachers-v2-media-tabs button { padding-inline:6px; font-size:12px; }
+  :root[data-visual-system="refined-blue"] .teachers-v2-playlist-head { flex-wrap:wrap; gap:5px; }
+  :root[data-visual-system="refined-blue"] .teachers-v2-link-form { padding-inline:12px; }
+  :root[data-visual-system="refined-blue"] .teachers-v2-playlist-detail-head { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  :root[data-visual-system="refined-blue"] .teachers-v2-playlist-detail-head>div { grid-row:1; grid-column:1/-1; }
+  :root[data-visual-system="refined-blue"] .teachers-v2-playlist-detail-head>button { grid-row:auto; min-width:0; }
+  :root[data-visual-system="refined-blue"] .teachers-v2-playlist-detail-head>[data-media-action="playlist-play"] { grid-column:1/-1; }
+}

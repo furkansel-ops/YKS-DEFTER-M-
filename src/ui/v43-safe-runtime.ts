@@ -75,6 +75,9 @@ async function loadAll():Promise<V43RuntimeReport>{
   features.push(await loadFeature("v431Resilience","v431ResilienceErrors",async()=>{
     const mod=await import("./runtime-resilience-v431");return mod.installRuntimeResilienceV431();
   }));
+  features.push(await loadFeature("refinedShell","refinedShellErrors",async()=>{
+    const mod=await import("./refined-shell");return mod.installRefinedShell();
+  }));
 
   const report:V43RuntimeReport={ok:features.every(feature=>feature.installed&&feature.errors===0),startedAt,finishedAt:Date.now(),features};
   document.documentElement.dataset.v43Runtime=report.ok?"ready":"degraded";

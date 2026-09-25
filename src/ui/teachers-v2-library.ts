@@ -108,17 +108,22 @@ function readLibrary():LibraryState{
 
 function saveLibrary(next:LibraryState):boolean{
   const state=stateRecord();
-  if(!state)return false;
-  const prefs=isRecord(state.studyPrefs)?state.studyPrefs:{autoPlan:false};
-  state.studyPrefs=prefs;
+  const adapter=window.YKSLegacyState;
+  if(!state||typeof adapter?.save!=="function")return false;
+  const hadPrefs=Object.prototype.hasOwnProperty.call(state,"studyPrefs"),previousPrefs=state.studyPrefs;
+  const prefs:Record<string,unknown>=isRecord(previousPrefs)?{...previousPrefs}:{autoPlan:false};
   prefs[LIB_PREF_KEY]={
     favorites:{...next.favorites},
     updatedAt:next.updatedAt
   };
+  state.studyPrefs=prefs;
   try{
-    window.YKSLegacyState?.save?.();
+    if(adapter.save()===false)throw new Error("library save failed");
     return true;
-  }catch{return false;}
+  }catch{
+    if(hadPrefs)state.studyPrefs=previousPrefs;else delete state.studyPrefs;
+    return false;
+  }
 }
 
 function watchedMap():Record<string,WatchedRecord>{
@@ -161,7 +166,18 @@ async function loadFeed():Promise<void>{
   }catch{}
 }
 
-function bookmarkFor(id:string):VideoBookmark|null{
+function bookmarkFor(id:string,card:HTMLElement|null=null):VideoBookmark|null{
+  // Archive and playlist pages arrive after the preview index. The clicked card
+  // carries their actual metadata; do not resolve a different duplicate card.
+  if(card?.dataset.videoId===id){
+    const teacher=card.closest("#teachersV2Overlay")?.querySelector(".teachers-v2-profile h2")?.textContent?.trim()||"";
+    return cloneBookmark({
+      id,title:card.dataset.videoTitle||"YouTube videosu",teacher,
+      channel:card.dataset.videoChannel||teacher,
+      thumbnail:card.dataset.videoThumb||`https://i.ytimg.com/vi/${encodeURIComponent(id)}/hqdefault.jpg`,
+      url:`https://www.youtube.com/watch?v=${encodeURIComponent(id)}`,savedAt:Date.now()
+    });
+  }
   const indexed=videoIndex.get(id);
   if(!indexed)return null;
   const {video,teacher}=indexed;
@@ -176,13 +192,13 @@ function bookmarkFor(id:string):VideoBookmark|null{
   };
 }
 
-function toggleFavorite(id:string):void{
+function toggleFavorite(id:string,card:HTMLElement|null=null):void{
   if(!id)return;
   const current=readLibrary();
   const previous=current.favorites[id];
   if(previous)delete current.favorites[id];
   else{
-    const bookmark=bookmarkFor(id);
+    const bookmark=bookmarkFor(id,card);
     if(!bookmark){legacy.toast?.("Video bilgisi henüz hazır değil");return;}
     current.favorites[id]=bookmark;
   }
@@ -339,7 +355,7 @@ function handleClick(event:MouseEvent):void{
   if(kind==="toggle"||kind==="remove"){
     event.preventDefault();
     event.stopPropagation();
-    toggleFavorite(id);
+    toggleFavorite(id,action.closest<HTMLElement>(".teachers-v2-video-card"));
     return;
   }
   if(kind==="play"){

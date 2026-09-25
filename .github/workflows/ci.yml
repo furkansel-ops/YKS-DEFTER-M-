@@ -61,7 +61,10 @@ jobs:
         run: test "$TEST_EXIT" = "0"
 
       - name: Kararlı sürüm paketini doğrula
-        run: npm run release:check
+        run: |
+          npm run build:assets
+          node scripts/verify-release.mjs
+          node scripts/verify-v440-production.mjs
 
   runtime-compat:
     name: Node 24 uyumluluk denetimi

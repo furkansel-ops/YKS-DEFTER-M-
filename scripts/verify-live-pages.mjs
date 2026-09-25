@@ -18,7 +18,7 @@ export function verifyLiveAssets({index,bundle,legacyApp,serviceWorker=""}){
   if(!bundlePath)throw new Error("Canlı sayfada Vite JavaScript paketi bulunamadı");
   if(!index.includes('./app.js?v=4.1.0-r20')||!index.includes('./modules/release-selftest.js?v=4.1.0-r20'))throw new Error("Canlı sayfada beklenen çalışma zamanı dosyaları bağlı değil");
   if(/src=["']\.\/src\/main\.ts["']/.test(index))throw new Error("Canlı sayfa üretim paketi yerine TypeScript kaynak dosyasını kullanıyor");
-  if(!bundle.includes("YKS_V4_RELEASE_OK")||!bundle.includes(RELEASE_MARKER)||!bundle.includes("stable"))throw new Error(`Canlı Vite paketi beklenen ${RELEASE_MARKER} kararlı sürüm işaretlerini taşımıyor`);
+  if(!bundle.includes("YKS_V4_RELEASE_OK")||!bundle.includes(RELEASE_MARKER)||!bundle.includes(BUILD_RELEASE_MARKER)||!bundle.includes("stable"))throw new Error(`Canlı Vite paketi beklenen ${RELEASE_MARKER} (${BUILD_RELEASE_MARKER}) kararlı sürüm işaretlerini taşımıyor`);
   if(!bundle.includes("v43Runtime")||!bundle.includes("v43RuntimeErrors")||!bundle.includes("degraded")||!bundle.includes("v43FocusSessionGuard"))throw new Error("Canlı Vite paketi güvenli v4.3 runtime işaretlerini taşımıyor");
   if(!legacyApp.includes(`const APP_VERSION="${LEGACY_VERSION}"`))throw new Error("Canlı çalışma zamanı sürümü beklenen değerle eşleşmiyor");
   if(!legacyApp.includes(`const APP_BUILD="${LEGACY_BUILD}"`))throw new Error("Canlı legacy yapı sürümü beklenen değerle eşleşmiyor");
