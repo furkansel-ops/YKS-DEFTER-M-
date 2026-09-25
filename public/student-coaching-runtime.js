@@ -1,7 +1,7 @@
 import{collection,doc,getDoc,onSnapshot,query,where,setDoc,updateDoc,serverTimestamp}from"https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
 
 const PENDING_ROLE="yks_account_role_pending",ROLE_HINT="yks_account_role_hint",DAY=86400000;
-const rt={auth:null,db:null,user:null,profile:null,stops:[],shareTimer:null,shareInterval:null,sharing:false,pending:false};
+const rt={auth:null,db:null,user:null,profile:null,stops:[],shareTimer:null,shareInterval:null,sharing:false,pending:false,inFlight:null};
 const text=(v,n=160)=>String(v??"").trim().slice(0,n);
 const list=v=>Array.isArray(v)?v:[];
 const finite=(v,fallback=0)=>Number.isFinite(Number(v))?Number(v):fallback;
@@ -35,7 +35,7 @@ async function ensureProfile(user,db){
 
 function cleanup(){
   rt.stops.splice(0).forEach(fn=>{try{fn()}catch{}});
-  clearTimeout(rt.shareTimer);rt.shareTimer=null;clearInterval(rt.shareInterval);rt.shareInterval=null;rt.sharing=false;rt.pending=false;
+  clearTimeout(rt.shareTimer);rt.shareTimer=null;clearInterval(rt.shareInterval);rt.shareInterval=null;rt.sharing=false;rt.pending=false;rt.inFlight=null;
 }
 function sum(map,days){let n=0;for(let i=0;i<days;i++)n+=Number(map?.[new Date(Date.now()-i*DAY).toISOString().slice(0,10)]||0)||0;return n}
 function topicParts(k){const p=String(k||"").split("|");return{exam:p[0]||"YKS",subject:p[1]||"Ders",topic:p.slice(2).join("|")||p[1]||k}}
@@ -101,28 +101,52 @@ function sharePayload(s,u){
   const errors=list(s.wrongLog).slice(-100).map(x=>({date:text(x?.date,10),subject:text(x?.subject,60),topic:text(x?.topic,100),n:Math.max(1,finite(x?.n,1))}));
   return{studentUid:u.uid,version:1,profile:{name:text(s.name||u.displayName,80),track:text(s.puanTuru,8),targetNetTYT:Number(s.targetNetTYT??s.targetNet??0),targetNetAYT:Number(s.targetNetAYT||0),targetUniversity:text(s.targetUniversity,120),targetDepartment:text(s.targetDepartment,120)},program:buildProgramShare(s),exams,progress:{minutes7:sum(s.pomoMin,7),questions7:sum(s.solved,7),completedTopics:topics.filter(x=>x.st>=3).length,activeTopics:topics.filter(x=>x.st>0&&x.st<3).length,overdueTopics:topics.filter(x=>x.deadline&&x.deadline<today()&&x.st<3).length},paragraphProblem:{entries:pp},topics:{items:topics},errorJournal:errors,updatedAt:serverTimestamp()};
 }
-async function publishShare(){
-  if(rt.sharing){rt.pending=true;return}
-  if(rt.profile?.role!=="student"||!rt.db||!rt.user)return;
-  const s=state();if(!s){scheduleShare(500);return}rt.sharing=true;
-  try{
-    const payload=sharePayload(s,rt.user);
-    const ref=doc(rt.db,"coachingShares",rt.user.uid);
-    try{
-      await setDoc(ref,payload,{merge:true});
-    }catch(mergeError){
-      console.warn("Koç paylaşımı eski belgeyle çakıştı; belge güncel şemayla yeniden kuruluyor.",mergeError);
-      await setDoc(ref,payload);
-    }
-    document.documentElement.dataset.coachShare="ready";
-  }catch(error){
-    console.error("Koç paylaşımı",error);
-    document.documentElement.dataset.coachShare="error";
-    scheduleShare(5000);
-  }finally{
-    rt.sharing=false;
-    if(rt.pending){rt.pending=false;scheduleShare(120)}
+async function publishShare(options={}){
+  const manual=options?.manual===true;
+  if(rt.sharing){
+    rt.pending=true;
+    if(manual&&rt.inFlight)await rt.inFlight;
+    if(manual&&document.documentElement.dataset.coachShare==="error")throw new Error(document.documentElement.dataset.coachShareError||"Öğrenci bilgileri gönderilemedi");
+    return document.documentElement.dataset.coachShare==="ready";
   }
+  if(rt.profile?.role!=="student"||!rt.db||!rt.user){
+    if(manual)throw new Error("Öğrenci hesabı hazır değil");
+    return false;
+  }
+  const s=state();
+  if(!s){
+    if(manual)throw new Error("Öğrenci verisi henüz hazır değil");
+    scheduleShare(500);return false;
+  }
+  rt.sharing=true;
+  rt.inFlight=(async()=>{
+    try{
+      const payload=sharePayload(s,rt.user);
+      const ref=doc(rt.db,"coachingShares",rt.user.uid);
+      try{
+        await setDoc(ref,payload,{merge:true});
+      }catch(mergeError){
+        console.warn("Koç paylaşımı eski belgeyle çakıştı; belge güncel şemayla yeniden kuruluyor.",mergeError);
+        await setDoc(ref,payload);
+      }
+      document.documentElement.dataset.coachShare="ready";
+      delete document.documentElement.dataset.coachShareError;
+      return true;
+    }catch(error){
+      const code=text(error?.code||error?.message||"unknown",120);
+      console.error("Koç paylaşımı",error);
+      document.documentElement.dataset.coachShare="error";
+      document.documentElement.dataset.coachShareError=code;
+      if(!manual)scheduleShare(5000);
+      if(manual)throw error;
+      return false;
+    }finally{
+      rt.sharing=false;
+      rt.inFlight=null;
+      if(rt.pending){rt.pending=false;scheduleShare(120)}
+    }
+  })();
+  return rt.inFlight;
 }
 function scheduleShare(ms=900){clearTimeout(rt.shareTimer);rt.shareTimer=setTimeout(()=>void publishShare(),ms)}
 
@@ -172,7 +196,7 @@ async function onSignedIn({user,auth,db}){
 function onSignedOut(){cleanup();rt.user=rt.auth=rt.db=rt.profile=null;delete document.documentElement.dataset.accountRole}
 
 let resolveAccountReady;try{window.__YKS_ACCOUNT_READY__=new Promise(resolve=>{resolveAccountReady=resolve})}catch{}
-window.YKSAccountAuth={version:"1.2.5",beforeSignIn,onSignedIn,onSignedOut,publishShare};
+window.YKSAccountAuth={version:"1.2.6",beforeSignIn,onSignedIn,onSignedOut,publishShare};
 try{resolveAccountReady?.(window.YKSAccountAuth)}catch{}
 document.documentElement.dataset.studentCoachingBridge="ready";
-window.dispatchEvent(new CustomEvent("yks:student-coaching-ready",{detail:{version:"1.2.5"}}));
+window.dispatchEvent(new CustomEvent("yks:student-coaching-ready",{detail:{version:"1.2.6"}}));
