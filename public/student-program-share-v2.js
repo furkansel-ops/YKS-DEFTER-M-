@@ -3,7 +3,7 @@ import{doc,onSnapshot,setDoc,serverTimestamp}from"https://www.gstatic.com/fireba
 const PROGRAM_VERSION=3;
 const MAX_PROGRAM_WEEKS=80;
 const DATE_RE=/^\d{4}-\d{2}-\d{2}$/;
-const rt={db:null,user:null,shareReady:false,timer:null,watchTimer:null,stopShare:null,stopData:null,writing:false,pending:false,bootstrapping:false,lastHash:""};
+const rt={db:null,user:null,shareReady:false,timer:null,watchTimer:null,stopShare:null,stopData:null,writing:false,pending:false,bootstrapping:false,lastHash:"",inFlight:null};
 const state=()=>{try{return window.YKSLegacyState?.readState?.()||window.S||null}catch{return window.S||null}};
 const txt=(v,n=220)=>String(v??"").trim().slice(0,n);
 const int=(v,fallback)=>{const n=Math.floor(Number(v));return Number.isFinite(n)&&n>0?n:fallback};
@@ -100,24 +100,47 @@ async function writeProgramShare(program){
   }
 }
 async function publishProgram(force=false){
-  if(rt.writing){rt.pending=true;return}
-  if(!rt.db||!rt.user)return;
-  const s=state();if(!s)return;
-  const program=programPayload(s),hash=stableProgramHash(program);
-  if(!force&&hash&&hash===rt.lastHash)return;
-  rt.writing=true;
-  try{
-    await writeProgramShare(program);
-    rt.shareReady=true;
-    rt.lastHash=hash;
-    document.documentElement.dataset.studentProgramShare="ready";
-  }catch(error){
-    console.error("Program paylaşımı",error);
-    document.documentElement.dataset.studentProgramShare="error";
-  }finally{
-    rt.writing=false;
-    if(rt.pending){rt.pending=false;schedule(120)}
+  const manual=force===true;
+  if(rt.writing){
+    rt.pending=true;
+    if(manual&&rt.inFlight)await rt.inFlight;
+    if(manual&&document.documentElement.dataset.studentProgramShare==="error")throw new Error(document.documentElement.dataset.studentProgramShareError||"Program gönderilemedi");
+    return document.documentElement.dataset.studentProgramShare==="ready";
   }
+  if(!rt.db||!rt.user){
+    if(manual)throw new Error("Program paylaşımı hazır değil");
+    return false;
+  }
+  const s=state();
+  if(!s){
+    if(manual)throw new Error("Program verisi henüz hazır değil");
+    return false;
+  }
+  const payload=programPayload(s),hash=stableProgramHash(payload);
+  if(!manual&&hash&&hash===rt.lastHash)return true;
+  rt.writing=true;
+  rt.inFlight=(async()=>{
+    try{
+      await writeProgramShare(payload);
+      rt.shareReady=true;
+      rt.lastHash=hash;
+      document.documentElement.dataset.studentProgramShare="ready";
+      delete document.documentElement.dataset.studentProgramShareError;
+      return true;
+    }catch(error){
+      const code=txt(error?.code||error?.message||"unknown",120);
+      console.error("Program paylaşımı",error);
+      document.documentElement.dataset.studentProgramShare="error";
+      document.documentElement.dataset.studentProgramShareError=code;
+      if(manual)throw error;
+      return false;
+    }finally{
+      rt.writing=false;
+      rt.inFlight=null;
+      if(rt.pending){rt.pending=false;schedule(120)}
+    }
+  })();
+  return rt.inFlight;
 }
 function schedule(ms=1250){
   clearTimeout(rt.timer);
@@ -136,7 +159,7 @@ function stop(){
   clearTimeout(rt.timer);rt.timer=null;clearInterval(rt.watchTimer);rt.watchTimer=null;
   try{rt.stopShare?.()}catch{}rt.stopShare=null;
   try{rt.stopData?.()}catch{}rt.stopData=null;
-  rt.db=null;rt.user=null;rt.shareReady=false;rt.writing=false;rt.pending=false;rt.bootstrapping=false;rt.lastHash="";
+  rt.db=null;rt.user=null;rt.shareReady=false;rt.writing=false;rt.pending=false;rt.bootstrapping=false;rt.lastHash="";rt.inFlight=null;
 }
 function start(ctx){
   stop();rt.db=ctx.db;rt.user=ctx.user;
@@ -170,5 +193,5 @@ if(auth&&!auth.__programShareV2){
   auth.onSignedOut=(...args)=>{stop();return previousSignOut?.(...args)};
   auth.__programShareV2=true;
 }
-window.YKSStudentProgramShareV2={version:"3.5.0",publish:force=>publishProgram(Boolean(force)),build:programPayload};
+window.YKSStudentProgramShareV2={version:"3.6.0",publish:force=>publishProgram(Boolean(force)),build:programPayload};
 document.documentElement.dataset.studentProgramSync="v3";
