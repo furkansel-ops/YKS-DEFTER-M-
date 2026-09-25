@@ -75,6 +75,30 @@ async function ensureShareDocument(){
   }finally{rt.bootstrapping=false}
   return rt.shareReady;
 }
+function bootstrapSharePayload(program){
+  const name=txt(rt.user?.displayName||String(rt.user?.email||"").split("@")[0],80)||"Öğrenci";
+  return{
+    studentUid:rt.user.uid,
+    version:1,
+    profile:{name,track:"",targetNetTYT:0,targetNetAYT:0,targetUniversity:"",targetDepartment:""},
+    program,
+    exams:[],
+    progress:{minutes7:0,questions7:0,completedTopics:0,activeTopics:0,overdueTopics:0},
+    paragraphProblem:{entries:[]},
+    topics:{items:[]},
+    errorJournal:[],
+    updatedAt:serverTimestamp()
+  };
+}
+async function writeProgramShare(program){
+  const ref=doc(rt.db,"coachingShares",rt.user.uid);
+  try{
+    await setDoc(ref,{program,updatedAt:serverTimestamp()},{merge:true});
+  }catch(firstError){
+    console.warn("Program paylaşımı mevcut belgeye yazılamadı; güvenli belge yeniden kuruluyor.",firstError);
+    await setDoc(ref,bootstrapSharePayload(program));
+  }
+}
 async function publishProgram(){
   if(rt.writing){rt.pending=true;return}
   if(!rt.db||!rt.user)return;
@@ -83,15 +107,10 @@ async function publishProgram(){
   if(hash&&hash===rt.lastHash)return;
   rt.writing=true;
   try{
-    await setDoc(doc(rt.db,"coachingPrograms",rt.user.uid),{
-      studentUid:rt.user.uid,
-      version:1,
-      program,
-      updatedAt:serverTimestamp()
-    },{merge:true});
+    await writeProgramShare(program);
+    rt.shareReady=true;
     rt.lastHash=hash;
     document.documentElement.dataset.studentProgramShare="ready";
-    if(!rt.shareReady)void ensureShareDocument();
   }catch(error){
     console.error("Program paylaşımı",error);
     document.documentElement.dataset.studentProgramShare="error";
@@ -151,5 +170,5 @@ if(auth&&!auth.__programShareV2){
   auth.onSignedOut=(...args)=>{stop();return previousSignOut?.(...args)};
   auth.__programShareV2=true;
 }
-window.YKSStudentProgramShareV2={version:"3.3.0",publish:publishProgram,build:programPayload};
+window.YKSStudentProgramShareV2={version:"3.4.0",publish:publishProgram,build:programPayload};
 document.documentElement.dataset.studentProgramSync="v3";
