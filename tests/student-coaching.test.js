@@ -17,7 +17,7 @@ test("öğrenci uygulaması yalnız öğrenci hesabı olarak açılır ve koç p
 
 test("öğrenci hesap köprüleri auth başlamadan önce güvenli sırada yüklenir",()=>{
   const loader=read("src/ui/student-account-loader.ts");
-  const bridgeAt=loader.indexOf("student-coaching-runtime.js?v=1.2.4");
+  const bridgeAt=loader.indexOf("student-coaching-runtime.js?v=1.2.5");
   const linkAt=loader.indexOf("student-coach-link.js?v=1.0.0");
   const programAt=loader.indexOf("student-program-share-v2.js?v=3.4.0");
   const authAt=loader.indexOf("auth-session-runtime.js?v=1.6.0");
@@ -144,4 +144,14 @@ test("Program paylaşımı coachingShares yoksa tam güvenli belge oluşturur",(
   assert.match(runtime,/setDoc\(ref,\{program,updatedAt:serverTimestamp\(\)\},\{merge:true\}\)/);
   assert.match(runtime,/setDoc\(ref,bootstrapSharePayload\(program\)\)/);
   assert.match(runtime,/profile:\{name,track:"",targetNetTYT:0,targetNetAYT:0,targetUniversity:"",targetDepartment:""\}/);
+});
+
+
+test("koç paylaşımı eski coachingShares belgesini güvenli tam yazımla onarır ve periyodik yeniler",()=>{
+  const runtime=read("public/student-coaching-runtime.js");
+  assert.match(runtime,/await setDoc\(ref,payload,\{merge:true\}\)/);
+  assert.match(runtime,/await setDoc\(ref,payload\)/);
+  assert.match(runtime,/scheduleShare\(5000\)/);
+  assert.match(runtime,/setInterval\(\(\)=>scheduleShare\(120\),60000\)/);
+  assert.match(runtime,/clearInterval\(rt\.shareInterval\)/);
 });
