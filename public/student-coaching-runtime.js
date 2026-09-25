@@ -41,10 +41,12 @@ function sum(map,days){let n=0;for(let i=0;i<days;i++)n+=Number(map?.[new Date(D
 function topicParts(k){const p=String(k||"").split("|");return{exam:p[0]||"YKS",subject:p[1]||"Ders",topic:p.slice(2).join("|")||p[1]||k}}
 function cleanProgramMatrix(value,rowCount){
   const src=Array.isArray(value)?value:[];
-  return Array.from({length:rowCount},(_,r)=>{
+  const out={};
+  for(let r=0;r<rowCount;r++){
     const row=Array.isArray(src[r])?src[r]:[];
-    return Array.from({length:7},(_,d)=>text(row[d],220));
-  });
+    out[String(r)]=Array.from({length:7},(_,d)=>text(row[d],220));
+  }
+  return out;
 }
 function cleanProgramMap(value){
   if(!value||typeof value!=="object"||Array.isArray(value))return{};
@@ -196,7 +198,7 @@ async function onSignedIn({user,auth,db}){
 function onSignedOut(){cleanup();rt.user=rt.auth=rt.db=rt.profile=null;delete document.documentElement.dataset.accountRole}
 
 let resolveAccountReady;try{window.__YKS_ACCOUNT_READY__=new Promise(resolve=>{resolveAccountReady=resolve})}catch{}
-window.YKSAccountAuth={version:"1.2.6",beforeSignIn,onSignedIn,onSignedOut,publishShare};
+window.YKSAccountAuth={version:"1.2.7",beforeSignIn,onSignedIn,onSignedOut,publishShare};
 try{resolveAccountReady?.(window.YKSAccountAuth)}catch{}
 document.documentElement.dataset.studentCoachingBridge="ready";
-window.dispatchEvent(new CustomEvent("yks:student-coaching-ready",{detail:{version:"1.2.6"}}));
+window.dispatchEvent(new CustomEvent("yks:student-coaching-ready",{detail:{version:"1.2.7"}}));
