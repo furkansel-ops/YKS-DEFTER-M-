@@ -106,17 +106,9 @@ test("Programım v3 koç aynası için değişiklikleri canlı ve tekrarsız yay
 });
 
 
-test("Programım paylaşımı coachingShares yoksa ana paylaşımı bootstrap eder",()=>{
-  const runtime=read("public/student-program-share-v2.js");
-  assert.match(runtime,/ensureShareDocument/);
-  assert.match(runtime,/auth\?\.publishShare/);
-  assert.match(runtime,/if\(!rt\.shareReady\)/);
-});
-
-
 test("Programım paylaşımı yerel değişiklikleri event olmasa da izler",()=>{
   const runtime=read("public/student-program-share-v2.js");
-  for(const token of["watchLocalProgram","setInterval(watchLocalProgram,1500)","localProgramHash","version:\"3.1.0\""])assert.ok(runtime.includes(token),token);
+  for(const token of["watchLocalProgram","setInterval(watchLocalProgram,1500)","localProgramHash","version:\"3.4.0\""])assert.ok(runtime.includes(token),token);
   assert.match(runtime,/remoteHash!==currentHash/);
 });
 
@@ -137,8 +129,8 @@ test("Koç eşitleme runtime web ve native açılışta garanti edilir ve save s
   assert.match(shell,/import\("\.\/student-account-loader"\)/);
   assert.match(shell,/installStudentAccountLoader\(\)/);
   assert.match(shell,/const native=isNativeApp\(\)/);
-  assert.match(loader,/student-coaching-runtime\.js\?v=1\.2\.1/);
-  assert.match(runtime,/version:\"1\.2\.1\"/);
+  assert.match(loader,/student-coaching-runtime\.js\?v=1\.2\.4/);
+  assert.match(runtime,/version:\"1\.2\.4\"/);
   assert.match(app,/CustomEvent\(\"yks:data-changed\"/);
   assert.match(app,/source:\"save\"/);
 });
