@@ -78,18 +78,20 @@ async function ensureShareDocument(){
 async function publishProgram(){
   if(rt.writing){rt.pending=true;return}
   if(!rt.db||!rt.user)return;
-  if(!rt.shareReady){
-    const ready=await ensureShareDocument();
-    if(!ready){schedule(600);return}
-  }
   const s=state();if(!s)return;
   const program=programPayload(s),hash=stableProgramHash(program);
   if(hash&&hash===rt.lastHash)return;
   rt.writing=true;
   try{
-    await setDoc(doc(rt.db,"coachingShares",rt.user.uid),{program,updatedAt:serverTimestamp()},{merge:true});
+    await setDoc(doc(rt.db,"coachingPrograms",rt.user.uid),{
+      studentUid:rt.user.uid,
+      version:1,
+      program,
+      updatedAt:serverTimestamp()
+    },{merge:true});
     rt.lastHash=hash;
     document.documentElement.dataset.studentProgramShare="ready";
+    if(!rt.shareReady)void ensureShareDocument();
   }catch(error){
     console.error("Program paylaşımı",error);
     document.documentElement.dataset.studentProgramShare="error";
@@ -149,5 +151,5 @@ if(auth&&!auth.__programShareV2){
   auth.onSignedOut=(...args)=>{stop();return previousSignOut?.(...args)};
   auth.__programShareV2=true;
 }
-window.YKSStudentProgramShareV2={version:"3.2.0",publish:publishProgram,build:programPayload};
+window.YKSStudentProgramShareV2={version:"3.3.0",publish:publishProgram,build:programPayload};
 document.documentElement.dataset.studentProgramSync="v3";
