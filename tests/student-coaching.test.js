@@ -17,9 +17,9 @@ test("öğrenci uygulaması yalnız öğrenci hesabı olarak açılır ve koç p
 
 test("öğrenci hesap köprüleri auth başlamadan önce güvenli sırada yüklenir",()=>{
   const loader=read("src/ui/student-account-loader.ts");
-  const bridgeAt=loader.indexOf("student-coaching-runtime.js?v=1.2.1");
+  const bridgeAt=loader.indexOf("student-coaching-runtime.js?v=1.2.2");
   const linkAt=loader.indexOf("student-coach-link.js?v=1.0.0");
-  const programAt=loader.indexOf("student-program-share-v2.js?v=3.1.0");
+  const programAt=loader.indexOf("student-program-share-v2.js?v=3.2.0");
   const authAt=loader.indexOf("auth-session-runtime.js?v=1.6.0");
   assert.ok(bridgeAt>=0&&linkAt>bridgeAt&&programAt>linkAt&&authAt>programAt);
 });
@@ -103,6 +103,14 @@ test("Programım v3 koç aynası için değişiklikleri canlı ve tekrarsız yay
   for(const token of["PROGRAM_VERSION=3","syncedAt:Date.now()","payloadHash","lastHash","studentProgramSync=\"v3\""])assert.ok(runtime.includes(token),token);
   assert.match(runtime,/if\(hash&&hash===rt\.lastHash\)return/);
   assert.match(runtime,/rt\.lastHash=hash/);
+});
+
+
+test("Programım paylaşımı coachingShares yoksa ana paylaşımı bootstrap eder",()=>{
+  const runtime=read("public/student-program-share-v2.js");
+  assert.match(runtime,/ensureShareDocument/);
+  assert.match(runtime,/auth\?\.publishShare/);
+  assert.match(runtime,/if\(!rt\.shareReady\)/);
 });
 
 
