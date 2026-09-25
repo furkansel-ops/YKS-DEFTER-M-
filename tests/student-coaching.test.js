@@ -18,8 +18,8 @@ test("öğrenci uygulaması yalnız öğrenci hesabı olarak açılır ve koç p
 test("öğrenci hesap köprüleri auth başlamadan önce güvenli sırada yüklenir",()=>{
   const loader=read("src/ui/student-account-loader.ts");
   const bridgeAt=loader.indexOf("student-coaching-runtime.js?v=1.2.5");
-  const linkAt=loader.indexOf("student-coach-link.js?v=1.0.0");
-  const programAt=loader.indexOf("student-program-share-v2.js?v=3.4.0");
+  const linkAt=loader.indexOf("student-coach-link.js?v=1.1.0");
+  const programAt=loader.indexOf("student-program-share-v2.js?v=3.5.0");
   const authAt=loader.indexOf("auth-session-runtime.js?v=1.6.0");
   assert.ok(bridgeAt>=0&&linkAt>bridgeAt&&programAt>linkAt&&authAt>programAt);
 });
@@ -155,4 +155,19 @@ test("koç paylaşımı eski coachingShares belgesini güvenli tam yazımla onar
   assert.match(runtime,/scheduleShare\(5000\)/);
   assert.match(runtime,/setInterval\(\(\)=>scheduleShare\(120\),60000\)/);
   assert.match(runtime,/clearInterval\(rt\.shareInterval\)/);
+});
+
+
+test("öğrenci koça bilgileri manuel paylaşabilir ve program paylaşımı zorlanabilir",()=>{
+  const link=read("public/student-coach-link.js");
+  const program=read("public/student-program-share-v2.js");
+  assert.match(link,/Koça bilgileri paylaş/);
+  assert.match(link,/data-coach-share-now/);
+  assert.match(link,/YKSAccountAuth\?\.publishShare/);
+  assert.match(link,/YKSStudentProgramShareV2\?\.publish/);
+  assert.match(link,/publish\(true\)/);
+  assert.match(link,/studentCoachProgramShare/);
+  assert.match(program,/async function publishProgram\(force=false\)/);
+  assert.match(program,/if\(!force&&hash&&hash===rt\.lastHash\)return/);
+  assert.match(program,/version:"3\.5\.0"/);
 });
