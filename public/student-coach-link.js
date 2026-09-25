@@ -133,7 +133,9 @@ function installStudentSettings(){
   styles();let target=document.getElementById("mrp_ayar");if(!target)target=document.getElementById("more");if(!target)return false;
   let card=document.getElementById("studentCoachCodeSettings");
   if(!card){card=document.createElement("section");card.id="studentCoachCodeSettings";card.className="scl-settings";card.setAttribute("aria-label","Koç kodum");card.innerHTML=`<div class="scl-head"><div class="scl-kicker">Koç bağlantısı</div><h3>Koç Kodum</h3><p class="scl-muted">Bu kodu yalnız ayrı YKS Koç Paneli\'nde öğrencini eklemesi için koçunla paylaş.</p></div><div class="scl-codebox"><div class="scl-code empty" data-code>Henüz koç kodun yok.</div><div class="scl-actions" data-actions></div><p class="scl-muted" style="margin-top:10px">Kodu yenilemek mevcut bağlı koçları çıkarmaz.</p></div><div class="scl-sharebox"><b>Koça bilgileri paylaş</b><p class="scl-muted">Programın, ilerleme bilgilerin ve koç panelinde kullanılan güncel verilerin hemen gönderilir.</p><div class="scl-actions"><button type="button" class="scl-btn share" data-coach-share-now>Koça bilgileri paylaş</button></div><div class="scl-share-status" data-coach-share-status>Hazır.</div></div><div class="scl-coaches" data-coaches></div>`;target.append(card)}else if(card.parentElement!==target)target.append(card);
-  const shareBtn=card.querySelector("[data-coach-share-now]");if(shareBtn)shareBtn.onclick=event=>void shareWithCoach(event.currentTarget).catch(error=>toast(text(error?.message,100)));\n  installProgramShareButton();\n  void renderStudentSettings();return true;
+  const shareBtn=card.querySelector("[data-coach-share-now]");if(shareBtn)shareBtn.onclick=event=>void shareWithCoach(event.currentTarget).catch(error=>toast(text(error?.message,100)));
+  installProgramShareButton();
+  void renderStudentSettings();return true;
 }
 function cleanup(){document.getElementById("studentCoachCodeSettings")?.remove();document.getElementById("studentCoachProgramShare")?.remove();state.user=state.db=state.profile=null;state.sharing=false}
 function install(){
