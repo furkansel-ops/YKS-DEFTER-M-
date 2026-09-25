@@ -427,6 +427,29 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    match /coachingPrograms/{studentUid} {
+      allow get: if verifiedUser()
+        && (request.auth.uid == studentUid
+          || activeCoachingLink(studentUid, request.auth.uid));
+      allow list: if false;
+      allow create, update: if verifiedUser()
+        && request.auth.uid == studentUid
+        && profileRole(studentUid, 'student')
+        && request.resource.data.keys().hasAll([
+          'studentUid', 'version', 'program', 'updatedAt'
+        ])
+        && request.resource.data.keys().hasOnly([
+          'studentUid', 'version', 'program', 'updatedAt'
+        ])
+        && request.resource.data.studentUid == studentUid
+        && request.resource.data.version is int
+        && request.resource.data.version == 1
+        && request.resource.data.program is map
+        && request.resource.data.updatedAt == request.time;
+      allow delete: if verifiedUser()
+        && request.auth.uid == studentUid;
+    }
+
     match /coachingShares/{studentUid} {
       allow get: if verifiedUser()
         && (request.auth.uid == studentUid
