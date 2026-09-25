@@ -182,7 +182,7 @@ function refreshCoachShortcut(home:HTMLElement):void{
       else win.v30OpenMore?.("ayar","studentCoachCodeSettings");
       window.dispatchEvent(new CustomEvent("yks:open-settings",{detail:{category:"coach"}}));
     });
-    const quote=getElement("sozBox"),tasks=home.querySelector(".rb-today-tasks");(quote||tasks)?.insertAdjacentElement("afterend",shortcut);
+    const quote=getElement("sozBox"),tasks=home.querySelector(".rb-today-tasks");(tasks||quote)?.insertAdjacentElement("afterend",shortcut);
   }
   shortcut.hidden=false;
 }
@@ -201,13 +201,15 @@ export function installTodayV43():{installed:boolean;validate:()=>string[]}{
   if(home.dataset.rbToday==="ready")return {installed:true,validate};
   home.classList.add("v43-today");home.dataset.v43Today="ready";home.dataset.rbToday="ready";
   installHeader(home);if(todayHub){installTodayDetails(todayHub);home.append(todayHub);}
-  installTasks(home);const quote=getElement("sozBox");if(quote)home.append(quote);
+  installTasks(home);const quote=getElement("sozBox");
   const preserved=new Set<HTMLElement>();
   Array.from(home.children).forEach(node=>{
     if(!(node instanceof HTMLElement))return;
     if(node.classList.contains("home-head")||node.classList.contains("rb-today-tasks")||["todayHub","sozBox","dgBanner","restBanner","backupBanner"].includes(node.id))preserved.add(node);
   });
-  const head=home.querySelector<HTMLElement>(".home-head");if(head)home.prepend(head);
+  const head=home.querySelector<HTMLElement>(".home-head");
+  if(head){home.prepend(head);if(quote)head.insertAdjacentElement("afterend",quote);}
+  else if(quote)home.prepend(quote);
   ["dgBanner","restBanner","backupBanner"].forEach(id=>{const node=getElement(id);if(node)home.append(node);});
   installSecondaryArea(home,preserved);
   const refresh=()=>{refreshMetrics();refreshTasks();const next=getElement("todayNext");if(next)enhanceTodayNext(next);refreshCoachShortcut(home);};

@@ -33,12 +33,12 @@ test("Laboratuvar yardımcıları global her tıklamada veya çift navigation di
   assert.match(chemistry,/section\.addEventListener\("click",onClick\)/);
 });
 
-test("4.4.0-r3 release kimliği ve service worker güncel kabuk önbelleğini taşır",()=>{
+test("4.4.0-r4 release kimliği ve service worker güncel kabuk önbelleğini taşır",()=>{
   const version=read("src/release/version.ts"),json=JSON.parse(read("version.json")),sw=read("sw.js");
-  assert.match(version,/RELEASE_BUILD="4\.4\.0-r3"/);
-  assert.equal(json.build,"4.4.0-r3");
-  assert.match(sw,/APP_BUILD="4\.4\.0-r3"/);
-  assert.match(sw,/CACHE="yks-core-v4\.4\.0-r3"/);
+  assert.match(version,/RELEASE_BUILD="4\.4\.0-r4"/);
+  assert.equal(json.build,"4.4.0-r4");
+  assert.match(sw,/APP_BUILD="4\.4\.0-r4"/);
+  assert.match(sw,/CACHE="yks-core-v4\.4\.0-r4"/);
   assert.match(sw,/cache refresh epoch: 2026-09-17-fresh-shell/);
   assert.match(sw,/cacheLatestShell/);
   assert.match(sw,/cacheCore\(\)\.then\(\(\)=>self\.skipWaiting\(\)\)/);
