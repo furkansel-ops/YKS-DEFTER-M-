@@ -28,7 +28,7 @@ test("öğrenci koç paylaşımı yalnız güvenli coachingShares görünümün�
   const runtime=read("public/student-coaching-runtime.js");
   assert.match(runtime,/coachingShares/);
   assert.match(runtime,/const payload=sharePayload\(s,rt\.user\)/);
-  assert.match(runtime,/setDoc\(doc\(rt\.db,"coachingShares",rt\.user\.uid\),payload,\{merge:true\}\)/);
+  assert.match(runtime,/const ref=doc\(rt\.db,"coachingShares",rt\.user\.uid\)/);\n  assert.match(runtime,/await setDoc\(ref,payload,\{merge:true\}\)/);
   assert.doesNotMatch(runtime,/collection\(rt\.db,"users"/);
   assert.doesNotMatch(runtime,/program:\{weeks\}/);
 });
@@ -38,7 +38,7 @@ test("koç paylaşımı yazma sürerken gelen son öğrenci değişikliğini tek
   assert.match(runtime,/sharing:false,pending:false/);
   assert.match(runtime,/if\(rt\.sharing\)\{rt\.pending=true;return\}/);
   assert.match(runtime,/rt\.sharing=false;\s*if\(rt\.pending\)\{rt\.pending=false;scheduleShare\(120\)\}/);
-  assert.match(runtime,/rt\.shareTimer=null;rt\.sharing=false;rt\.pending=false/);
+  assert.match(runtime,/rt\.shareTimer=null;clearInterval\(rt\.shareInterval\);rt\.shareInterval=null;rt\.sharing=false;rt\.pending=false/);
 });
 
 test("Programım paylaşımı öğrenci köprüsünde tam yapıyı korur",()=>{
@@ -130,8 +130,8 @@ test("Koç eşitleme runtime web ve native açılışta garanti edilir ve save s
   assert.match(shell,/import\("\.\/student-account-loader"\)/);
   assert.match(shell,/installStudentAccountLoader\(\)/);
   assert.match(shell,/const native=isNativeApp\(\)/);
-  assert.match(loader,/student-coaching-runtime\.js\?v=1\.2\.4/);
-  assert.match(runtime,/version:\"1\.2\.4\"/);
+  assert.match(loader,/student-coaching-runtime\.js\?v=1\.2\.5/);
+  assert.match(runtime,/version:\"1\.2\.5\"/);
   assert.match(app,/CustomEvent\(\"yks:data-changed\"/);
   assert.match(app,/source:\"save\"/);
 });
