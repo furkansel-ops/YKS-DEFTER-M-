@@ -66,7 +66,9 @@ function createScene(canvas:HTMLCanvasElement,stage:HTMLElement):SceneController
   root.position.y=-.05;
   scene.add(root);
 
-  const geometry=new THREE.PlaneGeometry(4.45,4.45,1,1);
+  const geometry=new THREE.PlaneGeometry(4.45,4.45,18,18);
+  const positions=geometry.getAttribute("position") as THREE.BufferAttribute;
+  const basePositions=new Float32Array(positions.array as ArrayLike<number>);
   const material=new THREE.MeshBasicMaterial({transparent:true,depthWrite:false,toneMapped:false,side:THREE.DoubleSide});
   const mascot=new THREE.Mesh(geometry,material);
   mascot.position.z=.08;
@@ -135,9 +137,17 @@ function createScene(canvas:HTMLCanvasElement,stage:HTMLElement):SceneController
       if(p>=1)celebrateStart=0;else{lift+=Math.sin(Math.PI*Math.min(1,p*1.5))*.62;rz+=Math.sin(p*Math.PI*5)*.095;}
     }
     root.position.y=-.05+lift;
-    root.rotation.y=THREE.MathUtils.lerp(root.rotation.y,still?0:px*.18,.09);
-    root.rotation.x=THREE.MathUtils.lerp(root.rotation.x,still?0:-py*.075,.09);
+    root.rotation.y=THREE.MathUtils.lerp(root.rotation.y,still?0:px*.105,.09);
+    root.rotation.x=THREE.MathUtils.lerp(root.rotation.x,still?0:-py*.045,.09);
     root.rotation.z=THREE.MathUtils.lerp(root.rotation.z,rz,.12);
+    for(let i=0;i<positions.count;i++){
+      const offset=i*3,bx=basePositions[offset]??0,by=basePositions[offset+1]??0;
+      const edge=Math.max(0,1-Math.pow(Math.abs(bx)/2.23,1.7));
+      const breathe=still?0:Math.sin(t*2.05+by*.58)*.038*edge;
+      const depth=still?0:(px*bx*.017-py*by*.010);
+      positions.setXYZ(i,bx,by,breathe+depth);
+    }
+    positions.needsUpdate=true;
     shadow.material.opacity=.08-Math.min(.04,Math.max(0,lift)*.05);
     shadow.scale.x=1.28-Math.min(.18,Math.max(0,lift)*.22);
     renderer.render(scene,camera);
@@ -159,9 +169,11 @@ function createScene(canvas:HTMLCanvasElement,stage:HTMLElement):SceneController
 function stageCopy(message?:string):void{
   const def=mascotById(selectedId);
   const name=document.querySelector<HTMLElement>("[data-yks-mascot-name]");
-  const role=document.querySelector<HTMLElement>("[data-yks-mascot-message]");
+  const bubble=document.querySelector<HTMLElement>("[data-yks-mascot-message]");
+  const stage=document.getElementById(STAGE_ID) as HTMLElement|null;
   if(name)name.textContent=def.name;
-  if(role)role.textContent=message||def.role+" için yanında. Maskota dokun; çalıştıkça sana tepki versin.";
+  if(bubble){bubble.textContent=message||"";bubble.hidden=!message;}
+  if(stage)stage.dataset.talking=message?"true":"false";
 }
 
 function mountHome():void{
@@ -170,8 +182,8 @@ function mountHome():void{
   let stage=document.getElementById(STAGE_ID) as HTMLElement|null;
   if(!stage){
     stage=document.createElement("section");stage.id=STAGE_ID;stage.className="yks-mascot-stage";
-    stage.setAttribute("aria-label","3B çalışma maskotu");
-    stage.innerHTML=`<div class="yks-mascot-copy"><span class="yks-mascot-kicker">ÇALIŞMA ARKADAŞIN</span><h2><span data-yks-mascot-name></span> seninle</h2><p data-yks-mascot-message></p><span class="yks-mascot-hint">Dokununca tepki verir</span></div><button class="yks-mascot-viewport" type="button" aria-label="Maskota dokun"><canvas class="yks-mascot-canvas"></canvas><img class="yks-mascot-fallback" alt=""></button>`;
+    stage.setAttribute("aria-label","Çalışma maskotu");
+    stage.innerHTML=`<div class="yks-mascot-bubble" data-yks-mascot-message role="status" aria-live="polite" hidden></div><button class="yks-mascot-viewport" type="button" aria-label="Maskota dokun"><canvas class="yks-mascot-canvas"></canvas><img class="yks-mascot-fallback" alt=""><span class="yks-mascot-name" data-yks-mascot-name></span></button>`;
     const quote=document.getElementById("sozBox"),tasks=home.querySelector(".rb-today-tasks"),head=home.querySelector(".home-head");
     if(quote?.parentElement===home)quote.insertAdjacentElement("afterend",stage);
     else if(tasks?.parentElement===home)tasks.insertAdjacentElement("beforebegin",stage);
@@ -179,7 +191,7 @@ function mountHome():void{
     else home.prepend(stage);
     const canvas=stage.querySelector<HTMLCanvasElement>(".yks-mascot-canvas");
     if(canvas){controller?.destroy();controller=createScene(canvas,stage);controller.setMascot(selectedId);}
-    stage.querySelector(".yks-mascot-viewport")?.addEventListener("click",()=>{controller?.react();stageCopy("Buradayım! Hadi sıradaki görevi birlikte bitirelim.");window.setTimeout(()=>stageCopy(),1500);});
+    stage.querySelector(".yks-mascot-viewport")?.addEventListener("click",()=>{controller?.react();stageCopy("Hazırım! Sıradaki görevi bitirelim.");window.setTimeout(()=>stageCopy(),1250);});
   }
   stage.hidden=!enabled;
   stageCopy();
@@ -194,7 +206,7 @@ function mountSettings():void{
   const root=document.getElementById("yksModernSettings");if(!root||document.getElementById(SETTINGS_ID))return;
   const appearance=root.querySelector<HTMLElement>('[data-yms-section="appearance"]');if(!appearance)return;
   const card=document.createElement("section");card.id=SETTINGS_ID;card.className="yks-mascot-settings";
-  card.innerHTML=`<div class="yks-mascot-settings-head"><div><h3>3B çalışma maskotu</h3><p>Ana ekranda sana eşlik edecek karakteri seç. Seçim yalnız bu cihazda tutulur; program ve koç senkronuna dokunmaz.</p></div><button class="yks-mascot-toggle" type="button" data-mascot-toggle aria-pressed="true"></button></div><div class="yks-mascot-grid" role="list" aria-label="Maskot seçenekleri">${MASCOTS.map(item=>`<button class="yks-mascot-choice" type="button" data-mascot-id="${item.id}" aria-pressed="false" title="${item.role}"><img src="${item.image}" alt="" loading="lazy"><span>${item.name}</span></button>`).join("")}</div>`;
+  card.innerHTML=`<div class="yks-mascot-settings-head"><div><h3>Maskotum</h3><p>Ana ekranda sana eşlik edecek karakteri seç. Seçim yalnız bu cihazda tutulur; program ve koç senkronuna dokunmaz.</p></div><button class="yks-mascot-toggle" type="button" data-mascot-toggle aria-pressed="true"></button></div><div class="yks-mascot-grid" role="list" aria-label="Maskot seçenekleri">${MASCOTS.map(item=>`<button class="yks-mascot-choice" type="button" data-mascot-id="${item.id}" aria-pressed="false" title="${item.role}"><img src="${item.image}" alt="" loading="lazy"><span>${item.name}</span></button>`).join("")}</div>`;
   card.addEventListener("click",event=>{
     const target=event.target as HTMLElement|null;
     const toggle=target?.closest<HTMLButtonElement>("[data-mascot-toggle]");
@@ -213,7 +225,7 @@ function syncEnabled():void{
   syncChoices();
 }
 function celebrate(message="Harika! Bir görev daha tamamlandı."):void{
-  if(!enabled)return;mountHome();controller?.celebrate();stageCopy(message);window.setTimeout(()=>stageCopy(),1700);
+  if(!enabled)return;mountHome();controller?.celebrate();stageCopy(message);window.setTimeout(()=>stageCopy(),1450);
 }
 
 export function installMascotRuntime():{installed:boolean;selected:MascotId}{
