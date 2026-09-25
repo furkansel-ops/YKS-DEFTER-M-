@@ -55,7 +55,7 @@ export function installStudentAccountLoader():boolean{
   if(win.__YKS_ACCOUNT_READY__)return true;
   const settingsReady=loadModuleScript(SETTINGS_SCRIPT_ID,"./settings-profile-runtime.js?v=2.6.0");
   win.__YKS_ACCOUNT_READY__=(async()=>{
-    const bridgeReady=await loadModuleScript(STUDENT_COACHING_RUNTIME_ID,"./student-coaching-runtime.js?v=1.2.4");
+    const bridgeReady=await loadModuleScript(STUDENT_COACHING_RUNTIME_ID,"./student-coaching-runtime.js?v=1.2.5");
     if(!bridgeReady)return settingsReady;
     forceStudentOnlyRegistration(win);
     const linkReady=await loadModuleScript(STUDENT_COACH_LINK_ID,"./student-coach-link.js?v=1.0.0");
