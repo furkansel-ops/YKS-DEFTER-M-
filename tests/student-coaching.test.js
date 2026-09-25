@@ -28,7 +28,8 @@ test("öğrenci koç paylaşımı yalnız güvenli coachingShares görünümün�
   const runtime=read("public/student-coaching-runtime.js");
   assert.match(runtime,/coachingShares/);
   assert.match(runtime,/const payload=sharePayload\(s,rt\.user\)/);
-  assert.match(runtime,/const ref=doc\(rt\.db,"coachingShares",rt\.user\.uid\)/);\n  assert.match(runtime,/await setDoc\(ref,payload,\{merge:true\}\)/);
+  assert.match(runtime,/const ref=doc\(rt\.db,"coachingShares",rt\.user\.uid\)/);
+  assert.match(runtime,/await setDoc\(ref,payload,\{merge:true\}\)/);
   assert.doesNotMatch(runtime,/collection\(rt\.db,"users"/);
   assert.doesNotMatch(runtime,/program:\{weeks\}/);
 });
