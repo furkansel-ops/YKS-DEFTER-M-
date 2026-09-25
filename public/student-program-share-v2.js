@@ -99,12 +99,12 @@ async function writeProgramShare(program){
     await setDoc(ref,bootstrapSharePayload(program));
   }
 }
-async function publishProgram(){
+async function publishProgram(force=false){
   if(rt.writing){rt.pending=true;return}
   if(!rt.db||!rt.user)return;
   const s=state();if(!s)return;
   const program=programPayload(s),hash=stableProgramHash(program);
-  if(hash&&hash===rt.lastHash)return;
+  if(!force&&hash&&hash===rt.lastHash)return;
   rt.writing=true;
   try{
     await writeProgramShare(program);
@@ -170,5 +170,5 @@ if(auth&&!auth.__programShareV2){
   auth.onSignedOut=(...args)=>{stop();return previousSignOut?.(...args)};
   auth.__programShareV2=true;
 }
-window.YKSStudentProgramShareV2={version:"3.4.0",publish:publishProgram,build:programPayload};
+window.YKSStudentProgramShareV2={version:"3.5.0",publish:force=>publishProgram(Boolean(force)),build:programPayload};
 document.documentElement.dataset.studentProgramSync="v3";
