@@ -210,6 +210,19 @@ void import("./ui/top-sync-indicator")
     document.documentElement.dataset.topSyncIndicator="deferred";
     console.error("Üst senkron durum göstergesi yüklenemedi",error);
   });
+document.documentElement.dataset.mascotRuntime="loading";
+window.setTimeout(()=>{
+  void import("./ui/mascot-runtime")
+    .then(({installMascotRuntime})=>{
+      const mascot=installOptional("3d-mascot",()=>installMascotRuntime(),{installed:false,selected:"notebook" as const});
+      document.documentElement.dataset.mascotRuntime=mascot.installed?"ready":"deferred";
+    })
+    .catch(error=>{
+      document.documentElement.dataset.mascotRuntime="deferred";
+      console.error("3B maskot katmanı yüklenemedi",error);
+    });
+},700);
+
 const v43Runtime=installV43SafeRuntime();
 document.documentElement.dataset.v43RuntimeHost=String(v43Runtime.installed);
 const release=installReleaseRuntime();
