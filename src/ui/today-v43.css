@@ -79,11 +79,14 @@
 #home.v43-today #todayPlan>div:last-child:not(.plancell){margin-top:8px!important;}
 #home.v43-today #todayPlan>div:last-child>.btn{min-height:44px;margin:0;border:0;background:none;color:var(--rb-muted,var(--label-2));font-size:12px;font-weight:550;box-shadow:none;}
 #home.v43-today .rb-tasks-more{width:100%;min-height:44px;border:0;background:none;color:var(--rb-accent,#1369ed);font:inherit;font-size:12px;cursor:pointer;}
-#home.v43-today>#sozBox{display:flex;align-items:center;gap:12px;margin:0!important;padding:13px 16px;border:0;border-radius:15px;background:var(--rb-surface-alt,#f0f3ff);box-shadow:none;}
-#home.v43-today>#sozBox::before,#home.v43-today>#sozBox .szlabel{display:none;}
-#home.v43-today>#sozBox .sz{font-size:12px;line-height:1.6;letter-spacing:0;font-weight:450;color:var(--rb-muted,var(--label-2));}
-#home.v43-today>#sozBox .sza{width:auto;margin:0;padding:0;border:0;background:none;color:var(--rb-muted,var(--label-2));font-size:10px;line-height:1.4;}
-#home.v43-today>#sozBox .szr{flex:none;width:36px;height:36px;min-height:36px;border:0;border-radius:10px;background:none;color:var(--rb-accent,#1369ed);font-size:20px;}
+#home.v43-today>#sozBox{display:flex;align-items:center;gap:18px;margin:0!important;padding:20px 22px;border:1px solid color-mix(in srgb,var(--rb-accent,#1369ed) 14%,var(--rb-line,#e8eef7));border-inline-start:3px solid var(--rb-accent,#1369ed);border-radius:18px;background:var(--rb-accent-soft,#eaf2ff);box-shadow:none;}
+#home.v43-today>#sozBox::before,#home.v43-today>#sozBox .szcat{display:none;}
+#home.v43-today>#sozBox .szwrap{display:flex;flex:1;flex-direction:column;min-width:0;gap:7px;}
+#home.v43-today>#sozBox .szlabel{display:block;margin:0;font-size:11px;line-height:1.4;letter-spacing:.04em;text-transform:none;font-weight:650;color:var(--rb-accent,#1369ed);}
+#home.v43-today>#sozBox .sz{font-size:17px;line-height:1.55;letter-spacing:-.015em;font-weight:550;color:var(--rb-ink,var(--label));overflow-wrap:anywhere;}
+#home.v43-today>#sozBox .sza{width:auto;margin:0;padding:0;border:0;background:none;color:var(--rb-muted,var(--label-2));font-size:12px;line-height:1.5;font-weight:450;}
+#home.v43-today>#sozBox .szr{display:grid;place-items:center;flex:none;width:44px;height:44px;min-height:44px;padding:0;border:1px solid color-mix(in srgb,var(--rb-accent,#1369ed) 12%,transparent);border-radius:14px;background:var(--rb-surface,var(--card));color:var(--rb-accent,#1369ed);font-size:23px;line-height:1;}
+#home.v43-today>#sozBox .szr:hover{background:var(--rb-accent-soft,#eaf2ff);color:var(--rb-accent,#1369ed);}
 #home.v43-today .rb-home-coach{display:flex;align-items:center;gap:14px;width:100%;min-height:72px;padding:14px 18px;border:1px solid var(--rb-line,#e8eef7);border-radius:18px;background:var(--rb-surface,#fff);color:var(--rb-ink,var(--label));font:inherit;text-align:left;cursor:pointer;}
 .rb-home-coach>svg{width:28px;height:28px;fill:none;stroke:var(--rb-accent,#1369ed);stroke-width:1.7;}
 .rb-home-coach>span{display:grid;gap:3px;}
@@ -111,7 +114,7 @@
 #home[data-rb-today="ready"] .today-summary-grid .today-summary{border-top:0!important;border-bottom:0!important;border-left:0!important;background:none!important;box-shadow:none!important;transform:none!important;}
 #home[data-rb-today="ready"] .today-summary-grid .today-summary:last-child{border-right:0!important;}
 #home[data-rb-today="ready"] .today-summary-grid .rb-metric-label{text-transform:none;letter-spacing:0;}
-#home[data-rb-today="ready"] #sozBox{min-height:0;background:var(--rb-surface-alt,#f0f3ff)!important;box-shadow:none!important;}
+#home[data-rb-today="ready"] #sozBox{min-height:0;background:var(--rb-accent-soft,#eaf2ff)!important;box-shadow:none!important;}
 #home[data-rb-today="ready"] #todayPlan>.rb-task-no-label .pl{display:none;}
 #home[data-rb-today="ready"] #todayPlan>.rb-task-no-label .pt{grid-row:1/3;font-size:14px;font-weight:650;color:var(--rb-ink,var(--label));}
 #home[data-rb-today="ready"] .rb-task-title,#home[data-rb-today="ready"] .rb-task-description{display:block;}
@@ -128,6 +131,8 @@
   #home.v43-today .rb-today-title{font-size:30px;}
   #home.v43-today #greeting{font-size:13px;}
   #home.v43-today .rb-today-date{font-size:12px;}
+  #home.v43-today>#sozBox{gap:12px;padding:16px;}
+  #home.v43-today>#sozBox .sz{font-size:15px;}
   .rb-exam-countdown>summary{column-gap:8px;padding:10px 12px;}
   #home.v43-today .today-summary-grid{padding:17px 2px;margin-bottom:14px;}
   #home.v43-today .today-summary-grid .today-summary{padding-inline:12px;}
