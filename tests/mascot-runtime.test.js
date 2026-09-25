@@ -12,7 +12,7 @@ test("3B maskot sistemi lazy ve öğrenci verisinden bağımsızdır",()=>{
   assert.match(runtime,/yks:mascot:selected:v1/);
   assert.match(runtime,/prefers-reduced-motion/);
   assert.doesNotMatch(runtime,/YKSLegacyState|window\.S|Firestore|firebase|IndexedDB|Dexie/);
-  for(const id of ["notebook","owl","cat","fox","panda","rabbit","turtle","penguin","robot","dragon"])assert.match(assets,new RegExp(`id:"${id}"`));
+  for(const id of ["notebook","owl","cat","fox","panda","rabbit","turtle","penguin","robot","dragon"]){assert.match(assets,new RegExp(`id:"${id}"`));const asset=path.join(root,"public","mascots",`${id}.webp`);assert.ok(fs.existsSync(asset),`${id} görseli eksik`);assert.ok(fs.statSync(asset).size>2000,`${id} görseli beklenmedik kadar küçük`);}
 });
 
 test("maskot seçimi ayarlar görünümüne ve ana ekrana bağlanır",()=>{
