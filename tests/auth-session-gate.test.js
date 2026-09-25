@@ -62,8 +62,8 @@ test("normal kayıt öğrenci-only kalır ve öğrenci köprüleri yeni cache an
   assert.match(loader,/sessionStorage\.setItem\(PENDING_ROLE,"student"\)/);
   assert.match(loader,/sessionStorage\.removeItem\(LEGACY_PENDING_COACH\)/);
   assert.match(loader,/publicRegistration="student-only"/);
-  assert.match(loader,/student-coaching-runtime\.js\?v=1\.2\.5/);
-  assert.match(loader,/student-coach-link\.js\?v=1\.1\.0/);
+  assert.match(loader,/student-coaching-runtime\.js\?v=1\.2\.6/);
+  assert.match(loader,/student-coach-link\.js\?v=1\.2\.0/);
   assert.doesNotMatch(loader,/coach-account-runtime\.js/);
   assert.match(loader,/auth-session-runtime\.js\?v=1\.6\.0/);
   assert.match(loader,/settings-profile-runtime\.js\?v=2\.6\.0/);
