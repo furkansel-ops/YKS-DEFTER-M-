@@ -232,8 +232,9 @@ export function installMascotRuntime():{installed:boolean;selected:MascotId}{
   if(document.documentElement.dataset.mascotRuntime==="ready")return {installed:true,selected:selectedId};
   document.documentElement.dataset.mascotRuntime="ready";
   mountHome();mountSettings();
-  const observer=new MutationObserver(()=>{mountHome();mountSettings();});
-  observer.observe(document.body,{childList:true,subtree:true});
+  const observe=()=>observer.observe(document.body,{childList:true,subtree:true});
+  const observer=new MutationObserver(()=>{observer.disconnect();try{mountHome();mountSettings();}finally{observe();}});
+  observe();
   window.addEventListener("yks:mascot-changed",event=>{
     const id=(event as CustomEvent<{id?:MascotId}>).detail?.id;
     if(id&&MASCOT_IDS.includes(id)){selectedId=id;controller?.setMascot(id);stageCopy();syncChoices();}
