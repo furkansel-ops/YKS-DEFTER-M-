@@ -7,7 +7,7 @@ const ACCESS_COLLECTION="studentCoachAccess";
 const CODE_COLLECTION="studentCoachCodes";
 const LINK_COLLECTION="coachingLinks";
 const PROFILE_COLLECTION="accountProfiles";
-const state={user:null,db:null,profile:null};
+const state={user:null,db:null,profile:null,sharing:false};
 const text=(value,max=160)=>String(value??"").trim().slice(0,max);
 const esc=value=>String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[char]));
 const normalizeCode=value=>String(value??"").toUpperCase().replace(/[^A-Z2-9]/g,"").slice(0,CODE_LENGTH);
@@ -21,7 +21,7 @@ function randomCode(){
 function styles(){
   if(document.getElementById("studentCoachLinkStyles"))return;
   const style=document.createElement("style");style.id="studentCoachLinkStyles";style.textContent=`
-  .scl-settings{margin-top:16px;padding:18px;border:1px solid var(--glass-line,var(--line,#2c3444));border-radius:18px;background:var(--glass,var(--surface,#151a24));color:var(--label,var(--ink,#f7f8fb))}.scl-head h3{margin:3px 0 5px;font-size:18px}.scl-kicker{font-size:10px;font-weight:850;letter-spacing:.08em;text-transform:uppercase;color:var(--accent,#6ea8ff)}.scl-muted{margin:0;color:var(--label-2,#aab2c0);font-size:12px;line-height:1.5}.scl-codebox{margin-top:14px;padding:15px;border:1px solid var(--glass-line,var(--line,#2c3444));border-radius:15px;background:var(--fill,rgba(255,255,255,.04))}.scl-code{font:850 clamp(20px,3vw,28px)/1.15 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.08em;word-break:break-word}.scl-code.empty{font:750 14px/1.4 var(--font,system-ui);letter-spacing:0;color:var(--label-2,#aab2c0)}.scl-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.scl-btn{min-height:38px;padding:8px 12px;border:1px solid var(--glass-line,var(--line,#2c3444));border-radius:11px;background:var(--fill,rgba(255,255,255,.05));color:inherit;font:750 12px var(--font,system-ui);cursor:pointer}.scl-btn.primary{border-color:color-mix(in srgb,var(--accent,#6ea8ff) 38%,transparent);background:var(--accent-soft,rgba(80,140,255,.14));color:var(--accent,#8db8ff)}.scl-btn.danger{color:var(--danger,#ff7d86)}.scl-btn:disabled{opacity:.55;cursor:wait}.scl-coaches{display:grid;gap:8px;margin-top:14px}.scl-coach{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 12px;border:1px solid var(--glass-line,var(--line,#2c3444));border-radius:12px;background:var(--fill,rgba(255,255,255,.035))}.scl-coach b,.scl-coach small{display:block}.scl-coach small{margin-top:2px;color:var(--label-3,#818b9b);font-size:10.5px}@media(max-width:640px){.scl-code{font-size:20px}.scl-coach{align-items:flex-start;flex-direction:column}.scl-coach .scl-btn{width:100%}}`;
+  .scl-settings{margin-top:16px;padding:18px;border:1px solid var(--glass-line,var(--line,#2c3444));border-radius:18px;background:var(--glass,var(--surface,#151a24));color:var(--label,var(--ink,#f7f8fb))}.scl-head h3{margin:3px 0 5px;font-size:18px}.scl-kicker{font-size:10px;font-weight:850;letter-spacing:.08em;text-transform:uppercase;color:var(--accent,#6ea8ff)}.scl-muted{margin:0;color:var(--label-2,#aab2c0);font-size:12px;line-height:1.5}.scl-codebox{margin-top:14px;padding:15px;border:1px solid var(--glass-line,var(--line,#2c3444));border-radius:15px;background:var(--fill,rgba(255,255,255,.04))}.scl-code{font:850 clamp(20px,3vw,28px)/1.15 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.08em;word-break:break-word}.scl-code.empty{font:750 14px/1.4 var(--font,system-ui);letter-spacing:0;color:var(--label-2,#aab2c0)}.scl-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.scl-btn{min-height:38px;padding:8px 12px;border:1px solid var(--glass-line,var(--line,#2c3444));border-radius:11px;background:var(--fill,rgba(255,255,255,.05));color:inherit;font:750 12px var(--font,system-ui);cursor:pointer}.scl-btn.primary{border-color:color-mix(in srgb,var(--accent,#6ea8ff) 38%,transparent);background:var(--accent-soft,rgba(80,140,255,.14));color:var(--accent,#8db8ff)}.scl-btn.danger{color:var(--danger,#ff7d86)}.scl-btn.share{border-color:color-mix(in srgb,var(--green,#45d48a) 38%,transparent);background:color-mix(in srgb,var(--green,#45d48a) 12%,transparent);color:var(--green,#66e0a1)}.scl-btn:disabled{opacity:.55;cursor:wait}.scl-sharebox{margin-top:14px;padding:14px;border:1px solid var(--glass-line,var(--line,#2c3444));border-radius:14px;background:var(--fill,rgba(255,255,255,.035))}.scl-sharebox b{display:block;font-size:13px;margin-bottom:4px}.scl-share-status{margin-top:8px;color:var(--label-3,#818b9b);font-size:11px}.scl-program-share{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:12px 0 14px;padding:13px 14px;border:1px solid var(--glass-line,var(--line,#2c3444));border-radius:14px;background:var(--fill,rgba(255,255,255,.035))}.scl-program-share strong{display:block;font-size:13px}.scl-program-share small{display:block;margin-top:3px;color:var(--label-3,#818b9b);font-size:11px;line-height:1.35}@media(max-width:640px){.scl-program-share{align-items:stretch;flex-direction:column}.scl-program-share .scl-btn{width:100%}}.scl-coaches{display:grid;gap:8px;margin-top:14px}.scl-coach{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 12px;border:1px solid var(--glass-line,var(--line,#2c3444));border-radius:12px;background:var(--fill,rgba(255,255,255,.035))}.scl-coach b,.scl-coach small{display:block}.scl-coach small{margin-top:2px;color:var(--label-3,#818b9b);font-size:10.5px}@media(max-width:640px){.scl-code{font-size:20px}.scl-coach{align-items:flex-start;flex-direction:column}.scl-coach .scl-btn{width:100%}}`;
   document.head.append(style);
 }
 async function getAccess(){
@@ -70,6 +70,44 @@ async function disconnectCoach(linkId){
 async function copyCode(code,button){
   try{await navigator.clipboard.writeText(formatCode(code));button.textContent="Kopyalandı ✓";setTimeout(()=>button.textContent="Kodu kopyala",1400)}catch{alert("Kod kopyalanamadı. Kodu seçip elle kopyalayabilirsin.")}
 }
+async function shareWithCoach(sourceButton){
+  if(state.sharing)return;
+  if(!state.user||!state.db||state.profile?.role!=="student")throw new Error("Öğrenci hesabı gerekli");
+  const links=await activeCoachLinks();
+  if(!links.length){toast("Önce bir koç bağlamalısın");throw new Error("Bağlı koç bulunamadı")}
+  state.sharing=true;
+  const buttons=[...document.querySelectorAll("[data-coach-share-now]")];
+  const statuses=[...document.querySelectorAll("[data-coach-share-status]")];
+  buttons.forEach(btn=>{btn.disabled=true;btn.dataset.oldText=btn.textContent;btn.textContent="Paylaşılıyor…"});
+  statuses.forEach(node=>node.textContent="Güncel bilgiler koça gönderiliyor…");
+  try{
+    if(typeof window.YKSAccountAuth?.publishShare==="function")await window.YKSAccountAuth.publishShare();
+    if(typeof window.YKSStudentProgramShareV2?.publish==="function")await window.YKSStudentProgramShareV2.publish(true);
+    const stamp=new Date().toLocaleTimeString("tr-TR",{hour:"2-digit",minute:"2-digit"});
+    statuses.forEach(node=>node.textContent="Koçla paylaşıldı ✓ · "+stamp);
+    toast("Program ve bilgiler koçla paylaşıldı ✓");
+  }catch(error){
+    console.error("Koça manuel paylaşım",error);
+    statuses.forEach(node=>node.textContent="Paylaşım başarısız. Tekrar deneyebilirsin.");
+    throw error;
+  }finally{
+    state.sharing=false;
+    buttons.forEach(btn=>{btn.disabled=false;btn.textContent=btn.dataset.oldText||"Koça bilgileri paylaş";delete btn.dataset.oldText});
+    if(sourceButton)sourceButton.blur?.();
+  }
+}
+function installProgramShareButton(){
+  styles();
+  const screen=document.getElementById("program");if(!screen||state.profile?.role!=="student")return false;
+  let box=document.getElementById("studentCoachProgramShare");
+  if(!box){
+    box=document.createElement("div");box.id="studentCoachProgramShare";box.className="scl-program-share";
+    box.innerHTML='<div><strong>Koçunla güncel programı paylaş</strong><small>Programını hazırladıktan sonra bu düğmeye bas. Güncel program ve öğrenci bilgilerin bağlı koçuna hemen gönderilir.</small><div class="scl-share-status" data-coach-share-status>Hazır.</div></div><button type="button" class="scl-btn share" data-coach-share-now>Koça bilgileri paylaş</button>';
+    const anchor=screen.querySelector(".seg");anchor?.insertAdjacentElement("afterend",box);
+    box.querySelector("[data-coach-share-now]").onclick=event=>void shareWithCoach(event.currentTarget).catch(error=>toast(text(error?.message,100)));
+  }
+  return true;
+}
 async function renderStudentSettings(){
   const card=document.getElementById("studentCoachCodeSettings");if(!card||state.profile?.role!=="student")return;
   const codeNode=card.querySelector("[data-code]"),actions=card.querySelector("[data-actions]"),coachesNode=card.querySelector("[data-coaches]");
@@ -94,18 +132,18 @@ async function renderStudentSettings(){
 function installStudentSettings(){
   styles();let target=document.getElementById("mrp_ayar");if(!target)target=document.getElementById("more");if(!target)return false;
   let card=document.getElementById("studentCoachCodeSettings");
-  if(!card){card=document.createElement("section");card.id="studentCoachCodeSettings";card.className="scl-settings";card.setAttribute("aria-label","Koç kodum");card.innerHTML=`<div class="scl-head"><div class="scl-kicker">Koç bağlantısı</div><h3>Koç Kodum</h3><p class="scl-muted">Bu kodu yalnız ayrı YKS Koç Paneli'nde öğrencini eklemesi için koçunla paylaş.</p></div><div class="scl-codebox"><div class="scl-code empty" data-code>Henüz koç kodun yok.</div><div class="scl-actions" data-actions></div><p class="scl-muted" style="margin-top:10px">Kodu yenilemek mevcut bağlı koçları çıkarmaz.</p></div><div class="scl-coaches" data-coaches></div>`;target.append(card)}else if(card.parentElement!==target)target.append(card);
-  void renderStudentSettings();return true;
+  if(!card){card=document.createElement("section");card.id="studentCoachCodeSettings";card.className="scl-settings";card.setAttribute("aria-label","Koç kodum");card.innerHTML=`<div class="scl-head"><div class="scl-kicker">Koç bağlantısı</div><h3>Koç Kodum</h3><p class="scl-muted">Bu kodu yalnız ayrı YKS Koç Paneli\'nde öğrencini eklemesi için koçunla paylaş.</p></div><div class="scl-codebox"><div class="scl-code empty" data-code>Henüz koç kodun yok.</div><div class="scl-actions" data-actions></div><p class="scl-muted" style="margin-top:10px">Kodu yenilemek mevcut bağlı koçları çıkarmaz.</p></div><div class="scl-sharebox"><b>Koça bilgileri paylaş</b><p class="scl-muted">Programın, ilerleme bilgilerin ve koç panelinde kullanılan güncel verilerin hemen gönderilir.</p><div class="scl-actions"><button type="button" class="scl-btn share" data-coach-share-now>Koça bilgileri paylaş</button></div><div class="scl-share-status" data-coach-share-status>Hazır.</div></div><div class="scl-coaches" data-coaches></div>`;target.append(card)}else if(card.parentElement!==target)target.append(card);
+  const shareBtn=card.querySelector("[data-coach-share-now]");if(shareBtn)shareBtn.onclick=event=>void shareWithCoach(event.currentTarget).catch(error=>toast(text(error?.message,100)));\n  installProgramShareButton();\n  void renderStudentSettings();return true;
 }
-function cleanup(){document.getElementById("studentCoachCodeSettings")?.remove();state.user=state.db=state.profile=null}
+function cleanup(){document.getElementById("studentCoachCodeSettings")?.remove();document.getElementById("studentCoachProgramShare")?.remove();state.user=state.db=state.profile=null;state.sharing=false}
 function install(){
   const auth=window.YKSAccountAuth;if(!auth||auth.__studentCoachLink)return false;auth.__studentCoachLink=true;
   const originalSignedIn=auth.onSignedIn?.bind(auth),originalSignedOut=auth.onSignedOut?.bind(auth);
-  auth.onSignedIn=async ctx=>{const result=originalSignedIn?await originalSignedIn(ctx):null;state.user=ctx.user;state.db=ctx.db;state.profile=result?.profile||null;if(result?.role==="student"){installStudentSettings();setTimeout(installStudentSettings,0)}return result};
+  auth.onSignedIn=async ctx=>{const result=originalSignedIn?await originalSignedIn(ctx):null;state.user=ctx.user;state.db=ctx.db;state.profile=result?.profile||null;if(result?.role==="student"){installStudentSettings();installProgramShareButton();setTimeout(()=>{installStudentSettings();installProgramShareButton()},0)}return result};
   auth.onSignedOut=()=>{cleanup();return originalSignedOut?.()};
   window.addEventListener("yks:data-changed",()=>{if(state.profile?.role==="student"&&document.getElementById("studentCoachCodeSettings"))void renderStudentSettings()});
   document.documentElement.dataset.studentCoachLink="ready";
-  window.dispatchEvent(new CustomEvent("yks:student-coach-link-ready",{detail:{version:"1.0.0"}}));
+  window.dispatchEvent(new CustomEvent("yks:student-coach-link-ready",{detail:{version:"1.1.0"}}));
   return true;
 }
 install();
