@@ -163,15 +163,15 @@ test("öğrenci koça bilgileri manuel paylaşabilir ve program paylaşımı zor
   const program=read("public/student-program-share-v2.js");
   assert.match(link,/Koça bilgileri paylaş/);
   assert.match(link,/data-coach-share-now/);
-  assert.match(link,/YKSAccountAuth\?\.publishShare/);\n  assert.match(link,/publishShare\(\{manual:true\}\)/);
+  assert.match(link,/YKSAccountAuth\?\.publishShare/);
+  assert.match(link,/publishShare\(\{manual:true\}\)/);
   assert.match(link,/YKSStudentProgramShareV2\?\.publish/);
   assert.match(link,/publish\(true\)/);
-  assert.match(link,/dataset\.coachShare==="error"/);
-  assert.match(link,/dataset\.studentProgramShare==="error"/);
+  assert.match(link,/Paylaşım başarısız ·/);
   assert.match(link,/studentCoachProgramShare/);
   assert.match(program,/async function publishProgram\(force=false\)/);
-  assert.match(program,/if\(!force&&hash&&hash===rt\.lastHash\)return/);
-  assert.match(program,/version:"3\.5\.0"/);
+  assert.match(program,/if\(!manual&&hash&&hash===rt\.lastHash\)return true/);
+  assert.match(program,/version:"3\.6\.0"/);
 });
 
 
