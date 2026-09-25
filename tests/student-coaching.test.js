@@ -17,9 +17,9 @@ test("öğrenci uygulaması yalnız öğrenci hesabı olarak açılır ve koç p
 
 test("öğrenci hesap köprüleri auth başlamadan önce güvenli sırada yüklenir",()=>{
   const loader=read("src/ui/student-account-loader.ts");
-  const bridgeAt=loader.indexOf("student-coaching-runtime.js?v=1.2.2");
+  const bridgeAt=loader.indexOf("student-coaching-runtime.js?v=1.2.3");
   const linkAt=loader.indexOf("student-coach-link.js?v=1.0.0");
-  const programAt=loader.indexOf("student-program-share-v2.js?v=3.2.0");
+  const programAt=loader.indexOf("student-program-share-v2.js?v=3.3.0");
   const authAt=loader.indexOf("auth-session-runtime.js?v=1.6.0");
   assert.ok(bridgeAt>=0&&linkAt>bridgeAt&&programAt>linkAt&&authAt>programAt);
 });
@@ -141,4 +141,15 @@ test("Koç eşitleme runtime web ve native açılışta garanti edilir ve save s
   assert.match(runtime,/version:\"1\.2\.1\"/);
   assert.match(app,/CustomEvent\(\"yks:data-changed\"/);
   assert.match(app,/source:\"save\"/);
+});
+
+
+test("Program paylaşımı ayrı coachingPrograms kanalını kullanır",()=>{
+  const main=read("public/student-coaching-runtime.js");
+  const program=read("public/student-program-share-v2.js");
+  const rules=read("firestore.rules");
+  assert.match(main,/coachingPrograms/);
+  assert.match(program,/doc\(rt\.db,"coachingPrograms",rt\.user\.uid\)/);
+  assert.match(rules,/match \/coachingPrograms\/\{studentUid\}/);
+  assert.match(rules,/activeCoachingLink\(studentUid, request\.auth\.uid\)/);
 });
