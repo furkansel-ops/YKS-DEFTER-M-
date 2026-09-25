@@ -22,4 +22,7 @@ test("maskot seçimi ayarlar görünümüne ve ana ekrana bağlanır",()=>{
   assert.match(runtime,/rb-task-toggle/);
   assert.match(runtime,/yks:mascot-celebrate/);
   assert.match(runtime,/WebGLRenderer/);
+  assert.match(runtime,/PlaneGeometry\(4\.45,4\.45,18,18\)/);
+  assert.match(runtime,/data-yks-mascot-message/);
+  assert.match(runtime,/positions\.needsUpdate=true/);
 });
