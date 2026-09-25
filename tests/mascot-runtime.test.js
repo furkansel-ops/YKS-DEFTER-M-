@@ -22,4 +22,6 @@ test("maskot seçimi ayarlar görünümüne ve ana ekrana bağlanır",()=>{
   assert.match(runtime,/rb-task-toggle/);
   assert.match(runtime,/yks:mascot-celebrate/);
   assert.match(runtime,/WebGLRenderer/);
+  assert.match(runtime,/observer\.disconnect\(\)/);
+  assert.match(runtime,/finally\{observe\(\);\}/);
 });
