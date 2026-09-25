@@ -37,9 +37,11 @@ test("öğrenci koç paylaşımı yalnız güvenli coachingShares görünümün�
 test("koç paylaşımı yazma sürerken gelen son öğrenci değişikliğini tekrar yayınlar",()=>{
   const runtime=read("public/student-coaching-runtime.js");
   assert.match(runtime,/sharing:false,pending:false/);
-  assert.match(runtime,/if\(rt\.sharing\)\{rt\.pending=true;return\}/);
-  assert.match(runtime,/rt\.sharing=false;\s*if\(rt\.pending\)\{rt\.pending=false;scheduleShare\(120\)\}/);
-  assert.match(runtime,/rt\.shareTimer=null;clearInterval\(rt\.shareInterval\);rt\.shareInterval=null;rt\.sharing=false;rt\.pending=false/);
+  assert.match(runtime,/if\(rt\.sharing\)\{/);
+  assert.match(runtime,/rt\.pending=true/);
+  assert.match(runtime,/if\(manual&&rt\.inFlight\)await rt\.inFlight/);
+  assert.match(runtime,/rt\.sharing=false;\s*rt\.inFlight=null;\s*if\(rt\.pending\)\{rt\.pending=false;scheduleShare\(120\)\}/);
+  assert.match(runtime,/rt\.shareTimer=null;clearInterval\(rt\.shareInterval\);rt\.shareInterval=null;rt\.sharing=false;rt\.pending=false;rt\.inFlight=null/);
 });
 
 test("Programım paylaşımı öğrenci köprüsünde tam yapıyı korur",()=>{
@@ -103,14 +105,14 @@ test("koç hesabı normal öğrenci bulut snapshot zincirini başlatmaz",()=>{
 test("Programım v3 koç aynası için değişiklikleri canlı ve tekrarsız yayınlar",()=>{
   const runtime=read("public/student-program-share-v2.js");
   for(const token of["PROGRAM_VERSION=3","syncedAt:Date.now()","payloadHash","lastHash","studentProgramSync=\"v3\""])assert.ok(runtime.includes(token),token);
-  assert.match(runtime,/if\(!force&&hash&&hash===rt\.lastHash\)return/);
+  assert.match(runtime,/if\(!manual&&hash&&hash===rt\.lastHash\)return true/);
   assert.match(runtime,/rt\.lastHash=hash/);
 });
 
 
 test("Programım paylaşımı yerel değişiklikleri event olmasa da izler",()=>{
   const runtime=read("public/student-program-share-v2.js");
-  for(const token of["watchLocalProgram","setInterval(watchLocalProgram,1500)","localProgramHash","version:\"3.5.0\""])assert.ok(runtime.includes(token),token);
+  for(const token of["watchLocalProgram","setInterval(watchLocalProgram,1500)","localProgramHash","version:\"3.6.0\""])assert.ok(runtime.includes(token),token);
   assert.match(runtime,/remoteHash!==currentHash/);
 });
 
@@ -131,8 +133,8 @@ test("Koç eşitleme runtime web ve native açılışta garanti edilir ve save s
   assert.match(shell,/import\("\.\/student-account-loader"\)/);
   assert.match(shell,/installStudentAccountLoader\(\)/);
   assert.match(shell,/const native=isNativeApp\(\)/);
-  assert.match(loader,/student-coaching-runtime\.js\?v=1\.2\.5/);
-  assert.match(runtime,/version:\"1\.2\.5\"/);
+  assert.match(loader,/student-coaching-runtime\.js\?v=1\.2\.6/);
+  assert.match(runtime,/version:\"1\.2\.6\"/);
   assert.match(app,/CustomEvent\(\"yks:data-changed\"/);
   assert.match(app,/source:\"save\"/);
 });
