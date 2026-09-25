@@ -112,7 +112,10 @@ test("ayarlar arayüzü kategori menüsü ve tek modern akış kullanır",()=>{
 
 test("ayarlar gerçek uygulama hissi veren sade grup düzenini kullanır",()=>{
   const src=read("public/settings-profile-runtime.js");
-  assert.match(src,/mobile-premium-settings-v1/);\n  assert.match(src,/native-settings-v3/);\n  assert.match(src,/--yms-group-radius:18px/);\n  assert.match(src,/\.yms-action-grid\{grid-template-columns:1fr;gap:0\}/);
+  assert.match(src,/mobile-premium-settings-v1/);
+  assert.match(src,/native-settings-v3/);
+  assert.match(src,/--yms-group-radius:18px/);
+  assert.match(src,/\.yms-action-grid\{grid-template-columns:1fr;gap:0\}/);
   assert.match(src,/yms-nav-dot/);
   assert.doesNotMatch(src,/yms-nav-ic">👤/);
   assert.match(src,/\.yms-hero\{padding:6px 2px 18px;border:0/);
