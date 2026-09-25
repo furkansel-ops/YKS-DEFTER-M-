@@ -3,7 +3,7 @@ import{doc,onSnapshot,setDoc,serverTimestamp}from"https://www.gstatic.com/fireba
 const PROGRAM_VERSION=3;
 const MAX_PROGRAM_WEEKS=80;
 const DATE_RE=/^\d{4}-\d{2}-\d{2}$/;
-const rt={db:null,user:null,shareReady:false,timer:null,watchTimer:null,stopShare:null,stopData:null,writing:false,pending:false,lastHash:""};
+const rt={db:null,user:null,shareReady:false,timer:null,watchTimer:null,stopShare:null,stopData:null,writing:false,pending:false,bootstrapping:false,lastHash:""};
 const state=()=>{try{return window.YKSLegacyState?.readState?.()||window.S||null}catch{return window.S||null}};
 const txt=(v,n=220)=>String(v??"").trim().slice(0,n);
 const int=(v,fallback)=>{const n=Math.floor(Number(v));return Number.isFinite(n)&&n>0?n:fallback};
@@ -64,9 +64,24 @@ function stableProgramHash(program){
   if(!program||typeof program!=="object")return"";
   return payloadHash({...program,syncedAt:0});
 }
+async function ensureShareDocument(){
+  if(rt.shareReady)return true;
+  if(rt.bootstrapping)return false;
+  rt.bootstrapping=true;
+  try{
+    if(typeof auth?.publishShare==="function")await auth.publishShare();
+  }catch(error){
+    console.error("Koç paylaşımı başlangıcı",error);
+  }finally{rt.bootstrapping=false}
+  return rt.shareReady;
+}
 async function publishProgram(){
   if(rt.writing){rt.pending=true;return}
-  if(!rt.shareReady||!rt.db||!rt.user)return;
+  if(!rt.db||!rt.user)return;
+  if(!rt.shareReady){
+    const ready=await ensureShareDocument();
+    if(!ready){schedule(600);return}
+  }
   const s=state();if(!s)return;
   const program=programPayload(s),hash=stableProgramHash(program);
   if(hash&&hash===rt.lastHash)return;
@@ -100,14 +115,14 @@ function stop(){
   clearTimeout(rt.timer);rt.timer=null;clearInterval(rt.watchTimer);rt.watchTimer=null;
   try{rt.stopShare?.()}catch{}rt.stopShare=null;
   try{rt.stopData?.()}catch{}rt.stopData=null;
-  rt.db=null;rt.user=null;rt.shareReady=false;rt.writing=false;rt.pending=false;rt.lastHash="";
+  rt.db=null;rt.user=null;rt.shareReady=false;rt.writing=false;rt.pending=false;rt.bootstrapping=false;rt.lastHash="";
 }
 function start(ctx){
   stop();rt.db=ctx.db;rt.user=ctx.user;
   const ref=doc(rt.db,"coachingShares",rt.user.uid);
   rt.stopShare=onSnapshot(ref,snap=>{
     rt.shareReady=snap.exists();
-    if(!snap.exists())return;
+    if(!snap.exists()){void ensureShareDocument().finally(()=>schedule(600));return}
     const remote=snap.data()?.program;
     const remoteHash=Number(remote?.version||0)===PROGRAM_VERSION?stableProgramHash(remote):"";
     const currentHash=localProgramHash();
@@ -134,5 +149,5 @@ if(auth&&!auth.__programShareV2){
   auth.onSignedOut=(...args)=>{stop();return previousSignOut?.(...args)};
   auth.__programShareV2=true;
 }
-window.YKSStudentProgramShareV2={version:"3.1.0",publish:publishProgram,build:programPayload};
+window.YKSStudentProgramShareV2={version:"3.2.0",publish:publishProgram,build:programPayload};
 document.documentElement.dataset.studentProgramSync="v3";
