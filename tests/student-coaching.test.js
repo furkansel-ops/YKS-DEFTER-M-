@@ -103,14 +103,14 @@ test("koç hesabı normal öğrenci bulut snapshot zincirini başlatmaz",()=>{
 test("Programım v3 koç aynası için değişiklikleri canlı ve tekrarsız yayınlar",()=>{
   const runtime=read("public/student-program-share-v2.js");
   for(const token of["PROGRAM_VERSION=3","syncedAt:Date.now()","payloadHash","lastHash","studentProgramSync=\"v3\""])assert.ok(runtime.includes(token),token);
-  assert.match(runtime,/if\(hash&&hash===rt\.lastHash\)return/);
+  assert.match(runtime,/if\(!force&&hash&&hash===rt\.lastHash\)return/);
   assert.match(runtime,/rt\.lastHash=hash/);
 });
 
 
 test("Programım paylaşımı yerel değişiklikleri event olmasa da izler",()=>{
   const runtime=read("public/student-program-share-v2.js");
-  for(const token of["watchLocalProgram","setInterval(watchLocalProgram,1500)","localProgramHash","version:\"3.4.0\""])assert.ok(runtime.includes(token),token);
+  for(const token of["watchLocalProgram","setInterval(watchLocalProgram,1500)","localProgramHash","version:\"3.5.0\""])assert.ok(runtime.includes(token),token);
   assert.match(runtime,/remoteHash!==currentHash/);
 });
 
@@ -166,6 +166,8 @@ test("öğrenci koça bilgileri manuel paylaşabilir ve program paylaşımı zor
   assert.match(link,/YKSAccountAuth\?\.publishShare/);
   assert.match(link,/YKSStudentProgramShareV2\?\.publish/);
   assert.match(link,/publish\(true\)/);
+  assert.match(link,/dataset\.coachShare==="error"/);
+  assert.match(link,/dataset\.studentProgramShare==="error"/);
   assert.match(link,/studentCoachProgramShare/);
   assert.match(program,/async function publishProgram\(force=false\)/);
   assert.match(program,/if\(!force&&hash&&hash===rt\.lastHash\)return/);
