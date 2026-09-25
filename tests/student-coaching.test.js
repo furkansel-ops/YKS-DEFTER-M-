@@ -27,7 +27,7 @@ test("öğrenci hesap köprüleri auth başlamadan önce güvenli sırada yükle
 test("öğrenci koç paylaşımı yalnız güvenli coachingShares görünümünü günceller",()=>{
   const runtime=read("public/student-coaching-runtime.js");
   assert.match(runtime,/coachingShares/);
-  assert.match(runtime,/setDoc\(doc\(rt\.db,"coachingShares",rt\.user\.uid\),sharePayload\(s,rt\.user\),\{merge:true\}\)/);
+  assert.match(runtime,/const payload=sharePayload\(s,rt\.user\)/);\n  assert.match(runtime,/setDoc\(doc\(rt\.db,"coachingShares",rt\.user\.uid\),payload,\{merge:true\}\)/);
   assert.doesNotMatch(runtime,/collection\(rt\.db,"users"/);
   assert.doesNotMatch(runtime,/program:\{weeks\}/);
 });
