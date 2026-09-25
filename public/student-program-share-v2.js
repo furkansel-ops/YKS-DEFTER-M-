@@ -13,10 +13,12 @@ function cloneValue(value,fallback){
 }
 function cleanMatrix(value,rowCount){
   const src=Array.isArray(value)?value:[];
-  return Array.from({length:rowCount},(_,r)=>{
+  const out={};
+  for(let r=0;r<rowCount;r++){
     const row=Array.isArray(src[r])?src[r]:[];
-    return Array.from({length:7},(_,d)=>txt(row[d],220));
-  });
+    out[String(r)]=Array.from({length:7},(_,d)=>txt(row[d],220));
+  }
+  return out;
 }
 function cleanMap(value){
   if(!value||typeof value!=="object"||Array.isArray(value))return{};
@@ -193,5 +195,5 @@ if(auth&&!auth.__programShareV2){
   auth.onSignedOut=(...args)=>{stop();return previousSignOut?.(...args)};
   auth.__programShareV2=true;
 }
-window.YKSStudentProgramShareV2={version:"3.6.0",publish:force=>publishProgram(Boolean(force)),build:programPayload};
+window.YKSStudentProgramShareV2={version:"3.6.1",publish:force=>publishProgram(Boolean(force)),build:programPayload};
 document.documentElement.dataset.studentProgramSync="v3";
