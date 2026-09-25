@@ -12,7 +12,7 @@ test("Hocalar v2 videoları eski Programım gün seçici hattına yeniden bağla
   assert.match(source,/openDayPick\?\:\(text:string,after\?\:\(\)=>void\)=>boolean/);
   assert.match(source,/planFindCell\?\:/);
   assert.match(source,/data-media-action="program"/);
-  assert.match(source,/＋ Programım/);
+  assert.match(source,/Programa ekle/);
   assert.match(source,/planVideoText\(video\)/);
   assert.match(source,/legacy\.openDayPick\(text,/);
 });

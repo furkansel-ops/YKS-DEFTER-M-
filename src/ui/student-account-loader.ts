@@ -95,7 +95,7 @@ function forceStudentOnlyRegistration(win:AccountWindow):boolean{
 export function installStudentAccountLoader():boolean{
   const win=window as AccountWindow;
   if(win.__YKS_ACCOUNT_LOADER_READY__)return true;
-  const settingsReady=loadModuleScript(SETTINGS_SCRIPT_ID,"./settings-profile-runtime.js?v=2.6.0");
+  const settingsReady=loadModuleScript(SETTINGS_SCRIPT_ID,"./settings-profile-runtime.js?v=3.0.0");
   document.documentElement.dataset.studentAccountRuntime="loading";
   const ready=(async()=>{
     const bridgeReady=await loadModuleScript(STUDENT_COACHING_RUNTIME_ID,"./student-coaching-runtime.js?v=1.2.7");

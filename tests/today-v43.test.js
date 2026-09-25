@@ -12,7 +12,7 @@ test("v4.3 Today 2.0 keeps the existing home contracts and promotes the manual p
   assert.match(source,/todayHub/);
   assert.match(source,/todayPlanTitle/);
   assert.match(source,/todayPlan/);
-  assert.match(source,/insertAdjacentElement\("afterend",plan\)/);
+  assert.match(source,/section\.append\(heading,planTitle,plan\)/);
   assert.match(index,/id="todayHub"/);
   assert.match(index,/id="todayPlanTitle"/);
   assert.match(index,/id="todayPlan"/);

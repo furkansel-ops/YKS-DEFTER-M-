@@ -51,7 +51,8 @@ test("Hocalar arayüzü TYT ve AYT derslerini öğrencinin gördüğü etikette 
   assert.match(source,/function subjectLabel/);
   assert.match(source,/return `AYT \$\{ayt\[1\]\}`/);
   assert.match(source,/return `TYT \$\{value\}`/);
-  assert.match(source,/doğrulanmış kanal, güncel video ve kamp serilerine/);
+  assert.match(source,/Hocanı seç, serileri incele ve çalışacağın videoları programına ekle/);
+  assert.doesNotMatch(source,/Firebase eşitleme hattı|Hocalar v2 · Kaynak profili/);
   assert.match(source,/Video merkezi/);
 });
 

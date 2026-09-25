@@ -64,7 +64,7 @@ function patchOverlay(overlay:HTMLElement):void{
   const name=overlay.querySelector<HTMLElement>(".teachers-v2-profile h2")?.textContent?.trim()||"";
   if(!name||!isOwnTeacher(name))return;
   const section=overlay.querySelector<HTMLElement>(".teachers-v2-media-section");
-  if(!section||!waitingForMatch(section))return;
+  if(!section||section.dataset.mediaBrowser==="restored"||!waitingForMatch(section))return;
 
   const known=KNOWN_SOURCES[norm(name)]||null;
   const subject=subjectFor(overlay,known);

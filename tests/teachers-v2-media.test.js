@@ -52,21 +52,21 @@ test("Hocalar v2 videoları Programım'a gerçek YouTube bağlantısıyla ekleni
   assert.match(source,/legacy\.openDayPick\(text/);
   assert.match(source,/data-media-action="program"/);
   assert.match(legacy,/function cellLink\(txt\)/);
-  assert.match(legacy,/youtu\\\.be\\\/\(\[\\w-\]\{6,\}\)/);
+  assert.match(legacy,/parsed\.searchParams\.get\("v"\)/);
   assert.match(legacy,/function cellOpenLink\(txt\)/);
   assert.match(legacy,/openSingleVideo\(l\.videoId,l\.ad\|\|"Video"\)/);
   assert.match(legacy,/title="Videoyu aç"/);
 });
 
-test("Hocalar v2 playlist alanı yalnız gerekli serileri öne çıkarır, geri kalanını aramada tutar",()=>{
+test("Hoca kaynakları liste ve video sekmelerinden gezilir, tüm listeler sayfalanabilir",()=>{
   const source=media();
-  assert.match(source,/const DEFAULT_PLAYLIST_LIMIT=8/);
-  assert.match(source,/function playlistScore/);
-  assert.match(source,/rehberlik\|motivasyon\|sarki\|şarkı\|eslesme\|eşleşme\|vlog\|shorts\|korhay/);
+  assert.match(source,/role="tablist" aria-label="Kaynak türü"/);
+  assert.match(source,/id="teachersV2Panel-playlists"/);
+  assert.match(source,/id="teachersV2Panel-videos"/);
   assert.match(source,/id="teachersV2PlaylistSearch"/);
-  assert.match(source,/Gerekli seriler önde; diğerleri aramada duruyor/);
-  assert.match(source,/playlists\.filter\(item=>norm\(item\.title\)\.includes\(query\)\)/);
+  assert.match(source,/data-media-action="playlist-more"/);
   assert.match(source,/ensurePlaylistArchive/);
+  assert.doesNotMatch(source,/DEFAULT_PLAYLIST_LIMIT=8|function playlistScore/);
 });
 
 test("Playlist kartına dokununca içerik uygulama içinde açılır ve videolar tek tek Programım'a eklenebilir",()=>{

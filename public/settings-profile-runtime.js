@@ -3,577 +3,246 @@ const esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&
 const txt=(v,n=120)=>String(v??"").trim().slice(0,n);
 const num=(v,min,max)=>Math.max(min,Math.min(max,Number(v)||0));
 const st=()=>{try{return window.YKSLegacyState?.readState?.()||window.S||{}}catch{return window.S||{}}};
-const save=()=>{try{if(typeof window.save==="function")window.save();else window.YKSLegacyState?.save?.()}catch{}try{window.dispatchEvent(new CustomEvent("yks:data-changed",{detail:{source:"settings-profile"}}))}catch{}};
+const save=()=>{try{if(typeof window.save==="function"){if(window.save()===false)return false}else if(window.YKSLegacyState?.save?.()===false)return false}catch{return false}try{window.dispatchEvent(new CustomEvent("yks:data-changed",{detail:{source:"settings-profile"}}))}catch{}return true};
 const toast=m=>{try{window.toast?.(m)}catch{}};
 const val=(v,f="—")=>txt(v)?txt(v):f;
 const net=v=>Number(v)>0?String(Math.round(Number(v)*4)/4):"—";
+const view={category:"",query:"",returnTo:"profile",overviewScroll:0,timeDirty:false};
+const categories=[
+  {id:"profile",title:"Profil ve hedefler",description:"Kişisel bilgilerin ve YKS hedeflerin",keywords:"ad soyad üniversite bölüm alan puan türü OBP net",icon:"user"},
+  {id:"account",title:"Hesap ve senkron",description:"Hesabın ve cihazlar arası eşitleme",keywords:"giriş çıkış google bulut oturum güvenlik",icon:"user"},
+  {id:"appearance",title:"Görünüm ve tema",description:"Renkler ve yazı boyutu",keywords:"mavi sistem koyu gece açık orman defter font görünüm",icon:"palette"},
+  {id:"study",title:"Çalışma ve program",description:"Günlük hedefin ve ekran tercihlerin",keywords:"kişiselleştir sınav kapsamı tyt ayt ydt bugün kart soru hedef program",icon:"calendar"},
+  {id:"notifications",title:"Bildirimler",description:"Odak, tekrar ve gün sonu hatırlatmaları",keywords:"izin pomodoro akşam saat hatırlatıcı bildirim",icon:"bell"},
+  {id:"coach",title:"Koç bağlantısı",description:"Koç kodun ve program paylaşımı",keywords:"kod koçum bağlantı paylaş öğrenci",icon:"chat"},
+  {id:"data",title:"Veri ve yedek",description:"Kayıtlarını yönet ve yedekle",keywords:"dışa aktar içe al yedek kurtar veri gizlilik sil",icon:"database"},
+  {id:"application",title:"Uygulama bilgileri",description:"Sürüm, yardım ve uygulama araçları",keywords:"hakkında sistem sağlık destek örnek demo kurulum",icon:"info"}
+];
+const icons={
+  user:'<circle cx="12" cy="7" r="4"/><path d="M4 21v-3a8 8 0 0 1 16 0v3Z"/>',
+  palette:'<path d="M12 3a9 9 0 1 0 0 18h1a2 2 0 0 0 1.4-3.4 1.5 1.5 0 0 1 1.1-2.6H17a4 4 0 0 0 4-4c0-4.4-4-8-9-8Z"/><circle cx="7.5" cy="10" r=".7"/><circle cx="11" cy="7" r=".7"/><circle cx="15.5" cy="8" r=".7"/>',
+  calendar:'<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M7 3v4m10-4v4M3 11h18"/>',
+  bell:'<path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/>',
+  chat:'<path d="M21 11a8 8 0 0 1-8 8H9l-6 3 1.5-6A8 8 0 1 1 21 11Z"/>',
+  database:'<ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 4 16 4 16 0V5M4 12c0 4 16 4 16 0"/>',
+  info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v6m0-10v.1"/>',
+  search:'<circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/>',
+  chevron:'<path d="m9 5 7 7-7 7"/>',
+  back:'<path d="m15 5-7 7 7 7"/>'
+};
+const icon=name=>`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${icons[name]||icons.info}</svg>`;
 
-function styles(){if(document.getElementById("yksModernSettingsStyles"))return;const s=document.createElement("style");s.id="yksModernSettingsStyles";s.textContent=`
-#mrp_ayar{--yms-radius:20px}
-.yms-wrap{margin:14px 0 18px}.yms-shell{display:grid;grid-template-columns:210px minmax(0,1fr);gap:16px;align-items:start}.yms-side{position:sticky;top:84px;display:grid;gap:10px;padding:11px;border:1px solid var(--line,#dde3ea);border-radius:20px;background:color-mix(in srgb,var(--surface,#fff) 94%,transparent);box-shadow:0 12px 32px color-mix(in srgb,#000 6%,transparent);backdrop-filter:blur(14px);z-index:6}.yms-side-head{padding:7px 8px 5px}.yms-side-kicker{font-size:10.5px;font-weight:900;letter-spacing:.11em;text-transform:uppercase;color:var(--accent,#2563eb)}.yms-side-title{display:block;margin-top:3px;font-size:17px;font-weight:900;letter-spacing:-.02em}.yms-nav{display:grid;gap:4px}.yms-nav-btn{display:flex;align-items:center;gap:9px;width:100%;border:0;background:transparent;color:var(--label-2,#667085);border-radius:12px;padding:10px 9px;font:inherit;font-size:13px;font-weight:800;text-align:left;cursor:pointer}.yms-nav-btn:hover,.yms-nav-btn.is-active{background:color-mix(in srgb,var(--accent,#2563eb) 9%,transparent);color:var(--label,var(--ink,#111827))}.yms-nav-ic{width:28px;height:28px;border-radius:9px;display:grid;place-items:center;flex:0 0 auto;background:color-mix(in srgb,var(--accent,#2563eb) 8%,var(--surface,#fff));font-size:13px}.yms-side-foot{padding:9px 8px 5px;border-top:1px solid color-mix(in srgb,var(--line,#dde3ea) 75%,transparent);font-size:10.5px;line-height:1.4;color:var(--label-2,#667085)}
-.yms-content{display:grid;gap:14px;min-width:0}.yms-hero{position:relative;overflow:hidden;padding:21px;border:1px solid color-mix(in srgb,var(--accent,#2563eb) 20%,var(--line,#dde3ea));border-radius:24px;background:linear-gradient(140deg,var(--surface,#fff),color-mix(in srgb,var(--accent,#2563eb) 10%,var(--surface,#fff)));display:flex;align-items:center;gap:15px;box-shadow:0 14px 38px color-mix(in srgb,#000 7%,transparent)}.yms-hero::after{content:"";position:absolute;width:170px;height:170px;border-radius:50%;right:-76px;top:-92px;background:color-mix(in srgb,var(--accent,#2563eb) 10%,transparent);pointer-events:none}.yms-avatar{width:62px;height:62px;border-radius:20px;display:grid;place-items:center;background:linear-gradient(145deg,var(--accent,#2563eb),color-mix(in srgb,var(--accent,#2563eb) 72%,#111827));color:#fff;font-size:22px;font-weight:900;flex:0 0 auto;box-shadow:0 10px 24px color-mix(in srgb,var(--accent,#2563eb) 22%,transparent)}.yms-hero-main{min-width:0;flex:1;position:relative;z-index:1}.yms-hero-main h2{margin:0 0 3px;font-size:22px;letter-spacing:-.025em}.yms-hero-main p{margin:0;color:var(--label-2,#667085);font-size:13px}.yms-chiprow{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}.yms-chip{padding:5px 9px;border:1px solid color-mix(in srgb,var(--accent,#2563eb) 16%,transparent);border-radius:999px;background:color-mix(in srgb,var(--accent,#2563eb) 8%,transparent);font-size:11.5px;font-weight:800}.yms-edit{position:relative;z-index:1;border:1px solid var(--line,#dbe2ea);background:var(--surface,#fff);color:inherit;border-radius:12px;padding:10px 12px;font:inherit;font-weight:800;cursor:pointer}.yms-edit:hover{border-color:color-mix(in srgb,var(--accent,#2563eb) 40%,var(--line,#dbe2ea));background:color-mix(in srgb,var(--accent,#2563eb) 5%,var(--surface,#fff))}
-.yms-section{scroll-margin-top:92px;border:1px solid var(--line,#dde3ea);border-radius:22px;padding:17px;background:var(--surface,#fff);box-shadow:0 8px 24px color-mix(in srgb,#000 4%,transparent)}.yms-section-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:13px;padding-bottom:12px;border-bottom:1px solid color-mix(in srgb,var(--line,#dde3ea) 76%,transparent)}.yms-section-title{display:flex;align-items:flex-start;gap:11px}.yms-section-icon{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;flex:0 0 auto;background:color-mix(in srgb,var(--accent,#2563eb) 9%,var(--surface,#fff));color:var(--accent,#2563eb);font-weight:900}.yms-section-head h3{margin:0 0 3px;font-size:17px;letter-spacing:-.015em}.yms-section-head p{margin:0;color:var(--label-2,#667085);font-size:12.5px;line-height:1.45}.yms-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}.yms-card{border:1px solid color-mix(in srgb,var(--line,#dde3ea) 88%,transparent);border-radius:16px;padding:14px;background:color-mix(in srgb,var(--card-2,var(--surface,#fff)) 90%,var(--surface,#fff))}.yms-title{font-size:11px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:var(--label-2,#667085);margin-bottom:8px}.yms-row{display:flex;justify-content:space-between;gap:14px;padding:9px 0;border-bottom:1px solid color-mix(in srgb,var(--line,#dde3ea) 70%,transparent);font-size:13px}.yms-row:last-child{border-bottom:0}.yms-row span{color:var(--label-2,#667085)}.yms-row b{text-align:right;max-width:64%;overflow-wrap:anywhere}.yms-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.yms-actions button,.yms-action-tile{border:1px solid var(--line,#dbe2ea);background:transparent;color:inherit;border-radius:11px;padding:10px 12px;font:inherit;font-weight:750;cursor:pointer}.yms-actions button:hover,.yms-action-tile:hover{border-color:color-mix(in srgb,var(--accent,#2563eb) 36%,var(--line,#dbe2ea));background:color-mix(in srgb,var(--accent,#2563eb) 4%,transparent)}.yms-actions button.primary{background:var(--accent,#2563eb);color:#fff;border-color:transparent}.yms-actions button.danger{color:#b42318}.yms-actions button:disabled{opacity:.58;cursor:not-allowed}.yms-action-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}.yms-action-tile{display:grid;gap:3px;text-align:left;min-height:72px}.yms-action-tile b{font-size:13px}.yms-action-tile small{font-size:11.5px;line-height:1.35;color:var(--label-2,#667085)}.yms-exam{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.yms-exam div{padding:11px;border:1px solid color-mix(in srgb,var(--line,#dde3ea) 72%,transparent);border-radius:12px;background:color-mix(in srgb,var(--accent,#2563eb) 5%,var(--surface,#fff));font-size:12px;line-height:1.45}.yms-exam b{display:block;font-size:13px;margin-bottom:3px}.yms-account-status{display:flex;align-items:center;gap:7px;font-weight:800}.yms-account-dot{width:8px;height:8px;border-radius:999px;background:#98a2b3}.yms-account-dot.on{background:#12b76a}
-.yms-notif-card{background:linear-gradient(160deg,var(--surface,#fff),color-mix(in srgb,var(--accent,#2563eb) 4%,var(--surface,#fff)))}.yms-status-pill{white-space:nowrap;border-radius:999px;padding:6px 9px;font-size:11px;font-weight:800;background:color-mix(in srgb,#667085 10%,transparent)}.yms-status-pill.ok{background:color-mix(in srgb,#12b76a 13%,transparent);color:#087443}.yms-notif-list{display:grid;gap:8px}.yms-notif-item{display:flex;justify-content:space-between;align-items:center;gap:12px;border:1px solid color-mix(in srgb,var(--line,#dde3ea) 82%,transparent);border-radius:13px;padding:11px 12px;background:color-mix(in srgb,var(--surface,#fff) 82%,transparent)}.yms-notif-item span{display:grid;gap:2px}.yms-notif-item small{color:var(--label-2,#667085);font-size:11.5px}.yms-toggle{width:46px;height:26px;border:0;border-radius:999px;padding:3px;background:#cfd5dd;position:relative;flex:0 0 auto}.yms-toggle::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 4px #0003;transition:transform .16s ease}.yms-toggle.is-on{background:var(--accent,#2563eb)}.yms-toggle.is-on::after{transform:translateX(20px)}.yms-time-row{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:10px}.yms-time-row input{width:100%;box-sizing:border-box;padding:10px 11px;border:1px solid var(--line,#dbe2ea);border-radius:10px;background:var(--surface,#fff);color:inherit;font:inherit}
-.yms-theme-host>.card{margin:0!important;padding:0!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important}.yms-theme-host>.card>.eyebrow:first-child{display:none}.yms-theme-host #themeGrid{margin-top:0!important}.yms-personal-host>.v43-personalization{margin:0!important;border:0!important;border-radius:0!important;padding:0!important;background:transparent!important;box-shadow:none!important}.yms-personal-host>.v43-personalization>.v43-personal-head{padding-top:0}.yms-empty{padding:14px;border:1px dashed var(--line,#dde3ea);border-radius:14px;color:var(--label-2,#667085);font-size:12.5px}
-.yms-modal{position:fixed;inset:0;z-index:14000;display:grid;place-items:center;padding:18px;background:#08101dc4;backdrop-filter:blur(10px)}.yms-dialog{width:min(620px,100%);max-height:88vh;overflow:auto;background:var(--surface,#fff);color:var(--ink,#111827);border:1px solid var(--line,#dbe2ea);border-radius:22px;padding:18px;box-shadow:0 24px 80px #0005}.yms-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.yms-field{display:grid;gap:5px}.yms-field.full{grid-column:1/-1}.yms-field label{font-size:12px;font-weight:750;color:var(--label-2,#667085)}.yms-field input,.yms-field select{width:100%;box-sizing:border-box;padding:10px 11px;border:1px solid var(--line,#dbe2ea);border-radius:10px;background:var(--surface,#fff);color:inherit;font:inherit}.yms-note{font-size:12px;color:var(--label-2,#667085);line-height:1.45;margin-top:8px}[data-yms-hidden="true"]{display:none!important}
-@media(max-width:900px){.yms-shell{grid-template-columns:1fr}.yms-side{position:sticky;top:8px;display:block;padding:7px;overflow:hidden}.yms-side-head,.yms-side-foot{display:none}.yms-nav{display:flex;gap:5px;overflow:auto;scrollbar-width:none}.yms-nav::-webkit-scrollbar{display:none}.yms-nav-btn{width:auto;white-space:nowrap;padding:7px 9px;flex:0 0 auto}.yms-nav-ic{width:25px;height:25px}.yms-section{scroll-margin-top:72px}.yms-action-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:680px){.yms-grid,.yms-form,.yms-exam{grid-template-columns:1fr}.yms-hero{align-items:flex-start;flex-wrap:wrap;padding:17px}.yms-avatar{width:54px;height:54px;border-radius:17px}.yms-edit{margin-left:auto}.yms-section{padding:14px;border-radius:18px}.yms-section-head{margin-bottom:11px}.yms-action-grid{grid-template-columns:1fr}.yms-action-tile{min-height:60px}}
-@media(pointer:coarse){.yms-nav-btn,.yms-actions button,.yms-edit,.yms-action-tile{min-height:44px}}
-
-/* mobile-premium-settings-v1 */
-#mrp_ayar .v30-subhead{margin-bottom:4px}
-.yms-shell{grid-template-columns:190px minmax(0,1fr);gap:22px}
-.yms-side{top:76px;padding:8px;border:0;border-radius:14px;background:transparent;box-shadow:none;backdrop-filter:none}
-.yms-side-head{padding:5px 8px 10px}
-.yms-side-kicker{display:none}
-.yms-side-title{font-size:15px;font-weight:780;letter-spacing:-.01em;color:var(--label-2,#667085)}
-.yms-nav{gap:2px}
-.yms-nav-btn{position:relative;gap:9px;padding:9px 10px;border-radius:10px;font-size:13px;font-weight:680;color:var(--label-2,#667085)}
-.yms-nav-btn:hover{background:color-mix(in srgb,var(--label,#111827) 4%,transparent)}
-.yms-nav-btn.is-active{background:color-mix(in srgb,var(--label,#111827) 6%,transparent);color:var(--label,var(--ink,#111827))}
-.yms-nav-dot{width:6px;height:6px;border-radius:999px;background:color-mix(in srgb,var(--label-2,#667085) 45%,transparent);flex:0 0 auto}
-.yms-nav-btn.is-active .yms-nav-dot{background:var(--accent,#2563eb)}
-.yms-nav-ic{display:none!important}
-.yms-side-foot{display:none}
-.yms-content{gap:24px}
-.yms-hero{padding:6px 2px 18px;border:0;border-bottom:1px solid color-mix(in srgb,var(--line,#dde3ea) 80%,transparent);border-radius:0;background:transparent;box-shadow:none;overflow:visible}
-.yms-hero::after{display:none}
-.yms-avatar{width:52px;height:52px;border-radius:50%;background:color-mix(in srgb,var(--accent,#2563eb) 11%,var(--surface,#fff));color:var(--accent,#2563eb);font-size:17px;font-weight:780;box-shadow:none;border:1px solid color-mix(in srgb,var(--accent,#2563eb) 14%,var(--line,#dde3ea))}
-.yms-hero-main h2{font-size:20px;font-weight:780;letter-spacing:-.022em}
-.yms-hero-main p{font-size:12.5px}
-.yms-chiprow{margin-top:7px;gap:5px}
-.yms-chip{padding:3px 7px;border:0;background:color-mix(in srgb,var(--label,#111827) 5%,transparent);font-size:10.5px;font-weight:650;color:var(--label-2,#667085)}
-.yms-edit{border:0;background:color-mix(in srgb,var(--label,#111827) 5%,transparent);border-radius:10px;padding:9px 11px;font-size:12.5px;font-weight:700;box-shadow:none}
-.yms-edit:hover{border:0;background:color-mix(in srgb,var(--label,#111827) 8%,transparent)}
-.yms-section{padding:0;border:0;border-radius:0;background:transparent;box-shadow:none;scroll-margin-top:82px}
-.yms-section-head{margin:0 0 9px;padding:0 2px 8px;border-bottom:0}
-.yms-section-title{gap:0}
-.yms-section-icon{display:none}
-.yms-section-head h3{font-size:13px;font-weight:760;letter-spacing:.005em;color:var(--label-2,#667085)}
-.yms-section-head p{margin-top:2px;font-size:11.5px;color:color-mix(in srgb,var(--label-2,#667085) 84%,transparent)}
-.yms-grid{gap:1px;background:color-mix(in srgb,var(--line,#dde3ea) 72%,transparent);border:1px solid color-mix(in srgb,var(--line,#dde3ea) 84%,transparent);border-radius:16px;overflow:hidden}
-.yms-grid[style]{margin-top:10px!important}
-.yms-card{padding:14px 15px;border:0;border-radius:0;background:var(--surface,#fff)}
-.yms-title{margin-bottom:5px;font-size:10.5px;font-weight:760;letter-spacing:.03em;text-transform:none;color:var(--label-2,#667085)}
-.yms-row{padding:10px 0;font-size:13px;border-bottom:1px solid color-mix(in srgb,var(--line,#dde3ea) 66%,transparent)}
-.yms-row b{font-weight:650}
-.yms-actions{margin-top:10px}
-.yms-actions button{border:0;border-radius:9px;background:color-mix(in srgb,var(--label,#111827) 5%,transparent);padding:9px 11px;font-size:12px;font-weight:680}
-.yms-actions button.primary{background:var(--accent,#2563eb);color:#fff}
-.yms-actions button.danger{background:transparent;color:var(--danger,#b42318);padding-left:0}
-.yms-exam{gap:6px}
-.yms-exam div{padding:9px 10px;border:0;border-radius:10px;background:color-mix(in srgb,var(--label,#111827) 4%,transparent)}
-.yms-notif-card{padding:0;border:1px solid color-mix(in srgb,var(--line,#dde3ea) 84%,transparent);border-radius:16px;overflow:hidden;background:var(--surface,#fff)}
-.yms-notif-list{gap:0}
-.yms-notif-item{padding:13px 15px;border:0;border-bottom:1px solid color-mix(in srgb,var(--line,#dde3ea) 66%,transparent);border-radius:0;background:transparent}
-.yms-notif-item:last-child{border-bottom:0}
-.yms-notif-item b{font-size:13px;font-weight:680}
-.yms-notif-item small{font-size:11.5px}
-.yms-status-pill{padding:4px 7px;border-radius:8px;font-size:10.5px;font-weight:680;background:color-mix(in srgb,var(--label,#111827) 5%,transparent)}
-.yms-toggle{width:44px;height:26px;background:color-mix(in srgb,var(--label-2,#667085) 28%,transparent)}
-.yms-toggle.is-on{background:var(--accent,#2563eb)}
-.yms-time-row{padding:0 15px 13px;margin-top:12px}
-.yms-notif-card>.yms-note{display:block;padding:11px 15px 0;margin:0}
-.yms-notif-card>.yms-actions{padding:0 15px 15px;margin-top:0}
-.yms-action-grid{grid-template-columns:1fr;border:1px solid color-mix(in srgb,var(--line,#dde3ea) 84%,transparent);border-radius:16px;overflow:hidden;gap:0;background:var(--surface,#fff)}
-.yms-action-tile{position:relative;min-height:0;padding:13px 38px 13px 15px;border:0;border-bottom:1px solid color-mix(in srgb,var(--line,#dde3ea) 66%,transparent);border-radius:0;background:transparent}
-.yms-action-tile:last-child{border-bottom:0}
-.yms-action-tile::after{content:"›";position:absolute;right:15px;top:50%;transform:translateY(-50%);font-size:20px;font-weight:350;color:var(--label-2,#667085)}
-.yms-action-tile b{font-size:13px;font-weight:680}
-.yms-action-tile small{font-size:11.5px}
-.yms-theme-host>.card{background:transparent!important}
-.yms-theme-host #themeGrid{gap:8px!important}
-.yms-theme-host .theme-card{min-height:64px!important;border-radius:13px!important;box-shadow:none!important;background:var(--surface,#fff)!important}
-.yms-theme-host .theme-card.on{box-shadow:inset 0 0 0 1px var(--accent)!important}
-.yms-theme-host .theme-card::after{width:20px!important;height:20px!important;font-size:11px!important}
-.yms-personal-host .v43-personal-head{border-bottom:0!important;padding-bottom:8px!important}
-.yms-personal-host .v43-personal-head .eyebrow{display:none!important}
-.yms-personal-host .v43-personal-head h2{font-size:15px!important;margin:0 0 3px!important}
-.yms-personal-host .v43-personal-summary{gap:6px!important}
-.yms-personal-host .v43-summary-item{padding:9px 10px!important;border-radius:11px!important;background:color-mix(in srgb,var(--label,#111827) 4%,transparent)!important}
-.yms-personal-host .v43-personal-group{padding:0!important;border:1px solid color-mix(in srgb,var(--line,#dde3ea) 84%,transparent)!important;border-radius:16px!important;overflow:hidden!important;background:var(--surface,#fff)!important}
-.yms-personal-host .v43-personal-group legend{padding:12px 14px 4px!important;font-size:12px!important}
-.yms-personal-host .v43-personal-group>.hint{padding:0 14px 10px!important;margin:0!important;font-size:11.5px!important}
-.yms-personal-host .v43-personal-grid,.yms-personal-host .v43-personal-grid.exam-grid{gap:0!important}
-.yms-personal-host .v43-personal-choice{min-height:58px!important;padding:11px 14px!important;border:0!important;border-top:1px solid color-mix(in srgb,var(--line,#dde3ea) 62%,transparent)!important;border-radius:0!important;background:transparent!important;transform:none!important}
-.yms-personal-host .v43-personal-choice:has(input:checked){background:color-mix(in srgb,var(--accent,#2563eb) 4%,transparent)!important}
-.yms-personal-host .v43-personal-choice input{width:18px!important;height:18px!important;min-width:18px!important}
-.yms-modal{padding:0;align-items:end;background:#08101d73;backdrop-filter:blur(6px)}
-.yms-dialog{width:100%;max-width:680px;max-height:92vh;border:0;border-radius:24px 24px 0 0;padding:20px 18px calc(20px + env(safe-area-inset-bottom));box-shadow:0 -18px 60px #0003}
-.yms-field input,.yms-field select{min-height:46px;border-radius:12px;background:color-mix(in srgb,var(--label,#111827) 4%,var(--surface,#fff))}
-@media(max-width:900px){
-  .yms-shell{display:block}
-  .yms-side{position:sticky;top:0;z-index:18;margin:0 -2px 18px;padding:4px 0 7px;background:color-mix(in srgb,var(--bg,var(--surface,#fff)) 90%,transparent);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
-  .yms-nav{display:flex;gap:2px;overflow:auto;padding:0 2px;scrollbar-width:none}
-  .yms-nav-btn{padding:8px 10px;border-radius:10px;font-size:12px}
-  .yms-nav-dot{display:none}
-}
-@media(max-width:680px){
-  #mrp_ayar .v30-subhead{padding-bottom:6px}
-  .yms-wrap{margin-top:6px}
-  .yms-content{gap:22px}
-  .yms-hero{padding:8px 2px 16px;gap:12px;align-items:center;flex-wrap:nowrap}
-  .yms-avatar{width:48px;height:48px}
-  .yms-hero-main h2{font-size:19px}
-  .yms-chiprow .yms-chip:nth-child(3){display:none}
-  .yms-edit{margin-left:auto;white-space:nowrap;padding:8px 9px}
-  .yms-section-head p{max-width:92%}
-  .yms-grid,.yms-form,.yms-exam{grid-template-columns:1fr}
-  .yms-grid{gap:1px}
-  .yms-card{padding:13px 14px}
-  .yms-row{padding:9px 0}
-  .yms-action-grid{grid-template-columns:1fr}
-  .yms-dialog{border-radius:22px 22px 0 0}
-  .yms-form{gap:11px}
-}
-
-/* mobile-premium-settings-v2: structural mobile redesign */
-@media(max-width:900px){
-  #mrp_ayar{padding-bottom:calc(28px + env(safe-area-inset-bottom))}
-  #mrp_ayar>.v30-subhead{display:none!important}
-  .yms-wrap{margin:0!important;padding:0 2px}
-  .yms-shell{display:block!important}
-  .yms-side{display:none!important}
-  .yms-content{gap:30px!important}
-  .yms-hero{
-    display:grid!important;
-    grid-template-columns:52px minmax(0,1fr) auto;
-    gap:12px!important;
-    align-items:center!important;
-    margin:2px 0 0!important;
-    padding:18px 16px!important;
-    border:1px solid color-mix(in srgb,var(--line,#dde3ea) 82%,transparent)!important;
-    border-radius:20px!important;
-    background:var(--surface,#fff)!important;
-    box-shadow:0 1px 2px color-mix(in srgb,#000 5%,transparent)!important;
-  }
-  .yms-avatar{width:52px!important;height:52px!important}
-  .yms-hero-main h2{font-size:18px!important;line-height:1.15}
-  .yms-hero-main p{margin-top:3px!important;font-size:12px!important}
-  .yms-chiprow{margin-top:6px!important}
-  .yms-chip{display:none!important}
-  .yms-chip:first-child{display:inline-flex!important;background:transparent!important;padding:0!important;color:var(--label-2,#667085)!important;font-size:11px!important}
-  .yms-edit{
-    min-height:36px!important;
-    padding:8px 10px!important;
-    border:0!important;
-    border-radius:10px!important;
-    background:color-mix(in srgb,var(--accent,#2563eb) 9%,transparent)!important;
-    color:var(--accent,#2563eb)!important;
-    font-size:12px!important;
-    font-weight:720!important
-  }
-
-  .yms-section{display:block!important}
-  .yms-section-head{
-    display:block!important;
-    margin:0 0 8px!important;
-    padding:0 4px!important;
-  }
-  .yms-section-head h3{
-    margin:0!important;
-    font-size:12px!important;
-    line-height:1.2!important;
-    font-weight:760!important;
-    letter-spacing:.06em!important;
-    text-transform:uppercase!important;
-    color:var(--label-2,#667085)!important
-  }
-  .yms-section-head p{display:none!important}
-  .yms-section-head>.yms-status-pill{display:inline-flex!important;margin-top:6px!important}
-
-  .yms-grid{
-    display:block!important;
-    overflow:hidden!important;
-    border:1px solid color-mix(in srgb,var(--line,#dde3ea) 84%,transparent)!important;
-    border-radius:18px!important;
-    background:var(--surface,#fff)!important;
-    box-shadow:0 1px 2px color-mix(in srgb,#000 4%,transparent)!important
-  }
-  .yms-grid[style]{margin-top:10px!important}
-  .yms-grid .yms-card{
-    border:0!important;
-    border-radius:0!important;
-    background:transparent!important;
-    padding:0 15px!important
-  }
-  .yms-grid .yms-card+.yms-card{
-    border-top:8px solid color-mix(in srgb,var(--bg,var(--surface,#fff)) 96%,var(--line,#dde3ea))!important
-  }
-  .yms-title{
-    margin:0!important;
-    padding:13px 0 6px!important;
-    font-size:11px!important;
-    font-weight:730!important;
-    color:var(--label-2,#667085)!important
-  }
-  .yms-row{
-    min-height:44px!important;
-    padding:11px 0!important;
-    align-items:center!important;
-    font-size:13px!important
-  }
-  .yms-row span{font-size:13px!important}
-  .yms-row b{font-size:13px!important;font-weight:620!important}
-  .yms-actions{padding-bottom:12px!important;margin-top:6px!important}
-  .yms-actions button{
-    min-height:38px!important;
-    border-radius:10px!important;
-    padding:8px 10px!important
-  }
-  .yms-exam{
-    grid-template-columns:repeat(3,minmax(0,1fr))!important;
-    padding-bottom:12px!important
-  }
-  .yms-exam div{
-    text-align:center!important;
-    padding:10px 5px!important;
-    border-radius:10px!important;
-    font-size:10.5px!important
-  }
-  .yms-exam b{font-size:12px!important}
-
-  #ymsAppearance .yms-theme-host{
-    border:1px solid color-mix(in srgb,var(--line,#dde3ea) 84%,transparent)!important;
-    border-radius:18px!important;
-    padding:10px!important;
-    overflow:hidden!important;
-    background:var(--surface,#fff)!important;
-    box-shadow:0 1px 2px color-mix(in srgb,#000 4%,transparent)!important
-  }
-  #ymsAppearance #themeGrid{
-    display:grid!important;
-    grid-template-columns:repeat(2,minmax(0,1fr))!important;
-    gap:8px!important
-  }
-  #ymsAppearance .theme-card{
-    min-height:70px!important;
-    padding:10px!important;
-    border:1px solid color-mix(in srgb,var(--line,#dde3ea) 82%,transparent)!important;
-    border-radius:14px!important;
-    background:color-mix(in srgb,var(--label,#111827) 2%,var(--surface,#fff))!important
-  }
-  #ymsAppearance .theme-card.on{
-    border-color:var(--accent,#2563eb)!important;
-    background:color-mix(in srgb,var(--accent,#2563eb) 5%,var(--surface,#fff))!important
-  }
-
-  #ymsPersonal .yms-personal-host{
-    border:1px solid color-mix(in srgb,var(--line,#dde3ea) 84%,transparent)!important;
-    border-radius:18px!important;
-    overflow:hidden!important;
-    background:var(--surface,#fff)!important;
-    box-shadow:0 1px 2px color-mix(in srgb,#000 4%,transparent)!important
-  }
-  #ymsPersonal .v43-personalization{padding:0!important;gap:0!important}
-  #ymsPersonal .v43-personal-head{padding:14px 15px 10px!important}
-  #ymsPersonal .v43-personal-summary{padding:0 15px 12px!important}
-  #ymsPersonal .v43-personal-body{gap:10px!important;padding:0 10px 10px!important}
-  #ymsPersonal .v43-personal-status{padding:0 14px 12px!important}
-
-  #ymsNotifications .yms-notif-card{
-    border-radius:18px!important;
-    box-shadow:0 1px 2px color-mix(in srgb,#000 4%,transparent)!important
-  }
-  .yms-notif-item{min-height:54px!important}
-  .yms-notif-item span{gap:3px!important}
-  .yms-notif-item small{max-width:240px!important}
-  .yms-time-row input{min-height:42px!important;border:0!important;background:color-mix(in srgb,var(--label,#111827) 4%,transparent)!important}
-
-  #ymsApplication .yms-action-grid{
-    border-radius:18px!important;
-    box-shadow:0 1px 2px color-mix(in srgb,#000 4%,transparent)!important
-  }
-  .yms-action-tile{
-    min-height:58px!important;
-    padding:12px 42px 12px 15px!important
-  }
-  .yms-action-tile b{font-size:13px!important}
-  .yms-action-tile small{margin-top:2px!important}
-
-  .yms-modal{align-items:end!important}
-  .yms-dialog{
-    max-width:none!important;
-    border-radius:24px 24px 0 0!important;
-    padding:18px 16px calc(18px + env(safe-area-inset-bottom))!important
-  }
-}
-/* native-settings-v3: calm, production-app settings language */
-#mrp_ayar{
-  --yms-group-radius:18px;
-  --yms-divider:color-mix(in srgb,var(--line,#dde3ea) 76%,transparent);
-}
-#mrp_ayar .yms-wrap{max-width:1080px;margin:12px auto 28px}
-#mrp_ayar .yms-shell{grid-template-columns:206px minmax(0,760px);justify-content:center;gap:34px}
-#mrp_ayar .yms-side{
-  top:74px;padding:4px 0;border:0;border-radius:0;background:transparent;
-  box-shadow:none;backdrop-filter:none
-}
-#mrp_ayar .yms-side-head{padding:4px 10px 12px}
-#mrp_ayar .yms-side-title{font-size:14px;font-weight:720;color:var(--label-2,#667085)}
-#mrp_ayar .yms-nav{gap:3px}
-#mrp_ayar .yms-nav-btn{
-  min-height:42px;padding:10px 12px;border-radius:11px;font-size:13px;font-weight:650
-}
-#mrp_ayar .yms-nav-btn:hover{background:color-mix(in srgb,var(--label,#111827) 5%,transparent)}
-#mrp_ayar .yms-nav-btn.is-active{
-  background:color-mix(in srgb,var(--accent,#2563eb) 9%,transparent);
-  color:var(--label,var(--ink,#111827));font-weight:720
-}
-#mrp_ayar .yms-nav-dot{width:5px;height:5px}
-#mrp_ayar .yms-content{gap:28px}
-#mrp_ayar .yms-hero{
-  padding:17px 18px;border:1px solid var(--yms-divider);border-radius:var(--yms-group-radius);
-  background:var(--surface,#fff);box-shadow:none;overflow:hidden
-}
-#mrp_ayar .yms-hero::after{display:none}
-#mrp_ayar .yms-avatar{
-  width:50px;height:50px;border-radius:50%;background:color-mix(in srgb,var(--accent,#2563eb) 11%,var(--surface,#fff));
-  color:var(--accent,#2563eb);border:1px solid color-mix(in srgb,var(--accent,#2563eb) 17%,var(--line,#dde3ea));
-  box-shadow:none;font-size:16px;font-weight:760
-}
-#mrp_ayar .yms-hero-main h2{font-size:18px;font-weight:760}
-#mrp_ayar .yms-hero-main p{font-size:12px}
-#mrp_ayar .yms-chiprow{margin-top:5px}
-#mrp_ayar .yms-chip{
-  padding:0;border:0;background:transparent;color:var(--label-2,#667085);
-  font-size:11px;font-weight:620
-}
-#mrp_ayar .yms-chip+.yms-chip::before{content:"·";margin-right:6px;color:var(--label-2,#667085)}
-#mrp_ayar .yms-edit{
-  border:0;border-radius:10px;padding:9px 11px;background:color-mix(in srgb,var(--accent,#2563eb) 9%,transparent);
-  color:var(--accent,#2563eb);font-size:12px;font-weight:720;box-shadow:none
-}
-#mrp_ayar .yms-edit:hover{border:0;background:color-mix(in srgb,var(--accent,#2563eb) 13%,transparent)}
-#mrp_ayar .yms-section{padding:0;border:0;border-radius:0;background:transparent;box-shadow:none}
-#mrp_ayar .yms-section-head{margin:0 0 8px;padding:0 3px;border:0;align-items:center}
-#mrp_ayar .yms-section-head h3{
-  margin:0;font-size:12px;line-height:1.2;font-weight:740;letter-spacing:.055em;text-transform:uppercase;
-  color:var(--label-2,#667085)
-}
-#mrp_ayar .yms-section-head p{display:none}
-#mrp_ayar .yms-grid{
-  gap:12px;background:transparent;border:0;border-radius:0;overflow:visible
-}
-#mrp_ayar .yms-grid[style]{margin-top:12px!important}
-#mrp_ayar .yms-card{
-  padding:0 15px;border:1px solid var(--yms-divider);border-radius:var(--yms-group-radius);
-  background:var(--surface,#fff);box-shadow:none
-}
-#mrp_ayar .yms-title{
-  margin:0;padding:13px 0 6px;font-size:11px;font-weight:680;letter-spacing:0;text-transform:none;
-  color:var(--label-2,#667085)
-}
-#mrp_ayar .yms-row{min-height:46px;padding:11px 0;align-items:center;border-bottom:1px solid var(--yms-divider)}
-#mrp_ayar .yms-row span{font-size:13px;color:var(--label,var(--ink,#111827))}
-#mrp_ayar .yms-row b{font-size:12.5px;font-weight:620;color:var(--label-2,#667085)}
-#mrp_ayar .yms-account-status{font-weight:620}
-#mrp_ayar .yms-actions{margin:6px 0 0;padding:0 0 12px}
-#mrp_ayar .yms-actions button{
-  min-height:38px;border:0;border-radius:10px;padding:8px 11px;background:color-mix(in srgb,var(--label,#111827) 5%,transparent);
-  font-size:12px;font-weight:670
-}
-#mrp_ayar .yms-actions button.primary{background:var(--accent,#2563eb);color:#fff}
-#mrp_ayar .yms-actions button.danger{background:transparent;color:var(--danger,#b42318);padding-left:0}
-#mrp_ayar .yms-exam{gap:6px;padding-bottom:12px}
-#mrp_ayar .yms-exam div{
-  padding:10px;border:0;border-radius:10px;background:color-mix(in srgb,var(--label,#111827) 4%,transparent)
-}
-#mrp_ayar .yms-theme-host,
-#mrp_ayar .yms-personal-host,
-#mrp_ayar .yms-notif-card,
-#mrp_ayar .yms-action-grid{
-  border:1px solid var(--yms-divider);border-radius:var(--yms-group-radius);
-  background:var(--surface,#fff);box-shadow:none;overflow:hidden
-}
-#mrp_ayar .yms-theme-host{padding:12px}
-#mrp_ayar .yms-theme-host #themeGrid{gap:8px!important}
-#mrp_ayar .yms-theme-host .theme-card{
-  min-height:66px!important;border-radius:12px!important;box-shadow:none!important;
-  border:1px solid var(--yms-divider)!important
-}
-#mrp_ayar .yms-theme-host .theme-card.on{border-color:var(--accent,#2563eb)!important}
-#mrp_ayar .yms-notif-card{padding:0}
-#mrp_ayar .yms-notif-list{gap:0}
-#mrp_ayar .yms-notif-item{
-  min-height:56px;padding:12px 15px;border:0;border-bottom:1px solid var(--yms-divider);
-  border-radius:0;background:transparent
-}
-#mrp_ayar .yms-notif-item:last-child{border-bottom:0}
-#mrp_ayar .yms-notif-item b{font-size:13px;font-weight:650}
-#mrp_ayar .yms-notif-item small{font-size:11.5px}
-#mrp_ayar .yms-toggle{width:44px;height:26px;cursor:pointer}
-#mrp_ayar .yms-toggle:focus-visible,
-#mrp_ayar .yms-edit:focus-visible,
-#mrp_ayar .yms-nav-btn:focus-visible,
-#mrp_ayar .yms-action-tile:focus-visible{
-  outline:2px solid var(--accent,#2563eb);outline-offset:2px
-}
-#mrp_ayar .yms-notif-card>.yms-note{display:block;margin:0;padding:12px 15px 0}
-#mrp_ayar .yms-time-row{margin:8px 0 0;padding:0 15px 12px}
-#mrp_ayar .yms-time-row input{
-  min-height:42px;border:1px solid var(--yms-divider);border-radius:10px;background:color-mix(in srgb,var(--label,#111827) 3%,var(--surface,#fff))
-}
-#mrp_ayar .yms-notif-card>.yms-actions{padding:0 15px 14px;margin:0}
-#mrp_ayar .yms-action-grid{grid-template-columns:1fr;gap:0}
-#mrp_ayar .yms-action-tile{
-  position:relative;min-height:62px;padding:13px 42px 13px 15px;border:0;border-bottom:1px solid var(--yms-divider);
-  border-radius:0;background:transparent
-}
-#mrp_ayar .yms-action-tile:last-child{border-bottom:0}
-#mrp_ayar .yms-action-tile:hover{background:color-mix(in srgb,var(--label,#111827) 3%,transparent);border-color:var(--yms-divider)}
-#mrp_ayar .yms-action-tile::after{
-  content:"›";position:absolute;right:15px;top:50%;transform:translateY(-50%);
-  font-size:20px;font-weight:350;color:var(--label-2,#667085)
-}
-#mrp_ayar .yms-action-tile b{font-size:13px;font-weight:650}
-#mrp_ayar .yms-action-tile small{font-size:11.5px}
-#mrp_ayar .yms-status-pill{
-  border-radius:8px;padding:4px 7px;background:color-mix(in srgb,var(--label,#111827) 5%,transparent);
-  font-size:10.5px;font-weight:650
-}
-#mrp_ayar .yms-modal{background:#08101d78;backdrop-filter:blur(6px)}
-#mrp_ayar .yms-dialog{border-radius:20px;box-shadow:0 22px 70px #0004}
-#mrp_ayar .yms-field label{font-size:11.5px;font-weight:650}
-#mrp_ayar .yms-field input,#mrp_ayar .yms-field select{min-height:44px;border-radius:10px}
-
-@media(max-width:900px){
-  #mrp_ayar .yms-wrap{max-width:720px!important;margin:0 auto 24px!important;padding:0 10px!important}
-  #mrp_ayar .yms-content{gap:24px!important}
-  #mrp_ayar .yms-hero{
-    margin:0!important;padding:15px!important;border-radius:16px!important;
-    grid-template-columns:48px minmax(0,1fr) auto!important
-  }
-  #mrp_ayar .yms-avatar{width:48px!important;height:48px!important}
-  #mrp_ayar .yms-hero-main h2{font-size:17px!important}
-  #mrp_ayar .yms-section-head{margin:0 0 7px!important;padding:0 3px!important}
-  #mrp_ayar .yms-section-head h3{font-size:11.5px!important;letter-spacing:.06em!important}
-  #mrp_ayar .yms-grid{
-    display:grid!important;grid-template-columns:1fr!important;gap:10px!important;
-    border:0!important;background:transparent!important;box-shadow:none!important;overflow:visible!important
-  }
-  #mrp_ayar .yms-grid .yms-card{
-    padding:0 14px!important;border:1px solid var(--yms-divider)!important;
-    border-radius:16px!important;background:var(--surface,#fff)!important
-  }
-  #mrp_ayar .yms-grid .yms-card+.yms-card{border-top:1px solid var(--yms-divider)!important}
-  #mrp_ayar #ymsAppearance .yms-theme-host,
-  #mrp_ayar #ymsPersonal .yms-personal-host,
-  #mrp_ayar #ymsNotifications .yms-notif-card,
-  #mrp_ayar #ymsApplication .yms-action-grid{border-radius:16px!important}
-  #mrp_ayar #ymsAppearance .yms-theme-host{padding:9px!important}
-  #mrp_ayar .yms-action-tile{min-height:60px!important}
-}
-@media(max-width:520px){
-  #mrp_ayar .yms-wrap{padding:0 6px!important}
-  #mrp_ayar .yms-content{gap:22px!important}
-  #mrp_ayar .yms-hero{grid-template-columns:44px minmax(0,1fr) auto!important;padding:13px!important}
-  #mrp_ayar .yms-avatar{width:44px!important;height:44px!important;font-size:14px!important}
-  #mrp_ayar .yms-hero-main p{max-width:170px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  #mrp_ayar .yms-edit{min-height:34px!important;padding:7px 9px!important}
-  #mrp_ayar .yms-row{min-height:44px!important}
-  #mrp_ayar .yms-row b{max-width:56%!important}
-  #mrp_ayar #ymsAppearance #themeGrid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
-  #mrp_ayar .yms-notif-item{padding:12px 14px!important}
-  #mrp_ayar .yms-notif-item small{max-width:205px!important}
-}
-
+function styles(){
+  if(document.getElementById("yksModernSettingsStyles"))return;
+  const s=document.createElement("style");s.id="yksModernSettingsStyles";
+  s.textContent=`
+/* Refined settings: one overview, one detail, shared theme tokens. */
+.yms-wrap,.yms-modal{--ys-surface:var(--rb-surface,var(--card,#fff));--ys-alt:var(--rb-surface-alt,var(--card-2,#f0f5fc));--ys-ink:var(--rb-ink,var(--label,#10203f));--ys-muted:var(--rb-muted,var(--label-2,#62718b));--ys-line:var(--rb-line,var(--line,#e4eaf3));--ys-accent:var(--rb-accent,var(--accent,#1266ee));--ys-soft:var(--rb-accent-soft,var(--accent-soft,#eaf2ff));color:var(--ys-ink)}
+.yms-wrap{max-width:840px;margin:16px auto 28px}.yms-wrap [hidden],.yms-modal [hidden],[data-yms-hidden="true"]{display:none!important}
+#mrp_ayar:has(.yms-wrap)>.v30-subhead{display:grid!important;gap:11px;margin:0 auto 18px!important;padding:0!important;max-width:840px;background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important}#mrp_ayar:has(.yms-wrap)>.v30-subhead .v30-back{justify-self:start;padding:5px 0!important;background:transparent!important;border:0!important;color:var(--rb-accent,var(--accent))!important;font-size:14px!important;font-weight:500!important;min-height:32px!important}#mrp_ayar:has(.yms-wrap)>.v30-subhead h1{font-size:32px!important;line-height:1.15;font-weight:700;letter-spacing:-.04em}#mrp_ayar:has(.yms-wrap:not([data-category="overview"]))>.v30-subhead{display:none!important}
+#mrp_ayar:has(.yms-wrap)>.v30-subhead p{display:none}.yms-search{position:relative;display:flex;align-items:center;gap:10px;margin-bottom:18px;padding:0 15px;border:1px solid transparent;border-radius:15px;background:var(--ys-alt);color:var(--ys-muted)}.yms-search:focus-within{border-color:var(--ys-accent)}.yms-search svg{flex:none;width:21px}.yms-search input{width:100%;min-width:0;border:0!important;border-radius:0!important;box-shadow:none!important;background:transparent!important;color:var(--ys-ink);padding:14px 0!important;margin:0!important;font:inherit;font-size:14px;outline:none!important}.yms-search input::placeholder{color:var(--ys-muted);opacity:1}
+.yms-profile,.yms-category-list{background:var(--ys-surface);border:1px solid var(--ys-line);border-radius:20px;box-shadow:var(--rb-shadow,0 4px 18px #1d396504)}.yms-profile{display:flex;align-items:center;gap:15px;width:100%;margin:0 0 16px;padding:20px;text-align:left;font:inherit;color:inherit;cursor:pointer}.yms-avatar{width:58px;height:58px;display:grid;place-items:center;flex:none;border-radius:50%;background:var(--ys-soft);color:var(--ys-accent);font-size:20px;font-weight:700}.yms-profile-copy{display:grid;gap:5px;min-width:0;flex:1}.yms-profile-copy b{font-size:18px;font-weight:700;letter-spacing:-.025em;overflow-wrap:anywhere}.yms-profile-copy small{font-size:13px;color:var(--ys-muted)}.yms-chevron{flex:none;color:var(--ys-muted)}.yms-chevron svg{width:17px;height:17px}
+.yms-category-list{overflow:hidden;padding:0 18px}.yms-category{position:relative;display:flex;align-items:center;gap:15px;width:100%;min-height:80px;padding:17px 0;border:0;border-bottom:1px solid var(--ys-line);border-radius:0;background:transparent;color:inherit;text-align:left;font:inherit;cursor:pointer}.yms-category:last-child{border-bottom:0}.yms-category-icon{display:grid;place-items:center;width:30px;flex:none;color:var(--ys-ink)}.yms-category-icon svg{width:26px;height:26px}.yms-category-copy{display:grid;gap:5px;min-width:0;flex:1}.yms-category-copy b{font-size:14px;font-weight:650;letter-spacing:-.015em}.yms-category-copy small{font-size:12px;line-height:1.45;color:var(--ys-muted)}.yms-theme-value{color:var(--ys-accent);font-size:11px;text-align:right;max-width:75px}.yms-app-row{display:flex;align-items:center;gap:12px;width:100%;padding:15px 17px;margin-top:14px;border:0;border-radius:15px;background:var(--ys-alt);color:var(--ys-muted);font:inherit;font-size:12px;text-align:left;cursor:pointer}.yms-app-row>span:nth-child(2){flex:1}.yms-app-row svg{width:21px;height:21px}.yms-no-results{margin:18px 0;padding:24px;text-align:center;border-radius:18px;background:var(--ys-surface);color:var(--ys-muted);font-size:13px;line-height:1.6}
+.yms-profile:hover,.yms-category:hover{background:color-mix(in srgb,var(--ys-soft) 28%,var(--ys-surface))}.yms-profile:focus-visible,.yms-category:focus-visible,.yms-app-row:focus-visible,.yms-wrap button:focus-visible,.yms-modal button:focus-visible{outline:2px solid var(--ys-accent);outline-offset:3px}
+#mrp_ayar .yms-search input,#mrp_ayar .yms-search input:focus{border:0!important;outline:0!important;box-shadow:none!important;background:transparent!important;min-height:48px;font-weight:400!important}
+.yms-wrap .yms-actions .primary,.yms-modal .yms-actions .primary{color:var(--rb-on-accent,#fff)}
+.yms-detail-back{display:inline-flex;align-items:center;gap:4px;padding:8px 0;margin:0 0 10px;border:0;background:transparent;color:var(--ys-accent);font:inherit;font-size:14px;font-weight:600;cursor:pointer}.yms-detail-back svg{width:19px;height:19px}.yms-detail-heading{margin-bottom:21px}.yms-detail-heading h2{margin:0 0 7px;font-size:25px;font-weight:700;letter-spacing:-.035em;line-height:1.2}.yms-detail-heading p{margin:0;max-width:540px;color:var(--ys-muted);font-size:13px;line-height:1.6}.yms-detail-heading h2:focus{outline:none}.yms-section{display:grid;gap:16px;min-width:0}.yms-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.yms-card{min-width:0;padding:19px;border:1px solid var(--ys-line);border-radius:20px;background:var(--ys-surface)}.yms-title{margin:0 0 8px;font-size:13px;font-weight:650;color:var(--ys-ink)}.yms-row{display:flex;justify-content:space-between;gap:15px;padding:12px 0;border-bottom:1px solid var(--ys-line);font-size:13px;line-height:1.5}.yms-row:last-child{border-bottom:0}.yms-row>span{color:var(--ys-muted)}.yms-row b{font-weight:600;text-align:right;max-width:64%;overflow-wrap:anywhere}.yms-note{margin:10px 0 0;color:var(--ys-muted);font-size:12px;line-height:1.6}.yms-actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:16px}.yms-actions button,.yms-edit{min-height:44px;padding:10px 15px;border:1px solid var(--ys-line);border-radius:12px;background:var(--ys-alt);color:var(--ys-ink);font:inherit;font-size:13px;font-weight:600;cursor:pointer}.yms-actions .primary{background:var(--ys-accent);border-color:var(--ys-accent);color:#fff}.yms-actions .danger{color:var(--danger,var(--red,#b42318))}.yms-actions button:disabled{opacity:.5;cursor:not-allowed}.yms-exam{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}.yms-exam div{padding:12px;border-radius:12px;background:var(--ys-alt);font-size:12px;line-height:1.7}.yms-exam b{display:block;font-size:13px}
+.yms-notif-item{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:14px 0;border-bottom:1px solid var(--ys-line)}.yms-notif-item>span{display:grid;gap:5px}.yms-notif-item b{font-size:13px;font-weight:600}.yms-notif-item small{font-size:12px;line-height:1.5;color:var(--ys-muted)}.yms-toggle{position:relative;flex:none;width:46px;min-width:46px;height:28px;border:0;border-radius:99px;background:color-mix(in srgb,var(--ys-muted) 35%,var(--ys-surface));cursor:pointer}.yms-toggle::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 4px #0002;transition:transform .16s}.yms-toggle.is-on{background:var(--ys-accent)}.yms-toggle.is-on::after{transform:translateX(18px)}.yms-time-row{display:flex;gap:10px;align-items:center;margin-top:8px}.yms-time-row input{width:160px;max-width:100%;margin:0!important}.yms-status-pill{display:inline-block;padding:5px 9px;border-radius:8px;background:var(--ys-alt);color:var(--ys-muted);font-size:11px}.yms-status-pill.ok{color:var(--green-ink,#087443)}
+.yms-action-grid{overflow:hidden;border:1px solid var(--ys-line);border-radius:20px;background:var(--ys-surface)}.yms-action-tile{display:flex;align-items:center;gap:12px;width:100%;padding:16px 18px;border:0;border-bottom:1px solid var(--ys-line);border-radius:0;background:transparent;color:inherit;text-align:left;font:inherit;cursor:pointer}.yms-action-tile:last-child{border-bottom:0}.yms-action-tile>span:first-child{display:grid;gap:5px;flex:1}.yms-action-tile b{font-size:13px;font-weight:600}.yms-action-tile small{font-size:12px;color:var(--ys-muted);line-height:1.5}.yms-empty{padding:20px;border:1px solid var(--ys-line);border-radius:18px;background:var(--ys-surface);font-size:13px;color:var(--ys-muted);line-height:1.6}.yms-advanced{border:1px solid var(--ys-line);border-radius:18px;background:var(--ys-surface);padding:16px}.yms-advanced summary{cursor:pointer;font-size:13px;font-weight:600}.yms-advanced .yms-action-grid{border:0;border-radius:0;margin-top:10px}.yms-advanced .yms-action-tile{padding:14px 0}
+.yms-theme-host>.card{margin:0!important;border-radius:20px!important;box-shadow:none!important;background:var(--ys-surface)!important;border:1px solid var(--ys-line)!important;padding:18px!important}.yms-theme-host>.card>.eyebrow:first-child{display:none}.yms-theme-host #themeGrid{margin:0!important;gap:10px!important;grid-template-columns:repeat(2,minmax(0,1fr))!important}.yms-theme-host .theme-card{min-height:70px!important;box-shadow:none!important;border-radius:14px!important}.yms-personal-host>.v43-personalization{margin:0!important;border:0!important;border-radius:0!important;padding:0!important;background:transparent!important;box-shadow:none!important}.yms-personal-host .v43-personal-head>.eyebrow{display:none}.yms-coach-host .scl-settings{margin:0;padding:18px;border-radius:20px;background:var(--ys-surface);border:1px solid var(--ys-line);color:var(--ys-ink)}.yms-account-host #cloudSyncBox{margin:0!important}.yms-account-host #yksAccountSettingsCard{margin-top:12px}.yms-account-host:has(#cloudSyncBox) #yksAccountSettingsCard{display:none!important}.yms-field{display:grid;gap:7px}.yms-field label{font-size:12px;font-weight:600;color:var(--ys-muted)}.yms-field input,.yms-field select,.yms-time-row input{box-sizing:border-box;min-height:46px;width:100%;padding:11px 12px;border:1px solid var(--ys-line);border-radius:12px;background:var(--ys-alt);color:var(--ys-ink);font:inherit;font-size:14px}
+.yms-modal{position:fixed;inset:0;z-index:14000;display:grid;place-items:center;padding:20px;background:#0b173e70;backdrop-filter:blur(6px)}.yms-dialog{width:min(580px,100%);max-height:90dvh;overflow:auto;overscroll-behavior:contain;box-sizing:border-box;padding:24px;border:1px solid var(--ys-line);border-radius:24px;background:var(--ys-surface);box-shadow:0 20px 60px #091b4826}.yms-dialog-head{display:flex;align-items:flex-start;justify-content:space-between;gap:15px;margin-bottom:20px}.yms-dialog-head h2{margin:0;font-size:23px;letter-spacing:-.03em}.yms-dialog-head .yms-edit{display:grid;place-items:center;width:40px;min-height:40px;padding:0;font-size:24px;background:transparent;border:0}.yms-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.yms-field.full{grid-column:1/-1}.yms-editor-error{color:var(--danger,var(--red,#b42318));font-size:13px;line-height:1.5}
+@media(max-width:620px){.yms-wrap{margin-top:10px}.yms-profile{padding:18px;gap:13px}.yms-avatar{width:56px;height:56px}.yms-category-list{padding:0 16px}.yms-category{gap:13px;min-height:77px}.yms-category-copy b{font-size:14px}.yms-category-copy small{font-size:11.5px}.yms-category-icon{width:26px}.yms-category-icon svg{width:25px}.yms-grid{grid-template-columns:1fr}.yms-detail-heading h2{font-size:24px}.yms-card{padding:17px}.yms-exam{grid-template-columns:1fr}.yms-exam div{display:flex;gap:12px;align-items:center}.yms-modal{align-items:end;padding:0}.yms-dialog{width:100%;max-height:92dvh;border-radius:24px 24px 0 0;padding:22px 20px calc(22px + env(safe-area-inset-bottom))}.yms-form{gap:13px}.yms-theme-value{display:none}}
+@media(max-width:360px){.yms-form{grid-template-columns:1fr}.yms-profile-copy b{font-size:16px}.yms-profile{padding:16px}.yms-category-list{padding:0 14px}}
+@media(pointer:coarse){.yms-toggle{height:44px;background:transparent!important}.yms-toggle::before{content:"";position:absolute;left:0;right:0;top:8px;height:28px;border-radius:99px;background:color-mix(in srgb,var(--ys-muted) 35%,var(--ys-surface))}.yms-toggle.is-on::before{background:var(--ys-accent)}.yms-toggle::after{top:11px}.yms-detail-back,.yms-dialog-head .yms-edit{min-height:44px}.yms-dialog-head .yms-edit{width:44px}}
 @media(prefers-reduced-motion:reduce){.yms-toggle::after{transition:none}}
-`;document.head.append(s)}
+`;
+  document.head.append(s);
+}
 
 function account(){const title=document.querySelector("[data-account-title]")?.textContent?.trim()||"",meta=document.querySelector("[data-account-meta]")?.textContent?.trim()||"";const email=(meta.match(/[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}/)||[])[0]||"";const signedIn=Boolean(email||(title&&title!=="Giriş yapılmadı"));return{title,email,meta,signedIn}}
-function initials(name){const p=txt(name,80).split(/\s+/).filter(Boolean).slice(0,2);return(p.map(x=>x[0]?.toUpperCase()).join("")||"YK")}
-function syncText(){const a=document.getElementById("cloudSyncText")?.textContent?.trim(),b=document.getElementById("cloudSyncMeta")?.textContent?.trim();return[a,b].filter(Boolean).join(" · ")||"Bulut durumu hazırlanıyor"}
-function appVersion(){return document.getElementById("appVersionLabel")?.textContent?.trim()||"YKS Defterim"}
+function initials(name){return txt(name,80).split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]?.toLocaleUpperCase("tr-TR")).join("")||"YK"}
+function syncText(){return ["cloudSyncText","cloudSyncMeta"].map(id=>document.getElementById(id)?.textContent?.trim()).filter(Boolean).join(" · ")||"Bulut durumu hazırlanıyor"}
+function appVersion(){return document.documentElement.dataset.appVersion||document.getElementById("appVersionLabel")?.textContent?.trim()||"YKS Defterim"}
 function enforceSettingsOnlyTheme(){document.getElementById("themeBtn")?.remove();document.documentElement.dataset.themeControl="settings-only"}
-function hideCardFor(id,reason){const node=document.getElementById(id);const card=node?.closest?.(".card");if(card){card.hidden=true;card.dataset.ymsHidden="true";card.dataset.ymsHiddenReason=reason}}
+function hideCardFor(id,reason){const card=document.getElementById(id)?.closest?.(".card");if(card){card.hidden=true;card.dataset.ymsHidden="true";card.dataset.ymsHiddenReason=reason}}
 function hideLegacySettings(){
   const panel=document.getElementById("mrp_ayar");if(!panel)return;
   enforceSettingsOnlyTheme();
-  const old=document.getElementById("nameInput")?.closest(".card");if(old){old.hidden=true;old.dataset.ymsHidden="true"}
-  const themeGrid=document.getElementById("themeGrid"),themeCard=themeGrid?.closest?.(".card");if(themeCard){themeCard.hidden=false;delete themeCard.dataset.ymsHidden;delete themeCard.dataset.ymsHiddenReason}
-  hideCardFor("sozToggle","legacy-appearance");
-  hideCardFor("ytSrc","video-settings-private");
-  hideCardFor("notifStatus","modern-notifications");
-  const demoButton=panel.querySelector('button[onclick="loadDemo()"]'),demoCard=demoButton?.closest?.(".card");if(demoCard){demoCard.hidden=true;demoCard.dataset.ymsHidden="true";demoCard.dataset.ymsHiddenReason="modern-app-tools"}
-  ["roleSeg","roleHint","simpleToggle","simpleHint"].forEach(id=>{const node=document.getElementById(id);if(node){node.hidden=true;node.dataset.ymsHidden="true"}});
-  const sub=panel.querySelector(".v30-subhead p");if(sub)sub.textContent="Profil, görünüm, kişiselleştirme, bildirimler ve uygulama";
-  document.querySelectorAll(".v30-menu-card").forEach(card=>{if(card.getAttribute("onclick")?.includes("settings")){const small=card.querySelector("small");if(small)small.textContent="Profil, görünüm, bildirimler ve uygulama tercihleri"}});
+  hideCardFor("nameInput","modern-profile");hideCardFor("sozToggle","legacy-appearance");hideCardFor("ytSrc","video-settings-private");hideCardFor("notifStatus","modern-notifications");
+  const demoCard=panel.querySelector('button[onclick="loadDemo()"]')?.closest?.(".card");if(demoCard){demoCard.hidden=true;demoCard.dataset.ymsHidden="true";demoCard.dataset.ymsHiddenReason="modern-app-tools"}
+  ["roleSeg","roleHint","simpleHint"].forEach(id=>{const node=document.getElementById(id);if(node){node.hidden=true;node.dataset.ymsHidden="true"}});
+  const roleLabel=document.getElementById("roleSeg")?.previousElementSibling;if(roleLabel?.tagName==="LABEL")roleLabel.hidden=true;
+  document.getElementById("themeGrid")?.closest(".card")?.querySelectorAll("label").forEach(label=>{if(["Kullanım modu","Bu cihazı kim kullanıyor"].includes(label.textContent?.trim())){label.hidden=true;label.dataset.ymsHidden="true"}});
+  const simple=document.getElementById("simpleToggle")?.closest(".switch");if(simple)simple.hidden=true;
+  const sub=panel.querySelector(".v30-subhead p");if(sub)sub.textContent="Uygulamanı kendine göre ayarla";
   panel.querySelectorAll(".note").forEach(note=>{if(note.textContent?.includes("YKS 2027 tarihi")){note.hidden=true;note.dataset.ymsHidden="true"}});
-  polishPersonalization();
 }
-
 function polishPersonalization(){
   const panel=document.getElementById("v43Personalization");if(!panel)return;
   panel.dataset.ymsPersonalization="polished";
   const title=panel.querySelector(".v43-personal-head h2");if(title)title.textContent="Kendine göre ayarla";
   const hint=panel.querySelector(".v43-personal-head .hint");if(hint)hint.textContent="Sınav kapsamını ve Bugün ekranındaki yardımcı alanları buradan düzenle. Kayıtlı çalışma verilerin değişmez.";
   const reset=panel.querySelector(".v43-personal-head button");if(reset)reset.textContent="Ayarları sıfırla";
-  const host=document.querySelector("[data-yms-personal-slot]");if(host&&!host.contains(panel)){host.replaceChildren(panel)}
+  const host=document.querySelector("[data-yms-personal-slot]");if(host&&!host.contains(panel))host.replaceChildren(panel);
 }
-
+function adoptPanels(root){
+  const themeCard=document.getElementById("themeGrid")?.closest?.(".card"),themeSlot=root.querySelector("[data-yms-theme-slot]");
+  if(themeCard&&themeSlot&&!themeSlot.contains(themeCard)){themeCard.hidden=false;delete themeCard.dataset.ymsHidden;themeSlot.replaceChildren(themeCard)}
+  polishPersonalization();
+  for(const [id,selector] of [["studentCoachCodeSettings","[data-yms-coach-slot]"],["cloudSyncBox","[data-yms-account-slot]"],["yksAccountSettingsCard","[data-yms-account-slot]"]]){
+    const node=document.getElementById(id),host=root.querySelector(selector);if(node&&host&&!host.contains(node))host.append(node);
+  }
+  const coach=root.querySelector("[data-yms-coach-empty]");if(coach)coach.hidden=Boolean(document.getElementById("studentCoachCodeSettings"));
+  const fallback=root.querySelector("[data-yms-account-empty]");if(fallback)fallback.hidden=Boolean(document.getElementById("cloudSyncBox")||document.getElementById("yksAccountSettingsCard"));
+}
 function notifEnabled(id){return Boolean(document.getElementById(id)?.classList.contains("on"))}
 function notifPermission(){try{if(!("Notification" in window))return"unsupported";return Notification.permission||"default"}catch{return"unsupported"}}
-function notifPermissionText(){const p=notifPermission();if(p==="granted")return"İzin verildi";if(p==="denied")return"İzin engellendi";if(p==="unsupported")return"Desteklenmiyor";return"İzin bekleniyor"}
+function notifPermissionText(){return {granted:"İzin verildi",denied:"Tarayıcı ayarlarında kapalı",unsupported:"Bu cihazda desteklenmiyor",default:"İzin bekleniyor"}[notifPermission()]||"İzin bekleniyor"}
 function notifTime(){return document.getElementById("notifTime")?.value||"21:00"}
-function notifButton(kind,label,detail,id){const on=notifEnabled(id);return`<div class="yms-notif-item"><span><b>${esc(label)}</b><small>${esc(detail)}</small></span><button class="yms-toggle${on?" is-on":""}" type="button" role="switch" aria-checked="${on?"true":"false"}" aria-label="${esc(label)}" data-yms-notif="${kind}"></button></div>`}
+function notifButton(kind,label,detail,id){return `<div class="yms-notif-item"><span><b>${esc(label)}</b><small>${esc(detail)}</small></span><button class="yms-toggle" type="button" role="switch" aria-checked="false" aria-label="${esc(label)}" data-yms-notif="${kind}" data-yms-notif-source="${id}"></button></div>`}
+const binding=(key)=>`<b data-yms-value="${key}"></b>`;
+const row=(label,key)=>`<div class="yms-row"><span>${label}</span>${binding(key)}</div>`;
+const action=(key,title,detail)=>`<button class="yms-action-tile" type="button" data-yms-${key}><span><b>${title}</b><small>${detail}</small></span><span class="yms-chevron">${icon("chevron")}</span></button>`;
+const section=(id,body)=>`<section class="yms-section" id="yms${id[0].toUpperCase()+id.slice(1)}" data-yms-section="${id}" hidden>${body}</section>`;
+function categoryButton(item){return `<button class="yms-category" type="button" data-yms-category="${item.id}"><span class="yms-category-icon">${icon(item.icon)}</span><span class="yms-category-copy"><b>${item.title}</b><small>${item.description}</small></span>${item.id==="appearance"?'<span class="yms-theme-value" data-yms-value="theme"></span>':""}<span class="yms-chevron">${icon("chevron")}</span></button>`}
+function markup(){return `
+<div data-yms-overview>
+  <label class="yms-search">${icon("search")}<input id="ymsSearch" type="search" placeholder="Ayarlarda ara" aria-label="Ayarlarda ara" autocomplete="off"></label>
+  <button class="yms-profile" type="button" data-yms-category="profile"><span class="yms-avatar" data-yms-value="initials"></span><span class="yms-profile-copy">${binding("name")}<small>Profil ve hedefler</small></span><span class="yms-chevron">${icon("chevron")}</span></button>
+  <div class="yms-category-list">${categories.filter(c=>c.id!=="profile"&&c.id!=="application").map(categoryButton).join("")}</div>
+  <button class="yms-app-row" type="button" data-yms-category="application">${icon("info")}<span>Uygulama bilgileri</span><span data-yms-value="version"></span><span class="yms-chevron">${icon("chevron")}</span></button>
+  <p class="yms-no-results" role="status" data-yms-no-results hidden>Bu aramayla eşleşen ayar yok.<br>“Tema”, “yedek” veya “hedef” arayabilirsin.</p>
+</div>
+<div data-yms-detail hidden>
+  <button class="yms-detail-back" type="button" data-yms-back>${icon("back")}Ayarlar</button>
+  <div class="yms-detail-heading"><h2 id="ymsDetailTitle" tabindex="-1"></h2><p id="ymsDetailDescription"></p></div>
+  ${section("profile",`<div class="yms-grid"><section class="yms-card"><h3 class="yms-title">Kişisel bilgiler</h3>${row("Ad Soyad","name")}${row("E-posta","email")}${row("Alan / puan türü","track")}${row("OBP","obp")}${row("Haftalık çalışma","days")}</section><section class="yms-card"><h3 class="yms-title">YKS hedeflerim</h3>${row("TYT hedef net","tyt")}${row("AYT hedef net","ayt")}${row("Hedef üniversite","university")}${row("Hedef bölüm","department")}</section></div><div class="yms-actions"><button class="primary" type="button" data-yms-edit>Profil ve hedefleri düzenle</button></div><div class="yms-card"><h3 class="yms-title">2027 YKS tarihleri</h3><div class="yms-exam"><div><b>TYT</b>19 Haziran 2027 · 10:15</div><div><b>AYT</b>20 Haziran 2027 · 10:15</div><div><b>YDT</b>20 Haziran 2027 · 15:45</div></div><p class="yms-note">Sınav tarihleri bilgi amaçlı sabittir; profil ayarından değiştirilmez.</p></div>`)}
+  ${section("account",`<div class="yms-account-host" data-yms-account-slot></div><div class="yms-empty" data-yms-account-empty>Hesap bağlantısı hazırlanıyor. İnternet bağlantını kontrol ederek tekrar deneyebilirsin.<div class="yms-actions"><button type="button" data-yms-account-refresh>Durumu yenile</button></div></div>`)}
+  ${section("appearance",'<div class="yms-theme-host" data-yms-theme-slot></div>')}
+  ${section("study",`<section class="yms-card"><h3 class="yms-title">Günlük çalışma hedefi</h3><label class="yms-field" for="ymsQuestionTarget"><span>Günlük soru sayısı</span><input id="ymsQuestionTarget" type="number" min="0" max="10000" step="1" inputmode="numeric"></label><div class="yms-actions"><button class="primary" type="button" data-yms-target-save>Hedefi kaydet</button><button type="button" data-yms-program>Programıma git</button></div><p class="yms-note" role="status" data-yms-target-status></p></section><div class="yms-personal-host" data-yms-personal-slot><div class="yms-empty">Ekran tercihlerin hazırlanıyor…</div></div>`)}
+  ${section("notifications",`<div><span class="yms-status-pill" data-yms-notif-status></span></div><div class="yms-card"><div class="yms-notif-list">${notifButton("pomo","Pomodoro bitişi","Odak oturumu veya mola tamamlandığında haber ver","notifPomo")}${notifButton("review","Tekrar zamanı","Planlı konu tekrarlarını hatırlat","notifReview")}${notifButton("evening","Gün sonu hatırlatması","Günün kaydını tamamlamayı hatırlat","notifEvening")}</div><label class="yms-note" for="ymsNotifTime">Akşam hatırlatma saati</label><div class="yms-time-row"><input id="ymsNotifTime" type="time" aria-label="Akşam hatırlatma saati"><button class="yms-edit" type="button" data-yms-notif-time>Kaydet</button></div><p class="yms-note" role="status" data-yms-time-status></p><div class="yms-actions"><button type="button" data-yms-notif-permission>Bildirim izni ver</button><button type="button" data-yms-notif-test>Deneme bildirimi</button><button type="button" data-yms-notif-refresh>Durumu yenile</button></div></div>`)}
+  ${section("coach",'<div class="yms-coach-host" data-yms-coach-slot></div><div class="yms-empty" data-yms-coach-empty>Koç kodunu oluşturmak ve çalışma bilgilerini paylaşmak için öğrenci hesabınla giriş yap.<div class="yms-actions"><button class="primary" type="button" data-yms-open-account>Hesabıma git</button></div></div>')}
+  ${section("data",`<div class="yms-card"><h3 class="yms-title">Çalışmaların sende kalsın</h3><p class="yms-note">Veri merkezinde yedek oluşturabilir, dosyadan geri yükleyebilir ve cihazdaki kayıtlarını yönetebilirsin.</p><div class="yms-actions"><button class="primary" type="button" data-yms-data>Veri ve yedek merkezini aç</button></div></div>`)}
+  ${section("application",`<div class="yms-card">${row("YKS Defterim","version")}</div><div class="yms-action-grid">${action("about","Hakkında","Sürüm ve uygulama bilgileri")}${action("system","Sistem durumu","Bağlantı ve uygulama sağlığı")}</div><details class="yms-advanced"><summary>Kurulum ve deneme araçları</summary><p class="yms-note">Örnek veriler gerçek çalışma kayıtlarının yerine kullanılmamalı.</p><div class="yms-action-grid">${action("wizard","Kurulumu tekrar aç","İlk kurulum adımlarını gözden geçir")}${action("demo-load","Örnek veri yükle","Uygulamayı örnek çalışmalarla dene")}${action("demo-clear","Örnek veriyi temizle","Yüklediğin deneme verilerini kaldır")}</div></details>`)}
+</div>`}
 
-function render(){styles();const panel=document.getElementById("mrp_ayar");if(!panel)return false;hideLegacySettings();const s=st(),a=account();let root=document.getElementById(ROOT_ID);const themeCard=document.getElementById("themeGrid")?.closest?.(".card"),personalPanel=document.getElementById("v43Personalization");if(root&&themeCard&&root.contains(themeCard))panel.append(themeCard);if(root&&personalPanel&&root.contains(personalPanel))panel.append(personalPanel);if(!root){root=document.createElement("div");root.id=ROOT_ID;root.className="yms-wrap";const head=panel.querySelector(".v30-subhead");head?.after(root)}
-const name=val(s.name||a.title,"YKS öğrencisi"),track=val(s.puanTuru,"Belirlenmedi"),permission=notifPermission(),permissionText=notifPermissionText();root.innerHTML=`
-<div class="yms-shell">
-  <aside class="yms-side" aria-label="Ayar kategorileri">
-    <div class="yms-side-head"><span class="yms-side-kicker">YKS Defterim</span><b class="yms-side-title">Ayarlar</b></div>
-    <nav class="yms-nav">
-      <button class="yms-nav-btn is-active" type="button" data-yms-jump="ymsProfile"><span class="yms-nav-dot" aria-hidden="true"></span>Profil</button>
-      <button class="yms-nav-btn" type="button" data-yms-jump="ymsAppearance"><span class="yms-nav-dot" aria-hidden="true"></span>Görünüm</button>
-      <button class="yms-nav-btn" type="button" data-yms-jump="ymsPersonal"><span class="yms-nav-dot" aria-hidden="true"></span>Kişiselleştir</button>
-      <button class="yms-nav-btn" type="button" data-yms-jump="ymsNotifications"><span class="yms-nav-dot" aria-hidden="true"></span>Bildirimler</button>
-      <button class="yms-nav-btn" type="button" data-yms-jump="ymsApplication"><span class="yms-nav-dot" aria-hidden="true"></span>Uygulama</button>
-    </nav>
-    <div class="yms-side-foot">Ayarların bu cihazda saklanır. Bulut hesabın bağlıysa desteklenen hesap bilgileri eşitlenebilir.</div>
-  </aside>
-  <main class="yms-content">
-    <section class="yms-hero" id="ymsProfile">
-      <div class="yms-avatar">${esc(initials(name))}</div>
-      <div class="yms-hero-main"><h2>${esc(name)}</h2><p>${esc(a.email||(a.signedIn?"Hesap bağlı":"Hesap ile giriş yapılmadı"))}</p><div class="yms-chiprow"><span class="yms-chip">${esc(track)}</span><span class="yms-chip">2027 YKS</span><span class="yms-chip">${esc(String(s.workdays||6))} gün / hafta</span></div></div>
-      <button class="yms-edit" type="button" data-yms-edit>Profili düzenle</button>
-    </section>
-    <section class="yms-section" aria-labelledby="ymsProfileTitle">
-      <div class="yms-section-head"><div class="yms-section-title"><div><h3 id="ymsProfileTitle">Profil ve hedefler</h3><p>Temel bilgilerin, YKS hedeflerin ve hesap durumun tek yerde.</p></div></div></div>
-      <div class="yms-grid"><section class="yms-card"><div class="yms-title">Kişisel bilgiler</div><div class="yms-row"><span>Ad Soyad</span><b>${esc(name)}</b></div><div class="yms-row"><span>E-posta</span><b>${esc(a.email||"—")}</b></div><div class="yms-row"><span>Alan / puan türü</span><b>${esc(track)}</b></div><div class="yms-row"><span>OBP</span><b>${Number(s.obp)>0?esc(String(s.obp)):"—"}</b></div><div class="yms-row"><span>Haftalık çalışma</span><b>${esc(String(s.workdays||6))} gün</b></div></section>
-      <section class="yms-card"><div class="yms-title">YKS hedeflerim</div><div class="yms-row"><span>TYT hedef net</span><b>${esc(net(s.targetNetTYT??s.targetNet))}</b></div><div class="yms-row"><span>AYT hedef net</span><b>${esc(net(s.targetNetAYT))}</b></div><div class="yms-row"><span>Hedef üniversite</span><b>${esc(val(s.targetUniversity))}</b></div><div class="yms-row"><span>Hedef bölüm</span><b>${esc(val(s.targetDepartment))}</b></div><div class="yms-actions"><button class="primary" type="button" data-yms-edit>Hedefleri düzenle</button></div></section></div>
-      <div class="yms-grid" style="margin-top:11px"><section class="yms-card"><div class="yms-title">Hesap & güvenlik</div><div class="yms-row"><span>Oturum</span><b class="yms-account-status"><i class="yms-account-dot${a.signedIn?" on":""}"></i>${esc(a.signedIn?"Giriş yapıldı":"Giriş yapılmadı")}</b></div><div class="yms-row"><span>Bulut</span><b>${esc(syncText())}</b></div><div class="yms-actions">${a.signedIn?'<button class="danger" type="button" data-yms-logout>Çıkış yap</button>':'<button class="primary" type="button" data-yms-login>Google ile giriş yap</button>'}</div></section>
-      <section class="yms-card"><div class="yms-title">2027 YKS tarihleri</div><div class="yms-exam"><div><b>TYT</b>19 Haziran 2027<br>10:15</div><div><b>AYT</b>20 Haziran 2027<br>10:15</div><div><b>YDT</b>20 Haziran 2027<br>15:45</div></div><p class="yms-note">Sınav tarihleri bilgi amaçlı sabittir; profil ayarından değiştirilmez.</p></section></div>
-    </section>
-    <section class="yms-section" id="ymsAppearance"><div class="yms-section-head"><div class="yms-section-title"><div><h3>Görünüm</h3><p>Tema ve yazı boyutunu seç. Tema değişimi yalnız bu Ayarlar ekranından yapılır.</p></div></div></div><div class="yms-theme-host" data-yms-theme-slot></div></section>
-    <section class="yms-section" id="ymsPersonal"><div class="yms-section-head"><div class="yms-section-title"><div><h3>Kişiselleştirme</h3><p>Hangi sınavların ve Bugün kartlarının görüneceğini belirle.</p></div></div></div><div class="yms-personal-host" data-yms-personal-slot><div class="yms-empty">Kişiselleştirme seçenekleri hazırlanıyor…</div></div></section>
-    <section class="yms-section" id="ymsNotifications"><div class="yms-section-head"><div class="yms-section-title"><div><h3>Bildirimler</h3><p>Yalnız gerçekten işine yarayan hatırlatmaları açık bırak.</p></div></div><span class="yms-status-pill${permission==="granted"?" ok":""}">${esc(permissionText)}</span></div><div class="yms-card yms-notif-card"><div class="yms-notif-list">${notifButton("pomo","Pomodoro bitişi","Odak oturumu veya mola tamamlandığında haber ver","notifPomo")}${notifButton("review","Tekrar zamanı","Planlı konu tekrarlarını hatırlat","notifReview")}${notifButton("evening","Gün sonu hatırlatması","Günü kapatmayı ve kaydı tamamlamayı hatırlat","notifEvening")}</div><label class="yms-note" for="ymsNotifTime">Akşam hatırlatma saati</label><div class="yms-time-row"><input id="ymsNotifTime" type="time" value="${esc(notifTime())}" aria-label="Akşam hatırlatma saati"><button class="yms-edit" type="button" data-yms-notif-time>Kaydet</button></div><div class="yms-actions"><button type="button" data-yms-notif-permission ${permission==="granted"?"disabled":""}>${permission==="granted"?"Bildirim izni açık":"Bildirim izni ver"}</button><button type="button" data-yms-notif-test>Deneme bildirimi</button><button type="button" data-yms-notif-refresh>Durumu yenile</button></div></div></section>
-    <section class="yms-section" id="ymsApplication"><div class="yms-section-head"><div class="yms-section-title"><div><h3>Uygulama</h3><p>Veri, yedek, sistem kontrolleri ve deneme araçları.</p></div></div><span class="yms-status-pill">${esc(appVersion())}</span></div>
-      <div class="yms-action-grid"><button class="yms-action-tile" type="button" data-yms-data><b>Veri & yedek</b><small>Dışa aktar, içe al ve yedeklerini yönet.</small></button><button class="yms-action-tile" type="button" data-yms-system><b>Sistem durumu</b><small>Uygulama sağlığı ve bağlantı durumunu kontrol et.</small></button><button class="yms-action-tile" type="button" data-yms-about><b>Hakkında</b><small>Sürüm ve uygulama bilgilerini gör.</small></button><button class="yms-action-tile" type="button" data-yms-demo-load><b>Örnek veri</b><small>Uygulamayı dolu veriyle hızlıca dene.</small></button><button class="yms-action-tile" type="button" data-yms-demo-clear><b>Örnek veriyi temizle</b><small>Deneme verilerini tek dokunuşla kaldır.</small></button><button class="yms-action-tile" type="button" data-yms-wizard><b>Kurulumu tekrar aç</b><small>İlk kurulum adımlarını yeniden çalıştır.</small></button></div>
-    </section>
-  </main>
-</div>`;
-const themeSlot=root.querySelector("[data-yms-theme-slot]");if(themeCard&&themeSlot){themeCard.hidden=false;themeCard.classList.add("yms-adopted-card");themeSlot.append(themeCard)}
-const personalSlot=root.querySelector("[data-yms-personal-slot]");if(personalPanel&&personalSlot){personalSlot.replaceChildren(personalPanel);polishPersonalization()}
-root.querySelectorAll("[data-yms-jump]").forEach(b=>b.addEventListener("click",()=>{root.querySelectorAll("[data-yms-jump]").forEach(x=>x.classList.remove("is-active"));b.classList.add("is-active");const target=document.getElementById(b.dataset.ymsJump);target?.scrollIntoView({behavior:window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches?"auto":"smooth",block:"start"})}));
-root.querySelectorAll("[data-yms-edit]").forEach(b=>b.addEventListener("click",openEditor));
-root.querySelector("[data-yms-login]")?.addEventListener("click",()=>document.getElementById("cloudLoginBtn")?.click());
-root.querySelector("[data-yms-logout]")?.addEventListener("click",()=>document.getElementById("cloudLogoutBtn")?.click());
-root.querySelectorAll("[data-yms-notif]").forEach(b=>b.addEventListener("click",()=>{const kind=b.dataset.ymsNotif;if(kind&&typeof window.toggleNotif==="function")window.toggleNotif(kind);setTimeout(render,0)}));
-root.querySelector("[data-yms-notif-permission]")?.addEventListener("click",()=>{try{Promise.resolve(window.askNotif?.()).finally(()=>setTimeout(render,250))}catch{setTimeout(render,250)}});
-root.querySelector("[data-yms-notif-time]")?.addEventListener("click",()=>{const next=root.querySelector("#ymsNotifTime")?.value||"21:00",legacy=document.getElementById("notifTime");if(legacy)legacy.value=next;window.saveEveningAt?.();setTimeout(render,0)});
-root.querySelector("[data-yms-notif-test]")?.addEventListener("click",()=>window.testNotif?.());
-root.querySelector("[data-yms-notif-refresh]")?.addEventListener("click",()=>{window.notifDiag?.();window.renderNotifSettings?.();setTimeout(render,0)});
-root.querySelector("[data-yms-data]")?.addEventListener("click",()=>{if(typeof window.v30Action==="function")window.v30Action("data");else window.setMoreTab?.("veri")});root.querySelector("[data-yms-system]")?.addEventListener("click",()=>window.v30Action?.("system"));root.querySelector("[data-yms-about]")?.addEventListener("click",()=>window.v30Action?.("about"));
-root.querySelector("[data-yms-demo-load]")?.addEventListener("click",()=>window.loadDemo?.());root.querySelector("[data-yms-demo-clear]")?.addEventListener("click",()=>window.clearDemo?.());root.querySelector("[data-yms-wizard]")?.addEventListener("click",()=>window.openWizard?.());
-return true}
+function normalizedSearch(value){return String(value||"").toLocaleLowerCase("tr-TR").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/ı/g,"i").trim()}
+function matchingCategories(query){const words=normalizedSearch(query).split(/\s+/).filter(Boolean);return categories.filter(item=>{const text=normalizedSearch(`${item.title} ${item.description} ${item.keywords}`);return words.every(word=>text.includes(word))}).map(item=>item.id)}
+function filterCategories(root){
+  const matches=new Set(matchingCategories(view.query));
+  root.querySelectorAll("[data-yms-category]").forEach(button=>{button.hidden=!matches.has(button.dataset.ymsCategory)});
+  const list=root.querySelector(".yms-category-list");if(list)list.hidden=!categories.some(c=>c.id!=="profile"&&c.id!=="application"&&matches.has(c.id));
+  const empty=root.querySelector("[data-yms-no-results]");if(empty)empty.hidden=matches.size>0;
+}
+function showCategory(category="",focus=true){
+  const root=document.getElementById(ROOT_ID);if(!root)return false;
+  const item=categories.find(c=>c.id===category);if(category&&!item)return false;
+  refresh(root);
+  if(category&&!view.category){view.overviewScroll=window.scrollY||0;view.returnTo=category}
+  view.category=category;root.dataset.category=category||"overview";
+  root.querySelector("[data-yms-overview]").hidden=Boolean(category);
+  root.querySelector("[data-yms-detail]").hidden=!category;
+  root.querySelectorAll("[data-yms-section]").forEach(node=>{node.hidden=node.dataset.ymsSection!==category});
+  if(item){
+    root.querySelector("#ymsDetailTitle").textContent=item.title;
+    root.querySelector("#ymsDetailDescription").textContent=item.description;
+    if(focus){root.scrollIntoView?.({block:"start",behavior:"auto"});root.querySelector("#ymsDetailTitle").focus?.({preventScroll:true})}
+  }else if(focus){
+    const target=root.querySelector(`[data-yms-category="${view.returnTo}"]:not([hidden])`)||root.querySelector("#ymsSearch");
+    target?.focus?.({preventScroll:true});window.scrollTo?.({top:view.overviewScroll,behavior:"auto"});
+  }
+  return true;
+}
+function setText(node,value){const next=String(value??"");if(node&&node.textContent!==next)node.textContent=next}
+function refresh(root){
+  const s=st(),a=account(),name=val(s.name||(a.signedIn?a.title:""),"YKS öğrencisi");
+  const values={name,initials:initials(name),email:a.email||"—",track:val(s.puanTuru),obp:Number(s.obp)>0?s.obp:"—",days:`${s.workdays||6} gün`,tyt:net(s.targetNetTYT??s.targetNet),ayt:net(s.targetNetAYT),university:val(s.targetUniversity),department:val(s.targetDepartment),version:appVersion(),theme:document.querySelector("#themeGrid .theme-card.on b")?.textContent||({auto:"Sistem",paper:"Defter",night:"Gece",forest:"Orman",ocean:"Okyanus",lavender:"Lavanta",sunset:"Günbatımı",graphite:"Grafit"}[s.theme]||"Sistem")};
+  root.querySelectorAll("[data-yms-value]").forEach(node=>setText(node,values[node.dataset.ymsValue]));
+  root.querySelectorAll("[data-yms-notif]").forEach(button=>{const on=notifEnabled(button.dataset.ymsNotifSource);button.classList.toggle("is-on",on);button.setAttribute("aria-checked",String(on))});
+  const permission=notifPermission(),status=root.querySelector("[data-yms-notif-status]");setText(status,notifPermissionText());status?.classList.toggle("ok",permission==="granted");
+  const permit=root.querySelector("[data-yms-notif-permission]");if(permit){permit.disabled=permission==="granted"||permission==="unsupported";setText(permit,permission==="granted"?"Bildirim izni açık":"Bildirim izni ver")}
+  const time=root.querySelector("#ymsNotifTime");if(time&&!view.timeDirty&&document.activeElement!==time)time.value=notifTime();
+  const target=root.querySelector("#ymsQuestionTarget");if(target&&target.dataset.dirty!=="true"&&document.activeElement!==target)target.value=String(s.target||0);
+}
+function bind(root){
+  const on=(selector,callback)=>root.querySelectorAll(selector).forEach(button=>button.addEventListener("click",callback));
+  on("[data-yms-category]",event=>showCategory(event.currentTarget.dataset.ymsCategory));
+  on("[data-yms-back]",()=>showCategory(""));
+  root.querySelector("#ymsSearch").addEventListener("input",event=>{view.query=event.target.value;filterCategories(root)});
+  on("[data-yms-edit]",openEditor);
+  on("[data-yms-open-account]",()=>showCategory("account"));
+  on("[data-yms-account-refresh]",()=>render());
+  on("[data-yms-notif]",event=>{window.toggleNotif?.(event.currentTarget.dataset.ymsNotif);refresh(root)});
+  on("[data-yms-notif-permission]",()=>{try{Promise.resolve(window.askNotif?.()).then(()=>refresh(root),()=>refresh(root))}catch{refresh(root)}});
+  root.querySelector("#ymsNotifTime").addEventListener("input",()=>{view.timeDirty=true});
+  on("[data-yms-notif-time]",()=>{const input=root.querySelector("#ymsNotifTime"),legacy=document.getElementById("notifTime");if(!input.value){setText(root.querySelector("[data-yms-time-status]"),"Bir saat seç.");return}if(legacy)legacy.value=input.value;window.saveEveningAt?.();view.timeDirty=false;setText(root.querySelector("[data-yms-time-status]"),"Hatırlatma saati kaydedildi.");refresh(root)});
+  on("[data-yms-notif-test]",()=>window.testNotif?.());
+  on("[data-yms-notif-refresh]",()=>{window.notifDiag?.();window.renderNotifSettings?.();refresh(root)});
+  const target=root.querySelector("#ymsQuestionTarget");target.addEventListener("input",()=>{target.dataset.dirty="true"});
+  on("[data-yms-target-save]",()=>{const status=root.querySelector("[data-yms-target-status]");if(!target.checkValidity()||target.value===""){setText(status,"0 ile 10.000 arasında bir soru hedefi gir.");target.reportValidity();return}const s=st(),previous=s.target;s.target=Math.round(num(target.value,0,10000));if(!save()){s.target=previous;setText(status,"Hedef kaydedilemedi. Tekrar dene.");return}target.dataset.dirty="false";const legacy=document.getElementById("targetInput");if(legacy)legacy.value=String(s.target);window.renderHome?.();setText(status,"Günlük soru hedefin kaydedildi.");refresh(root)});
+  on("[data-yms-program]",()=>window.go?.("program"));
+  on("[data-yms-data]",()=>{if(typeof window.v30Action==="function")window.v30Action("data");else window.setMoreTab?.("veri")});
+  on("[data-yms-system]",()=>window.v30Action?.("system"));on("[data-yms-about]",()=>window.v30Action?.("about"));
+  on("[data-yms-demo-load]",()=>window.loadDemo?.());on("[data-yms-demo-clear]",()=>window.clearDemo?.());on("[data-yms-wizard]",()=>window.openWizard?.());
+  root.addEventListener("change",()=>{refresh(root)});
+}
+let observedPanel=null,observer=null,refreshQueued=false;
+function queueRefresh(){if(refreshQueued)return;refreshQueued=true;queueMicrotask(()=>{refreshQueued=false;render()})}
+function observePanels(panel){
+  if(observedPanel===panel||typeof MutationObserver==="undefined")return;
+  observer?.disconnect();observedPanel=panel;
+  observer=new MutationObserver(records=>{
+    if(records.some(record=>Array.from(record.addedNodes).some(node=>node.nodeType===1&&["v43Personalization","studentCoachCodeSettings","cloudSyncBox","yksAccountSettingsCard"].some(id=>node.id===id||node.querySelector?.(`#${id}`)))))queueRefresh();
+  });
+  observer.observe(document.getElementById("more")||panel,{childList:true,subtree:true});
+}
+function render(){
+  styles();const panel=document.getElementById("mrp_ayar");if(!panel)return false;
+  hideLegacySettings();let root=document.getElementById(ROOT_ID);
+  if(!root){
+    root=document.createElement("div");root.id=ROOT_ID;root.className="yms-wrap";root.innerHTML=markup();
+    const head=panel.querySelector(".v30-subhead");if(head)head.after(root);else panel.prepend(root);
+    bind(root);root.querySelector("#ymsSearch").value=view.query;filterCategories(root);showCategory(view.category,false);
+  }
+  adoptPanels(root);refresh(root);observePanels(panel);return true;
+}
 
-function openEditor(){styles();document.getElementById(MODAL_ID)?.remove();const s=st(),w=document.createElement("div");w.id=MODAL_ID;w.className="yms-modal";w.innerHTML=`<div class="yms-dialog"><div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start"><div><p class="eyebrow">Profilim</p><h2 style="margin:2px 0 12px">Bilgileri düzenle</h2></div><button class="yms-edit" type="button" data-close>×</button></div><div class="yms-form"><div class="yms-field full"><label>Ad Soyad</label><input name="name" maxlength="80" value="${esc(s.name||"")}" autocomplete="name"></div><div class="yms-field"><label>Alan / puan türü</label><select name="track"><option value="SAY">SAY</option><option value="EA">EA</option><option value="SÖZ">SÖZ</option><option value="DİL">DİL</option></select></div><div class="yms-field"><label>Haftada çalışma günü</label><input name="days" type="number" min="1" max="7" value="${esc(String(s.workdays||6))}"></div><div class="yms-field"><label>TYT hedef net</label><input name="tyt" type="number" min="0" max="120" step="0.25" value="${esc(String(s.targetNetTYT??s.targetNet??""))}"></div><div class="yms-field"><label>AYT hedef net</label><input name="ayt" type="number" min="0" max="80" step="0.25" value="${esc(String(s.targetNetAYT??""))}"></div><div class="yms-field full"><label>Hedef üniversite / okul</label><input name="uni" maxlength="120" value="${esc(s.targetUniversity||"")}" placeholder="Örn. İstanbul Teknik Üniversitesi"></div><div class="yms-field full"><label>Hedef bölüm</label><input name="dept" maxlength="120" value="${esc(s.targetDepartment||"")}" placeholder="Örn. Bilgisayar Mühendisliği"></div><div class="yms-field"><label>OBP (0–100)</label><input name="obp" type="number" min="0" max="100" step="0.01" value="${esc(String(s.obp||""))}"></div></div><p class="yms-note">Sınav tarihleri buradan değiştirilemez.</p><div class="yms-actions" style="justify-content:flex-end"><button type="button" data-close>Vazgeç</button><button class="primary" type="button" data-save>Kaydet</button></div></div>`;w.querySelector('select[name="track"]').value=["SAY","EA","SÖZ","DİL"].includes(s.puanTuru)?s.puanTuru:"SAY";w.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click",()=>w.remove()));w.querySelector("[data-save]").addEventListener("click",()=>{const q=n=>w.querySelector(`[name="${n}"]`);s.name=txt(q("name").value,80);s.puanTuru=q("track").value;s.workdays=Math.round(num(q("days").value,1,7))||6;s.targetNetTYT=num(q("tyt").value,0,120);s.targetNetAYT=num(q("ayt").value,0,80);s.targetNet=s.targetNetTYT;s.targetUniversity=txt(q("uni").value,120);s.targetDepartment=txt(q("dept").value,120);s.obp=num(q("obp").value,0,100);const legacyName=document.getElementById("nameInput");if(legacyName)legacyName.value=s.name;const legacyNet=document.getElementById("targetNetInput");if(legacyNet)legacyNet.value=s.targetNetTYT||"";const wd=document.getElementById("workdaysInput");if(wd)wd.value=s.workdays;save();try{window.renderEffective?.();window.renderHome?.();window.renderScore?.()}catch{}w.remove();render();toast("Profil ve hedefler güncellendi")});document.body.append(w)}
+function openEditor(){
+  styles();document.getElementById(MODAL_ID)?.remove();const s=st(),opener=document.activeElement,w=document.createElement("div");w.id=MODAL_ID;w.className="yms-modal";
+  w.innerHTML=`<div class="yms-dialog" role="dialog" aria-modal="true" aria-labelledby="ymsEditorTitle"><div class="yms-dialog-head"><h2 id="ymsEditorTitle">Profil ve hedefler</h2><button class="yms-edit" type="button" data-close aria-label="Düzenlemeyi kapat">×</button></div><form class="yms-editor-form"><div class="yms-form">
+  <div class="yms-field full"><label for="ymsName">Ad Soyad</label><input id="ymsName" name="name" maxlength="80" value="${esc(s.name||"")}" autocomplete="name"></div>
+  <div class="yms-field"><label for="ymsTrack">Alan / puan türü</label><select id="ymsTrack" name="track"><option value="SAY">SAY</option><option value="EA">EA</option><option value="SÖZ">SÖZ</option><option value="DİL">DİL</option></select></div>
+  <div class="yms-field"><label for="ymsDays">Haftada çalışma günü</label><input id="ymsDays" name="days" type="number" min="1" max="7" required value="${esc(String(s.workdays||6))}"></div>
+  <div class="yms-field"><label for="ymsTyt">TYT hedef net</label><input id="ymsTyt" name="tyt" type="number" min="0" max="120" step="0.25" value="${esc(String(s.targetNetTYT??s.targetNet??""))}"></div>
+  <div class="yms-field"><label for="ymsAyt">AYT hedef net</label><input id="ymsAyt" name="ayt" type="number" min="0" max="80" step="0.25" value="${esc(String(s.targetNetAYT??""))}"></div>
+  <div class="yms-field full"><label for="ymsUni">Hedef üniversite / okul</label><input id="ymsUni" name="uni" maxlength="120" value="${esc(s.targetUniversity||"")}" placeholder="Örn. İstanbul Teknik Üniversitesi"></div>
+  <div class="yms-field full"><label for="ymsDept">Hedef bölüm</label><input id="ymsDept" name="dept" maxlength="120" value="${esc(s.targetDepartment||"")}" placeholder="Örn. Bilgisayar Mühendisliği"></div>
+  <div class="yms-field"><label for="ymsObp">OBP (0–100)</label><input id="ymsObp" name="obp" type="number" min="0" max="100" step="0.01" value="${esc(String(s.obp||""))}"></div></div>
+  <p class="yms-editor-error" role="alert" hidden></p><div class="yms-actions"><button type="button" data-close>Vazgeç</button><button class="primary" type="submit">Değişiklikleri kaydet</button></div></form></div>`;
+  w.querySelector('select[name="track"]').value=["SAY","EA","SÖZ","DİL"].includes(s.puanTuru)?s.puanTuru:"SAY";
+  const close=()=>{w.remove();opener?.focus?.({preventScroll:true})};
+  w.querySelectorAll("[data-close]").forEach(button=>button.addEventListener("click",close));
+  w.addEventListener("click",event=>{if(event.target===w)close()});
+  w.addEventListener("keydown",event=>{
+    if(event.key==="Escape"){event.preventDefault();close();return}
+    if(event.key!=="Tab")return;
+    const focusable=Array.from(w.querySelectorAll("button,input,select")),first=focusable[0],last=focusable[focusable.length-1];
+    if(event.shiftKey&&document.activeElement===first){event.preventDefault();last?.focus()}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus()}
+  });
+  w.querySelector("form").addEventListener("submit",event=>{
+    event.preventDefault();const q=n=>w.querySelector(`[name="${n}"]`),s=st(),previous={};
+    for(const key of ["name","puanTuru","workdays","targetNetTYT","targetNetAYT","targetNet","targetUniversity","targetDepartment","obp"])previous[key]=s[key];
+    s.name=txt(q("name").value,80);s.puanTuru=q("track").value;s.workdays=Math.round(num(q("days").value,1,7))||6;s.targetNetTYT=num(q("tyt").value,0,120);s.targetNetAYT=num(q("ayt").value,0,80);s.targetNet=s.targetNetTYT;s.targetUniversity=txt(q("uni").value,120);s.targetDepartment=txt(q("dept").value,120);s.obp=num(q("obp").value,0,100);
+    if(!save()){Object.assign(s,previous);const error=w.querySelector(".yms-editor-error");error.hidden=false;error.textContent="Değişikliklerin kaydedilemedi. Bilgilerin burada duruyor; tekrar deneyebilirsin.";return}
+    for(const [id,value] of [["nameInput",s.name],["targetNetInput",s.targetNetTYT||""],["workdaysInput",s.workdays],["obpInput",s.obp]]){const input=document.getElementById(id);if(input)input.value=value}
+    try{window.renderEffective?.();window.renderHome?.();window.renderScore?.()}catch{}
+    close();render();toast("Profil ve hedefler güncellendi");
+  });
+  document.body.append(w);w.querySelector('[name="name"]').focus();
+}
 
-function install(){if(render())return;let n=0;const t=setInterval(()=>{n++;if(render()||n>40)clearInterval(t)},250)}
-window.addEventListener("yks:v4-bootstrap",()=>setTimeout(render,0));
-window.addEventListener("yks:auth-state",()=>setTimeout(render,0));
-window.addEventListener("yks:v43-personalization",()=>setTimeout(()=>{polishPersonalization()},0));
-window.addEventListener("yks:data-changed",event=>{if(event?.detail?.source!=="settings-profile")setTimeout(render,0)});
-[600,1500,3500,7000].forEach(ms=>setTimeout(render,ms));
+function install(){if(render())return;let n=0;const timer=setInterval(()=>{if(render()||++n>40)clearInterval(timer)},250)}
+window.__YKS_SETTINGS__={version:"3.0.0",open:category=>{render();return showCategory(category)},back:()=>showCategory(""),refresh:render};
+for(const name of ["yks:v4-bootstrap","yks:auth-state","yks:v43-personalization","yks:data-changed"])window.addEventListener(name,queueRefresh);
+window.addEventListener("yks:open-settings",event=>{render();showCategory(event.detail?.category||"")});
 enforceSettingsOnlyTheme();install();document.documentElement.dataset.modernSettings="ready";

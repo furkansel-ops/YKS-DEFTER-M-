@@ -22,6 +22,7 @@ import {installTeachersV2} from "./ui/teachers-v2";
 import "./ui/visual-stability-hotfix.css";
 import "./ui/recent-feature-stability.css";
 import "./ui/topics-toolbar-hotfix.css";
+import "./ui/refined-blue.css";
 
 type BootstrapState={
   version:typeof RELEASE_VERSION;

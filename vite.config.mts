@@ -103,7 +103,7 @@ const OFFLINE_STARTUP_MODULES=[
   "src/ui/top-sync-indicator.ts","src/ui/student-account-loader.ts",
   "src/ui/today-v43.ts","src/ui/analysis-center-v43.ts","src/ui/learning-cycle-v43.ts",
   "src/ui/lab-quiz-v43.ts","src/ui/navigation-v43.ts","src/ui/personalization-v43.ts",
-  "src/ui/focus-session-guard-v43.ts","src/ui/runtime-resilience-v431.ts"
+  "src/ui/focus-session-guard-v43.ts","src/ui/runtime-resilience-v431.ts","src/ui/refined-shell.ts"
 ];
 
 function prepareOfflineStartupAssets():Plugin{

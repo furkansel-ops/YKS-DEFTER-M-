@@ -5,7 +5,7 @@ import {verifyLocalCssImports} from "./verify-css-imports.mjs";
 
 const root=resolve(import.meta.dirname,".."),dist=resolve(root,"dist");
 const localRelease=JSON.parse(await readFile(resolve(root,"version.json"),"utf8"));
-if(localRelease.version!=="4.4.0"||localRelease.build!=="4.4.0-r2"||localRelease.schema!==21)throw new Error("Yerel v4.4.0 release kimliği beklenen değerle eşleşmiyor");
+if(localRelease.version!=="4.4.0"||localRelease.build!=="4.4.0-r3"||localRelease.schema!==21)throw new Error("Yerel v4.4.0 release kimliği beklenen değerle eşleşmiyor");
 const required=[
   "index.html","404.html","app.js","app.css","sw.js","version.json","manifest.webmanifest",
   "modules/core-utils.js","modules/stability.js","modules/topic-guides.js",

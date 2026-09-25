@@ -1172,17 +1172,27 @@ function saveJournal(){
 /* Hücrede bir video/oynatma listesi bağlantısı var mı? */
 function cellLink(txt){
   const t=String(txt||"");
-  const m=t.match(/https:\/\/[^\s]+/);
+  const m=t.match(/https?:\/\/[^\s]+/);
   if(!m)return null;
   const url=m[0].replace(/[.,;)]+$/,"");
-  const vid=url.match(/youtu\.be\/([\w-]{6,})/);
-  const pl=url.match(/[?&]list=([\w-]{6,})/);
+  let videoId="",listId="";
+  try{
+    const parsed=new URL(url),host=parsed.hostname.toLowerCase();
+    if(["youtube.com","www.youtube.com","m.youtube.com","music.youtube.com","youtu.be","www.youtu.be"].includes(host)){
+      const list=parsed.searchParams.get("list")||"";
+      if(/^[\w-]{10,100}$/.test(list))listId=list;
+      const video=(host.endsWith("youtu.be")?parsed.pathname.slice(1).split("/")[0]:parsed.searchParams.get("v")||parsed.pathname.match(/^\/(?:shorts|embed|live)\/([^/]+)/)?.[1])||"";
+      if(/^[\w-]{11}$/.test(video))videoId=video;
+    }
+  }catch{return null;}
   const ad=t.replace(url,"").replace(/^[▶☰]\s*/,"").replace(/[\s—–-]+$/,"").trim();
-  return {url:url,videoId:vid?vid[1]:"",listId:pl?pl[1]:"",ad:ad};
+  return {url:url,videoId:videoId,listId:listId,ad:ad};
 }
 function cellOpenLink(txt){
   const l=cellLink(txt);
   if(!l)return false;
+  if(l.listId&&typeof openPlaylistResource==="function")
+    return openPlaylistResource(l.listId,l.ad||"YouTube oynatma listesi");
   if(l.videoId&&typeof openSingleVideo==="function")
     return openSingleVideo(l.videoId,l.ad||"Video");
   openExternalUrl(l.url);
@@ -5937,8 +5947,16 @@ function directPlaylistData(){
 }
 function openDirectPlaylist(){
   const p=directPlaylistData(); if(!p)return false;
-  directPlaylist=p; playIdx=-2;
+  return openPlaylistResource(p.id,p.name);
+}
+/* Program bağlantıları, kaynak formundaki taslağı değiştirmeden aynı oynatıcıyı açar. */
+function openPlaylistResource(id,name){
+  const listId=String(id||"").trim();
+  if(!/^[A-Za-z0-9_-]{10,100}$/.test(listId))return false;
   const ov=el("playOverlay"); if(!ov)return false;
+  const p={id:listId,name:String(name||"YouTube oynatma listesi").trim().slice(0,80)||"YouTube oynatma listesi",
+    url:"https://www.youtube.com/playlist?list="+encodeURIComponent(listId)};
+  directPlaylist=p; playIdx=-2;
   ov.style.display="flex";
   el("playTitle").textContent=p.name;
   el("playCh").textContent="YouTube oynatma listesi";
@@ -10574,7 +10592,7 @@ try{const q=new URLSearchParams(location.search).get("selftest");if(q==="v31")se
     return true;
   }
   function buildTopics(){
-    const root=by('topics'),ovCard=by('v26TopicOverview'),goals=by('v4TopicGoals'),att=by('v26TopicAttention');
+    const root=by('refinedTopicInsights')||by('topics'),ovCard=by('v26TopicOverview'),goals=by('v4TopicGoals'),att=by('v26TopicAttention');
     if(!root||!ovCard||!goals||!att)return false;
     const overviewTitle=ovCard.previousElementSibling,goalTitle=goals.previousElementSibling;
     const w=ensureWrap(root,'desktop-topic-overview',(overviewTitle&&overviewTitle.parentNode===root)?overviewTitle:ovCard);
@@ -10598,7 +10616,7 @@ try{const q=new URLSearchParams(location.search).get("selftest");if(q==="v31")se
     move(sides[0],setup);move(sides[1],pomo);move(sides[1],stop);return true;
   }
   function buildProgram(){
-    const root=by('program'),a=by('fh_kamp'),ab=by('fb_kamp'),b=by('fh_sablon'),bb=by('fb_sablon');
+    const root=by('refinedProgramLegacy')||by('program'),a=by('fh_kamp'),ab=by('fb_kamp'),b=by('fh_sablon'),bb=by('fb_sablon');
     if(!root||!a||!ab||!b||!bb)return false;
     let tools=ensureWrap(root,'desktop-program-tools',a);
     const ensurePair=(head,body,key)=>{
@@ -10627,6 +10645,7 @@ try{const q=new URLSearchParams(location.search).get("selftest");if(q==="v31")se
   }
   function rebuildHome(){
     const root=by('home'),anchor=by('homeGoals');if(!root||!anchor)return false;
+    if(root.dataset.rbToday==='ready')return !!root.querySelector('.rb-today-tasks #todayPlan')&&!!root.querySelector('[data-v43-secondary] #suggestBox');
     let grid=ensureWrap(root,'desktop-home-grid',anchor.nextSibling);
     const fresh=[];let n=anchor.nextElementSibling;
     while(n){const nx=n.nextElementSibling;if(n!==grid)fresh.push(n);n=nx;}
@@ -10643,11 +10662,11 @@ try{const q=new URLSearchParams(location.search).get("selftest");if(q==="v31")se
   function audit(){
     const checks={
       deneme:by('v315Dashboard')?!!by('v315ExamFormCard'):(!!D.querySelector('#deneme > .desktop-deneme-top #denemeName')&&!!D.querySelector('#deneme > .desktop-deneme-top #v27Latest')),
-      topics:!!D.querySelector('#topics > .desktop-topic-overview #v26TopicOverview')&&!!D.querySelector('#topics > .desktop-topic-overview #v4TopicGoals')&&!!D.querySelector('#topics > .desktop-topic-overview #v26TopicAttention'),
+      topics:!!D.querySelector('#topics .desktop-topic-overview #v26TopicOverview')&&!!D.querySelector('#topics .desktop-topic-overview #v4TopicGoals')&&!!D.querySelector('#topics .desktop-topic-overview #v26TopicAttention'),
       focus:!!D.querySelector('#pomo > .desktop-focus-workspace .v29-session-setup')&&!!D.querySelector('#pomo > .desktop-focus-workspace #focusPomo'),
-      program:!!D.querySelector('#program > .desktop-program-tools #fh_kamp')&&!!D.querySelector('#program > .desktop-program-tools #fh_sablon'),
-      progress:!!D.querySelector('#progress > .desktop-progress-grid #progressCompare')&&!!D.querySelector('#progress > .desktop-progress-grid #progressNet'),
-      home:!!D.querySelector('#home > .desktop-home-grid #suggestBox')&&!!D.querySelector('#home > .desktop-home-grid #todayPlan')
+      program:!!D.querySelector('#program .desktop-program-tools #fh_kamp')&&!!D.querySelector('#program .desktop-program-tools #fh_sablon'),
+      progress:!!D.querySelector('#progress .desktop-progress-grid #progressCompare')&&!!D.querySelector('#progress .desktop-progress-grid #progressNet'),
+      home:by('home')?.dataset.rbToday==='ready'?(!!D.querySelector('#home .rb-today-tasks #todayPlan')&&!!D.querySelector('#home [data-v43-secondary] #suggestBox')):(!!D.querySelector('#home > .desktop-home-grid #suggestBox')&&!!D.querySelector('#home > .desktop-home-grid #todayPlan'))
     };
     const ok=Object.values(checks).every(Boolean);
     D.documentElement.dataset.desktopLayoutHealth=ok?'ok':'fail';
@@ -10677,7 +10696,7 @@ try{const q=new URLSearchParams(location.search).get("selftest");if(q==="v31")se
       const before=counts();repair();repair();add('idempotent',counts()===before);
       add('deneme-form',by('v315Dashboard')?!!by('v315ExamFormCard'):!!D.querySelector('.desktop-deneme-primary #denemeName'));
       add('deneme-side',by('v315Dashboard')?(!!by('v27Overview')&&!!by('v27Latest')):(!!D.querySelector('.desktop-deneme-side #v27Overview')&&!!D.querySelector('.desktop-deneme-side #v27Latest')));
-      add('home',!!D.querySelector('.desktop-home-grid #todayPlan'));
+      add('home',!!D.querySelector('.desktop-home-grid #todayPlan,.rb-today-tasks #todayPlan'));
       add('progress',!!D.querySelector('.desktop-progress-grid #progressNet'));
     }catch(e){checks.push(['exception',false]);try{infraError('v314-selftest',e)}catch(_){}}
     const ok=checks.every(x=>x[1]);D.documentElement.setAttribute('data-v314-selftest',ok?'ok':'fail');
