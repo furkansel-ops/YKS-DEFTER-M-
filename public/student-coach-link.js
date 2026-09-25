@@ -81,16 +81,14 @@ async function shareWithCoach(sourceButton){
   buttons.forEach(btn=>{btn.disabled=true;btn.dataset.oldText=btn.textContent;btn.textContent="Paylaşılıyor…"});
   statuses.forEach(node=>node.textContent="Güncel bilgiler koça gönderiliyor…");
   try{
-    if(typeof window.YKSAccountAuth?.publishShare==="function")await window.YKSAccountAuth.publishShare();
-    if(document.documentElement.dataset.coachShare==="error")throw new Error("Öğrenci bilgileri gönderilemedi");
+    if(typeof window.YKSAccountAuth?.publishShare==="function")await window.YKSAccountAuth.publishShare({manual:true});
     if(typeof window.YKSStudentProgramShareV2?.publish==="function")await window.YKSStudentProgramShareV2.publish(true);
-    if(document.documentElement.dataset.studentProgramShare==="error")throw new Error("Program gönderilemedi");
     const stamp=new Date().toLocaleTimeString("tr-TR",{hour:"2-digit",minute:"2-digit"});
     statuses.forEach(node=>node.textContent="Koçla paylaşıldı ✓ · "+stamp);
     toast("Program ve bilgiler koçla paylaşıldı ✓");
   }catch(error){
     console.error("Koça manuel paylaşım",error);
-    statuses.forEach(node=>node.textContent="Paylaşım başarısız. Tekrar deneyebilirsin.");
+    const detail=text(error?.code||error?.message||"Bilinmeyen hata",120);statuses.forEach(node=>node.textContent="Paylaşım başarısız · "+detail);
     throw error;
   }finally{
     state.sharing=false;
@@ -147,7 +145,7 @@ function install(){
   auth.onSignedOut=()=>{cleanup();return originalSignedOut?.()};
   window.addEventListener("yks:data-changed",()=>{if(state.profile?.role==="student"&&document.getElementById("studentCoachCodeSettings"))void renderStudentSettings()});
   document.documentElement.dataset.studentCoachLink="ready";
-  window.dispatchEvent(new CustomEvent("yks:student-coach-link-ready",{detail:{version:"1.1.0"}}));
+  window.dispatchEvent(new CustomEvent("yks:student-coach-link-ready",{detail:{version:"1.2.0"}}));
   return true;
 }
 install();
