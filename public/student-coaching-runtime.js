@@ -107,18 +107,6 @@ async function publishShare(){
   const s=state();if(!s){scheduleShare(500);return}rt.sharing=true;
   try{
     const payload=sharePayload(s,rt.user);
-    try{
-      await setDoc(doc(rt.db,"coachingPrograms",rt.user.uid),{
-        studentUid:rt.user.uid,
-        version:1,
-        program:payload.program,
-        updatedAt:serverTimestamp()
-      },{merge:true});
-      document.documentElement.dataset.studentProgramShare="ready";
-    }catch(programError){
-      console.error("Program aynası",programError);
-      document.documentElement.dataset.studentProgramShare="error";
-    }
     await setDoc(doc(rt.db,"coachingShares",rt.user.uid),payload,{merge:true});
     document.documentElement.dataset.coachShare="ready";
   }catch(error){
@@ -175,7 +163,7 @@ async function onSignedIn({user,auth,db}){
 function onSignedOut(){cleanup();rt.user=rt.auth=rt.db=rt.profile=null;delete document.documentElement.dataset.accountRole}
 
 let resolveAccountReady;try{window.__YKS_ACCOUNT_READY__=new Promise(resolve=>{resolveAccountReady=resolve})}catch{}
-window.YKSAccountAuth={version:"1.2.3",beforeSignIn,onSignedIn,onSignedOut,publishShare};
+window.YKSAccountAuth={version:"1.2.4",beforeSignIn,onSignedIn,onSignedOut,publishShare};
 try{resolveAccountReady?.(window.YKSAccountAuth)}catch{}
 document.documentElement.dataset.studentCoachingBridge="ready";
-window.dispatchEvent(new CustomEvent("yks:student-coaching-ready",{detail:{version:"1.2.3"}}));
+window.dispatchEvent(new CustomEvent("yks:student-coaching-ready",{detail:{version:"1.2.4"}}));
