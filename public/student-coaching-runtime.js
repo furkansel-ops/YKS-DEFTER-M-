@@ -3,6 +3,8 @@ import{collection,doc,getDoc,onSnapshot,query,where,setDoc,updateDoc,serverTimes
 const PENDING_ROLE="yks_account_role_pending",ROLE_HINT="yks_account_role_hint",DAY=86400000;
 const rt={auth:null,db:null,user:null,profile:null,stops:[],shareTimer:null,sharing:false,pending:false};
 const text=(v,n=160)=>String(v??"").trim().slice(0,n);
+const list=v=>Array.isArray(v)?v:[];
+const finite=(v,fallback=0)=>Number.isFinite(Number(v))?Number(v):fallback;
 const state=()=>{try{return window.YKSLegacyState?.readState?.()||window.S||null}catch{return window.S||null}};
 const save=()=>{try{return window.save?.()??window.YKSLegacyState?.save?.()}catch{return false}};
 const toast=m=>{try{window.toast?.(m)}catch{console.info(m)}};
@@ -93,10 +95,10 @@ function buildProgramShare(s){
 }
 
 function sharePayload(s,u){
-  const topics=Object.entries(s.topics||{}).slice(0,500).map(([key,v])=>({key:text(key,220),...topicParts(key),st:Number(v?.st||0),deadline:text(v?.dl,10)}));
-  const exams=(s.denemeler||[]).slice(-24).map(d=>({id:String(d.id||""),type:text(d.type,16),name:text(d.name,100),date:text(d.date,10),totalNet:Number(d.totalNet||0),subjectResults:(d.subjectResults||[]).slice(0,16).map(x=>({name:text(x.name,60),net:Number(x.net||0)}))}));
-  const pp=(s.lab?.paragraphLog||[]).slice(-100);
-  const errors=(s.wrongLog||[]).slice(-100).map(x=>({date:text(x.date,10),subject:text(x.subject,60),topic:text(x.topic,100),n:Number(x.n||1)}));
+  const topics=Object.entries(s.topics&&typeof s.topics==="object"?s.topics:{}).slice(0,500).map(([key,v])=>({key:text(key,220),...topicParts(key),st:finite(v?.st),deadline:text(v?.dl,10)}));
+  const exams=list(s.denemeler).slice(-24).map(d=>({id:String(d?.id||""),type:text(d?.type,16),name:text(d?.name,100),date:text(d?.date,10),totalNet:finite(d?.totalNet),subjectResults:list(d?.subjectResults).slice(0,16).map(x=>({name:text(x?.name,60),net:finite(x?.net)}))}));
+  const pp=list(s.lab?.paragraphLog).slice(-100).map(x=>({id:text(x?.id,80),at:finite(x?.at),words:finite(x?.words),seconds:finite(x?.seconds),wpm:finite(x?.wpm),score:finite(x?.score),title:text(x?.title,120)}));
+  const errors=list(s.wrongLog).slice(-100).map(x=>({date:text(x?.date,10),subject:text(x?.subject,60),topic:text(x?.topic,100),n:Math.max(1,finite(x?.n,1))}));
   return{studentUid:u.uid,version:1,profile:{name:text(s.name||u.displayName,80),track:text(s.puanTuru,8),targetNetTYT:Number(s.targetNetTYT??s.targetNet??0),targetNetAYT:Number(s.targetNetAYT||0),targetUniversity:text(s.targetUniversity,120),targetDepartment:text(s.targetDepartment,120)},program:buildProgramShare(s),exams,progress:{minutes7:sum(s.pomoMin,7),questions7:sum(s.solved,7),completedTopics:topics.filter(x=>x.st>=3).length,activeTopics:topics.filter(x=>x.st>0&&x.st<3).length,overdueTopics:topics.filter(x=>x.deadline&&x.deadline<today()&&x.st<3).length},paragraphProblem:{entries:pp},topics:{items:topics},errorJournal:errors,updatedAt:serverTimestamp()};
 }
 async function publishShare(){
@@ -160,7 +162,7 @@ async function onSignedIn({user,auth,db}){
 function onSignedOut(){cleanup();rt.user=rt.auth=rt.db=rt.profile=null;delete document.documentElement.dataset.accountRole}
 
 let resolveAccountReady;try{window.__YKS_ACCOUNT_READY__=new Promise(resolve=>{resolveAccountReady=resolve})}catch{}
-window.YKSAccountAuth={version:"1.2.1",beforeSignIn,onSignedIn,onSignedOut,publishShare};
+window.YKSAccountAuth={version:"1.2.2",beforeSignIn,onSignedIn,onSignedOut,publishShare};
 try{resolveAccountReady?.(window.YKSAccountAuth)}catch{}
 document.documentElement.dataset.studentCoachingBridge="ready";
-window.dispatchEvent(new CustomEvent("yks:student-coaching-ready",{detail:{version:"1.2.1"}}));
+window.dispatchEvent(new CustomEvent("yks:student-coaching-ready",{detail:{version:"1.2.2"}}));
