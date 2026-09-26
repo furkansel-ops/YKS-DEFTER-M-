@@ -32,6 +32,42 @@
   border-color:color-mix(in srgb,var(--accent) 24%,var(--glass-line));
   box-shadow:var(--shadow-3);
 }
+
+/* Legacy render can mark .topics as open before the v4.5 runtime adds .is-expanded.
+   Keep that intermediate state usable: an open subject must never stay squeezed
+   inside a 2/3-column card, otherwise topic titles collapse letter-by-letter. */
+#topics #subjectList>.subj:has(>.topics.open){
+  grid-column:1/-1;
+}
+#topics #subjectList>.subj:has(>.topics.open)>.topics.open .topic{
+  display:grid;
+  grid-template-columns:minmax(280px,1fr) auto;
+  gap:18px;
+  align-items:center;
+  min-width:0;
+  padding:13px 2px;
+}
+#topics #subjectList>.subj:has(>.topics.open)>.topics.open .tinfo{
+  min-width:0;
+  width:100%;
+}
+#topics #subjectList>.subj:has(>.topics.open)>.topics.open .topic-title-row{
+  min-width:0;
+}
+#topics #subjectList>.subj:has(>.topics.open)>.topics.open .topic-name-btn{
+  display:block;
+  width:100%;
+  min-width:0;
+  max-width:100%;
+  white-space:normal;
+  overflow-wrap:break-word;
+  word-break:normal;
+  hyphens:none;
+}
+#topics #subjectList>.subj:has(>.topics.open)>.topics.open .tctl{
+  min-width:max-content;
+  justify-content:flex-end;
+}
 #topics .subj[data-v45-topics="ready"] .subj-head{align-items:flex-start;gap:14px;}
 #topics .subj[data-v45-topics="ready"] .subj-head .nm{
   min-width:0;
