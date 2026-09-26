@@ -3,7 +3,7 @@ import {GLTFLoader} from "three/examples/jsm/loaders/GLTFLoader.js";
 import "./mascot-glb-runtime.css";
 
 const DOCK_ID="yksNotebookMascotDock";
-const MODEL_PATH="./mascots/notebook/notebook-exact-v3.glb";
+const MODEL_PATH="./mascots/notebook/notebook-final-v4.glb";
 const FALLBACK_PATH="./mascots/notebook.webp";
 const CLIPS=["idle","tap","celebrate","sad","wave"] as const;
 type ClipName=typeof CLIPS[number];
@@ -89,7 +89,7 @@ async function createController(host:HTMLElement,canvas:HTMLCanvasElement,fallba
     };
     mixer.addEventListener("finished",finished);
   };
-  if(!reducedMotion())play("wave");
+  if(!reducedMotion())play("idle");
 
   const button=canvas.closest<HTMLElement>(".yks-glb-mascot-button");
   const onPointerMove=(event:PointerEvent)=>{
@@ -150,23 +150,36 @@ async function createController(host:HTMLElement,canvas:HTMLCanvasElement,fallba
 
 export function installMascotGlbRuntime():{installed:boolean;model:"notebook"}{
   if(document.getElementById(DOCK_ID))return {installed:true,model:"notebook"};
-  const home=document.getElementById("home");if(!home)return {installed:false,model:"notebook"};
+  const surfaceIds=["home","todayHub","program"] as const;
+  const screens=surfaceIds.map(id=>document.getElementById(id)).filter((screen):screen is HTMLElement=>Boolean(screen));
+  if(!screens.length)return {installed:false,model:"notebook"};
 
   const host=document.createElement("aside");host.id=DOCK_ID;host.className="yks-glb-mascot-dock";host.dataset.renderer="loading";
-  host.innerHTML=`<button class="yks-glb-mascot-button" type="button" aria-label="Defter maskotuna dokun"><canvas class="yks-glb-mascot-canvas" aria-hidden="true"></canvas><img class="yks-glb-mascot-fallback" src="${asset(FALLBACK_PATH)}" alt="" hidden><span class="yks-glb-mascot-badge">Defter</span></button>`;
+  host.innerHTML=`<button class="yks-glb-mascot-button" type="button" aria-label="Defter maskotuna dokun"><canvas class="yks-glb-mascot-canvas" aria-hidden="true"></canvas><img class="yks-glb-mascot-fallback" src="${asset(FALLBACK_PATH)}" alt="" hidden></button>`;
   document.body.append(host);
 
   const canvas=host.querySelector<HTMLCanvasElement>(".yks-glb-mascot-canvas")!;
   const fallback=host.querySelector<HTMLImageElement>(".yks-glb-mascot-fallback")!;
   let controller:RuntimeController|null=null;
 
-  const syncVisibility=()=>{host.hidden=!home.classList.contains("active");controller?.setVisible(!host.hidden);};
+  let activeScreen="";
+  const syncVisibility=()=>{
+    const active=screens.find(screen=>screen.classList.contains("active"))??null;
+    const next=active?.id??"";
+    host.hidden=!active;
+    host.dataset.screen=next||"hidden";
+    controller?.setVisible(Boolean(active));
+    if(active&&next!==activeScreen){
+      activeScreen=next;
+      controller?.play(next==="home"?"wave":"idle");
+    }
+  };
   syncVisibility();
-  const homeObserver=new MutationObserver(syncVisibility);
-  homeObserver.observe(home,{attributes:true,attributeFilter:["class"]});
+  const screenObserver=new MutationObserver(syncVisibility);
+  for(const screen of screens)screenObserver.observe(screen,{attributes:true,attributeFilter:["class"]});
 
   void createController(host,canvas,fallback).then(value=>{
-    controller=value;controller.setVisible(!host.hidden);document.documentElement.dataset.glbMascotRuntime="ready";
+    controller=value;syncVisibility();document.documentElement.dataset.glbMascotRuntime="ready";
   }).catch(error=>{
     console.error("GLB defter maskotu yüklenemedi",error);
     host.dataset.renderer="fallback";fallback.hidden=false;canvas.hidden=true;
@@ -179,6 +192,6 @@ export function installMascotGlbRuntime():{installed:boolean;model:"notebook"}{
     window.setTimeout(()=>{if(toggle.closest(".plancell")?.classList.contains("pd"))controller?.play("celebrate");},180);
   },true);
   window.addEventListener("yks:mascot-celebrate",()=>controller?.play("celebrate"));
-  window.addEventListener("pagehide",()=>{homeObserver.disconnect();controller?.dispose();},{once:true});
+  window.addEventListener("pagehide",()=>{screenObserver.disconnect();controller?.dispose();},{once:true});
   return {installed:true,model:"notebook"};
 }
