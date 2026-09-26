@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 const OUT=path.resolve(process.cwd(),"public/mascots/notebook/notebook-exact-v3.glb");
+const REFERENCE_IMAGE=path.resolve(process.cwd(),"public/mascots/notebook.webp");
 const FLOAT=5126,USHORT=5123,ARRAY_BUFFER=34962,ELEMENT_ARRAY_BUFFER=34963;
 
 class BufferBuilder{
@@ -13,6 +14,13 @@ class BufferBuilder{
     const view=this.views.length;
     this.views.push({buffer:0,byteOffset:this.length,byteLength:buf.byteLength,...(target?{target}:{})});
     this.parts.push(buf);this.length+=buf.byteLength;
+    return view;
+  }
+  addRaw(buffer){
+    this.pad();
+    const view=this.views.length;
+    this.views.push({buffer:0,byteOffset:this.length,byteLength:buffer.byteLength});
+    this.parts.push(buffer);this.length+=buffer.byteLength;
     return view;
   }
   accessor(array,type,componentType,target,min,max){
@@ -143,6 +151,9 @@ addAnim("wave",1.05,[
   {node:root,path:"rotation",times:[0,.20,.42,.64,.84,1.05],values:[quatZ(0),quatZ(-.045),quatZ(.035),quatZ(-.035),quatZ(.025),quatZ(0)]}
 ]);
 
+const referenceBytes=fs.readFileSync(REFERENCE_IMAGE);
+if(referenceBytes.byteLength>1_500_000)throw new Error(`Defter referans görseli fazla büyük: ${referenceBytes.byteLength} bayt`);
+const referenceView=bb.addRaw(referenceBytes);
 const binary=bb.finish();
 const materials=[
   {name:"Blue depth",pbrMetallicRoughness:{baseColorFactor:[.035,.29,.92,1],metallicFactor:0,roughnessFactor:.33}},
@@ -151,10 +162,10 @@ const materials=[
   {name:"Dark shoes depth",pbrMetallicRoughness:{baseColorFactor:[.02,.08,.25,1],metallicFactor:0,roughnessFactor:.40}}
 ];
 const gltf={
-  asset:{version:"2.0",generator:"YKS Defterim exact-reference GLB builder",extras:{mascot:"notebook",referenceAsset:"public/mascots/notebook.webp",mode:"exact-front-plus-3d-depth",version:"3.0.0"}},
+  asset:{version:"2.0",generator:"YKS Defterim exact-reference GLB builder",extras:{mascot:"notebook",referenceAsset:"public/mascots/notebook.webp",mode:"embedded-exact-front-plus-3d-depth",version:"3.0.1"}},
   extensionsUsed:["KHR_materials_unlit"],
   scene:0,scenes:[{name:"Notebook Mascot Exact Reference",nodes:[root]}],nodes,meshes,materials,
-  images:[{uri:"./mascots/notebook.webp"}],textures:[{source:0}],
+  images:[{bufferView:referenceView,mimeType:"image/webp"}],textures:[{source:0}],
   buffers:[{byteLength:binary.length}],bufferViews:bb.views,accessors:bb.accessors,animations
 };
 const json=Buffer.from(JSON.stringify(gltf)),jsonPad=(4-json.length%4)%4,binPad=(4-binary.length%4)%4;
