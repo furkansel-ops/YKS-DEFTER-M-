@@ -56,6 +56,13 @@ test("v4.3 Today günün sözünü içeriği değiştirmeden Bugün başlığın
   assert.doesNotMatch(source,/MOTIVATION_QUOTES|COACH_QUOTES|PLAYER_QUOTES|gununSozu=function|yeniSoz=function/);
 });
 
+test("v4.3 Today kompakt söz alanını okunaklı tutar",()=>{
+  const css=read("src/ui/today-v43.css");
+  assert.match(css,/\.home-head #sozBox \.sz\{font-size:15px/);
+  assert.match(css,/grid-template-areas:"greeting greeting" "title date" "quote quote"/);
+  assert.match(css,/\.home-head #sozBox\{gap:10px;margin-top:4px!important;padding:12px 13px/);
+});
+
 test("v4.3 Today 2.0 only becomes flex while the home screen is active",()=>{
   const css=read("src/ui/today-v43.css");
   assert.doesNotMatch(css,/#home\.v43-today\s*\{[^}]*display\s*:\s*flex/s);
