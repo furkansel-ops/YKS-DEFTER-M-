@@ -44,6 +44,18 @@ test("v4.3 Today 2.0 güvenli TypeScript runtime tarafından yüklenir ve tablet
   assert.match(css,/\[hidden\]/);
 });
 
+test("v4.3 Today günün sözünü içeriği değiştirmeden Bugün başlığının yanına taşır",()=>{
+  const source=read("src/ui/today-v43.ts"),css=read("src/ui/today-v43.css"),quotes=read("modules/motivation-quotes-v1.js");
+  assert.match(source,/function installCompactQuote/);
+  assert.match(source,/copy\.append\(quote\)/);
+  assert.match(source,/rbCompactQuote/);
+  assert.match(css,/\.rb-today-copy/);
+  assert.match(css,/\.home-head #sozBox/);
+  assert.match(quotes,/Günün sözü/);
+  assert.match(quotes,/onclick="yeniSoz\(\)"/);
+  assert.doesNotMatch(source,/MOTIVATION_QUOTES|COACH_QUOTES|PLAYER_QUOTES|gununSozu=function|yeniSoz=function/);
+});
+
 test("v4.3 Today 2.0 only becomes flex while the home screen is active",()=>{
   const css=read("src/ui/today-v43.css");
   assert.doesNotMatch(css,/#home\.v43-today\s*\{[^}]*display\s*:\s*flex/s);
