@@ -196,8 +196,18 @@
   #topics #subjectList{grid-template-columns:repeat(2,minmax(300px,1fr));}
 }
 @media(max-width:900px){
-  #topics .subj.is-expanded .topic{grid-template-columns:1fr;gap:9px;align-items:start;}
-  #topics .subj.is-expanded .tctl{justify-content:space-between;min-width:0;width:100%;}
+  #topics .subj.is-expanded .topic,
+  #topics #subjectList>.subj:has(>.topics.open)>.topics.open .topic{
+    grid-template-columns:1fr;
+    gap:9px;
+    align-items:start;
+  }
+  #topics .subj.is-expanded .tctl,
+  #topics #subjectList>.subj:has(>.topics.open)>.topics.open .tctl{
+    justify-content:space-between;
+    min-width:0;
+    width:100%;
+  }
 }
 @media(max-width:759px){
   #topics #subjectList{grid-template-columns:1fr!important;}
@@ -210,7 +220,11 @@
   #topics .v45-subject-stats{grid-template-columns:1fr;}
   #topics .v45-subject-stats>span{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:8px;}
   #topics .v45-subject-stats small{margin:0;}
-  #topics .subj.is-expanded .tctl{align-items:flex-start;flex-wrap:wrap;}
+  #topics .subj.is-expanded .tctl,
+  #topics #subjectList>.subj:has(>.topics.open)>.topics.open .tctl{
+    align-items:flex-start;
+    flex-wrap:wrap;
+  }
   #topics .subj.is-expanded .pills{order:1;}
   #topics .subj.is-expanded .stars{order:2;}
   #topics .subj.is-expanded .topic-open{order:3;}
