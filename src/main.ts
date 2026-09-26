@@ -213,19 +213,6 @@ void import("./ui/top-sync-indicator")
 const v43Runtime=installV43SafeRuntime();
 document.documentElement.dataset.v43RuntimeHost=String(v43Runtime.installed);
 
-document.documentElement.dataset.glbMascotRuntime="loading";
-window.setTimeout(()=>{
-  void import("./ui/mascot-glb-runtime")
-    .then(({installMascotGlbRuntime})=>{
-      const mascot=installOptional("glb-notebook-mascot",()=>installMascotGlbRuntime(),{installed:false,model:"notebook" as const});
-      if(!mascot.installed)document.documentElement.dataset.glbMascotRuntime="deferred";
-    })
-    .catch(error=>{
-      document.documentElement.dataset.glbMascotRuntime="deferred";
-      console.error("GLB defter maskotu runtimeı yüklenemedi",error);
-    });
-},900);
-
 const release=installReleaseRuntime();
 document.documentElement.dataset.v4ReleaseVersion=release.version;
 
