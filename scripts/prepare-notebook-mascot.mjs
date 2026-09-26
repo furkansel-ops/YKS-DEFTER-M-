@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 
-const OUT=path.resolve(process.cwd(),"public/mascots/notebook/notebook.glb");
+const OUT=path.resolve(process.cwd(),"public/mascots/notebook/notebook-ref-v2.glb");
 const FLOAT=5126,USHORT=5123,ARRAY_BUFFER=34962,ELEMENT_ARRAY_BUFFER=34963;
 
 class BufferBuilder{
