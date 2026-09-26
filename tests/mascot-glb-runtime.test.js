@@ -25,7 +25,7 @@ test("defter maskotu build sırasında gerçek GLB üretir ve beş animasyonu ta
   assert.equal(json.images?.[0]?.mimeType,"image/webp");
   assert.equal(typeof json.images?.[0]?.bufferView,"number");
   assert.equal(json.images?.[0]?.uri,undefined);
-  assert.equal(json.nodes.filter(node=>/^RingDepth\\d+$/.test(node.name||"")).length,6);
+  assert.equal(json.nodes.filter(node=>/^RingDepth\d+$/.test(node.name||"")).length,6);
   const binHeader=20+jsonLength;
   assert.equal(bytes.readUInt32LE(binHeader+4),0x004E4942);
   const binStart=binHeader+8,imageView=json.bufferViews[json.images[0].bufferView];
