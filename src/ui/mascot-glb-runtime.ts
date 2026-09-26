@@ -13,6 +13,7 @@ function reducedMotion():boolean{return window.matchMedia("(prefers-reduced-moti
 
 type RuntimeController={
   play:(name:ClipName)=>void;
+  setVisible:(visible:boolean)=>void;
   dispose:()=>void;
 };
 
@@ -78,7 +79,7 @@ async function createController(host:HTMLElement,canvas:HTMLCanvasElement,fallba
     }
     next.setLoop(THREE.LoopOnce,1);next.clampWhenFinished=true;
     active?.fadeOut(.08);next.fadeIn(.08).play();active=next;
-    const finished=(event:THREE.Event&{action?:THREE.AnimationAction})=>{
+    const finished=(event:any)=>{
       if(event.action!==next)return;
       mixer.removeEventListener("finished",finished);
       play("idle");
@@ -110,6 +111,7 @@ async function createController(host:HTMLElement,canvas:HTMLCanvasElement,fallba
 
   return {
     play,
+    setVisible(next){visible=next;visible?start():stop();},
     dispose(){
       if(disposed)return;disposed=true;stop();ro.disconnect();document.removeEventListener("visibilitychange",visibility);
       canvas.removeEventListener("webglcontextlost",contextLost);mixer.stopAllAction();
@@ -135,13 +137,13 @@ export function installMascotGlbRuntime():{installed:boolean;model:"notebook"}{
   const fallback=host.querySelector<HTMLImageElement>(".yks-glb-mascot-fallback")!;
   let controller:RuntimeController|null=null;
 
-  const syncVisibility=()=>{host.hidden=!home.classList.contains("active");};
+  const syncVisibility=()=>{host.hidden=!home.classList.contains("active");controller?.setVisible(!host.hidden);};
   syncVisibility();
   const homeObserver=new MutationObserver(syncVisibility);
   homeObserver.observe(home,{attributes:true,attributeFilter:["class"]});
 
   void createController(host,canvas,fallback).then(value=>{
-    controller=value;document.documentElement.dataset.glbMascotRuntime="ready";
+    controller=value;controller.setVisible(!host.hidden);document.documentElement.dataset.glbMascotRuntime="ready";
   }).catch(error=>{
     console.error("GLB defter maskotu yüklenemedi",error);
     host.dataset.renderer="fallback";fallback.hidden=false;canvas.hidden=true;
