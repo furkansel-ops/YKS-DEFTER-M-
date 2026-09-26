@@ -41,7 +41,8 @@ test("defter maskotu gönderilen referanstaki hacimli kitap formunu korur",()=>{
 test("GLB defter maskotu eski PNG düzlem runtimeından bağımsız ve fail-open yüklenir",()=>{
   const runtime=read("src/ui/mascot-glb-runtime.ts"),main=read("src/main.ts"),pkg=JSON.parse(read("package.json"));
   assert.match(runtime,/GLTFLoader/);
-  assert.match(runtime,/AnimationMixer/);\n  assert.match(runtime,/cache:"no-cache"/);
+  assert.match(runtime,/AnimationMixer/);
+  assert.match(runtime,/cache:"no-cache"/);
   assert.match(runtime,/\.\/mascots\/notebook\/notebook-ref-v2\.glb/);
   assert.match(runtime,/attributeFilter:\["class"\]/);
   assert.doesNotMatch(runtime,/observer\.observe\(document\.body|subtree:true/);
