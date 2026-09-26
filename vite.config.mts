@@ -98,7 +98,6 @@ function prepareWebCloudRuntime():Plugin{
 
 const OFFLINE_STARTUP_MODULES=[
   "src/main.ts",
-  "src/ui/mascot-runtime.ts",
   "src/ui/onboarding-profile-v45.ts",
   "src/ui/teachers-v2-custom-fast.ts","src/ui/teachers-v2-media.ts","src/ui/teachers-v2-library.ts",
   "src/ui/top-sync-indicator.ts","src/ui/student-account-loader.ts",
