@@ -10,7 +10,7 @@ const read=file=>fs.readFileSync(path.join(root,file),"utf8");
 test("defter maskotu build sırasında gerçek GLB üretir ve beş animasyonu taşır",()=>{
   const run=spawnSync(process.execPath,[path.join(root,"scripts/prepare-notebook-mascot.mjs")],{cwd:root,encoding:"utf8"});
   assert.equal(run.status,0,run.stderr||run.stdout);
-  const file=path.join(root,"public/mascots/notebook/notebook-ref-v2.glb");
+  const file=path.join(root,"public/mascots/notebook/notebook-exact-v3.glb");
   const bytes=fs.readFileSync(file);
   assert.equal(bytes.subarray(0,4).toString("ascii"),"glTF");
   assert.equal(bytes.readUInt32LE(4),2);
@@ -25,15 +25,13 @@ test("defter maskotu build sırasında gerçek GLB üretir ve beş animasyonu ta
 
 test("defter maskotu gönderilen referanstaki hacimli kitap formunu korur",()=>{
   const builder=read("scripts/prepare-notebook-mascot.mjs"),runtime=read("src/ui/mascot-glb-runtime.ts");
-  assert.match(builder,/roundedBox\(2\.72,3\.38,\.42/);
-  assert.match(builder,/PageBlock/);
-  assert.match(builder,/BackCover/);
-  assert.match(builder,/RingSocket/);
-  assert.match(builder,/EyeShine/);
-  assert.match(builder,/HandL/);
-  assert.match(builder,/FootL/);
-  assert.match(builder,/reference:"user-supplied blue notebook mascot"/);
-  assert.match(runtime,/model\.rotation\.set\(\.035,-\.30,-\.015\)/);
+  assert.match(builder,/referenceAsset:"public\/mascots\/notebook\.webp"/);
+  assert.match(builder,/mode:"exact-front-plus-3d-depth"/);
+  assert.match(builder,/KHR_materials_unlit/);
+  assert.match(builder,/baseColorTexture/);
+  assert.match(builder,/images:\[\{uri:"\.\/mascots\/notebook\.webp"\}\]/);
+  assert.match(builder,/Exact submitted mascot/);
+  assert.match(runtime,/model\.rotation\.set\(\.01,-\.08,-\.005\)/);
   assert.match(runtime,/pointermove/);
   assert.match(runtime,/presentation\.rotation\.y=pointerX\*\.16/);
 });
@@ -43,7 +41,7 @@ test("GLB defter maskotu eski PNG düzlem runtimeından bağımsız ve fail-open
   assert.match(runtime,/GLTFLoader/);
   assert.match(runtime,/AnimationMixer/);
   assert.match(runtime,/cache:"no-cache"/);
-  assert.match(runtime,/\.\/mascots\/notebook\/notebook-ref-v2\.glb/);
+  assert.match(runtime,/\.\/mascots\/notebook\/notebook-exact-v3\.glb/);
   assert.match(runtime,/attributeFilter:\["class"\]/);
   assert.doesNotMatch(runtime,/observer\.observe\(document\.body|subtree:true/);
   assert.match(main,/import\("\.\/ui\/mascot-glb-runtime"\)/);
