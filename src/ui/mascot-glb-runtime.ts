@@ -3,7 +3,7 @@ import {GLTFLoader} from "three/examples/jsm/loaders/GLTFLoader.js";
 import "./mascot-glb-runtime.css";
 
 const DOCK_ID="yksNotebookMascotDock";
-const MODEL_PATH="./mascots/notebook/notebook-ref-v2.glb";
+const MODEL_PATH="./mascots/notebook/notebook-exact-v3.glb";
 const FALLBACK_PATH="./mascots/notebook.webp";
 const CLIPS=["idle","tap","celebrate","sad","wave"] as const;
 type ClipName=typeof CLIPS[number];
@@ -59,7 +59,7 @@ async function createController(host:HTMLElement,canvas:HTMLCanvasElement,fallba
   const scale=3.15/longest;
   model.scale.setScalar(scale);
   model.position.copy(center.multiplyScalar(-scale));
-  model.rotation.set(.035,-.30,-.015);
+  model.rotation.set(.01,-.08,-.005);
 
   const clips=new Map<ClipName,THREE.AnimationClip>();
   for(const name of CLIPS){
