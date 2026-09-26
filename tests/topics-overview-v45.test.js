@@ -44,6 +44,9 @@ test("konu başlıkları tablet ve PC görünümünde harf harf kırılmaz",()=>
   assert.match(css,/@media\(min-width:760px\) and \(max-width:1179px\)[\s\S]*repeat\(2,minmax\(300px,1fr\)\)/);
   assert.match(css,/@media\(min-width:1180px\)[\s\S]*repeat\(3,minmax\(300px,1fr\)\)/);
   assert.match(css,/\.is-expanded\{[\s\S]*grid-column:1\/-1/);
+  assert.match(css,/:has\(>\.topics\.open\)[\s\S]*grid-column:1\/-1/);
+  assert.match(css,/:has\(>\.topics\.open\)>\.topics\.open \.topic-name-btn\{[\s\S]*overflow-wrap:break-word;[\s\S]*word-break:normal/);
+  assert.match(css,/@media\(max-width:900px\)[\s\S]*:has\(>\.topics\.open\)>\.topics\.open \.topic/);
 });
 
 test("mevcut Konular araması ve filtreleri değiştirilmeden kalır",()=>{
