@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 
-const OUT=path.resolve(process.cwd(),"public/mascots/notebook/notebook-exact-v3.glb");
+const OUT=path.resolve(process.cwd(),"public/mascots/notebook/notebook-exact-v3r2.glb");
 const REFERENCE_IMAGE=path.resolve(process.cwd(),"public/mascots/notebook.webp");
 const FLOAT=5126,USHORT=5123,ARRAY_BUFFER=34962,ELEMENT_ARRAY_BUFFER=34963;
 
@@ -162,7 +162,7 @@ const materials=[
   {name:"Dark shoes depth",pbrMetallicRoughness:{baseColorFactor:[.02,.08,.25,1],metallicFactor:0,roughnessFactor:.40}}
 ];
 const gltf={
-  asset:{version:"2.0",generator:"YKS Defterim exact-reference GLB builder",extras:{mascot:"notebook",referenceAsset:"public/mascots/notebook.webp",mode:"embedded-exact-front-plus-3d-depth",version:"3.0.1"}},
+  asset:{version:"2.0",generator:"YKS Defterim exact-reference GLB builder",extras:{mascot:"notebook",referenceAsset:"public/mascots/notebook.webp",mode:"embedded-exact-front-plus-3d-depth",version:"3.0.2"}},
   extensionsUsed:["KHR_materials_unlit"],
   scene:0,scenes:[{name:"Notebook Mascot Exact Reference",nodes:[root]}],nodes,meshes,materials,
   images:[{bufferView:referenceView,mimeType:"image/webp"}],textures:[{source:0}],
@@ -175,4 +175,4 @@ out.write("glTF",o);o+=4;out.writeUInt32LE(2,o);o+=4;out.writeUInt32LE(total,o);
 out.writeUInt32LE(jsonChunk.length,o);o+=4;out.writeUInt32LE(0x4E4F534A,o);o+=4;jsonChunk.copy(out,o);o+=jsonChunk.length;
 out.writeUInt32LE(binChunk.length,o);o+=4;out.writeUInt32LE(0x004E4942,o);o+=4;binChunk.copy(out,o);
 fs.mkdirSync(path.dirname(OUT),{recursive:true});fs.writeFileSync(OUT,out);
-console.log(`exact-reference notebook GLB v3: ${path.relative(process.cwd(),OUT)} (${out.length} bytes)`);
+console.log(`exact-reference notebook GLB v3r2: ${path.relative(process.cwd(),OUT)} (${out.length} bytes)`);
