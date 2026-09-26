@@ -30,8 +30,8 @@ async function createController(host:HTMLElement,canvas:HTMLCanvasElement,fallba
   renderer.setClearColor(0x000000,0);
 
   const scene=new THREE.Scene();
-  const camera=new THREE.PerspectiveCamera(28,1,.1,40);
-  camera.position.set(0,.18,6);
+  const camera=new THREE.PerspectiveCamera(30,1,.1,40);
+  camera.position.set(.18,.16,6.25);
   scene.add(new THREE.HemisphereLight(0xffffff,0x6d7b99,2.7));
   const key=new THREE.DirectionalLight(0xffffff,2.8);key.position.set(3,5,6);scene.add(key);
   const fill=new THREE.DirectionalLight(0x99bbff,1.1);fill.position.set(-3,1,4);scene.add(fill);
@@ -50,14 +50,16 @@ async function createController(host:HTMLElement,canvas:HTMLCanvasElement,fallba
   if(bytes.byteLength>2*1024*1024)throw new Error("Defter maskotu beklenen boyuttan büyük.");
   const gltf=await new GLTFLoader().parseAsync(bytes,"");
   const model=gltf.scene;
+  const presentation=new THREE.Group();
+  scene.add(presentation);
+  presentation.add(model);
   const box=new THREE.Box3().setFromObject(model),size=box.getSize(new THREE.Vector3()),center=box.getCenter(new THREE.Vector3());
   const longest=Math.max(size.x,size.y,size.z);
   if(!Number.isFinite(longest)||longest<=0)throw new Error("Defter maskotu boyutları okunamadı.");
   const scale=3.15/longest;
   model.scale.setScalar(scale);
   model.position.copy(center.multiplyScalar(-scale));
-  model.rotation.y=-.12;
-  scene.add(model);
+  model.rotation.set(.035,-.30,-.015);
 
   const clips=new Map<ClipName,THREE.AnimationClip>();
   for(const name of CLIPS){
@@ -67,6 +69,7 @@ async function createController(host:HTMLElement,canvas:HTMLCanvasElement,fallba
   if(!clips.has("idle"))throw new Error("Defter maskotunda idle animasyonu bulunamadı.");
   const mixer=new THREE.AnimationMixer(model);
   let active:THREE.AnimationAction|null=null,disposed=false,raf=0,last=performance.now(),visible=true;
+  let pointerX=0,pointerY=0,targetX=0,targetY=0;
 
   const play=(name:ClipName)=>{
     if(disposed||reducedMotion())return;
@@ -88,6 +91,17 @@ async function createController(host:HTMLElement,canvas:HTMLCanvasElement,fallba
   };
   if(!reducedMotion())play("wave");
 
+  const button=canvas.closest<HTMLElement>(".yks-glb-mascot-button");
+  const onPointerMove=(event:PointerEvent)=>{
+    if(!button)return;
+    const rect=button.getBoundingClientRect();
+    targetX=Math.max(-1,Math.min(1,((event.clientX-rect.left)/Math.max(1,rect.width)-.5)*2));
+    targetY=Math.max(-1,Math.min(1,((event.clientY-rect.top)/Math.max(1,rect.height)-.5)*2));
+  };
+  const onPointerLeave=()=>{targetX=0;targetY=0;};
+  button?.addEventListener("pointermove",onPointerMove);
+  button?.addEventListener("pointerleave",onPointerLeave);
+
   const resize=()=>{
     if(disposed)return;
     const rect=canvas.getBoundingClientRect(),w=Math.max(1,Math.round(rect.width)),h=Math.max(1,Math.round(rect.height));
@@ -98,7 +112,14 @@ async function createController(host:HTMLElement,canvas:HTMLCanvasElement,fallba
   const draw=(now:number)=>{
     raf=0;if(disposed||!visible||document.hidden)return;
     const delta=Math.min(Math.max((now-last)/1000,0),.05);last=now;
-    mixer.update(delta);renderer.render(scene,camera);raf=requestAnimationFrame(draw);
+    mixer.update(delta);
+    if(!reducedMotion()){
+      pointerX=THREE.MathUtils.lerp(pointerX,targetX,1-Math.exp(-delta*7));
+      pointerY=THREE.MathUtils.lerp(pointerY,targetY,1-Math.exp(-delta*7));
+      presentation.rotation.y=pointerX*.16;
+      presentation.rotation.x=-pointerY*.07;
+    }else presentation.rotation.set(0,0,0);
+    renderer.render(scene,camera);raf=requestAnimationFrame(draw);
   };
   const start=()=>{if(!disposed&&visible&&!document.hidden&&!raf){last=performance.now();raf=requestAnimationFrame(draw);}};
   const stop=()=>{if(raf){cancelAnimationFrame(raf);raf=0;}};
@@ -114,7 +135,9 @@ async function createController(host:HTMLElement,canvas:HTMLCanvasElement,fallba
     setVisible(next){visible=next;visible?start():stop();},
     dispose(){
       if(disposed)return;disposed=true;stop();ro.disconnect();document.removeEventListener("visibilitychange",visibility);
-      canvas.removeEventListener("webglcontextlost",contextLost);mixer.stopAllAction();
+      canvas.removeEventListener("webglcontextlost",contextLost);
+      button?.removeEventListener("pointermove",onPointerMove);button?.removeEventListener("pointerleave",onPointerLeave);
+      mixer.stopAllAction();
       model.traverse(object=>{
         if(!(object instanceof THREE.Mesh))return;
         object.geometry.dispose();
