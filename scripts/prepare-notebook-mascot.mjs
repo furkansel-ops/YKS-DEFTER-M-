@@ -1,7 +1,8 @@
 import fs from "node:fs";
 import path from "node:path";
 
-const OUT=path.resolve(process.cwd(),"public/mascots/notebook/notebook-exact-v3.glb");
+const OUT=path.resolve(process.cwd(),"public/mascots/notebook/notebook-final-v4.glb");
+const REFERENCE_IMAGE=path.resolve(process.cwd(),"public/mascots/notebook.webp");
 const FLOAT=5126,USHORT=5123,ARRAY_BUFFER=34962,ELEMENT_ARRAY_BUFFER=34963;
 
 class BufferBuilder{
@@ -13,6 +14,13 @@ class BufferBuilder{
     const view=this.views.length;
     this.views.push({buffer:0,byteOffset:this.length,byteLength:buf.byteLength,...(target?{target}:{})});
     this.parts.push(buf);this.length+=buf.byteLength;
+    return view;
+  }
+  addRaw(buffer){
+    this.pad();
+    const view=this.views.length;
+    this.views.push({buffer:0,byteOffset:this.length,byteLength:buffer.byteLength});
+    this.parts.push(buffer);this.length+=buffer.byteLength;
     return view;
   }
   accessor(array,type,componentType,target,min,max){
@@ -106,6 +114,7 @@ const pages=geometryMesh("PageVolume",roundedBox(2.10,2.62,.44,.19,7),1);
 const limb=geometryMesh("LimbVolume",roundedBox(.42,1.10,.34,.20,7),0);
 const shoe=geometryMesh("ShoeVolume",roundedBox(.62,.34,.62,.17,7),3);
 const hand=geometryMesh("HandVolume",sphere(),0);
+const ringDepth=geometryMesh("RingDepthVolume",roundedBox(.26,.18,.66,.08,6),4);
 add("BackCover",cover,[.28,.04,-.03],[1,1,1]);
 add("PageBlock",pages,[.37,.03,.18],[1,1,1]);
 add("LeftArmDepth",limb,[-1.18,.18,.06],[1,1,1],quatZ(-.68));
@@ -114,6 +123,7 @@ add("LeftHandDepth",hand,[-1.52,.66,.10],[.36,.38,.25]);
 add("RightHandDepth",hand,[1.55,-.72,.07],[.34,.36,.24]);
 add("LeftShoeDepth",shoe,[-.47,-1.61,.00],[1,1,1]);
 add("RightShoeDepth",shoe,[.62,-1.61,.00],[1,1,1]);
+for(let r=0;r<6;r++)add(`RingDepth${r+1}`,ringDepth,[-1.17,1.24-r*.50,.19],[1,1,1]);
 const front=N("ExactReferenceFront",{mesh:texturedQuad()});nodes[root].children.push(front);
 
 const animations=[];
@@ -143,18 +153,22 @@ addAnim("wave",1.05,[
   {node:root,path:"rotation",times:[0,.20,.42,.64,.84,1.05],values:[quatZ(0),quatZ(-.045),quatZ(.035),quatZ(-.035),quatZ(.025),quatZ(0)]}
 ]);
 
+const referenceBytes=fs.readFileSync(REFERENCE_IMAGE);
+if(referenceBytes.byteLength>1_500_000)throw new Error(`Defter referans görseli fazla büyük: ${referenceBytes.byteLength} bayt`);
+const referenceView=bb.addRaw(referenceBytes);
 const binary=bb.finish();
 const materials=[
   {name:"Blue depth",pbrMetallicRoughness:{baseColorFactor:[.035,.29,.92,1],metallicFactor:0,roughnessFactor:.33}},
   {name:"Cream pages",pbrMetallicRoughness:{baseColorFactor:[1,.92,.78,1],metallicFactor:0,roughnessFactor:.70}},
   {name:"Exact submitted mascot",pbrMetallicRoughness:{baseColorTexture:{index:0},metallicFactor:0,roughnessFactor:1},alphaMode:"BLEND",doubleSided:true,extensions:{KHR_materials_unlit:{}}},
-  {name:"Dark shoes depth",pbrMetallicRoughness:{baseColorFactor:[.02,.08,.25,1],metallicFactor:0,roughnessFactor:.40}}
+  {name:"Dark shoes depth",pbrMetallicRoughness:{baseColorFactor:[.02,.08,.25,1],metallicFactor:0,roughnessFactor:.40}},
+  {name:"Ring depth",pbrMetallicRoughness:{baseColorFactor:[.52,.76,1,1],metallicFactor:.08,roughnessFactor:.30}}
 ];
 const gltf={
-  asset:{version:"2.0",generator:"YKS Defterim exact-reference GLB builder",extras:{mascot:"notebook",referenceAsset:"public/mascots/notebook.webp",mode:"exact-front-plus-3d-depth",version:"3.0.0"}},
+  asset:{version:"2.0",generator:"YKS Defterim final self-contained GLB builder",extras:{mascot:"notebook",referenceAsset:"public/mascots/notebook.webp",mode:"embedded-exact-reference-plus-3d-depth",version:"4.0.0"}},
   extensionsUsed:["KHR_materials_unlit"],
   scene:0,scenes:[{name:"Notebook Mascot Exact Reference",nodes:[root]}],nodes,meshes,materials,
-  images:[{uri:"./mascots/notebook.webp"}],textures:[{source:0}],
+  images:[{bufferView:referenceView,mimeType:"image/webp"}],textures:[{source:0}],
   buffers:[{byteLength:binary.length}],bufferViews:bb.views,accessors:bb.accessors,animations
 };
 const json=Buffer.from(JSON.stringify(gltf)),jsonPad=(4-json.length%4)%4,binPad=(4-binary.length%4)%4;
@@ -164,4 +178,4 @@ out.write("glTF",o);o+=4;out.writeUInt32LE(2,o);o+=4;out.writeUInt32LE(total,o);
 out.writeUInt32LE(jsonChunk.length,o);o+=4;out.writeUInt32LE(0x4E4F534A,o);o+=4;jsonChunk.copy(out,o);o+=jsonChunk.length;
 out.writeUInt32LE(binChunk.length,o);o+=4;out.writeUInt32LE(0x004E4942,o);o+=4;binChunk.copy(out,o);
 fs.mkdirSync(path.dirname(OUT),{recursive:true});fs.writeFileSync(OUT,out);
-console.log(`exact-reference notebook GLB v3: ${path.relative(process.cwd(),OUT)} (${out.length} bytes)`);
+console.log(`final notebook GLB v4: ${path.relative(process.cwd(),OUT)} (${out.length} bytes)`);
