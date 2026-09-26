@@ -23,6 +23,21 @@ test("defter maskotu build sırasında gerçek GLB üretir ve beş animasyonu ta
   assert.deepEqual(json.animations.map(animation=>animation.name),["idle","tap","celebrate","sad","wave"]);
 });
 
+test("defter maskotu gönderilen referanstaki hacimli kitap formunu korur",()=>{
+  const builder=read("scripts/prepare-notebook-mascot.mjs"),runtime=read("src/ui/mascot-glb-runtime.ts");
+  assert.match(builder,/roundedBox\(2\.72,3\.38,\.42/);
+  assert.match(builder,/PageBlock/);
+  assert.match(builder,/BackCover/);
+  assert.match(builder,/RingSocket/);
+  assert.match(builder,/EyeShine/);
+  assert.match(builder,/HandL/);
+  assert.match(builder,/FootL/);
+  assert.match(builder,/reference:"user-supplied blue notebook mascot"/);
+  assert.match(runtime,/model\.rotation\.set\(\.035,-\.30,-\.015\)/);
+  assert.match(runtime,/pointermove/);
+  assert.match(runtime,/presentation\.rotation\.y=pointerX\*\.16/);
+});
+
 test("GLB defter maskotu eski PNG düzlem runtimeından bağımsız ve fail-open yüklenir",()=>{
   const runtime=read("src/ui/mascot-glb-runtime.ts"),main=read("src/main.ts"),pkg=JSON.parse(read("package.json"));
   assert.match(runtime,/GLTFLoader/);
