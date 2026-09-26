@@ -21,15 +21,24 @@ test("defter maskotu build sırasında gerçek GLB üretir ve beş animasyonu ta
   assert.equal(json.asset?.version,"2.0");
   assert.equal(json.asset?.extras?.mascot,"notebook");
   assert.deepEqual(json.animations.map(animation=>animation.name),["idle","tap","celebrate","sad","wave"]);
+  assert.equal(json.asset?.extras?.version,"3.0.1");
+  assert.equal(json.images?.[0]?.mimeType,"image/webp");
+  assert.equal(typeof json.images?.[0]?.bufferView,"number");
+  assert.equal(json.images?.[0]?.uri,undefined);
+  const binHeader=20+jsonLength;
+  assert.equal(bytes.readUInt32LE(binHeader+4),0x004E4942);
+  const binStart=binHeader+8,imageView=json.bufferViews[json.images[0].bufferView];
+  const embedded=bytes.subarray(binStart+(imageView.byteOffset||0),binStart+(imageView.byteOffset||0)+imageView.byteLength);
+  assert.deepEqual(embedded,fs.readFileSync(path.join(root,"public/mascots/notebook.webp")));
 });
 
 test("defter maskotu gönderilen referanstaki hacimli kitap formunu korur",()=>{
   const builder=read("scripts/prepare-notebook-mascot.mjs"),runtime=read("src/ui/mascot-glb-runtime.ts");
   assert.match(builder,/referenceAsset:"public\/mascots\/notebook\.webp"/);
-  assert.match(builder,/mode:"exact-front-plus-3d-depth"/);
+  assert.match(builder,/mode:"embedded-exact-front-plus-3d-depth"/);
   assert.match(builder,/KHR_materials_unlit/);
   assert.match(builder,/baseColorTexture/);
-  assert.match(builder,/images:\[\{uri:"\.\/mascots\/notebook\.webp"\}\]/);
+  assert.match(builder,/images:\[\{bufferView:referenceView,mimeType:"image\/webp"\}\]/);
   assert.match(builder,/Exact submitted mascot/);
   assert.match(runtime,/model\.rotation\.set\(\.01,-\.08,-\.005\)/);
   assert.match(runtime,/pointermove/);
