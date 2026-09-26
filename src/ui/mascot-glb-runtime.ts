@@ -3,7 +3,7 @@ import {GLTFLoader} from "three/examples/jsm/loaders/GLTFLoader.js";
 import "./mascot-glb-runtime.css";
 
 const DOCK_ID="yksNotebookMascotDock";
-const MODEL_PATH="./mascots/notebook/notebook.glb";
+const MODEL_PATH="./mascots/notebook/notebook-ref-v2.glb";
 const FALLBACK_PATH="./mascots/notebook.webp";
 const CLIPS=["idle","tap","celebrate","sad","wave"] as const;
 type ClipName=typeof CLIPS[number];
@@ -42,7 +42,7 @@ async function createController(host:HTMLElement,canvas:HTMLCanvasElement,fallba
   );
   shadow.rotation.x=-Math.PI/2;shadow.position.y=-1.63;shadow.scale.set(1.15,.55,1);scene.add(shadow);
 
-  const response=await fetch(asset(MODEL_PATH),{cache:"force-cache"});
+  const response=await fetch(asset(MODEL_PATH),{cache:"no-cache"});
   if(!response.ok)throw new Error(`Defter maskotu indirilemedi: ${response.status}`);
   const length=Number(response.headers.get("content-length"))||0;
   if(length>2*1024*1024)throw new Error("Defter maskotu beklenen boyuttan büyük.");
