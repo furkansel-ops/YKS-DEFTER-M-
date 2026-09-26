@@ -52,6 +52,16 @@ function installHeader(home:HTMLElement):void{
   }
 }
 
+function installCompactQuote(home:HTMLElement):void{
+  const head=home.querySelector<HTMLElement>(".home-head");
+  const copy=head?.firstElementChild instanceof HTMLElement?head.firstElementChild:null;
+  const quote=getElement<HTMLElement>("sozBox");
+  if(!head||!copy||!quote)return;
+  copy.classList.add("rb-today-copy");
+  if(quote.parentElement!==copy)copy.append(quote);
+  quote.dataset.rbCompactQuote="true";
+}
+
 function installTodayDetails(todayHub:HTMLElement):void{
   if(todayHub.querySelector("[data-v43-today-details]"))return;
   const detailNodes=[getElement("todayRemaining"),getElement("todayReviewWrap"),
@@ -208,7 +218,7 @@ export function installTodayV43():{installed:boolean;validate:()=>string[]}{
     if(node.classList.contains("home-head")||node.classList.contains("rb-today-tasks")||["todayHub","sozBox","dgBanner","restBanner","backupBanner"].includes(node.id))preserved.add(node);
   });
   const head=home.querySelector<HTMLElement>(".home-head");
-  if(head){home.prepend(head);if(quote)head.insertAdjacentElement("afterend",quote);}
+  if(head){home.prepend(head);installCompactQuote(home);}
   else if(quote)home.prepend(quote);
   ["dgBanner","restBanner","backupBanner"].forEach(id=>{const node=getElement(id);if(node)home.append(node);});
   installSecondaryArea(home,preserved);
