@@ -42,7 +42,9 @@ test("defter maskotu gönderilen referanstaki hacimli kitap formunu korur",()=>{
   assert.match(builder,/Exact submitted mascot/);
   assert.match(runtime,/model\.rotation\.set\(\.01,-\.08,-\.005\)/);
   assert.match(runtime,/pointermove/);
-  assert.match(runtime,/presentation\.rotation\.y=pointerX\*\.16/);
+  assert.match(runtime,/presentation\.rotation\.y=pointerX\*\.28/);
+  assert.match(runtime,/presentation\.rotation\.x=-pointerY\*\.12/);
+  assert.match(runtime,/presentation\.position\.y=Math\.sin\(now\*\.0032\)\*\.035/);
 });
 
 test("GLB defter maskotu eski PNG düzlem runtimeından bağımsız ve fail-open yüklenir",()=>{
@@ -57,4 +59,15 @@ test("GLB defter maskotu eski PNG düzlem runtimeından bağımsız ve fail-open
   assert.doesNotMatch(main,/import\("\.\/ui\/mascot-runtime"\)/);
   assert.match(pkg.scripts["build:assets"],/prepare-notebook-mascot\.mjs/);
   assert.match(pkg.scripts.dev,/prepare-notebook-mascot\.mjs/);
+});
+
+test("maskot rozetsizdir ve fallback dahil hover-tap hareketi taşır",()=>{
+  const runtime=read("src/ui/mascot-glb-runtime.ts"),css=read("src/ui/mascot-glb-runtime.css");
+  assert.doesNotMatch(runtime,/yks-glb-mascot-badge/);
+  assert.doesNotMatch(css,/yks-glb-mascot-badge/);
+  assert.match(css,/\.yks-glb-mascot-button:hover\{/);
+  assert.match(css,/\.yks-glb-mascot-button\.is-tapped\{/);
+  assert.match(css,/@keyframes yksMascotTap/);
+  assert.match(css,/hover \.yks-glb-mascot-fallback/);
+  assert.match(runtime,/classList\.add\("is-tapped"\)/);
 });

@@ -116,9 +116,11 @@ async function createController(host:HTMLElement,canvas:HTMLCanvasElement,fallba
     if(!reducedMotion()){
       pointerX=THREE.MathUtils.lerp(pointerX,targetX,1-Math.exp(-delta*7));
       pointerY=THREE.MathUtils.lerp(pointerY,targetY,1-Math.exp(-delta*7));
-      presentation.rotation.y=pointerX*.16;
-      presentation.rotation.x=-pointerY*.07;
-    }else presentation.rotation.set(0,0,0);
+      presentation.rotation.y=pointerX*.28;
+      presentation.rotation.x=-pointerY*.12;
+      presentation.rotation.z=-pointerX*.025;
+      presentation.position.y=Math.sin(now*.0032)*.035;
+    }else{presentation.rotation.set(0,0,0);presentation.position.y=0;}
     renderer.render(scene,camera);raf=requestAnimationFrame(draw);
   };
   const start=()=>{if(!disposed&&visible&&!document.hidden&&!raf){last=performance.now();raf=requestAnimationFrame(draw);}};
@@ -153,7 +155,7 @@ export function installMascotGlbRuntime():{installed:boolean;model:"notebook"}{
   const home=document.getElementById("home");if(!home)return {installed:false,model:"notebook"};
 
   const host=document.createElement("aside");host.id=DOCK_ID;host.className="yks-glb-mascot-dock";host.dataset.renderer="loading";
-  host.innerHTML=`<button class="yks-glb-mascot-button" type="button" aria-label="Defter maskotuna dokun"><canvas class="yks-glb-mascot-canvas" aria-hidden="true"></canvas><img class="yks-glb-mascot-fallback" src="${asset(FALLBACK_PATH)}" alt="" hidden><span class="yks-glb-mascot-badge">Defter</span></button>`;
+  host.innerHTML=`<button class="yks-glb-mascot-button" type="button" aria-label="Defter maskotuna dokun"><canvas class="yks-glb-mascot-canvas" aria-hidden="true"></canvas><img class="yks-glb-mascot-fallback" src="${asset(FALLBACK_PATH)}" alt="" hidden></button>`;
   document.body.append(host);
 
   const canvas=host.querySelector<HTMLCanvasElement>(".yks-glb-mascot-canvas")!;
@@ -173,7 +175,14 @@ export function installMascotGlbRuntime():{installed:boolean;model:"notebook"}{
     document.documentElement.dataset.glbMascotRuntime="fallback";
   });
 
-  host.querySelector(".yks-glb-mascot-button")?.addEventListener("click",()=>controller?.play("tap"));
+  const mascotButton=host.querySelector<HTMLElement>(".yks-glb-mascot-button");
+  mascotButton?.addEventListener("click",()=>{
+    mascotButton.classList.remove("is-tapped");
+    void mascotButton.offsetWidth;
+    mascotButton.classList.add("is-tapped");
+    window.setTimeout(()=>mascotButton.classList.remove("is-tapped"),420);
+    controller?.play("tap");
+  });
   document.addEventListener("click",event=>{
     const toggle=(event.target as HTMLElement|null)?.closest(".rb-task-toggle");if(!toggle)return;
     window.setTimeout(()=>{if(toggle.closest(".plancell")?.classList.contains("pd"))controller?.play("celebrate");},180);
