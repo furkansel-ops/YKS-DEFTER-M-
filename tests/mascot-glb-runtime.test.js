@@ -10,7 +10,7 @@ const read=file=>fs.readFileSync(path.join(root,file),"utf8");
 test("defter maskotu build sırasında gerçek GLB üretir ve beş animasyonu taşır",()=>{
   const run=spawnSync(process.execPath,[path.join(root,"scripts/prepare-notebook-mascot.mjs")],{cwd:root,encoding:"utf8"});
   assert.equal(run.status,0,run.stderr||run.stdout);
-  const file=path.join(root,"public/mascots/notebook/notebook-exact-v3.glb");
+  const file=path.join(root,"public/mascots/notebook/notebook-exact-v3r2.glb");
   const bytes=fs.readFileSync(file);
   assert.equal(bytes.subarray(0,4).toString("ascii"),"glTF");
   assert.equal(bytes.readUInt32LE(4),2);
@@ -21,7 +21,7 @@ test("defter maskotu build sırasında gerçek GLB üretir ve beş animasyonu ta
   assert.equal(json.asset?.version,"2.0");
   assert.equal(json.asset?.extras?.mascot,"notebook");
   assert.deepEqual(json.animations.map(animation=>animation.name),["idle","tap","celebrate","sad","wave"]);
-  assert.equal(json.asset?.extras?.version,"3.0.1");
+  assert.equal(json.asset?.extras?.version,"3.0.2");
   assert.equal(json.images?.[0]?.mimeType,"image/webp");
   assert.equal(typeof json.images?.[0]?.bufferView,"number");
   assert.equal(json.images?.[0]?.uri,undefined);
@@ -50,7 +50,7 @@ test("GLB defter maskotu eski PNG düzlem runtimeından bağımsız ve fail-open
   assert.match(runtime,/GLTFLoader/);
   assert.match(runtime,/AnimationMixer/);
   assert.match(runtime,/cache:"no-cache"/);
-  assert.match(runtime,/\.\/mascots\/notebook\/notebook-exact-v3\.glb/);
+  assert.match(runtime,/\.\/mascots\/notebook\/notebook-exact-v3r2\.glb/);
   assert.match(runtime,/attributeFilter:\["class"\]/);
   assert.doesNotMatch(runtime,/observer\.observe\(document\.body|subtree:true/);
   assert.match(main,/import\("\.\/ui\/mascot-glb-runtime"\)/);

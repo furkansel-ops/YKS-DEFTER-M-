@@ -3,7 +3,7 @@ import {GLTFLoader} from "three/examples/jsm/loaders/GLTFLoader.js";
 import "./mascot-glb-runtime.css";
 
 const DOCK_ID="yksNotebookMascotDock";
-const MODEL_PATH="./mascots/notebook/notebook-exact-v3.glb";
+const MODEL_PATH="./mascots/notebook/notebook-exact-v3r2.glb";
 const FALLBACK_PATH="./mascots/notebook.webp";
 const CLIPS=["idle","tap","celebrate","sad","wave"] as const;
 type ClipName=typeof CLIPS[number];
