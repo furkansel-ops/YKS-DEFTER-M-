@@ -1,6 +1,7 @@
 import {installRefinedProgram} from "./refined-program";
 import {installRefinedSecondary} from "./refined-secondary";
 import {installRefinedStudyScreens} from "./refined-study-screens";
+import {installMascotCompanion} from "./mascot-companion";
 
 type ShellWindow=Window&{go?:(screen:string)=>void;v30Action?:(action:string)=>void;setMoreTab?:(panel:string)=>void};
 const legacy=()=>window as ShellWindow;
@@ -46,5 +47,6 @@ export function installRefinedShell(){
   media.addEventListener("change",sync);window.addEventListener("yks:navigation-after",sync);sync();
   installRefinedSecondary();
   installRefinedStudyScreens();
+  installMascotCompanion();
   return {installed:true,validate(){return [!program.installed?"program":"",!document.getElementById("refinedBrand")?"brand":""].filter(Boolean);}};
 }
