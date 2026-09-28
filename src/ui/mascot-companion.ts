@@ -36,56 +36,52 @@ function handleImageError(event:Event){
 /** Visual preferences are device-local and never touch study data or cloud sync. */
 export function installMascotCompanion():MascotCompanionApi{
   if(window.__YKS_MASCOT__)return window.__YKS_MASCOT__;
-  let preference=readPreference(),idleTimer=0,animationTimer=0;
+  let preference=readPreference(),animationTimer=0;
   const reduced=window.matchMedia("(prefers-reduced-motion: reduce)");
-  const brand=document.getElementById("refinedBrand");
-  const originalMark=brand?.querySelector<SVGElement>("svg");
-  const brandImage=document.createElement("img");brandImage.className="rb-mascot-brand";brandImage.alt="";brandImage.width=40;brandImage.height=40;
-  if(brand)brand.prepend(brandImage);
   const strip=document.createElement("aside");strip.id="refinedCompanion";strip.className="rb-companion";strip.setAttribute("aria-label","Çalışma arkadaşın");
-  strip.innerHTML='<span class="rb-companion-picture" aria-hidden="true"></span><span class="rb-companion-copy"><b></b><span></span></span><button type="button" class="rb-companion-choose" aria-label="Maskotunu seç">Değiştir <span aria-hidden="true">↗</span></button>';
-  document.getElementById("mainWrap")?.prepend(strip);
+  strip.innerHTML='<span class="rb-companion-bubble" aria-hidden="true"></span><button type="button" class="rb-companion-mascot"><span class="rb-companion-picture" aria-hidden="true"></span><span class="rb-companion-shadow" aria-hidden="true"></span></button><span class="rb-mascot-sr" id="mascotDragHelp">Selamlamak için dokun. Yerini değiştirmek için sürükle; yön tuşlarıyla da taşıyabilirsin.</span>';
+  document.body.append(strip);
   const picture=strip.querySelector<HTMLElement>(".rb-companion-picture")!;
+  const mascotButton=strip.querySelector<HTMLButtonElement>(".rb-companion-mascot")!;
+  mascotButton.setAttribute("aria-describedby","mascotDragHelp");
   strip.addEventListener("error",handleImageError,true);
-  const name=strip.querySelector<HTMLElement>(".rb-companion-copy b")!;
-  const message=strip.querySelector<HTMLElement>(".rb-companion-copy>span")!;
+  const message=strip.querySelector<HTMLElement>(".rb-companion-bubble")!;
   let dialog:HTMLDialogElement|null=null;
   const current=()=>MASCOTS.find(m=>m.id===preference.id)!;
   const focusRunning=()=>Boolean(document.querySelector('#focusCard[data-run="running"],#swCard[data-run="running"]'));
-  const quiet=()=>!preference.enabled||document.hidden||reduced.matches||focusRunning()||!!dialog?.open;
+  const overlaySelector='dialog[open],.teachers-v2-overlay,.teachers-v2-player-overlay,.v42-recovery-backdrop,.v42-search-overlay,.v26-topic-modal,.v29-minimal-overlay,.simov,.qaviewer,.vidov,.playov,.brov,.gunov,.optikov,.anaov,.wizov,[role="dialog"][aria-modal="true"]';
+  const overlayOpen=()=>Array.from(document.querySelectorAll<HTMLElement>(overlaySelector)).some(node=>node.getClientRects().length>0&&getComputedStyle(node).visibility!=="hidden");
+  const editing=()=>document.activeElement instanceof HTMLElement&&document.activeElement.matches('textarea,input:not([type="button"]):not([type="checkbox"]):not([type="radio"]):not([type="range"]),[contenteditable="true"]');
+  const keyboardOpen=()=>editing()&&(matchMedia("(pointer: coarse)").matches||(window.visualViewport?.height??innerHeight)<innerHeight-120);
+  let obscured=false;
+  const quiet=()=>!preference.enabled||document.hidden||reduced.matches||focusRunning()||obscured;
   function stopMotion(){
-    clearTimeout(idleTimer);clearTimeout(animationTimer);
-    strip.classList.remove("is-greeting","is-idle");brandImage.classList.remove("is-greeting","is-idle");
+    clearTimeout(animationTimer);strip.classList.remove("is-greeting");
   }
-  function animate(kind:"greeting"|"idle"){
-    if(quiet())return;
-    strip.classList.add(`is-${kind}`);brandImage.classList.add(`is-${kind}`);
-    clearTimeout(animationTimer);animationTimer=window.setTimeout(()=>{strip.classList.remove(`is-${kind}`);brandImage.classList.remove(`is-${kind}`);},1900);
-  }
-  function scheduleIdle(){
-    clearTimeout(idleTimer);
-    if(quiet())return;
-    idleTimer=window.setTimeout(()=>{animate("idle");scheduleIdle();},55000+Math.round(Math.random()*20000));
+  function greet(){
+    if(!preference.enabled||document.hidden||obscured)return;
+    strip.classList.remove("is-greeting");void picture.offsetWidth;strip.classList.add("is-greeting");
+    clearTimeout(animationTimer);animationTimer=window.setTimeout(()=>strip.classList.remove("is-greeting"),3000);
   }
   function syncMotion(){
-    const running=focusRunning();document.documentElement.dataset.mascotMotion=quiet()?"quiet":"ready";
-    if(quiet())stopMotion();else scheduleIdle();
+    obscured=overlayOpen()||keyboardOpen();strip.dataset.obscured=String(obscured);
+    strip.inert=obscured;const running=focusRunning();document.documentElement.dataset.mascotMotion=quiet()?"quiet":"ready";
+    if(quiet())stopMotion();
     message.textContent=running?"Sen odaklan, ben buradayım.":current().hello;
   }
-  const watched=new WeakSet<Element>(),focusObserver=new MutationObserver(syncMotion);
+  const watched=new WeakSet<Element>(),focusObserver=new MutationObserver(syncMotion),overlays=new WeakSet<Element>(),overlayObserver=new MutationObserver(syncMotion);
   function watchFocus(){
     for(const card of document.querySelectorAll("#focusCard,#swCard"))if(!watched.has(card)){watched.add(card);focusObserver.observe(card,{attributes:true,attributeFilter:["data-run"]});}
+    for(const overlay of document.querySelectorAll(`${overlaySelector},dialog`))if(!overlays.has(overlay)){overlays.add(overlay);overlayObserver.observe(overlay,{attributes:true,attributeFilter:["style","class","hidden","aria-hidden","open"]});}
     syncMotion();
   }
   function render(){
-    const mascot=current();strip.hidden=!preference.enabled;brandImage.hidden=!preference.enabled;
-    if(originalMark)originalMark.style.display=preference.enabled?"none":"";
+    const mascot=current();strip.hidden=!preference.enabled;
     if(preference.enabled){
-      if(brandImage.getAttribute("src")!==asset(mascot.id))brandImage.src=asset(mascot.id);
       if(picture.dataset.mascot!==mascot.id){picture.innerHTML=image(mascot.id);picture.dataset.mascot=mascot.id;}
-      if(brandImage.complete&&!brandImage.naturalWidth){brandImage.hidden=true;if(originalMark)originalMark.style.display="";}
+      clampPosition();
     }
-    name.textContent=`${mascot.name} yanında`;
+    mascotButton.setAttribute("aria-label",`${mascot.name} ile selamlaş`);
     document.documentElement.dataset.mascot=preference.enabled?mascot.id:"off";
     if(dialog){
       dialog.querySelectorAll<HTMLButtonElement>("[data-mascot-choice]").forEach(button=>button.setAttribute("aria-pressed",String(button.dataset.mascotChoice===preference.id)));
@@ -99,7 +95,7 @@ export function installMascotCompanion():MascotCompanionApi{
     catch{ /* Remain usable for this session when browser storage is unavailable. */ }
     render();window.dispatchEvent(new CustomEvent("yks:mascot-change"));
   }
-  function setEnabled(enabled:boolean){preference={...preference,enabled};save();if(enabled)animate("greeting");}
+  function setEnabled(enabled:boolean){preference={...preference,enabled};save();if(enabled)greet();}
   function open(){
     if(dialog?.open){dialog.querySelector<HTMLElement>("[data-mascot-close]")?.focus();return;}
     const opener=document.activeElement instanceof HTMLElement?document.activeElement:null;
@@ -117,19 +113,53 @@ export function installMascotCompanion():MascotCompanionApi{
     opened.addEventListener("click",event=>{if(event.target===opened){const rect=opened.getBoundingClientRect();if(event.clientX<rect.left||event.clientX>rect.right||event.clientY<rect.top||event.clientY>rect.bottom)opened.close();}});
     opened.addEventListener("close",()=>{
       opened.remove();if(dialog!==opened)return;dialog=null;render();
-      const target=opener?.getClientRects().length?opener:brand;target?.focus({preventScroll:true});animate("greeting");
+      const target=opener?.getClientRects().length?opener:document.getElementById("refinedProfile");target?.focus({preventScroll:true});greet();
     },{once:true});
     document.body.append(opened);render();opened.showModal();syncMotion();
     opened.querySelector<HTMLElement>(`[data-mascot-choice="${preference.id}"]`)?.focus({preventScroll:true});
   }
-  strip.querySelector("button")?.addEventListener("click",open);
-  brandImage.addEventListener("error",()=>{brandImage.hidden=true;if(originalMark)originalMark.style.display="";});
-  brandImage.addEventListener("load",()=>{brandImage.hidden=!preference.enabled;if(originalMark)originalMark.style.display=preference.enabled?"none":"";});
+  // Keep the small companion movable without turning a drag into a greeting.
+  let drag:{id:number;x:number;y:number;left:number;top:number;moved:boolean}|null=null,suppressClickUntil=0;
+  function place(left:number,top:number){
+    const nav=document.querySelector(".tabbar")?.getBoundingClientRect(),header=document.querySelector(".navbar")?.getBoundingClientRect();
+    const mobile=innerWidth<760,minX=mobile?8:(nav?.right??0)+12,minY=(header?.bottom??0)+18;
+    const maxX=Math.max(minX,innerWidth-strip.offsetWidth-8),maxY=Math.max(minY,(mobile?(nav?.top??innerHeight):innerHeight)-strip.offsetHeight-14);
+    const x=Math.min(Math.max(left,minX),maxX),y=Math.min(Math.max(top,minY),maxY);
+    strip.style.left=`${x}px`;strip.style.top=`${y}px`;strip.style.right="auto";strip.style.bottom="auto";
+    strip.style.setProperty("--bubble-shift",`${Math.max(0,198-x-strip.offsetWidth)}px`);
+    strip.dataset.nearTop=String(y<(header?.bottom??0)+90);
+  }
+  function clampPosition(){
+    if(!strip.hidden&&strip.style.left)place(parseFloat(strip.style.left),parseFloat(strip.style.top));
+  }
+  mascotButton.addEventListener("pointerdown",event=>{
+    if(event.button!==0||!event.isPrimary)return;const rect=strip.getBoundingClientRect();
+    drag={id:event.pointerId,x:event.clientX,y:event.clientY,left:rect.left,top:rect.top,moved:false};
+    mascotButton.setPointerCapture(event.pointerId);
+  });
+  mascotButton.addEventListener("pointermove",event=>{
+    if(!drag||drag.id!==event.pointerId)return;
+    const dx=event.clientX-drag.x,dy=event.clientY-drag.y;if(!drag.moved&&Math.hypot(dx,dy)<8)return;
+    drag.moved=true;strip.classList.add("is-dragging");place(drag.left+dx,drag.top+dy);
+  });
+  const endDrag=()=>{if(drag?.moved)suppressClickUntil=Date.now()+500;drag=null;strip.classList.remove("is-dragging");};
+  mascotButton.addEventListener("pointerup",endDrag);mascotButton.addEventListener("pointercancel",endDrag);mascotButton.addEventListener("lostpointercapture",endDrag);
+  mascotButton.addEventListener("click",()=>{if(Date.now()>suppressClickUntil)greet();});
+  mascotButton.addEventListener("keydown",event=>{
+    if(event.key==="Enter"||event.key===" "){event.stopPropagation();return;}
+    if(!["ArrowLeft","ArrowRight","ArrowUp","ArrowDown"].includes(event.key))return;event.preventDefault();event.stopPropagation();
+    const rect=strip.getBoundingClientRect(),step=24;place(rect.left+(event.key==="ArrowLeft"?-step:event.key==="ArrowRight"?step:0),rect.top+(event.key==="ArrowUp"?-step:event.key==="ArrowDown"?step:0));
+  });
   window.addEventListener("storage",event=>{if(event.key===STORAGE_KEY||event.key===null){preference=readPreference();render();window.dispatchEvent(new CustomEvent("yks:mascot-change"));}});
   window.addEventListener("yks:navigation-after",watchFocus);
   window.addEventListener("yks:mascot-open",open);
   document.addEventListener("visibilitychange",syncMotion);reduced.addEventListener("change",syncMotion);
+  document.addEventListener("focusin",syncMotion);document.addEventListener("focusout",()=>queueMicrotask(syncMotion));
+  window.visualViewport?.addEventListener("resize",syncMotion);
+  window.addEventListener("resize",()=>{clampPosition();syncMotion();});
+  // Only direct body insertions and known overlay attributes are observed; mascot renders never retrigger this observer.
+  new MutationObserver(watchFocus).observe(document.body,{childList:true});
   const api:MascotCompanionApi={read:()=>({...preference,name:current().name}),open,setEnabled};window.__YKS_MASCOT__=api;
-  render();watchFocus();animate("greeting");window.dispatchEvent(new CustomEvent("yks:mascot-change"));
+  render();watchFocus();greet();window.dispatchEvent(new CustomEvent("yks:mascot-change"));
   return api;
 }
