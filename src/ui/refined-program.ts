@@ -166,7 +166,7 @@ export function installRefinedProgram():ProgramApi{
   const subject=element("select"),topic=element("select"),questions=element("input"),minutes=element("input"),resource=element("input");
   const field=(label:string,control:HTMLInputElement|HTMLSelectElement,id:string)=>{const wrap=element("label");control.id=id;wrap.htmlFor=id;wrap.append(element("span","",label),control);return wrap;};
   subject.required=true;questions.type=minutes.type="number";questions.min=minutes.min="1";questions.max="1000";minutes.max="1440";questions.step=minutes.step="1";questions.inputMode=minutes.inputMode="numeric";questions.placeholder="Örn. 30";minutes.placeholder="Örn. 45";
-  resource.type="url";resource.inputMode="url";resource.maxLength=500;resource.autocomplete="url";resource.placeholder="https://youtu.be/... veya video bağlantısı";
+  resource.type="url";resource.inputMode="url";resource.maxLength=500;resource.setAttribute("autocomplete","url");resource.placeholder="https://youtu.be/... veya video bağlantısı";
   questions.dataset.programNumber=minutes.dataset.programNumber="";
   fields.append(field("Ders",subject,"refinedProgramSubject"),field("Konu",topic,"refinedProgramTopic"));metrics.append(field("Soru hedefi · isteğe bağlı",questions,"refinedProgramQuestions"),field("Süre (dk) · isteğe bağlı",minutes,"refinedProgramMinutes"));
   const subjects=window.YKSLegacyState?.subjects?.()??[];
