@@ -66,6 +66,18 @@ export function refinedProgramQuickText(subject:string,topic:string,questions:st
   return parts.join(" · ");
 }
 
+/** Optional study resource URL. Stored with the task text so old data readers keep working. */
+export function refinedProgramResourceUrl(value:string):string|null{
+  const raw=value.trim();
+  if(!raw)return "";
+  if(raw.length>500||/\s/.test(raw))return null;
+  try{
+    const parsed=new URL(raw);
+    if(!["http:","https:"].includes(parsed.protocol)||!parsed.hostname)return null;
+    return raw;
+  }catch{return null;}
+}
+
 export function createRefinedProgramController(bridge:RefinedProgramBridge,now=()=>new Date()){
   let day=(now().getDay()+6)%7,view:ProgramView="day";
   const snapshot=()=>{
@@ -151,9 +163,10 @@ export function installRefinedProgram():ProgramApi{
   const form=element("form","rb-program-add-form");form.id="refinedProgramAdd";form.hidden=true;
   const formTabs=element("div","rb-program-form-tabs"),quickTab=button("Ders ve konu seç"),customTab=button("Kendim yazayım");formTabs.setAttribute("role","group");formTabs.setAttribute("aria-label","Çalışma ekleme yöntemi");formTabs.append(quickTab,customTab);
   const builder=element("div","rb-program-builder"),fields=element("div","rb-program-fields"),metrics=element("div","rb-program-metrics");
-  const subject=element("select"),topic=element("select"),questions=element("input"),minutes=element("input");
+  const subject=element("select"),topic=element("select"),questions=element("input"),minutes=element("input"),resource=element("input");
   const field=(label:string,control:HTMLInputElement|HTMLSelectElement,id:string)=>{const wrap=element("label");control.id=id;wrap.htmlFor=id;wrap.append(element("span","",label),control);return wrap;};
   subject.required=true;questions.type=minutes.type="number";questions.min=minutes.min="1";questions.max="1000";minutes.max="1440";questions.step=minutes.step="1";questions.inputMode=minutes.inputMode="numeric";questions.placeholder="Örn. 30";minutes.placeholder="Örn. 45";
+  resource.type="url";resource.inputMode="url";resource.maxLength=500;resource.autocomplete="url";resource.placeholder="https://youtu.be/... veya video bağlantısı";
   questions.dataset.programNumber=minutes.dataset.programNumber="";
   fields.append(field("Ders",subject,"refinedProgramSubject"),field("Konu",topic,"refinedProgramTopic"));metrics.append(field("Soru hedefi · isteğe bağlı",questions,"refinedProgramQuestions"),field("Süre (dk) · isteğe bağlı",minutes,"refinedProgramMinutes"));
   const subjects=window.YKSLegacyState?.subjects?.()??[];
@@ -165,25 +178,29 @@ export function installRefinedProgram():ProgramApi{
   builder.append(presets,fields,metrics);
   const custom=element("div","rb-program-custom"),formLabel=element("label","","Ne çalışacaksın?"),input=element("textarea"),hint=element("p","rb-program-form-hint"),formActions=element("div","rb-program-form-actions"),save=button("Programa ekle"),cancel=button("Vazgeç");
   input.id="refinedProgramTaskText";input.rows=2;input.maxLength=600;input.placeholder="Örn. Deneme analizi · Yanlış soruların tekrarı";formLabel.htmlFor=input.id;hint.setAttribute("role","status");save.type="submit";formActions.append(save,cancel);custom.append(formLabel,input);
+  const resourceField=element("div","rb-program-resource-field"),resourceHelp=element("small","","YouTube videosu, oynatma listesi veya başka bir web video bağlantısı ekleyebilirsin.");
+  resourceField.append(field("Video URL · isteğe bağlı",resource,"refinedProgramVideoUrl"),resourceHelp);
   const daysField=element("fieldset","rb-program-days"),dayOptions=element("div","rb-program-day-options"),dayShortcuts=element("div","rb-program-day-shortcuts"),preview=element("div","rb-program-preview"),previewText=element("strong"),previewDays=element("span"),feedback=element("p","rb-program-feedback");
-  previewDays.id="refinedProgramDestination";subject.setAttribute("aria-describedby",previewDays.id);input.setAttribute("aria-describedby",previewDays.id);
+  previewDays.id="refinedProgramDestination";subject.setAttribute("aria-describedby",previewDays.id);input.setAttribute("aria-describedby",previewDays.id);resource.setAttribute("aria-describedby",previewDays.id);
   feedback.setAttribute("role","status");feedback.setAttribute("aria-live","polite");
   let quickMode=true,draftWeek=controller.snapshot().week,draftDays=new Set<number>([controller.snapshot().day]),submitting=false;
   const draftButtons=SHORT_DAYS.map((label,index)=>{const node=button(label);node.setAttribute("aria-label",FULL_DAYS[index]!);node.addEventListener("click",()=>{if(draftDays.has(index))draftDays.delete(index);else draftDays.add(index);updatePreview();});dayOptions.append(node);return node;});
   for(const [label,days] of [["Seçili gün",null],["Hafta içi",[0,1,2,3,4]],["Her gün",[0,1,2,3,4,5,6]]] as const){const node=button(label);node.addEventListener("click",()=>{draftDays=new Set(days??[controller.snapshot().day]);updatePreview();});dayShortcuts.append(node);}
-  daysField.append(element("legend","","Hangi günlere eklensin?"),dayOptions,dayShortcuts);preview.append(previewText,previewDays);form.append(formTabs,builder,custom,daysField,preview,hint,formActions);
+  daysField.append(element("legend","","Hangi günlere eklensin?"),dayOptions,dayShortcuts);preview.append(previewText,previewDays);form.append(formTabs,builder,custom,resourceField,daysField,preview,hint,formActions);
   toolbar.append(tabs,add);actions.append(share,shareStatus);root.append(heading,toolbar,weekNav,strip,form,feedback,dailyPanel,weeklyPanel,actions);
   let destroyed=false,queued=false;
   const quickText=()=>{const item=subject.value===""?undefined:subjects[Number(subject.value)];return item?refinedProgramQuickText(`${item.exam} ${item.name.replace(/\s*\(AYT\)$/,"")}`,topic.value,questions.value,minutes.value):null;};
   function syncTopics(){topic.replaceChildren(new Option("Genel çalışma",""));const item=subject.value===""?undefined:subjects[Number(subject.value)];item?.topics.forEach(name=>topic.append(new Option(name,name)));topic.disabled=!item;updatePreview();}
   function updatePreview(){
-    previewText.textContent=(quickMode?quickText():input.value.trim())||"Çalışmanı seç; eklenecek plan burada görünsün.";
+    const baseText=(quickMode?quickText():input.value.trim())||"";
+    const resourceUrl=refinedProgramResourceUrl(resource.value);
+    previewText.textContent=baseText?(resourceUrl?baseText+" · video bağlantılı":baseText):"Çalışmanı seç; eklenecek plan burada görünsün.";
     const labels=[...draftDays].sort((a,b)=>a-b).map(index=>`${SHORT_DAYS[index]} ${parseDate(offsetDate(draftWeek,index))?.getDate()??""}`);
     const start=parseDate(draftWeek);previewDays.textContent=`${start?.toLocaleDateString("tr-TR",{day:"numeric",month:"long",year:"numeric"})??""} haftası · ${labels.join(", ")||"En az bir gün seç"}`;
     draftButtons.forEach((node,index)=>node.setAttribute("aria-pressed",String(draftDays.has(index))));save.textContent=draftDays.size>1?`${draftDays.size} güne ekle`:"Programa ekle";
   }
   function setMode(quick:boolean){quickMode=quick;builder.hidden=!quick;custom.hidden=quick;subject.disabled=!quick;questions.disabled=minutes.disabled=!quick;topic.disabled=!quick||subject.value==="";input.disabled=quick;input.required=!quick;quickTab.setAttribute("aria-pressed",String(quick));customTab.setAttribute("aria-pressed",String(!quick));hint.textContent="";updatePreview();}
-  quickTab.addEventListener("click",()=>setMode(true));customTab.addEventListener("click",()=>setMode(false));subject.addEventListener("change",syncTopics);for(const field of [topic,questions,minutes,input])field.addEventListener("input",updatePreview);syncTopics();setMode(true);
+  quickTab.addEventListener("click",()=>setMode(true));customTab.addEventListener("click",()=>setMode(false));subject.addEventListener("change",syncTopics);for(const field of [topic,questions,minutes,input,resource])field.addEventListener("input",updatePreview);syncTopics();setMode(true);
   const schedule=()=>{if(queued||destroyed)return;queued=true;queueMicrotask(()=>{queued=false;if(!destroyed)refresh();});};
   const originalShare=()=>legacyPanel.querySelector<HTMLButtonElement>("#studentCoachProgramShare [data-coach-share-now]");
   function refresh():void{
@@ -241,15 +258,19 @@ export function installRefinedProgram():ProgramApi{
   cancel.addEventListener("click",()=>{form.hidden=true;add.setAttribute("aria-expanded","false");add.focus();});
   form.addEventListener("submit",event=>{
     event.preventDefault();if(submitting)return;
-    const text=quickMode?quickText():input.value.trim();
-    if(!text){hint.textContent=quickMode?"Bir ders seç; soru ve süre hedeflerini geçerli sayılarla doldur veya boş bırak.":"Eklemek istediğin çalışmayı yaz.";(quickMode?subject:input).focus();return;}
+    const baseText=quickMode?quickText():input.value.trim();
+    if(!baseText){hint.textContent=quickMode?"Bir ders seç; soru ve süre hedeflerini geçerli sayılarla doldur veya boş bırak.":"Eklemek istediğin çalışmayı yaz.";(quickMode?subject:input).focus();return;}
+    const resourceUrl=refinedProgramResourceUrl(resource.value);
+    if(resourceUrl===null){hint.textContent="Video URL geçerli bir http:// veya https:// bağlantısı olmalı.";resource.focus();return;}
+    const text=resourceUrl?`${baseText} — ${resourceUrl}`:baseText;
+    if(text.length>600){hint.textContent="Çalışma metni ve video bağlantısı birlikte çok uzun. Metni veya URL’yi kısalt.";resource.focus();return;}
     if(!draftDays.size){hint.textContent="En az bir gün seç.";draftButtons[0]?.focus();return;}
     submitting=true;save.disabled=true;
     try{
       const result=controller.addMany(text,[...draftDays],draftWeek);
       if(!result.ok){hint.textContent=result.reason==="full"?"Seçtiğin günlerden biri dolu. Hiçbir çalışma eklenmedi; gün seçimini değiştir veya gelişmiş tablodan ders satırı ekle.":result.reason==="save"?"Plan kaydedilemedi. Çalışman burada duruyor; tekrar deneyebilirsin.":"Plan eklenemedi. Dersini ve seçtiğin günleri kontrol et.";return;}
       feedback.textContent=`${draftDays.size} güne çalışma eklendi. ${previewDays.textContent}`;
-      input.value="";form.hidden=true;add.setAttribute("aria-expanded","false");refresh();add.focus();
+      input.value="";resource.value="";form.hidden=true;add.setAttribute("aria-expanded","false");refresh();add.focus();
     }finally{submitting=false;save.disabled=false;}
   });
   share.addEventListener("click",()=>originalShare()?.click());

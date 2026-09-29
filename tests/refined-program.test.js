@@ -7,7 +7,7 @@ const {stripTypeScriptTypes}=require("node:module");
 const root=path.resolve(__dirname,"..");
 const source=fs.readFileSync(path.join(root,"src/ui/refined-program.ts"),"utf8");
 const runtime=stripTypeScriptTypes(source.replace(/^import "\.\/refined-program\.css";\r?\n/,""),{mode:"strip"}).replace(/^export /gm,"");
-const api=vm.runInNewContext(runtime+"\n({refinedProgramTasks,refinedProgramWeekOffset,refinedProgramQuickText,createRefinedProgramController})",{Date});
+const api=vm.runInNewContext(runtime+"\n({refinedProgramTasks,refinedProgramWeekOffset,refinedProgramQuickText,refinedProgramResourceUrl,createRefinedProgramController})",{Date,URL});
 const plain=value=>JSON.parse(JSON.stringify(value));
 const rows=()=>[Array(7).fill(""),Array(7).fill("")];
 function week(){return {r:rows(),s:rows(),dn:{},done:Array(7).fill(false),mv:{}};}
@@ -126,4 +126,20 @@ test("quick text formats only selected goals and validates meaningful numeric bo
   assert.equal(api.refinedProgramQuickText("Matematik","","1000","1440"),"Matematik · 1000 soru · 1440 dk");
   assert.equal(api.refinedProgramQuickText(" ","Problemler","30",""),null);assert.equal(api.refinedProgramQuickText("A".repeat(121),"","",""),null);assert.equal(api.refinedProgramQuickText("Matematik","A".repeat(201),"",""),null);
   for(const [questions,minutes] of [["0",""],["-1",""],["1.5",""],["1e2",""],["1001",""],["","0"],["","-1"],["","1.5"],["","1441"]])assert.equal(api.refinedProgramQuickText("Matematik","",questions,minutes),null);
+});
+
+
+test("optional program video URL accepts safe web links and rejects invalid schemes",()=>{
+  assert.equal(api.refinedProgramResourceUrl(""),"");
+  assert.equal(api.refinedProgramResourceUrl("  https://youtu.be/dQw4w9WgXcQ  "),"https://youtu.be/dQw4w9WgXcQ");
+  assert.equal(api.refinedProgramResourceUrl("https://www.youtube.com/watch?v=dQw4w9WgXcQ"),"https://www.youtube.com/watch?v=dQw4w9WgXcQ");
+  assert.equal(api.refinedProgramResourceUrl("https://example.test/video.mp4"),"https://example.test/video.mp4");
+  for(const value of ["youtu.be/dQw4w9WgXcQ","javascript:alert(1)","file:///tmp/video.mp4","https://example.test/a b","x".repeat(501)])
+    assert.equal(api.refinedProgramResourceUrl(value),null);
+});
+
+test("new planner keeps an optional video URL field in the add-work flow",()=>{
+  assert.match(source,/Video URL · isteğe bağlı/);
+  assert.match(source,/refinedProgramVideoUrl/);
+  assert.match(source,/\$\{baseText\} — \$\{resourceUrl\}/);
 });

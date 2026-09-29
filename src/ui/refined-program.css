@@ -94,6 +94,8 @@
 #program .rb-program-presets>button{padding:7px 12px;border:1px solid var(--rp-line);border-radius:10px;background:var(--rp-alt);color:var(--rp-muted);font-size:12px;font-weight:600;}
 #program .rb-program-presets>button[aria-pressed=true]{background:var(--rp-soft);color:var(--rp-accent);border-color:var(--rp-accent);}
 #program .rb-program-custom{display:grid;gap:10px;min-width:0;}
+#program .rb-program-resource-field{display:grid;gap:6px;min-width:0;margin:16px 0 0;}
+#program .rb-program-resource-field>small{color:var(--rp-muted);font-size:12px;line-height:1.5;}
 #program .rb-program-days{min-width:0;margin:20px 0 0;padding:0;border:0;}
 #program .rb-program-days>legend{padding:0;margin:0 0 9px;font-size:13px;font-weight:600;}
 #program .rb-program-day-options{display:grid;grid-template-columns:repeat(7,minmax(44px,1fr));gap:6px;max-width:100%;padding:3px 2px 6px;overflow-x:auto;overscroll-behavior-inline:contain;scrollbar-width:thin;}
