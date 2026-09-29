@@ -119,6 +119,9 @@ export function installRefinedProgram():ProgramApi{
   if(!program||!["renderPlan","shiftWeek","thisWeek","setProgTab","toggleCellDone","addToDay","addToDays","openPlanCellMenu"].every(name=>typeof legacy[name]==="function"))return {installed:false,refresh(){},destroy(){}};
   const screen=program;
   const legacyPanel=element("div","rb-program-legacy");legacyPanel.id="refinedProgramLegacy";
+  // Keep the classic planner mounted only as an internal compatibility bridge.
+  // It remains in source/DOM for existing state, dialogs and coach-share hooks, but is no longer user-accessible.
+  legacyPanel.hidden=true;legacyPanel.setAttribute("aria-hidden","true");
   while(screen.firstChild)legacyPanel.append(screen.firstChild);
   const root=element("div","rb-program");root.id="refinedProgram";screen.append(root,legacyPanel);
   const controller=createRefinedProgramController({
@@ -165,12 +168,11 @@ export function installRefinedProgram():ProgramApi{
   const daysField=element("fieldset","rb-program-days"),dayOptions=element("div","rb-program-day-options"),dayShortcuts=element("div","rb-program-day-shortcuts"),preview=element("div","rb-program-preview"),previewText=element("strong"),previewDays=element("span"),feedback=element("p","rb-program-feedback");
   previewDays.id="refinedProgramDestination";subject.setAttribute("aria-describedby",previewDays.id);input.setAttribute("aria-describedby",previewDays.id);
   feedback.setAttribute("role","status");feedback.setAttribute("aria-live","polite");
-  let quickMode=true,draftWeek=controller.snapshot().week,draftDays=new Set<number>([controller.snapshot().day]),advancedOpen=false,submitting=false;
+  let quickMode=true,draftWeek=controller.snapshot().week,draftDays=new Set<number>([controller.snapshot().day]),submitting=false;
   const draftButtons=SHORT_DAYS.map((label,index)=>{const node=button(label);node.setAttribute("aria-label",FULL_DAYS[index]!);node.addEventListener("click",()=>{if(draftDays.has(index))draftDays.delete(index);else draftDays.add(index);updatePreview();});dayOptions.append(node);return node;});
   for(const [label,days] of [["Seçili gün",null],["Hafta içi",[0,1,2,3,4]],["Her gün",[0,1,2,3,4,5,6]]] as const){const node=button(label);node.addEventListener("click",()=>{draftDays=new Set(days??[controller.snapshot().day]);updatePreview();});dayShortcuts.append(node);}
   daysField.append(element("legend","","Hangi günlere eklensin?"),dayOptions,dayShortcuts);preview.append(previewText,previewDays);form.append(formTabs,builder,custom,daysField,preview,hint,formActions);
-  const tools=button("Tabloyu ve gelişmiş araçları aç","rb-program-tools");tools.append(icon("arrow"));tools.setAttribute("aria-controls",legacyPanel.id);tools.setAttribute("aria-expanded","false");
-  toolbar.append(tabs,add);actions.append(share,shareStatus,tools);root.append(heading,toolbar,weekNav,strip,form,feedback,dailyPanel,weeklyPanel,actions);
+  toolbar.append(tabs,add);actions.append(share,shareStatus);root.append(heading,toolbar,weekNav,strip,form,feedback,dailyPanel,weeklyPanel,actions);
   let destroyed=false,queued=false;
   const quickText=()=>{const item=subject.value===""?undefined:subjects[Number(subject.value)];return item?refinedProgramQuickText(`${item.exam} ${item.name.replace(/\s*\(AYT\)$/,"")}`,topic.value,questions.value,minutes.value):null;};
   function syncTopics(){topic.replaceChildren(new Option("Genel çalışma",""));const item=subject.value===""?undefined:subjects[Number(subject.value)];item?.topics.forEach(name=>topic.append(new Option(name,name)));topic.disabled=!item;updatePreview();}
@@ -187,10 +189,9 @@ export function installRefinedProgram():ProgramApi{
   function refresh():void{
     const state=controller.snapshot(),isDaily=state.view==="day",selected=parseDate(state.date),start=parseDate(state.week),end=parseDate(offsetDate(state.week,6));
     screen.dataset.refinedProgram=state.view;daily.setAttribute("aria-pressed",String(isDaily));weekly.setAttribute("aria-pressed",String(!isDaily));
-    daily.setAttribute("aria-controls",dailyPanel.id);weekly.setAttribute("aria-controls",weeklyPanel.id);dailyPanel.hidden=!isDaily;weeklyPanel.hidden=isDaily;legacyPanel.hidden=!advancedOpen;tools.setAttribute("aria-expanded",String(advancedOpen));
+    daily.setAttribute("aria-controls",dailyPanel.id);weekly.setAttribute("aria-controls",weeklyPanel.id);dailyPanel.hidden=!isDaily;weeklyPanel.hidden=isDaily;legacyPanel.hidden=true;
     const total=state.days.reduce((sum,item)=>sum+item.count,0),completed=state.days.reduce((sum,item)=>sum+item.done,0);
     weekSummary.textContent=`Haftalık plan · ${total} çalışma · ${completed} tamamlandı`;
-    if(tools.firstChild)tools.firstChild.textContent=advancedOpen?"Tabloyu ve gelişmiş araçları kapat":"Tabloyu ve gelişmiş araçları aç";
     weekLabel.textContent=start&&end?`${start.toLocaleDateString("tr-TR",{day:"numeric",month:"short"})} – ${end.toLocaleDateString("tr-TR",{day:"numeric",month:"short",year:"numeric"})}`:"";
     const todayKey=dateKey(new Date());
     state.days.forEach((day,index)=>{
@@ -233,8 +234,8 @@ export function installRefinedProgram():ProgramApi{
     const realShare=originalShare();share.hidden=!realShare;shareStatus.hidden=!realShare;
     if(realShare){share.disabled=realShare.disabled;const status=legacyPanel.querySelector("#studentCoachProgramShare [data-coach-share-status]")?.textContent;if(status)shareStatus.textContent=status;}
   }
-  const showView=(view:ProgramView)=>{controller.setView(view);advancedOpen=false;refresh();};
-  daily.addEventListener("click",()=>showView("day"));weekly.addEventListener("click",()=>showView("week"));tools.addEventListener("click",()=>{advancedOpen=!advancedOpen;call("setProgTab","week");refresh();if(advancedOpen)legacyPanel.scrollIntoView({block:"start",behavior:"instant"});});
+  const showView=(view:ProgramView)=>{controller.setView(view);refresh();};
+  daily.addEventListener("click",()=>showView("day"));weekly.addEventListener("click",()=>showView("week"));
   previous.addEventListener("click",()=>{controller.moveWeek(-1);refresh();});next.addEventListener("click",()=>{controller.moveWeek(1);refresh();});today.addEventListener("click",()=>{controller.today();refresh();});
   add.addEventListener("click",()=>{form.hidden=!form.hidden;add.setAttribute("aria-expanded",String(!form.hidden));hint.textContent="";feedback.textContent="";if(!form.hidden){const state=controller.snapshot();draftWeek=state.week;draftDays=new Set([state.day]);updatePreview();(quickMode?subject:input).focus();}});
   cancel.addEventListener("click",()=>{form.hidden=true;add.setAttribute("aria-expanded","false");add.focus();});
@@ -258,7 +259,7 @@ export function installRefinedProgram():ProgramApi{
     const wrapped=function(this:unknown,...args:unknown[]){before?.();const result=original.apply(this,args);schedule();return result;};
     wrappers.set(name,{original:original as LegacyFunction,wrapped});legacy[name]=wrapped;
   };
-  wrap("renderPlan");wrap("planEditSelected",()=>{controller.setView("week");advancedOpen=true;refresh();});
+  wrap("renderPlan");wrap("planEditSelected",()=>controller.setView("week"));
   const onNavigation=(event:Event)=>{const detail=(event as CustomEvent<{to?:string;screen?:string}>).detail;if((detail?.to??detail?.screen)==="program")schedule();};
   const events=["yks:data-changed","yks:data-primary-ready","yks:auth-state","yks:student-coach-link-ready"];
   for(const name of events)window.addEventListener(name,schedule);window.addEventListener("yks:navigation-after",onNavigation);document.addEventListener("yks:navigation-after",onNavigation);
