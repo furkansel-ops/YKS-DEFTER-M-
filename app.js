@@ -4652,30 +4652,37 @@ function renderCurriculum(){
 /* ==================================================================
    4) ÖNERİDEN PLANA EKLE
    ================================================================== */
-/* Build a complete candidate before saving so a full day or failed write never
-   leaves a partially added multi-day plan behind. */
+/* Build a complete candidate before saving. When every visible study row for a
+   selected day is occupied, grow the study matrix automatically instead of
+   forcing the student back into the retired advanced table. */
 function addToDays(text,days,haftaOfs){
   const value=typeof text==="string"?text.trim():"";
   if(!value||value.length>600||!Array.isArray(days)||!days.length||Array.from(days).some(d=>!Number.isInteger(d)||d<0||d>6)||!Number.isInteger(haftaOfs)||Math.abs(haftaOfs)>520)return {ok:false,reason:"invalid"};
-  const selected=[...new Set(days)],wk=addDaysKey(keyOf(mondayOf(new Date())),haftaOfs*7);
-  const hadWeek=Object.prototype.hasOwnProperty.call(S.weeks,wk),previous=S.weeks[wk];
+  const selected=[...new Set(days)],wk=addDaysKey(keyOf(mondayOf(new Date())),haftaOfs*7),maxRows=24;
+  const hadWeek=Object.prototype.hasOwnProperty.call(S.weeks,wk),previous=S.weeks[wk],previousRows=S.rows.s,previousLabels=S.rowLabels.s;
   let candidate;
   try{candidate=normWeek(hadWeek?clone(previous):blankWeek());}
   catch(e){return {ok:false,reason:"invalid"};}
   for(const day of selected){
     let row=-1;
-    for(let i=0;i<S.rows.s;i++){
+    for(let i=0;i<candidate.s.length;i++){
       if(!String(candidate.s[i][day]||"").trim()){row=i;break;}
     }
-    if(row<0)return {ok:false,reason:"full"};
+    if(row<0){
+      if(candidate.s.length>=maxRows)return {ok:false,reason:"full"};
+      row=candidate.s.length;candidate.s.push(new Array(7).fill(""));
+    }
     const cid="s-"+row+"-"+day;
     candidate.s[row][day]=value;
     delete candidate.dn[cid];delete candidate.mv[cid];candidate.done[day]=false;
   }
-  S.weeks[wk]=candidate;
+  const nextRows=Math.max(previousRows,candidate.s.length),nextLabels=Array.isArray(previousLabels)?previousLabels.slice():[];
+  while(nextLabels.length<nextRows)nextLabels.push("");
+  S.rows.s=nextRows;S.rowLabels.s=nextLabels;S.weeks[wk]=candidate;
   let saved=false;
   try{saved=save()===true;}catch(e){}
   if(!saved){
+    S.rows.s=previousRows;S.rowLabels.s=previousLabels;
     if(hadWeek)S.weeks[wk]=previous;else delete S.weeks[wk];
     perfInvalidateState();
     return {ok:false,reason:"save"};

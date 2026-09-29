@@ -41,11 +41,13 @@ test("duplicate selected days consume one slot per day and leave existing tasks 
   assert.equal(h.state.weeks["2026-09-21"].s[0][1],"Keep me");assert.equal(h.state.weeks["2026-09-21"].s[1][1],"Kimya");assert.equal(h.state.weeks["2026-09-21"].s[0][4],"Kimya");assert.equal(h.state.weeks["2026-09-21"].s[1][4],"");
 });
 
-test("one full selected day rejects the whole batch and a retry cannot duplicate earlier days",()=>{
-  const h=harness(),w=h.state.weeks["2026-09-21"]=h.week();w.s[0][6]="A";w.s[1][6]="B";const before=JSON.stringify(h.state);
-  assert.deepEqual(plain(h.add("Kimya",[0,6],0)),{ok:false,reason:"full"});assert.equal(JSON.stringify(h.state),before);assert.equal(h.state.weeks["2026-09-21"],w);assert.deepEqual(h.calls,[]);
-  w.s[1][6]="";assert.equal(h.add("Kimya",[0,6],0).ok,true);
-  assert.equal(h.state.weeks["2026-09-21"].s.flat().filter(x=>x==="Kimya").length,2);assert.equal(h.calls.filter(x=>x==="save").length,1);
+test("a full selected day grows the study rows automatically without overwriting existing work",()=>{
+  const h=harness(),w=h.state.weeks["2026-09-21"]=h.week();w.s[0][6]="A";w.s[1][6]="B";
+  assert.deepEqual(plain(h.add("Kimya",[0,6],0)),{ok:true,days:[0,6]});
+  const current=h.state.weeks["2026-09-21"];
+  assert.equal(current.s[0][0],"Kimya");assert.equal(current.s[0][6],"A");assert.equal(current.s[1][6],"B");assert.equal(current.s[2][6],"Kimya");
+  assert.equal(h.state.rows.s,3);assert.equal(h.state.rowLabels.s.length,3);assert.equal(h.state.rowLabels.s[2],"");
+  assert.equal(h.calls.filter(x=>x==="save").length,1);
 });
 
 test("new work resets only its cell metadata and the selected day's completion",()=>{
@@ -57,7 +59,7 @@ test("new work resets only its cell metadata and the selected day's completion",
 test("save failure or exception restores the original week reference and emits no success",()=>{
   for(const options of [{saveResult:false},{saveResult:undefined},{saveThrows:true}]){
     const h=harness(options);if(Object.hasOwn(options,"saveResult")&&options.saveResult===undefined)h.context.save=()=>{h.calls.push("save");return undefined;};
-    const w=h.state.weeks["2026-09-21"]=h.week();w.s[0][1]="Existing";const before=JSON.stringify(h.state);
+    const w=h.state.weeks["2026-09-21"]=h.week();w.s[0][1]="Existing";w.s[0][6]="A";w.s[1][6]="B";const before=JSON.stringify(h.state);
     assert.deepEqual(plain(h.add("New",[0,1,6],0)),{ok:false,reason:"save"});assert.equal(h.state.weeks["2026-09-21"],w);assert.equal(JSON.stringify(h.state),before);assert.deepEqual(h.calls,["save","invalidate"]);assert.deepEqual(h.persisted,[]);
   }
 });

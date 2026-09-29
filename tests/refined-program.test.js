@@ -99,14 +99,14 @@ test("quick planning defaults to the displayed week and exposes every weekday wi
   assert.deepEqual(plain(h.controller.snapshot().days.map(day=>day.count)),[0,1,0,1,0,0,0]);assert.equal(JSON.stringify(h.state),before);assert.equal(h.state.weeks["2026-09-21"].s[0][1],"");
 });
 
-test("quick planning forwards full and save failures without retaining partial tasks",()=>{
+test("quick planning expands full days and still rolls back failed saves atomically",()=>{
   const h=harness(),key=h.controller.snapshot().week,w=h.state.weeks[key];w.s[0][3]="A";w.s[1][3]="B";
+  assert.deepEqual(plain(h.controller.addMany("New",[0,3])),{ok:true,days:[0,3]});assert.equal(h.state.rows.s,3);assert.equal(h.state.weeks[key].s[2][3],"New");
   const before=JSON.stringify(h.state);
-  assert.deepEqual(plain(h.controller.addMany("New",[0,3])),{ok:false,reason:"full"});assert.equal(JSON.stringify(h.state),before);assert.equal(h.calls.filter(call=>call[0]==="save").length,0);
   h.context.save=()=>false;
-  assert.deepEqual(plain(h.controller.addMany("New",[0,6])),{ok:false,reason:"save"});assert.equal(JSON.stringify(h.state),before);assert.equal(h.state.weeks[key],w);
+  assert.deepEqual(plain(h.controller.addMany("Again",[1,3])),{ok:false,reason:"save"});assert.equal(JSON.stringify(h.state),before);
   h.context.save=()=>true;
-  assert.equal(h.controller.addMany("New",[0,6]).ok,true);assert.equal(h.state.weeks[key].s.flat().filter(text=>text==="New").length,2);
+  assert.equal(h.controller.addMany("Again",[1,3]).ok,true);assert.equal(h.state.weeks[key].s.flat().filter(text=>text==="Again").length,2);
 });
 
 test("quick planning rejects invalid day sets, text and target weeks before writes",()=>{

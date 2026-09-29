@@ -268,7 +268,7 @@ export function installRefinedProgram():ProgramApi{
     submitting=true;save.disabled=true;
     try{
       const result=controller.addMany(text,[...draftDays],draftWeek);
-      if(!result.ok){hint.textContent=result.reason==="full"?"Seçtiğin günlerden biri dolu. Hiçbir çalışma eklenmedi; gün seçimini değiştir veya gelişmiş tablodan ders satırı ekle.":result.reason==="save"?"Plan kaydedilemedi. Çalışman burada duruyor; tekrar deneyebilirsin.":"Plan eklenemedi. Dersini ve seçtiğin günleri kontrol et.";return;}
+      if(!result.ok){hint.textContent=result.reason==="full"?"Bu gün için çok fazla çalışma var. Daha eski veya gereksiz bir görevi kaldırıp tekrar dene.":result.reason==="save"?"Plan kaydedilemedi. Çalışman burada duruyor; tekrar deneyebilirsin.":"Plan eklenemedi. Dersini ve seçtiğin günleri kontrol et.";return;}
       feedback.textContent=`${draftDays.size} güne çalışma eklendi. ${previewDays.textContent}`;
       input.value="";resource.value="";form.hidden=true;add.setAttribute("aria-expanded","false");refresh();add.focus();
     }finally{submitting=false;save.disabled=false;}
