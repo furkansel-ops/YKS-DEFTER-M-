@@ -148,7 +148,38 @@ function cardHtml(t:Teacher,favs:Set<string>):string{
     <div class="teachers-v2-card-foot"><span>${content.map(x=>esc(TYPE_LABELS[x]||x)).join(" · ")}${t.own?" · Senin hocan":""}</span><b>Kaynakları aç →</b></div>
   </article>`;
 }
-function ensureRoot():HTMLElement|null{const list=document.getElementById("thList") as HTMLElement|null;if(!list)return null;legacyList=list;list.hidden=true;list.setAttribute("aria-hidden","true");["thSubjChips","thLvlChips","thInfo"].forEach(id=>{const node=document.getElementById(id) as HTMLElement|null;if(node)node.style.display="none";});let root=document.getElementById(ROOT_ID) as HTMLElement|null;if(!root){root=document.createElement("section");root.id=ROOT_ID;root.className="teachers-v2-root";root.setAttribute("aria-label","Hocalar ve videolar");list.parentNode?.insertBefore(root,list);buildShell(root);}return root;}
+function hideLegacyTeachersSurface(list:HTMLElement):void{
+  list.hidden=true;list.setAttribute("aria-hidden","true");
+  const ids=["thSearch","directPlaylistUrl","tvSubject","tvSuggest","watchList","wsBox","fh_hocaekle","fb_hocaekle"];
+  const nodes=new Set<HTMLElement>();
+  for(const id of ids){
+    const node=document.getElementById(id) as HTMLElement|null;if(!node)continue;
+    const block=node.closest<HTMLElement>(".card,.foldhead,.foldbody")||node;
+    nodes.add(block);
+  }
+  ["thSubjChips","thLvlChips","thInfo"].forEach(id=>{const node=document.getElementById(id) as HTMLElement|null;if(node)nodes.add(node);});
+  const parent=list.parentElement;
+  if(parent){
+    const labels=new Set(["Videolar ve hocalar","Konuya göre video ara","Şunu izlemen iyi olur","İzlediklerim","İzleme geçmişi"]);
+    [...parent.children].forEach(child=>{
+      if(child instanceof HTMLElement&&child.tagName==="H2"&&labels.has((child.textContent||"").replace(/\s+/g," ").trim()))nodes.add(child);
+    });
+    const note=[...parent.querySelectorAll<HTMLElement>("p.note")].find(node=>(node.textContent||"").includes("Bağlantısını bildiğin oynatma listeleri"));
+    if(note)nodes.add(note);
+  }
+  nodes.forEach(node=>{node.hidden=true;node.setAttribute("aria-hidden","true");node.dataset.teachersLegacy="hidden";});
+}
+function ensureRoot():HTMLElement|null{
+  const list=document.getElementById("thList") as HTMLElement|null;if(!list)return null;
+  legacyList=list;hideLegacyTeachersSurface(list);
+  let root=document.getElementById(ROOT_ID) as HTMLElement|null;
+  if(!root){
+    root=document.createElement("section");root.id=ROOT_ID;root.className="teachers-v2-root";root.setAttribute("aria-label","Hocalar ve videolar");
+    const parent=list.parentElement,anchor=parent?[...parent.children].find(child=>child instanceof HTMLElement&&((child as HTMLElement).querySelector?.("#directPlaylistUrl")||(child.tagName==="H2"&&(child.textContent||"").trim()==="Videolar ve hocalar"))):null;
+    parent?.insertBefore(root,(anchor as HTMLElement|null)||list);buildShell(root);
+  }
+  return root;
+}
 function buildShell(root:HTMLElement):void{
   root.innerHTML=`<div class="teachers-v2-shell">
     <section class="teachers-v2-hero">
@@ -223,4 +254,4 @@ function openDetail(name:string):void{
 function bindLegacyObserver():void{if(!legacyList)return;listObserver?.disconnect();listObserver=new MutationObserver(()=>window.setTimeout(renderAll,0));listObserver.observe(legacyList,{childList:true,subtree:true});}
 function tick():void{const root=ensureRoot();if(root&&!mounted){mounted=true;bindLegacyObserver();renderAll();}if(root){const sig=syncSignature();if(sig!==lastSyncSignature)renderAll();else renderSyncStatus();}}
 function installRuntime():void{readPrefs();installModalFocus();window.addEventListener("online",renderSyncStatus);window.addEventListener("offline",renderSyncStatus);window.addEventListener("storage",event=>{if(event.key==="yks")renderAll();});tick();refreshTimer=window.setInterval(tick,1000);document.documentElement.dataset.teachersV2="ready";}
-export function installTeachersV2():{installed:boolean;version:string;refresh:()=>void;destroy:()=>void}{if(document.documentElement.dataset.teachersV2==="ready")return {installed:true,version:"2.0.0-alpha1",refresh:renderAll,destroy:()=>{}};if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",installRuntime,{once:true});else installRuntime();return {installed:true,version:"2.0.0-alpha1",refresh:renderAll,destroy:()=>{if(refreshTimer)window.clearInterval(refreshTimer);listObserver?.disconnect();modalObserver?.disconnect();document.removeEventListener("click",rememberModalTrigger,true);document.removeEventListener("keydown",handleModalKeys,true);closeDetail();document.getElementById(ROOT_ID)?.remove();if(legacyList){legacyList.hidden=false;legacyList.removeAttribute("aria-hidden");}delete document.documentElement.dataset.teachersV2;}};}
+export function installTeachersV2():{installed:boolean;version:string;refresh:()=>void;destroy:()=>void}{if(document.documentElement.dataset.teachersV2==="ready")return {installed:true,version:"2.1.0",refresh:renderAll,destroy:()=>{}};if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",installRuntime,{once:true});else installRuntime();return {installed:true,version:"2.1.0",refresh:renderAll,destroy:()=>{if(refreshTimer)window.clearInterval(refreshTimer);listObserver?.disconnect();modalObserver?.disconnect();document.removeEventListener("click",rememberModalTrigger,true);document.removeEventListener("keydown",handleModalKeys,true);closeDetail();document.getElementById(ROOT_ID)?.remove();if(legacyList){legacyList.hidden=false;legacyList.removeAttribute("aria-hidden");}delete document.documentElement.dataset.teachersV2;}};}
