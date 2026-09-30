@@ -187,7 +187,7 @@ function renderGrid():void{
   const reset=document.querySelector<HTMLButtonElement>(".teachers-v2-reset");if(reset)reset.hidden=!state.query&&!state.subject&&!state.level&&!state.favOnly;
 }
 function renderSyncStatus():void{const target=document.getElementById("teachersV2Sync");if(!target)return;const cloudText=document.getElementById("cloudSyncText")?.textContent?.trim(),online=navigator.onLine;target.classList.toggle("offline",!online);const text=target.querySelector("span");if(text)text.textContent=!online?"Çevrimdışı":(cloudText||"Bulut senkronu açık");}
-function renderAll():void{const root=ensureRoot();if(!root)return;const teachers=currentTeachers();renderSubjectRow(teachers);renderLevelRow();const favToggle=document.getElementById("teachersV2FavToggle");favToggle?.classList.toggle("on",state.favOnly);renderGrid();renderSyncStatus();lastSyncSignature=syncSignature();}
+function renderAll():void{const root=ensureRoot();if(!root)return;const teachers=currentTeachers();renderSubjectRow(teachers);renderLevelRow();const favToggle=document.getElementById("teachersV2FavToggle");favToggle?.classList.toggle("on",state.favOnly);favToggle?.setAttribute("aria-pressed",String(state.favOnly));renderGrid();renderSyncStatus();lastSyncSignature=syncSignature();}
 function handleRootClick(event:MouseEvent):void{
   const target=event.target as HTMLElement|null;if(!target)return;const actionNode=target.closest<HTMLElement>("[data-action]");if(!actionNode)return;const action=actionNode.dataset.action||"";
   if(action==="subject"){state.subject=actionNode.dataset.value||"";savePrefs();renderAll();return;}
