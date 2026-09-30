@@ -9891,14 +9891,28 @@ function planEnsureSheet(){
   document.body.appendChild(ov); return ov;
 }
 function planSheetExtraHtml(ctx){return typeof programAssistSheetExtras==="function"?programAssistSheetExtras(ctx):"";}
+function planSheetResourceHtml(ctx){
+  const link=ctx&&typeof cellLink==="function"?cellLink(ctx.txt):null;
+  if(!link)return "";
+  let host="";
+  try{host=new URL(link.url).hostname.replace(/^www\./,"");}catch(e){}
+  const title=link.listId?"▶ Oynatma listesini aç":link.videoId?"▶ Videoyu izle":"↗ Bağlantıyı aç";
+  return '<button class="plan-sheet-resource primary" onclick="planOpenSelectedResource()"><span>'+esc(title)+'</span>'+(host?'<small>'+esc(host)+'</small>':"")+'</button>';
+}
+function planOpenSelectedResource(){
+  const c=planMenuCtx&&planCellData(planMenuCtx.wk,planMenuCtx.blk,planMenuCtx.i,planMenuCtx.d);
+  if(!c||typeof cellOpenLink!=="function")return false;
+  return cellOpenLink(c.txt);
+}
 function openPlanCellMenu(wk,blk,i,d){
   const c=planCellData(wk,blk,i,d); if(!c)return false; planMenuCtx={wk:c.wk,blk:c.blk,i:c.i,d:c.d};
   const lbl=c.blk==="r"?(S.rowLabels.r[c.i]||"Rutin"):(S.rowLabels.s[c.i]||"Ders "+(c.i+1));
-  const ov=planEnsureSheet();
+  const ov=planEnsureSheet(),link=typeof cellLink==="function"?cellLink(c.txt):null;
   const taskDate=addDaysKey(c.wk,c.d),dateLabel=DAYS_FULL[c.d]+" · "+parseKey(taskDate).toLocaleDateString("tr-TR",{day:"numeric",month:"long"});
+  const taskText=link&&link.ad?link.ad:c.txt;
   ov.innerHTML='<div class="plan-sheet-card" onclick="event.stopPropagation()"><div class="plan-sheet-grab"></div>'+ 
-    '<div class="plan-sheet-date">'+esc(dateLabel)+'</div><div class="plan-sheet-title">'+esc(lbl)+'</div><div class="plan-sheet-sub">'+esc(c.txt)+'</div>'+ 
-    '<div class="plan-sheet-actions">'+
+    '<div class="plan-sheet-date">'+esc(dateLabel)+'</div><div class="plan-sheet-title">'+esc(lbl)+'</div><div class="plan-sheet-sub">'+esc(taskText)+'</div>'+ 
+    '<div class="plan-sheet-actions">'+planSheetResourceHtml(c)+
       '<button class="primary" onclick="planEditSelected()">✎ Düzenle</button>'+ 
       '<button onclick="planCopySelected()">⧉ Kopyala</button>'+ 
       '<button class="primary" onclick="planTomorrowSelected()">→ Yarına taşı</button>'+ 
