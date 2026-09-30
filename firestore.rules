@@ -465,6 +465,37 @@ service cloud.firestore {
         || actionType == 'post_exam_task';
     }
 
+    match /coachingMessages/{messageId} {
+      allow get, list: if verifiedUser()
+        && (request.auth.uid == resource.data.studentUid
+          || request.auth.uid == resource.data.coachUid);
+
+      allow create: if verifiedUser()
+        && request.resource.data.keys().hasAll([
+          'studentUid', 'coachUid', 'senderUid', 'senderRole', 'text', 'createdAt'
+        ])
+        && request.resource.data.keys().hasOnly([
+          'studentUid', 'coachUid', 'senderUid', 'senderRole', 'text', 'createdAt'
+        ])
+        && request.resource.data.senderUid == request.auth.uid
+        && request.resource.data.text is string
+        && request.resource.data.text.size() >= 1
+        && request.resource.data.text.size() <= 500
+        && request.resource.data.createdAt == request.time
+        && activeCoachingLink(request.resource.data.studentUid, request.resource.data.coachUid)
+        && (
+          (request.resource.data.senderRole == 'student'
+            && request.auth.uid == request.resource.data.studentUid
+            && profileRole(request.auth.uid, 'student'))
+          ||
+          (request.resource.data.senderRole == 'coach'
+            && request.auth.uid == request.resource.data.coachUid
+            && profileRole(request.auth.uid, 'coach'))
+        );
+
+      allow update, delete: if false;
+    }
+
     match /coachingActions/{actionId} {
       allow get, list: if verifiedUser()
         && (request.auth.uid == resource.data.studentUid
