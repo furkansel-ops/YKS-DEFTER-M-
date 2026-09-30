@@ -2138,6 +2138,30 @@ function delWrong(id){
   if(bk)pushUndo("Yanlış kaydı silindi",()=>{ S.wrongLog.push(bk); });
   renderWrongTopics();
 }
+function wrongPhotoFor(id){ return (S.qbank||[]).find(q=>Number(q.wrongId)===Number(id)); }
+function wrongPhotoPick(id){
+  const wrong=S.wrongLog.find(x=>Number(x.id)===Number(id)); if(!wrong)return;
+  if(storageBytes()>QA_BLOCK){ toast("Depolama dolu — önce eski soru fotoğraflarını sil"); return; }
+  const inp=document.createElement("input"); inp.type="file"; inp.accept="image/*";
+  inp.onchange=()=>{
+    const file=inp.files&&inp.files[0]; if(!file)return;
+    toast("Soru fotoğrafı işleniyor…");
+    compressImage(file).then(dataUrl=>{
+      const est=storageBytes()+dataUrl.length;if(est>QA_BLOCK){toast("Depolama sınırına gelindi — eski soruları sil");return;}
+      let q=wrongPhotoFor(id);
+      if(q){q.img=dataUrl;q.subject=wrong.subject;q.topic=wrong.topic;q.date=wrong.date||todayKey();}
+      else S.qbank.push({id:Date.now(),wrongId:Number(id),date:wrong.date||todayKey(),subject:wrong.subject,topic:wrong.topic,note:"Hata Defteri sorusu",img:dataUrl,done:false});
+      save();renderWrongTopics();renderQbank();toast("Soru fotoğrafı eklendi ✓");
+    }).catch(e=>toast(String(e.message||e)));
+  };
+  inp.click();
+}
+function wrongPhotoOpen(id){ const q=wrongPhotoFor(id);if(!q){wrongPhotoPick(id);return;}qaOpen(q.id); }
+function wrongPhotoRemove(id){
+  const q=wrongPhotoFor(id);if(!q)return;
+  if(!confirm("Bu yanlışın soru fotoğrafı silinsin mi?"))return;
+  S.qbank=S.qbank.filter(x=>x.id!==q.id);save();renderWrongTopics();renderQbank();toast("Soru fotoğrafı silindi");
+}
 function renderWrongTopics(){
   if(typeof renderWrongKinds==="function")setTimeout(renderWrongKinds,0);
   const sel=el("wtSubject");
@@ -2154,9 +2178,14 @@ function renderWrongTopics(){
       <div class="ht"><i class="warn" style="width:${Math.round(t.n/max*100)}%"></i></div><span class="hv">${t.n}</span></div>`;
   });
   html+='</div><p class="eyebrow" style="margin:16px 0 6px;">Son kayıtlar</p>';
-  html+=S.wrongLog.slice(-12).reverse().map(x=>
-    `<div class="dayrow"><span class="k">${esc(x.subject)} · ${esc(x.topic)}</span>
-      <span class="v">${x.n} <button class="del" onclick="delWrong(${x.id})">sil</button></span></div>`).join("");
+  html+=S.wrongLog.slice(-12).reverse().map(x=>{
+    const photo=wrongPhotoFor(x.id);
+    const photoUi=photo
+      ? `<button class="wrong-photo-thumb" onclick="wrongPhotoOpen(${x.id})" title="Soruyu aç"><img src="${photo.img}" alt="Soru fotoğrafı"></button><button class="wrong-photo-change" onclick="wrongPhotoPick(${x.id})" title="Fotoğrafı değiştir">↻</button><button class="del" onclick="wrongPhotoRemove(${x.id})">foto sil</button>`
+      : `<button class="wrong-photo-add" onclick="wrongPhotoPick(${x.id})" title="Yanlış sorunun fotoğrafını ekle">📷 <span>Soru ekle</span></button>`;
+    return `<div class="dayrow wrong-log-row"><span class="k">${esc(x.subject)} · ${esc(x.topic)}</span>
+      <span class="v wrong-log-actions"><b>${x.n}</b> ${photoUi} <button class="del" onclick="delWrong(${x.id})">sil</button></span></div>`;
+  }).join("");
   w.innerHTML=html;
 }
 /* ================= POMODORO (zaman damgalı) =================
