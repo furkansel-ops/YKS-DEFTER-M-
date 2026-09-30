@@ -148,7 +148,16 @@ function cardHtml(t:Teacher,favs:Set<string>):string{
     <div class="teachers-v2-card-foot"><span>${content.map(x=>esc(TYPE_LABELS[x]||x)).join(" · ")}${t.own?" · Senin hocan":""}</span><b>Kaynakları aç →</b></div>
   </article>`;
 }
-function ensureRoot():HTMLElement|null{const list=document.getElementById("thList") as HTMLElement|null;if(!list)return null;legacyList=list;list.hidden=true;list.setAttribute("aria-hidden","true");["thSubjChips","thLvlChips","thInfo"].forEach(id=>{const node=document.getElementById(id) as HTMLElement|null;if(node)node.style.display="none";});let root=document.getElementById(ROOT_ID) as HTMLElement|null;if(!root){root=document.createElement("section");root.id=ROOT_ID;root.className="teachers-v2-root";root.setAttribute("aria-label","Hocalar ve videolar");list.parentNode?.insertBefore(root,list);buildShell(root);}return root;}
+function ensureRoot():HTMLElement|null{
+  const list=document.getElementById("thList") as HTMLElement|null;if(!list)return null;legacyList=list;
+  let root=document.getElementById(ROOT_ID) as HTMLElement|null;
+  if(!root){
+    const parent=list.parentElement,anchor=document.getElementById("directPlaylistUrl")?.closest<HTMLElement>(".card")||list;
+    root=document.createElement("section");root.id=ROOT_ID;root.className="teachers-v2-root";root.setAttribute("aria-label","Hocalar ve videolar");
+    parent?.insertBefore(root,anchor);buildShell(root);
+  }
+  return root;
+}
 function buildShell(root:HTMLElement):void{
   root.innerHTML=`<div class="teachers-v2-shell">
     <section class="teachers-v2-hero">
@@ -223,4 +232,4 @@ function openDetail(name:string):void{
 function bindLegacyObserver():void{if(!legacyList)return;listObserver?.disconnect();listObserver=new MutationObserver(()=>window.setTimeout(renderAll,0));listObserver.observe(legacyList,{childList:true,subtree:true});}
 function tick():void{const root=ensureRoot();if(root&&!mounted){mounted=true;bindLegacyObserver();renderAll();}if(root){const sig=syncSignature();if(sig!==lastSyncSignature)renderAll();else renderSyncStatus();}}
 function installRuntime():void{readPrefs();installModalFocus();window.addEventListener("online",renderSyncStatus);window.addEventListener("offline",renderSyncStatus);window.addEventListener("storage",event=>{if(event.key==="yks")renderAll();});tick();refreshTimer=window.setInterval(tick,1000);document.documentElement.dataset.teachersV2="ready";}
-export function installTeachersV2():{installed:boolean;version:string;refresh:()=>void;destroy:()=>void}{if(document.documentElement.dataset.teachersV2==="ready")return {installed:true,version:"2.0.0-alpha1",refresh:renderAll,destroy:()=>{}};if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",installRuntime,{once:true});else installRuntime();return {installed:true,version:"2.0.0-alpha1",refresh:renderAll,destroy:()=>{if(refreshTimer)window.clearInterval(refreshTimer);listObserver?.disconnect();modalObserver?.disconnect();document.removeEventListener("click",rememberModalTrigger,true);document.removeEventListener("keydown",handleModalKeys,true);closeDetail();document.getElementById(ROOT_ID)?.remove();if(legacyList){legacyList.hidden=false;legacyList.removeAttribute("aria-hidden");}delete document.documentElement.dataset.teachersV2;}};}
+export function installTeachersV2():{installed:boolean;version:string;refresh:()=>void;destroy:()=>void}{if(document.documentElement.dataset.teachersV2==="ready")return {installed:true,version:"2.1.0",refresh:renderAll,destroy:()=>{}};if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",installRuntime,{once:true});else installRuntime();return {installed:true,version:"2.1.0",refresh:renderAll,destroy:()=>{if(refreshTimer)window.clearInterval(refreshTimer);listObserver?.disconnect();modalObserver?.disconnect();document.removeEventListener("click",rememberModalTrigger,true);document.removeEventListener("keydown",handleModalKeys,true);closeDetail();document.getElementById(ROOT_ID)?.remove();if(legacyList){legacyList.hidden=false;legacyList.removeAttribute("aria-hidden");}delete document.documentElement.dataset.teachersV2;}};}

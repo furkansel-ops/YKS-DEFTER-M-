@@ -116,3 +116,14 @@ test("Hocalar favori filtresi erişilebilir durum ve tek hamlede sıfırlama des
   assert.match(source,/favToggle\?\.setAttribute\("aria-pressed",String\(state\.favOnly\)\)/);
   assert.match(source,/if\(action==="reset"\)\{state\.query="";state\.subject="";state\.level="";state\.favOnly=false/);
 });
+
+
+test("Hocalar v2 eski kaynak bloklarını görünür yüzeyden kaldırır",()=>{
+  const source=ui();
+  const style=fs.readFileSync(path.join(root,"src/ui/teachers-v2.css"),"utf8");
+  assert.match(source,/directPlaylistUrl/);
+  assert.match(source,/version:"2\.1\.0"/);
+  assert.match(style,/#mrp_kay #teachersV2Root ~ h2/);
+  assert.match(style,/#mrp_kay #teachersV2Root ~ \.card/);
+  assert.match(style,/#mrp_kay #teachersV2Root ~ #thList\{display:none!important\}/);
+});

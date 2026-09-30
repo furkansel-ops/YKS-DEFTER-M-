@@ -136,3 +136,12 @@ body.teachers-v2-open #cloudSyncBox{display:none!important}
   .teachers-v2-detail-loading i{animation:none}
 }
 @keyframes teachersV2Spin{to{transform:rotate(360deg)}}
+
+
+/* Yeni Hocalar yüzeyi aktifken alttaki legacy kaynak blokları yalnız veri/uyumluluk için DOM'da kalır. */
+#mrp_kay #teachersV2Root ~ h2,
+#mrp_kay #teachersV2Root ~ .card,
+#mrp_kay #teachersV2Root ~ .foldhead,
+#mrp_kay #teachersV2Root ~ .foldbody,
+#mrp_kay #teachersV2Root ~ p.note,
+#mrp_kay #teachersV2Root ~ #thList{display:none!important}
