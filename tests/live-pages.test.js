@@ -30,7 +30,7 @@ test("canlı Pages denetimi yanlış release, kaynak TypeScript, bozuk UTF-8 vey
   const {verifyLiveAssets}=await import(scriptUrl);
   const legacy='<script src="./app.js?v=4.1.0-r20"></script><script src="./modules/release-selftest.js?v=4.1.0-r20"></script>',app='const APP_VERSION="4.1.0";const APP_BUILD="4.1.0-r20"',index=`<script type="module" src="./assets/index-x.js"></script>${legacy}`;
   assert.throws(()=>verifyLiveAssets({index,bundle:goodBundle.replaceAll("4.4.0","4.3.1"),legacyApp:app,serviceWorker:goodSw}),/4\.4\.0/);
-  assert.throws(()=>verifyLiveAssets({index,bundle:goodBundle.replace("4.4.0-r8","4.4.0-r4"),legacyApp:app,serviceWorker:goodSw}),/4\.4\.0-r7/);
+  assert.throws(()=>verifyLiveAssets({index,bundle:goodBundle.replace("4.4.0-r8","4.4.0-r4"),legacyApp:app,serviceWorker:goodSw}),/4\.4\.0-r8/);
   assert.throws(()=>verifyLiveAssets({index:`<script type="module" src="./src/main.ts"></script><script type="module" src="./assets/index-x.js"></script>${legacy}`,bundle:goodBundle,legacyApp:app,serviceWorker:goodSw}),/TypeScript kaynak/);
   assert.throws(()=>verifyLiveAssets({index,bundle:goodBundle,legacyApp:app+'/*�*/',serviceWorker:goodSw}),/UTF-8/);
   assert.throws(()=>verifyLiveAssets({index,bundle:goodBundle,legacyApp:app,serviceWorker:goodSw.replace("4.4.0-r8","4.3.1-r1")}),/service worker/);
