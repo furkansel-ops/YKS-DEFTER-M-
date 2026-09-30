@@ -1,5 +1,5 @@
 export const RELEASE_VERSION="4.4.0" as const;
-export const RELEASE_BUILD="4.4.0-r16" as const;
+export const RELEASE_BUILD="4.4.0-r17" as const;
 export const RELEASE_DATE="2026-09-28" as const;
 export const RELEASE_CHANNEL="stable" as const;
 
