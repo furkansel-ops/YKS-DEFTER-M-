@@ -148,35 +148,13 @@ function cardHtml(t:Teacher,favs:Set<string>):string{
     <div class="teachers-v2-card-foot"><span>${content.map(x=>esc(TYPE_LABELS[x]||x)).join(" · ")}${t.own?" · Senin hocan":""}</span><b>Kaynakları aç →</b></div>
   </article>`;
 }
-function hideLegacyTeachersSurface(list:HTMLElement):void{
-  list.hidden=true;list.setAttribute("aria-hidden","true");
-  const ids=["thSearch","directPlaylistUrl","tvSubject","tvSuggest","watchList","wsBox","fh_hocaekle","fb_hocaekle"];
-  const nodes=new Set<HTMLElement>();
-  for(const id of ids){
-    const node=document.getElementById(id) as HTMLElement|null;if(!node)continue;
-    const block=node.closest<HTMLElement>(".card,.foldhead,.foldbody")||node;
-    nodes.add(block);
-  }
-  ["thSubjChips","thLvlChips","thInfo"].forEach(id=>{const node=document.getElementById(id) as HTMLElement|null;if(node)nodes.add(node);});
-  const parent=list.parentElement;
-  if(parent){
-    const labels=new Set(["Videolar ve hocalar","Konuya göre video ara","Şunu izlemen iyi olur","İzlediklerim","İzleme geçmişi"]);
-    [...parent.children].forEach(child=>{
-      if(child instanceof HTMLElement&&child.tagName==="H2"&&labels.has((child.textContent||"").replace(/\s+/g," ").trim()))nodes.add(child);
-    });
-    const note=[...parent.querySelectorAll<HTMLElement>("p.note")].find(node=>(node.textContent||"").includes("Bağlantısını bildiğin oynatma listeleri"));
-    if(note)nodes.add(note);
-  }
-  nodes.forEach(node=>{node.hidden=true;node.setAttribute("aria-hidden","true");node.dataset.teachersLegacy="hidden";});
-}
 function ensureRoot():HTMLElement|null{
-  const list=document.getElementById("thList") as HTMLElement|null;if(!list)return null;
-  legacyList=list;hideLegacyTeachersSurface(list);
+  const list=document.getElementById("thList") as HTMLElement|null;if(!list)return null;legacyList=list;
   let root=document.getElementById(ROOT_ID) as HTMLElement|null;
   if(!root){
+    const parent=list.parentElement,anchor=document.getElementById("directPlaylistUrl")?.closest<HTMLElement>(".card")||list;
     root=document.createElement("section");root.id=ROOT_ID;root.className="teachers-v2-root";root.setAttribute("aria-label","Hocalar ve videolar");
-    const parent=list.parentElement,anchor=parent?[...parent.children].find(child=>child instanceof HTMLElement&&((child as HTMLElement).querySelector?.("#directPlaylistUrl")||(child.tagName==="H2"&&(child.textContent||"").trim()==="Videolar ve hocalar"))):null;
-    parent?.insertBefore(root,(anchor as HTMLElement|null)||list);buildShell(root);
+    parent?.insertBefore(root,anchor);buildShell(root);
   }
   return root;
 }
