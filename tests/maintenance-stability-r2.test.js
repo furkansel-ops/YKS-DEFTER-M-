@@ -33,13 +33,13 @@ test("Laboratuvar yardımcıları global her tıklamada veya çift navigation di
   assert.match(chemistry,/section\.addEventListener\("click",onClick\)/);
 });
 
-test("4.4.0-r14 release kimliği ve service worker güncel kabuk önbelleğini taşır",()=>{
+test("4.4.0-r15 release kimliği ve service worker güncel kabuk önbelleğini taşır",()=>{
   const version=read("src/release/version.ts"),json=JSON.parse(read("version.json")),sw=read("sw.js");
-  assert.match(version,/RELEASE_BUILD="4\.4\.0-r14"/);
-  assert.equal(json.build,"4.4.0-r14");
-  assert.match(sw,/APP_BUILD="4\.4\.0-r14"/);
-  assert.match(sw,/CACHE="yks-core-v4\.4\.0-r14"/);
-  assert.match(sw,/cache refresh epoch: 2026-09-30-teachers-original-r14/);
+  assert.match(version,/RELEASE_BUILD="4\.4\.0-r15"/);
+  assert.equal(json.build,"4.4.0-r15");
+  assert.match(sw,/APP_BUILD="4\.4\.0-r15"/);
+  assert.match(sw,/CACHE="yks-core-v4\.4\.0-r15"/);
+  assert.match(sw,/cache refresh epoch: 2026-09-30-teachers-paused-r15/);
   assert.match(sw,/cacheLatestShell/);
   assert.match(sw,/async function refreshOpenClientsForBuild\(\)/);
   assert.match(sw,/client\.navigate\(url\.toString\(\)\)/);
