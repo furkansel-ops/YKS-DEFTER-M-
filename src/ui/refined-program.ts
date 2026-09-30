@@ -254,7 +254,7 @@ export function installRefinedProgram():ProgramApi{
     const weekFocus=document.activeElement instanceof HTMLElement?document.activeElement.dataset.rbWeekTask:undefined;
     weeklyPanel.replaceChildren();
     const calendarMeta=element("div","rb-program-calendar-meta");
-    calendarMeta.append(element("div","", "Haftalık ders planı"),element("p","","Dersler satırlarda, günler sütunlarda. Çalışmaya dokunarak ayrıntılarını açabilirsin."));
+    calendarMeta.append(element("div","", "Haftalık ders planı"),element("p","","Dersler satırlarda, günler sütunlarda. Çalışmaya dokunarak seçenekleri aç; linkli çalışmalarda video veya bağlantı düğmesini kullan."));
     const calendar=element("div","rb-program-calendar"),calendarHead=element("div","rb-program-calendar-row rb-program-calendar-head");
     calendarHead.append(element("div","rb-program-calendar-subject-head","Ders"));
     state.days.forEach((day,index)=>{
@@ -290,11 +290,17 @@ export function installRefinedProgram():ProgramApi{
             const resource=object(call("cellLink",task.text)),displayText=typeof resource.ad==="string"&&resource.ad?resource.ad:task.text;
             const parts=displayText.split(/\s+·\s+/),first=(parts.shift()||displayText).trim();
             const detail=(parts.join(" · ").trim()||(first===subjectName?task.label:displayText)).replace(/\s+—\s+https?:\/\/\S+\s*$/i,"").trim();
-            const taskButton=button("","rb-program-calendar-task");taskButton.toggleAttribute("data-done",task.done);taskButton.dataset.rbWeekTask=`${task.day}:${task.id}`;
-            taskButton.setAttribute("aria-label",`${FULL_DAYS[task.day]}, ${subjectName}: ${displayText}${task.done?", tamamlandı":""}`);
+            const taskShell=element("div","rb-program-calendar-task-shell"),taskButton=button("","rb-program-calendar-task");taskButton.toggleAttribute("data-done",task.done);taskButton.dataset.rbWeekTask=`${task.day}:${task.id}`;
+            taskButton.setAttribute("aria-label",`${FULL_DAYS[task.day]}, ${subjectName}: ${displayText}${task.done?", tamamlandı":""}${resource.url?", bağlantı mevcut":""}`);
             taskButton.append(element("span","rb-program-calendar-task-state",task.done?"✓":""),element("span","rb-program-calendar-task-text",detail||subjectName));
             taskButton.addEventListener("click",()=>{controller.selectDay(task.day);controller.openTask(task.id);});
-            cell.append(taskButton);if(taskButton.dataset.rbWeekTask===weekFocus)taskButton.focus({preventScroll:true});
+            taskShell.append(taskButton);
+            if(resource.url&&typeof legacy.cellOpenLink==="function"){
+              const open=button(resource.listId?"Listeyi izle":resource.videoId?"Videoyu izle":"Linki aç","rb-program-calendar-resource");
+              open.dataset.rbWeekTaskResource=`${task.day}:${task.id}`;open.setAttribute("aria-label",`${open.textContent}: ${displayText}`);
+              open.addEventListener("click",()=>call("cellOpenLink",task.text));taskShell.append(open);
+            }
+            cell.append(taskShell);if(taskButton.dataset.rbWeekTask===weekFocus)taskButton.focus({preventScroll:true});
           }
           row.append(cell);
         });

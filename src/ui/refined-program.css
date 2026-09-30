@@ -194,7 +194,9 @@
 #program .rb-program-calendar-cell{display:grid;align-content:start;gap:6px;min-width:0;min-height:108px;padding:9px 7px;border-left:1px solid var(--rp-line);background:var(--rp-surface);}
 #program .rb-program-calendar-cell[data-today]{background:color-mix(in srgb,var(--rp-soft) 52%,var(--rp-surface));}
 #program .rb-program-calendar-empty{align-self:center;justify-self:center;color:color-mix(in srgb,var(--rp-muted) 55%,transparent);font-size:13px;}
+#program .rb-program-calendar-task-shell{display:grid;gap:4px;min-width:0;}
 #program .rb-program-calendar-task{display:grid;grid-template-columns:16px minmax(0,1fr);align-items:start;gap:5px;min-width:0;min-height:44px;padding:8px 8px;border:1px solid color-mix(in srgb,var(--rp-subject) 24%,var(--rp-line));border-radius:10px;background:var(--rp-subject-soft);color:var(--rb-ink,var(--label-1,#10213e));text-align:left;}
+#program .rb-program-calendar-resource{display:flex;align-items:center;justify-content:center;min-width:0;min-height:32px!important;padding:5px 7px!important;border:1px solid color-mix(in srgb,var(--rp-subject) 28%,var(--rp-line));border-radius:8px;background:var(--rp-surface);color:var(--rp-subject);font-size:10px!important;font-weight:700!important;line-height:1.2;overflow-wrap:anywhere;}
 #program .rb-program-calendar-task-state{display:grid;place-items:center;width:15px;height:15px;margin-top:1px;border:1.4px solid color-mix(in srgb,var(--rp-subject) 70%,var(--rp-line));border-radius:5px;color:var(--rb-on-accent,#fff);font-size:10px;font-weight:800;line-height:1;}
 #program .rb-program-calendar-task-text{display:-webkit-box;min-width:0;overflow:hidden;overflow-wrap:anywhere;-webkit-box-orient:vertical;-webkit-line-clamp:3;line-clamp:3;font-size:11px;line-height:1.35;font-weight:600;}
 #program .rb-program-calendar-task[data-done]{opacity:.72;background:color-mix(in srgb,var(--success,#24836c) 8%,var(--rp-surface));border-color:color-mix(in srgb,var(--success,#24836c) 30%,var(--rp-line));}
@@ -205,7 +207,7 @@
 #program .rb-program-week-empty>p{max-width:430px;margin:0;color:var(--rp-muted);font-size:13px;line-height:1.6;}
 @media(hover:hover){
   #program .rb-program-calendar-day:hover{background:var(--rp-soft);color:var(--rp-accent);}
-  #program .rb-program-calendar-task:hover{border-color:var(--rp-subject);box-shadow:0 5px 16px color-mix(in srgb,var(--rp-subject) 10%,transparent);transform:translateY(-1px);}
+  #program .rb-program-calendar-task:hover{border-color:var(--rp-subject);box-shadow:0 5px 16px color-mix(in srgb,var(--rp-subject) 10%,transparent);transform:translateY(-1px);} #program .rb-program-calendar-resource:hover{border-color:var(--rp-subject);background:var(--rp-subject-soft);}
 }
 @media(max-width:640px){
   #program .rb-program-calendar-meta{display:grid;gap:4px;margin-bottom:10px;}
