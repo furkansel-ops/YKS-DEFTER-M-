@@ -66,3 +66,9 @@
 @keyframes rb-chat-dot{0%,60%,100%{transform:translateY(0);opacity:.45}30%{transform:translateY(-3px);opacity:1}}
 @media(max-width:759px){.rb-companion-chat:not([hidden]){animation:rb-chat-open-mobile .22s cubic-bezier(.2,.8,.2,1)}@keyframes rb-chat-open-mobile{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}}
 @media(prefers-reduced-motion:reduce){.rb-companion-chat:not([hidden]),.rb-chat-typing i{animation:none!important}}
+
+/* mobile typing stability */
+.rb-companion-chat,.rb-companion-chat *{touch-action:manipulation}
+.rb-companion-chat-form input{touch-action:auto;-webkit-user-select:text;user-select:text}
+.rb-companion.is-typing .rb-companion-chat{overscroll-behavior:contain}
+@media(max-width:759px){.rb-companion.is-typing .rb-companion-chat{bottom:max(10px,env(safe-area-inset-bottom));max-height:calc(100dvh - 20px)}.rb-companion.is-typing .rb-companion-chat-log{max-height:min(210px,32dvh)}.rb-companion-chat-form{position:relative;z-index:4}}
