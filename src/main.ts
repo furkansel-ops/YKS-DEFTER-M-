@@ -87,6 +87,9 @@ document.documentElement.dataset.v4OptionalErrors="0";
 /* Tema seçimi yalnız Ayarlar > Görünüm bölümündedir; kayıtlı tema açılışta korunur. */
 document.documentElement.dataset.themeControl="settings-only";
 
+/* Hocalar: ilk sürümdeki legacy kart + doğrudan video akışı yeniden aktif. */
+const USE_LEGACY_TEACHERS=true;
+
 function loadTeacherVideosRuntime():void{
   if(document.querySelector('script[data-yks-teacher-videos="true"]'))return;
   const script=document.createElement("script");
@@ -163,11 +166,13 @@ const paragraphProblem=installOptional(
 );
 const screens=installScreenRuntime();
 const ui=installLegacyUiBridge(screens);
-const teachersV2=installOptional(
-  "teachers-v2",
-  ()=>installTeachersV2(),
-  {installed:false,version:"deferred",refresh:()=>{},destroy:()=>{}}
-);
+const teachersV2=USE_LEGACY_TEACHERS
+  ? {installed:false,version:"legacy-v1",refresh:()=>{},destroy:()=>{}}
+  : installOptional(
+      "teachers-v2",
+      ()=>installTeachersV2(),
+      {installed:false,version:"deferred",refresh:()=>{},destroy:()=>{}}
+    );
 window.__YKS_V4_BOOTSTRAP__=bootstrap;
 installReleaseOverlay();
 document.documentElement.dataset.v4Runtime="ready";
@@ -181,13 +186,14 @@ document.documentElement.dataset.v4ProgressAnalysisErrors=String(progressAnalysi
 document.documentElement.dataset.v4ExamAnalysisErrors=String(examAnalysis.validate().length);
 document.documentElement.dataset.v4PwaBuild=pwa.build;
 document.documentElement.dataset.paragraphProblemTracker=paragraphProblem.installed?"ready":"deferred";
-document.documentElement.dataset.teachersV2Runtime=teachersV2.installed?teachersV2.version:"deferred";
+document.documentElement.dataset.teachersV2Runtime=USE_LEGACY_TEACHERS?"legacy-v1":(teachersV2.installed?teachersV2.version:"deferred");
 window.dispatchEvent(new CustomEvent<BootstrapState>("yks:v4-bootstrap",{detail:bootstrap}));
 
 /* V2 aktifse medya ve kişisel kütüphane katmanları ayrı chunklar olarak paint sonrasında
    yüklenir; ana başlangıç paketinin performans bütçesi korunur. V2 başlatılamazsa eski
    katman fail-open yedek olur. */
-if(teachersV2.installed)window.setTimeout(loadTeachersV2Media,0);
+if(USE_LEGACY_TEACHERS)loadTeacherVideosRuntime();
+else if(teachersV2.installed)window.setTimeout(loadTeachersV2Media,0);
 else loadTeacherVideosRuntime();
 
 const playStoreShell=installOptional(
