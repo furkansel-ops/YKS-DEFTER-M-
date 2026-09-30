@@ -86,7 +86,7 @@ let playlistQuery="";
 let activePlaylistId="";
 let visibleLimit=PAGE_SIZE;
 let playlistLimit=PLAYLIST_PAGE_SIZE;
-let mediaView:"playlists"|"videos"="playlists";
+let mediaView:"playlists"|"videos"="videos";
 let feedSettled=false;
 let searchTimer=0;
 let searchRevision=0;
@@ -183,6 +183,7 @@ async function loadArchiveIndex(name:string,force=false):Promise<ArchiveState|nu
       if(!meta||!Array.isArray(meta.pages)||!Array.isArray(meta.playlists))throw new Error("geçersiz hoca arşiv indeksi");
       const state:ArchiveState={meta,videos:[],loaded:new Set<number>(),loading:new Set<number>()};
       archiveStates.set(key,state);
+      if(meta.pages.length)await loadArchivePage(name,0,force);
       return state;
     }catch{return null;}
     finally{archivePromises.delete(key);}
