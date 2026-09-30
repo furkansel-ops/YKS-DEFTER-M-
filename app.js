@@ -2138,19 +2138,34 @@ function delWrong(id){
   if(bk)pushUndo("Yanlış kaydı silindi",()=>{ S.wrongLog.push(bk); });
   renderWrongTopics();
 }
-function wrongPhotoFor(id){ const w=(S.wrongLog||[]).find(x=>Number(x.id)===Number(id)); if(w&&w.questionImg)return {id:'wrong-'+id,img:w.questionImg,subject:w.subject,topic:w.topic,date:w.date,wrongDirect:true}; return (S.qbank||[]).find(q=>Number(q.wrongId)===Number(id)); }
-function wrongPhotoPick(id){
-  const wrong=(S.wrongLog||[]).find(x=>Number(x.id)===Number(id)); if(!wrong)return;
-  if(storageBytes()>QA_BLOCK){ toast("Depolama dolu — önce eski soru fotoğraflarını sil"); return; }
-  const inp=document.createElement("input"); inp.type="file"; inp.accept="image/*";
-  inp.onchange=()=>{ const file=inp.files&&inp.files[0]; if(!file)return; toast("Soru fotoğrafı işleniyor…");
-    compressImage(file).then(dataUrl=>{ const est=storageBytes()+dataUrl.length;if(est>QA_BLOCK){toast("Depolama sınırına gelindi — eski soruları sil");return;}
-      wrong.questionImg=dataUrl; save(); renderWrongTopics(); toast("Fotoğraf bu yanlışın yanına eklendi ✓");
-    }).catch(e=>toast(String(e.message||e)));
-  }; inp.click();
+function wrongPhotosFor(id){
+  const w=(S.wrongLog||[]).find(x=>Number(x.id)===Number(id));if(!w)return [];
+  if(!Array.isArray(w.questionImgs))w.questionImgs=w.questionImg?[w.questionImg]:[];
+  if(w.questionImg)delete w.questionImg;
+  return w.questionImgs;
 }
-function wrongPhotoOpen(id){ const q=wrongPhotoFor(id);if(!q){wrongPhotoPick(id);return;} if(q.wrongDirect){qaViewList=[{id:q.id,img:q.img,subject:q.subject,topic:q.topic,date:q.date||todayKey(),note:"Hata Defteri sorusu",done:false}];qaViewIdx=0;qaShowViewer(0);return;} qaOpen(q.id); }
-function wrongPhotoRemove(id){ const w=(S.wrongLog||[]).find(x=>Number(x.id)===Number(id));if(!w||!w.questionImg)return;if(!confirm("Bu yanlışın soru fotoğrafı silinsin mi?"))return;delete w.questionImg;save();renderWrongTopics();toast("Soru fotoğrafı silindi");}
+function wrongPhotoPick(id){
+  const wrong=(S.wrongLog||[]).find(x=>Number(x.id)===Number(id));if(!wrong)return;
+  const photos=wrongPhotosFor(id),limit=Math.max(1,Number(wrong.n)||1);
+  if(photos.length>=limit){toast("Bu kayıttaki tüm yanlış sorular eklendi ✓");return;}
+  if(storageBytes()>QA_BLOCK){toast("Depolama dolu — önce eski soru fotoğraflarını sil");return;}
+  const inp=document.createElement("input");inp.type="file";inp.accept="image/*";
+  inp.onchange=()=>{const file=inp.files&&inp.files[0];if(!file)return;toast("Soru fotoğrafı işleniyor…");
+    compressImage(file).then(dataUrl=>{if(storageBytes()+dataUrl.length>QA_BLOCK){toast("Depolama sınırına gelindi — eski soruları sil");return;}
+      const list=wrongPhotosFor(id);if(list.length>=limit)return;list.push(dataUrl);save();renderWrongTopics();toast("Soru "+list.length+"/"+limit+" eklendi ✓");
+    }).catch(e=>toast(String(e.message||e)));
+  };inp.click();
+}
+function wrongPhotoOpen(id,index){
+  const wrong=(S.wrongLog||[]).find(x=>Number(x.id)===Number(id)),photos=wrongPhotosFor(id);if(!wrong||!photos[index])return;
+  qaViewList=photos.map((img,i)=>({id:"wrong-"+id+"-"+i,img,subject:wrong.subject,topic:wrong.topic,date:wrong.date||todayKey(),note:"Hata Defteri sorusu "+(i+1),done:false}));
+  qaViewIdx=Math.max(0,Math.min(index,qaViewList.length-1));qaShowViewer(qaViewIdx);
+}
+function wrongPhotoRemove(id,index){
+  const photos=wrongPhotosFor(id);if(!photos[index])return;
+  if(!confirm((index+1)+". soru fotoğrafı silinsin mi?"))return;
+  photos.splice(index,1);save();renderWrongTopics();toast("Sadece seçtiğin soru fotoğrafı silindi");
+}
 function renderWrongTopics(){
   if(typeof renderWrongKinds==="function")setTimeout(renderWrongKinds,0);
   const sel=el("wtSubject");
@@ -2168,10 +2183,10 @@ function renderWrongTopics(){
   });
   html+='</div><p class="eyebrow" style="margin:16px 0 6px;">Son kayıtlar</p>';
   html+=S.wrongLog.slice(-12).reverse().map(x=>{
-    const photo=wrongPhotoFor(x.id);
-    const photoUi=photo
-      ? `<button class="wrong-photo-thumb" onclick="wrongPhotoOpen(${x.id})" title="Soruyu aç"><img src="${photo.img}" alt="Soru fotoğrafı"></button><button class="wrong-photo-change" onclick="wrongPhotoPick(${x.id})" title="Fotoğrafı değiştir">↻</button><button class="wrong-photo-delete" onclick="wrongPhotoRemove(${x.id})" title="Soru fotoğrafını sil">🗑 <span>Sil</span></button>`
-      : `<button class="wrong-photo-add" onclick="wrongPhotoPick(${x.id})" title="Yanlış sorunun fotoğrafını ekle">📷 <span>Soru ekle</span></button>`;
+    const photos=wrongPhotosFor(x.id),limit=Math.max(1,Number(x.n)||1);
+    const thumbs=photos.map((img,i)=>`<span class="wrong-photo-item"><button class="wrong-photo-thumb" onclick="wrongPhotoOpen(${x.id},${i})" title="${i+1}. soruyu aç"><img src="${img}" alt="${i+1}. soru fotoğrafı"></button><button class="wrong-photo-delete" onclick="wrongPhotoRemove(${x.id},${i})" title="${i+1}. fotoğrafı sil">×</button></span>`).join("");
+    const add=photos.length<limit?`<button class="wrong-photo-add" onclick="wrongPhotoPick(${x.id})" title="Soru fotoğrafı ekle">📷 <span>Soru ekle (${photos.length}/${limit})</span></button>`:"";
+    const photoUi=thumbs+add;
     return `<div class="dayrow wrong-log-row"><span class="k">${esc(x.subject)} · ${esc(x.topic)}</span>
       <span class="v wrong-log-actions"><b>${x.n}</b> ${photoUi} <button class="del" onclick="delWrong(${x.id})">sil</button></span></div>`;
   }).join("");
