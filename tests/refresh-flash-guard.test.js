@@ -18,7 +18,7 @@ test("yenilemede legacy ekran yeni arayüz hazır olmadan görünmez",()=>{
   assert.match(html,/if\(!r\.dataset\.uiReady\)r\.dataset\.uiReady="fallback"/);
   assert.match(main,/const revealUi=\(\)=>window\.requestAnimationFrame/);
   assert.match(main,/dataset\.uiReady="true"/);
-  assert.match(main,/document\.addEventListener\("DOMContentLoaded",revealUi,\{once:true\}\)/);
+  assert.match(main,/const revealAfterRefinedRuntime=\(\)=>\{void v43Runtime\.ready\.then\(revealUi,revealUi\);\}/);\n  assert.match(main,/document\.addEventListener\("DOMContentLoaded",revealAfterRefinedRuntime,\{once:true\}\)/);
 });
 
 
