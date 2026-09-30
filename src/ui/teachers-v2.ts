@@ -165,7 +165,7 @@ function ensureRoot():HTMLElement|null{
   ["thSubjChips","thLvlChips","thInfo"].forEach(id=>{const node=document.getElementById(id) as HTMLElement|null;if(node)node.style.display="none";});
   let root=document.getElementById(ROOT_ID) as HTMLElement|null;
   if(!root){
-    root=document.createElement("section");root.id=ROOT_ID;root.className="teachers-v2-root";root.setAttribute("aria-label","Hocalar ve videolar");
+    root=document.createElement("section");root.id=ROOT_ID;root.className="teachers-v2-root";
     (mountBefore?.parentNode||list.parentNode)?.insertBefore(root,mountBefore||list);
     buildShell(root);
   }
