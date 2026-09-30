@@ -148,45 +148,15 @@ function cardHtml(t:Teacher,favs:Set<string>):string{
     <div class="teachers-v2-card-foot"><span>${content.map(x=>esc(TYPE_LABELS[x]||x)).join(" · ")}${t.own?" · Senin hocan":""}</span><b>Kaynakları aç →</b></div>
   </article>`;
 }
-function hideLegacyTeacherSurface(list:HTMLElement):HTMLElement|null{
-  const host=list.parentElement;if(!host)return null;
-  const hide=(node:Element|null)=>{if(node instanceof HTMLElement){node.dataset.teachersV2LegacyHidden="true";node.style.display="none";}};
-  const hideCardFor=(id:string)=>{const node=document.getElementById(id);if(!node)return;hide(node.closest(".card"));};
-  let mountBefore:HTMLElement|null=list;
-  let cursor=list.previousElementSibling as HTMLElement|null;
-  while(cursor){
-    const text=(cursor.textContent||"").replace(/\s+/g," ").trim();
-    if(cursor.tagName==="H2"&&text==="Videolar ve hocalar"){hide(cursor);mountBefore=cursor;break;}
-    cursor=cursor.previousElementSibling as HTMLElement|null;
+function hideLegacyTeacherSurface(list:HTMLElement):HTMLElement{
+  const hide=(node:Element|null)=>{if(node instanceof HTMLElement){node.hidden=true;node.dataset.teachersV2LegacyHidden="1";}};
+  for(const id of ["directPlaylistUrl","thSearch","tvSubject","tvSuggest","watchList","wsBox"]){
+    const node=document.getElementById(id);if(!node)continue;const block=node.closest(".card")||node;hide(block);if(block.previousElementSibling?.tagName==="H2")hide(block.previousElementSibling);
   }
-  hideCardFor("directPlaylistUrl");
-  hideCardFor("thSearch");
-  hide(document.getElementById("thSubjChips"));hide(document.getElementById("thLvlChips"));hide(document.getElementById("thInfo"));
-  hide(list);
-  const legacyPairs=[
-    ["tvSubject","Konuya göre video ara"],
-    ["tvSuggest","Şunu izlemen iyi olur"],
-    ["watchList","İzlediklerim"],
-    ["wsBox","İzleme geçmişi"]
-  ] as const;
-  for(const [id,title] of legacyPairs){
-    const node=document.getElementById(id);if(!node)continue;
-    const block=node.closest(".card")||node;hide(block);
-    let prev=(block as HTMLElement).previousElementSibling as HTMLElement|null;
-    while(prev&&prev!==list){
-      const text=(prev.textContent||"").replace(/\s+/g," ").trim();
-      if(prev.tagName==="H2"&&text.startsWith(title)){hide(prev);break;}
-      if(prev.tagName==="H2")break;
-      prev=prev.previousElementSibling as HTMLElement|null;
-    }
-  }
-  return mountBefore;
+  let head=list.previousElementSibling as HTMLElement|null;while(head&&head.tagName!=="H2")head=head.previousElementSibling as HTMLElement|null;
+  hide(head);hide(list);return head||list;
 }
-function restoreLegacyTeacherSurface():void{
-  document.querySelectorAll<HTMLElement>('[data-teachers-v2-legacy-hidden="true"]').forEach(node=>{
-    node.style.removeProperty("display");delete node.dataset.teachersV2LegacyHidden;
-  });
-}
+function restoreLegacyTeacherSurface():void{document.querySelectorAll<HTMLElement>("[data-teachers-v2-legacy-hidden]").forEach(node=>{node.hidden=false;delete node.dataset.teachersV2LegacyHidden;});}
 function ensureRoot():HTMLElement|null{
   const list=document.getElementById("thList") as HTMLElement|null;if(!list)return null;
   legacyList=list;
