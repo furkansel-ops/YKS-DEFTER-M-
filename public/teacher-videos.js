@@ -21,6 +21,8 @@
   ];
   var cache=new Map();
   var loading=new Map();
+  var mediaFeed=null;
+  var mediaFeedPromise=null;
   var observer=null;
   var scanQueued=false;
   var healTimer=0;
@@ -123,6 +125,73 @@
     });
   }
 
+  function normName(value){
+    return String(value||"").toLocaleLowerCase("tr-TR").normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/\s+/g," ").trim();
+  }
+
+  function cachedMediaFeed(){
+    try{
+      var raw=localStorage.getItem("yks_teachers_v2_media_cache");
+      var parsed=raw?JSON.parse(raw):null;
+      return parsed&&parsed.teachers&&typeof parsed.teachers==="object"?parsed:null;
+    }catch(_error){return null;}
+  }
+
+  function loadMediaFeed(force){
+    if(mediaFeed&&!force)return Promise.resolve(mediaFeed);
+    if(mediaFeedPromise&&!force)return mediaFeedPromise;
+    var url=new URL("teachers-v2-feed.json",document.baseURI);
+    if(force)url.searchParams.set("refresh",String(Date.now()));
+    mediaFeedPromise=fetchJSON(url.href,7000).then(function(feed){
+      if(!feed||!feed.teachers||typeof feed.teachers!=="object"||!Object.keys(feed.teachers).length)throw new Error("bos-feed");
+      mediaFeed=feed;
+      try{localStorage.setItem("yks_teachers_v2_media_cache",JSON.stringify(feed));}catch(_error){}
+      return feed;
+    }).catch(function(){
+      mediaFeed=cachedMediaFeed()||mediaFeed;
+      return mediaFeed;
+    }).finally(function(){mediaFeedPromise=null;});
+    return mediaFeedPromise;
+  }
+
+  function mediaRow(feed,teacher){
+    if(!feed||!feed.teachers)return null;
+    if(feed.teachers[teacher])return feed.teachers[teacher];
+    var wanted=normName(teacher),keys=Object.keys(feed.teachers);
+    for(var i=0;i<keys.length;i++)if(normName(keys[i])===wanted)return feed.teachers[keys[i]];
+    return null;
+  }
+
+  function normalizeFeedVideo(item,teacher){
+    if(!item||typeof item!=="object")return null;
+    var id=String(item.id||"").trim();
+    if(!/^[A-Za-z0-9_-]{6,}$/.test(id))return null;
+    return {
+      id:id,
+      title:String(item.title||"YouTube videosu"),
+      thumb:String(item.thumbnail||item.thumb||("https://i.ytimg.com/vi/"+id+"/hqdefault.jpg")),
+      ch:String(item.channel||item.channelName||teacher||"YouTube"),
+      when:"",
+      date:""
+    };
+  }
+
+  async function feedVideos(teacher,force){
+    var feed=await loadMediaFeed(!!force),row=mediaRow(feed,teacher);
+    if(!row)return [];
+    var direct=validVideos((Array.isArray(row.videos)?row.videos:[]).map(function(item){return normalizeFeedVideo(item,teacher);}).filter(Boolean));
+    if(direct.length)return direct;
+    var indexPath=String(row.archiveIndex||"").trim();
+    if(!indexPath)return [];
+    try{
+      var index=await fetchJSON(new URL(indexPath,document.baseURI).href,6500);
+      var first=Array.isArray(index&&index.pages)?String(index.pages[0]||""):"";
+      if(!first)return [];
+      var page=await fetchJSON(new URL(first,document.baseURI).href,6500);
+      return validVideos((Array.isArray(page&&page.videos)?page.videos:[]).map(function(item){return normalizeFeedVideo(item,teacher);}).filter(Boolean));
+    }catch(_error){return [];}
+  }
+
   function nativeVideos(teacher,subject,query){
     if(typeof window.ytFetch!=="function")return Promise.resolve([]);
     return Promise.resolve().then(async function(){
@@ -142,7 +211,8 @@
     if(force)cache.delete(key);
     if(cache.has(key))return cache.get(key);
     var query=(teacher+" "+subject+" YKS").replace(/\s+/g," ").trim();
-    var items=await nativeVideos(teacher,subject,query);
+    var items=await feedVideos(teacher,!!force);
+    if(!items.length)items=await nativeVideos(teacher,subject,query);
     if(!items.length)items=await fetchViaPiped(query);
     cache.set(key,items);
     return items;
