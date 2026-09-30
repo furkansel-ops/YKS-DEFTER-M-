@@ -36,16 +36,17 @@ function handleImageError(event:Event){
 /** Visual preferences are device-local and never touch study data or cloud sync. */
 export function installMascotCompanion():MascotCompanionApi{
   if(window.__YKS_MASCOT__)return window.__YKS_MASCOT__;
-  let preference=readPreference(),animationTimer=0;
+  let preference=readPreference(),animationTimer=0,chatOpen=false;
   const reduced=window.matchMedia("(prefers-reduced-motion: reduce)");
   const strip=document.createElement("aside");strip.id="refinedCompanion";strip.className="rb-companion";strip.setAttribute("aria-label","Çalışma arkadaşın");
-  strip.innerHTML='<span class="rb-companion-bubble" aria-hidden="true"></span><button type="button" class="rb-companion-mascot"><span class="rb-companion-picture" aria-hidden="true"></span><span class="rb-companion-shadow" aria-hidden="true"></span></button><span class="rb-mascot-sr" id="mascotDragHelp">Selamlamak için dokun. Yerini değiştirmek için sürükle; yön tuşlarıyla da taşıyabilirsin.</span>';
+  strip.innerHTML='<span class="rb-companion-bubble" aria-hidden="true"></span><section class="rb-companion-chat" aria-label="Çalışma arkadaşınla konuş" hidden><div class="rb-companion-chat-head"><span><b data-chat-name></b><small>Çalışma arkadaşın</small></span><button type="button" data-chat-close aria-label="Sohbeti kapat">×</button></div><div class="rb-companion-chat-log" data-chat-log aria-live="polite"></div><div class="rb-companion-actions" data-chat-actions><button type="button" data-chat-action="talk">Biraz konuşalım</button><button type="button" data-chat-action="today">Bugünkü programım</button><button type="button" data-chat-action="motivate">Motivasyon ver</button><button type="button" data-chat-action="study">Ne çalışayım?</button><button type="button" data-chat-action="break">Moladayım</button></div><form class="rb-companion-chat-form" data-chat-form hidden><input data-chat-input maxlength="180" autocomplete="off" placeholder="Bir şey yaz..." aria-label="Mesajın"><button type="submit" aria-label="Gönder">Gönder</button></form></section><button type="button" class="rb-companion-mascot"><span class="rb-companion-picture" aria-hidden="true"></span><span class="rb-companion-shadow" aria-hidden="true"></span></button><span class="rb-mascot-sr" id="mascotDragHelp">Konuşmak için dokun. Yerini değiştirmek için sürükle; yön tuşlarıyla da taşıyabilirsin.</span>';
   document.body.append(strip);
   const picture=strip.querySelector<HTMLElement>(".rb-companion-picture")!;
   const mascotButton=strip.querySelector<HTMLButtonElement>(".rb-companion-mascot")!;
   mascotButton.setAttribute("aria-describedby","mascotDragHelp");
   strip.addEventListener("error",handleImageError,true);
   const message=strip.querySelector<HTMLElement>(".rb-companion-bubble")!;
+  const chat=strip.querySelector<HTMLElement>(".rb-companion-chat")!,chatLog=strip.querySelector<HTMLElement>("[data-chat-log]")!,chatForm=strip.querySelector<HTMLFormElement>("[data-chat-form]")!,chatInput=strip.querySelector<HTMLInputElement>("[data-chat-input]")!;
   let dialog:HTMLDialogElement|null=null;
   const current=()=>MASCOTS.find(m=>m.id===preference.id)!;
   const focusRunning=()=>Boolean(document.querySelector('#focusCard[data-run="running"],#swCard[data-run="running"]'));
@@ -63,8 +64,12 @@ export function installMascotCompanion():MascotCompanionApi{
     strip.classList.remove("is-greeting");void picture.offsetWidth;strip.classList.add("is-greeting");
     clearTimeout(animationTimer);animationTimer=window.setTimeout(()=>strip.classList.remove("is-greeting"),3000);
   }
+  const addChat=(who:"mascot"|"user",text:string)=>{const row=document.createElement("p");row.className=`rb-chat-message is-${who}`;row.textContent=text;chatLog.append(row);chatLog.scrollTop=chatLog.scrollHeight;};
+  function openChat(){chatOpen=true;chat.hidden=false;strip.classList.add("is-chatting");strip.classList.remove("is-greeting");const n=strip.querySelector<HTMLElement>("[data-chat-name]");if(n)n.textContent=current().name;if(!chatLog.childElementCount)addChat("mascot",`Selam, ben ${current().name}. Nasıl gidiyor? İstersen biraz konuşalım, istersen bugünkü çalışmana bakalım.`);}
+  function closeChat(){chatOpen=false;chat.hidden=true;strip.classList.remove("is-chatting");chatForm.hidden=true;}
+  function localReply(value:string){const q=value.toLocaleLowerCase("tr-TR");if(/matematik|problem|geo/.test(q))return "Matematik zorladıysa küçültelim: tek konu + kısa bir soru setiyle başlayalım. Takıldığın konuyu yaz, beraber parçalayalım.";if(/fizik|kimya|biyoloji/.test(q))return "Fen için bugün yüklenmek yerine net bir hedef seçelim. Hangi ders ve hangi konudasın?";if(/yoruld|sıkıld|çalışasım|istemiyorum|bunald/.test(q))return "Tamam. Büyük hedef koymayalım; 10 dakikalık minicik bir başlangıç yapalım. Sonra devam edip etmeyeceğine tekrar bakarsın.";if(/bitti|bitird|tamamlad/.test(q))return "Güzel! Bitirdiğini kapatalım. Sıradaki işi hafif tutalım mı, yoksa biraz mola mı?";if(/mola|dinlen/.test(q))return "Olur. Kısa bir mola ver; su iç, biraz hareket et. Döndüğünde tek bir küçük hedefle devam ederiz.";return "Anladım. Biraz daha anlatabilirsin; bugün seni en çok zorlayan şey ne?";}
   function syncMotion(){
-    obscured=overlayOpen()||keyboardOpen();strip.dataset.obscured=String(obscured);
+    obscured=(overlayOpen()&&!chatOpen)||keyboardOpen();strip.dataset.obscured=String(obscured);
     strip.inert=obscured;const running=focusRunning();document.documentElement.dataset.mascotMotion=quiet()?"quiet":"ready";
     if(quiet())stopMotion();
     message.textContent=running?"Sen odaklan, ben buradayım.":current().hello;
@@ -81,7 +86,7 @@ export function installMascotCompanion():MascotCompanionApi{
       if(picture.dataset.mascot!==mascot.id){picture.innerHTML=image(mascot.id);picture.dataset.mascot=mascot.id;}
       clampPosition();
     }
-    mascotButton.setAttribute("aria-label",`${mascot.name} ile selamlaş`);
+    mascotButton.setAttribute("aria-label",`${mascot.name} ile konuş`);
     document.documentElement.dataset.mascot=preference.enabled?mascot.id:"off";
     if(dialog){
       dialog.querySelectorAll<HTMLButtonElement>("[data-mascot-choice]").forEach(button=>button.setAttribute("aria-pressed",String(button.dataset.mascotChoice===preference.id)));
@@ -144,7 +149,10 @@ export function installMascotCompanion():MascotCompanionApi{
   });
   const endDrag=()=>{if(drag?.moved)suppressClickUntil=Date.now()+500;drag=null;strip.classList.remove("is-dragging");};
   mascotButton.addEventListener("pointerup",endDrag);mascotButton.addEventListener("pointercancel",endDrag);mascotButton.addEventListener("lostpointercapture",endDrag);
-  mascotButton.addEventListener("click",()=>{if(Date.now()>suppressClickUntil)greet();});
+  strip.querySelector("[data-chat-close]")?.addEventListener("click",closeChat);
+  strip.querySelectorAll<HTMLButtonElement>("[data-chat-action]").forEach(button=>button.addEventListener("click",()=>{const action=button.dataset.chatAction;if(action==="talk"){chatForm.hidden=false;addChat("mascot","Tabii. Buradayım 🙂 Bugün nasıl gidiyor?");chatInput.focus();}else if(action==="motivate")addChat("mascot","Mükemmel olmak zorunda değilsin. Bugün yapacağın küçük ama gerçek bir çalışma, hiç başlamamaktan daha değerli.");else if(action==="break")addChat("mascot","Mola zamanı. Biraz ekrandan uzaklaş, su iç ve nefes al. Döndüğünde kaldığın yer burada.");else if(action==="today")addChat("mascot","Bugünkü programına beraber bakalım. Program ekranındaki çalışmalarını sırayla bitir; önce en kısa veya en acil olandan başlayabilirsin.");else if(action==="study")addChat("mascot","Kararsızsan matematikten kısa bir blokla başla. Sonra bugünkü programındaki fizik, kimya veya biyoloji çalışmana geçebiliriz.");}));
+  chatForm.addEventListener("submit",event=>{event.preventDefault();const value=chatInput.value.trim();if(!value)return;addChat("user",value);chatInput.value="";window.setTimeout(()=>addChat("mascot",localReply(value)),180);});
+  mascotButton.addEventListener("click",()=>{if(Date.now()>suppressClickUntil){if(chatOpen)closeChat();else openChat();}});
   mascotButton.addEventListener("keydown",event=>{
     if(event.key==="Enter"||event.key===" "){event.stopPropagation();return;}
     if(!["ArrowLeft","ArrowRight","ArrowUp","ArrowDown"].includes(event.key))return;event.preventDefault();event.stopPropagation();
