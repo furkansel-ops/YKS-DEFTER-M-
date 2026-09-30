@@ -80,3 +80,10 @@ test("Playlist kartına dokununca içerik uygulama içinde açılır ve videolar
   assert.match(source,/addPlanText\(planVideoText\(video\),"Video"\)/);
   assert.match(source,/data-media-action="playlist-program"/);
 });
+
+
+test("Hocalar eski sürümdeki gibi videoları öne alır ve ilk arşiv sayfasını otomatik yükler",()=>{
+  const source=media();
+  assert.match(source,/let mediaView:"playlists"\|"videos"="videos"/);
+  assert.match(source,/archiveStates\.set\(key,state\);\s*if\(meta\.pages\.length\)await loadArchivePage\(name,0,force\)/);
+});
