@@ -127,3 +127,14 @@ test("Hocalar v2 eski kaynak bloklarını görünür yüzeyden kaldırır",()=>{
   assert.match(style,/#mrp_kay #teachersV2Root ~ \.card/);
   assert.match(style,/#mrp_kay #teachersV2Root ~ #thList\{display:none!important\}/);
 });
+
+
+test("Hocalar v2 aktifken eski öğretmen ve YouTube blokları gizlenir",()=>{
+  const source=ui();
+  assert.match(source,/function hideLegacyTeacherSurface/);
+  assert.match(source,/directPlaylistUrl/);
+  assert.match(source,/tvSubject/);
+  assert.match(source,/tvSuggest/);
+  assert.match(source,/watchList/);
+  assert.match(source,/wsBox/);
+});

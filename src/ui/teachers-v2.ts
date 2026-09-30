@@ -148,13 +148,25 @@ function cardHtml(t:Teacher,favs:Set<string>):string{
     <div class="teachers-v2-card-foot"><span>${content.map(x=>esc(TYPE_LABELS[x]||x)).join(" · ")}${t.own?" · Senin hocan":""}</span><b>Kaynakları aç →</b></div>
   </article>`;
 }
+function hideLegacyTeacherSurface(list:HTMLElement):HTMLElement{
+  const hide=(node:Element|null)=>{if(node instanceof HTMLElement)node.hidden=true;};
+  for(const id of ["directPlaylistUrl","thSearch","tvSubject","tvSuggest","watchList","wsBox"]){
+    const node=document.getElementById(id);if(!node)continue;const block=node.closest(".card")||node;hide(block);if(block.previousElementSibling?.tagName==="H2")hide(block.previousElementSibling);
+  }
+  let head=list.previousElementSibling as HTMLElement|null;while(head&&head.tagName!=="H2")head=head.previousElementSibling as HTMLElement|null;
+  hide(head);hide(list);return head||list;
+}
 function ensureRoot():HTMLElement|null{
-  const list=document.getElementById("thList") as HTMLElement|null;if(!list)return null;legacyList=list;
+  const list=document.getElementById("thList") as HTMLElement|null;if(!list)return null;
+  legacyList=list;
+  const mountBefore=hideLegacyTeacherSurface(list);
+  list.hidden=true;list.setAttribute("aria-hidden","true");
+  ["thSubjChips","thLvlChips","thInfo"].forEach(id=>{const node=document.getElementById(id) as HTMLElement|null;if(node)node.style.display="none";});
   let root=document.getElementById(ROOT_ID) as HTMLElement|null;
   if(!root){
-    const parent=list.parentElement,anchor=document.getElementById("directPlaylistUrl")?.closest<HTMLElement>(".card")||list;
-    root=document.createElement("section");root.id=ROOT_ID;root.className="teachers-v2-root";root.setAttribute("aria-label","Hocalar ve videolar");
-    parent?.insertBefore(root,anchor);buildShell(root);
+    root=document.createElement("section");root.id=ROOT_ID;root.className="teachers-v2-root";
+    (mountBefore?.parentNode||list.parentNode)?.insertBefore(root,mountBefore||list);
+    buildShell(root);
   }
   return root;
 }
