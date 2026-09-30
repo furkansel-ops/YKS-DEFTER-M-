@@ -179,27 +179,10 @@
     const sub=$("todayHubReviewSub");if(sub)sub.textContent=n+" Hata Defteri tekrarı dahil";
     const remaining=$("todayRemaining");if(remaining){const html=remaining.innerHTML||"";if(!html.includes("hata tekrarı")){if(html.includes("Bugünkü kayıtlı hedeflerin tamamlandı"))remaining.innerHTML="Bugünü kapatmak için kalan: <b>"+n+" hata tekrarı</b>";else remaining.insertAdjacentHTML("beforeend"," · <b>"+n+" hata tekrarı</b>");}}
   }
-  function wrongPhotoFor(id){try{return (Array.isArray(S?.qbank)?S.qbank:[]).find(q=>Number(q&&q.wrongId)===Number(id))||null;}catch(e){return null;}}
-  function wrongPhotoPick(id){
-    const wrong=(Array.isArray(S?.wrongLog)?S.wrongLog:[]).find(x=>Number(x&&x.id)===Number(id));if(!wrong)return;
-    const inp=document.createElement("input");inp.type="file";inp.accept="image/*";
-    inp.onchange=()=>{const file=inp.files&&inp.files[0];if(!file)return;toastSafe("Soru fotoğrafı işleniyor…");
-      const work=typeof compressImage==="function"?compressImage(file):Promise.reject(new Error("Fotoğraf sistemi hazır değil"));
-      work.then(img=>{let q=wrongPhotoFor(id);if(q){q.img=img;}else{if(!Array.isArray(S.qbank))S.qbank=[];S.qbank.push({id:Date.now(),wrongId:Number(id),date:wrong.date||nowKey(),subject:wrong.subject||"",topic:wrong.topic||"",note:"Hata Defteri sorusu",img,done:false});}try{if(typeof save==="function")save();else persist(0);}catch(e){persist(0);}try{if(typeof renderWrongTopics==="function")renderWrongTopics();}catch(e){}setTimeout(enhanceWrongRows,0);try{if(typeof renderQbank==="function")renderQbank();}catch(e){}toastSafe("Fotoğraf bu yanlışın yanına eklendi ✓");}).catch(e=>toastSafe(String(e&&e.message||e)));
-    };inp.click();
-  }
-  function wrongPhotoOpen(id){const q=wrongPhotoFor(id);if(!q){wrongPhotoPick(id);return;}try{if(typeof qaOpen==="function")qaOpen(q.id);}catch(e){}}
   function enhanceWrongRows(){
-    const box=$("wtBox");if(!box||!Array.isArray(S?.wrongLog))return;
-    const rows=[...box.querySelectorAll(".dayrow")];const recent=S.wrongLog.slice(-12).reverse();
-    rows.slice(-recent.length).forEach((row,i)=>{
-      const wrong=recent[i];if(!wrong||row.querySelector(".wrong-photo-add,.wrong-photo-thumb,.ej-wrong-photo"))return;
-      const actions=row.querySelector(".v");if(!actions)return;
-      const del=actions.querySelector(".del");const q=wrongPhotoFor(wrong.id);
-      const b=document.createElement("button");b.type="button";b.className="ej-wrong-photo";b.title=q?"Soruyu aç":"Yanlış sorunun fotoğrafını ekle";
-      b.innerHTML=q?'<img src="'+q.img+'" alt="Soru">':'📷';b.onclick=()=>q?wrongPhotoOpen(wrong.id):wrongPhotoPick(wrong.id);
-      actions.insertBefore(b,del||null);
-    });
+    /* app.js r21 owns wrong-question photos (questionImgs[]).
+       This module only keeps the render hook; it must not inject the legacy single-photo qbank control. */
+    return;
   }
   function patchWrongRows(){
     const original=window.renderWrongTopics;if(typeof original!=="function"||original.__wrongPhotoPatch)return;
