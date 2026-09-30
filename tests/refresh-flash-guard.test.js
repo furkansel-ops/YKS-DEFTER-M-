@@ -20,3 +20,13 @@ test("yenilemede legacy ekran yeni arayüz hazır olmadan görünmez",()=>{
   assert.match(main,/dataset\.uiReady="true"/);
   assert.match(main,/document\.addEventListener\("DOMContentLoaded",revealUi,\{once:true\}\)/);
 });
+
+
+test("Program eski tablosu refined Program kurulmadan görünmez",()=>{
+  const main=fs.readFileSync(path.join(root,"src/main.ts"),"utf8");
+  const safe=fs.readFileSync(path.join(root,"src/ui/v43-safe-runtime.ts"),"utf8");
+  const shell=fs.readFileSync(path.join(root,"src/ui/refined-shell.ts"),"utf8");
+  assert.ok(safe.indexOf('loadFeature("refinedShell"')>safe.indexOf('loadFeature("v431Resilience"'));
+  assert.match(shell,/const program=installRefinedProgram\(\)/);
+  assert.match(main,/v43Runtime\.ready\.then\(revealUi,revealUi\)/);
+});
