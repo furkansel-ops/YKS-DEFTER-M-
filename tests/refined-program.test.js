@@ -7,7 +7,7 @@ const {stripTypeScriptTypes}=require("node:module");
 const root=path.resolve(__dirname,"..");
 const source=fs.readFileSync(path.join(root,"src/ui/refined-program.ts"),"utf8");
 const runtime=stripTypeScriptTypes(source.replace(/^import "\.\/refined-program\.css";\r?\n/,""),{mode:"strip"}).replace(/^export /gm,"");
-const api=vm.runInNewContext(runtime+"\n({refinedProgramTasks,refinedProgramWeekOffset,refinedProgramQuickText,refinedProgramResourceUrl,refinedProgramSubjectLabel,createRefinedProgramController})",{Date,URL});
+const api=vm.runInNewContext(runtime+"\n({refinedProgramTasks,refinedProgramWeekOffset,refinedProgramQuickText,refinedProgramResourceUrl,refinedProgramSubjectLabel,refinedProgramClearWeeks,createRefinedProgramController})",{Date,URL});
 const plain=value=>JSON.parse(JSON.stringify(value));
 const rows=()=>[Array(7).fill(""),Array(7).fill("")];
 function week(){return {r:rows(),s:rows(),dn:{},done:Array(7).fill(false),mv:{}};}
@@ -175,4 +175,22 @@ test("program detail sheet owns linked resource playback actions",()=>{
   assert.match(legacy,/planSheetResourceHtml\(c\)/);
   assert.match(legacy,/link\.listId\?"▶ Oynatma listesini aç":link\.videoId\?"▶ Videoyu izle":"↗ Bağlantıyı aç"/);
   assert.match(legacy,/return cellOpenLink\(c\.txt\)/);
+});
+
+
+test("clear all program removes only weeks and keeps the rest of the student state",()=>{
+  const state={weeks:{"2026-09-21":{s:[["Matematik"]]},"2026-09-28":{r:[["Paragraf"]]}},rowLabels:{s:["Matematik"]},topics:{m1:"done"},name:"Furkan"};
+  assert.equal(api.refinedProgramClearWeeks(state),2);
+  assert.deepEqual(plain(state.weeks),{});
+  assert.deepEqual(plain(state.rowLabels),{s:["Matematik"]});
+  assert.deepEqual(plain(state.topics),{m1:"done"});
+  assert.equal(state.name,"Furkan");
+});
+
+test("program UI exposes a destructive clear-all action with explicit confirmation",()=>{
+  assert.match(source,/Tüm çalışma planını sil/);
+  assert.match(source,/Bütün çalışma planın silinecek/);
+  assert.match(source,/Bu işlem geri alınamaz/);
+  assert.match(source,/refinedProgramClearWeeks\(state\)/);
+  assert.match(source,/adapter\?\.save\?\.\(\)/);
 });

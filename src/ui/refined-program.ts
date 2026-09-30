@@ -78,6 +78,14 @@ export function refinedProgramResourceUrl(value:string):string|null{
   }catch{return null;}
 }
 
+export function refinedProgramClearWeeks(state:unknown):number{
+  if(!state||typeof state!=="object"||Array.isArray(state))return 0;
+  const target=state as Record<string,unknown>,weeks=target.weeks;
+  const count=weeks&&typeof weeks==="object"&&!Array.isArray(weeks)?Object.keys(weeks as Record<string,unknown>).length:0;
+  target.weeks={};
+  return count;
+}
+
 export function refinedProgramSubjectLabel(text:string,label="Çalışma"):string{
   const fallback=label.trim()||"Çalışma";
   const clean=text.replace(/\s+—\s+https?:\/\/\S+\s*$/i,"").trim();
@@ -171,8 +179,9 @@ export function installRefinedProgram():ProgramApi{
   const weeklyPanel=element("section","rb-program-week-grid");weeklyPanel.id="refinedProgramWeek";weeklyPanel.setAttribute("aria-label","Haftalık ders takvimi");
   const summary=element("div","rb-program-summary"),dayLabel=element("h2"),completion=element("div","rb-program-completion"),count=element("span"),progress=element("progress");progress.max=100;progress.setAttribute("aria-label","Günlük görev tamamlama");completion.append(count,progress);summary.append(dayLabel,completion);
   const list=element("div","rb-program-tasks");dailyPanel.append(summary,list);
-  const actions=element("div","rb-program-actions"),toolbar=element("div","rb-program-toolbar"),add=button("","rb-program-add"),share=button("","rb-program-share"),shareStatus=element("p","rb-program-share-status");
+  const actions=element("div","rb-program-actions"),toolbar=element("div","rb-program-toolbar"),add=button("","rb-program-add"),clear=button("Tüm çalışma planını sil","rb-program-clear"),share=button("","rb-program-share"),shareStatus=element("p","rb-program-share-status");
   add.append(icon("plus"),document.createTextNode("Çalışma ekle"));add.setAttribute("aria-controls","refinedProgramAdd");add.setAttribute("aria-expanded","false");
+  clear.setAttribute("aria-label","Bütün çalışma planını sil");
   share.append(icon("share"),document.createTextNode("Koçla paylaş"));share.dataset.coachShareNow="";shareStatus.dataset.coachShareStatus="";shareStatus.setAttribute("role","status");
   const form=element("form","rb-program-add-form");form.id="refinedProgramAdd";form.hidden=true;
   const formTabs=element("div","rb-program-form-tabs"),quickTab=button("Ders ve konu seç"),customTab=button("Kendim yazayım");formTabs.setAttribute("role","group");formTabs.setAttribute("aria-label","Çalışma ekleme yöntemi");formTabs.append(quickTab,customTab);
@@ -201,7 +210,7 @@ export function installRefinedProgram():ProgramApi{
   const draftButtons=SHORT_DAYS.map((label,index)=>{const node=button(label);node.setAttribute("aria-label",FULL_DAYS[index]!);node.addEventListener("click",()=>{if(draftDays.has(index))draftDays.delete(index);else draftDays.add(index);updatePreview();});dayOptions.append(node);return node;});
   for(const [label,days] of [["Seçili gün",null],["Hafta içi",[0,1,2,3,4]],["Her gün",[0,1,2,3,4,5,6]]] as const){const node=button(label);node.addEventListener("click",()=>{draftDays=new Set(days??[controller.snapshot().day]);updatePreview();});dayShortcuts.append(node);}
   daysField.append(element("legend","","Hangi günlere eklensin?"),dayOptions,dayShortcuts);preview.append(previewText,previewDays);form.append(formTabs,builder,custom,resourceField,daysField,preview,hint,formActions);
-  toolbar.append(tabs,add);actions.append(share,shareStatus);root.append(heading,toolbar,weekNav,strip,form,feedback,dailyPanel,weeklyPanel,actions);
+  toolbar.append(tabs,add);actions.append(clear,share,shareStatus);root.append(heading,toolbar,weekNav,strip,form,feedback,dailyPanel,weeklyPanel,actions);
   let destroyed=false,queued=false;
   const quickText=()=>{const item=subject.value===""?undefined:subjects[Number(subject.value)];return item?refinedProgramQuickText(`${item.exam} ${item.name.replace(/\s*\(AYT\)$/,"")}`,topic.value,questions.value,minutes.value):null;};
   function syncTopics(){topic.replaceChildren(new Option("Genel çalışma",""));const item=subject.value===""?undefined:subjects[Number(subject.value)];item?.topics.forEach(name=>topic.append(new Option(name,name)));topic.disabled=!item;updatePreview();}
@@ -295,7 +304,8 @@ export function installRefinedProgram():ProgramApi{
       }
       weeklyPanel.append(calendarMeta,calendar);
     }
-    const realShare=originalShare();share.hidden=!realShare;shareStatus.hidden=!realShare;
+    const allWeeks=object(object(window.YKSLegacyState?.readState?.()).weeks);clear.disabled=!Object.keys(allWeeks).length;
+        const realShare=originalShare();share.hidden=!realShare;shareStatus.hidden=!realShare;
     if(realShare){share.disabled=realShare.disabled;const status=legacyPanel.querySelector("#studentCoachProgramShare [data-coach-share-status]")?.textContent;if(status)shareStatus.textContent=status;}
   }
   const showView=(view:ProgramView)=>{controller.setView(view);refresh();};
@@ -320,7 +330,21 @@ export function installRefinedProgram():ProgramApi{
       input.value="";resource.value="";form.hidden=true;add.setAttribute("aria-expanded","false");refresh();add.focus();
     }finally{submitting=false;save.disabled=false;}
   });
-  share.addEventListener("click",()=>originalShare()?.click());
+  clear.addEventListener("click",()=>{
+    const adapter=window.YKSLegacyState,state=adapter?.readState?.();
+    if(!state||typeof state!=="object"||Array.isArray(state)){feedback.textContent="Çalışma planı verisine ulaşılamadı. Sayfayı yenileyip tekrar dene.";return;}
+    const target=state as Record<string,unknown>,weeks=target.weeks;
+    if(!weeks||typeof weeks!=="object"||Array.isArray(weeks)||!Object.keys(weeks as Record<string,unknown>).length){feedback.textContent="Çalışma planın zaten boş.";refresh();return;}
+    if(!window.confirm("Bütün çalışma planın silinecek. Tüm haftalar ve çalışmalar kaldırılacak. Bu işlem geri alınamaz. Devam edilsin mi?"))return;
+    const previous=weeks,removed=refinedProgramClearWeeks(state);
+    try{
+      if(adapter?.save?.()===false)throw new Error("save failed");
+      form.hidden=true;add.setAttribute("aria-expanded","false");call("thisWeek");call("renderPlan");feedback.textContent=`${removed} haftalık çalışma planı silindi. Yeni programını sıfırdan oluşturabilirsin.`;refresh();
+    }catch{
+      target.weeks=previous;feedback.textContent="Çalışma planı silinemedi. Verilerin korunuyor; tekrar deneyebilirsin.";refresh();
+    }
+  });
+    share.addEventListener("click",()=>originalShare()?.click());
   const wrappers=new Map<string,{original:LegacyFunction;wrapped:LegacyFunction}>();
   const wrap=(name:string,before?:()=>void)=>{
     const original=legacy[name];if(typeof original!=="function")return;

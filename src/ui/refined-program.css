@@ -116,9 +116,12 @@
 #program .rb-program-feedback:empty{display:none;}
 #program .rb-program-actions{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:4px 14px;margin-top:20px;padding-top:12px;border-top:1px solid var(--rp-line);}
 #program .rb-program-share,#program .rb-program-tools{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:0;padding:8px 0;background:transparent;color:var(--rp-muted);font-size:12px!important;font-weight:600!important;}
+#program .rb-program-clear{display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:8px 11px;border:1px solid color-mix(in srgb,var(--danger,#c93737) 24%,var(--rp-line));border-radius:10px;background:color-mix(in srgb,var(--danger,#c93737) 5%,var(--rp-surface));color:var(--danger,#c93737);font-size:12px!important;font-weight:650!important;}
+#program .rb-program-clear:disabled{opacity:.42;cursor:not-allowed;}
 #program .rb-program-share>.rb-program-icon,#program .rb-program-tools>.rb-program-icon{width:17px;height:17px;}
 #program .rb-program-tools>.rb-program-icon{width:13px;height:13px;}
 #program .rb-program-share:disabled{opacity:.65;cursor:wait;}
+@media(hover:hover){#program .rb-program-clear:not(:disabled):hover{background:color-mix(in srgb,var(--danger,#c93737) 9%,var(--rp-surface));border-color:color-mix(in srgb,var(--danger,#c93737) 40%,var(--rp-line));}}
 #program .rb-program-share-status{flex-basis:100%;order:2;color:var(--rp-muted);font-size:12px;line-height:1.5;margin:0;}
 #program .rb-program-share-status:empty{display:none;}
 #program .rb-program-more{margin:18px 0;border-top:1px solid var(--rp-line);}
