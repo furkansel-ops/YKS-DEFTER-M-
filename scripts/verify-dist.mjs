@@ -22,7 +22,7 @@ for(const file of required)await access(resolve(dist,file));
 await verifyLocalCssImports(dist);
 const index=await readFile(resolve(dist,"index.html"),"utf8");
 if(!/assets\/index-[^"']+\.js/.test(index))throw new Error("TypeScript üretim paketi index.html içine bağlanmadı");
-if(!index.includes('./app.js?v=4.1.0-r21')||!index.includes('./modules/stability.js?v=4.1.0-r28')||!index.includes('./modules/learning-lab.js?v=4.1.0-r26')||!index.includes('./modules/error-journal.js?v=4.1.0-r23'))throw new Error("Uygulama çalışma zamanı üretim paketinde bağlı değil");
+if(!index.includes('./app.js?v=4.1.0-r21')||!index.includes('./modules/stability.js?v=4.1.0-r28')||!index.includes('./modules/learning-lab.js?v=4.1.0-r26')||!index.includes('./modules/error-journal.js?v=4.1.0-r24'))throw new Error("Uygulama çalışma zamanı üretim paketinde bağlı değil");
 for(const forbidden of ["legacyFirebaseSyncModule","firebaseSyncModule","www.gstatic.com/firebasejs","cloudSyncBox","Google ile giriş"]){
   if(index.includes(forbidden))throw new Error(`Play Store yerel-veri paketinde eski bulut çalışma zamanı kaldı: ${forbidden}`);
 }
