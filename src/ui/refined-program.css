@@ -163,4 +163,59 @@
   #program .rb-program-week-card{min-height:130px;}
   #program .rb-program-form-tabs>button{padding:8px;font-size:13px;}
 }
+
+/* Weekly calendar v2: subjects are rows, days are columns. */
+#program .rb-program-week-grid{display:block!important;min-width:0;}
+#program .rb-program-calendar-meta{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin:2px 0 12px;}
+#program .rb-program-calendar-meta>div{font-size:16px;font-weight:720;letter-spacing:-.015em;color:var(--rb-ink,var(--label-1,#10213e));}
+#program .rb-program-calendar-meta>p{max-width:520px;margin:0;color:var(--rp-muted);font-size:12px;line-height:1.55;text-align:right;}
+#program .rb-program-calendar{width:100%;min-width:0;overflow-x:auto;overscroll-behavior-inline:contain;border:1px solid var(--rp-line);border-radius:17px;background:var(--rp-surface);scrollbar-width:thin;}
+#program .rb-program-calendar-row{display:grid;grid-template-columns:minmax(156px,1.18fr) repeat(7,minmax(108px,1fr));min-width:940px;}
+#program .rb-program-calendar-row+ .rb-program-calendar-row{border-top:1px solid var(--rp-line);}
+#program .rb-program-calendar-head{position:relative;background:var(--rp-alt);}
+#program .rb-program-calendar-subject-head{position:sticky;left:0;z-index:4;display:flex;align-items:center;min-height:72px;padding:14px 16px;border-right:1px solid var(--rp-line);background:var(--rp-alt);color:var(--rp-muted);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;}
+#program .rb-program-calendar-day{display:grid;place-items:center;align-content:center;gap:2px;min-width:0;min-height:72px;padding:8px 6px;border:0;border-left:1px solid var(--rp-line);border-radius:0;background:transparent;color:var(--rb-ink,var(--label-1,#10213e));}
+#program .rb-program-calendar-day>span{font-size:11px;font-weight:650;color:var(--rp-muted);}
+#program .rb-program-calendar-day>b{font-size:18px;line-height:1.2;font-weight:760;font-variant-numeric:tabular-nums;}
+#program .rb-program-calendar-day>small{min-height:15px;font-size:10px;color:var(--rp-muted);}
+#program .rb-program-calendar-day[data-today]{background:var(--rp-soft);color:var(--rp-accent);}
+#program .rb-program-calendar-day[data-today]>span,#program .rb-program-calendar-day[data-today]>small{color:var(--rp-accent);}
+#program .rb-program-subject-row{--rp-subject:#2563eb;--rp-subject-soft:color-mix(in srgb,var(--rp-subject) 10%,var(--rp-surface));align-items:stretch;}
+#program .rb-program-subject-row[data-subject-tone="0"]{--rp-subject:#2563eb;}
+#program .rb-program-subject-row[data-subject-tone="1"]{--rp-subject:#7c3aed;}
+#program .rb-program-subject-row[data-subject-tone="2"]{--rp-subject:#0f9f7f;}
+#program .rb-program-subject-row[data-subject-tone="3"]{--rp-subject:#d97706;}
+#program .rb-program-subject-row[data-subject-tone="4"]{--rp-subject:#dc4c64;}
+#program .rb-program-subject-row[data-subject-tone="5"]{--rp-subject:#0b83c9;}
+#program .rb-program-subject-cell{position:sticky;left:0;z-index:3;display:grid;grid-template-columns:8px minmax(0,1fr);grid-template-rows:auto auto;align-content:center;column-gap:10px;min-width:0;min-height:108px;padding:14px 15px;border-right:1px solid var(--rp-line);background:color-mix(in srgb,var(--rp-subject) 5%,var(--rp-surface));}
+#program .rb-program-subject-cell>i{grid-row:1/3;align-self:stretch;width:4px;min-height:42px;border-radius:999px;background:var(--rp-subject);}
+#program .rb-program-subject-cell>div{min-width:0;font-size:13px;font-weight:720;line-height:1.35;color:var(--rb-ink,var(--label-1,#10213e));overflow-wrap:anywhere;}
+#program .rb-program-subject-cell>small{margin-top:4px;font-size:10px;line-height:1.4;color:var(--rp-muted);}
+#program .rb-program-calendar-cell{display:grid;align-content:start;gap:6px;min-width:0;min-height:108px;padding:9px 7px;border-left:1px solid var(--rp-line);background:var(--rp-surface);}
+#program .rb-program-calendar-cell[data-today]{background:color-mix(in srgb,var(--rp-soft) 52%,var(--rp-surface));}
+#program .rb-program-calendar-empty{align-self:center;justify-self:center;color:color-mix(in srgb,var(--rp-muted) 55%,transparent);font-size:13px;}
+#program .rb-program-calendar-task{display:grid;grid-template-columns:16px minmax(0,1fr);align-items:start;gap:5px;min-width:0;min-height:44px;padding:8px 8px;border:1px solid color-mix(in srgb,var(--rp-subject) 24%,var(--rp-line));border-radius:10px;background:var(--rp-subject-soft);color:var(--rb-ink,var(--label-1,#10213e));text-align:left;}
+#program .rb-program-calendar-task-state{display:grid;place-items:center;width:15px;height:15px;margin-top:1px;border:1.4px solid color-mix(in srgb,var(--rp-subject) 70%,var(--rp-line));border-radius:5px;color:var(--rb-on-accent,#fff);font-size:10px;font-weight:800;line-height:1;}
+#program .rb-program-calendar-task-text{display:-webkit-box;min-width:0;overflow:hidden;overflow-wrap:anywhere;-webkit-box-orient:vertical;-webkit-line-clamp:3;line-clamp:3;font-size:11px;line-height:1.35;font-weight:600;}
+#program .rb-program-calendar-task[data-done]{opacity:.72;background:color-mix(in srgb,var(--success,#24836c) 8%,var(--rp-surface));border-color:color-mix(in srgb,var(--success,#24836c) 30%,var(--rp-line));}
+#program .rb-program-calendar-task[data-done] .rb-program-calendar-task-state{border-color:var(--success,#24836c);background:var(--success,#24836c);}
+#program .rb-program-calendar-task[data-done] .rb-program-calendar-task-text{text-decoration:line-through;color:var(--rp-muted);}
+#program .rb-program-week-empty{display:grid;justify-items:center;gap:7px;padding:42px 20px;border:1px dashed var(--rp-line);border-radius:17px;background:var(--rp-surface);text-align:center;}
+#program .rb-program-week-empty>strong{font-size:16px;font-weight:700;}
+#program .rb-program-week-empty>p{max-width:430px;margin:0;color:var(--rp-muted);font-size:13px;line-height:1.6;}
+@media(hover:hover){
+  #program .rb-program-calendar-day:hover{background:var(--rp-soft);color:var(--rp-accent);}
+  #program .rb-program-calendar-task:hover{border-color:var(--rp-subject);box-shadow:0 5px 16px color-mix(in srgb,var(--rp-subject) 10%,transparent);transform:translateY(-1px);}
+}
+@media(max-width:640px){
+  #program .rb-program-calendar-meta{display:grid;gap:4px;margin-bottom:10px;}
+  #program .rb-program-calendar-meta>p{text-align:left;}
+  #program .rb-program-calendar-row{grid-template-columns:132px repeat(7,96px);min-width:804px;}
+  #program .rb-program-calendar-subject-head{min-height:64px;padding:12px;}
+  #program .rb-program-calendar-day{min-height:64px;}
+  #program .rb-program-subject-cell{min-height:96px;padding:11px 10px;}
+  #program .rb-program-calendar-cell{min-height:96px;padding:7px 6px;}
+  #program .rb-program-calendar-task{padding:7px 6px;}
+}
+
 @media print{#program .rb-program{display:none!important;}#program .rb-program-legacy[hidden]{display:block!important;}}
