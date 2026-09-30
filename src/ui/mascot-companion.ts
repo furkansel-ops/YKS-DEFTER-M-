@@ -150,6 +150,11 @@ export function installMascotCompanion():MascotCompanionApi{
   });
   const endDrag=()=>{if(drag?.moved)suppressClickUntil=Date.now()+500;drag=null;strip.classList.remove("is-dragging");};
   mascotButton.addEventListener("pointerup",endDrag);mascotButton.addEventListener("pointercancel",endDrag);mascotButton.addEventListener("lostpointercapture",endDrag);
+  chat.addEventListener("pointerdown",event=>event.stopPropagation());
+  chat.addEventListener("click",event=>event.stopPropagation());
+  chatInput.addEventListener("pointerdown",event=>event.stopPropagation());
+  chatInput.addEventListener("focus",()=>{strip.classList.add("is-typing");obscured=false;strip.inert=false;});
+  chatInput.addEventListener("blur",()=>strip.classList.remove("is-typing"));
   strip.querySelector("[data-chat-close]")?.addEventListener("click",closeChat);
   strip.querySelectorAll<HTMLButtonElement>("[data-chat-action]").forEach(button=>button.addEventListener("click",()=>{const action=button.dataset.chatAction;if(action==="talk"){chatForm.hidden=false;addChat("mascot","Tabii. Buradayım 🙂 Bugün nasıl gidiyor?");chatInput.focus();}else if(action==="motivate")addChat("mascot","Mükemmel olmak zorunda değilsin. Bugün yapacağın küçük ama gerçek bir çalışma, hiç başlamamaktan daha değerli.");else if(action==="break")addChat("mascot","Mola zamanı. Biraz ekrandan uzaklaş, su iç ve nefes al. Döndüğünde kaldığın yer burada.");else if(action==="today")addChat("mascot","Bugünkü programına beraber bakalım. Program ekranındaki çalışmalarını sırayla bitir; önce en kısa veya en acil olandan başlayabilirsin.");else if(action==="study")addChat("mascot","Kararsızsan matematikten kısa bir blokla başla. Sonra bugünkü programındaki fizik, kimya veya biyoloji çalışmana geçebiliriz.");}));
   chatForm.addEventListener("submit",event=>{event.preventDefault();const value=chatInput.value.trim();if(!value)return;addChat("user",value);chatInput.value="";showTyping(localReply(value));});
