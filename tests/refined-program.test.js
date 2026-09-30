@@ -156,3 +156,12 @@ test("weekly program defaults to calendar view and groups tasks by subject label
   assert.match(source,/rb-program-subject-row/);
   assert.match(source,/Dersler satırlarda, günler sütunlarda/);
 });
+
+
+test("weekly calendar exposes direct resource actions for linked studies",()=>{
+  assert.match(source,/rb-program-calendar-task-shell/);
+  assert.match(source,/rb-program-calendar-resource/);
+  assert.match(source,/resource\.listId\?"Listeyi izle":resource\.videoId\?"Videoyu izle":"Linki aç"/);
+  assert.match(source,/call\("cellOpenLink",task\.text\)/);
+  assert.match(source,/bağlantı mevcut/);
+});
