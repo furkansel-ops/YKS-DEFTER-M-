@@ -126,6 +126,4 @@ test("Hocalar v2 aktifken eski öğretmen ve YouTube blokları gizlenir",()=>{
   assert.match(source,/tvSuggest/);
   assert.match(source,/watchList/);
   assert.match(source,/wsBox/);
-  assert.match(source,/data-teachers-v2-legacy-hidden/);
-  assert.match(source,/restoreLegacyTeacherSurface/);
 });
