@@ -88,7 +88,7 @@ document.documentElement.dataset.v4OptionalErrors="0";
 document.documentElement.dataset.themeControl="settings-only";
 
 /* Hocalar: ilk sürümdeki legacy kart + doğrudan video akışı yeniden aktif. */
-const USE_LEGACY_TEACHERS=true;
+const USE_LEGACY_TEACHERS=document.documentElement.dataset.teacherUi!=="v2";
 
 function loadTeacherVideosRuntime():void{
   if(document.querySelector('script[data-yks-teacher-videos="true"]'))return;
