@@ -70,7 +70,7 @@ export function installMascotCompanion():MascotCompanionApi{
   function closeChat(){chatOpen=false;chat.hidden=true;strip.classList.remove("is-chatting");chatForm.hidden=true;}
   function localReply(value:string){const q=value.toLocaleLowerCase("tr-TR");if(/matematik|problem|geo/.test(q))return "Matematik zorladıysa küçültelim: tek konu + kısa bir soru setiyle başlayalım. Takıldığın konuyu yaz, beraber parçalayalım.";if(/fizik|kimya|biyoloji/.test(q))return "Fen için bugün yüklenmek yerine net bir hedef seçelim. Hangi ders ve hangi konudasın?";if(/yoruld|sıkıld|çalışasım|istemiyorum|bunald/.test(q))return "Tamam. Büyük hedef koymayalım; 10 dakikalık minicik bir başlangıç yapalım. Sonra devam edip etmeyeceğine tekrar bakarsın.";if(/bitti|bitird|tamamlad/.test(q))return "Güzel! Bitirdiğini kapatalım. Sıradaki işi hafif tutalım mı, yoksa biraz mola mı?";if(/mola|dinlen/.test(q))return "Olur. Kısa bir mola ver; su iç, biraz hareket et. Döndüğünde tek bir küçük hedefle devam ederiz.";return "Anladım. Biraz daha anlatabilirsin; bugün seni en çok zorlayan şey ne?";}
   function syncMotion(){
-    obscured=(overlayOpen()&&!chatOpen)||keyboardOpen();strip.dataset.obscured=String(obscured);
+    obscured=!chatOpen&&(overlayOpen()||keyboardOpen());strip.dataset.obscured=String(obscured);
     strip.inert=obscured;const running=focusRunning();document.documentElement.dataset.mascotMotion=quiet()?"quiet":"ready";
     if(quiet())stopMotion();
     message.textContent=running?"Sen odaklan, ben buradayım.":current().hello;
