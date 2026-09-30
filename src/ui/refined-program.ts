@@ -242,19 +242,12 @@ export function installRefinedProgram():ProgramApi{
       const parts=displayText.split(/\s+·\s+/),title=parts.length>1?parts.shift()!:displayText;
       copy.append(element("strong","",title),element("small","",parts.length>1||title!==displayText?parts.join(" · "):task.label));details.append(copy,icon("arrow"));details.setAttribute("aria-label",`${task.text}: çalışma seçenekleri`);details.dataset.rbProgramFocus=`details:${task.id}`;
       check.addEventListener("click",()=>{controller.toggleTask(task.id);refresh();});details.addEventListener("click",()=>controller.openTask(task.id));card.append(check,details);list.append(card);
-      if(resource.url&&typeof legacy.cellOpenLink==="function"){
-        card.dataset.resource="true";
-        const open=button(resource.listId?"Listeyi izle":resource.videoId?"Videoyu izle":"Bağlantıyı aç","rb-program-resource");
-        open.dataset.rbProgramFocus=`resource:${task.id}`;open.setAttribute("aria-label",`${open.textContent}: ${displayText}`);
-        open.addEventListener("click",()=>call("cellOpenLink",task.text));card.append(open);
-        if(open.dataset.rbProgramFocus===focused)open.focus({preventScroll:true});
-      }
       if(check.dataset.rbProgramFocus===focused)check.focus({preventScroll:true});if(details.dataset.rbProgramFocus===focused)details.focus({preventScroll:true});
     }
     const weekFocus=document.activeElement instanceof HTMLElement?document.activeElement.dataset.rbWeekTask:undefined;
     weeklyPanel.replaceChildren();
     const calendarMeta=element("div","rb-program-calendar-meta");
-    calendarMeta.append(element("div","", "Haftalık ders planı"),element("p","","Dersler satırlarda, günler sütunlarda. Çalışmaya dokunarak seçenekleri aç; linkli çalışmalarda video veya bağlantı düğmesini kullan."));
+    calendarMeta.append(element("div","", "Haftalık ders planı"),element("p","","Dersler satırlarda, günler sütunlarda. Çalışmaya dokun; video, bağlantı ve düzenleme seçenekleri açılan detay ekranında."));
     const calendar=element("div","rb-program-calendar"),calendarHead=element("div","rb-program-calendar-row rb-program-calendar-head");
     calendarHead.append(element("div","rb-program-calendar-subject-head","Ders"));
     state.days.forEach((day,index)=>{
@@ -290,17 +283,11 @@ export function installRefinedProgram():ProgramApi{
             const resource=object(call("cellLink",task.text)),displayText=typeof resource.ad==="string"&&resource.ad?resource.ad:task.text;
             const parts=displayText.split(/\s+·\s+/),first=(parts.shift()||displayText).trim();
             const detail=(parts.join(" · ").trim()||(first===subjectName?task.label:displayText)).replace(/\s+—\s+https?:\/\/\S+\s*$/i,"").trim();
-            const taskShell=element("div","rb-program-calendar-task-shell"),taskButton=button("","rb-program-calendar-task");taskButton.toggleAttribute("data-done",task.done);taskButton.dataset.rbWeekTask=`${task.day}:${task.id}`;
+            const taskButton=button("","rb-program-calendar-task");taskButton.toggleAttribute("data-done",task.done);taskButton.dataset.rbWeekTask=`${task.day}:${task.id}`;
             taskButton.setAttribute("aria-label",`${FULL_DAYS[task.day]}, ${subjectName}: ${displayText}${task.done?", tamamlandı":""}${resource.url?", bağlantı mevcut":""}`);
             taskButton.append(element("span","rb-program-calendar-task-state",task.done?"✓":""),element("span","rb-program-calendar-task-text",detail||subjectName));
             taskButton.addEventListener("click",()=>{controller.selectDay(task.day);controller.openTask(task.id);});
-            taskShell.append(taskButton);
-            if(resource.url&&typeof legacy.cellOpenLink==="function"){
-              const open=button(resource.listId?"Listeyi izle":resource.videoId?"Videoyu izle":"Linki aç","rb-program-calendar-resource");
-              open.dataset.rbWeekTaskResource=`${task.day}:${task.id}`;open.setAttribute("aria-label",`${open.textContent}: ${displayText}`);
-              open.addEventListener("click",()=>call("cellOpenLink",task.text));taskShell.append(open);
-            }
-            cell.append(taskShell);if(taskButton.dataset.rbWeekTask===weekFocus)taskButton.focus({preventScroll:true});
+            cell.append(taskButton);if(taskButton.dataset.rbWeekTask===weekFocus)taskButton.focus({preventScroll:true});
           }
           row.append(cell);
         });
