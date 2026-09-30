@@ -35,10 +35,10 @@ test("Laboratuvar yardımcıları global her tıklamada veya çift navigation di
 
 test("4.4.0-r8 release kimliği ve service worker güncel kabuk önbelleğini taşır",()=>{
   const version=read("src/release/version.ts"),json=JSON.parse(read("version.json")),sw=read("sw.js");
-  assert.match(version,/RELEASE_BUILD="4\.4\.0-r7"/);
+  assert.match(version,/RELEASE_BUILD="4\.4\.0-r8"/);
   assert.equal(json.build,"4.4.0-r8");
-  assert.match(sw,/APP_BUILD="4\.4\.0-r7"/);
-  assert.match(sw,/CACHE="yks-core-v4\.4\.0-r7"/);
+  assert.match(sw,/APP_BUILD="4\.4\.0-r8"/);
+  assert.match(sw,/CACHE="yks-core-v4\.4\.0-r8"/);
   assert.match(sw,/cache refresh epoch: 2026-09-30-teachers-ui-r8/);
   assert.match(sw,/cacheLatestShell/);
   assert.match(sw,/async function refreshOpenClientsForBuild\(\)/);
