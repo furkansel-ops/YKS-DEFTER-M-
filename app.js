@@ -9891,46 +9891,13 @@ function planEnsureSheet(){
   document.body.appendChild(ov); return ov;
 }
 function planSheetExtraHtml(ctx){return typeof programAssistSheetExtras==="function"?programAssistSheetExtras(ctx):"";}
-function planResourceUrl(value){
-  const raw=String(value||"").trim();
-  if(!raw)return "";
-  if(raw.length>500||/\s/.test(raw))return null;
-  try{
-    const parsed=new URL(raw);
-    if(!["http:","https:"].includes(parsed.protocol)||!parsed.hostname)return null;
-    return raw;
-  }catch(e){return null;}
-}
-function planTaskWithoutResource(txt){
-  const value=String(txt||"").trim(),link=typeof cellLink==="function"?cellLink(value):null;
-  if(!link)return value;
-  return (link.ad||value.replace(link.url,"").replace(/[\s—–-]+$/,"").trim()).trim();
-}
 function planSheetResourceHtml(ctx){
   const link=ctx&&typeof cellLink==="function"?cellLink(ctx.txt):null;
-  const open=link?'<button type="button" class="plan-sheet-resource-open" onclick="planOpenSelectedResource()">'+
-    (link.listId?"▶ Listeyi aç":link.videoId?"▶ Videoyu izle":"↗ Linki aç")+'</button>':"";
-  const remove=link?'<button type="button" class="plan-sheet-resource-remove" onclick="planSaveSelectedResource(true)">Kaldır</button>':"";
-  return '<div class="plan-sheet-resource-editor">'+
-    '<label for="planSheetResourceInput">Video / kaynak linki</label>'+
-    '<div class="plan-sheet-resource-input-row"><input id="planSheetResourceInput" type="url" inputmode="url" autocomplete="off" placeholder="YouTube veya başka bir bağlantı yapıştır" onkeydown="if(event.key===\'Enter\'){event.preventDefault();planSaveSelectedResource(false)}">'+
-    '<button type="button" class="primary" onclick="planSaveSelectedResource(false)">Kaydet</button></div>'+
-    '<div class="plan-sheet-resource-tools">'+open+remove+'</div>'+
-    '<small>Bu bağlantı yalnızca bu çalışmaya bağlanır. Video, oynatma listesi veya normal web linki olabilir.</small>'+
-  '</div>';
-}
-function planSaveSelectedResource(remove){
-  const c=planMenuCtx&&planCellData(planMenuCtx.wk,planMenuCtx.blk,planMenuCtx.i,planMenuCtx.d);if(!c)return false;
-  const input=el("planSheetResourceInput"),raw=remove?"":String(input&&input.value||"").trim(),url=planResourceUrl(raw);
-  if(url===null){toast("Geçerli bir http:// veya https:// bağlantısı gir");if(input)input.focus();return false;}
-  const base=planTaskWithoutResource(c.txt);
-  if(!base){toast("Çalışma metni bulunamadı");return false;}
-  const next=url?base+" — "+url:base;
-  if(next===c.txt){toast(url?"Link zaten kayıtlı":"Bu çalışmada link yok");return true;}
-  const bk=planWeekBackup([c.wk]);c.w[c.blk][c.i][c.d]=next;
-  pushUndo(url?"Çalışma linki güncellendi":"Çalışma linki kaldırıldı",()=>restorePlanWeekBackup(bk));
-  save();planRefreshViews();openPlanCellMenu(c.wk,c.blk,c.i,c.d);toast(url?"Link kaydedildi ✓":"Link kaldırıldı");
-  return true;
+  if(!link)return "";
+  let host="";
+  try{host=new URL(link.url).hostname.replace(/^www\./,"");}catch(e){}
+  const title=link.listId?"▶ Oynatma listesini aç":link.videoId?"▶ Videoyu izle":"↗ Bağlantıyı aç";
+  return '<button class="plan-sheet-resource primary" onclick="planOpenSelectedResource()"><span>'+esc(title)+'</span>'+(host?'<small>'+esc(host)+'</small>':"")+'</button>';
 }
 function planOpenSelectedResource(){
   const c=planMenuCtx&&planCellData(planMenuCtx.wk,planMenuCtx.blk,planMenuCtx.i,planMenuCtx.d);
@@ -9945,14 +9912,12 @@ function openPlanCellMenu(wk,blk,i,d){
   const taskText=link&&link.ad?link.ad:c.txt;
   ov.innerHTML='<div class="plan-sheet-card" onclick="event.stopPropagation()"><div class="plan-sheet-grab"></div>'+ 
     '<div class="plan-sheet-date">'+esc(dateLabel)+'</div><div class="plan-sheet-title">'+esc(lbl)+'</div><div class="plan-sheet-sub">'+esc(taskText)+'</div>'+ 
-    planSheetResourceHtml(c)+
-    '<div class="plan-sheet-actions">'+
+    '<div class="plan-sheet-actions">'+planSheetResourceHtml(c)+
       '<button class="primary" onclick="planEditSelected()">✎ Düzenle</button>'+ 
       '<button onclick="planCopySelected()">⧉ Kopyala</button>'+ 
       '<button class="primary" onclick="planTomorrowSelected()">→ Yarına taşı</button>'+ 
       '<button class="danger" onclick="planDeleteSelected()">Sil</button>'+planSheetExtraHtml(c)+
     '</div><button class="plan-sheet-close" onclick="closePlanCellMenu()">Kapat</button></div>';
-  const resourceInput=el("planSheetResourceInput");if(resourceInput&&link)resourceInput.value=link.url;
   ov.classList.add("show");
   try{navigator.vibrate&&navigator.vibrate(18);}catch(e){}
   return true;
