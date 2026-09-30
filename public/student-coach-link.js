@@ -7,7 +7,7 @@ const ACCESS_COLLECTION="studentCoachAccess";
 const CODE_COLLECTION="studentCoachCodes";
 const LINK_COLLECTION="coachingLinks";
 const PROFILE_COLLECTION="accountProfiles";
-const state={user:null,db:null,profile:null,sharing:false,messageStop:null,activeCoachUid:""};
+const state={user:null,db:null,profile:null,sharing:false,messageStop:null,activeCoachUid:"",observer:null};
 const text=(value,max=160)=>String(value??"").trim().slice(0,max);
 const esc=value=>String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[char]));
 const normalizeCode=value=>String(value??"").toUpperCase().replace(/[^A-Z2-9]/g,"").slice(0,CODE_LENGTH);
@@ -162,15 +162,24 @@ function installStudentSettings(){
   installProgramShareButton();
   void renderStudentSettings();return true;
 }
-function cleanup(){stopMessages();document.getElementById("studentCoachCodeSettings")?.remove();document.getElementById("studentCoachProgramShare")?.remove();state.user=state.db=state.profile=null;state.sharing=false}
+function ensureStudentSettings(){
+  if(state.profile?.role!=="student")return false;
+  const ok=installStudentSettings();
+  if(!state.observer&&document.body){
+    state.observer=new MutationObserver(()=>{if(state.profile?.role==="student"&&!document.getElementById("studentCoachCodeSettings"))installStudentSettings()});
+    state.observer.observe(document.body,{childList:true,subtree:true});
+  }
+  return ok;
+}
+function cleanup(){stopMessages();state.observer?.disconnect?.();state.observer=null;document.getElementById("studentCoachCodeSettings")?.remove();document.getElementById("studentCoachProgramShare")?.remove();state.user=state.db=state.profile=null;state.sharing=false}
 function install(){
   const auth=window.YKSAccountAuth;if(!auth||auth.__studentCoachLink)return false;auth.__studentCoachLink=true;
   const originalSignedIn=auth.onSignedIn?.bind(auth),originalSignedOut=auth.onSignedOut?.bind(auth);
-  auth.onSignedIn=async ctx=>{const result=originalSignedIn?await originalSignedIn(ctx):null;state.user=ctx.user;state.db=ctx.db;state.profile=result?.profile||null;if(result?.role==="student"){installStudentSettings();installProgramShareButton();setTimeout(()=>{installStudentSettings();installProgramShareButton()},0)}return result};
+  auth.onSignedIn=async ctx=>{const result=originalSignedIn?await originalSignedIn(ctx):null;state.user=ctx.user;state.db=ctx.db;state.profile=result?.profile||null;if(result?.role==="student"){ensureStudentSettings();installProgramShareButton();setTimeout(()=>{ensureStudentSettings();installProgramShareButton()},0);setTimeout(()=>{ensureStudentSettings();installProgramShareButton()},1200)}return result};
   auth.onSignedOut=()=>{cleanup();return originalSignedOut?.()};
-  window.addEventListener("yks:data-changed",()=>{if(state.profile?.role==="student"&&document.getElementById("studentCoachCodeSettings"))void renderStudentSettings()});
+  window.addEventListener("yks:data-changed",()=>{if(state.profile?.role==="student"){ensureStudentSettings();if(document.getElementById("studentCoachCodeSettings"))void renderStudentSettings()}});window.addEventListener("click",event=>{const el=event.target?.closest?.('[onclick*="settings"],[onclick*="setMoreTab"]');if(el)setTimeout(()=>ensureStudentSettings(),0)},true);
   document.documentElement.dataset.studentCoachLink="ready";
-  window.dispatchEvent(new CustomEvent("yks:student-coach-link-ready",{detail:{version:"1.2.0"}}));
+  window.dispatchEvent(new CustomEvent("yks:student-coach-link-ready",{detail:{version:"1.3.1"}}));
   return true;
 }
 install();
