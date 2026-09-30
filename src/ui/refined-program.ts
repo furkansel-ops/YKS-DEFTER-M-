@@ -84,7 +84,7 @@ export function refinedProgramSubjectLabel(text:string,label="Çalışma"):strin
   const first=(clean.split(/\s+·\s+/)[0]||"").trim();
   if(!first)return fallback;
   const exam=first.match(/^(TYT|AYT|YDT)\s+(.+)$/i);
-  if(exam)return `${exam[1]!.toUpperCase()} ${exam[2]!.trim()}`.slice(0,42);
+  if(exam)return `${(exam[1]||"").toUpperCase()} ${(exam[2]||"").trim()}`.trim().slice(0,42);
   return first.length<=42?first:fallback;
 }
 function refinedProgramSubjectTone(label:string):number{
@@ -293,7 +293,7 @@ export function installRefinedProgram():ProgramApi{
             const taskButton=button("","rb-program-calendar-task");taskButton.toggleAttribute("data-done",task.done);taskButton.dataset.rbWeekTask=`${task.day}:${task.id}`;
             taskButton.setAttribute("aria-label",`${FULL_DAYS[task.day]}, ${subjectName}: ${displayText}${task.done?", tamamlandı":""}`);
             taskButton.append(element("span","rb-program-calendar-task-state",task.done?"✓":""),element("span","rb-program-calendar-task-text",detail||subjectName));
-            taskButton.addEventListener("click",()=>{controller.selectDay(task.day);controller.openTask(task.id);refresh();});
+            taskButton.addEventListener("click",()=>{controller.selectDay(task.day);controller.openTask(task.id);});
             cell.append(taskButton);if(taskButton.dataset.rbWeekTask===weekFocus)taskButton.focus({preventScroll:true});
           }
           row.append(cell);
