@@ -3123,3 +3123,16 @@ input,select,textarea{transition:border-color .2s,box-shadow .2s,background .2s,
 
 .wrong-photo-item{display:inline-flex;align-items:center;position:relative;margin:0 3px}
 .wrong-photo-item .wrong-photo-delete{position:absolute;right:-5px;top:-7px;width:20px;height:20px;min-height:20px;padding:0;border-radius:50%;justify-content:center;font-size:15px;line-height:1;z-index:2;background:var(--card,#fff)}
+
+/* Soru görüntüleyici: uygulama kabuğunun sidebar/transform ölçülerinden bağımsız tam ekran. */
+body > .qaviewer{
+  position:fixed!important;inset:0!important;
+  width:100dvw!important;height:100dvh!important;max-width:none!important;
+  margin:0!important;box-sizing:border-box!important;
+  overflow:hidden;
+}
+@supports not (height:100dvh){body > .qaviewer{width:100vw!important;height:100vh!important}}
+@media(max-width:900px){
+  body > .qaviewer{padding:calc(10px + env(safe-area-inset-top)) 10px calc(10px + env(safe-area-inset-bottom))!important}
+  body > .qaviewer .qvinfo,body > .qaviewer .qvnote{max-width:100%;overflow-wrap:anywhere}
+}
