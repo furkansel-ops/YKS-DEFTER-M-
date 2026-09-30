@@ -168,11 +168,16 @@ test("linked studies keep the weekly calendar clean and use the shared detail sh
 });
 
 
-test("program detail sheet owns linked resource playback actions",()=>{
+
+
+test("program detail sheet lets users add, change, open and remove a study link",()=>{
   const legacy=fs.readFileSync(path.join(root,"app.js"),"utf8");
-  assert.match(legacy,/function planSheetResourceHtml\(ctx\)/);
-  assert.match(legacy,/function planOpenSelectedResource\(\)/);
-  assert.match(legacy,/planSheetResourceHtml\(c\)/);
-  assert.match(legacy,/link\.listId\?"▶ Oynatma listesini aç":link\.videoId\?"▶ Videoyu izle":"↗ Bağlantıyı aç"/);
-  assert.match(legacy,/return cellOpenLink\(c\.txt\)/);
+  assert.match(legacy,/Video \/ kaynak linki/);
+  assert.match(legacy,/id="planSheetResourceInput"/);
+  assert.match(legacy,/function planSaveSelectedResource\(remove\)/);
+  assert.match(legacy,/function planResourceUrl\(value\)/);
+  assert.match(legacy,/c\.w\[c\.blk\]\[c\.i\]\[c\.d\]=next/);
+  assert.match(legacy,/Link kaydedildi ✓/);
+  assert.match(legacy,/Link kaldırıldı/);
+  assert.match(legacy,/planOpenSelectedResource\(\)/);
 });
