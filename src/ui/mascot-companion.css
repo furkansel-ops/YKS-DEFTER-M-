@@ -43,3 +43,14 @@
 @keyframes rb-mascot-chat{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-4px) rotate(2deg)}}
 .rb-companion[data-near-top="true"] .rb-companion-chat{top:calc(100% + 8px);bottom:auto}
 @media(max-width:759px){.rb-companion-chat{position:fixed;left:12px;right:12px;bottom:calc(92px + env(safe-area-inset-bottom));width:auto;transform:none;max-height:min(500px,68dvh)}.rb-companion[data-near-top="true"] .rb-companion-chat{top:auto;bottom:calc(92px + env(safe-area-inset-bottom))}}
+
+/* v2 speech bubble polish */
+.rb-companion-chat{width:min(360px,calc(100vw - 24px));border-radius:24px;box-shadow:0 24px 70px #07162930,0 2px 10px #07162912;overflow:visible}
+.rb-companion-chat::after{content:"";position:absolute;right:34px;bottom:-8px;width:16px;height:16px;background:var(--rb-surface);border-right:1px solid var(--rb-line);border-bottom:1px solid var(--rb-line);transform:rotate(45deg);border-radius:0 0 4px 0}
+.rb-companion-chat-head,.rb-companion-chat-log,.rb-companion-actions,.rb-companion-chat-form{position:relative;z-index:1;background:var(--rb-surface)}
+.rb-companion-chat-head{border-radius:24px 24px 0 0;padding:14px 16px 12px}.rb-companion-chat-head>span{position:relative;padding-left:14px}.rb-companion-chat-head>span::before{content:"";position:absolute;left:0;top:7px;width:7px;height:7px;border-radius:50%;background:var(--rb-accent);box-shadow:0 0 0 4px var(--rb-accent-soft)}.rb-companion-chat-head b{font-size:14px;font-weight:700}.rb-companion-chat-head small{font-size:10px;letter-spacing:.01em}
+.rb-companion-chat-log{gap:10px;max-height:250px;padding:16px}.rb-chat-message{max-width:86%;padding:10px 12px;border-radius:16px;font-size:12.5px;line-height:1.5;box-shadow:0 1px 2px #0716290b}.rb-chat-message.is-mascot{border:1px solid var(--rb-line);border-bottom-left-radius:5px}.rb-chat-message.is-user{border-bottom-right-radius:5px}
+.rb-companion-actions{padding:1px 16px 14px}.rb-companion-actions button{min-height:36px;padding:8px 12px;font-size:10.5px;transition:transform .15s ease,border-color .15s ease,background .15s ease}.rb-companion-actions button:active{transform:scale(.97)}
+.rb-companion-chat-form{border-radius:0 0 24px 24px;padding:12px 14px 14px}.rb-companion-chat-form input{height:42px;border-radius:14px;padding:0 13px}.rb-companion-chat-form button{height:42px;border-radius:13px;padding:0 14px}
+.rb-companion[data-near-top="true"] .rb-companion-chat::after{top:-8px;bottom:auto;transform:rotate(225deg)}
+@media(max-width:759px){.rb-companion-chat{left:10px;right:10px;width:auto;border-radius:24px;max-height:min(540px,72dvh)}.rb-companion-chat::after{right:42px}.rb-companion-chat-log{max-height:260px}.rb-companion-chat-head{padding-top:15px}}
