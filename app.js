@@ -3686,6 +3686,8 @@ function qaShowViewer(i){
   qaViewIdx=Math.max(0,Math.min(qaViewList.length-1,i));
   const q=qaViewList[qaViewIdx];
   const ov=el("qaViewer"); if(!ov)return;
+  // Viewer her zaman gerçek viewport'a göre hizalansın; dönüştürülmüş uygulama kabuğu fixed katmanı kırpmasın.
+  if(ov.parentElement!==document.body)document.body.appendChild(ov);
   ov.style.display="flex";
   el("qaImg").src=q.img;
   el("qaInfo").textContent=q.subject+(q.topic?" · "+q.topic:"")+" · "+
