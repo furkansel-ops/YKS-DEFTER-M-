@@ -26,3 +26,26 @@ test("legacy Hocalar feed videosunu eski kart biçimine dönüştürür",()=>{
   assert.match(s,/item\.channel/);
   assert.match(s,/\.slice\(0,6\)/);
 });
+
+
+test("legacy Hocalar TYT AYT soru ve deneme seçimlerinde önce oynatma listelerini gösterir",()=>{
+  const s=source();
+  assert.match(s,/async function feedPlaylists\(teacher,force\)/);
+  assert.match(s,/function kindWords\(kind\)/);
+  assert.match(s,/tyt:\["tyt"\]/);
+  assert.match(s,/ayt:\["ayt"\]/);
+  assert.match(s,/deneme:\["deneme","branş","brans"\]/);
+  assert.match(s,/async function showKind\(host,kind,force\)/);
+  assert.match(s,/renderPlaylists\(host,lists,kind\)/);
+  assert.match(s,/window\.ytTeacher=function\(name,kind,subject\)/);
+  assert.match(s,/if\(kind==="kanal"\)/);
+  assert.match(s,/void showKind\(host,kind,false\)/);
+});
+
+test("legacy Hocalar oynatma listesine dokununca uygulama içi playlist oynatıcısını kullanır",()=>{
+  const s=source();
+  assert.match(s,/window\.openPlaylistResource/);
+  assert.match(s,/Oynatma listesi · uygulama içinde aç/);
+  assert.match(s,/Yukarıdan TYT konu, AYT konu, Soru çözümü veya Deneme \/ branş seç/);
+  assert.match(s,/teacherVideosRuntimeVersion="r13-playlists"/);
+});
