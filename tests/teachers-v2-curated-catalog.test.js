@@ -122,10 +122,10 @@ test("Hocalar v2 aktifken eski öğretmen ve YouTube blokları gizlenir",()=>{
   const source=ui();
   assert.match(source,/function hideLegacyTeacherSurface/);
   assert.match(source,/directPlaylistUrl/);
-  assert.match(source,/Konuya göre video ara/);
-  assert.match(source,/Şunu izlemen iyi olur/);
-  assert.match(source,/İzlediklerim/);
-  assert.match(source,/İzleme geçmişi/);
+  assert.match(source,/tvSubject/);
+  assert.match(source,/tvSuggest/);
+  assert.match(source,/watchList/);
+  assert.match(source,/wsBox/);
   assert.match(source,/data-teachers-v2-legacy-hidden/);
   assert.match(source,/restoreLegacyTeacherSurface/);
 });
