@@ -13,7 +13,7 @@ const VERSION="4.3.0-refined";
 const CATEGORIES:readonly MoreCategory[]=[
   {id:"learning",label:"Öğrenme",description:"Laboratuvar, kaynaklar ve yanlışlardan öğrenme",icon:"◎",items:[
     {action:"lab",label:"Öğrenme Laboratuvarı",description:"Konu atlası, 3B organlar ve bilim kartları",icon:"⌁"},
-    {action:"resources",label:"Kaynaklar & videolar",description:"Kitaplar, hocalar, listeler ve izleme geçmişi",icon:"▤"},
+    {action:"resources",label:"Kaynaklar & videolar",description:"Kitaplar, oynatma listeleri ve izleme geçmişi",icon:"▤"},
     {action:"tactics",label:"Taktikler",description:"Çalışma ve sınav stratejileri",icon:"◈"},
     {action:"archive",label:"Yanlış soru arşivi",description:"Fotoğraflı yanlışlarını aç ve tekrar et",icon:"▣"}
   ]},

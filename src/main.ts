@@ -87,7 +87,9 @@ document.documentElement.dataset.v4OptionalErrors="0";
 /* Tema seçimi yalnız Ayarlar > Görünüm bölümündedir; kayıtlı tema açılışta korunur. */
 document.documentElement.dataset.themeControl="settings-only";
 
-const lt=document.documentElement.dataset.teacherUi!=="v2";
+const teachersPaused=document.documentElement.dataset.teacherFeature!=="on";
+document.documentElement.dataset.teacherFeatureState=teachersPaused?"paused":"on";
+const lt=teachersPaused||document.documentElement.dataset.teacherUi!=="v2";
 
 function loadTeachersV2Media():void{
   if(document.documentElement.dataset.teachersV2Media==="ready"||document.documentElement.dataset.teachersV2Media==="loading")return;

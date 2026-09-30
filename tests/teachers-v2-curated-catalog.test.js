@@ -140,16 +140,20 @@ test("Hocalar v2 aktifken eski öğretmen ve YouTube blokları gizlenir",()=>{
 });
 
 
-test("Hocalar varsayılan olarak orijinal app.js öğretmen ve playlist motorunu kullanır",()=>{
+test("Hocalar özelliği geçici olarak uygulama yüzeyinden kaldırılır ama kodu korunur",()=>{
   const main=fs.readFileSync(path.join(root,"src/main.ts"),"utf8");
+  const index=fs.readFileSync(path.join(root,"index.html"),"utf8");
+  const nav=fs.readFileSync(path.join(root,"src/ui/navigation-v43.ts"),"utf8");
   const legacyApp=fs.readFileSync(path.join(root,"app.js"),"utf8");
-  assert.match(main,/const lt=document\.documentElement\.dataset\.teacherUi!=="v2"/);
-  assert.match(main,/teacherVideosRuntime="legacy-core"/);
-  assert.doesNotMatch(main,/loadTeacherVideosRuntime\(\)/);
+  assert.match(main,/const teachersPaused=document\.documentElement\.dataset\.teacherFeature!=="on"/);
+  assert.match(main,/teacherFeatureState=teachersPaused\?"paused":"on"/);
+  assert.match(main,/const lt=teachersPaused\|\|document\.documentElement\.dataset\.teacherUi!=="v2"/);
+  assert.doesNotMatch(index,/id="thList"/);
+  assert.doesNotMatch(index,/id="thSearch"/);
+  assert.doesNotMatch(index,/id="fh_hocaekle"/);
+  assert.doesNotMatch(index,/Kitaplar, hocalar, oynatma listeleri/);
+  assert.match(index,/Kitaplar, oynatma listeleri ve izleme geçmişi/);
+  assert.doesNotMatch(nav,/Kitaplar, hocalar, listeler ve izleme geçmişi/);
   assert.match(legacyApp,/function ytTeacher\(name,kind,subject\)/);
-  assert.match(legacyApp,/TYT konu/);
-  assert.match(legacyApp,/AYT konu/);
-  assert.match(legacyApp,/Deneme \/ branş/);
   assert.match(legacyApp,/function loadPlaylists\(\)/);
-  assert.match(legacyApp,/Oynatma listeleri/);
 });
