@@ -39,8 +39,11 @@ test("4.4.0-r8 release kimliği ve service worker güncel kabuk önbelleğini ta
   assert.equal(json.build,"4.4.0-r8");
   assert.match(sw,/APP_BUILD="4\.4\.0-r7"/);
   assert.match(sw,/CACHE="yks-core-v4\.4\.0-r7"/);
-  assert.match(sw,/cache refresh epoch: 2026-09-17-fresh-shell/);
+  assert.match(sw,/cache refresh epoch: 2026-09-30-teachers-ui-r8/);
   assert.match(sw,/cacheLatestShell/);
+  assert.match(sw,/async function refreshOpenClientsForBuild\(\)/);
+  assert.match(sw,/client\.navigate\(url\.toString\(\)\)/);
+  assert.match(sw,/url\.searchParams\.set\("appv",APP_BUILD\)/);
   assert.match(sw,/cacheCore\(\)\.then\(\(\)=>self\.skipWaiting\(\)\)/);
   assert.match(sw,/networkFirstStatic/);
 });
