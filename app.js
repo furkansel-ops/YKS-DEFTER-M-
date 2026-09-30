@@ -2170,7 +2170,7 @@ function renderWrongTopics(){
   html+=S.wrongLog.slice(-12).reverse().map(x=>{
     const photo=wrongPhotoFor(x.id);
     const photoUi=photo
-      ? `<button class="wrong-photo-thumb" onclick="wrongPhotoOpen(${x.id})" title="Soruyu aç"><img src="${photo.img}" alt="Soru fotoğrafı"></button><button class="wrong-photo-change" onclick="wrongPhotoPick(${x.id})" title="Fotoğrafı değiştir">↻</button><button class="del" onclick="wrongPhotoRemove(${x.id})">foto sil</button>`
+      ? `<button class="wrong-photo-thumb" onclick="wrongPhotoOpen(${x.id})" title="Soruyu aç"><img src="${photo.img}" alt="Soru fotoğrafı"></button><button class="wrong-photo-change" onclick="wrongPhotoPick(${x.id})" title="Fotoğrafı değiştir">↻</button><button class="wrong-photo-delete" onclick="wrongPhotoRemove(${x.id})" title="Soru fotoğrafını sil">🗑 <span>Sil</span></button>`
       : `<button class="wrong-photo-add" onclick="wrongPhotoPick(${x.id})" title="Yanlış sorunun fotoğrafını ekle">📷 <span>Soru ekle</span></button>`;
     return `<div class="dayrow wrong-log-row"><span class="k">${esc(x.subject)} · ${esc(x.topic)}</span>
       <span class="v wrong-log-actions"><b>${x.n}</b> ${photoUi} <button class="del" onclick="delWrong(${x.id})">sil</button></span></div>`;
