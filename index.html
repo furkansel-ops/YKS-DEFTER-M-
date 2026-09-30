@@ -1137,7 +1137,7 @@ document.documentElement.setAttribute("data-theme",t);}catch(e){}})();
     <h2>Kütüphane ve çalışma</h2>
     <div class="v30-menu-grid">
       <button class="v30-menu-card" type="button" onclick="v30Action('lab')"><span class="v30-menu-ico">⌁</span><span><b>Öğrenme Laboratuvarı</b><small>TYT, AYT ve YDT derslerini konu konu aç</small></span><i>›</i></button>
-      <button class="v30-menu-card" type="button" onclick="v30Action('resources')"><span class="v30-menu-ico">▤</span><span><b>Kaynaklar & videolar</b><small>Kitaplar, hocalar, oynatma listeleri ve izleme geçmişi</small></span><i>›</i></button>
+      <button class="v30-menu-card" type="button" onclick="v30Action('resources')"><span class="v30-menu-ico">▤</span><span><b>Kaynaklar & videolar</b><small>Kitaplar, oynatma listeleri ve izleme geçmişi</small></span><i>›</i></button>
       <button class="v30-menu-card" type="button" onclick="v30Action('tactics')"><span class="v30-menu-ico">◎</span><span><b>Taktikler</b><small>Sana uyan taktikler ve tahmin hesaplayıcısı</small></span><i>›</i></button>
       <button class="v30-menu-card" type="button" onclick="v30Action('archive')"><span class="v30-menu-ico">▣</span><span><b>Yanlış soru arşivi</b><small>Fotoğraflı sorularını aç, filtrele ve tekrar et</small></span><i>›</i></button>
     </div>
@@ -1223,7 +1223,7 @@ document.documentElement.setAttribute("data-theme",t);}catch(e){}})();
   </div>
 
   <div id="mrp_kay" style="display:none;">
-    <div class="v30-subhead"><button class="v30-back" type="button" onclick="setMoreTab('home')">‹ Daha</button><div><h1>Kaynaklar</h1><p>Kitaplar, videolar ve hocalar</p></div></div>
+    <div class="v30-subhead"><button class="v30-back" type="button" onclick="setMoreTab('home')">‹ Daha</button><div><h1>Kaynaklar</h1><p>Kitaplar ve videolar</p></div></div>
     <div class="card">
       <p class="eyebrow">Yeni kaynak</p>
       <label>Ad</label><input type="text" id="bkName" placeholder="Örn. Palme TYT Matematik">
@@ -1235,7 +1235,7 @@ document.documentElement.setAttribute("data-theme",t);}catch(e){}})();
     </div>
     <div class="card" id="bookList"></div>
   
-    <h2>Videolar ve hocalar</h2>
+    <h2>Videolar</h2>
   <div class="card">
     <p class="eyebrow">Anahtarsız oynatma listesi</p>
     <p class="lead" style="font-size:14.5px;margin:0 0 12px;">YouTube oynatma listesi bağlantısını yapıştır. Listeyi uygulama içinde izleyebilir veya haftalık programına ekleyebilirsin; API anahtarı gerekmez.</p>
@@ -1249,15 +1249,7 @@ document.documentElement.setAttribute("data-theme",t);}catch(e){}})();
     </div>
     <p class="hint" id="directPlaylistHint">Bağlantının içinde <b>list=PL…</b> bölümü bulunmalıdır.</p>
   </div>
-<div class="card flat">
-    <p class="lead" style="font-size:14.5px;margin:0 0 10px;">Ders ve seviyeye göre YouTube hocaları. Bir isme dokunduğunda o hocanın videolarını YouTube'da açan düğmeler çıkar.</p>
-    <input type="search" id="thSearch" placeholder="Hoca ara" oninput="v31TeacherSearch()">
-    <div class="chips" id="thSubjChips" style="margin-top:12px;"></div>
-    <div class="chips" id="thLvlChips"></div>
-    <p class="hint" id="thInfo" style="margin:0;"></p>
-  </div>
-
-  <div id="thList"></div>
+<!-- Hocalar bölümü geçici olarak uygulama yüzeyinden kaldırıldı; veri ve kaynak dosyaları korunuyor. -->
 
   <h2>Konuya göre video ara</h2>
   <div class="card">
@@ -1282,30 +1274,7 @@ document.documentElement.setAttribute("data-theme",t);}catch(e){}})();
   <h2>İzleme geçmişi</h2>
   <div class="card" id="wsBox"></div>
 
-  <button class="foldhead" id="fh_hocaekle" onclick="toggleFold('hocaekle')">
-    <span class="ft">Kendi hocanı ekle</span>
-    <span class="fi"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
-  </button>
-  <div class="foldbody" id="fb_hocaekle">
-    <div class="card">
-      <label>Hoca ya da kanal adı</label>
-      <input type="text" id="thName" placeholder="Örn. Ali Hoca Matematik">
-      <div class="row2">
-        <div><label>Ders</label><select id="thSubject"></select></div>
-        <div><label>Seviye</label><select id="thLevel">
-          <option value="baslangic">Başlangıç</option>
-          <option value="orta">Orta</option>
-          <option value="ileri">İleri</option>
-          <option value="hepsi" selected>Her seviye</option>
-        </select></div>
-      </div>
-      <label>Not</label>
-      <input type="text" id="thNote" placeholder="Neden iyi? Tek cümle.">
-      <button class="btn green small" style="width:100%;margin-top:14px;" onclick="addTeacher()">Listeye ekle</button>
-    </div>
-  </div>
-
-  <p class="note">Bağlantısını bildiğin oynatma listeleri yukarıdaki anahtarsız alanla doğrudan izlenebilir. Hoca veya konu adına göre YouTube içinde otomatik arama yapmak için Ayarlar'daki <b>Uygulama içi video</b> bölümüne kendi API anahtarını girebilirsin; girmezsen arama düğmeleri YouTube'u açar.<br><br>Hoca listesi öneri niteliğindedir, eksiksiz değildir ve bir onay anlamına gelmez.</p>
+  <p class="note">Bağlantısını bildiğin oynatma listelerini yukarıdaki anahtarsız alanla doğrudan izleyebilir ve programına ekleyebilirsin. Konu adına göre YouTube içinde otomatik arama yapmak için Ayarlar’daki <b>Uygulama içi video</b> bölümünü kullanabilirsin.</p>
   </div>
 
   <div id="mrp_tak" style="display:none;">
