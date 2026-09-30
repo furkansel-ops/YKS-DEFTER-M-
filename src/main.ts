@@ -185,7 +185,6 @@ document.documentElement.dataset.v4ProgressAnalysisErrors=String(progressAnalysi
 document.documentElement.dataset.v4ExamAnalysisErrors=String(examAnalysis.validate().length);
 document.documentElement.dataset.v4PwaBuild=pwa.build;
 document.documentElement.dataset.paragraphProblemTracker=paragraphProblem.installed?"ready":"deferred";
-document.documentElement.dataset.teachersV2Runtime=teachersV2.version;
 window.dispatchEvent(new CustomEvent<BootstrapState>("yks:v4-bootstrap",{detail:bootstrap}));
 
 /* V2 aktifse medya ve kişisel kütüphane katmanları ayrı chunklar olarak paint sonrasında
