@@ -203,10 +203,12 @@ document.documentElement.dataset.v43RuntimeHost=String(v43Runtime.installed);
 const release=installReleaseRuntime();
 document.documentElement.dataset.v4ReleaseVersion=release.version;
 
-/* Statik legacy DOM ilk boyamada görünmesin. Tüm senkron başlangıç işleri ve
-   DOMContentLoaded kuyruğu tamamlandıktan sonraki ilk boyamada gerçek arayüzü aç. */
+/* Statik legacy DOM ilk boyamada görünmesin. Program dahil refined shell dinamik
+   olarak v4.3 runtime'ın sonunda kurulur; arayüzü ancak bu dönüşüm tamamlandıktan sonra aç.
+   index.html içindeki fail-safe, runtime beklenmedik biçimde takılırsa temel arayüzü açar. */
 const revealUi=()=>window.requestAnimationFrame(()=>{document.documentElement.dataset.uiReady="true";});
-if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",revealUi,{once:true});
-else revealUi();
+const revealAfterRefinedRuntime=()=>{void v43Runtime.ready.then(revealUi,revealUi);};
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",revealAfterRefinedRuntime,{once:true});
+else revealAfterRefinedRuntime();
 
 export {};
