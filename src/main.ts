@@ -203,4 +203,10 @@ document.documentElement.dataset.v43RuntimeHost=String(v43Runtime.installed);
 const release=installReleaseRuntime();
 document.documentElement.dataset.v4ReleaseVersion=release.version;
 
+/* Statik legacy DOM ilk boyamada görünmesin. Tüm senkron başlangıç işleri ve
+   DOMContentLoaded kuyruğu tamamlandıktan sonraki ilk boyamada gerçek arayüzü aç. */
+const revealUi=()=>window.requestAnimationFrame(()=>{document.documentElement.dataset.uiReady="true";});
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",revealUi,{once:true});
+else revealUi();
+
 export {};

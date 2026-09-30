@@ -24,6 +24,22 @@ if(t==="dark")t="night";
 if(["auto","paper","night","forest","ocean","lavender","sunset","graphite"].indexOf(t)<0)t="auto";
 document.documentElement.setAttribute("data-theme",t);}catch(e){}})();
 </script>
+<style id="yksBootGuard">
+  html:not([data-ui-ready]) body{overflow:hidden}
+  html:not([data-ui-ready]) body>*:not(#yksBootShell){visibility:hidden!important}
+  #yksBootShell{position:fixed;inset:0;z-index:2147483647;display:grid;place-items:center;background:#eff2f8;color:#172033;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+  #yksBootShell .yks-boot-card{display:flex;align-items:center;gap:13px;padding:16px 18px;border:1px solid rgba(23,32,51,.08);border-radius:20px;background:rgba(255,255,255,.86);box-shadow:0 18px 55px rgba(42,55,86,.10)}
+  #yksBootShell img{width:42px;height:42px;border-radius:12px}
+  #yksBootShell strong{display:block;font-size:16px;line-height:1.2;letter-spacing:-.015em}
+  #yksBootShell span{display:block;margin-top:4px;font-size:12px;color:#6b7487}
+  html:is([data-theme="night"],[data-theme="graphite"]) #yksBootShell{background:#10141d;color:#f4f6fb}
+  html:is([data-theme="night"],[data-theme="graphite"]) #yksBootShell .yks-boot-card{background:rgba(23,29,40,.94);border-color:rgba(255,255,255,.08)}
+  html:is([data-theme="night"],[data-theme="graphite"]) #yksBootShell span{color:#aab3c4}
+  html[data-ui-ready] #yksBootShell{display:none!important}
+</style>
+<script>
+window.setTimeout(function(){var r=document.documentElement;if(!r.dataset.uiReady)r.dataset.uiReady="fallback";},5000);
+</script>
 <link rel="stylesheet" href="./app.css" id="themes20260821">
 
 
@@ -66,6 +82,9 @@ document.documentElement.setAttribute("data-theme",t);}catch(e){}})();
 
   <link rel="stylesheet" href="./modules/study-intelligence-v5.css?v=4.1.0-r1">
 </head><body>
+<div id="yksBootShell" role="status" aria-live="polite" aria-label="YKS Defterim açılıyor">
+  <div class="yks-boot-card"><img src="./icon-192.png" alt=""><div><strong>YKS Defterim</strong><span>Hazırlanıyor…</span></div></div>
+</div>
 <div class="v311-offline" id="v311OfflineBanner" role="status" aria-live="polite" aria-hidden="true" hidden></div>
 <svg class="svgdefs" aria-hidden="true" focusable="false">
   <defs>
