@@ -89,24 +89,6 @@ document.documentElement.dataset.themeControl="settings-only";
 
 const lt=document.documentElement.dataset.teacherUi!=="v2";
 
-function loadTeacherVideosRuntime():void{
-  if(document.querySelector('script[data-yks-teacher-videos="true"]'))return;
-  const script=document.createElement("script");
-  script.src=new URL("./teacher-videos.js?v=4.4.0-r13",document.baseURI).href;
-  script.async=true;
-  script.dataset.yksTeacherVideos="true";
-  document.documentElement.dataset.teacherVideosRuntime="loading";
-  script.addEventListener("load",()=>{
-    document.documentElement.dataset.teacherVideosRuntime=
-      document.documentElement.dataset.teacherVideos==="ready"?"ready":"loaded";
-  },{once:true});
-  script.addEventListener("error",()=>{
-    document.documentElement.dataset.teacherVideosRuntime="deferred";
-    console.error("Hoca videoları çalışma zamanı yüklenemedi");
-  },{once:true});
-  document.head.appendChild(script);
-}
-
 function loadTeachersV2Media():void{
   if(document.documentElement.dataset.teachersV2Media==="ready"||document.documentElement.dataset.teachersV2Media==="loading")return;
   document.documentElement.dataset.teachersV2Media="loading";
@@ -190,8 +172,8 @@ window.dispatchEvent(new CustomEvent<BootstrapState>("yks:v4-bootstrap",{detail:
 /* V2 aktifse medya ve kişisel kütüphane katmanları ayrı chunklar olarak paint sonrasında
    yüklenir; ana başlangıç paketinin performans bütçesi korunur. V2 başlatılamazsa eski
    katman fail-open yedek olur. */
-if(lt||!teachersV2.installed)loadTeacherVideosRuntime();
-else window.setTimeout(loadTeachersV2Media,0);
+if(teachersV2.installed)window.setTimeout(loadTeachersV2Media,0);
+else document.documentElement.dataset.teacherVideosRuntime="legacy-core";
 
 const playStoreShell=installOptional(
   "play-store-shell",
