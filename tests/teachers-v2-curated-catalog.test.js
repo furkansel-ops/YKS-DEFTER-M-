@@ -140,12 +140,16 @@ test("Hocalar v2 aktifken eski öğretmen ve YouTube blokları gizlenir",()=>{
 });
 
 
-test("Hocalar ilk sürüm legacy kart ve doğrudan video akışını kullanır",()=>{
+test("Hocalar varsayılan olarak orijinal app.js öğretmen ve playlist motorunu kullanır",()=>{
   const main=fs.readFileSync(path.join(root,"src/main.ts"),"utf8");
-  const legacy=fs.readFileSync(path.join(root,"public/teacher-videos.js"),"utf8");
+  const legacyApp=fs.readFileSync(path.join(root,"app.js"),"utf8");
   assert.match(main,/const lt=document\.documentElement\.dataset\.teacherUi!=="v2"/);
-  assert.match(main,/lt\|\|!teachersV2\.installed\)loadTeacherVideosRuntime\(\)/);
-  assert.match(legacy,/\.teacher-video-grid/);
-  assert.match(legacy,/\.thcard\.open/);
-  assert.match(legacy,/slice\(0,6\)/);
+  assert.match(main,/teacherVideosRuntime="legacy-core"/);
+  assert.doesNotMatch(main,/loadTeacherVideosRuntime\(\)/);
+  assert.match(legacyApp,/function ytTeacher\(name,kind,subject\)/);
+  assert.match(legacyApp,/TYT konu/);
+  assert.match(legacyApp,/AYT konu/);
+  assert.match(legacyApp,/Deneme \/ branş/);
+  assert.match(legacyApp,/function loadPlaylists\(\)/);
+  assert.match(legacyApp,/Oynatma listeleri/);
 });
