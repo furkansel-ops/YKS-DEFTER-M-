@@ -92,3 +92,27 @@ test("klasik çekirdek zinciri HTML yazmadan kataloğu ve kararlılık servisini
   assert.equal(typeof window.YKSStability.restoreRuntime,"function");
   assert.ok(events.some(([event])=>event==="DOMContentLoaded"));
 });
+
+
+test("Hocalar ana ekranı kompakt kontrol alanı ve kaynak odaklı kart düzeni kullanır",()=>{
+  const source=ui();
+  const style=fs.readFileSync(path.join(root,"src/ui/teachers-v2.css"),"utf8");
+  assert.match(source,/Kaynak merkezi/);
+  assert.match(source,/teachers-v2-controls/);
+  assert.match(source,/teachers-v2-filter-block/);
+  assert.match(source,/Filtreleri temizle/);
+  assert.match(source,/Kaynakları aç →/);
+  assert.match(source,/teachers-v2-card-foot/);
+  assert.match(source,/teachers-v2-media-host/);
+  assert.match(source,/YouTube'da hızlı ara/);
+  assert.match(style,/teachers-v2-grid\{display:grid;grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+  assert.match(style,/@media\(max-width:760px\)[\s\S]*teachers-v2-grid\{grid-template-columns:1fr\}/);
+  assert.match(style,/teachers-v2-controls/);
+});
+
+test("Hocalar favori filtresi erişilebilir durum ve tek hamlede sıfırlama desteğini korur",()=>{
+  const source=ui();
+  assert.match(source,/aria-pressed="false">★ Favorilerim/);
+  assert.match(source,/favToggle\?\.setAttribute\("aria-pressed",String\(state\.favOnly\)\)/);
+  assert.match(source,/if\(action==="reset"\)\{state\.query="";state\.subject="";state\.level="";state\.favOnly=false/);
+});
