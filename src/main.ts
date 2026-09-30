@@ -87,7 +87,7 @@ document.documentElement.dataset.v4OptionalErrors="0";
 /* Tema seçimi yalnız Ayarlar > Görünüm bölümündedir; kayıtlı tema açılışta korunur. */
 document.documentElement.dataset.themeControl="settings-only";
 
-const legacyTeachers=document.documentElement.dataset.teacherUi!=="v2";
+const lt=document.documentElement.dataset.teacherUi!=="v2";
 
 function loadTeacherVideosRuntime():void{
   if(document.querySelector('script[data-yks-teacher-videos="true"]'))return;
@@ -165,8 +165,8 @@ const paragraphProblem=installOptional(
 );
 const screens=installScreenRuntime();
 const ui=installLegacyUiBridge(screens);
-const teachersV2=legacyTeachers
-  ? {installed:false,version:"legacy",refresh:()=>{},destroy:()=>{}}
+const teachersV2=lt
+  ? {installed:false,version:"old",refresh:()=>{},destroy:()=>{}}
   : installOptional(
       "teachers-v2",
       ()=>installTeachersV2(),
@@ -191,7 +191,7 @@ window.dispatchEvent(new CustomEvent<BootstrapState>("yks:v4-bootstrap",{detail:
 /* V2 aktifse medya ve kişisel kütüphane katmanları ayrı chunklar olarak paint sonrasında
    yüklenir; ana başlangıç paketinin performans bütçesi korunur. V2 başlatılamazsa eski
    katman fail-open yedek olur. */
-if(legacyTeachers||!teachersV2.installed)loadTeacherVideosRuntime();
+if(lt||!teachersV2.installed)loadTeacherVideosRuntime();
 else window.setTimeout(loadTeachersV2Media,0);
 
 const playStoreShell=installOptional(
