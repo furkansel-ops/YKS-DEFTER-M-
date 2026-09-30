@@ -7,7 +7,7 @@ const {stripTypeScriptTypes}=require("node:module");
 const root=path.resolve(__dirname,"..");
 const source=fs.readFileSync(path.join(root,"src/ui/refined-program.ts"),"utf8");
 const runtime=stripTypeScriptTypes(source.replace(/^import "\.\/refined-program\.css";\r?\n/,""),{mode:"strip"}).replace(/^export /gm,"");
-const api=vm.runInNewContext(runtime+"\n({refinedProgramTasks,refinedProgramWeekOffset,refinedProgramQuickText,refinedProgramResourceUrl,createRefinedProgramController})",{Date,URL});
+const api=vm.runInNewContext(runtime+"\n({refinedProgramTasks,refinedProgramWeekOffset,refinedProgramQuickText,refinedProgramResourceUrl,refinedProgramSubjectLabel,createRefinedProgramController})",{Date,URL});
 const plain=value=>JSON.parse(JSON.stringify(value));
 const rows=()=>[Array(7).fill(""),Array(7).fill("")];
 function week(){return {r:rows(),s:rows(),dn:{},done:Array(7).fill(false),mv:{}};}
@@ -142,4 +142,17 @@ test("new planner keeps an optional video URL field in the add-work flow",()=>{
   assert.match(source,/Video URL · isteğe bağlı/);
   assert.match(source,/refinedProgramVideoUrl/);
   assert.match(source,/\$\{baseText\} — \$\{resourceUrl\}/);
+});
+
+
+test("weekly program defaults to calendar view and groups tasks by subject label",()=>{
+  const h=harness();
+  assert.equal(h.controller.snapshot().view,"week");
+  assert.equal(api.refinedProgramSubjectLabel("TYT Matematik · Problemler · 30 soru","Çalışma"),"TYT Matematik");
+  assert.equal(api.refinedProgramSubjectLabel("AYT Kimya · Organik Kimya — https://youtu.be/test","Çalışma"),"AYT Kimya");
+  assert.equal(api.refinedProgramSubjectLabel("Deneme analizi · yanlışların tekrarı","Çalışma"),"Deneme analizi");
+  assert.equal(api.refinedProgramSubjectLabel("X".repeat(60),"Rutin"),"Rutin");
+  assert.match(source,/rb-program-calendar-row/);
+  assert.match(source,/rb-program-subject-row/);
+  assert.match(source,/Dersler satırlarda, günler sütunlarda/);
 });
