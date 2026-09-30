@@ -179,6 +179,34 @@
     const sub=$("todayHubReviewSub");if(sub)sub.textContent=n+" Hata Defteri tekrarı dahil";
     const remaining=$("todayRemaining");if(remaining){const html=remaining.innerHTML||"";if(!html.includes("hata tekrarı")){if(html.includes("Bugünkü kayıtlı hedeflerin tamamlandı"))remaining.innerHTML="Bugünü kapatmak için kalan: <b>"+n+" hata tekrarı</b>";else remaining.insertAdjacentHTML("beforeend"," · <b>"+n+" hata tekrarı</b>");}}
   }
+  function wrongPhotoFor(id){try{return (Array.isArray(S?.qbank)?S.qbank:[]).find(q=>Number(q&&q.wrongId)===Number(id))||null;}catch(e){return null;}}
+  function wrongPhotoPick(id){
+    const wrong=(Array.isArray(S?.wrongLog)?S.wrongLog:[]).find(x=>Number(x&&x.id)===Number(id));if(!wrong)return;
+    const inp=document.createElement("input");inp.type="file";inp.accept="image/*";
+    inp.onchange=()=>{const file=inp.files&&inp.files[0];if(!file)return;toastSafe("Soru fotoğrafı işleniyor…");
+      const work=typeof compressImage==="function"?compressImage(file):Promise.reject(new Error("Fotoğraf sistemi hazır değil"));
+      work.then(img=>{let q=wrongPhotoFor(id);if(q){q.img=img;}else{if(!Array.isArray(S.qbank))S.qbank=[];S.qbank.push({id:Date.now(),wrongId:Number(id),date:wrong.date||nowKey(),subject:wrong.subject||"",topic:wrong.topic||"",note:"Hata Defteri sorusu",img,done:false});}persist(0);enhanceWrongRows();try{if(typeof renderQbank==="function")renderQbank();}catch(e){}toastSafe("Soru fotoğrafı eklendi ✓");}).catch(e=>toastSafe(String(e&&e.message||e)));
+    };inp.click();
+  }
+  function wrongPhotoOpen(id){const q=wrongPhotoFor(id);if(!q){wrongPhotoPick(id);return;}try{if(typeof qaOpen==="function")qaOpen(q.id);}catch(e){}}
+  function enhanceWrongRows(){
+    const box=$("wtBox");if(!box||!Array.isArray(S?.wrongLog))return;
+    const rows=[...box.querySelectorAll(".dayrow")];const recent=S.wrongLog.slice(-12).reverse();
+    rows.slice(-recent.length).forEach((row,i)=>{
+      const wrong=recent[i];if(!wrong||row.querySelector(".ej-wrong-photo"))return;
+      const actions=row.querySelector(".v");if(!actions)return;
+      const del=actions.querySelector(".del");const q=wrongPhotoFor(wrong.id);
+      const b=document.createElement("button");b.type="button";b.className="ej-wrong-photo";b.title=q?"Soruyu aç":"Yanlış sorunun fotoğrafını ekle";
+      b.innerHTML=q?'<img src="'+q.img+'" alt="Soru">':'📷';b.onclick=()=>q?wrongPhotoOpen(wrong.id):wrongPhotoPick(wrong.id);
+      actions.insertBefore(b,del||null);
+    });
+  }
+  function patchWrongRows(){
+    const original=window.renderWrongTopics;if(typeof original!=="function"||original.__wrongPhotoPatch)return;
+    const fn=function(){const out=original.apply(this,arguments);setTimeout(enhanceWrongRows,0);return out;};fn.__wrongPhotoPatch=true;fn.__original=original;window.renderWrongTopics=fn;
+    setTimeout(enhanceWrongRows,0);
+  }
+
   function renderIntegrations(){
     try{if(typeof renderReviewQueue==="function")renderReviewQueue();else appendManualTopicReviews();}catch(e){appendManualTopicReviews();}
     try{if(typeof renderV25Today==="function")renderV25Today();else{appendManualTodayReviews();adjustTodaySummary();}}catch(e){appendManualTodayReviews();adjustTodaySummary();}
@@ -215,12 +243,12 @@
   }
   function injectStyle(){
     if($("errorJournalV2Style"))return;
-    const s=document.createElement("style");s.id="errorJournalV2Style";s.textContent='.error-journal-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}.error-journal-kpi-wide{grid-column:1/-1;text-align:left}.error-journal-kpi-wide b{font-size:14px}.error-journal-repeat{display:inline-flex;margin-left:6px;padding:2px 6px;border-radius:999px;background:var(--fill);color:var(--label-2);font-size:10px;font-weight:800}.error-journal-item.is-highlighted{outline:2px solid var(--accent);outline-offset:2px}.error-journal-meta .ej-topic-link{margin-left:auto;color:var(--accent)}.error-journal-meta .ej-topic-link+button{margin-left:0}.error-journal-review-group{margin-top:12px;padding-top:8px;border-top:1px solid var(--glass-line)}@media(max-width:760px){.error-journal-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}';document.head.appendChild(s);
+    const s=document.createElement("style");s.id="errorJournalV2Style";s.textContent='.error-journal-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}.error-journal-kpi-wide{grid-column:1/-1;text-align:left}.error-journal-kpi-wide b{font-size:14px}.error-journal-repeat{display:inline-flex;margin-left:6px;padding:2px 6px;border-radius:999px;background:var(--fill);color:var(--label-2);font-size:10px;font-weight:800}.ej-wrong-photo{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;margin:0 6px;border:1px solid var(--glass-line);border-radius:9px;background:var(--fill);color:var(--label);cursor:pointer;overflow:hidden;vertical-align:middle}.ej-wrong-photo img{width:100%;height:100%;object-fit:cover}.error-journal-item.is-highlighted{outline:2px solid var(--accent);outline-offset:2px}.error-journal-meta .ej-topic-link{margin-left:auto;color:var(--accent)}.error-journal-meta .ej-topic-link+button{margin-left:0}.error-journal-review-group{margin-top:12px;padding-top:8px;border-top:1px solid var(--glass-line)}@media(max-width:760px){.error-journal-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}';document.head.appendChild(s);
   }
   function start(){
-    injectStyle();normalizeLegacy();patchDenemeAnalysis();patchRenders();window.errorJournalRender();setTimeout(()=>{patchDenemeAnalysis();patchRenders();renderAllJournal();},160);
+    injectStyle();normalizeLegacy();patchDenemeAnalysis();patchRenders();patchWrongRows();window.errorJournalRender();setTimeout(()=>{patchDenemeAnalysis();patchRenders();patchWrongRows();enhanceWrongRows();renderAllJournal();},160);
   }
   document.addEventListener("yks:navigation-after",e=>{const screen=e&&e.detail&&e.detail.screen;if(screen==="deneme")window.errorJournalRender();if(screen==="topics")setTimeout(appendManualTopicReviews,0);if(screen==="home")setTimeout(()=>{appendManualTodayReviews();adjustTodaySummary();},0);});
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",start,{once:true});else start();
-  window.YKSErrorJournal={version:"2.0.0",add:addEntry,openReviews,render:renderAllJournal};
+  window.YKSErrorJournal={version:"2.1.0",add:addEntry,openReviews,render:renderAllJournal};
 })();
