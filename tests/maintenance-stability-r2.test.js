@@ -39,7 +39,7 @@ test("4.4.0-r9 release kimliği ve service worker güncel kabuk önbelleğini ta
   assert.equal(json.build,"4.4.0-r9");
   assert.match(sw,/APP_BUILD="4\.4\.0-r9"/);
   assert.match(sw,/CACHE="yks-core-v4\.4\.0-r9"/);
-  assert.match(sw,/cache refresh epoch: 2026-09-30-teachers-ui-r8/);
+  assert.match(sw,/cache refresh epoch: 2026-09-30-teachers-clean-r9/);
   assert.match(sw,/cacheLatestShell/);
   assert.match(sw,/async function refreshOpenClientsForBuild\(\)/);
   assert.match(sw,/client\.navigate\(url\.toString\(\)\)/);
