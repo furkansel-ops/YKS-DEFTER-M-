@@ -2392,6 +2392,9 @@ body::before{animation-duration:28s;opacity:.84;}
 .plan-sheet-actions button{min-height:44px;border:1px solid var(--line);background:var(--fill);color:var(--ink);border-radius:13px;font:650 13px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;cursor:pointer;padding:10px}
 .plan-sheet-actions button.danger{color:var(--danger)}
 .plan-sheet-actions button.primary{color:var(--accent)}
+.plan-sheet-actions .plan-sheet-resource{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:12px;text-align:left;padding:12px 14px;background:var(--accent-soft);border-color:color-mix(in srgb,var(--accent) 24%,var(--line))}
+.plan-sheet-resource span{font-weight:750}
+.plan-sheet-resource small{max-width:48%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--label-2);font-size:11px;font-weight:600}
 .plan-sheet-actions button:active{transform:scale(.98)}
 .plan-sheet-close{width:100%;margin-top:8px;min-height:42px;border:0;border-radius:13px;background:transparent;color:var(--label-2);font-weight:650;cursor:pointer}
 .gc.plan-pressing{outline:2px solid var(--accent);outline-offset:-2px}

@@ -158,10 +158,21 @@ test("weekly program defaults to calendar view and groups tasks by subject label
 });
 
 
-test("weekly calendar exposes direct resource actions for linked studies",()=>{
-  assert.match(source,/rb-program-calendar-task-shell/);
-  assert.match(source,/rb-program-calendar-resource/);
-  assert.match(source,/resource\.listId\?"Listeyi izle":resource\.videoId\?"Videoyu izle":"Linki aç"/);
-  assert.match(source,/call\("cellOpenLink",task\.text\)/);
-  assert.match(source,/bağlantı mevcut/);
+
+
+test("linked studies keep the weekly calendar clean and use the shared detail sheet",()=>{
+  assert.doesNotMatch(source,/rb-program-calendar-resource/);
+  assert.doesNotMatch(source,/rb-program-calendar-task-shell/);
+  assert.doesNotMatch(source,/rb-program-resource"/);
+  assert.match(source,/video, bağlantı ve düzenleme seçenekleri açılan detay ekranında/);
+});
+
+
+test("program detail sheet owns linked resource playback actions",()=>{
+  const legacy=fs.readFileSync(path.join(root,"app.js"),"utf8");
+  assert.match(legacy,/function planSheetResourceHtml\(ctx\)/);
+  assert.match(legacy,/function planOpenSelectedResource\(\)/);
+  assert.match(legacy,/planSheetResourceHtml\(c\)/);
+  assert.match(legacy,/link\.listId\?"▶ Oynatma listesini aç":link\.videoId\?"▶ Videoyu izle":"↗ Bağlantıyı aç"/);
+  assert.match(legacy,/return cellOpenLink\(c\.txt\)/);
 });
