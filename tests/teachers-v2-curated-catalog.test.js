@@ -116,3 +116,16 @@ test("Hocalar favori filtresi erişilebilir durum ve tek hamlede sıfırlama des
   assert.match(source,/favToggle\?\.setAttribute\("aria-pressed",String\(state\.favOnly\)\)/);
   assert.match(source,/if\(action==="reset"\)\{state\.query="";state\.subject="";state\.level="";state\.favOnly=false/);
 });
+
+
+test("Hocalar v2 aktifken eski öğretmen ve YouTube blokları gizlenir",()=>{
+  const source=ui();
+  assert.match(source,/function hideLegacyTeacherSurface/);
+  assert.match(source,/directPlaylistUrl/);
+  assert.match(source,/Konuya göre video ara/);
+  assert.match(source,/Şunu izlemen iyi olur/);
+  assert.match(source,/İzlediklerim/);
+  assert.match(source,/İzleme geçmişi/);
+  assert.match(source,/data-teachers-v2-legacy-hidden/);
+  assert.match(source,/restoreLegacyTeacherSurface/);
+});
