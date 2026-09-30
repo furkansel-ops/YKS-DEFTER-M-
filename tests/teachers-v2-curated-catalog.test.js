@@ -138,3 +138,15 @@ test("Hocalar v2 aktifken eski öğretmen ve YouTube blokları gizlenir",()=>{
   assert.match(source,/watchList/);
   assert.match(source,/wsBox/);
 });
+
+
+test("Hocalar ilk sürüm legacy kart ve doğrudan video akışını kullanır",()=>{
+  const main=fs.readFileSync(path.join(root,"src/main.ts"),"utf8");
+  const legacy=fs.readFileSync(path.join(root,"public/teacher-videos.js"),"utf8");
+  assert.match(main,/const USE_LEGACY_TEACHERS=true/);
+  assert.match(main,/USE_LEGACY_TEACHERS\)loadTeacherVideosRuntime\(\)/);
+  assert.match(main,/teachersV2Runtime=USE_LEGACY_TEACHERS\?"legacy-v1"/);
+  assert.match(legacy,/\.teacher-video-grid/);
+  assert.match(legacy,/\.thcard\.open/);
+  assert.match(legacy,/slice\(0,6\)/);
+});
