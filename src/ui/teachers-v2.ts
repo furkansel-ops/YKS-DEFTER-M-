@@ -148,7 +148,59 @@ function cardHtml(t:Teacher,favs:Set<string>):string{
     <div class="teachers-v2-card-foot"><span>${content.map(x=>esc(TYPE_LABELS[x]||x)).join(" · ")}${t.own?" · Senin hocan":""}</span><b>Kaynakları aç →</b></div>
   </article>`;
 }
-function ensureRoot():HTMLElement|null{const list=document.getElementById("thList") as HTMLElement|null;if(!list)return null;legacyList=list;list.hidden=true;list.setAttribute("aria-hidden","true");["thSubjChips","thLvlChips","thInfo"].forEach(id=>{const node=document.getElementById(id) as HTMLElement|null;if(node)node.style.display="none";});let root=document.getElementById(ROOT_ID) as HTMLElement|null;if(!root){root=document.createElement("section");root.id=ROOT_ID;root.className="teachers-v2-root";root.setAttribute("aria-label","Hocalar ve videolar");list.parentNode?.insertBefore(root,list);buildShell(root);}return root;}
+function hideLegacyTeacherSurface(list:HTMLElement):HTMLElement|null{
+  const host=list.parentElement;if(!host)return null;
+  const hide=(node:Element|null)=>{if(node instanceof HTMLElement){node.dataset.teachersV2LegacyHidden="true";node.style.display="none";}};
+  const hideCardFor=(id:string)=>{const node=document.getElementById(id);if(!node)return;hide(node.closest(".card"));};
+  let mountBefore:HTMLElement|null=list;
+  let cursor=list.previousElementSibling as HTMLElement|null;
+  while(cursor){
+    const text=(cursor.textContent||"").replace(/\s+/g," ").trim();
+    if(cursor.tagName==="H2"&&text==="Videolar ve hocalar"){hide(cursor);mountBefore=cursor;break;}
+    cursor=cursor.previousElementSibling as HTMLElement|null;
+  }
+  hideCardFor("directPlaylistUrl");
+  hideCardFor("thSearch");
+  hide(document.getElementById("thSubjChips"));hide(document.getElementById("thLvlChips"));hide(document.getElementById("thInfo"));
+  hide(list);
+  const legacyPairs=[
+    ["tvSubject","Konuya göre video ara"],
+    ["tvSuggest","Şunu izlemen iyi olur"],
+    ["watchList","İzlediklerim"],
+    ["wsBox","İzleme geçmişi"]
+  ] as const;
+  for(const [id,title] of legacyPairs){
+    const node=document.getElementById(id);if(!node)continue;
+    const block=node.closest(".card")||node;hide(block);
+    let prev=(block as HTMLElement).previousElementSibling as HTMLElement|null;
+    while(prev&&prev!==list){
+      const text=(prev.textContent||"").replace(/\s+/g," ").trim();
+      if(prev.tagName==="H2"&&text.startsWith(title)){hide(prev);break;}
+      if(prev.tagName==="H2")break;
+      prev=prev.previousElementSibling as HTMLElement|null;
+    }
+  }
+  return mountBefore;
+}
+function restoreLegacyTeacherSurface():void{
+  document.querySelectorAll<HTMLElement>('[data-teachers-v2-legacy-hidden="true"]').forEach(node=>{
+    node.style.removeProperty("display");delete node.dataset.teachersV2LegacyHidden;
+  });
+}
+function ensureRoot():HTMLElement|null{
+  const list=document.getElementById("thList") as HTMLElement|null;if(!list)return null;
+  legacyList=list;
+  const mountBefore=hideLegacyTeacherSurface(list);
+  list.hidden=true;list.setAttribute("aria-hidden","true");
+  ["thSubjChips","thLvlChips","thInfo"].forEach(id=>{const node=document.getElementById(id) as HTMLElement|null;if(node)node.style.display="none";});
+  let root=document.getElementById(ROOT_ID) as HTMLElement|null;
+  if(!root){
+    root=document.createElement("section");root.id=ROOT_ID;root.className="teachers-v2-root";root.setAttribute("aria-label","Hocalar ve videolar");
+    (mountBefore?.parentNode||list.parentNode)?.insertBefore(root,mountBefore||list);
+    buildShell(root);
+  }
+  return root;
+}
 function buildShell(root:HTMLElement):void{
   root.innerHTML=`<div class="teachers-v2-shell">
     <section class="teachers-v2-hero">
@@ -223,4 +275,4 @@ function openDetail(name:string):void{
 function bindLegacyObserver():void{if(!legacyList)return;listObserver?.disconnect();listObserver=new MutationObserver(()=>window.setTimeout(renderAll,0));listObserver.observe(legacyList,{childList:true,subtree:true});}
 function tick():void{const root=ensureRoot();if(root&&!mounted){mounted=true;bindLegacyObserver();renderAll();}if(root){const sig=syncSignature();if(sig!==lastSyncSignature)renderAll();else renderSyncStatus();}}
 function installRuntime():void{readPrefs();installModalFocus();window.addEventListener("online",renderSyncStatus);window.addEventListener("offline",renderSyncStatus);window.addEventListener("storage",event=>{if(event.key==="yks")renderAll();});tick();refreshTimer=window.setInterval(tick,1000);document.documentElement.dataset.teachersV2="ready";}
-export function installTeachersV2():{installed:boolean;version:string;refresh:()=>void;destroy:()=>void}{if(document.documentElement.dataset.teachersV2==="ready")return {installed:true,version:"2.0.0-alpha1",refresh:renderAll,destroy:()=>{}};if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",installRuntime,{once:true});else installRuntime();return {installed:true,version:"2.0.0-alpha1",refresh:renderAll,destroy:()=>{if(refreshTimer)window.clearInterval(refreshTimer);listObserver?.disconnect();modalObserver?.disconnect();document.removeEventListener("click",rememberModalTrigger,true);document.removeEventListener("keydown",handleModalKeys,true);closeDetail();document.getElementById(ROOT_ID)?.remove();if(legacyList){legacyList.hidden=false;legacyList.removeAttribute("aria-hidden");}delete document.documentElement.dataset.teachersV2;}};}
+export function installTeachersV2():{installed:boolean;version:string;refresh:()=>void;destroy:()=>void}{if(document.documentElement.dataset.teachersV2==="ready")return {installed:true,version:"2.0.0-alpha1",refresh:renderAll,destroy:()=>{}};if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",installRuntime,{once:true});else installRuntime();return {installed:true,version:"2.0.0-alpha1",refresh:renderAll,destroy:()=>{if(refreshTimer)window.clearInterval(refreshTimer);listObserver?.disconnect();modalObserver?.disconnect();document.removeEventListener("click",rememberModalTrigger,true);document.removeEventListener("keydown",handleModalKeys,true);closeDetail();document.getElementById(ROOT_ID)?.remove();if(legacyList){legacyList.hidden=false;legacyList.removeAttribute("aria-hidden");}restoreLegacyTeacherSurface();delete document.documentElement.dataset.teachersV2;}};}
