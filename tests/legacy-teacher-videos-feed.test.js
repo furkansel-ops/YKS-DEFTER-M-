@@ -12,8 +12,11 @@ test("legacy Hocalar kartları önce korunmuş canlı medya feedini kullanır",(
   assert.match(s,/async function feedVideos\(teacher,force\)/);
   assert.match(s,/row\.archiveIndex/);
   assert.match(s,/var items=await feedVideos\(teacher,!!force\)/);
-  assert.ok(s.indexOf("feedVideos(teacher,!!force)")<s.indexOf("nativeVideos(teacher,subject,query)"));
-  assert.ok(s.indexOf("nativeVideos(teacher,subject,query)")<s.indexOf("fetchViaPiped(query)"));
+  const start=s.indexOf("async function fetchTeacherVideos");
+  const end=s.indexOf("\n  function closePlayer",start);
+  const block=s.slice(start,end);
+  assert.ok(block.indexOf("feedVideos(teacher,!!force)")<block.indexOf("nativeVideos(teacher,subject,query)"));
+  assert.ok(block.indexOf("nativeVideos(teacher,subject,query)")<block.indexOf("fetchViaPiped(query)"));
 });
 
 test("legacy Hocalar feed videosunu eski kart biçimine dönüştürür",()=>{
