@@ -166,3 +166,13 @@ test("linked studies keep the weekly calendar clean and use the shared detail sh
   assert.doesNotMatch(source,/rb-program-resource"/);
   assert.match(source,/video, bağlantı ve düzenleme seçenekleri açılan detay ekranında/);
 });
+
+
+test("program detail sheet owns linked resource playback actions",()=>{
+  const legacy=fs.readFileSync(path.join(root,"app.js"),"utf8");
+  assert.match(legacy,/function planSheetResourceHtml\(ctx\)/);
+  assert.match(legacy,/function planOpenSelectedResource\(\)/);
+  assert.match(legacy,/planSheetResourceHtml\(c\)/);
+  assert.match(legacy,/link\.listId\?"▶ Oynatma listesini aç":link\.videoId\?"▶ Videoyu izle":"↗ Bağlantıyı aç"/);
+  assert.match(legacy,/return cellOpenLink\(c\.txt\)/);
+});
