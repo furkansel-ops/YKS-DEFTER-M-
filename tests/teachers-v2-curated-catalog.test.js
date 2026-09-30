@@ -61,7 +61,7 @@ test("küratörlü katalog core-utils ve stability arasında açık senkron scri
   const core=fs.readFileSync(path.join(root,"modules/core-utils.js"),"utf8");
   const sw=fs.readFileSync(path.join(root,"sw.js"),"utf8");
   const scripts=[...index.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)].map(match=>({attributes:match[1],body:match[2],src:match[1].match(/\bsrc="([^"]+)"/)?.[1]}));
-  const urls=["./app.js?v=4.1.0-r20","./modules/core-utils.js?v=4.1.0-r27","./modules/teachers-curated-v3.js?v=4.4.0-r3","./modules/stability.js?v=4.1.0-r28"];
+  const urls=["./app.js?v=4.1.0-r21","./modules/core-utils.js?v=4.1.0-r27","./modules/teachers-curated-v3.js?v=4.4.0-r3","./modules/stability.js?v=4.1.0-r28"];
   const positions=urls.map(url=>scripts.findIndex(script=>script.src===url));
   assert.ok(positions.every(position=>position>=0));
   assert.ok(positions[0]<positions[1]);
