@@ -193,7 +193,7 @@
     const box=$("wtBox");if(!box||!Array.isArray(S?.wrongLog))return;
     const rows=[...box.querySelectorAll(".dayrow")];const recent=S.wrongLog.slice(-12).reverse();
     rows.slice(-recent.length).forEach((row,i)=>{
-      const wrong=recent[i];if(!wrong||row.querySelector(".ej-wrong-photo"))return;
+      const wrong=recent[i];if(!wrong||row.querySelector(".wrong-photo-add,.wrong-photo-thumb,.ej-wrong-photo"))return;
       const actions=row.querySelector(".v");if(!actions)return;
       const del=actions.querySelector(".del");const q=wrongPhotoFor(wrong.id);
       const b=document.createElement("button");b.type="button";b.className="ej-wrong-photo";b.title=q?"Soruyu aç":"Yanlış sorunun fotoğrafını ekle";
