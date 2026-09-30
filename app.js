@@ -2138,30 +2138,19 @@ function delWrong(id){
   if(bk)pushUndo("Yanlış kaydı silindi",()=>{ S.wrongLog.push(bk); });
   renderWrongTopics();
 }
-function wrongPhotoFor(id){ return (S.qbank||[]).find(q=>Number(q.wrongId)===Number(id)); }
+function wrongPhotoFor(id){ const w=(S.wrongLog||[]).find(x=>Number(x.id)===Number(id)); if(w&&w.questionImg)return {id:'wrong-'+id,img:w.questionImg,subject:w.subject,topic:w.topic,date:w.date,wrongDirect:true}; return (S.qbank||[]).find(q=>Number(q.wrongId)===Number(id)); }
 function wrongPhotoPick(id){
-  const wrong=S.wrongLog.find(x=>Number(x.id)===Number(id)); if(!wrong)return;
+  const wrong=(S.wrongLog||[]).find(x=>Number(x.id)===Number(id)); if(!wrong)return;
   if(storageBytes()>QA_BLOCK){ toast("Depolama dolu — önce eski soru fotoğraflarını sil"); return; }
   const inp=document.createElement("input"); inp.type="file"; inp.accept="image/*";
-  inp.onchange=()=>{
-    const file=inp.files&&inp.files[0]; if(!file)return;
-    toast("Soru fotoğrafı işleniyor…");
-    compressImage(file).then(dataUrl=>{
-      const est=storageBytes()+dataUrl.length;if(est>QA_BLOCK){toast("Depolama sınırına gelindi — eski soruları sil");return;}
-      let q=wrongPhotoFor(id);
-      if(q){q.img=dataUrl;q.subject=wrong.subject;q.topic=wrong.topic;q.date=wrong.date||todayKey();}
-      else S.qbank.push({id:Date.now(),wrongId:Number(id),date:wrong.date||todayKey(),subject:wrong.subject,topic:wrong.topic,note:"Hata Defteri sorusu",img:dataUrl,done:false});
-      save();renderWrongTopics();renderQbank();toast("Soru fotoğrafı eklendi ✓");
+  inp.onchange=()=>{ const file=inp.files&&inp.files[0]; if(!file)return; toast("Soru fotoğrafı işleniyor…");
+    compressImage(file).then(dataUrl=>{ const est=storageBytes()+dataUrl.length;if(est>QA_BLOCK){toast("Depolama sınırına gelindi — eski soruları sil");return;}
+      wrong.questionImg=dataUrl; save(); renderWrongTopics(); toast("Fotoğraf bu yanlışın yanına eklendi ✓");
     }).catch(e=>toast(String(e.message||e)));
-  };
-  inp.click();
+  }; inp.click();
 }
-function wrongPhotoOpen(id){ const q=wrongPhotoFor(id);if(!q){wrongPhotoPick(id);return;}qaOpen(q.id); }
-function wrongPhotoRemove(id){
-  const q=wrongPhotoFor(id);if(!q)return;
-  if(!confirm("Bu yanlışın soru fotoğrafı silinsin mi?"))return;
-  S.qbank=S.qbank.filter(x=>x.id!==q.id);save();renderWrongTopics();renderQbank();toast("Soru fotoğrafı silindi");
-}
+function wrongPhotoOpen(id){ const q=wrongPhotoFor(id);if(!q){wrongPhotoPick(id);return;} if(q.wrongDirect){qaViewList=[{id:q.id,img:q.img,subject:q.subject,topic:q.topic,date:q.date||todayKey(),note:"Hata Defteri sorusu",done:false}];qaViewIdx=0;qaShowViewer(0);return;} qaOpen(q.id); }
+function wrongPhotoRemove(id){ const w=(S.wrongLog||[]).find(x=>Number(x.id)===Number(id));if(!w||!w.questionImg)return;if(!confirm("Bu yanlışın soru fotoğrafı silinsin mi?"))return;delete w.questionImg;save();renderWrongTopics();toast("Soru fotoğrafı silindi");}
 function renderWrongTopics(){
   if(typeof renderWrongKinds==="function")setTimeout(renderWrongKinds,0);
   const sel=el("wtSubject");
