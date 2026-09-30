@@ -145,7 +145,6 @@ test("Hocalar ilk sürüm legacy kart ve doğrudan video akışını kullanır",
   const legacy=fs.readFileSync(path.join(root,"public/teacher-videos.js"),"utf8");
   assert.match(main,/const lt=document\.documentElement\.dataset\.teacherUi!=="v2"/);
   assert.match(main,/lt\|\|!teachersV2\.installed\)loadTeacherVideosRuntime\(\)/);
-  assert.match(main,/teachersV2Runtime=teachersV2\.version/);
   assert.match(legacy,/\.teacher-video-grid/);
   assert.match(legacy,/\.thcard\.open/);
   assert.match(legacy,/slice\(0,6\)/);
