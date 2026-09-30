@@ -81,13 +81,10 @@ test("shell dependency discovery includes local legacy scripts and preserves que
   ]);
 });
 
-test("teacher video preload uses the same query identity as its dynamic runtime loader",async()=>{
+test("original Hocalar engine does not load a teacher-videos overlay runtime",()=>{
   const main=fs.readFileSync(path.resolve(__dirname,"../src/main.ts"),"utf8");
-  const runtimeUrl=main.match(/new URL\("(\.\/teacher-videos\.js[^"']*)"/)?.[1];
-  assert.ok(runtimeUrl);
-  const runtime=harness({network:shellNetwork});
-  await runtime.install();
-  assert.equal(await runtime.body(runtimeUrl),"new asset");
+  assert.doesNotMatch(main,/new URL\("\.\/teacher-videos\.js/);
+  assert.match(main,/teacherVideosRuntime="legacy-core"/);
 });
 
 test("independent settings runtime is cached before the first offline launch",async()=>{
