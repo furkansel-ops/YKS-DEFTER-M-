@@ -3117,3 +3117,6 @@ input,select,textarea{transition:border-color .2s,box-shadow .2s,background .2s,
 .wrong-photo-thumb img{display:block;width:100%;height:100%;object-fit:cover}
 .wrong-photo-change{width:28px;height:28px;border-radius:8px;font-size:15px;line-height:1}
 @media(max-width:640px){.wrong-log-row{align-items:flex-start}.wrong-log-row .k{padding-right:8px}.wrong-photo-add span{display:none}.wrong-log-row .wrong-log-actions{gap:5px}}
+
+.wrong-photo-delete{display:inline-flex;align-items:center;gap:4px;min-height:30px;padding:5px 8px;border:1px solid var(--line);border-radius:9px;background:var(--surface-2,var(--fill));color:var(--bad,#ef4444);font:700 11px/1 var(--font,system-ui);cursor:pointer}
+@media(max-width:640px){.wrong-photo-delete span{display:none}}
