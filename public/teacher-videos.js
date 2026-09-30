@@ -40,7 +40,7 @@
     if(document.getElementById(STYLE_ID))return;
     var style=document.createElement("style");
     style.id=STYLE_ID;
-    style.textContent="\n.teacher-video-strip{width:100%;max-width:760px;margin:22px auto 0;padding-top:18px;border-top:.5px solid var(--sep,rgba(127,127,127,.25));text-align:left!important}\n.teacher-video-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}\n.teacher-video-head strong{font-size:17px;color:var(--label,#111)}\n.teacher-video-head-actions{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}\n.teacher-video-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px}\n.teacher-video-item,.teacher-video-search{appearance:none;-webkit-appearance:none;width:100%;border:.5px solid var(--sep,rgba(127,127,127,.25));background:var(--glass,rgba(255,255,255,.7));border-radius:14px;padding:0;overflow:hidden;text-align:left;color:inherit;cursor:pointer;box-shadow:var(--shadow-1,0 2px 10px rgba(0,0,0,.05));transition:transform .12s ease,border-color .12s ease}\n.teacher-video-item:active,.teacher-video-search:active{transform:scale(.985)}\n.teacher-video-thumb{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;background:rgba(127,127,127,.14)}\n.teacher-video-copy{display:block;padding:10px 11px 11px}\n.teacher-video-title{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:13.5px;font-weight:700;line-height:1.35;color:var(--label,#111)}\n.teacher-video-meta{display:block;margin-top:5px;font-size:11.5px;line-height:1.3;color:var(--label-3,#777);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}\n.teacher-video-note{grid-column:1/-1;padding:14px;border-radius:12px;background:rgba(127,127,127,.08);font-size:13px;line-height:1.45;color:var(--label-2,#555)}\n.teacher-video-loading{display:flex;align-items:center;gap:10px}\n.teacher-video-spinner{width:17px;height:17px;border:2px solid rgba(127,127,127,.25);border-top-color:var(--accent,#0a6cff);border-radius:50%;animation:yksTeacherSpin .75s linear infinite;flex:none}\n@keyframes yksTeacherSpin{to{transform:rotate(360deg)}}\n.teacher-video-search{padding:14px 15px;font-weight:700;text-align:center}\n.teacher-video-player{position:fixed;inset:0;z-index:1200;display:grid;place-items:center;padding:18px;background:rgba(0,0,0,.72);backdrop-filter:blur(12px)}\n.teacher-video-player-card{width:min(920px,100%);max-height:calc(100dvh - 36px);overflow:auto;border-radius:18px;background:var(--bg,#111);box-shadow:0 24px 80px rgba(0,0,0,.38)}\n.teacher-video-player-top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px}\n.teacher-video-player-top strong{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--label,#fff)}\n.teacher-video-player-frame{display:block;width:100%;aspect-ratio:16/9;border:0;background:#000}\n.teacher-video-player-actions{display:flex;justify-content:flex-end;gap:8px;padding:12px 14px}\nbody.teacher-open #cloudSyncBox{display:none!important}\n@media(max-width:620px){.teacher-video-grid{grid-template-columns:1fr 1fr}.teacher-video-head{align-items:flex-start}.teacher-video-item{border-radius:12px}.teacher-video-copy{padding:8px}.teacher-video-title{font-size:12.5px}}\n@media(max-width:430px){.teacher-video-grid{grid-template-columns:1fr}}\n";
+    style.textContent="\n.teacher-video-strip{width:100%;max-width:760px;margin:22px auto 0;padding-top:18px;border-top:.5px solid var(--sep,rgba(127,127,127,.25));text-align:left!important}\n.teacher-video-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}\n.teacher-video-head strong{font-size:17px;color:var(--label,#111)}\n.teacher-video-head-actions{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}\n.teacher-video-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px}\n.teacher-source-note{grid-column:1/-1;padding:12px 13px;border-radius:12px;background:rgba(127,127,127,.08);font-size:12.5px;line-height:1.45;color:var(--label-2,#555)}\n.teacher-playlist-item{appearance:none;-webkit-appearance:none;width:100%;display:grid;grid-template-columns:54px minmax(0,1fr);align-items:center;gap:10px;border:.5px solid var(--sep,rgba(127,127,127,.25));background:var(--glass,rgba(255,255,255,.7));border-radius:14px;padding:10px;text-align:left;color:inherit;cursor:pointer;box-shadow:var(--shadow-1,0 2px 10px rgba(0,0,0,.05))}\n.teacher-playlist-icon{width:54px;height:54px;display:grid;place-items:center;border-radius:12px;background:rgba(10,108,255,.1);color:var(--accent,#0a6cff);font-size:24px}.teacher-playlist-title{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:13.5px;font-weight:750;line-height:1.35;color:var(--label,#111)}.teacher-playlist-meta{display:block;margin-top:5px;font-size:11.5px;color:var(--label-3,#777)}\n.teacher-video-item,.teacher-video-search{appearance:none;-webkit-appearance:none;width:100%;border:.5px solid var(--sep,rgba(127,127,127,.25));background:var(--glass,rgba(255,255,255,.7));border-radius:14px;padding:0;overflow:hidden;text-align:left;color:inherit;cursor:pointer;box-shadow:var(--shadow-1,0 2px 10px rgba(0,0,0,.05));transition:transform .12s ease,border-color .12s ease}\n.teacher-video-item:active,.teacher-video-search:active{transform:scale(.985)}\n.teacher-video-thumb{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;background:rgba(127,127,127,.14)}\n.teacher-video-copy{display:block;padding:10px 11px 11px}\n.teacher-video-title{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:13.5px;font-weight:700;line-height:1.35;color:var(--label,#111)}\n.teacher-video-meta{display:block;margin-top:5px;font-size:11.5px;line-height:1.3;color:var(--label-3,#777);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}\n.teacher-video-note{grid-column:1/-1;padding:14px;border-radius:12px;background:rgba(127,127,127,.08);font-size:13px;line-height:1.45;color:var(--label-2,#555)}\n.teacher-video-loading{display:flex;align-items:center;gap:10px}\n.teacher-video-spinner{width:17px;height:17px;border:2px solid rgba(127,127,127,.25);border-top-color:var(--accent,#0a6cff);border-radius:50%;animation:yksTeacherSpin .75s linear infinite;flex:none}\n@keyframes yksTeacherSpin{to{transform:rotate(360deg)}}\n.teacher-video-search{padding:14px 15px;font-weight:700;text-align:center}\n.teacher-video-player{position:fixed;inset:0;z-index:1200;display:grid;place-items:center;padding:18px;background:rgba(0,0,0,.72);backdrop-filter:blur(12px)}\n.teacher-video-player-card{width:min(920px,100%);max-height:calc(100dvh - 36px);overflow:auto;border-radius:18px;background:var(--bg,#111);box-shadow:0 24px 80px rgba(0,0,0,.38)}\n.teacher-video-player-top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px}\n.teacher-video-player-top strong{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--label,#fff)}\n.teacher-video-player-frame{display:block;width:100%;aspect-ratio:16/9;border:0;background:#000}\n.teacher-video-player-actions{display:flex;justify-content:flex-end;gap:8px;padding:12px 14px}\nbody.teacher-open #cloudSyncBox{display:none!important}\n@media(max-width:620px){.teacher-video-grid{grid-template-columns:1fr 1fr}.teacher-video-head{align-items:flex-start}.teacher-video-item{border-radius:12px}.teacher-video-copy{padding:8px}.teacher-video-title{font-size:12.5px}}\n@media(max-width:430px){.teacher-video-grid{grid-template-columns:1fr}}\n";
     document.head.appendChild(style);
   }
 
@@ -192,6 +192,83 @@
     }catch(_error){return [];}
   }
 
+  function normalizePlaylist(item){
+    if(!item||typeof item!=="object")return null;
+    var id=String(item.id||"").trim(),title=String(item.title||"").trim();
+    if(!/^[A-Za-z0-9_-]{10,100}$/.test(id)||!title)return null;
+    return {id:id,title:title,url:String(item.url||("https://www.youtube.com/playlist?list="+encodeURIComponent(id)))};
+  }
+
+  async function feedPlaylists(teacher,force){
+    var feed=await loadMediaFeed(!!force),row=mediaRow(feed,teacher);
+    if(!row)return [];
+    var direct=(Array.isArray(row.playlists)?row.playlists:[]).map(normalizePlaylist).filter(Boolean);
+    if(direct.length)return direct;
+    var indexPath=String(row.archiveIndex||"").trim();
+    if(!indexPath)return [];
+    try{
+      var index=await fetchJSON(new URL(indexPath,document.baseURI).href,6500);
+      return (Array.isArray(index&&index.playlists)?index.playlists:[]).map(normalizePlaylist).filter(Boolean);
+    }catch(_error){return [];}
+  }
+
+  function kindWords(kind){
+    return {tyt:["tyt"],ayt:["ayt"],soru:["soru","çözüm","cozum","test"],deneme:["deneme","branş","brans"]}[kind]||[];
+  }
+
+  function kindMatches(title,kind){
+    var words=kindWords(kind);
+    if(!words.length)return true;
+    var text=normName(title);
+    return words.some(function(word){return text.indexOf(normName(word))>=0;});
+  }
+
+  function openPlaylistItem(item){
+    if(window.openPlaylistResource&&typeof window.openPlaylistResource==="function")return window.openPlaylistResource(item.id,item.title);
+    window.open(item.url||("https://www.youtube.com/playlist?list="+encodeURIComponent(item.id)),"_blank","noopener,noreferrer");
+    return true;
+  }
+
+  function renderPlaylists(host,items,kind){
+    var grid=host.querySelector(".teacher-video-grid"),title=host.querySelector(".teacher-video-head strong");
+    if(!grid)return;
+    var filtered=items.filter(function(item){return kindMatches(item.title,kind);});
+    var shown=filtered.length?filtered:items;
+    if(title)title.textContent=(kind?kind.toLocaleUpperCase("tr")+" ":"")+"oynatma listeleri";
+    grid.innerHTML="";
+    if(!shown.length){
+      grid.innerHTML='<div class="teacher-source-note">Bu hoca için kayıtlı oynatma listesi bulunamadı. Videolar gösteriliyor.</div>';
+      return false;
+    }
+    shown.slice(0,12).forEach(function(item){
+      var button=document.createElement("button");
+      button.type="button";button.className="teacher-playlist-item";
+      button.innerHTML='<span class="teacher-playlist-icon" aria-hidden="true">☰</span><span><span class="teacher-playlist-title">'+esc(item.title)+'</span><span class="teacher-playlist-meta">Oynatma listesi · uygulama içinde aç</span></span>';
+      button.addEventListener("click",function(event){event.stopPropagation();openPlaylistItem(item);});
+      grid.appendChild(button);
+    });
+    if(kind&&filtered.length===0){
+      var note=document.createElement("div");note.className="teacher-source-note";note.textContent=kind.toLocaleUpperCase("tr")+" adına özel liste bulunamadı; hocanın diğer oynatma listeleri gösteriliyor.";grid.prepend(note);
+    }
+    return true;
+  }
+
+  async function showKind(host,kind,force){
+    var teacher=String(host.dataset.teacher||"").trim(),subject=String(host.dataset.subject||"YKS").trim()||"YKS";
+    if(!teacher)return false;
+    host.dataset.kind=kind||"";
+    showLoading(host,(kind?kind.toLocaleUpperCase("tr")+" ":"")+"oynatma listeleri getiriliyor…");
+    var lists=await feedPlaylists(teacher,!!force);
+    if(document.contains(host)&&renderPlaylists(host,lists,kind))return true;
+    var videos=await fetchTeacherVideos(teacher,subject,!!force);
+    if(document.contains(host)){
+      var selected=kind?videos.filter(function(item){return kindMatches(item.title,kind);}):videos;
+      renderVideos(host,selected.length?selected:videos);
+      var head=host.querySelector(".teacher-video-head strong");if(head)head.textContent=(kind?kind.toLocaleUpperCase("tr")+" ":"")+"videolar";
+    }
+    return true;
+  }
+
   function nativeVideos(teacher,subject,query){
     if(typeof window.ytFetch!=="function")return Promise.resolve([]);
     return Promise.resolve().then(async function(){
@@ -299,11 +376,10 @@
     host.className="teacher-video-strip";
     host.dataset.teacher=teacher;
     host.dataset.subject=subject;
-    host.setAttribute("aria-label",teacher+" son videoları");
-    host.innerHTML='<div class="teacher-video-head"><strong>Son videolar</strong><span class="teacher-video-head-actions"><button class="btn ghost tiny teacher-video-all" type="button">YouTube\'da tümü</button><button class="btn ghost tiny teacher-video-refresh" type="button">Yenile</button></span></div><div class="teacher-video-grid"></div>';
+    host.setAttribute("aria-label",teacher+" ders kaynakları");
+    host.innerHTML='<div class="teacher-video-head"><strong>Ders kaynakları</strong><span class="teacher-video-head-actions"><button class="btn ghost tiny teacher-video-all" type="button">YouTube\'da tümü</button><button class="btn ghost tiny teacher-video-refresh" type="button">Yenile</button></span></div><div class="teacher-video-grid"><div class="teacher-source-note">Yukarıdan TYT konu, AYT konu, Soru çözümü veya Deneme / branş seç. Önce hocanın oynatma listeleri gösterilir.</div></div>';
     var body=card.querySelector(".thb");
     if(body)body.appendChild(host);else card.appendChild(host);
-    showLoading(host,"Gerçek videolar getiriliyor…");
     return host;
   }
 
@@ -313,7 +389,7 @@
     host.addEventListener("click",function(event){
       var target=event.target instanceof Element?event.target:null;
       if(!target)return;
-      if(target.closest(".teacher-video-refresh")){event.stopPropagation();void hydrate(host,true);return;}
+      if(target.closest(".teacher-video-refresh")){event.stopPropagation();void showKind(host,String(host.dataset.kind||""),true);return;}
       if(target.closest(".teacher-video-all")){event.stopPropagation();openSearch(String(host.dataset.teacher||""),String(host.dataset.subject||"YKS"));}
     });
   }
@@ -328,10 +404,6 @@
     host.dataset.teacher=teacher;
     host.dataset.subject=subject;
     bindHost(host);
-    if(host.dataset.hydrated!=="1"){
-      host.dataset.hydrated="1";
-      void hydrate(host,false);
-    }
     document.documentElement.dataset.teacherVideosVisible="1";
   }
 
@@ -352,6 +424,15 @@
   function install(){
     injectStyles();
     document.addEventListener("keydown",function(event){if(event.key==="Escape")closePlayer();});
+    var originalTeacher=typeof window.ytTeacher==="function"?window.ytTeacher:null;
+    window.ytTeacher=function(name,kind,subject){
+      if(kind==="kanal")return originalTeacher?originalTeacher(name,kind,subject):openSearch(name,subject||"YKS");
+      var card=[].slice.call(document.querySelectorAll(".thcard.open")).find(function(node){return teacherNameFromCard(node)===name;});
+      var host=card&&card.querySelector(".teacher-video-strip");
+      if(!host&&card)host=createHost(card,name,subject||subjectFromCard(card));
+      if(host){bindHost(host);void showKind(host,kind,false);return true;}
+      return originalTeacher?originalTeacher(name,kind,subject):false;
+    };
     observer=new MutationObserver(queueScan);
     observer.observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:["class"]});
     document.addEventListener("click",function(event){
@@ -365,7 +446,7 @@
     if(!healTimer)healTimer=window.setInterval(function(){if(document.querySelector(".thcard.open"))scanOpenTeachers();},900);
     scanOpenTeachers();
     document.documentElement.dataset.teacherVideos="ready";
-    document.documentElement.dataset.teacherVideosRuntimeVersion="hotfix4";
+    document.documentElement.dataset.teacherVideosRuntimeVersion="r13-playlists";
   }
 
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",install,{once:true});
