@@ -1299,12 +1299,39 @@ function weekHasData(w){
   if(!w)return false;
   return w.done.some(Boolean)||w.r.some(r=>r.some(c=>c&&c.trim()))||w.s.some(r=>r.some(c=>c&&c.trim()));
 }
+function programTaskCompleted(wk,cid,w){
+  try{
+    const parts=cid.split("-"),blk=parts[0],i=+parts[1],d=+parts[2];
+    const txt=String(w[blk][i][d]).trim(),lbl=String(S.rowLabels[blk]?.[i]||"");
+    const meta=typeof v25TaskMeta==="function"?v25TaskMeta({txt:txt,lbl:lbl}):{subj:lbl,topic:""};
+    const progress=programDayStats(w,d);
+    window.dispatchEvent(new CustomEvent("yks:task-completed",{detail:{taskId:String(wk)+":"+cid,week:String(wk),cellId:cid,subject:meta.subj||lbl,topic:meta.topic||"",completedCount:progress.done,totalCount:progress.filled}}));
+  }catch(e){}
+}
+/* Completion feedback belongs to a committed user action, not a render or a
+   data-change listener (which also runs during restore, import and sync). */
+function programSetCellDone(wk,cid,done){
+  if(typeof cid!=="string"||!/^[rs]-\d+-[0-6]$/.test(cid))return false;
+  const w=getWeek(wk,false),parts=cid.split("-"),row=w&&w[parts[0]]?.[+parts[1]];
+  if(!row||!String(row[+parts[2]]||"").trim())return false;
+  const had=Object.prototype.hasOwnProperty.call(w.dn,cid),previous=w.dn[cid],wasDone=!!previous;
+  if(wasDone===!!done)return true;
+  if(done)w.dn[cid]=1;else delete w.dn[cid];
+  let saved=false;try{saved=save()===true;}catch(e){}
+  if(!saved){
+    if(had)w.dn[cid]=previous;else delete w.dn[cid];
+    if(typeof perfInvalidateState==="function")perfInvalidateState();
+    return false;
+  }
+  if(done)programTaskCompleted(wk,cid,w);
+  return true;
+}
 function toggleCellDone(wk,cid){
-  const w=getWeek(wk,true);
-  if(w.dn[cid])delete w.dn[cid]; else w.dn[cid]=1;
-  save();
+  const w=getWeek(wk,false);
+  if(!w||!programSetCellDone(wk,cid,!w.dn[cid]))return false;
   if(el("program").classList.contains("active"))renderPlan();
   if(el("home").classList.contains("active"))renderTodayPlan();
+  return true;
 }
 
 /* ================= PLAN IZGARASI ================= */
@@ -2402,8 +2429,8 @@ function finishPhase(){
   if(wasWork){
     recordSession(true);
     if(pomoTask){
-      const wk=keyOf(mondayOf(new Date())),w=getWeek(wk,true);
-      if(!w.dn[pomoTask]){ w.dn[pomoTask]=1; save(); }
+      const wk=keyOf(mondayOf(new Date()));
+      programSetCellDone(wk,pomoTask,true);
     }
   }
   stopNoise(); releaseWake();
@@ -7561,9 +7588,9 @@ function closeGun(){ const ov=el("gunOverlay"); if(ov)ov.style.display="none"; }
 function gunToggle(){
   const list=gunTasks(),t=list[gunIdx];
   if(!t)return false;
-  const wk=keyOf(mondayOf(new Date())),w=getWeek(wk,true);
-  if(w.dn[t.cid])delete w.dn[t.cid]; else w.dn[t.cid]=1;
-  save(); renderGun(); renderTodayPlan();
+  const wk=keyOf(mondayOf(new Date())),w=getWeek(wk,false);
+  if(!w||!programSetCellDone(wk,t.cid,!w.dn[t.cid]))return false;
+  renderGun(); renderTodayPlan();
   if(el("program").classList.contains("active"))renderPlan();
   return !!w.dn[t.cid];
 }
@@ -7576,9 +7603,9 @@ function gunNext(n){
 function gunDoneNext(){
   const list=gunTasks(),t=list[gunIdx];
   if(!t)return;
-  const wk=keyOf(mondayOf(new Date())),w=getWeek(wk,true);
-  w.dn[t.cid]=1;
-  save(); renderTodayPlan();
+  const wk=keyOf(mondayOf(new Date()));
+  if(!programSetCellDone(wk,t.cid,true))return false;
+  renderTodayPlan();
   if(el("program").classList.contains("active"))renderPlan();
   const yeni=gunTasks();
   const sonraki=yeni.findIndex((x,i)=>i>gunIdx&&!x.done);
@@ -10214,7 +10241,7 @@ function v25ContinueLast(){
   const x=v25LastFocus||v25LatestFocus();if(!x){toast("Devam edilecek çalışma yok");return false;}if(sw().run){go("pomo");setFocusMode("sw");return true;}
   if(x.subj&&SUBJ_NAMES.includes(x.subj))setPomoSubject(x.subj);pomoTopic=x.topic||"";pomoTask="";setFocusMode("sw");go("pomo");swStart();toast("Devam ediyor · "+(x.subj||"Ders"));return true;
 }
-function v25DoneNext(){const p=v25PlanToday();if(!p.next)return false;toggleCellDone(p.next.wk,p.next.cid);return true;}
+function v25DoneNext(){const p=v25PlanToday();if(!p.next)return false;return toggleCellDone(p.next.wk,p.next.cid)===true;}
 function v25TomorrowNext(){const p=v25PlanToday();if(!p.next)return false;return movePlanCellTomorrow(p.next.wk,p.next.blk,p.next.i,p.next.d);}
 function v25RenderSummary(){
   const k=todayKey(),q=+S.solved[k]||0,qg=Math.max(0,+S.target||0),m=+S.pomoMin[k]||0,mg=Math.max(0,+S.focus?.goalMin||0),p=v25PlanToday(),rq=v25UniqueReviews();

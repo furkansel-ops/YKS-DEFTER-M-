@@ -118,7 +118,7 @@ export function createRefinedProgramController(bridge:RefinedProgramBridge,now=(
       if(!value||value.length>600||offset===null||!days.length||Array.from(days).some(index=>!Number.isInteger(index)||index<0||index>6)||!bridge.addToDays)return {ok:false,reason:"invalid"};
       return bridge.addToDays(value,[...new Set(days)].sort((a,b)=>a-b),offset);
     },
-    toggleTask(id:string){const current=snapshot();if(!current.tasks.some(task=>task.id===id))return false;bridge.toggleCellDone(current.week,id);return true;},
+    toggleTask(id:string){const current=snapshot();if(!current.tasks.some(task=>task.id===id))return false;return bridge.toggleCellDone(current.week,id)!==false;},
     openTask(id:string){const current=snapshot(),task=current.tasks.find(item=>item.id===id);if(!task)return false;bridge.openPlanCellMenu(current.week,task.block,task.row,task.day);return true;}
   };
 }

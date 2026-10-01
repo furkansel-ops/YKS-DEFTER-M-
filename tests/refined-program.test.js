@@ -21,7 +21,7 @@ function harness(){
   for(const name of ["keyOf","parseKey","addDaysKey","dowOf","mondayOf","thisWeek","clone"]){
     const definition=app.match(new RegExp(`^function ${name}\\([^\\n]+$`,"m"));assert.ok(definition,name);vm.runInContext(definition[0],context);
   }
-  for(const name of ["blankWeek","normWeek","getWeek","toggleCellDone","shiftWeek","addToDay","addToDays"]){
+  for(const name of ["blankWeek","normWeek","getWeek","programTaskCompleted","programSetCellDone","toggleCellDone","shiftWeek","addToDay","addToDays"]){
     const definition=app.match(new RegExp(`function ${name}\\([^\\n]*\\)\\{[\\s\\S]*?\\r?\\n}`));assert.ok(definition,name);vm.runInContext(definition[0],context);
   }
   const controller=api.createRefinedProgramController({readState:()=>state,visibleWeek:()=>context.keyOf(context.curWeek),shiftWeek:context.shiftWeek,thisWeek:context.thisWeek,
@@ -69,6 +69,12 @@ test("completion and task actions keep legacy cell keys, saving, and menu behavi
   assert.equal(h.controller.openTask("s-1-4"),true);assert.deepEqual(h.calls.find(call=>call[0]==="menu"),["menu","2026-09-21","s",1,4]);
   assert.equal(h.controller.toggleTask("s-1-4"),true);assert.equal(data.dn["s-1-4"],undefined);assert.equal(h.calls.filter(call=>call[0]==="save").length,2);
   data.s[1][4]="";assert.equal(h.controller.toggleTask("s-1-4"),false);assert.equal(h.controller.openTask("s-1-4"),false);assert.deepEqual(data.dn,{});
+});
+
+test("daily task controller reports a failed completion save without changing its existing task",()=>{
+  const h=harness(),data=h.state.weeks["2026-09-21"];data.s[1][4]="Fizik";
+  const before=JSON.stringify(h.state);h.context.save=()=>false;
+  assert.equal(h.controller.toggleTask("s-1-4"),false);assert.equal(JSON.stringify(h.state),before);assert.equal(h.controller.snapshot().tasks[0].done,false);
 });
 
 test("week offsets use calendar dates and reject invalid or non-Monday targets",()=>{
