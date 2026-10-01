@@ -1,4 +1,5 @@
 import "./mascot-companion.css";
+import type {MascotScene} from "./mascot-scene";
 
 export const MASCOTS=[
   {id:"book",name:"Defter",kind:"Kitap",hello:"Selam! Bugün de beraberiz."},
@@ -21,13 +22,14 @@ export interface MascotCompanionApi{
 }
 declare global{interface Window{__YKS_MASCOT__?:MascotCompanionApi}}
 const STORAGE_KEY="yks:mascot-companion:v1";
+const portraits=new Map<string,string>();
 const knownId=(value:unknown):value is MascotId=>MASCOTS.some(m=>m.id===value);
 function readPreference():Preference{
   try{const saved=JSON.parse(localStorage.getItem(STORAGE_KEY)||"null");return {id:knownId(saved?.id)?saved.id:"book",enabled:saved?.enabled!==false};}
   catch{return {id:"book",enabled:true};}
 }
 const asset=(id:MascotId)=>new URL(`./mascots/${id==="book"?"notebook":id==="owl"?"owl-v2":id}.webp`,document.baseURI).href;
-const image=(id:MascotId,lazy=false)=>`<img src="${asset(id)}" alt="" width="112" height="112" decoding="async"${lazy?' loading="lazy"':""}><span class="rb-mascot-fallback" hidden aria-hidden="true">${MASCOTS.find(m=>m.id===id)!.name[0]}</span>`;
+const image=(id:MascotId,lazy=false)=>`<img data-mascot-image="${id}" src="${portraits.get(id)||asset(id)}" alt="" width="112" height="112" decoding="async"${lazy?' loading="lazy"':""}><span class="rb-mascot-fallback" hidden aria-hidden="true">${MASCOTS.find(m=>m.id===id)!.name[0]}</span>`;
 function handleImageError(event:Event){
   const img=event.target;if(!(img instanceof HTMLImageElement))return;
   img.hidden=true;const fallback=img.nextElementSibling;if(fallback instanceof HTMLElement&&fallback.classList.contains("rb-mascot-fallback"))fallback.hidden=false;
@@ -42,6 +44,24 @@ export function installMascotCompanion():MascotCompanionApi{
   strip.innerHTML='<span class="rb-companion-bubble" aria-hidden="true"></span><section class="rb-companion-chat" aria-label="Çalışma arkadaşınla konuş" hidden><div class="rb-companion-chat-head"><span><b data-chat-name></b><small>Çalışma arkadaşın</small></span><button type="button" data-chat-close aria-label="Sohbeti kapat">×</button></div><div class="rb-companion-chat-log" data-chat-log aria-live="polite"></div><div class="rb-companion-actions" data-chat-actions><button type="button" data-chat-action="talk">Biraz konuşalım</button><button type="button" data-chat-action="today">Bugünkü programım</button><button type="button" data-chat-action="motivate">Motivasyon ver</button><button type="button" data-chat-action="study">Ne çalışayım?</button><button type="button" data-chat-action="break">Moladayım</button></div><form class="rb-companion-chat-form" data-chat-form hidden><input data-chat-input maxlength="180" autocomplete="off" placeholder="Bir şey yaz..." aria-label="Mesajın"><button type="submit" aria-label="Gönder">Gönder</button></form></section><button type="button" class="rb-companion-mascot"><span class="rb-companion-picture" aria-hidden="true"></span><span class="rb-companion-shadow" aria-hidden="true"></span></button><span class="rb-mascot-sr" id="mascotDragHelp">Konuşmak için dokun. Yerini değiştirmek için sürükle; yön tuşlarıyla da taşıyabilirsin.</span>';
   document.body.append(strip);
   const picture=strip.querySelector<HTMLElement>(".rb-companion-picture")!;
+  picture.dataset.renderer="fallback";picture.dataset.celebrations="0";
+  let scene:MascotScene|null=null,loading=false,loadGeneration=0,failed3d=false,pendingCelebrationUntil=0;
+  function refreshPortraits(){
+    if(!scene||portraits.size===MASCOTS.length)return;
+    for(const [id,url] of scene.previews(MASCOTS.map(m=>m.id)))portraits.set(id,url);
+    document.querySelectorAll<HTMLImageElement>("[data-mascot-image]").forEach(img=>{const url=portraits.get(img.dataset.mascotImage||"");if(url){img.src=url;img.hidden=false;const fallback=img.nextElementSibling;if(fallback instanceof HTMLElement)fallback.hidden=true;}});
+  }
+  function ensure3d(){
+    if(!preference.enabled||scene||loading||failed3d)return;
+    const generation=++loadGeneration;loading=true;
+    // Three.js stays outside the initial application bundle and disabled startup.
+    import("./mascot-scene").then(({createMascotScene})=>{
+      if(generation!==loadGeneration||!preference.enabled)return;
+      scene=createMascotScene(picture,preference.id,()=>{scene=null;failed3d=true;picture.dataset.renderer="fallback";syncMotion();});
+      if(dialog?.open)refreshPortraits();syncMotion();
+    }).catch(()=>{if(generation===loadGeneration){failed3d=true;picture.dataset.renderer="fallback";syncMotion();}})
+      .finally(()=>{if(generation===loadGeneration)loading=false;});
+  }
   const mascotButton=strip.querySelector<HTMLButtonElement>(".rb-companion-mascot")!;
   mascotButton.setAttribute("aria-describedby","mascotDragHelp");
   strip.addEventListener("error",handleImageError,true);
@@ -57,23 +77,34 @@ export function installMascotCompanion():MascotCompanionApi{
   let obscured=false;
   const quiet=()=>!preference.enabled||document.hidden||reduced.matches||focusRunning()||obscured;
   function stopMotion(){
-    clearTimeout(animationTimer);strip.classList.remove("is-greeting");
+    clearTimeout(animationTimer);strip.classList.remove("is-greeting","is-celebrating");
   }
   function greet(){
     if(!preference.enabled||document.hidden||obscured)return;
     strip.classList.remove("is-greeting");void picture.offsetWidth;strip.classList.add("is-greeting");
-    clearTimeout(animationTimer);animationTimer=window.setTimeout(()=>strip.classList.remove("is-greeting"),3000);
+    clearTimeout(animationTimer);scene?.mode("idle");syncMotion();animationTimer=window.setTimeout(()=>{strip.classList.remove("is-greeting");syncMotion();},2800);
+  }
+  function celebrate(){
+    pendingCelebrationUntil=0;stopMotion();strip.classList.add("is-celebrating");
+    scene?.mode(reduced.matches?"quiet":"celebrate",true);
+    picture.dataset.celebrations=String(Number(picture.dataset.celebrations||0)+1);
+    message.textContent="Harika! Bir görev daha tamamlandı.";
+    animationTimer=window.setTimeout(()=>{strip.classList.remove("is-celebrating");syncMotion();},3600);
   }
   const addChat=(who:"mascot"|"user",text:string)=>{const wrap=document.createElement("div");wrap.className=`rb-chat-row is-${who}`;if(who==="mascot"){const avatar=document.createElement("span");avatar.className="rb-chat-avatar";avatar.innerHTML=image(preference.id,true);wrap.append(avatar);}const row=document.createElement("p");row.className=`rb-chat-message is-${who}`;row.textContent=text;wrap.append(row);chatLog.append(wrap);chatLog.scrollTop=chatLog.scrollHeight;};
   const showTyping=(reply:string)=>{const typing=document.createElement("div");typing.className="rb-chat-row is-mascot rb-chat-typing-row";typing.innerHTML=`<span class="rb-chat-avatar">${image(preference.id,true)}</span><span class="rb-chat-typing" aria-label="${current().name} yazıyor"><i></i><i></i><i></i></span>`;chatLog.append(typing);chatLog.scrollTop=chatLog.scrollHeight;window.setTimeout(()=>{typing.remove();addChat("mascot",reply);},420);};
-  function openChat(){chatOpen=true;chat.hidden=false;strip.classList.add("is-chatting");strip.classList.remove("is-greeting");const n=strip.querySelector<HTMLElement>("[data-chat-name]");if(n)n.textContent=current().name;if(!chatLog.childElementCount)addChat("mascot",`Selam, ben ${current().name}. Nasıl gidiyor? İstersen biraz konuşalım, istersen bugünkü çalışmana bakalım.`);}
-  function closeChat(){chatOpen=false;chat.hidden=true;strip.classList.remove("is-chatting");chatForm.hidden=true;}
+  function openChat(){chatOpen=true;chat.hidden=false;strip.classList.add("is-chatting");strip.classList.remove("is-greeting");refreshPortraits();const n=strip.querySelector<HTMLElement>("[data-chat-name]");if(n)n.textContent=current().name;if(!chatLog.childElementCount)addChat("mascot",`Selam, ben ${current().name}. Nasıl gidiyor? İstersen biraz konuşalım, istersen bugünkü çalışmana bakalım.`);syncMotion();}
+  function closeChat(){chatOpen=false;chat.hidden=true;strip.classList.remove("is-chatting","is-typing");chatForm.hidden=true;syncMotion();}
   function localReply(value:string){const q=value.toLocaleLowerCase("tr-TR");if(/matematik|problem|geo/.test(q))return "Matematik zorladıysa küçültelim: tek konu + kısa bir soru setiyle başlayalım. Takıldığın konuyu yaz, beraber parçalayalım.";if(/fizik|kimya|biyoloji/.test(q))return "Fen için bugün yüklenmek yerine net bir hedef seçelim. Hangi ders ve hangi konudasın?";if(/yoruld|sıkıld|çalışasım|istemiyorum|bunald/.test(q))return "Tamam. Büyük hedef koymayalım; 10 dakikalık minicik bir başlangıç yapalım. Sonra devam edip etmeyeceğine tekrar bakarsın.";if(/bitti|bitird|tamamlad/.test(q))return "Güzel! Bitirdiğini kapatalım. Sıradaki işi hafif tutalım mı, yoksa biraz mola mı?";if(/mola|dinlen/.test(q))return "Olur. Kısa bir mola ver; su iç, biraz hareket et. Döndüğünde tek bir küçük hedefle devam ederiz.";return "Anladım. Biraz daha anlatabilirsin; bugün seni en çok zorlayan şey ne?";}
   function syncMotion(){
-    obscured=!chatOpen&&(overlayOpen()||keyboardOpen());strip.dataset.obscured=String(obscured);
+    obscured=overlayOpen()||(!chatOpen&&keyboardOpen());strip.dataset.obscured=String(obscured);
     strip.inert=obscured;const running=focusRunning();document.documentElement.dataset.mascotMotion=quiet()?"quiet":"ready";
-    if(quiet())stopMotion();
-    message.textContent=running?"Sen odaklan, ben buradayım.":current().hello;
+    if(quiet()&&(!reduced.matches||!preference.enabled||document.hidden||running||obscured))stopMotion();
+    if(pendingCelebrationUntil>Date.now()&&preference.enabled&&!document.hidden&&!running&&!obscured&&!strip.classList.contains("is-dragging"))celebrate();
+    else if(pendingCelebrationUntil&&pendingCelebrationUntil<=Date.now())pendingCelebrationUntil=0;
+    const mode=strip.classList.contains("is-dragging")?"paused":quiet()?"quiet":strip.classList.contains("is-celebrating")?"celebrate":strip.classList.contains("is-greeting")?"greet":chatOpen?"chat":"idle";
+    scene?.mode(mode);if(!scene)picture.dataset.action=mode;
+    message.textContent=strip.classList.contains("is-celebrating")?"Harika! Bir görev daha tamamlandı.":running?"Sen odaklan, ben buradayım.":current().hello;
   }
   const watched=new WeakSet<Element>(),focusObserver=new MutationObserver(syncMotion),overlays=new WeakSet<Element>(),overlayObserver=new MutationObserver(syncMotion);
   function watchFocus(){
@@ -84,9 +115,13 @@ export function installMascotCompanion():MascotCompanionApi{
   function render(){
     const mascot=current();strip.hidden=!preference.enabled;
     if(preference.enabled){
-      if(picture.dataset.mascot!==mascot.id){picture.innerHTML=image(mascot.id);picture.dataset.mascot=mascot.id;}
+      if(picture.dataset.mascot!==mascot.id){
+        scene?.character(mascot.id);picture.querySelectorAll("img,.rb-mascot-fallback").forEach(node=>node.remove());picture.insertAdjacentHTML("afterbegin",image(mascot.id));picture.dataset.mascot=mascot.id;
+        const name=strip.querySelector<HTMLElement>("[data-chat-name]");if(name)name.textContent=mascot.name;
+      }
       clampPosition();
-    }
+      ensure3d();
+    }else{++loadGeneration;loading=false;scene?.dispose();scene=null;picture.dataset.renderer="fallback";closeChat();pendingCelebrationUntil=0;}
     mascotButton.setAttribute("aria-label",`${mascot.name} ile konuş`);
     document.documentElement.dataset.mascot=preference.enabled?mascot.id:"off";
     if(dialog){
@@ -107,7 +142,8 @@ export function installMascotCompanion():MascotCompanionApi{
     const opener=document.activeElement instanceof HTMLElement?document.activeElement:null;
     dialog=document.createElement("dialog");dialog.id="mascotChooser";dialog.className="rb-mascot-dialog";
     dialog.setAttribute("aria-labelledby","mascotChooserTitle");dialog.setAttribute("aria-describedby","mascotChooserDescription");
-    dialog.innerHTML=`<div class="rb-mascot-dialog-head"><div><span class="rb-mascot-eyebrow">ÇALIŞMA ARKADAŞIN</span><h2 id="mascotChooserTitle">Sana kim eşlik etsin?</h2><p id="mascotChooserDescription">10 arkadaş, her birinin ayrı bir havası var.</p></div><button type="button" class="rb-mascot-close" data-mascot-close aria-label="Maskot seçimini kapat">×</button></div><div class="rb-mascot-grid" role="group" aria-label="Maskotlar">${MASCOTS.map(m=>`<button type="button" class="rb-mascot-option" data-mascot-choice="${m.id}" aria-pressed="false" aria-label="${m.name}, ${m.kind}">${image(m.id,true)}<b>${m.name}</b><small>${m.kind}</small><span class="rb-mascot-check" aria-hidden="true">✓</span></button>`).join("")}</div><div class="rb-mascot-preference"><span><b>Maskot bana eşlik etsin</b><small>Açılışta selamlar, odaklanırken sessizce bekler.</small></span><button type="button" class="rb-mascot-switch" data-mascot-enabled role="switch" aria-label="Maskot bana eşlik etsin" aria-checked="true"></button></div><div class="rb-mascot-dialog-foot"><p data-mascot-status role="status"></p><button type="button" class="rb-mascot-done" data-mascot-close>Tamam</button></div>`;
+    refreshPortraits();
+    dialog.innerHTML=`<div class="rb-mascot-dialog-head"><div><span class="rb-mascot-eyebrow">ÇALIŞMA ARKADAŞIN</span><h2 id="mascotChooserTitle">Sana kim eşlik etsin?</h2><p id="mascotChooserDescription">10 hareketli arkadaş. Boşta oynar, görevlerini bitirdiğinde seninle kutlar.</p></div><button type="button" class="rb-mascot-close" data-mascot-close aria-label="Maskot seçimini kapat">×</button></div><div class="rb-mascot-grid" role="group" aria-label="Maskotlar">${MASCOTS.map(m=>`<button type="button" class="rb-mascot-option" data-mascot-choice="${m.id}" aria-pressed="false" aria-label="${m.name}, ${m.kind}">${image(m.id,true)}<b>${m.name}</b><small>${m.kind}</small><span class="rb-mascot-check" aria-hidden="true">✓</span></button>`).join("")}</div><div class="rb-mascot-preference"><span><b>Maskot bana eşlik etsin</b><small>Selamlar, kutlar; odaklanırken sessizce bekler.</small></span><button type="button" class="rb-mascot-switch" data-mascot-enabled role="switch" aria-label="Maskot bana eşlik etsin" aria-checked="true"></button></div><div class="rb-mascot-dialog-foot"><p data-mascot-status role="status"></p><button type="button" class="rb-mascot-done" data-mascot-close>Tamam</button></div>`;
     const opened=dialog;
     opened.addEventListener("error",handleImageError,true);
     opened.addEventListener("keydown",event=>{event.stopPropagation();if(event.key==="Escape"){event.preventDefault();opened.close();}});
@@ -146,15 +182,16 @@ export function installMascotCompanion():MascotCompanionApi{
   mascotButton.addEventListener("pointermove",event=>{
     if(!drag||drag.id!==event.pointerId)return;
     const dx=event.clientX-drag.x,dy=event.clientY-drag.y;if(!drag.moved&&Math.hypot(dx,dy)<8)return;
-    drag.moved=true;strip.classList.add("is-dragging");place(drag.left+dx,drag.top+dy);
+    drag.moved=true;strip.classList.add("is-dragging");place(drag.left+dx,drag.top+dy);syncMotion();
   });
-  const endDrag=()=>{if(drag?.moved)suppressClickUntil=Date.now()+500;drag=null;strip.classList.remove("is-dragging");};
+  const endDrag=()=>{if(drag?.moved)suppressClickUntil=Date.now()+500;drag=null;strip.classList.remove("is-dragging");syncMotion();};
   mascotButton.addEventListener("pointerup",endDrag);mascotButton.addEventListener("pointercancel",endDrag);mascotButton.addEventListener("lostpointercapture",endDrag);
   chat.addEventListener("pointerdown",event=>event.stopPropagation());
   chat.addEventListener("click",event=>event.stopPropagation());
   chatInput.addEventListener("pointerdown",event=>event.stopPropagation());
   chatInput.addEventListener("focus",()=>{strip.classList.add("is-typing");obscured=false;strip.inert=false;});
-  chatInput.addEventListener("blur",()=>strip.classList.remove("is-typing"));
+  // Keep the form anchored during submit: mobile blur happens before click.
+  // Moving it on blur used to place the mascot over the Send button.
   strip.querySelector("[data-chat-close]")?.addEventListener("click",closeChat);
   strip.querySelectorAll<HTMLButtonElement>("[data-chat-action]").forEach(button=>button.addEventListener("click",()=>{const action=button.dataset.chatAction;if(action==="talk"){chatForm.hidden=false;addChat("mascot","Tabii. Buradayım 🙂 Bugün nasıl gidiyor?");chatInput.focus();}else if(action==="motivate")addChat("mascot","Mükemmel olmak zorunda değilsin. Bugün yapacağın küçük ama gerçek bir çalışma, hiç başlamamaktan daha değerli.");else if(action==="break")addChat("mascot","Mola zamanı. Biraz ekrandan uzaklaş, su iç ve nefes al. Döndüğünde kaldığın yer burada.");else if(action==="today")addChat("mascot","Bugünkü programına beraber bakalım. Program ekranındaki çalışmalarını sırayla bitir; önce en kısa veya en acil olandan başlayabilirsin.");else if(action==="study")addChat("mascot","Kararsızsan matematikten kısa bir blokla başla. Sonra bugünkü programındaki fizik, kimya veya biyoloji çalışmana geçebiliriz.");}));
   chatForm.addEventListener("submit",event=>{event.preventDefault();const value=chatInput.value.trim();if(!value)return;addChat("user",value);chatInput.value="";showTyping(localReply(value));});
@@ -167,6 +204,9 @@ export function installMascotCompanion():MascotCompanionApi{
   window.addEventListener("storage",event=>{if(event.key===STORAGE_KEY||event.key===null){preference=readPreference();render();window.dispatchEvent(new CustomEvent("yks:mascot-change"));}});
   window.addEventListener("yks:navigation-after",watchFocus);
   window.addEventListener("yks:mascot-open",open);
+  window.addEventListener("yks:task-completed",()=>{if(!preference.enabled)return;pendingCelebrationUntil=Date.now()+30000;syncMotion();});
+  window.addEventListener("pagehide",()=>{++loadGeneration;loading=false;scene?.dispose();scene=null;picture.dataset.renderer="fallback";});
+  window.addEventListener("pageshow",ensure3d);
   document.addEventListener("visibilitychange",syncMotion);reduced.addEventListener("change",syncMotion);
   document.addEventListener("focusin",syncMotion);document.addEventListener("focusout",()=>queueMicrotask(syncMotion));
   window.visualViewport?.addEventListener("resize",syncMotion);
