@@ -7,7 +7,7 @@ const localRelease=JSON.parse(await readFile(resolve(root,"version.json"),"utf8"
 const RELEASE_MARKER=String(localRelease.version||"");
 const BUILD_RELEASE_MARKER=String(localRelease.build||"");
 const LEGACY_VERSION="4.1.0";
-const LEGACY_BUILD="4.1.0-r21";
+const LEGACY_BUILD="4.1.0-r20";
 
 if(!RELEASE_MARKER||!BUILD_RELEASE_MARKER)throw new Error("Yerel release sürümü version.json içinden okunamadı");
 
