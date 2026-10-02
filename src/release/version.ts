@@ -1,6 +1,6 @@
 export const RELEASE_VERSION="4.4.0" as const;
-export const RELEASE_BUILD="4.4.0-r18" as const;
-export const RELEASE_DATE="2026-10-01" as const;
+export const RELEASE_BUILD="4.4.0-r19" as const;
+export const RELEASE_DATE="2026-10-02" as const;
 export const RELEASE_CHANNEL="stable" as const;
 
 /* Büyük legacy app.js çekirdeği veri/regresyon güvenliği için yerinde kalır.
