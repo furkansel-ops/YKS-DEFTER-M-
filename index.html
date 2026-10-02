@@ -1208,8 +1208,9 @@ window.setTimeout(function(){var r=document.documentElement;if(!r.dataset.uiRead
 
       <details class="v320-toolbox">
         <summary>Hazır laboratuvar araçları</summary>
-        <div class="seg tri v320-tabs" role="tablist" aria-label="Öğrenme laboratuvarı araçları">
+        <div class="seg v320-tabs" role="tablist" aria-label="Öğrenme laboratuvarı araçları" style="grid-template-columns:repeat(4,minmax(0,1fr))">
           <button id="v320TabParagraph" class="on" type="button" onclick="v320SetTab('paragraph')">Paragraf</button>
+          <button id="v320TabSpeed" type="button" onclick="v320SetTab('speed');srInitLearn()">Hızlı okuma</button>
           <button id="v320TabPeriodic" type="button" onclick="v320SetTab('periodic')">Periyodik tablo</button>
           <button id="v320TabTimeline" type="button" onclick="v320SetTab('timeline')">Tarih kronolojisi</button>
         </div>
@@ -1224,6 +1225,10 @@ window.setTimeout(function(){var r=document.documentElement;if(!r.dataset.uiRead
             <label>Anlama değerlendirmesi</label><select id="v320ParagraphScore"><option value="5">5 · Çok iyi</option><option value="4">4 · İyi</option><option value="3" selected>3 · Orta</option><option value="2">2 · Zorlandım</option><option value="1">1 · Yeniden okumalıyım</option></select>
           </div>
           <div class="card" id="v320ParagraphHistory"></div>
+        </div>
+        <div id="v320PanelSpeed" hidden>
+          <div class="v327-tool-intro"><div><span>Okuma laboratuvarı</span><b>Hızlı Okuma · Öğren</b></div><small>Önce temel teknikleri öğren; egzersiz ve test aşamaları bunun üzerine kurulacak.</small></div>
+          <div id="speedReadingLearn"></div>
         </div>
         <div id="v320PanelPeriodic" hidden>
           <div class="v327-tool-intro"><div><span>Kimya hızlı tekrarı</span><b>118 elementi periyot ve sınıfına göre incele</b></div><small>Elemente dokunarak YKS odaklı kısa notunu aç.</small></div>
@@ -2202,5 +2207,6 @@ window.addEventListener("online",()=>{if(!user)return;status("Bağlantı geldi",
   <script vite-ignore src="./modules/study-intelligence-v5.js?v=4.1.0-r1"></script>
 <script vite-ignore src="./modules/release-selftest.js?v=4.1.0-r20"></script>
 <script type="module" src="./src/main.ts"></script>
+<script src="modules/speed-reading-learn-v1.js?v=1.0.0"></script>
 </body>
 </html>
