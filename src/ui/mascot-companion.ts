@@ -1,5 +1,6 @@
 import "./mascot-companion.css";
 import type {MascotScene} from "./mascot-scene";
+import {createMascotConversation,mascotConversationContext,type ConversationAction} from "./mascot-conversation";
 
 export const MASCOTS=[
   {id:"book",name:"Defter",kind:"Kitap",hello:"Selam! Bugün de beraberiz."},
@@ -41,7 +42,7 @@ export function installMascotCompanion():MascotCompanionApi{
   let preference=readPreference(),animationTimer=0,chatOpen=false;
   const reduced=window.matchMedia("(prefers-reduced-motion: reduce)");
   const strip=document.createElement("aside");strip.id="refinedCompanion";strip.className="rb-companion";strip.setAttribute("aria-label","Çalışma arkadaşın");
-  strip.innerHTML='<span class="rb-companion-bubble" aria-hidden="true"></span><section class="rb-companion-chat" aria-label="Çalışma arkadaşınla konuş" hidden><div class="rb-companion-chat-head"><span><b data-chat-name></b><small>Çalışma arkadaşın</small></span><button type="button" data-chat-close aria-label="Sohbeti kapat">×</button></div><div class="rb-companion-chat-log" data-chat-log aria-live="polite"></div><div class="rb-companion-actions" data-chat-actions><button type="button" data-chat-action="talk">Biraz konuşalım</button><button type="button" data-chat-action="today">Bugünkü programım</button><button type="button" data-chat-action="motivate">Motivasyon ver</button><button type="button" data-chat-action="study">Ne çalışayım?</button><button type="button" data-chat-action="break">Moladayım</button></div><form class="rb-companion-chat-form" data-chat-form hidden><input data-chat-input maxlength="180" autocomplete="off" placeholder="Bir şey yaz..." aria-label="Mesajın"><button type="submit" aria-label="Gönder">Gönder</button></form></section><button type="button" class="rb-companion-mascot"><span class="rb-companion-picture" aria-hidden="true"></span><span class="rb-companion-shadow" aria-hidden="true"></span></button><span class="rb-mascot-sr" id="mascotDragHelp">Konuşmak için dokun. Yerini değiştirmek için sürükle; yön tuşlarıyla da taşıyabilirsin.</span>';
+  strip.innerHTML='<span class="rb-companion-bubble" aria-hidden="true"></span><section class="rb-companion-chat" aria-label="Çalışma arkadaşınla konuş" hidden><div class="rb-companion-chat-head"><span><b data-chat-name></b><small data-chat-status>Çalışma arkadaşın</small></span><button type="button" data-chat-close aria-label="Sohbeti kapat">×</button></div><div class="rb-companion-chat-log" data-chat-log aria-live="polite" aria-relevant="additions"></div><div class="rb-companion-actions" data-chat-actions><button type="button" data-chat-action="talk">Biraz konuşalım</button><button type="button" data-chat-action="today">Bugünkü programım</button><button type="button" data-chat-action="motivate">Motivasyon ver</button><button type="button" data-chat-action="study">Ne çalışayım?</button><button type="button" data-chat-action="break">Moladayım</button></div><form class="rb-companion-chat-form" data-chat-form hidden><input data-chat-input maxlength="180" autocomplete="off" placeholder="Nasıl gidiyor? Bir şey yaz…" aria-label="Mesajın"><button type="submit" aria-label="Gönder">Gönder</button></form></section><button type="button" class="rb-companion-mascot"><span class="rb-companion-picture" aria-hidden="true"></span><span class="rb-companion-shadow" aria-hidden="true"></span></button><span class="rb-mascot-sr" id="mascotDragHelp">Konuşmak için dokun. Yerini değiştirmek için sürükle; yön tuşlarıyla da taşıyabilirsin.</span>';
   document.body.append(strip);
   const picture=strip.querySelector<HTMLElement>(".rb-companion-picture")!;
   picture.dataset.renderer="fallback";picture.dataset.celebrations="0";
@@ -91,11 +92,22 @@ export function installMascotCompanion():MascotCompanionApi{
     message.textContent="Harika! Bir görev daha tamamlandı.";
     animationTimer=window.setTimeout(()=>{strip.classList.remove("is-celebrating");syncMotion();},3600);
   }
-  const addChat=(who:"mascot"|"user",text:string)=>{const wrap=document.createElement("div");wrap.className=`rb-chat-row is-${who}`;if(who==="mascot"){const avatar=document.createElement("span");avatar.className="rb-chat-avatar";avatar.innerHTML=image(preference.id,true);wrap.append(avatar);}const row=document.createElement("p");row.className=`rb-chat-message is-${who}`;row.textContent=text;wrap.append(row);chatLog.append(wrap);chatLog.scrollTop=chatLog.scrollHeight;};
-  const showTyping=(reply:string)=>{const typing=document.createElement("div");typing.className="rb-chat-row is-mascot rb-chat-typing-row";typing.innerHTML=`<span class="rb-chat-avatar">${image(preference.id,true)}</span><span class="rb-chat-typing" aria-label="${current().name} yazıyor"><i></i><i></i><i></i></span>`;chatLog.append(typing);chatLog.scrollTop=chatLog.scrollHeight;window.setTimeout(()=>{typing.remove();addChat("mascot",reply);},420);};
-  function openChat(){chatOpen=true;chat.hidden=false;strip.classList.add("is-chatting");strip.classList.remove("is-greeting");refreshPortraits();const n=strip.querySelector<HTMLElement>("[data-chat-name]");if(n)n.textContent=current().name;if(!chatLog.childElementCount)addChat("mascot",`Selam, ben ${current().name}. Nasıl gidiyor? İstersen biraz konuşalım, istersen bugünkü çalışmana bakalım.`);syncMotion();}
-  function closeChat(){chatOpen=false;chat.hidden=true;strip.classList.remove("is-chatting","is-typing");chatForm.hidden=true;syncMotion();}
-  function localReply(value:string){const q=value.toLocaleLowerCase("tr-TR");if(/matematik|problem|geo/.test(q))return "Matematik zorladıysa küçültelim: tek konu + kısa bir soru setiyle başlayalım. Takıldığın konuyu yaz, beraber parçalayalım.";if(/fizik|kimya|biyoloji/.test(q))return "Fen için bugün yüklenmek yerine net bir hedef seçelim. Hangi ders ve hangi konudasın?";if(/yoruld|sıkıld|çalışasım|istemiyorum|bunald/.test(q))return "Tamam. Büyük hedef koymayalım; 10 dakikalık minicik bir başlangıç yapalım. Sonra devam edip etmeyeceğine tekrar bakarsın.";if(/bitti|bitird|tamamlad/.test(q))return "Güzel! Bitirdiğini kapatalım. Sıradaki işi hafif tutalım mı, yoksa biraz mola mı?";if(/mola|dinlen/.test(q))return "Olur. Kısa bir mola ver; su iç, biraz hareket et. Döndüğünde tek bir küçük hedefle devam ederiz.";return "Anladım. Biraz daha anlatabilirsin; bugün seni en çok zorlayan şey ne?";}
+  const conversation=createMascotConversation(`${preference.id}:${Math.random()}`);
+  const context=()=>{let state:unknown;try{state=window.YKSLegacyState?.readState?.();}catch{/* Read failures leave conversation usable without inventing a plan. */}return mascotConversationContext(state,new Date(),current().name,focusRunning());};
+  function refreshChatStatus(){const data=context(),status=strip.querySelector<HTMLElement>("[data-chat-status]");if(status)status.textContent=data.tasks.length?`Bugün ${data.tasks.filter(task=>task.done).length}/${data.tasks.length} görev tamamlandı`:"Çalışma arkadaşın · Buradayım";}
+  const addChat=(who:"mascot"|"user",text:string,id=preference.id)=>{const wrap=document.createElement("div");wrap.className=`rb-chat-row is-${who}`;if(who==="mascot"){const avatar=document.createElement("span");avatar.className="rb-chat-avatar";avatar.innerHTML=image(id,true);wrap.append(avatar);}const row=document.createElement("p");row.className=`rb-chat-message is-${who}`;row.textContent=text;wrap.append(row);chatLog.append(wrap);while(chatLog.childElementCount>44)chatLog.firstElementChild?.remove();chatLog.scrollTop=chatLog.scrollHeight;};
+  let replyTimer=0,pendingReply:{text:string;id:MascotId;typing:HTMLElement}|null=null;
+  function setChatBusy(busy:boolean){chatLog.setAttribute("aria-busy",String(busy));chat.querySelectorAll<HTMLButtonElement>("[data-chat-action],button[type=submit]").forEach(button=>button.disabled=busy);}
+  function finishReply(){clearTimeout(replyTimer);replyTimer=0;const pending=pendingReply;pendingReply=null;if(pending){pending.typing.remove();addChat("mascot",pending.text,pending.id);}setChatBusy(false);positionChat();}
+  function respond(value:string,action?:ConversationAction){
+    // Keep reply order and the next draft intact when Enter is pressed twice.
+    if(pendingReply)return false;
+    const reply=conversation.reply(value,context(),action);if(value)addChat("user",value);
+    const typing=document.createElement("div");typing.className="rb-chat-row is-mascot rb-chat-typing-row";typing.setAttribute("aria-hidden","true");typing.innerHTML=`<span class="rb-chat-avatar">${image(preference.id,true)}</span><span class="rb-chat-typing"><i></i><i></i><i></i></span>`;chatLog.append(typing);chatLog.scrollTop=chatLog.scrollHeight;
+    pendingReply={text:reply,id:preference.id,typing};setChatBusy(true);replyTimer=window.setTimeout(finishReply,reduced.matches?0:420);refreshChatStatus();positionChat();return true;
+  }
+  function openChat(){chatOpen=true;chat.hidden=false;chatForm.hidden=false;strip.classList.add("is-chatting");strip.classList.remove("is-greeting");refreshPortraits();const n=strip.querySelector<HTMLElement>("[data-chat-name]");if(n)n.textContent=current().name;if(!chatLog.childElementCount)addChat("mascot",conversation.greeting(context()));refreshChatStatus();positionChat();syncMotion();}
+  function closeChat(){finishReply();if(document.activeElement instanceof HTMLElement&&chat.contains(document.activeElement))document.activeElement.blur();chatOpen=false;chat.hidden=true;strip.classList.remove("is-chatting","is-typing");chatForm.hidden=true;syncMotion();}
   function syncMotion(){
     obscured=overlayOpen()||(!chatOpen&&keyboardOpen());strip.dataset.obscured=String(obscured);
     strip.inert=obscured;const running=focusRunning();document.documentElement.dataset.mascotMotion=quiet()?"quiet":"ready";
@@ -162,6 +174,16 @@ export function installMascotCompanion():MascotCompanionApi{
   }
   // Keep the small companion movable without turning a drag into a greeting.
   let drag:{id:number;x:number;y:number;left:number;top:number;moved:boolean}|null=null,suppressClickUntil=0;
+  function positionChat(){
+    if(!chatOpen)return;
+    if(innerWidth<760){for(const name of ["position","left","right","top","bottom","width","max-height"])chat.style.removeProperty(name);chat.dataset.below="false";chat.style.removeProperty("--chat-arrow-right");return;}
+    const rect=strip.getBoundingClientRect(),nav=document.querySelector(".tabbar")?.getBoundingClientRect(),header=document.querySelector(".navbar")?.getBoundingClientRect();
+    const width=Math.min(360,innerWidth-24),minTop=(header?.bottom??0)+12,minLeft=Math.min(innerWidth-width-12,Math.max(12,(nav?.right??0)+12));
+    chat.style.position="fixed";chat.style.width=`${width}px`;chat.style.maxHeight=`${Math.max(120,innerHeight-minTop-12)}px`;chat.style.right="auto";chat.style.bottom="auto";
+    const height=chat.offsetHeight,left=Math.max(minLeft,Math.min(rect.right-width,innerWidth-width-12)),below=rect.top-height-8<minTop&&rect.bottom+8+height<=innerHeight-12;
+    const preferred=below?rect.bottom+8:rect.top-height-8,top=Math.max(minTop,Math.min(preferred,innerHeight-height-12));
+    chat.style.left=`${left}px`;chat.style.top=`${top}px`;chat.dataset.below=String(below);chat.style.setProperty("--chat-arrow-right",`${Math.max(22,Math.min(width-22,left+width-(rect.left+rect.width/2)))}px`);
+  }
   function place(left:number,top:number){
     const nav=document.querySelector(".tabbar")?.getBoundingClientRect(),header=document.querySelector(".navbar")?.getBoundingClientRect();
     const mobile=innerWidth<760,minX=mobile?8:(nav?.right??0)+12,minY=(header?.bottom??0)+18;
@@ -170,6 +192,7 @@ export function installMascotCompanion():MascotCompanionApi{
     strip.style.left=`${x}px`;strip.style.top=`${y}px`;strip.style.right="auto";strip.style.bottom="auto";
     strip.style.setProperty("--bubble-shift",`${Math.max(0,198-x-strip.offsetWidth)}px`);
     strip.dataset.nearTop=String(y<(header?.bottom??0)+90);
+    positionChat();
   }
   function clampPosition(){
     if(!strip.hidden&&strip.style.left)place(parseFloat(strip.style.left),parseFloat(strip.style.top));
@@ -193,8 +216,9 @@ export function installMascotCompanion():MascotCompanionApi{
   // Keep the form anchored during submit: mobile blur happens before click.
   // Moving it on blur used to place the mascot over the Send button.
   strip.querySelector("[data-chat-close]")?.addEventListener("click",closeChat);
-  strip.querySelectorAll<HTMLButtonElement>("[data-chat-action]").forEach(button=>button.addEventListener("click",()=>{const action=button.dataset.chatAction;if(action==="talk"){chatForm.hidden=false;addChat("mascot","Tabii. Buradayım 🙂 Bugün nasıl gidiyor?");chatInput.focus();}else if(action==="motivate")addChat("mascot","Mükemmel olmak zorunda değilsin. Bugün yapacağın küçük ama gerçek bir çalışma, hiç başlamamaktan daha değerli.");else if(action==="break")addChat("mascot","Mola zamanı. Biraz ekrandan uzaklaş, su iç ve nefes al. Döndüğünde kaldığın yer burada.");else if(action==="today")addChat("mascot","Bugünkü programına beraber bakalım. Program ekranındaki çalışmalarını sırayla bitir; önce en kısa veya en acil olandan başlayabilirsin.");else if(action==="study")addChat("mascot","Kararsızsan matematikten kısa bir blokla başla. Sonra bugünkü programındaki fizik, kimya veya biyoloji çalışmana geçebiliriz.");}));
-  chatForm.addEventListener("submit",event=>{event.preventDefault();const value=chatInput.value.trim();if(!value)return;addChat("user",value);chatInput.value="";showTyping(localReply(value));});
+  strip.querySelectorAll<HTMLButtonElement>("[data-chat-action]").forEach(button=>button.addEventListener("click",()=>{const action=button.dataset.chatAction as ConversationAction;respond("",action);if(action==="talk")chatInput.focus();}));
+  chatForm.addEventListener("submit",event=>{event.preventDefault();const value=chatInput.value.trim().slice(0,180);if(value&&respond(value))chatInput.value="";});
+  chat.addEventListener("keydown",event=>{event.stopPropagation();if(event.key==="Escape"){event.preventDefault();closeChat();mascotButton.focus({preventScroll:true});}});
   mascotButton.addEventListener("click",()=>{if(Date.now()>suppressClickUntil){if(chatOpen)closeChat();else openChat();}});
   mascotButton.addEventListener("keydown",event=>{
     if(event.key==="Enter"||event.key===" "){event.stopPropagation();return;}
@@ -204,13 +228,14 @@ export function installMascotCompanion():MascotCompanionApi{
   window.addEventListener("storage",event=>{if(event.key===STORAGE_KEY||event.key===null){preference=readPreference();render();window.dispatchEvent(new CustomEvent("yks:mascot-change"));}});
   window.addEventListener("yks:navigation-after",watchFocus);
   window.addEventListener("yks:mascot-open",open);
-  window.addEventListener("yks:task-completed",()=>{if(!preference.enabled)return;pendingCelebrationUntil=Date.now()+30000;syncMotion();});
-  window.addEventListener("pagehide",()=>{++loadGeneration;loading=false;scene?.dispose();scene=null;picture.dataset.renderer="fallback";});
+  window.addEventListener("yks:data-changed",()=>{if(chatOpen)refreshChatStatus();});
+  window.addEventListener("yks:task-completed",()=>{if(chatOpen)refreshChatStatus();if(!preference.enabled)return;pendingCelebrationUntil=Date.now()+30000;syncMotion();});
+  window.addEventListener("pagehide",()=>{finishReply();++loadGeneration;loading=false;scene?.dispose();scene=null;picture.dataset.renderer="fallback";});
   window.addEventListener("pageshow",ensure3d);
   document.addEventListener("visibilitychange",syncMotion);reduced.addEventListener("change",syncMotion);
   document.addEventListener("focusin",syncMotion);document.addEventListener("focusout",()=>queueMicrotask(syncMotion));
   window.visualViewport?.addEventListener("resize",syncMotion);
-  window.addEventListener("resize",()=>{clampPosition();syncMotion();});
+  window.addEventListener("resize",()=>{clampPosition();positionChat();syncMotion();});
   // Only direct body insertions and known overlay attributes are observed; mascot renders never retrigger this observer.
   new MutationObserver(watchFocus).observe(document.body,{childList:true});
   const api:MascotCompanionApi={read:()=>({...preference,name:current().name}),open,setEnabled};window.__YKS_MASCOT__=api;
