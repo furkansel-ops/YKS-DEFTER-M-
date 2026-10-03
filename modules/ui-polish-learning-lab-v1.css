@@ -599,6 +599,7 @@
   #mrp_lab .v326-guide-grid{grid-template-columns:1fr;}
   #mrp_lab .v320-toolbox>.v320-tabs,
   #mrp_lab .v320-toolbox>.v4lab-main-tabs{grid-template-columns:repeat(2,minmax(0,1fr));}
+  #mrp_lab .v4lab-main-tabs>#v320TabSpeed{grid-column:1/-1;}
   #mrp_lab #v320PanelPeriodic,
   #mrp_lab #v320PanelTimeline,
   #mrp_lab #v320PanelScience,

@@ -30,7 +30,7 @@ function harness(){
   const context=vm.createContext({window,document,setInterval:()=>1,clearInterval(){},queueMicrotask,console,CustomEvent:class{constructor(type,options){this.type=type;this.detail=options?.detail}}});
   vm.runInContext(source,context);
   const rootNode=new Node();ids.set("yksModernSettings",rootNode);
-  for(const selector of ["[data-yms-overview]","[data-yms-detail]","#ymsDetailTitle","#ymsDetailDescription","#ymsSearch",".yms-category-list","[data-yms-no-results]","#ymsNotifTime","#ymsQuestionTarget","[data-yms-notif-status]","[data-yms-notif-permission]","[data-yms-coach-empty]","[data-yms-account-empty]","[data-yms-theme-slot]","[data-yms-personal-slot]","[data-yms-coach-slot]","[data-yms-account-slot]"])rootNode.selectors.set(selector,new Node());
+  for(const selector of ["[data-yms-overview]","[data-yms-detail]","#ymsDetailTitle","#ymsDetailDescription","#ymsSearch",".yms-category-list","[data-yms-no-results]","#ymsNotifTime","#ymsQuestionTarget","[data-yms-notif-status]","[data-yms-notif-permission]","[data-yms-coach-empty]","[data-yms-account-empty]","[data-yms-appearance-slot]","[data-yms-personal-slot]","[data-yms-coach-slot]","[data-yms-account-slot]"])rootNode.selectors.set(selector,new Node());
   rootNode.collections.set("[data-yms-section]",categoryIds.map(id=>{const node=new Node();node.dataset.ymsSection=id;node.hidden=true;return node}));
   rootNode.collections.set("[data-yms-category]",categoryIds.map(id=>{const node=new Node();node.dataset.ymsCategory=id;return node}));
   return {context,window,document,ids,listeners,root:rootNode,Node,scrolled,run:code=>vm.runInContext(code,context)};
@@ -96,12 +96,12 @@ test("hesap güncellemesi mevcut düğmeleri ve kullanıcı odağını değişti
   assert.equal(h.document.activeElement,target);assert.equal(h.root.writes,0);
 });
 
-test("tema, hesap ve koç panelleri klonlanmadan taşınır; mevcut dinleyiciler korunur",()=>{
-  const h=harness(),theme=new h.Node(),themeGrid=new h.Node();theme.hidden=true;theme.dataset.ymsHidden="true";themeGrid.closest=()=>theme;h.ids.set("themeGrid",themeGrid);
+test("yazı boyutu, hesap ve koç panelleri klonlanmadan taşınır; mevcut dinleyiciler korunur",()=>{
+  const h=harness(),appearance=new h.Node();appearance.hidden=true;appearance.dataset.ymsHidden="true";h.ids.set("appearancePreferences",appearance);
   const coach=new h.Node(),cloud=new h.Node(),account=new h.Node();let clicks=0;coach.addEventListener("click",()=>clicks++);
   h.ids.set("studentCoachCodeSettings",coach);h.ids.set("cloudSyncBox",cloud);h.ids.set("yksAccountSettingsCard",account);
   h.run('adoptPanels(document.getElementById(ROOT_ID));adoptPanels(document.getElementById(ROOT_ID))');
-  assert.deepEqual(h.root.querySelector("[data-yms-theme-slot]").children,[theme]);assert.equal(theme.hidden,false);
+  assert.deepEqual(h.root.querySelector("[data-yms-appearance-slot]").children,[appearance]);assert.equal(appearance.hidden,false);
   assert.deepEqual(h.root.querySelector("[data-yms-coach-slot]").children,[coach]);coach.emit("click");assert.equal(clicks,1);
   assert.deepEqual(h.root.querySelector("[data-yms-account-slot]").children,[cloud,account]);
   assert.equal(h.root.querySelector("[data-yms-coach-empty]").hidden,true);
@@ -132,12 +132,12 @@ test("günlük soru hedefi kayıt hatasında eski değeri korur ve başarılı k
   h.window.save=()=>true;button.emit("click");assert.equal(h.window.S.target,225);assert.equal(target.dataset.dirty,"false");assert.match(status.textContent,/kaydedildi/);
 });
 
-test("profil, tema ve bildirim işlevleri sadeleştirilmiş ayarlarda korunur",()=>{
+test("profil, görünüm ve bildirim işlevleri sadeleştirilmiş ayarlarda korunur",()=>{
   for(const label of ["Kişisel bilgiler","YKS hedeflerim","TYT hedef net","AYT hedef net","Hedef üniversite","Hedef bölüm","Alan / puan türü","OBP","Haftalık çalışma"])assert.ok(source.includes(label),label);
   for(const key of ["name","puanTuru","targetNetTYT","targetNetAYT","targetUniversity","targetDepartment"])assert.match(source,new RegExp(`s\\.${key}=`));
   assert.match(source,/s\.targetNet=s\.targetNetTYT/);
-  assert.match(source,/data-yms-theme-slot/);assert.match(source,/themeCard\.hidden=false/);
-  assert.doesNotMatch(source,/hideCardFor\("themeGrid"/);
+  assert.match(source,/data-yms-appearance-slot/);assert.match(source,/appearanceCard\.hidden=false/);
+  assert.doesNotMatch(source,/themeGrid|s\.theme|theme-card/);
   assert.match(source,/getElementById\("themeBtn"\)\?\.remove\(\)/);
   for(const method of ["toggleNotif","askNotif","saveEveningAt","testNotif","notifDiag"])assert.match(source,new RegExp(`window\\.${method}`));
   assert.match(source,/host\.replaceChildren\(panel\)/);
@@ -145,7 +145,7 @@ test("profil, tema ve bildirim işlevleri sadeleştirilmiş ayarlarda korunur",(
   assert.doesNotMatch(source,/\[600,1500,3500,7000\]/);
 });
 
-test("ayarlar seçili temanın tokenlarını ve güncel hesap yükleyicisini kullanır",()=>{
+test("ayarlar sabit görsel sistemin tokenlarını ve güncel hesap yükleyicisini kullanır",()=>{
   const css=read("src/ui/personalization-v43.css"),loader=read("src/ui/student-account-loader.ts");
   assert.match(source,/var\(--rb-surface,var\(--card,#fff\)\)/);
   assert.match(source,/var\(--rb-ink,var\(--label,#10203f\)\)/);

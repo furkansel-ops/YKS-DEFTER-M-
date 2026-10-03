@@ -34,6 +34,10 @@ function handleImageError(event:Event){
   const img=event.target;if(!(img instanceof HTMLImageElement))return;
   img.hidden=true;const fallback=img.nextElementSibling;if(fallback instanceof HTMLElement&&fallback.classList.contains("rb-mascot-fallback"))fallback.hidden=false;
 }
+function appearanceSettingsOpen():boolean{
+  const panel=document.querySelector<HTMLElement>('#yksModernSettings[data-category="appearance"]');
+  return Boolean(panel&&panel.getClientRects().length>0&&getComputedStyle(panel).visibility!=="hidden");
+}
 
 /** Visual preferences are device-local and never touch study data or cloud sync. */
 export function installMascotCompanion():MascotCompanionApi{
@@ -95,7 +99,7 @@ export function installMascotCompanion():MascotCompanionApi{
     animationTimer=window.setTimeout(()=>{strip.classList.remove("is-celebrating");syncMotion();},3600);
   }
   function syncMotion(){
-    obscured=overlayOpen()||keyboardOpen();strip.dataset.obscured=String(obscured);
+    obscured=overlayOpen()||keyboardOpen()||appearanceSettingsOpen();strip.dataset.obscured=String(obscured);
     strip.inert=obscured;const running=focusRunning();document.documentElement.dataset.mascotMotion=quiet()?"quiet":"ready";
     if(quiet()&&(!reduced.matches||!preference.enabled||document.hidden||running||obscured))stopMotion();
     if(pendingCelebrationUntil>Date.now()&&preference.enabled&&!document.hidden&&!running&&!obscured&&!strip.classList.contains("is-dragging"))celebrate();
@@ -106,6 +110,9 @@ export function installMascotCompanion():MascotCompanionApi{
   const watched=new WeakSet<Element>(),focusObserver=new MutationObserver(syncMotion),overlays=new WeakSet<Element>(),overlayObserver=new MutationObserver(syncMotion);
   function watchFocus(){
     for(const card of document.querySelectorAll("#focusCard,#swCard"))if(!watched.has(card)){watched.add(card);focusObserver.observe(card,{attributes:true,attributeFilter:["data-run"]});}
+    // Settings can create its inner view lazily; observe its stable host, not mascot DOM.
+    const settings=document.getElementById("mrp_ayar");
+    if(settings&&!watched.has(settings)){watched.add(settings);focusObserver.observe(settings,{subtree:true,attributes:true,attributeFilter:["data-category","hidden","style"]});}
     for(const overlay of document.querySelectorAll(`${overlaySelector},dialog`))if(!overlays.has(overlay)){overlays.add(overlay);overlayObserver.observe(overlay,{attributes:true,attributeFilter:["style","class","hidden","aria-hidden","open"]});}
     syncMotion();
   }

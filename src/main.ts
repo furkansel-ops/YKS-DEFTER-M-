@@ -48,6 +48,7 @@ type BootstrapState={
 declare global{
   interface Window{
     __YKS_V4_BOOTSTRAP__?:BootstrapState;
+    __YKS_BOOT__?:{reveal():void;fail():void};
   }
 }
 
@@ -84,8 +85,8 @@ function installOptional<T>(name:string,installer:()=>T,fallback:T):T{
 }
 document.documentElement.dataset.v4OptionalErrors="0";
 
-/* Tema seçimi yalnız Ayarlar > Görünüm bölümündedir; kayıtlı tema açılışta korunur. */
-document.documentElement.dataset.themeControl="settings-only";
+/* Görünüm tek tasarım sisteminden gelir; eski tema tercihleri açılışa katılmaz. */
+document.documentElement.dataset.themeControl="single";
 
 const teachersPaused=document.documentElement.dataset.teacherFeature!=="on";
 document.documentElement.dataset.teacherFeatureState=teachersPaused?"paused":"on";
@@ -203,11 +204,9 @@ document.documentElement.dataset.v43RuntimeHost=String(v43Runtime.installed);
 const release=installReleaseRuntime();
 document.documentElement.dataset.v4ReleaseVersion=release.version;
 
-/* Statik legacy DOM ilk boyamada görünmesin. Program dahil refined shell dinamik
-   olarak v4.3 runtime'ın sonunda kurulur; arayüzü ancak bu dönüşüm tamamlandıktan sonra aç.
-   index.html içindeki fail-safe, runtime beklenmedik biçimde takılırsa temel arayüzü açar. */
-const revealUi=()=>window.requestAnimationFrame(()=>{document.documentElement.dataset.uiReady="true";});
-const revealAfterRefinedRuntime=()=>{void v43Runtime.ready.then(revealUi,revealUi);};
+/* Kritik görsel modüller ve stiller doğrulanmadan loading kalkmaz. İsteğe bağlı
+   özellikler arızalanabilir; eksik yeni kabuk ise eski DOM yerine tekrar deneme sunar. */
+const revealAfterRefinedRuntime=()=>{void v43Runtime.ready.then(()=>window.__YKS_BOOT__?.reveal(),()=>window.__YKS_BOOT__?.fail());};
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",revealAfterRefinedRuntime,{once:true});
 else revealAfterRefinedRuntime();
 

@@ -23,7 +23,7 @@
   function injectStyle(){
     if($("v4LearningLabV3Style"))return;
     const s=document.createElement("style");s.id="v4LearningLabV3Style";s.textContent=`
-      #v320LearningLab .v4lab-main-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}
+      #v320LearningLab .v4lab-main-tabs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px}
       #v320LearningLab .v4lab-main-tabs button{min-height:42px;padding:9px 11px;border-radius:11px;white-space:normal}
       #v320PanelScience{padding-top:2px}
       .v4-science-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin:4px 0 12px}.v4-science-head small,.v4-science-head b,.v4-science-head p{display:block}.v4-science-head small{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--label-3);font-weight:800}.v4-science-head b{font-size:18px;margin-top:3px}.v4-science-head p{font-size:11px;color:var(--label-2);margin:4px 0 0;line-height:1.45}
@@ -129,18 +129,26 @@
   }
 
   function setTab(next){
-    active=["periodic","timeline","science","atlas"].includes(next)?next:"periodic";
-    [["Periodic","periodic"],["Timeline","timeline"],["Science","science"],["Atlas","atlas"]].forEach(([name,key])=>{$("v320Tab"+name)?.classList.toggle("on",active===key);const panel=$("v320Panel"+name);if(panel)panel.hidden=active!==key;});
+    active=["periodic","timeline","science","atlas","speed"].includes(next)?next:"periodic";
+    [["Periodic","periodic"],["Timeline","timeline"],["Science","science"],["Atlas","atlas"],["Speed","speed"]].forEach(([name,key])=>{const button=$("v320Tab"+name);button?.classList.toggle("on",active===key);button?.setAttribute?.("aria-selected",String(active===key));const panel=$("v320Panel"+name);if(panel)panel.hidden=active!==key;});
     if(active==="atlas")window.YKSBiologyAtlas?.mount?.($("v320PanelAtlas"));else window.YKSBiologyAtlas?.suspend?.();
+    if(active==="speed")void window.srInitLearn?.();else window.YKSSpeedReading?.suspend?.();
     if(active==="periodic"){try{window.v320RenderElements?.();}catch(e){}setTimeout(()=>{try{window.YKSLearningLabV2?.enhanceElement?.();}catch(e){}ensurePeriodicStudy();},0);}
     if(active==="timeline"){ensureTimelineExperience();try{window.v320RenderTimeline?.();}catch(e){}requestAnimationFrame(decorateTimeline);}
     if(active==="science")renderScience();return true;
   }
 
   function bindMainTabs(){
-    [["v320TabPeriodic","periodic"],["v320TabTimeline","timeline"],["v320TabScience","science"],["v320TabAtlas","atlas"]].forEach(([id,key])=>{
+    const entries=[["v320TabPeriodic","periodic"],["v320TabTimeline","timeline"],["v320TabScience","science"],["v320TabAtlas","atlas"],["v320TabSpeed","speed"]];
+    entries.forEach(([id,key],index)=>{
       const button=$(id);if(!button||button.dataset.v4TabBound==="1")return;
+      button.setAttribute("role","tab");button.setAttribute("aria-controls",id.replace("Tab","Panel"));button.setAttribute("aria-selected",String(active===key));
       button.dataset.v4TabBound="1";button.removeAttribute("onclick");button.addEventListener("click",()=>setTab(key));
+      button.addEventListener("keydown",event=>{
+        if(!["ArrowLeft","ArrowRight","Home","End"].includes(event.key))return;
+        event.preventDefault();event.stopPropagation();const next=event.key==="Home"?0:event.key==="End"?entries.length-1:(index+(event.key==="ArrowRight"?1:-1)+entries.length)%entries.length;
+        setTab(entries[next][1]);$(entries[next][0])?.focus();
+      });
     });
   }
 
@@ -151,6 +159,7 @@
     if(!$("v320PanelScience")){const panel=document.createElement("div");panel.id="v320PanelScience";panel.hidden=true;panel.innerHTML='<div class="v4-science-head"><div><small>Hızlı fen tekrarı</small><b>Biyoloji / Fizik kartları</b><p>Temel yapı, sık hata ve YKS taktiğini aynı kartta gör.</p></div><div class="v4-science-switch" role="tablist" aria-label="Bilim kartı dersi"><button id="v4ScienceBiology" class="on" type="button" onclick="v4SetScienceSubject(\'Biyoloji\')">Biyoloji</button><button id="v4SciencePhysics" type="button" onclick="v4SetScienceSubject(\'Fizik\')">Fizik</button></div></div><div id="v4ScienceCards"></div>';toolbox.appendChild(panel);}
     if(tabs&&!$("v320TabAtlas")){const button=document.createElement("button");button.id="v320TabAtlas";button.type="button";button.textContent="Biyoloji Atlası";tabs.appendChild(button);}
     if(!$("v320PanelAtlas")){const panel=document.createElement("section");panel.id="v320PanelAtlas";panel.hidden=true;toolbox.appendChild(panel);}
+    if(tabs&&!$("v320TabSpeed")){const button=document.createElement("button");button.id="v320TabSpeed";button.type="button";button.textContent="Hızlı Okuma";tabs.appendChild(button);}
     wrapPeriodicReset();wrapTimelineRendering();window.v320SetTab=setTab;bindMainTabs();if(active==="periodic")ensurePeriodicStudy();else if(active==="timeline"){ensureTimelineExperience();decorateTimeline();}else if(active==="science")renderScience();else if(active==="atlas")window.YKSBiologyAtlas?.mount?.($("v320PanelAtlas"));return true;
   }
 
