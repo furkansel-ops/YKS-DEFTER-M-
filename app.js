@@ -224,7 +224,7 @@ const DEF={
   solved:{},solvedTopic:{},topics:{},denemeler:[],wrongLog:[],pomoMin:{},pomoSubj:{},pauses:{},
   journal:{},dayReview:{},books:[],workMin:25,breakMin:5,
   weeks:{},rows:{r:DEF_R,s:DEF_S},rowLabels:{r:[],s:[]},
-  theme:"auto",sound:true,focusSound:"none",lastBackup:null,badges:[],badgeAt:{},swHistory:{},
+  theme:"refined-blue",sound:true,focusSound:"none",lastBackup:null,badges:[],badgeAt:{},swHistory:{},
   fontScale:1,simulMin:165,
   qbank:[],sessions:{},restSnooze:"",pauseReasons:{},
   wizardDone:false,simple:false,demo:false,demoBackup:null,workdays:6,
@@ -559,9 +559,8 @@ function normalize(o){
   if(!Array.isArray(o.lab.topicFav))o.lab.topicFav=[];
   o.lab.topicFav=[...new Set(o.lab.topicFav.filter(x=>typeof x==="string").map(x=>x.slice(0,180)))].slice(0,500);
   if(!o.coef)o.coef=Object.assign({},DEF.coef); else o.coef=Object.assign({},DEF.coef,o.coef);
-  if(o.theme==="light")o.theme="paper";
-  if(o.theme==="dark")o.theme="night";
-  if(["auto","paper","night","forest","ocean","lavender","sunset","graphite"].indexOf(o.theme)<0)o.theme="auto";
+  // Eski yedeklerdeki görünüm tercihi çalışma kayıtlarını etkilemeden emekliye ayrılır.
+  o.theme="refined-blue";
   if(["none","white","brown"].indexOf(o.focusSound)<0)o.focusSound="none";
   /* v1 -> v2: konular boolean idi, artık {st,conf,ts,rev} */
   if((o.v|0)<2){
@@ -738,60 +737,21 @@ function markReview(key,gi){
   save();
 }
 
-/* ================= TEMA ================= */
-const ICONS={
-  auto:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 010 18z" fill="currentColor" stroke="none"/></svg>',
-  paper:'<svg viewBox="0 0 24 24"><path d="M5 4.5A2.5 2.5 0 017.5 2H19v17H7.5A2.5 2.5 0 005 21.5z"/><path d="M5 4.5v17M9 7h6M9 11h6M9 15h4"/></svg>',
-  night:'<svg viewBox="0 0 24 24"><path d="M20 14.5A8.2 8.2 0 019.5 4a8.5 8.5 0 1010.5 10.5z"/></svg>',
-  forest:'<svg viewBox="0 0 24 24"><path d="M19.5 4.5C12 4.7 6.7 8.2 5.2 14.3c-.7 2.9 1.4 5.2 4.2 4.5 5.7-1.4 8.8-6.5 10.1-14.3z"/><path d="M6.5 18c2.8-3.1 5.7-5.6 9.1-7.7"/></svg>',
-  ocean:'<svg viewBox="0 0 24 24"><path d="M3 15c2.2-2.3 4.4-2.3 6.6 0s4.4 2.3 6.6 0 4.4-2.3 4.8-1.8"/><path d="M4 10c2-2 4-2 6 0s4 2 6 0 4-2 4-2"/></svg>',
-  lavender:'<svg viewBox="0 0 24 24"><path d="M12 21V8"/><path d="M12 11c-3-1-5-3-5-6 3 0 5 2 5 5"/><path d="M12 14c3-1 5-3 5-6-3 0-5 2-5 5"/><path d="M12 18c-2.5-.7-4-2.2-4-4.5 2.4 0 4 1.4 4 3.8"/></svg>',
-  sunset:'<svg viewBox="0 0 24 24"><path d="M4 17h16"/><path d="M7 17a5 5 0 0110 0"/><path d="M12 3v3M4.2 7.2l2.1 2.1M19.8 7.2l-2.1 2.1"/></svg>',
-  graphite:'<svg viewBox="0 0 24 24"><path d="M7 3h10l4 7-9 11L3 10z"/><path d="M7 3l5 18M17 3l-5 18M3 10h18"/></svg>'
-};
-const THEME_NAMES={auto:"Sistem",paper:"Defter",night:"Gece",forest:"Orman",ocean:"Okyanus",lavender:"Lavanta",sunset:"Günbatımı",graphite:"Grafit"};
-const THEME_HINTS={
-  paper:"Sıcak krem zemin ve sakin toprak tonlarıyla gerçek bir çalışma defteri hissi verir.",
-  night:"Koyu kömür zemin ve yumuşak mor vurgularla akşam çalışmalarında göz yorgunluğunu azaltır.",
-  forest:"Sage ve orman yeşili tonlarıyla uzun çalışma oturumlarında daha sakin bir görünüm sunar.",
-  ocean:"Ferah mavi ve turkuaz tonlarıyla aydınlık, temiz bir çalışma alanı oluşturur.",
-  lavender:"Yumuşak lavanta ve mor tonlarıyla sakin ama renkli bir görünüm sunar.",
-  sunset:"Krem, şeftali ve sıcak turuncu tonlarıyla daha enerjik bir çalışma havası verir.",
-  graphite:"Nötr koyu yüzeyler ve mavi vurgularla dikkat dağıtmayan ikinci bir gece seçeneğidir."
-};
-const mq=(typeof window.matchMedia==="function")
-  ? window.matchMedia("(prefers-color-scheme: dark)")
-  : {matches:false,addEventListener:function(){},addListener:function(){}};
-function isDarkNow(){ return S.theme==="night"||S.theme==="graphite"||(S.theme==="auto"&&mq.matches); }
+/* ================= GÖRÜNÜM UYUMLULUĞU ================= */
+// Geri yükleme ve eski çağrılar aynı sabit görsel sistemi kullanır.
+function isDarkNow(){ return false; }
 function applyTheme(){
-  document.documentElement.setAttribute("data-theme",S.theme);
-  document.documentElement.style.colorScheme=isDarkNow()?"dark":"light";
-  const metaColors={paper:"#F5EFE4",night:"#0D0F13",forest:"#E9F0E8",ocean:"#EAF3F9",lavender:"#F2EEF9",sunset:"#FAEFE8",graphite:"#121418"};
+  S.theme="refined-blue";
+  const root=document.documentElement;
+  root.removeAttribute("data-theme");
+  root.dataset.visualSystem="refined-blue";
+  root.style.colorScheme="light";
   const mt=el("metaTheme");
-  if(mt)mt.setAttribute("content",S.theme==="auto"?(mq.matches?"#08090D":"#EFF2F8"):(metaColors[S.theme]||"#EFF2F8"));
-  const btn=el("themeBtn");
-  if(btn){ btn.innerHTML=ICONS[S.theme]||ICONS.auto; btn.title="Tema: "+(THEME_NAMES[S.theme]||"Sistem"); }
-  [["auto","thAuto"],["paper","thPaper"],["night","thNight"],["forest","thForest"],["ocean","thOcean"],["lavender","thLavender"],["sunset","thSunset"],["graphite","thGraphite"]].forEach(p=>{
-    const e=el(p[1]);
-    if(e){ const on=S.theme===p[0]; e.classList.toggle("on",on); e.setAttribute("aria-pressed",on?"true":"false"); }
-  });
-  const hint=el("themeHint");
-  if(hint)hint.textContent=S.theme==="auto"
-    ?"Cihazının görünüm ayarını izler; şu an "+(mq.matches?"gece":"gündüz")+" görünümünde."
-    :(THEME_HINTS[S.theme]||"");
+  if(mt)mt.setAttribute("content","#EFF2F8");
   setTimeout(()=>{if(el("deneme")&&el("deneme").classList.contains("active")){drawChart();drawSubjChart();}},60);
 }
-function setTheme(t){
-  if(!THEME_NAMES[t])t="auto";
-  S.theme=t; save(); applyTheme();
-  toast("Tema: "+THEME_NAMES[S.theme]);
-}
-function cycleTheme(){
-  const o=["auto","paper","night","forest","ocean","lavender","sunset","graphite"];
-  setTheme(o[(o.indexOf(S.theme)+1)%o.length]);
-}
-if(mq.addEventListener)mq.addEventListener("change",()=>{ if(S.theme==="auto")applyTheme(); });
-else if(mq.addListener)mq.addListener(()=>{ if(S.theme==="auto")applyTheme(); });
+function setTheme(){ applyTheme(); }
+function cycleTheme(){ applyTheme(); }
 
 /* ================= SES ================= */
 let audioCtx=null,noiseSrc=null,noiseGain=null;

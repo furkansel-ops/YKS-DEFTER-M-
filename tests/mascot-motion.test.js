@@ -13,7 +13,7 @@ test("an untouched dock alternates five distinct activities and rests for every 
 });
 
 test("every moving pose stays finite, has visible movement and remains inside the small camera",()=>{
-  for(const action of ["wave","look","stretch","hop","dance","greet","chat","celebrate"]){
+  for(const action of ["wave","look","stretch","hop","dance","greet","celebrate"]){
     const samples=[];
     for(let t=0;t<3.6;t+=.02){
       const p=motion.mascotPose(action,t);samples.push(JSON.stringify(p));

@@ -227,18 +227,6 @@ textarea{line-height:1.55;}
   .topic-open,.v26-close,.themebtn{min-width:44px;}
 }
 
-/* Koyu temalarda saç teli ve alan kontrastı */
-:root[data-theme="dark"] :is(input,select,textarea):not([type="checkbox"]):not([type="radio"]),
-:root[data-theme="night"] :is(input,select,textarea):not([type="checkbox"]):not([type="radio"]),
-:root[data-theme="graphite"] :is(input,select,textarea):not([type="checkbox"]):not([type="radio"]){
-  background:color-mix(in srgb,var(--glass-strong) 82%,var(--fill));
-}
-:root[data-theme="dark"] .v26-topic-sheet,
-:root[data-theme="night"] .v26-topic-sheet,
-:root[data-theme="graphite"] .v26-topic-sheet{
-  box-shadow:0 28px 90px rgba(0,0,0,.56);
-}
-
 /* Hareket azaltma tercihi tüm son cila etkileşimlerinde korunur */
 @media(prefers-reduced-motion:reduce){
   html{scroll-behavior:auto!important;}

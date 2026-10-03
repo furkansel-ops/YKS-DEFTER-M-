@@ -47,6 +47,7 @@ export function installRefinedShell(){
   media.addEventListener("change",sync);window.addEventListener("yks:navigation-after",sync);sync();
   installRefinedSecondary();
   installRefinedStudyScreens();
-  installMascotCompanion();
+  // A cosmetic companion failure must not prevent the completed application shell opening.
+  try{installMascotCompanion();}catch(error){document.documentElement.dataset.mascotRuntime="deferred";console.error("Maskot başlatılamadı",error);}
   return {installed:true,validate(){return [!program.installed?"program":"",!document.getElementById("refinedBrand")?"brand":""].filter(Boolean);}};
 }

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="tr" data-theme="paper" data-visual-system="refined-blue" data-theme-mode="single" data-theme-name="yks-defterim">
+<html lang="tr" data-visual-system="refined-blue" data-ui-shell="refined-v1">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -16,27 +16,54 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" id="metaTheme" content="#EFF2F8">
 <title>YKS Defterim</title>
-<script>
-/* Tek görsel sistem: eski tema tercihlerinin ilk boyamayı değiştirmesine izin verme. */
-document.documentElement.setAttribute("data-theme","paper");
-document.documentElement.dataset.themeMode="single";
-document.documentElement.dataset.themeName="yks-defterim";
-</script>
 <style id="yksBootGuard">
-  html:not([data-ui-ready]) body{overflow:hidden}
-  html:not([data-ui-ready]) body>*:not(#yksBootShell){visibility:hidden!important}
-  #yksBootShell{position:fixed;inset:0;z-index:2147483647;display:grid;place-items:center;background:#eff2f8;color:#172033;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-  #yksBootShell .yks-boot-card{display:flex;align-items:center;gap:13px;padding:16px 18px;border:1px solid rgba(23,32,51,.08);border-radius:20px;background:rgba(255,255,255,.86);box-shadow:0 18px 55px rgba(42,55,86,.10)}
-  #yksBootShell img{width:42px;height:42px;border-radius:12px}
+  html:not([data-ui-ready="true"]) body{overflow:hidden}
+  html:not([data-ui-ready="true"]) body>*:not(#yksBootShell){opacity:0!important;visibility:hidden!important;pointer-events:none!important}
+  html:not([data-ui-ready="true"]) body>*:not(#yksBootShell) *{visibility:hidden!important}
+  #yksBootShell{position:fixed;inset:0;z-index:2147483647;display:grid;place-items:center;padding:24px;box-sizing:border-box;background:#eff2f8;color:#172033;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+  #yksBootShell .yks-boot-card{display:flex;align-items:center;gap:13px;max-width:360px;padding:18px;border:1px solid #e1e6ee;border-radius:20px;background:#fff;box-shadow:0 18px 55px rgba(42,55,86,.10)}
+  #yksBootShell img{width:42px;height:42px;flex-shrink:0;border-radius:12px}
   #yksBootShell strong{display:block;font-size:16px;line-height:1.2;letter-spacing:-.015em}
-  #yksBootShell span{display:block;margin-top:4px;font-size:12px;color:#6b7487}
-  html:is([data-theme="night"],[data-theme="graphite"]) #yksBootShell{background:#10141d;color:#f4f6fb}
-  html:is([data-theme="night"],[data-theme="graphite"]) #yksBootShell .yks-boot-card{background:rgba(23,29,40,.94);border-color:rgba(255,255,255,.08)}
-  html:is([data-theme="night"],[data-theme="graphite"]) #yksBootShell span{color:#aab3c4}
-  html[data-ui-ready] #yksBootShell{display:none!important}
+  #yksBootShell span,#yksBootShell noscript{display:block;margin-top:6px;font-size:13px;line-height:1.5;color:#6b7487}
+  #yksBootRetry{margin-top:12px;padding:10px 14px;min-height:44px;border:0;border-radius:12px;background:#1268ed;color:#fff;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer}
+  #yksBootRetry[hidden]{display:none!important}
+  #yksBootRetry:focus-visible{outline:3px solid #81b3ff;outline-offset:3px}
+  html[data-ui-ready="true"] #yksBootShell{display:none!important}
 </style>
-<script>
-window.setTimeout(function(){var r=document.documentElement;if(!r.dataset.uiReady)r.dataset.uiReady="fallback";},5000);
+<script id="yksBootController">
+/* A slow or failed download may offer a retry, but must never uncover the old DOM. */
+(function(){
+  var root=document.documentElement;
+  var visualFeatures=["v43Today","v43Analysis","v43Navigation","v43Personalization","refinedShell"];
+  var timeout;
+  root.dataset.bootState="loading";
+  function updateStatus(){
+    var status=document.getElementById("yksBootStatus"),retry=document.getElementById("yksBootRetry");
+    var waiting=root.dataset.bootState==="waiting",failed=root.dataset.bootState==="error";
+    if(status)status.textContent=failed?"Uygulama açılamadı. Bağlantını kontrol edip tekrar deneyebilirsin.":waiting?"Hazırlık biraz uzun sürdü. Bekleyebilir veya tekrar deneyebilirsin.":"Hazırlanıyor…";
+    if(retry)retry.hidden=!waiting&&!failed;
+  }
+  function fail(){if(root.dataset.uiReady!=="true"){root.dataset.bootState="error";updateStatus();}}
+  function isReady(){
+    return root.dataset.v4Runtime==="ready"&&visualFeatures.every(function(name){return root.dataset[name]==="true"&&root.dataset[name+"Errors"]==="0";})&&
+      !!document.getElementById("refinedBrand")&&!!document.getElementById("refinedProgram")&&
+      window.getComputedStyle(root).getPropertyValue("--yks-visual-ready").trim()==="1";
+  }
+  window.__YKS_BOOT__={fail:fail,reveal:function(){
+    if(!isReady()){fail();return;}
+    window.requestAnimationFrame(function(){
+      if(!isReady()){fail();return;}
+      window.clearTimeout(timeout);root.dataset.bootState="ready";root.dataset.uiReady="true";
+    });
+  }};
+  timeout=window.setTimeout(function(){if(root.dataset.uiReady!=="true"&&root.dataset.bootState!=="error"){root.dataset.bootState="waiting";updateStatus();}},12000);
+  document.addEventListener("DOMContentLoaded",function(){
+    updateStatus();
+    var retry=document.getElementById("yksBootRetry");
+    if(retry)retry.addEventListener("click",function(){window.location.reload();});
+  },{once:true});
+  window.addEventListener("error",fail,true);
+})();
 </script>
 <link rel="stylesheet" href="./app.css" id="themes20260821">
 
@@ -80,8 +107,8 @@ window.setTimeout(function(){var r=document.documentElement;if(!r.dataset.uiRead
 
   <link rel="stylesheet" href="./modules/study-intelligence-v5.css?v=4.1.0-r1">
 </head><body>
-<div id="yksBootShell" role="status" aria-live="polite" aria-label="YKS Defterim açılıyor">
-  <div class="yks-boot-card"><img src="./icon-192.png" alt=""><div><strong>YKS Defterim</strong><span>Hazırlanıyor…</span></div></div>
+<div id="yksBootShell" aria-label="YKS Defterim açılıyor">
+  <div class="yks-boot-card"><img src="./icon-192.png" alt=""><div><strong>YKS Defterim</strong><span id="yksBootStatus" role="status" aria-live="polite">Hazırlanıyor…</span><button id="yksBootRetry" type="button" hidden>Tekrar dene</button><noscript>Uygulamayı açmak için JavaScript'i etkinleştir.</noscript></div></div>
 </div>
 <div class="v311-offline" id="v311OfflineBanner" role="status" aria-live="polite" aria-hidden="true" hidden></div>
 <svg class="svgdefs" aria-hidden="true" focusable="false">
@@ -1205,10 +1232,10 @@ window.setTimeout(function(){var r=document.documentElement;if(!r.dataset.uiRead
       </div>
 
       <details class="v320-toolbox">
-        <summary>Hazır laboratuvar araçları</summary>
-        <div class="seg v320-tabs" role="tablist" aria-label="Öğrenme laboratuvarı araçları" style="grid-template-columns:repeat(4,minmax(0,1fr))">
+        <summary>Hızlı Okuma ve laboratuvar araçları</summary>
+        <div class="seg v320-tabs" role="tablist" aria-label="Öğrenme laboratuvarı araçları">
           <button id="v320TabParagraph" class="on" type="button" onclick="v320SetTab('paragraph')">Paragraf</button>
-          <button id="v320TabSpeed" type="button" onclick="v320SetTab('speed');srInitLearn()">Hızlı okuma</button>
+          <button id="v320TabSpeed" type="button" onclick="v320SetTab('speed')">Hızlı Okuma</button>
           <button id="v320TabPeriodic" type="button" onclick="v320SetTab('periodic')">Periyodik tablo</button>
           <button id="v320TabTimeline" type="button" onclick="v320SetTab('timeline')">Tarih kronolojisi</button>
         </div>
@@ -1224,8 +1251,7 @@ window.setTimeout(function(){var r=document.documentElement;if(!r.dataset.uiRead
           </div>
           <div class="card" id="v320ParagraphHistory"></div>
         </div>
-        <div id="v320PanelSpeed" hidden>
-          <div class="v327-tool-intro"><div><span>Okuma laboratuvarı</span><b>Hızlı Okuma · Öğren</b></div><small>Önce temel teknikleri öğren; egzersiz ve test aşamaları bunun üzerine kurulacak.</small></div>
+        <div id="v320PanelSpeed" role="tabpanel" aria-labelledby="v320TabSpeed" hidden>
           <div id="speedReadingLearn"></div>
         </div>
         <div id="v320PanelPeriodic" hidden>
@@ -1438,43 +1464,8 @@ window.setTimeout(function(){var r=document.documentElement;if(!r.dataset.uiRead
 
   <div id="mrp_ayar" style="display:none;">
     <div class="v30-subhead"><button class="v30-back" type="button" onclick="setMoreTab('home')">‹ Daha</button><div><h1>Ayarlar</h1><p>Görünüm, hedefler ve uygulama seçenekleri</p></div></div>
-    <div class="card">
+    <div class="card" id="appearancePreferences">
       <p class="eyebrow">Görünüm</p>
-      <div class="theme-grid" id="themeGrid">
-        <button class="theme-card" id="thAuto" onclick="setTheme('auto')" type="button">
-          <span class="theme-swatch sw-system"><i></i><i></i></span>
-          <span><b>Sistem</b><small>Cihaza uyum sağlar</small></span>
-        </button>
-        <button class="theme-card" id="thPaper" onclick="setTheme('paper')" type="button">
-          <span class="theme-swatch sw-paper"><i></i><i></i></span>
-          <span><b>Defter</b><small>Sıcak ve kağıt hissi</small></span>
-        </button>
-        <button class="theme-card" id="thNight" onclick="setTheme('night')" type="button">
-          <span class="theme-swatch sw-night"><i></i><i></i></span>
-          <span><b>Gece</b><small>Loş çalışma için</small></span>
-        </button>
-        <button class="theme-card" id="thForest" onclick="setTheme('forest')" type="button">
-          <span class="theme-swatch sw-forest"><i></i><i></i></span>
-          <span><b>Orman</b><small>Sakin yeşil tonlar</small></span>
-        </button>
-        <button class="theme-card" id="thOcean" onclick="setTheme('ocean')" type="button">
-          <span class="theme-swatch sw-ocean"><i></i><i></i></span>
-          <span><b>Okyanus</b><small>Ferah mavi tonlar</small></span>
-        </button>
-        <button class="theme-card" id="thLavender" onclick="setTheme('lavender')" type="button">
-          <span class="theme-swatch sw-lavender"><i></i><i></i></span>
-          <span><b>Lavanta</b><small>Yumuşak mor tonlar</small></span>
-        </button>
-        <button class="theme-card" id="thSunset" onclick="setTheme('sunset')" type="button">
-          <span class="theme-swatch sw-sunset"><i></i><i></i></span>
-          <span><b>Günbatımı</b><small>Sıcak turuncu tonlar</small></span>
-        </button>
-        <button class="theme-card" id="thGraphite" onclick="setTheme('graphite')" type="button">
-          <span class="theme-swatch sw-graphite"><i></i><i></i></span>
-          <span><b>Grafit</b><small>Sade koyu ve nötr</small></span>
-        </button>
-      </div>
-      <p class="hint" id="themeHint"></p>
       <p class="eyebrow" style="margin:18px 0 8px;">Yazı boyutu</p>
       <div class="seg quad" style="margin-bottom:0;">
         <button id="fz0" onclick="setFontScale(0.9)">Küçük</button>
@@ -2205,6 +2196,6 @@ window.addEventListener("online",()=>{if(!user)return;status("Bağlantı geldi",
   <script vite-ignore src="./modules/study-intelligence-v5.js?v=4.1.0-r1"></script>
 <script vite-ignore src="./modules/release-selftest.js?v=4.1.0-r20"></script>
 <script type="module" src="./src/main.ts"></script>
-<script src="modules/speed-reading-learn-v1.js?v=1.0.0"></script>
+<script vite-ignore src="./modules/speed-reading-learn-v1.js?v=2.0.0"></script>
 </body>
 </html>

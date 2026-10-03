@@ -1,5 +1,5 @@
-export type MascotAction="idle"|"wave"|"look"|"stretch"|"hop"|"dance"|"greet"|"chat"|"celebrate"|"quiet"|"paused";
-export type MascotMode="idle"|"greet"|"chat"|"celebrate"|"quiet"|"paused";
+export type MascotAction="idle"|"wave"|"look"|"stretch"|"hop"|"dance"|"greet"|"celebrate"|"quiet"|"paused";
+export type MascotMode="idle"|"greet"|"celebrate"|"quiet"|"paused";
 export const GREETING_SECONDS=2.8;
 export const CELEBRATION_SECONDS=3.6;
 const IDLE_ACTIONS:readonly MascotAction[]=["wave","look","stretch","hop","dance"];
@@ -31,8 +31,6 @@ export function mascotPose(action:MascotAction,time:number){
     pose.y+=Math.max(0,Math.sin(time*7))*.32*e;pose.leftZ=-.7*e;pose.rightZ=.7*e;pose.roll=Math.sin(time*7)*.07*e;
   }else if(action==="dance"){
     pose.roll=Math.sin(time*7)*.16*e;pose.yaw+=Math.sin(time*5)*.24*e;pose.leftZ=-(.7+.35*Math.sin(time*7))*e;pose.rightZ=(.7-.35*Math.sin(time*7))*e;
-  }else if(action==="chat"){
-    pose.headZ=Math.sin(time*1.8)*.09;pose.headX=Math.sin(time*3.1)*.07;pose.leftZ=-.15-.15*Math.sin(time*3);
   }else if(action==="celebrate"){
     pose.y+=Math.abs(Math.sin(time*6.4))*.46*e;pose.leftZ=-(1.75+.27*Math.sin(time*17))*e;pose.rightZ=(1.75-.27*Math.sin(time*17))*e;
     const spin=clamp((time-1.1)/1.35);pose.yaw+=Math.PI*2*(spin*spin*(3-2*spin));

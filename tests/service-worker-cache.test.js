@@ -6,11 +6,12 @@ const vm=require("node:vm");
 
 const source=fs.readFileSync(path.resolve(__dirname,"../sw.js"),"utf8");
 const scope="https://example.test/YKS-DEFTER-M-/";
-const cacheName="yks-core-v4.4.0-r19";
-const oldHtml='<script src="./assets/index-old.js"></script>';
-const newHtml='<script src="./assets/index-new.js"></script><link href="./assets/index-new.css">';
+const cacheName="yks-core-v4.4.0-r21";
+const guard='<html data-ui-shell="refined-v1"><style id="yksBootGuard"></style>';
+const oldHtml=guard+'<script src="./assets/index-old.js"></script>';
+const newHtml=guard+'<script src="./assets/index-new.js"></script><link href="./assets/index-new.css">';
 
-function harness({initial={},network=async()=>new Response("asset"),rejectBatch=false,manifest={version:1,entry:"./assets/index-new.js",assets:["./assets/index-new.js"]}}={}){
+function harness({initial={},network=async()=>new Response("asset"),rejectBatch=false,windowClients=[],manifest={version:1,entry:"./assets/index-new.js",assets:["./assets/index-new.js"]}}={}){
   const stores=new Map(),events={},operations=[];
   let skipped=0;
   const key=input=>new URL(typeof input==="string"?input:input.url,scope).href;
@@ -47,7 +48,7 @@ function harness({initial={},network=async()=>new Response("asset"),rejectBatch=
     self:{
       registration:{scope},location:{href:new URL("sw.js",scope).href,origin:new URL(scope).origin},
       addEventListener:(name,callback)=>{events[name]=callback;},
-      skipWaiting:async()=>{skipped++;operations.push("skipWaiting");},clients:{claim:async()=>{operations.push("claim");}}
+      skipWaiting:async()=>{skipped++;operations.push("skipWaiting");},clients:{claim:async()=>{operations.push("claim");},matchAll:async()=>windowClients}
     }
   });
   vm.runInContext(source,context);
@@ -56,6 +57,7 @@ function harness({initial={},network=async()=>new Response("asset"),rejectBatch=
     get skipped(){return skipped;},
     async body(url){return (await stores.get(cacheName)?.match(url))?.text();},
     async install(){let pending;events.install({waitUntil:value=>{pending=value;}});await pending;},
+    async activate(){let pending;events.activate({waitUntil:value=>{pending=value;}});await pending;},
     async refresh(response){await context.cacheLatestShell(response);}
   };
 }
@@ -135,7 +137,7 @@ test("successful install stores exact checked shell after assets and activates l
   assert.equal(await runtime.body("./index.html"),newHtml);
   assert.equal(await runtime.body("./"),newHtml);
   assert.equal(await runtime.body("./assets/index-new.js"),"new asset");
-  assert.equal(await runtime.body("./__offline_ready__"),"4.4.0-r19");
+  assert.equal(await runtime.body("./__offline_ready__"),"4.4.0-r21");
   assert.equal(runtime.operations[0],"batch");
   assert.equal(runtime.operations.at(-1),"skipWaiting");
   assert.equal(runtime.skipped,1);
@@ -166,7 +168,7 @@ test("first install precaches startup dynamic JS and CSS before marking offline 
   const runtime=harness({manifest,network:shellNetwork});await runtime.install();
   assert.equal(await runtime.body("./assets/theme-startup.js"),"new asset");
   assert.equal(await runtime.body("./assets/today-startup.css"),"new asset");
-  assert.equal(await runtime.body("./__offline_ready__"),"4.4.0-r19");
+  assert.equal(await runtime.body("./__offline_ready__"),"4.4.0-r21");
   assert.equal(runtime.operations[0],"batch");
 });
 
@@ -198,4 +200,49 @@ test("same-worker online shell refresh also prepares its new startup hashes",asy
   assert.equal(await runtime.body("./assets/theme-next.js"),"new asset");
   assert.equal(await runtime.body("./assets/today-next.css"),"new asset");
   assert.equal(await runtime.body("./index.html"),newHtml);assert.equal(runtime.operations[0],"batch");
+});
+
+test("unguarded old shell never replaces guarded offline HTML or activates a worker",async()=>{
+  const unsafe='<html data-theme="night"><script src="./assets/index-new.js"></script></html>';
+  const runtime=harness({initial:previous,network:async()=>new Response(unsafe)});
+  await assert.rejects(runtime.install(),/Güncel uygulama/);
+  await runtime.refresh(new Response(unsafe));
+  assert.equal(await runtime.body("./index.html"),oldHtml);
+  assert.equal(runtime.skipped,0);assert.equal(runtime.operations.length,0);
+  const response=await runtime.context.navigationResponse(new Request(scope));
+  assert.equal(await response.text(),oldHtml);
+});
+
+test("offline navigation refuses an unguarded shell even if cached in the current cache",async()=>{
+  const runtime=harness({initial:{"./index.html":"<html>Legacy UI</html>","./":"<html>Legacy UI</html>"},network:async()=>{throw new Error("offline");}});
+  const response=await runtime.context.navigationResponse(new Request(scope));
+  assert.equal(response.status,503);assert.doesNotMatch(await response.text(),/Legacy UI/);
+});
+
+test("activation removes old app shell caches and preserves unrelated caches",async()=>{
+  const runtime=harness({network:shellNetwork});await runtime.install();
+  runtime.stores.set("yks-core-v4.4.0-r19",{});runtime.stores.set("unrelated-study-data",{});
+  await runtime.activate();
+  assert.equal(runtime.stores.has("yks-core-v4.4.0-r19"),false);
+  assert.equal(runtime.stores.has("unrelated-study-data"),true);
+  assert.equal(runtime.stores.has(cacheName),true);
+});
+
+test("activation finishes without awaiting navigation or interrupting an open form",async()=>{
+  let navigations=0;
+  const runtime=harness({network:shellNetwork,windowClients:[{url:scope,navigate(){navigations++;return new Promise(()=>{});}}]});
+  await runtime.install();
+  let timer;
+  try{
+    await Promise.race([runtime.activate(),new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error("activation waited for its own navigation")),100);})]);
+  }finally{clearTimeout(timer);}
+  assert.equal(navigations,0,"an update must not discard a student's unsubmitted input");
+  assert.equal(runtime.operations.at(-1),"claim");
+});
+
+test("speed reading lazy modules are installed before offline readiness is granted",async()=>{
+  const runtime=harness({network:shellNetwork});await runtime.install();
+  for(const file of ["runtime.mjs","model.mjs","content.mjs","speed-reading.css"])assert.equal(await runtime.body("./modules/speed-reading/"+file),"new asset");
+  const broken=harness({initial:previous,network:async url=>url.endsWith("/speed-reading/model.mjs")?new Response("missing",{status:404}):shellNetwork(url)});
+  await assert.rejects(broken.install());assert.equal(broken.skipped,0);assert.equal(await broken.body("./index.html"),oldHtml);
 });

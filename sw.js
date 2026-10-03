@@ -1,12 +1,27 @@
 /* YKS Defterim — dayanıklı PWA katmanı | v4.4.0
-   cache refresh epoch: 2026-10-02-mascot-chat-r19 */
+   cache refresh epoch: 2026-10-03-refined-boot-reading-r21 */
 const APP_VERSION="4.4.0";
-const APP_BUILD="4.4.0-r19";
-const CACHE="yks-core-v4.4.0-r19";
-const CACHE_LINEAGE=["yks-core-v4.1.0-r20","yks-core-v4.1.0-r21","yks-core-v4.1.0-r22","yks-core-v4.1.0-r23","yks-core-v4.1.0-r24","yks-core-v4.1.0-r25","yks-core-v4.1.0-r26","yks-core-v4.1.0-r27","yks-core-v4.1.0-r28","yks-core-v4.1.0-r29","yks-core-v4.1.0-r30","yks-core-v4.1.0-r31","yks-core-v4.1.0-r32","yks-core-v4.1.0-r33","yks-core-v4.1.0-r34","yks-core-v4.1.0-r35","yks-core-v4.1.0-r36","yks-core-v4.1.0-r37","yks-core-v4.1.0-r38","yks-core-v4.1.0-r39","yks-core-v4.1.0-r40","yks-core-v4.2.0-r1","yks-core-v4.3.0-r1","yks-core-v4.3.1-r1","yks-core-v4.4.0-r1","yks-core-v4.4.0-r2","yks-core-v4.4.0-r3","yks-core-v4.4.0-r4","yks-core-v4.4.0-r5","yks-core-v4.4.0-r6","yks-core-v4.4.0-r7","yks-core-v4.4.0-r8","yks-core-v4.4.0-r9","yks-core-v4.4.0-r10","yks-core-v4.4.0-r11","yks-core-v4.4.0-r12","yks-core-v4.4.0-r13","yks-core-v4.4.0-r14","yks-core-v4.4.0-r15","yks-core-v4.4.0-r16","yks-core-v4.4.0-r17","yks-core-v4.4.0-r18"];
+const APP_BUILD="4.4.0-r21";
+const CACHE="yks-core-v4.4.0-r21";
+const CACHE_LINEAGE=["yks-core-v4.1.0-r20","yks-core-v4.1.0-r21","yks-core-v4.1.0-r22","yks-core-v4.1.0-r23","yks-core-v4.1.0-r24","yks-core-v4.1.0-r25","yks-core-v4.1.0-r26","yks-core-v4.1.0-r27","yks-core-v4.1.0-r28","yks-core-v4.1.0-r29","yks-core-v4.1.0-r30","yks-core-v4.1.0-r31","yks-core-v4.1.0-r32","yks-core-v4.1.0-r33","yks-core-v4.1.0-r34","yks-core-v4.1.0-r35","yks-core-v4.1.0-r36","yks-core-v4.1.0-r37","yks-core-v4.1.0-r38","yks-core-v4.1.0-r39","yks-core-v4.1.0-r40","yks-core-v4.2.0-r1","yks-core-v4.3.0-r1","yks-core-v4.3.1-r1","yks-core-v4.4.0-r1","yks-core-v4.4.0-r2","yks-core-v4.4.0-r3","yks-core-v4.4.0-r4","yks-core-v4.4.0-r5","yks-core-v4.4.0-r6","yks-core-v4.4.0-r7","yks-core-v4.4.0-r8","yks-core-v4.4.0-r9","yks-core-v4.4.0-r10","yks-core-v4.4.0-r11","yks-core-v4.4.0-r12","yks-core-v4.4.0-r13","yks-core-v4.4.0-r14","yks-core-v4.4.0-r15","yks-core-v4.4.0-r16","yks-core-v4.4.0-r17","yks-core-v4.4.0-r18","yks-core-v4.4.0-r19","yks-core-v4.4.0-r20"];
 const READY_KEY="./__offline_ready__";
 const CORE=["./","./index.html","./app.css","./app.js?v=4.1.0-r21","./teacher-videos.js?v=4.4.0-r17","./settings-profile-runtime.js?v=3.0.0","./modules/core-utils.js?v=4.1.0-r27","./modules/teachers-curated-v3.js?v=4.4.0-r3","./modules/stability.js?v=4.1.0-r28","./modules/topic-guides.js?v=4.1.0-r20","./modules/learning-lab.js?v=4.1.0-r26","./modules/learning-lab-v2.js?v=4.1.0-r24","./modules/learning-lab-v3.js?v=4.1.0-r28","./modules/target-center.js?v=4.1.0-r20","./modules/export-center.js?v=4.1.0-r20","./modules/error-journal.js?v=4.1.0-r20","./modules/personal-upgrades.js?v=4.1.0-r20","./modules/progress-v2.js?v=4.1.0-r20","./modules/global-search-v42.js?v=4.2.0-r1","./modules/smart-repeat-v42.js?v=4.2.0-r1","./modules/error-topic-lab-v42.js?v=4.2.0-r1","./modules/exam-analysis-v42.js?v=4.2.0-r1","./modules/progress-v42.js?v=4.2.0-r1","./modules/learning-lab-flow-v42.js?v=4.2.0-r1","./modules/release-selftest.js?v=4.1.0-r20","./modules/motivation-quotes-v1.js?v=4.1.0-r5","./modules/motivation-quotes-v2.css?v=4.1.0-r2","./modules/study-intelligence-v5.css?v=4.1.0-r1","./modules/ui-polish-v1.css?v=4.1.0-r1","./modules/ui-polish-home-v2.css?v=4.1.0-r1","./modules/ui-polish-focus-v1.css?v=4.1.0-r1","./modules/ui-polish-exam-v1.css?v=4.1.0-r1","./modules/ui-polish-topics-v1.css?v=4.1.0-r1","./modules/ui-polish-error-journal-v1.css?v=4.1.0-r1","./modules/ui-polish-progress-v1.css?v=4.1.0-r1","./modules/ui-polish-progress-v2.css?v=4.1.0-r1","./modules/ui-polish-more-v1.css?v=4.1.0-r1","./modules/ui-polish-program-v1.css?v=4.1.0-r1","./modules/ui-polish-learning-lab-v1.css?v=4.1.0-r1","./modules/ui-polish-final-v1.css?v=4.1.0-r1","./manifest.webmanifest","./icon-192.png","./icon-512.png","./icon-maskable-512.png","./apple-touch-icon.png"];
 const OFFLINE_TEXT="Çevrimdışı";
+const READING_ASSETS=["./modules/speed-reading-learn-v1.js?v=2.0.0","./modules/speed-reading/runtime.mjs","./modules/speed-reading/model.mjs","./modules/speed-reading/content.mjs","./modules/speed-reading/speed-reading.css"];
+
+/* Yalnız yükleme perdesi olan yeni görsel kabuk çalıştırılabilir. Bir CDN/proxy
+   eski HTML döndürürse onu ne göster ne de çalışan çevrimdışı kabuğun üstüne yaz. */
+function isGuardedShell(html){
+  return /<html\b[^>]*\bdata-ui-shell=["']refined-v1["']/i.test(html)
+    && /<style\b[^>]*\bid=["']yksBootGuard["']/i.test(html);
+}
+async function guardedCachedShell(){
+  for(const key of ["./index.html","./"]){
+    const response=await currentCacheMatch(key);
+    if(response&&isGuardedShell(await response.clone().text()))return response;
+  }
+  return null;
+}
 
 async function fetchWithTimeout(request,options={},timeoutMs=4500){
   if(typeof AbortController==="undefined")return fetch(request,options);
@@ -62,8 +77,10 @@ async function cacheCore(){
   const cache=await caches.open(CACHE);
   const shell=await fetchWithTimeout("./index.html",{cache:"no-store"},9000);
   if(!shell||!shell.ok)throw new Error("Uygulama kabuğu indirilemedi");
-  const html=await shell.clone().text(),startup=await fetchStartupAssets(html);
-  const required=[...new Set(CORE.concat(buildAssets(html),startup))].filter(url=>url!=="./"&&url!=="./index.html");
+  const html=await shell.clone().text();
+  if(!isGuardedShell(html))throw new Error("Güncel uygulama görünümü indirilemedi");
+  const startup=await fetchStartupAssets(html);
+  const required=[...new Set(CORE.concat(READING_ASSETS,buildAssets(html),startup))].filter(url=>url!=="./"&&url!=="./index.html");
   await cacheAssetBatch(cache,required);
   /* HTML en son yazılır; iki giriş de varlıkları doğrulanan aynı shell'i açar. */
   await cache.put("./index.html",shell.clone());
@@ -89,7 +106,9 @@ function isLegacyIndexEntry(url){
 async function cacheLatestShell(response){
   try{
     const cache=await caches.open(CACHE);
-    const html=await response.clone().text(),startup=await fetchStartupAssets(html);
+    const html=await response.clone().text();
+    if(!isGuardedShell(html))return;
+    const startup=await fetchStartupAssets(html);
     const assets=[...new Set(buildAssets(html).concat(startup))],missing=[];
     for(const asset of assets)if(!await cache.match(asset))missing.push(asset);
     /* Yeni deploy'un hash'li giriş dosyaları hazır olmadan eski offline HTML'i
@@ -108,7 +127,10 @@ async function navigationResponse(req){
     if(res&&res.ok){
       /* Online açılış başarılıysa çevrimdışı kabuğu da aynı HTML ile hemen tazele.
          Böylece kısa süreli ağ hatasında önceki deploy'un index.html'i geri dönmez. */
-      if(isAppEntry(url))await cacheLatestShell(res);
+      if(isAppEntry(url)){
+        if(!isGuardedShell(await res.clone().text()))throw new Error("stale-navigation-shell");
+        await cacheLatestShell(res);
+      }
       return res;
     }
     /* Eski ana ekran kısayolu proje içinde artık var olmayan bir yola gidiyorsa
@@ -119,7 +141,7 @@ async function navigationResponse(req){
   }catch(e){
     /* Çevrimdışıyken de eski/derin bir başlangıç yolu göreli asset yollarını bozmasın. */
     if(!isAppEntry(url))return Response.redirect(appRootUrl(),302);
-    return (await currentCacheMatch("./index.html"))||(await currentCacheMatch("./"))||
+    return (await guardedCachedShell())||
       new Response(OFFLINE_TEXT,{status:503,headers:{"Content-Type":"text/plain;charset=utf-8","Cache-Control":"no-store"}});
   }
 }
@@ -146,22 +168,13 @@ self.addEventListener("install",event=>{
      Böylece açık sekmeler olsa bile eski shell ile yeni bundle sırayla kullanılmaz. */
   event.waitUntil(cacheCore().then(()=>self.skipWaiting()));
 });
-async function refreshOpenClientsForBuild(){
-  const list=await self.clients.matchAll({type:"window",includeUncontrolled:true});
-  await Promise.all(list.map(client=>{
-    try{
-      if(!client.navigate)return Promise.resolve();
-      const url=new URL(client.url);
-      if(url.origin!==self.location.origin||url.searchParams.get("appv")===APP_BUILD)return Promise.resolve();
-      url.searchParams.set("appv",APP_BUILD);
-      return client.navigate(url.toString()).catch(()=>undefined);
-    }catch(e){return Promise.resolve();}
-  }));
-}
 self.addEventListener("activate",event=>{
+  /* Aktivasyon içinden client.navigate beklemek döngü yaratır: yeni gezinme,
+     aktivasyonun bitmesini bekler. Açık formu da zorla kapatma; kullanıcı yenilediğinde
+     navigationResponse doğrulanmış güncel kabuğu getirir. */
   event.waitUntil(caches.keys().then(keys=>Promise.all(
     keys.filter(k=>k!==CACHE&&(CACHE_LINEAGE.includes(k)||k.startsWith("yks-core-"))).map(k=>caches.delete(k))
-  )).then(()=>self.clients.claim()).then(()=>refreshOpenClientsForBuild()));
+  )).then(()=>self.clients.claim()));
 });
 self.addEventListener("message",event=>{
   const t=event.data&&event.data.type;

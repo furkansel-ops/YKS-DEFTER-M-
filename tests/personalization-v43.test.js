@@ -29,7 +29,7 @@ test("Ayarlar paneli tema seçiminden bağımsız üç sınav kapsamı ve beş B
   const ui=read("src/ui/personalization-v43.ts"),css=read("src/ui/personalization-v43.css");
   assert.match(ui,/V43_EXAM_TYPES=\["TYT","AYT","YDT"\]/);
   assert.match(ui,/V43_HOME_CARDS=\["quote","actions","todayHub","todayPlan","alerts"\]/);
-  assert.match(ui,/Tema seçimini Ayarlar > Görünüm bölümünden/);
+  assert.match(ui,/Yazı boyutu ve maskotun Ayarlar > Görünüm bölümünde/);
   assert.match(ui,/panel\.id="v43Personalization"/);
   assert.match(ui,/Ayarları sıfırla/);
   assert.match(ui,/length!==8/);
@@ -51,7 +51,7 @@ test("kişiselleştirme özeti yalnız sınav ve Bugün ayarlarını gösterir",
   assert.match(ui,/Bugün kartı/);
   assert.doesNotMatch(ui,/Aktif tema/);
   assert.match(ui,/document\.getElementById\("themeBtn"\)\?\.remove\(\)/);
-  assert.match(ui,/dataset\.themeControl="settings-only"/);
+  assert.match(ui,/dataset\.themeControl="single"/);
   assert.match(css,/grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
   assert.match(css,/v43-summary-item/);
 });
