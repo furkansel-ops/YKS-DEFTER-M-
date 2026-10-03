@@ -32,5 +32,14 @@
     "@capacitor/core": "8.5.2",
     "dexie": "^4.4.6",
     "three": "0.186.0"
+  },
+  "description": "Open-source YKS study companion for planning, progress tracking, exam analysis, and interactive learning.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/furkansel-ops/YKS-DEFTER-M-.git"
+  },
+  "bugs": {
+    "url": "https://github.com/furkansel-ops/YKS-DEFTER-M-/issues"
   }
 }
