@@ -2,15 +2,21 @@ const test=require("node:test");
 const assert=require("node:assert/strict");
 const fs=require("node:fs");
 const path=require("node:path");
+const vm=require("node:vm");
 
 const root=path.resolve(__dirname,"..");
 const read=file=>fs.readFileSync(path.join(root,file),"utf8");
 
-test("tema seçimi graphite kilidi olmadan kayıtlı seçimi korur",()=>{
+test("açılış eski tema parlamasını önler; tema kontrolü Ayarlarda kalır",()=>{
   const main=read("src/main.ts"),index=read("index.html");
   assert.doesNotMatch(main,/installSingleThemeRuntime|data-theme","graphite"|themeMode="single"/);
   assert.match(main,/dataset\.themeControl="settings-only"/);
-  assert.match(index,/\["auto","paper","night","forest","ocean","lavender","sunset","graphite"\]/);
+  const attributes={"data-theme":"night"},element={dataset:{},setAttribute:(key,value)=>attributes[key]=value};
+  const boot=index.match(/<script>([\s\S]*?)<\/script>/)?.[1];
+  assert.ok(boot,"ilk boyamadan önce tema başlangıcı mevcut");
+  vm.runInNewContext(boot,{document:{documentElement:element},localStorage:{getItem(){throw Error("açılış eski temayı okumamalı")}}});
+  assert.equal(attributes["data-theme"],"paper");
+  assert.equal(element.dataset.themeMode,"single");
 });
 
 test("tema değiştirme kontrolü yalnız Ayarlar görünüm kartında kalır",()=>{
