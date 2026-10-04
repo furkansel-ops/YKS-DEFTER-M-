@@ -68,3 +68,11 @@ test("v4.3 Today 2.0 only becomes flex while the home screen is active",()=>{
   assert.doesNotMatch(css,/#home\.v43-today\s*\{[^}]*display\s*:\s*flex/s);
   assert.match(css,/#home\.v43-today\.active\s*\{[^}]*display\s*:\s*flex/s);
 });
+
+
+test("gün sonu kartı koç bağlantısının hemen üstüne taşınır",()=>{
+  const source=read("src/ui/today-v43.ts"),css=read("src/ui/today-v43.css");
+  assert.match(source,/const dayEnd=getElement<HTMLElement>\("todayClose"\)/);
+  assert.match(source,/home\.insertBefore\(dayEnd,shortcut\)/);
+  assert.match(css,/#home\.v43-today>#todayClose\+\.rb-home-coach/);
+});
