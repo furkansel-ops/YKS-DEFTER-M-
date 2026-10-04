@@ -235,7 +235,7 @@ test("koç görevi uygulandıktan sonra program paylaşımı zorla gönderilir",
 
 test("koç günlük program sırası kontrollü action ile uygulanır ve anında paylaşılır",()=>{
   const runtime=read("public/student-coaching-runtime.js");
-  assert.match(runtime,/program_order/);
+  assert.match(runtime,/operation==="order"/);
   assert.match(runtime,/programSetDayOrder/);
   assert.match(runtime,/YKSStudentProgramShareV2\?\.publish\?\.\(true\)/);
 });
