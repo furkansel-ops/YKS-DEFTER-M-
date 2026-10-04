@@ -17,7 +17,7 @@ test("öğrenci uygulaması yalnız öğrenci hesabı olarak açılır ve koç p
 
 test("öğrenci hesap köprüleri auth başlamadan önce güvenli sırada yüklenir",()=>{
   const loader=read("src/ui/student-account-loader.ts");
-  const bridgeAt=loader.indexOf("student-coaching-runtime.js?v=1.2.14");
+  const bridgeAt=loader.indexOf("student-coaching-runtime.js?v=1.2.15");
   const linkAt=loader.indexOf("student-coach-link.js?v=1.3.1");
   const programAt=loader.indexOf("student-program-share-v2.js?v=3.6.2");
   const authAt=loader.indexOf("auth-session-runtime.js?v=1.6.0");
@@ -133,8 +133,8 @@ test("Koç eşitleme runtime web ve native açılışta garanti edilir ve save s
   assert.match(shell,/import\("\.\/student-account-loader"\)/);
   assert.match(shell,/installStudentAccountLoader\(\)/);
   assert.match(shell,/const native=isNativeApp\(\)/);
-  assert.match(loader,/student-coaching-runtime\.js\?v=1\.2\.14/);
-  assert.match(runtime,/version:\"1\.2\.14\"/);
+  assert.match(loader,/student-coaching-runtime\.js\?v=1\.2\.15/);
+  assert.match(runtime,/version:\"1\.2\.15\"/);
   assert.match(app,/CustomEvent\(\"yks:data-changed\"/);
   assert.match(app,/source:\"save\"/);
 });
@@ -203,7 +203,7 @@ test("Program paylaşımı Firestore için iç içe array üretmez",()=>{
 test("koç program görevleri video bağlantısı ve ayrıntılar için 600 karaktere kadar korunur",()=>{
   const runtime=read("public/student-coaching-runtime.js");
   assert.match(runtime,/text\(p\.text,600\)/);
-  assert.match(runtime,/version:"1\.2\.14"/);
+  assert.match(runtime,/version:"1\.2\.15"/);
 });
 
 
@@ -256,4 +256,16 @@ test("program_task edit işlemi mevcut hücreyi yerinde düzenler",()=>{
   assert.match(runtime,/p\.operation==="edit"/);
   assert.match(runtime,/programEditTask/);
   assert.match(app,/function programEditTask/);
+});
+
+
+test("gün sonu değerlendirmesi koç paylaşımına güvenli şekilde eklenir",()=>{
+  const runtime=read("public/student-coaching-runtime.js"),html=read("index.html"),css=read("app.css");
+  assert.match(runtime,/dayReviews=Object\.entries\(s\.dayReview/);
+  assert.match(runtime,/dayReview:\{entries:dayReviews\}/);
+  assert.match(runtime,/slice\(-14\)/);
+  assert.match(runtime,/note:text\(value\?\.note,220\)/);
+  assert.match(html,/id="todayCloseSaved"/);
+  assert.match(html,/Koç bağlantın açıksa bu değerlendirme koçuna da görünür/);
+  assert.match(css,/today-close-saved/);
 });
