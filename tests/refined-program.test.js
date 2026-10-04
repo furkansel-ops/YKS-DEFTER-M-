@@ -18,7 +18,7 @@ function harness(){
   const context=vm.createContext({Date:Clock,S:state,curWeek:new Clock("2026-09-21T12:00:00"),
     save:()=>{calls.push(["save"]);return true;},perfInvalidateState:()=>calls.push(["invalidate"]),renderPlan:()=>calls.push(["renderPlan"]),renderTodayPlan:()=>{},renderSuggest:()=>{},toast:message=>calls.push(["toast",message]),el:()=>({classList:{contains:()=>true}})});
   const app=fs.readFileSync(path.join(root,"app.js"),"utf8");
-  for(const name of ["keyOf","parseKey","addDaysKey","dowOf","mondayOf","thisWeek","clone"]){
+  for(const name of ["keyOf","validDateKey","parseKey","addDaysKey","dowOf","mondayOf","thisWeek","clone"]){
     const definition=app.match(new RegExp(`^function ${name}\\([^\\n]+$`,"m"));assert.ok(definition,name);vm.runInContext(definition[0],context);
   }
   for(const name of ["blankWeek","normWeek","getWeek","programTaskCompleted","programSetCellDone","toggleCellDone","programDayTaskIds","programSetDayOrder","shiftWeek","addToDay","addToDays"]){
