@@ -4,7 +4,7 @@ const PROGRAM_VERSION=3;
 const MAX_PROGRAM_WEEKS=80;
 const DATE_RE=/^\d{4}-\d{2}-\d{2}$/;
 const rt={db:null,user:null,shareReady:false,timer:null,watchTimer:null,stopShare:null,stopData:null,writing:false,pending:false,bootstrapping:false,lastHash:"",inFlight:null};
-const state=()=>{try{return window.YKSLegacyState?.readState?.()||window.S||null}catch{return window.S||null}};
+const state=()=>{try{return window.S||window.YKSLegacyState?.readState?.()||null}catch{return window.S||null}};
 const txt=(v,n=220)=>String(v??"").trim().slice(0,n);
 const int=(v,fallback)=>{const n=Math.floor(Number(v));return Number.isFinite(n)&&n>0?n:fallback};
 
@@ -195,5 +195,5 @@ if(auth&&!auth.__programShareV2){
   auth.onSignedOut=(...args)=>{stop();return previousSignOut?.(...args)};
   auth.__programShareV2=true;
 }
-window.YKSStudentProgramShareV2={version:"3.6.1",publish:force=>publishProgram(Boolean(force)),build:programPayload};
+window.YKSStudentProgramShareV2={version:"3.6.2",publish:force=>publishProgram(Boolean(force)),build:programPayload};
 document.documentElement.dataset.studentProgramSync="v3";
