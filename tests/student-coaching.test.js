@@ -211,7 +211,7 @@ test("koç görev dinleyicisi state beklemeden başlar ve işlemleri sıraya al�
   const runtime=read("public/student-coaching-runtime.js");
   const start=runtime.indexOf("function startStudent");
   const listener=runtime.indexOf("onSnapshot(q",start);
-  const wait=runtime.indexOf("waitForState(30000",start);
+  const wait=runtime.indexOf("waitForState(4000",start);
   assert.ok(start>=0&&listener>start&&wait>listener);
   assert.match(runtime,/actionQueue:Promise\.resolve\(\)/);
   assert.match(runtime,/queueAction\(change,session\)/);
