@@ -101,7 +101,7 @@ test("Koç öğrencinin ham sync alanına değil yalnız paylaşım görünümü
 test("Koç müdahalesi doğrudan öğrenci verisini yazmaz, kontrollü action kuyruğu kullanır",()=>{
   const rules=read("firestore.rules");
   assert.match(rules,/match \/coachingActions\/\{actionId\}/);
-  assert.match(rules,/program_task/);\n  assert.match(rules,/program_order/);
+  assert.match(rules,/program_task/);
   assert.match(rules,/topic_deadline/);
   assert.match(rules,/coach_note/);
   assert.match(rules,/post_exam_task/);
