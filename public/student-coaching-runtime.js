@@ -1,7 +1,7 @@
 import{collection,doc,getDoc,onSnapshot,query,where,setDoc,updateDoc,serverTimestamp}from"https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
 
 const PENDING_ROLE="yks_account_role_pending",ROLE_HINT="yks_account_role_hint",DAY=86400000;
-const rt={auth:null,db:null,user:null,profile:null,stops:[],shareTimer:null,shareInterval:null,sharing:false,pending:false,inFlight:null,session:0};
+const rt={auth:null,db:null,user:null,profile:null,stops:[],shareTimer:null,shareInterval:null,sharing:false,pending:false,inFlight:null,actionQueue:Promise.resolve(),session:0};
 const text=(v,n=160)=>String(v??"").trim().slice(0,n);
 const list=v=>Array.isArray(v)?v:[];
 const finite=(v,fallback=0)=>Number.isFinite(Number(v))?Number(v):fallback;
@@ -38,7 +38,7 @@ async function ensureProfile(user,db){
 function cleanup(){
   rt.session++;
   rt.stops.splice(0).forEach(fn=>{try{fn()}catch{}});
-  clearTimeout(rt.shareTimer);rt.shareTimer=null;clearInterval(rt.shareInterval);rt.shareInterval=null;rt.sharing=false;rt.pending=false;rt.inFlight=null;
+  clearTimeout(rt.shareTimer);rt.shareTimer=null;clearInterval(rt.shareInterval);rt.shareInterval=null;rt.sharing=false;rt.pending=false;rt.inFlight=null;rt.actionQueue=Promise.resolve();
 }
 function sum(map,days){let n=0;for(let i=0;i<days;i++)n+=Number(map?.[new Date(Date.now()-i*DAY).toISOString().slice(0,10)]||0)||0;return n}
 function topicParts(k){const p=String(k||"").split("|");return{exam:p[0]||"YKS",subject:p[1]||"Ders",topic:p.slice(2).join("|")||p[1]||k}}
@@ -185,23 +185,33 @@ function applyAction(a){
   }else throw new Error("Desteklenmeyen işlem");
   return"Uygulandı";
 }
-async function handleAction(change){
+function queueAction(change,session){
+  rt.actionQueue=rt.actionQueue.then(()=>handleAction(change,session)).catch(error=>{if(session===rt.session)console.error("Koç action işleme",error)});
+}
+async function handleAction(change,session=rt.session){
   if(!["added","modified"].includes(change.type))return;const a=change.doc.data();if(a.status!=="pending")return;
   try{
-    const result=applyAction(a);await updateDoc(change.doc.ref,{status:"applied",updatedAt:serverTimestamp(),handledAt:serverTimestamp(),result});
-    toast("Koçundan yeni görev/not geldi ✓");scheduleShare(200);
+    const ready=await waitForState(30000,session);requireSession(session);
+    if(!ready){console.warn("Koç görevi öğrenci verisi hazır olmadığı için beklemede bırakıldı");return}
+    const result=applyAction(a);requireSession(session);
+    await updateDoc(change.doc.ref,{status:"applied",updatedAt:serverTimestamp(),handledAt:serverTimestamp(),result});
+    if(session!==rt.session)return;
+    toast("Koçundan yeni görev/not geldi ✓");scheduleShare(60);
   }catch(error){
+    if(session!==rt.session)return;
     try{await updateDoc(change.doc.ref,{status:"rejected",updatedAt:serverTimestamp(),handledAt:serverTimestamp(),result:text(error?.message||"Uygulanamadı",500)})}catch{}
   }
 }
-async function startStudent(session){
-  await waitForState(4000,session);
+function startStudent(session){
   requireSession(session);
-  scheduleShare(200);
-  const changed=()=>scheduleShare();window.addEventListener("yks:data-changed",changed);rt.stops.push(()=>window.removeEventListener("yks:data-changed",changed));
-  rt.shareInterval=setInterval(()=>scheduleShare(120),60000);
   const q=query(collection(rt.db,"coachingActions"),where("studentUid","==",rt.user.uid));
-  rt.stops.push(onSnapshot(q,snap=>snap.docChanges().forEach(change=>void handleAction(change)),error=>console.error("Koç action",error)));
+  rt.stops.push(onSnapshot(q,snap=>snap.docChanges().forEach(change=>queueAction(change,session)),error=>console.error("Koç action",error)));
+  const changed=()=>scheduleShare(120);window.addEventListener("yks:data-changed",changed);rt.stops.push(()=>window.removeEventListener("yks:data-changed",changed));
+  const wake=()=>{if(session!==rt.session)return;if(document.visibilityState&&document.visibilityState!=="visible")return;scheduleShare(60)};
+  window.addEventListener("online",wake);rt.stops.push(()=>window.removeEventListener("online",wake));
+  document.addEventListener?.("visibilitychange",wake);rt.stops.push(()=>document.removeEventListener?.("visibilitychange",wake));
+  rt.shareInterval=setInterval(()=>scheduleShare(120),60000);
+  void waitForState(30000,session).then(ready=>{if(ready&&session===rt.session)scheduleShare(60)});
 }
 
 async function onSignedIn({user,auth,db}){
@@ -214,14 +224,14 @@ async function onSignedIn({user,auth,db}){
   rt.profile=profile;
   try{localStorage.setItem(ROLE_HINT,profile.role);sessionStorage.removeItem(PENDING_ROLE)}catch{}
   document.documentElement.dataset.accountRole=profile.role;
-  if(profile.role==="student")await startStudent(session);
+  if(profile.role==="student")startStudent(session);
   requireSession(session);
   return{role:profile.role,profile};
 }
 function onSignedOut(){cleanup();rt.user=rt.auth=rt.db=rt.profile=null;delete document.documentElement.dataset.accountRole}
 
 let resolveAccountReady;try{window.__YKS_ACCOUNT_READY__=new Promise(resolve=>{resolveAccountReady=resolve})}catch{}
-window.YKSAccountAuth={version:"1.2.8",beforeSignIn,onSignedIn,onSignedOut,publishShare};
+window.YKSAccountAuth={version:"1.2.9",beforeSignIn,onSignedIn,onSignedOut,publishShare};
 try{resolveAccountReady?.(window.YKSAccountAuth)}catch{}
 document.documentElement.dataset.studentCoachingBridge="ready";
-window.dispatchEvent(new CustomEvent("yks:student-coaching-ready",{detail:{version:"1.2.8"}}));
+window.dispatchEvent(new CustomEvent("yks:student-coaching-ready",{detail:{version:"1.2.9"}}));
