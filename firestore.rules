@@ -460,7 +460,6 @@ service cloud.firestore {
 
     function validCoachActionType(actionType) {
       return actionType == 'program_task'
-        || actionType == 'program_order'
         || actionType == 'topic_deadline'
         || actionType == 'coach_note'
         || actionType == 'post_exam_task';
