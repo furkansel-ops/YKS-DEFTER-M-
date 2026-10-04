@@ -210,3 +210,16 @@ test("Programım günler arası taşıma sunmaz; taşıma yalnız koç panelinde
   assert.match(css,/rb-program-edit/);
   assert.doesNotMatch(css,/rb-program-movebar/);
 });
+
+
+test("kendim yazayım çalışmaları eski satır etiketini değil gerçek dersi gösterir",()=>{
+  const h=harness(),data=h.state.weeks["2026-09-21"];
+  h.state.rowLabels.s[0]="Mat";
+  data.s[0][1]="TYT fizik soru çözümü";
+  data.s[0][2]="AYT Kimya · Organik tekrar";
+  const sali=h.controller.tasksForDay(1)[0],carsamba=h.controller.tasksForDay(2)[0];
+  assert.equal(sali.label,"TYT Fizik");
+  assert.equal(carsamba.label,"AYT Kimya");
+  assert.equal(api.refinedProgramSubjectLabel("TYT fizik soru çözümü","Mat"),"TYT Fizik");
+  assert.equal(api.refinedProgramSubjectLabel("Koç · TYT Biyoloji · Hücre tekrar","Mat"),"TYT Biyoloji");
+});
