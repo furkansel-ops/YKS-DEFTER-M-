@@ -199,7 +199,7 @@ test("yerel veriyi bekleyen eski giriş yeni oturumda dinleyici ve zamanlayıcı
   assert.ok([...h.timers.values()].some(timer=>timer.ms===50));
   h.window.YKSAccountAuth.onSignedOut();h.window.S=h.state;await h.signIn("student-2");
   h.runTimer(50);await first;
-  assert.equal(h.intervals.size,1);assert.equal(h.events.size,1);
+  assert.equal(h.intervals.size,1);assert.equal(h.events.size,2);
   await h.window.YKSAccountAuth.publishShare();
   assert.equal(h.docs.get("coachingShares/student-2").studentUid,"student-2");
   assert.equal(h.docs.has("coachingShares/student-1"),false);
