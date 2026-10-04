@@ -250,26 +250,26 @@ export function installRefinedProgram():ProgramApi{
     handle.addEventListener("pointerdown",event=>{
       if(event.button!==0||!event.isPrimary)return;
       event.preventDefault();
-      const pointerId=event.pointerId,startX=event.clientX,startY=event.clientY;
-      let active=false,timer=window.setTimeout(()=>activate(),140);
+      const pointerId=event.pointerId,startX=event.clientX,startY=event.clientY,initial=orderedIds().join("|");
+      let active=false,timer=window.setTimeout(()=>activate(),120);
+      try{handle.setPointerCapture(pointerId);}catch{}
       const activate=()=>{
         if(active)return;active=true;card.classList.add("is-dragging");list.classList.add("is-reordering");
-        try{handle.setPointerCapture(pointerId);}catch{}
       };
       const move=(moveEvent:PointerEvent)=>{
         if(moveEvent.pointerId!==pointerId)return;
-        if(!active&&Math.hypot(moveEvent.clientX-startX,moveEvent.clientY-startY)>6){clearTimeout(timer);activate();}
+        if(!active&&Math.hypot(moveEvent.clientX-startX,moveEvent.clientY-startY)>4){clearTimeout(timer);activate();}
         if(!active)return;moveEvent.preventDefault();
-        const siblings=Array.from(list.querySelectorAll<HTMLElement>(".rb-program-task[data-task-id]:not(.is-dragging)"));
-        const before=siblings.find(node=>moveEvent.clientY<node.getBoundingClientRect().top+node.getBoundingClientRect().height/2);
-        list.insertBefore(card,before||null);
+        const target=document.elementFromPoint(moveEvent.clientX,moveEvent.clientY)?.closest<HTMLElement>(".rb-program-task[data-task-id]");
+        if(!target||target===card||target.parentElement!==list)return;
+        const rect=target.getBoundingClientRect(),before=moveEvent.clientY<rect.top+rect.height/2;
+        list.insertBefore(card,before?target:target.nextSibling);
       };
       const finish=(finishEvent:PointerEvent)=>{
         if(finishEvent.pointerId!==pointerId)return;
         clearTimeout(timer);handle.removeEventListener("pointermove",move);handle.removeEventListener("pointerup",finish);handle.removeEventListener("pointercancel",finish);
-        if(!active)return;
         card.classList.remove("is-dragging");list.classList.remove("is-reordering");try{handle.releasePointerCapture(pointerId);}catch{}
-        commitOrder(taskId);
+        if(active&&orderedIds().join("|")!==initial)commitOrder(taskId);
       };
       handle.addEventListener("pointermove",move);handle.addEventListener("pointerup",finish);handle.addEventListener("pointercancel",finish);
     });
