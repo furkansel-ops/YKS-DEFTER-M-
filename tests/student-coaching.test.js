@@ -269,3 +269,19 @@ test("gün sonu değerlendirmesi koç paylaşımına güvenli şekilde eklenir",
   assert.match(html,/Koç bağlantın açıksa bu değerlendirme koçuna da görünür/);
   assert.match(css,/today-close-saved/);
 });
+
+
+test("gün sonu ruh hali Kaydet basılmadan koça gönderilmez",()=>{
+  const app=read("app.js");
+  const moodStart=app.indexOf("function setTodayMood");
+  const saveStart=app.indexOf("function saveTodayReflection",moodStart);
+  const moodBlock=app.slice(moodStart,saveStart);
+  const saveEnd=app.indexOf("function v25RenderClose",saveStart);
+  const saveBlock=app.slice(saveStart,saveEnd);
+  assert.match(moodBlock,/todayMoodDraft=\{date:todayKey\(\),mood\}/);
+  assert.doesNotMatch(moodBlock,/\bsave\(\)/);
+  assert.match(saveBlock,/const old=S\.dayReview\[k\]\|\|\{\},mood=todayMoodDraft\.date===k\?todayMoodDraft\.mood/);
+  assert.match(saveBlock,/S\.dayReview\[k\]=\{mood,note,at:Date\.now\(\)\}/);
+  assert.match(saveBlock,/\bsave\(\)/);
+  assert.match(app,/Kaydet'e basınca koçunla paylaşılacak/);
+});
