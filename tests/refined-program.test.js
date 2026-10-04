@@ -197,15 +197,16 @@ test("daily task ordering persists through mv metadata without changing cell ide
 
 
 
-test("Programım sürükleme yerine seç-taşı ve düzenle kontrolleri kullanır",()=>{
+test("Programım günler arası taşıma sunmaz; taşıma yalnız koç panelindedir",()=>{
   const source=fs.readFileSync(path.join(root,"src/ui/refined-program.ts"),"utf8");
   const css=fs.readFileSync(path.join(root,"src/ui/refined-program.css"),"utf8");
-  assert.doesNotMatch(source,/rb-program-drag/);
-  assert.doesNotMatch(source,/pointerdown/);
-  assert.match(source,/rb-program-select/);
+  assert.doesNotMatch(source,/rb-program-select/);
+  assert.doesNotMatch(source,/rb-program-calendar-select/);
+  assert.doesNotMatch(source,/rb-program-movebar/);
+  assert.doesNotMatch(source,/controller\.moveTask/);
+  assert.doesNotMatch(source,/programMoveTaskToDate/);
   assert.match(source,/rb-program-edit/);
-  assert.match(source,/rb-program-movebar/);
-  assert.match(source,/controller\.moveTask/);
-  assert.match(css,/rb-program-select/);
+  assert.match(source,/rb-program-calendar-edit/);
   assert.match(css,/rb-program-edit/);
+  assert.doesNotMatch(css,/rb-program-movebar/);
 });
