@@ -10302,7 +10302,7 @@ function saveTodayReflection(){
   const old=S.dayReview[k]||{},mood=todayMoodDraft.date===k?todayMoodDraft.mood:(old.mood||"");
   if(!note&&!mood)delete S.dayReview[k];
   else S.dayReview[k]={mood,note,at:Date.now()};
-  todayMoodDraft={date:k,mood};
+  todayMoodDraft={date:"",mood:""};
   save();
   v25RenderClose();
   toast(note||mood?"Gün sonu kaydedildi ve koçunla paylaşıldı":"Gün sonu notu temizlendi");
@@ -10313,7 +10313,7 @@ function v25RenderClose(){
   box.classList.toggle("soft",h<18&&!v25PlanToday().dayDone);
   el("todayCloseTitle").textContent=h>=18?"Günü kapat":"Gün sonu değerlendirmesi";
   el("todayCloseHint").textContent=h>=18?"Bugün nasıldı?":"Akşam istersen doldur";
-  if(document.activeElement!==inp)inp.value=r.note||"";
+  if(document.activeElement!==inp&&!draftMood)inp.value=r.note||"";
   [["good","todayMoodGood"],["mid","todayMoodMid"],["hard","todayMoodHard"]].forEach(([m,id])=>el(id)?.classList.toggle("on",mood===m));
   if(saved){
     const has=!!(r.mood||r.note);
