@@ -202,7 +202,7 @@ async function handleAction(change,session=rt.session){
     try{await updateDoc(change.doc.ref,{status:"rejected",updatedAt:serverTimestamp(),handledAt:serverTimestamp(),result:text(error?.message||"Uygulanamadı",500)})}catch{}
   }
 }
-function startStudent(session){
+async function startStudent(session){
   requireSession(session);
   const q=query(collection(rt.db,"coachingActions"),where("studentUid","==",rt.user.uid));
   rt.stops.push(onSnapshot(q,snap=>snap.docChanges().forEach(change=>queueAction(change,session)),error=>console.error("Koç action",error)));
@@ -211,7 +211,7 @@ function startStudent(session){
   window.addEventListener("online",wake);rt.stops.push(()=>window.removeEventListener("online",wake));
   document.addEventListener?.("visibilitychange",wake);rt.stops.push(()=>document.removeEventListener?.("visibilitychange",wake));
   rt.shareInterval=setInterval(()=>scheduleShare(120),60000);
-  void waitForState(30000,session).then(ready=>{if(ready&&session===rt.session)scheduleShare(60)});
+  const ready=await waitForState(4000,session);requireSession(session);if(ready)scheduleShare(60);
 }
 
 async function onSignedIn({user,auth,db}){
@@ -224,14 +224,14 @@ async function onSignedIn({user,auth,db}){
   rt.profile=profile;
   try{localStorage.setItem(ROLE_HINT,profile.role);sessionStorage.removeItem(PENDING_ROLE)}catch{}
   document.documentElement.dataset.accountRole=profile.role;
-  if(profile.role==="student")startStudent(session);
+  if(profile.role==="student")await startStudent(session);
   requireSession(session);
   return{role:profile.role,profile};
 }
 function onSignedOut(){cleanup();rt.user=rt.auth=rt.db=rt.profile=null;delete document.documentElement.dataset.accountRole}
 
 let resolveAccountReady;try{window.__YKS_ACCOUNT_READY__=new Promise(resolve=>{resolveAccountReady=resolve})}catch{}
-window.YKSAccountAuth={version:"1.2.9",beforeSignIn,onSignedIn,onSignedOut,publishShare};
+window.YKSAccountAuth={version:"1.2.10",beforeSignIn,onSignedIn,onSignedOut,publishShare};
 try{resolveAccountReady?.(window.YKSAccountAuth)}catch{}
 document.documentElement.dataset.studentCoachingBridge="ready";
-window.dispatchEvent(new CustomEvent("yks:student-coaching-ready",{detail:{version:"1.2.9"}}));
+window.dispatchEvent(new CustomEvent("yks:student-coaching-ready",{detail:{version:"1.2.10"}}));
