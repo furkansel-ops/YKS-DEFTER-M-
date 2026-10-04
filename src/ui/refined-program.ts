@@ -13,6 +13,7 @@ export interface RefinedProgramBridge{
   toggleCellDone(week:string,id:string):unknown;
   addToDay(text:string,day:number,weekOffset:number):unknown;
   addToDays?(text:string,days:number[],weekOffset:number):ProgramAddResult;
+  setDayOrder?(week:string,day:number,ids:string[]):unknown;
   openPlanCellMenu(week:string,block:ProgramBlock,row:number,day:number):unknown;
 }
 type LegacyFunction=(...args:any[])=>any;
@@ -33,7 +34,7 @@ function offsetDate(key:string,offset:number):string{const date=parseDate(key);i
 /** Read the existing cells and completion keys without normalizing or mutating state. */
 export function refinedProgramTasks(state:unknown,week:string,day:number):RefinedProgramTask[]{
   if(!Number.isInteger(day)||day<0||day>6||!parseDate(week))return [];
-  const source=object(state),data=object(object(source.weeks)[week]),labels=object(source.rowLabels),done=object(data.dn);
+  const source=object(state),data=object(object(source.weeks)[week]),labels=object(source.rowLabels),done=object(data.dn),move=object(data.mv);
   const tasks:RefinedProgramTask[]=[];
   for(const block of ["r","s"] as const){
     const rows=data[block];if(!Array.isArray(rows))continue;
@@ -44,6 +45,11 @@ export function refinedProgramTasks(state:unknown,week:string,day:number):Refine
       const label=Array.isArray(rowLabels)&&typeof rowLabels[index]==="string"?rowLabels[index].trim():"";
       tasks.push({id,block,row:index,day,text:value.trim(),label:label||(block==="r"?"Rutin":"Çalışma"),done:Boolean(done[id])});
     });
+  }
+  const rawOrder=move[`order-${day}`];
+  if(Array.isArray(rawOrder)){
+    const rank=new Map<string,number>();rawOrder.forEach((id,index)=>{if(typeof id==="string"&&!rank.has(id))rank.set(id,index);});
+    tasks.sort((a,b)=>(rank.get(a.id)??Number.MAX_SAFE_INTEGER)-(rank.get(b.id)??Number.MAX_SAFE_INTEGER));
   }
   return tasks;
 }
@@ -119,6 +125,11 @@ export function createRefinedProgramController(bridge:RefinedProgramBridge,now=(
       return bridge.addToDays(value,[...new Set(days)].sort((a,b)=>a-b),offset);
     },
     toggleTask(id:string){const current=snapshot();if(!current.tasks.some(task=>task.id===id))return false;return bridge.toggleCellDone(current.week,id)!==false;},
+    reorder(ids:string[]){
+      const current=snapshot(),expected=current.tasks.map(task=>task.id),unique=[...new Set(ids)];
+      if(!bridge.setDayOrder||unique.length!==expected.length||unique.some(id=>!expected.includes(id)))return false;
+      return bridge.setDayOrder(current.week,current.day,unique)!==false;
+    },
     openTask(id:string){const current=snapshot(),task=current.tasks.find(item=>item.id===id);if(!task)return false;bridge.openPlanCellMenu(current.week,task.block,task.row,task.day);return true;}
   };
 }
@@ -142,7 +153,7 @@ export function installRefinedProgram():ProgramApi{
   if(installed)return installed;
   const program=document.getElementById("program"),legacy=window as unknown as ProgramWindow;
   const call=(name:string,...args:unknown[])=>{const fn=legacy[name];return typeof fn==="function"?(fn as LegacyFunction).apply(window,args):undefined;};
-  if(!program||!["renderPlan","shiftWeek","thisWeek","setProgTab","toggleCellDone","addToDay","addToDays","openPlanCellMenu"].every(name=>typeof legacy[name]==="function"))return {installed:false,refresh(){},destroy(){}};
+  if(!program||!["renderPlan","shiftWeek","thisWeek","setProgTab","toggleCellDone","addToDay","addToDays","programSetDayOrder","openPlanCellMenu"].every(name=>typeof legacy[name]==="function"))return {installed:false,refresh(){},destroy(){}};
   const screen=program;
   const legacyPanel=element("div","rb-program-legacy");legacyPanel.id="refinedProgramLegacy";
   // Keep the classic planner mounted only as an internal compatibility bridge.
@@ -155,6 +166,7 @@ export function installRefinedProgram():ProgramApi{
     shiftWeek:offset=>call("shiftWeek",offset),thisWeek:()=>call("thisWeek"),setProgTab:tab=>call("setProgTab",tab),
     toggleCellDone:(week,id)=>call("toggleCellDone",week,id),addToDay:(text,day,offset)=>call("addToDay",text,day,offset),
     addToDays:(text,days,offset)=>call("addToDays",text,days,offset) as ProgramAddResult,
+    setDayOrder:(week,day,ids)=>call("programSetDayOrder",week,day,ids),
     openPlanCellMenu:(week,block,row,day)=>call("openPlanCellMenu",week,block,row,day)
   });
   const heading=element("header","rb-program-heading"),weekSummary=element("div","rb-program-week-summary");heading.append(element("h1","","Programım"),element("p","","Haftanı takvim görünümünde gör; derslerini gün gün takip et."),weekSummary);
@@ -217,6 +229,51 @@ export function installRefinedProgram():ProgramApi{
   quickTab.addEventListener("click",()=>setMode(true));customTab.addEventListener("click",()=>setMode(false));subject.addEventListener("change",syncTopics);for(const field of [topic,questions,minutes,input,resource])field.addEventListener("input",updatePreview);syncTopics();setMode(true);
   const schedule=()=>{if(queued||destroyed)return;queued=true;queueMicrotask(()=>{queued=false;if(!destroyed)refresh();});};
   const originalShare=()=>legacyPanel.querySelector<HTMLButtonElement>("#studentCoachProgramShare [data-coach-share-now]");
+  const orderedIds=()=>Array.from(list.querySelectorAll<HTMLElement>(".rb-program-task[data-task-id]")).map(node=>node.dataset.taskId||"").filter(Boolean);
+  const commitOrder=(focusId:string)=>{
+    const ids=orderedIds();
+    if(!controller.reorder(ids)){feedback.textContent="Sıra kaydedilemedi; önceki düzen korundu.";refresh();return;}
+    feedback.textContent="Günün çalışma sırası güncellendi.";
+    refresh();
+    queueMicrotask(()=>list.querySelector<HTMLElement>(`[data-rb-program-focus="drag:${focusId}"]`)?.focus({preventScroll:true}));
+  };
+  const bindReorder=(card:HTMLElement,handle:HTMLButtonElement,taskId:string)=>{
+    handle.addEventListener("contextmenu",event=>event.preventDefault());
+    handle.addEventListener("keydown",event=>{
+      if(event.key!=="ArrowUp"&&event.key!=="ArrowDown")return;
+      event.preventDefault();
+      const cards=Array.from(list.querySelectorAll<HTMLElement>(".rb-program-task[data-task-id]")),index=cards.indexOf(card),next=index+(event.key==="ArrowUp"?-1:1);
+      if(index<0||next<0||next>=cards.length)return;
+      if(next<index)list.insertBefore(card,cards[next]!);else list.insertBefore(cards[next]!,card);
+      commitOrder(taskId);
+    });
+    handle.addEventListener("pointerdown",event=>{
+      if(event.button!==0||!event.isPrimary)return;
+      event.preventDefault();
+      const pointerId=event.pointerId,startX=event.clientX,startY=event.clientY;
+      let active=false,timer=window.setTimeout(()=>activate(),140);
+      const activate=()=>{
+        if(active)return;active=true;card.classList.add("is-dragging");list.classList.add("is-reordering");
+        try{handle.setPointerCapture(pointerId);}catch{}
+      };
+      const move=(moveEvent:PointerEvent)=>{
+        if(moveEvent.pointerId!==pointerId)return;
+        if(!active&&Math.hypot(moveEvent.clientX-startX,moveEvent.clientY-startY)>6){clearTimeout(timer);activate();}
+        if(!active)return;moveEvent.preventDefault();
+        const siblings=Array.from(list.querySelectorAll<HTMLElement>(".rb-program-task[data-task-id]:not(.is-dragging)"));
+        const before=siblings.find(node=>moveEvent.clientY<node.getBoundingClientRect().top+node.getBoundingClientRect().height/2);
+        list.insertBefore(card,before||null);
+      };
+      const finish=(finishEvent:PointerEvent)=>{
+        if(finishEvent.pointerId!==pointerId)return;
+        clearTimeout(timer);handle.removeEventListener("pointermove",move);handle.removeEventListener("pointerup",finish);handle.removeEventListener("pointercancel",finish);
+        if(!active)return;
+        card.classList.remove("is-dragging");list.classList.remove("is-reordering");try{handle.releasePointerCapture(pointerId);}catch{}
+        commitOrder(taskId);
+      };
+      handle.addEventListener("pointermove",move);handle.addEventListener("pointerup",finish);handle.addEventListener("pointercancel",finish);
+    });
+  };
   function refresh():void{
     const state=controller.snapshot(),isDaily=state.view==="day",selected=parseDate(state.date),start=parseDate(state.week),end=parseDate(offsetDate(state.week,6));
     screen.dataset.refinedProgram=state.view;daily.setAttribute("aria-pressed",String(isDaily));weekly.setAttribute("aria-pressed",String(!isDaily));
@@ -234,15 +291,16 @@ export function installRefinedProgram():ProgramApi{
     const focused=document.activeElement instanceof HTMLElement?document.activeElement.dataset.rbProgramFocus:undefined;
     list.replaceChildren();
     if(!state.tasks.length){const empty=element("div","rb-program-empty");empty.append(element("strong","","Bu günün planı henüz boş"),element("p","","Çalışma ekle’ye dokun; dersini ve konunu seç. Aynı çalışmayı birden fazla güne de ekleyebilirsin."));list.append(empty);}
-    for(const task of [...state.tasks].sort((a,b)=>Number(a.done)-Number(b.done))){
-      const card=element("article","rb-program-task");card.toggleAttribute("data-done",task.done);
-      const check=button("","rb-program-check"),details=button("","rb-program-task-details"),copy=element("span","rb-program-task-copy");
+    for(const task of state.tasks){
+      const card=element("article","rb-program-task");card.toggleAttribute("data-done",task.done);card.dataset.taskId=task.id;
+      const drag=button("⠿","rb-program-drag"),check=button("","rb-program-check"),details=button("","rb-program-task-details"),copy=element("span","rb-program-task-copy");
+      drag.setAttribute("aria-label",`${task.text}: sırayı değiştir; sürükle veya ok tuşlarını kullan`);drag.dataset.rbProgramFocus=`drag:${task.id}`;
       check.setAttribute("aria-pressed",String(task.done));check.setAttribute("aria-label",`${task.text}: ${task.done?"tamamlanmadı olarak işaretle":"tamamla"}`);check.dataset.rbProgramFocus=`check:${task.id}`;if(task.done)check.append(icon("check"));
       const resource=object(call("cellLink",task.text)),displayText=typeof resource.ad==="string"&&resource.ad?resource.ad:task.text;
       const parts=displayText.split(/\s+·\s+/),title=parts.length>1?parts.shift()!:displayText;
       copy.append(element("strong","",title),element("small","",parts.length>1||title!==displayText?parts.join(" · "):task.label));details.append(copy,icon("arrow"));details.setAttribute("aria-label",`${task.text}: çalışma seçenekleri`);details.dataset.rbProgramFocus=`details:${task.id}`;
-      check.addEventListener("click",()=>{controller.toggleTask(task.id);refresh();});details.addEventListener("click",()=>controller.openTask(task.id));card.append(check,details);list.append(card);
-      if(check.dataset.rbProgramFocus===focused)check.focus({preventScroll:true});if(details.dataset.rbProgramFocus===focused)details.focus({preventScroll:true});
+      check.addEventListener("click",()=>{controller.toggleTask(task.id);refresh();});details.addEventListener("click",()=>controller.openTask(task.id));card.append(drag,check,details);list.append(card);bindReorder(card,drag,task.id);
+      if(drag.dataset.rbProgramFocus===focused)drag.focus({preventScroll:true});if(check.dataset.rbProgramFocus===focused)check.focus({preventScroll:true});if(details.dataset.rbProgramFocus===focused)details.focus({preventScroll:true});
     }
     const weekFocus=document.activeElement instanceof HTMLElement?document.activeElement.dataset.rbWeekTask:undefined;
     weeklyPanel.replaceChildren();
