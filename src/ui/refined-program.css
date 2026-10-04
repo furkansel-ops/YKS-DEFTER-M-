@@ -232,3 +232,11 @@
 #program .rb-program-tasks.is-reordering .rb-program-task:not(.is-dragging){transition:transform .12s ease;}
 @media(pointer:coarse){#program .rb-program-drag{width:40px;min-height:48px;font-size:20px;}}
 @media(prefers-reduced-motion:reduce){#program .rb-program-task{transition:none!important;}}
+
+/* Drag reorder reliability v2 */
+#program .rb-program-day .rb-program-tasks{grid-template-columns:1fr!important;}
+#program .rb-program-drag{display:grid;place-items:center;min-width:40px;min-height:48px;align-self:stretch;border:1px solid transparent;}
+#program .rb-program-task.is-dragging .rb-program-drag{background:var(--rp-soft);border-color:var(--rp-accent);color:var(--rp-accent);}
+#program .rb-program-tasks.is-reordering{user-select:none;-webkit-user-select:none;cursor:grabbing;}
+#program .rb-program-tasks.is-reordering .rb-program-task{pointer-events:none;}
+#program .rb-program-tasks.is-reordering .rb-program-task.is-dragging{pointer-events:auto;}
