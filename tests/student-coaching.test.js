@@ -133,8 +133,8 @@ test("Koç eşitleme runtime web ve native açılışta garanti edilir ve save s
   assert.match(shell,/import\("\.\/student-account-loader"\)/);
   assert.match(shell,/installStudentAccountLoader\(\)/);
   assert.match(shell,/const native=isNativeApp\(\)/);
-  assert.match(loader,/student-coaching-runtime\.js\?v=1\.2\.7/);
-  assert.match(runtime,/version:\"1\.2\.7\"/);
+  assert.match(loader,/student-coaching-runtime\.js\?v=1\.2\.8/);
+  assert.match(runtime,/version:\"1\.2\.8\"/);
   assert.match(app,/CustomEvent\(\"yks:data-changed\"/);
   assert.match(app,/source:\"save\"/);
 });
