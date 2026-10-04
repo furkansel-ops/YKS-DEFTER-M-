@@ -162,7 +162,7 @@ export function installRefinedProgram():ProgramApi{
   while(screen.firstChild)legacyPanel.append(screen.firstChild);
   const root=element("div","rb-program");root.id="refinedProgram";screen.append(root,legacyPanel);
   const controller=createRefinedProgramController({
-    readState:()=>window.YKSLegacyState?.readState?.(),visibleWeek:()=>renderedWeek(screen),
+    readState:()=>window.S||window.YKSLegacyState?.readState?.(),visibleWeek:()=>renderedWeek(screen),
     shiftWeek:offset=>call("shiftWeek",offset),thisWeek:()=>call("thisWeek"),setProgTab:tab=>call("setProgTab",tab),
     toggleCellDone:(week,id)=>call("toggleCellDone",week,id),addToDay:(text,day,offset)=>call("addToDay",text,day,offset),
     addToDays:(text,days,offset)=>call("addToDays",text,days,offset) as ProgramAddResult,
