@@ -285,3 +285,10 @@ test("gün sonu ruh hali Kaydet basılmadan koça gönderilmez",()=>{
   assert.match(saveBlock,/\bsave\(\)/);
   assert.match(app,/Kaydet'e basınca koçunla paylaşılacak/);
 });
+
+
+test("ruh hali seçimi yazılmış gün sonu cümlesini silmez",()=>{
+  const app=read("app.js");
+  assert.match(app,/if\(document\.activeElement!==inp&&!draftMood\)inp\.value=r\.note\|\|""/);
+  assert.match(app,/todayMoodDraft=\{date:"",mood:""\};[\s\S]*save\(\);[\s\S]*v25RenderClose\(\)/);
+});
