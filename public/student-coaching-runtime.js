@@ -172,16 +172,19 @@ function dateInfo(date){
 function applyAction(a){
   const s=state();if(!s)throw new Error("Öğrenci verisi hazır değil");const p=a.payload||{};
   if(a.type==="program_task"||a.type==="post_exam_task"){
-    const v=text(p.text,600),di=dateInfo(text(p.date,10)||today());if(!v)throw new Error("Görev boş");
-    if(typeof window.addToDay!=="function")throw new Error("Program işlevi hazır değil");
-    const prefix=a.type==="post_exam_task"?"Koç · Deneme sonrası · ":"Koç · ";
-    if(window.addToDay(prefix+v,di.day,di.weekOffset)===false)throw new Error("Programda boş satır bulunamadı");
-  }else if(a.type==="program_order"){
-    const date=text(p.date,10),di=dateInfo(date),order=Array.isArray(p.order)?p.order.map(id=>text(id,40)).filter(Boolean):[];
-    if(!order.length||order.length>48||order.some(id=>!/^[rs]-\d+-[0-6]$/.test(id)))throw new Error("Program sırası geçersiz");
-    const target=new Date(date+"T12:00:00");target.setDate(target.getDate()-di.day);const week=dateKey(target);
-    if(typeof window.programSetDayOrder!=="function")throw new Error("Program sıralama işlevi hazır değil");
-    if(window.programSetDayOrder(week,di.day,order)===false)throw new Error("Program sırası kaydedilemedi");
+    const di=dateInfo(text(p.date,10)||today());
+    if(a.type==="program_task"&&p.operation==="order"){
+      const order=Array.isArray(p.order)?p.order.map(id=>text(id,40)).filter(Boolean):[];
+      if(!order.length||order.length>48||order.some(id=>!/^[rs]-\d+-[0-6]$/.test(id)))throw new Error("Program sırası geçersiz");
+      const target=new Date(text(p.date,10)+"T12:00:00");target.setDate(target.getDate()-di.day);const week=dateKey(target);
+      if(typeof window.programSetDayOrder!=="function")throw new Error("Program sıralama işlevi hazır değil");
+      if(window.programSetDayOrder(week,di.day,order)===false)throw new Error("Program sırası kaydedilemedi");
+    }else{
+      const v=text(p.text,600);if(!v)throw new Error("Görev boş");
+      if(typeof window.addToDay!=="function")throw new Error("Program işlevi hazır değil");
+      const prefix=a.type==="post_exam_task"?"Koç · Deneme sonrası · ":"Koç · ";
+      if(window.addToDay(prefix+v,di.day,di.weekOffset)===false)throw new Error("Programda boş satır bulunamadı");
+    }
   }else if(a.type==="topic_deadline"){
     const k=text(p.key,220),d=text(p.date,10);if(!k||!/^\d{4}-\d{2}-\d{2}$/.test(d))throw new Error("Konu hedefi geçersiz");
     dateInfo(d);
@@ -200,7 +203,7 @@ async function handleAction(change,session=rt.session){
     const ready=await waitForState(30000,session);requireSession(session);
     if(!ready){console.warn("Koç görevi öğrenci verisi hazır olmadığı için beklemede bırakıldı");return}
     const result=applyAction(a);requireSession(session);
-    if(a.type==="program_task"||a.type==="post_exam_task"||a.type==="program_order"){
+    if(a.type==="program_task"||a.type==="post_exam_task"){
       try{await window.YKSStudentProgramShareV2?.publish?.(true)}catch(error){console.warn("Koç görevi program paylaşımı",error)}
     }
     requireSession(session);
