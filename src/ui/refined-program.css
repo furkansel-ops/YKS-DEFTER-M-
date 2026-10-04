@@ -221,3 +221,14 @@
 }
 
 @media print{#program .rb-program{display:none!important;}#program .rb-program-legacy[hidden]{display:block!important;}}
+
+/* Daily program drag ordering */
+#program .rb-program-drag{flex:none;width:34px;height:42px;border:0;border-radius:10px;background:transparent;color:var(--rp-muted);font:700 18px/1 system-ui;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;}
+#program .rb-program-drag:hover,#program .rb-program-drag:focus-visible{background:var(--rp-soft);color:var(--rp-accent);outline:none;}
+#program .rb-program-drag:active{cursor:grabbing;}
+#program .rb-program-task{transition:transform .16s ease,box-shadow .16s ease,opacity .16s ease,border-color .16s ease;}
+#program .rb-program-task.is-dragging{opacity:.82;box-shadow:0 18px 42px rgba(16,33,62,.16);border-color:var(--rp-accent);transform:scale(1.015);z-index:8;}
+#program .rb-program-tasks.is-reordering{touch-action:none;}
+#program .rb-program-tasks.is-reordering .rb-program-task:not(.is-dragging){transition:transform .12s ease;}
+@media(pointer:coarse){#program .rb-program-drag{width:40px;min-height:48px;font-size:20px;}}
+@media(prefers-reduced-motion:reduce){#program .rb-program-task{transition:none!important;}}
