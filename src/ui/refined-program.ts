@@ -260,10 +260,9 @@ export function installRefinedProgram():ProgramApi{
         if(moveEvent.pointerId!==pointerId)return;
         if(!active&&Math.hypot(moveEvent.clientX-startX,moveEvent.clientY-startY)>4){clearTimeout(timer);activate();}
         if(!active)return;moveEvent.preventDefault();
-        const target=document.elementFromPoint(moveEvent.clientX,moveEvent.clientY)?.closest<HTMLElement>(".rb-program-task[data-task-id]");
-        if(!target||target===card||target.parentElement!==list)return;
-        const rect=target.getBoundingClientRect(),before=moveEvent.clientY<rect.top+rect.height/2;
-        list.insertBefore(card,before?target:target.nextSibling);
+        const siblings=Array.from(list.querySelectorAll<HTMLElement>(".rb-program-task[data-task-id]:not(.is-dragging)"));
+        const before=siblings.find(node=>moveEvent.clientY<node.getBoundingClientRect().top+node.getBoundingClientRect().height/2);
+        if(before)list.insertBefore(card,before);else list.appendChild(card);
       };
       const finish=(finishEvent:PointerEvent)=>{
         if(finishEvent.pointerId!==pointerId)return;
