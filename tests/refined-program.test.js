@@ -21,11 +21,11 @@ function harness(){
   for(const name of ["keyOf","parseKey","addDaysKey","dowOf","mondayOf","thisWeek","clone"]){
     const definition=app.match(new RegExp(`^function ${name}\\([^\\n]+$`,"m"));assert.ok(definition,name);vm.runInContext(definition[0],context);
   }
-  for(const name of ["blankWeek","normWeek","getWeek","programTaskCompleted","programSetCellDone","toggleCellDone","shiftWeek","addToDay","addToDays"]){
+  for(const name of ["blankWeek","normWeek","getWeek","programTaskCompleted","programSetCellDone","toggleCellDone","programDayTaskIds","programSetDayOrder","shiftWeek","addToDay","addToDays"]){
     const definition=app.match(new RegExp(`function ${name}\\([^\\n]*\\)\\{[\\s\\S]*?\\r?\\n}`));assert.ok(definition,name);vm.runInContext(definition[0],context);
   }
   const controller=api.createRefinedProgramController({readState:()=>state,visibleWeek:()=>context.keyOf(context.curWeek),shiftWeek:context.shiftWeek,thisWeek:context.thisWeek,
-    setProgTab:tab=>calls.push(["setProgTab",tab]),toggleCellDone:context.toggleCellDone,addToDay:context.addToDay,addToDays:context.addToDays,
+    setProgTab:tab=>calls.push(["setProgTab",tab]),toggleCellDone:context.toggleCellDone,addToDay:context.addToDay,addToDays:context.addToDays,setDayOrder:context.programSetDayOrder,
     openPlanCellMenu:(...args)=>calls.push(["menu",...args])},()=>fixed);
   return {state,calls,controller,context};
 }
@@ -181,4 +181,15 @@ test("program detail sheet owns linked resource playback actions",()=>{
   assert.match(legacy,/planSheetResourceHtml\(c\)/);
   assert.match(legacy,/link\.listId\?"▶ Oynatma listesini aç":link\.videoId\?"▶ Videoyu izle":"↗ Bağlantıyı aç"/);
   assert.match(legacy,/return cellOpenLink\(c\.txt\)/);
+});
+
+
+test("daily task ordering persists through mv metadata without changing cell identity",()=>{
+  const h=harness(),data=h.state.weeks["2026-09-21"];
+  data.r[0][4]="Paragraf";data.s[0][4]="Matematik";data.s[1][4]="Biyoloji";
+  assert.deepEqual(plain(h.controller.snapshot().tasks).map(task=>task.id),["r-0-4","s-0-4","s-1-4"]);
+  assert.equal(h.controller.reorder(["s-1-4","r-0-4","s-0-4"]),true);
+  assert.deepEqual(data.mv["order-4"],["s-1-4","r-0-4","s-0-4"]);
+  assert.deepEqual(plain(h.controller.snapshot().tasks).map(task=>task.id),["s-1-4","r-0-4","s-0-4"]);
+  assert.equal(data.r[0][4],"Paragraf");assert.equal(data.s[0][4],"Matematik");assert.equal(data.s[1][4],"Biyoloji");
 });
