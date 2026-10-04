@@ -193,3 +193,11 @@ test("daily task ordering persists through mv metadata without changing cell ide
   assert.deepEqual(plain(h.controller.snapshot().tasks).map(task=>task.id),["s-1-4","r-0-4","s-0-4"]);
   assert.equal(data.r[0][4],"Paragraf");assert.equal(data.s[0][4],"Matematik");assert.equal(data.s[1][4],"Biyoloji");
 });
+
+
+test("daily drag implementation uses sibling midpoints instead of hit-testing the dragged card",()=>{
+  const source=fs.readFileSync(path.join(root,"src/ui/refined-program.ts"),"utf8");
+  assert.match(source,/not\(\.is-dragging\)/);
+  assert.match(source,/getBoundingClientRect\(\)\.top/);
+  assert.doesNotMatch(source,/elementFromPoint/);
+});
