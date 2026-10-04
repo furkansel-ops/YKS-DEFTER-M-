@@ -1294,6 +1294,35 @@ function toggleCellDone(wk,cid){
   return true;
 }
 
+function programDayTaskIds(w,day){
+  if(!w||!Number.isInteger(day)||day<0||day>6)return[];
+  const ids=[];
+  ["r","s"].forEach(blk=>{(Array.isArray(w[blk])?w[blk]:[]).forEach((row,index)=>{if(String(row?.[day]||"").trim())ids.push(blk+"-"+index+"-"+day);});});
+  return ids;
+}
+function programSetDayOrder(wk,day,ids){
+  if(!validDateKey(wk)||!Number.isInteger(day)||day<0||day>6||!Array.isArray(ids))return false;
+  const w=getWeek(wk,false);if(!w)return false;
+  const current=programDayTaskIds(w,day),allowed=new Set(current),next=[];
+  for(const raw of ids){
+    const id=String(raw||"");
+    if(allowed.has(id)&&!next.includes(id))next.push(id);
+  }
+  current.forEach(id=>{if(!next.includes(id))next.push(id);});
+  if(next.length!==current.length)return false;
+  const key="order-"+day,had=Object.prototype.hasOwnProperty.call(w.mv,key),previous=w.mv[key];
+  w.mv[key]=next;
+  let saved=false;try{saved=save()===true;}catch(e){}
+  if(!saved){
+    if(had)w.mv[key]=previous;else delete w.mv[key];
+    if(typeof perfInvalidateState==="function")perfInvalidateState();
+    return false;
+  }
+  if(el("program")?.classList.contains("active"))renderPlan();
+  if(el("home")?.classList.contains("active"))renderTodayPlan();
+  return true;
+}
+
 /* ================= PLAN IZGARASI ================= */
 let curWeek=mondayOf(new Date()),calDate=new Date(),selDate=todayKey();
 function setProgTab(t){
