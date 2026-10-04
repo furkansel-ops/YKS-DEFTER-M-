@@ -158,3 +158,7 @@
   #home.v43-today #todayPlan>.plancell{column-gap:10px;}
 }
 @media (prefers-reduced-motion:reduce){#home.v43-today button,#home.v43-today summary{transition:none!important;scroll-behavior:auto;}}
+
+/* Gün sonu kartı, koç bağlantısının hemen üstünde sabit görünür */
+#home.v43-today>#todayClose{margin:14px 0 8px!important}
+#home.v43-today>#todayClose+.rb-home-coach{margin-top:0!important}
