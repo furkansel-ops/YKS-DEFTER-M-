@@ -179,6 +179,11 @@ function applyAction(a){
       const target=new Date(text(p.date,10)+"T12:00:00");target.setDate(target.getDate()-di.day);const week=dateKey(target);
       if(typeof window.programSetDayOrder!=="function")throw new Error("Program sıralama işlevi hazır değil");
       if(window.programSetDayOrder(week,di.day,order)===false)throw new Error("Program sırası kaydedilemedi");
+    }else if(a.type==="program_task"&&p.operation==="move"){
+      const sourceWeek=text(p.sourceWeek,10),taskId=text(p.taskId,40),targetDate=text(p.date,10);
+      if(!/^\d{4}-\d{2}-\d{2}$/.test(sourceWeek)||!/^[rs]-\d+-[0-6]$/.test(taskId))throw new Error("Program taşıma bilgisi geçersiz");
+      if(typeof window.programMoveTaskToDate!=="function")throw new Error("Program taşıma işlevi hazır değil");
+      if(window.programMoveTaskToDate(sourceWeek,taskId,targetDate)===false)throw new Error("Görev hedef güne taşınamadı");
     }else{
       const v=text(p.text,600);if(!v)throw new Error("Görev boş");
       if(typeof window.addToDay!=="function")throw new Error("Program işlevi hazır değil");
@@ -244,7 +249,7 @@ async function onSignedIn({user,auth,db}){
 function onSignedOut(){cleanup();rt.user=rt.auth=rt.db=rt.profile=null;delete document.documentElement.dataset.accountRole}
 
 let resolveAccountReady;try{window.__YKS_ACCOUNT_READY__=new Promise(resolve=>{resolveAccountReady=resolve})}catch{}
-window.YKSAccountAuth={version:"1.2.12",beforeSignIn,onSignedIn,onSignedOut,publishShare};
+window.YKSAccountAuth={version:"1.2.13",beforeSignIn,onSignedIn,onSignedOut,publishShare};
 try{resolveAccountReady?.(window.YKSAccountAuth)}catch{}
 document.documentElement.dataset.studentCoachingBridge="ready";
-window.dispatchEvent(new CustomEvent("yks:student-coaching-ready",{detail:{version:"1.2.12"}}));
+window.dispatchEvent(new CustomEvent("yks:student-coaching-ready",{detail:{version:"1.2.13"}}));
