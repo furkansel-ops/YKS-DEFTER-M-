@@ -42,8 +42,9 @@ export function refinedProgramTasks(state:unknown,week:string,day:number):Refine
       const value=Array.isArray(row)?row[day]:null;
       if(typeof value!=="string"||!value.trim())return;
       const id=`${block}-${index}-${day}`,rowLabels=labels[block];
-      const label=Array.isArray(rowLabels)&&typeof rowLabels[index]==="string"?rowLabels[index].trim():"";
-      tasks.push({id,block,row:index,day,text:value.trim(),label:label||(block==="r"?"Rutin":"Çalışma"),done:Boolean(done[id])});
+      const rowLabel=Array.isArray(rowLabels)&&typeof rowLabels[index]==="string"?rowLabels[index].trim():"";
+      const detected=block==="s"?refinedProgramDetectedSubject(value):"";
+      tasks.push({id,block,row:index,day,text:value.trim(),label:detected||rowLabel||(block==="r"?"Rutin":"Çalışma"),done:Boolean(done[id])});
     });
   }
   const rawOrder=move[`order-${day}`];
@@ -84,9 +85,28 @@ export function refinedProgramResourceUrl(value:string):string|null{
   }catch{return null;}
 }
 
+function refinedProgramDetectedSubject(text:string):string{
+  const clean=text
+    .replace(/^Koç\s*·\s*(?:Deneme sonrası\s*·\s*)?/i,"")
+    .replace(/\s+—\s+https?:\/\/\S+\s*$/i,"")
+    .trim();
+  const subjects=[
+    ["Matematik",/matematik/i],["Geometri",/geometri/i],["Fizik",/fizik/i],["Kimya",/kimya/i],["Biyoloji",/biyoloji/i],
+    ["Türkçe",/türkçe/i],["Edebiyat",/(?:türk dili ve edebiyatı|edebiyat)/i],["Tarih",/tarih/i],["Coğrafya",/coğrafya/i],
+    ["Felsefe",/felsefe/i],["Din",/(?:din kültürü|\bdin\b)/i],["İngilizce",/(?:ingilizce|english)/i]
+  ] as const;
+  const exam=clean.match(/^(TYT|AYT|YDT)\b/i)?.[1]?.toUpperCase()||"";
+  const body=exam?clean.replace(/^(TYT|AYT|YDT)\b\s*/i,""):clean;
+  for(const [label,pattern] of subjects){
+    const match=body.match(pattern);if(match&&match.index!==undefined&&match.index<=8)return exam?`${exam} ${label}`:label;
+  }
+  return "";
+}
+
 export function refinedProgramSubjectLabel(text:string,label="Çalışma"):string{
-  const fallback=label.trim()||"Çalışma";
-  const clean=text.replace(/\s+—\s+https?:\/\/\S+\s*$/i,"").trim();
+  const fallback=label.trim()||"Çalışma",detected=refinedProgramDetectedSubject(text);
+  if(detected)return detected;
+  const clean=text.replace(/^Koç\s*·\s*(?:Deneme sonrası\s*·\s*)?/i,"").replace(/\s+—\s+https?:\/\/\S+\s*$/i,"").trim();
   const first=(clean.split(/\s+·\s+/)[0]||"").trim();
   if(!first)return fallback;
   const exam=first.match(/^(TYT|AYT|YDT)\s+(.+)$/i);
