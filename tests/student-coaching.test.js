@@ -17,7 +17,7 @@ test("öğrenci uygulaması yalnız öğrenci hesabı olarak açılır ve koç p
 
 test("öğrenci hesap köprüleri auth başlamadan önce güvenli sırada yüklenir",()=>{
   const loader=read("src/ui/student-account-loader.ts");
-  const bridgeAt=loader.indexOf("student-coaching-runtime.js?v=1.2.7");
+  const bridgeAt=loader.indexOf("student-coaching-runtime.js?v=1.2.8");
   const linkAt=loader.indexOf("student-coach-link.js?v=1.3.1");
   const programAt=loader.indexOf("student-program-share-v2.js?v=3.6.1");
   const authAt=loader.indexOf("auth-session-runtime.js?v=1.6.0");
@@ -197,4 +197,11 @@ test("Program paylaşımı Firestore için iç içe array üretmez",()=>{
   assert.match(program,/out\[String\(r\)\]=Array\.from\(\{length:7\}/);
   assert.doesNotMatch(main,/return Array\.from\(\{length:rowCount\}/);
   assert.doesNotMatch(program,/return Array\.from\(\{length:rowCount\}/);
+});
+
+
+test("koç program görevleri video bağlantısı ve ayrıntılar için 600 karaktere kadar korunur",()=>{
+  const runtime=read("public/student-coaching-runtime.js");
+  assert.match(runtime,/text\(p\.text,600\)/);
+  assert.match(runtime,/version:"1\.2\.8"/);
 });
