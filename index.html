@@ -200,11 +200,16 @@
     </div>
     <div class="today-panel today-timeline-panel"><div class="today-section-head"><b>Günün akışı</b><span>odak oturumları</span></div><div id="todayTimeline"></div></div>
     <div class="today-close" id="todayClose">
-      <div class="today-section-head"><b id="todayCloseTitle">Gün sonu</b><span id="todayCloseHint">Akşam doldurabilirsin</span></div>
+      <div class="today-close-top">
+        <span class="today-close-icon">☾</span>
+        <div class="today-section-head"><b id="todayCloseTitle">Gün sonu</b><span id="todayCloseHint">Akşam doldurabilirsin</span></div>
+        <span class="today-close-saved" id="todayCloseSaved">Henüz kaydedilmedi</span>
+      </div>
+      <p class="today-close-copy">Bugünü tek cümleyle kapat. Koç bağlantın açıksa bu değerlendirme koçuna da görünür.</p>
       <div class="today-moods" role="group" aria-label="Bugün nasıldı?">
-        <button type="button" id="todayMoodGood" onclick="setTodayMood('good')">İyi</button>
-        <button type="button" id="todayMoodMid" onclick="setTodayMood('mid')">Orta</button>
-        <button type="button" id="todayMoodHard" onclick="setTodayMood('hard')">Zor</button>
+        <button type="button" id="todayMoodGood" onclick="setTodayMood('good')"><span>🙂</span><b>İyi</b></button>
+        <button type="button" id="todayMoodMid" onclick="setTodayMood('mid')"><span>😐</span><b>Orta</b></button>
+        <button type="button" id="todayMoodHard" onclick="setTodayMood('hard')"><span>😮‍💨</span><b>Zor</b></button>
       </div>
       <div class="today-note-row"><input type="text" id="todayReflectionInput" maxlength="220" placeholder="Bugünden tek cümle…"><button class="btn ghost tiny" type="button" onclick="saveTodayReflection()">Kaydet</button></div>
     </div>
