@@ -1348,6 +1348,17 @@ function programMoveTaskToDate(wk,taskId,targetDate){
   if(!saved){restorePlanWeekBackup(backup);return false;}
   planRefreshViews();return true;
 }
+function programEditTask(wk,taskId,nextText){
+  if(!validDateKey(wk)||typeof taskId!=="string"||!/^[rs]-\d+-[0-6]$/.test(taskId))return false;
+  const value=String(nextText||"").trim();if(!value||value.length>600)return false;
+  const parts=taskId.split("-"),blk=parts[0],row=+parts[1],day=+parts[2],w=getWeek(wk,false);
+  if(!w||!w[blk]?.[row]||!String(w[blk][row][day]||"").trim())return false;
+  const previous=w[blk][row][day];w[blk][row][day]=value;
+  let saved=false;try{saved=save()===true}catch(e){}
+  if(!saved){w[blk][row][day]=previous;if(typeof perfInvalidateState==="function")perfInvalidateState();return false}
+  planRefreshViews();return true;
+}
+
 
 /* ================= PLAN IZGARASI ================= */
 let curWeek=mondayOf(new Date()),calDate=new Date(),selDate=todayKey();
