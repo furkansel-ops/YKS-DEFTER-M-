@@ -172,7 +172,7 @@ function dateInfo(date){
 function applyAction(a){
   const s=state();if(!s)throw new Error("Öğrenci verisi hazır değil");const p=a.payload||{};
   if(a.type==="program_task"||a.type==="post_exam_task"){
-    const v=text(p.text,220),di=dateInfo(text(p.date,10)||today());if(!v)throw new Error("Görev boş");
+    const v=text(p.text,600),di=dateInfo(text(p.date,10)||today());if(!v)throw new Error("Görev boş");
     if(typeof window.addToDay!=="function")throw new Error("Program işlevi hazır değil");
     const prefix=a.type==="post_exam_task"?"Koç · Deneme sonrası · ":"Koç · ";
     if(window.addToDay(prefix+v,di.day,di.weekOffset)===false)throw new Error("Programda boş satır bulunamadı");
@@ -221,7 +221,7 @@ async function onSignedIn({user,auth,db}){
 function onSignedOut(){cleanup();rt.user=rt.auth=rt.db=rt.profile=null;delete document.documentElement.dataset.accountRole}
 
 let resolveAccountReady;try{window.__YKS_ACCOUNT_READY__=new Promise(resolve=>{resolveAccountReady=resolve})}catch{}
-window.YKSAccountAuth={version:"1.2.7",beforeSignIn,onSignedIn,onSignedOut,publishShare};
+window.YKSAccountAuth={version:"1.2.8",beforeSignIn,onSignedIn,onSignedOut,publishShare};
 try{resolveAccountReady?.(window.YKSAccountAuth)}catch{}
 document.documentElement.dataset.studentCoachingBridge="ready";
-window.dispatchEvent(new CustomEvent("yks:student-coaching-ready",{detail:{version:"1.2.7"}}));
+window.dispatchEvent(new CustomEvent("yks:student-coaching-ready",{detail:{version:"1.2.8"}}));
