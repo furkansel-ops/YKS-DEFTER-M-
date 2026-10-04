@@ -5,7 +5,7 @@ const rt={auth:null,db:null,user:null,profile:null,stops:[],shareTimer:null,shar
 const text=(v,n=160)=>String(v??"").trim().slice(0,n);
 const list=v=>Array.isArray(v)?v:[];
 const finite=(v,fallback=0)=>Number.isFinite(Number(v))?Number(v):fallback;
-const state=()=>{try{return window.YKSLegacyState?.readState?.()||window.S||null}catch{return window.S||null}};
+const state=()=>{try{return window.S||window.YKSLegacyState?.readState?.()||null}catch{return window.S||null}};
 const save=()=>{try{return window.save?.()??window.YKSLegacyState?.save?.()}catch{return false}};
 const toast=m=>{try{window.toast?.(m)}catch{console.info(m)}};
 const dateKey=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
@@ -194,6 +194,10 @@ async function handleAction(change,session=rt.session){
     const ready=await waitForState(30000,session);requireSession(session);
     if(!ready){console.warn("Koç görevi öğrenci verisi hazır olmadığı için beklemede bırakıldı");return}
     const result=applyAction(a);requireSession(session);
+    if(a.type==="program_task"||a.type==="post_exam_task"){
+      try{await window.YKSStudentProgramShareV2?.publish?.(true)}catch(error){console.warn("Koç görevi program paylaşımı",error)}
+    }
+    requireSession(session);
     await updateDoc(change.doc.ref,{status:"applied",updatedAt:serverTimestamp(),handledAt:serverTimestamp(),result});
     if(session!==rt.session)return;
     toast("Koçundan yeni görev/not geldi ✓");scheduleShare(60);
@@ -231,7 +235,7 @@ async function onSignedIn({user,auth,db}){
 function onSignedOut(){cleanup();rt.user=rt.auth=rt.db=rt.profile=null;delete document.documentElement.dataset.accountRole}
 
 let resolveAccountReady;try{window.__YKS_ACCOUNT_READY__=new Promise(resolve=>{resolveAccountReady=resolve})}catch{}
-window.YKSAccountAuth={version:"1.2.10",beforeSignIn,onSignedIn,onSignedOut,publishShare};
+window.YKSAccountAuth={version:"1.2.11",beforeSignIn,onSignedIn,onSignedOut,publishShare};
 try{resolveAccountReady?.(window.YKSAccountAuth)}catch{}
 document.documentElement.dataset.studentCoachingBridge="ready";
-window.dispatchEvent(new CustomEvent("yks:student-coaching-ready",{detail:{version:"1.2.10"}}));
+window.dispatchEvent(new CustomEvent("yks:student-coaching-ready",{detail:{version:"1.2.11"}}));
