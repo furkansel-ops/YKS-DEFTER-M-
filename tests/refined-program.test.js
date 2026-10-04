@@ -195,9 +195,17 @@ test("daily task ordering persists through mv metadata without changing cell ide
 });
 
 
-test("daily drag implementation uses sibling midpoints instead of hit-testing the dragged card",()=>{
+
+
+test("Programım sürükleme yerine seç-taşı ve düzenle kontrolleri kullanır",()=>{
   const source=fs.readFileSync(path.join(root,"src/ui/refined-program.ts"),"utf8");
-  assert.match(source,/not\(\.is-dragging\)/);
-  assert.match(source,/getBoundingClientRect\(\)\.top/);
-  assert.doesNotMatch(source,/elementFromPoint/);
+  const css=fs.readFileSync(path.join(root,"src/ui/refined-program.css"),"utf8");
+  assert.doesNotMatch(source,/rb-program-drag/);
+  assert.doesNotMatch(source,/pointerdown/);
+  assert.match(source,/rb-program-select/);
+  assert.match(source,/rb-program-edit/);
+  assert.match(source,/rb-program-movebar/);
+  assert.match(source,/controller\.moveTask/);
+  assert.match(css,/rb-program-select/);
+  assert.match(css,/rb-program-edit/);
 });
