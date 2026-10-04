@@ -10288,9 +10288,39 @@ function v25RenderReviews(){const w=el("todayReviews"),wrap=el("todayReviewWrap"
 function v25RenderSubjects(){const w=el("todaySubjectDist");if(!w)return;const m=S.pomoSubj[todayKey()]||{},a=Object.keys(m).map(n=>({n,m:+m[n]||0})).filter(x=>x.m>0).sort((x,y)=>y.m-x.m),mx=a[0]?.m||1;if(!a.length){w.innerHTML='<div class="today-review-empty">Ders etiketli çalışma henüz yok.</div>';return;}w.innerHTML=a.slice(0,5).map(x=>'<div class="today-subj-row"><span class="name">'+esc(x.n)+'</span><span class="mins">'+fmtHM(x.m)+'</span><div class="today-subj-bar"><i style="width:'+Math.round(x.m/mx*100)+'%"></i></div></div>').join('');}
 function v25RenderLast(){const w=el("todayLastSession"),when=el("todayLastWhen");if(!w||!when)return;const x=v25LatestFocus();v25LastFocus=x;if(!x){when.textContent="—";w.innerHTML='<div class="today-review-empty">Henüz çalışma oturumu yok.</div>';return;}const d=new Date(x.at),hh=d.toLocaleTimeString("tr-TR",{hour:"2-digit",minute:"2-digit"});when.textContent=hh;w.innerHTML='<div class="today-last-title">'+esc(x.subj||"Ders")+(x.topic?' · '+esc(x.topic):'')+'</div><div class="today-last-meta">'+fmtHM(Math.max(1,Math.round(x.min)))+' çalışma</div><div class="today-last-actions"><button class="btn ghost tiny" onclick="v25ContinueLast()">Devam et</button></div>'; }
 function v25RenderTimeline(){const w=el("todayTimeline");if(!w)return;const a=v25FocusEvents(),b=[{n:"Sabah",from:0,to:12,m:0,c:0},{n:"Öğlen",from:12,to:18,m:0,c:0},{n:"Akşam",from:18,to:24,m:0,c:0}];a.forEach(x=>{const h=new Date(x.at).getHours(),z=b.find(y=>h>=y.from&&h<y.to)||b[2];z.m+=x.min;z.c++;});w.innerHTML=b.map(x=>'<div class="today-timeblock"><b>'+x.n+'</b><strong>'+fmtHM(Math.round(x.m))+'</strong><small>'+x.c+' odak kaydı</small></div>').join('');}
-function setTodayMood(mood){if(!["good","mid","hard"].includes(mood))return false;const k=todayKey();if(!S.dayReview)S.dayReview={};const old=S.dayReview[k]||{};S.dayReview[k]={mood,note:String(old.note||"").slice(0,220),at:Date.now()};save();v25RenderClose();toast("Gün değerlendirmesi kaydedildi");return true;}
-function saveTodayReflection(){const k=todayKey(),inp=el("todayReflectionInput"),note=String(inp?.value||"").trim().slice(0,220);if(!S.dayReview)S.dayReview={};const old=S.dayReview[k]||{};if(!note&&!old.mood){delete S.dayReview[k];}else S.dayReview[k]={mood:old.mood||"",note,at:Date.now()};save();v25RenderClose();toast(note?"Günün notu kaydedildi":"Günün notu temizlendi");}
-function v25RenderClose(){const box=el("todayClose"),inp=el("todayReflectionInput");if(!box||!inp)return;const h=new Date().getHours(),k=todayKey(),r=(S.dayReview&&S.dayReview[k])||{},saved=el("todayCloseSaved");box.classList.toggle("soft",h<18&&!v25PlanToday().dayDone);el("todayCloseTitle").textContent=h>=18?"Günü kapat":"Gün sonu değerlendirmesi";el("todayCloseHint").textContent=h>=18?"Bugün nasıldı?":"Akşam istersen doldur";if(document.activeElement!==inp)inp.value=r.note||"";[["good","todayMoodGood"],["mid","todayMoodMid"],["hard","todayMoodHard"]].forEach(([m,id])=>el(id)?.classList.toggle("on",r.mood===m));if(saved){const has=!!(r.mood||r.note);saved.textContent=has?"Koçunla paylaşıldı":"Henüz kaydedilmedi";saved.dataset.saved=String(has);}}
+let todayMoodDraft={date:"",mood:""};
+function setTodayMood(mood){
+  if(!["good","mid","hard"].includes(mood))return false;
+  todayMoodDraft={date:todayKey(),mood};
+  v25RenderClose();
+  toast("Ruh hali seçildi · Kaydet'e basınca koçunla paylaşılacak");
+  return true;
+}
+function saveTodayReflection(){
+  const k=todayKey(),inp=el("todayReflectionInput"),note=String(inp?.value||"").trim().slice(0,220);
+  if(!S.dayReview)S.dayReview={};
+  const old=S.dayReview[k]||{},mood=todayMoodDraft.date===k?todayMoodDraft.mood:(old.mood||"");
+  if(!note&&!mood)delete S.dayReview[k];
+  else S.dayReview[k]={mood,note,at:Date.now()};
+  todayMoodDraft={date:k,mood};
+  save();
+  v25RenderClose();
+  toast(note||mood?"Gün sonu kaydedildi ve koçunla paylaşıldı":"Gün sonu notu temizlendi");
+}
+function v25RenderClose(){
+  const box=el("todayClose"),inp=el("todayReflectionInput");if(!box||!inp)return;
+  const h=new Date().getHours(),k=todayKey(),r=(S.dayReview&&S.dayReview[k])||{},saved=el("todayCloseSaved"),draftMood=todayMoodDraft.date===k?todayMoodDraft.mood:"",mood=draftMood||r.mood||"",dirty=!!draftMood&&draftMood!==String(r.mood||"");
+  box.classList.toggle("soft",h<18&&!v25PlanToday().dayDone);
+  el("todayCloseTitle").textContent=h>=18?"Günü kapat":"Gün sonu değerlendirmesi";
+  el("todayCloseHint").textContent=h>=18?"Bugün nasıldı?":"Akşam istersen doldur";
+  if(document.activeElement!==inp)inp.value=r.note||"";
+  [["good","todayMoodGood"],["mid","todayMoodMid"],["hard","todayMoodHard"]].forEach(([m,id])=>el(id)?.classList.toggle("on",mood===m));
+  if(saved){
+    const has=!!(r.mood||r.note);
+    saved.textContent=dirty?"Kaydetmeye hazır":has?"Koçunla paylaşıldı":"Henüz kaydedilmedi";
+    saved.dataset.saved=String(has&&!dirty);
+  }
+}
 function v25RenderDaypart(){const h=new Date().getHours(),ey=el("todayHubEyebrow"),title=el("todayHubTitle"),kick=document.querySelector("#home .home-kicker");if(h<12){ey.textContent="Sabah planı";title.textContent="Bugüne başla";if(kick)kick.textContent="Önce sıradaki görevi seç; gün geri kalanını sıraya koyar.";}else if(h<18){ey.textContent="Şu ana kadar";title.textContent="Bugünün durumu";if(kick)kick.textContent="Kalan hedefi gör, sıradaki işi bitir, devam et.";}else{ey.textContent="Akşam";title.textContent="Günü kapat";if(kick)kick.textContent="Kalanları tamamla ya da yarına taşı; günü kısa bir notla kapat.";}}
 function renderV25Today(){try{v25RenderDaypart();v25RenderSummary();v25RenderNext();v25RenderReviews();v25RenderSubjects();v25RenderLast();v25RenderTimeline();v25RenderClose();}catch(e){infraError("v25-today",e);}}
 
