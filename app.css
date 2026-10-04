@@ -2702,3 +2702,23 @@ body > .qaviewer{
   body > .qaviewer{padding:calc(10px + env(safe-area-inset-top)) 10px calc(10px + env(safe-area-inset-bottom))!important}
   body > .qaviewer .qvinfo,body > .qaviewer .qvnote{max-width:100%;overflow-wrap:anywhere}
 }
+
+/* Gün sonu kartı v2 */
+#home .today-close{position:relative;margin-top:14px!important;padding:16px!important;border:1px solid color-mix(in srgb,var(--accent) 16%,var(--glass-line))!important;border-radius:18px!important;background:linear-gradient(145deg,color-mix(in srgb,var(--accent) 5%,var(--glass-strong)),color-mix(in srgb,var(--success) 5%,var(--glass)))!important;box-shadow:0 10px 30px color-mix(in srgb,var(--accent) 7%,transparent)}
+#home .today-close-top{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:10px}
+#home .today-close-icon{width:36px;height:36px;border-radius:12px;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent);font-size:17px}
+#home .today-close .today-section-head{margin:0!important;display:grid;gap:2px}
+#home .today-close .today-section-head>b{font-size:14px!important;color:var(--label)}
+#home .today-close .today-section-head>span{font-size:10.5px!important}
+#home .today-close-saved{justify-self:end;padding:5px 8px;border-radius:999px;background:var(--fill);color:var(--label-3);font-size:9.5px;font-weight:700;white-space:nowrap}
+#home .today-close-saved[data-saved="true"]{background:var(--success-soft);color:var(--success)}
+#home .today-close-copy{margin:10px 0 0;color:var(--label-2);font-size:11.5px;line-height:1.55}
+#home .today-moods{gap:8px;margin-top:12px}
+#home .today-moods button{display:flex;align-items:center;justify-content:center;gap:7px;min-height:46px;padding:8px 10px!important;border-radius:13px!important}
+#home .today-moods button>span{font-size:16px}
+#home .today-moods button>b{font-size:11.5px}
+#home .today-moods button.on{box-shadow:0 5px 14px color-mix(in srgb,var(--accent) 13%,transparent)}
+#home .today-note-row{margin-top:10px!important;grid-template-columns:minmax(0,1fr) auto!important}
+#home .today-note-row input{min-height:44px;padding:0 12px;border:1px solid var(--glass-line);border-radius:12px;background:var(--fill);color:var(--label)}
+#home .today-note-row button{min-height:44px!important;padding-inline:14px!important}
+@media(max-width:560px){#home .today-close-top{grid-template-columns:auto 1fr}#home .today-close-saved{grid-column:1/-1;justify-self:start}.today-moods button{min-width:0}}
