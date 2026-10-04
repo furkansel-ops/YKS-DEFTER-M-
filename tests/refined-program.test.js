@@ -189,7 +189,7 @@ test("daily task ordering persists through mv metadata without changing cell ide
   data.r[0][4]="Paragraf";data.s[0][4]="Matematik";data.s[1][4]="Biyoloji";
   assert.deepEqual(plain(h.controller.snapshot().tasks).map(task=>task.id),["r-0-4","s-0-4","s-1-4"]);
   assert.equal(h.controller.reorder(["s-1-4","r-0-4","s-0-4"]),true);
-  assert.deepEqual(data.mv["order-4"],["s-1-4","r-0-4","s-0-4"]);
+  assert.deepEqual(plain(data.mv["order-4"]),["s-1-4","r-0-4","s-0-4"]);
   assert.deepEqual(plain(h.controller.snapshot().tasks).map(task=>task.id),["s-1-4","r-0-4","s-0-4"]);
   assert.equal(data.r[0][4],"Paragraf");assert.equal(data.s[0][4],"Matematik");assert.equal(data.s[1][4],"Biyoloji");
 });
