@@ -194,6 +194,8 @@ function refreshCoachShortcut(home:HTMLElement):void{
     });
     const quote=getElement("sozBox"),tasks=home.querySelector(".rb-today-tasks");(tasks||quote)?.insertAdjacentElement("afterend",shortcut);
   }
+  const dayEnd=getElement<HTMLElement>("todayClose");
+  if(dayEnd&&shortcut.parentElement===home&&dayEnd.nextElementSibling!==shortcut)home.insertBefore(dayEnd,shortcut);
   shortcut.hidden=false;
 }
 
