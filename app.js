@@ -1323,6 +1323,32 @@ function programSetDayOrder(wk,day,ids){
   return true;
 }
 
+
+function programMoveTaskToDate(wk,taskId,targetDate){
+  if(!validDateKey(wk)||typeof taskId!=="string"||!/^[rs]-\d+-[0-6]$/.test(taskId)||!validDateKey(targetDate))return false;
+  const parts=taskId.split("-"),blk=parts[0],rowIndex=+parts[1],sourceDay=+parts[2],c=planCellData(wk,blk,rowIndex,sourceDay);
+  if(!c)return false;
+  const target=new Date(targetDate+"T12:00:00"),targetWk=keyOf(mondayOf(target)),targetDay=dowOf(target);
+  if(targetWk===c.wk&&targetDay===c.d)return true;
+  const backup=planWeekBackup([...new Set([c.wk,targetWk])]),tw=getWeek(targetWk,true);
+  let targetRow=c.i;
+  if(!tw[c.blk]||!tw[c.blk][targetRow]||String(tw[c.blk][targetRow][targetDay]||"").trim())targetRow=planFindEmpty(tw,c.blk,targetDay,-1);
+  if(targetRow<0){restorePlanWeekBackup(backup);return false;}
+  const targetCid=c.blk+"-"+targetRow+"-"+targetDay,sourceOrderKey="order-"+c.d,targetOrderKey="order-"+targetDay;
+  tw[c.blk][targetRow][targetDay]=c.txt;delete tw.dn[targetCid];
+  if(!tw.mv||typeof tw.mv!=="object")tw.mv={};
+  tw.mv[targetCid]={from:addDaysKey(c.wk,c.d),at:Date.now()};
+  c.w[c.blk][c.i][c.d]="";delete c.w.dn[c.cid];if(c.w.mv)delete c.w.mv[c.cid];
+  const sourceOrder=Array.isArray(c.w.mv?.[sourceOrderKey])?c.w.mv[sourceOrderKey].filter(id=>id!==c.cid):[];
+  if(sourceOrder.length)c.w.mv[sourceOrderKey]=sourceOrder;else if(c.w.mv)delete c.w.mv[sourceOrderKey];
+  const targetOrder=Array.isArray(tw.mv[targetOrderKey])?tw.mv[targetOrderKey].filter(id=>id!==targetCid):programDayTaskIds(tw,targetDay).filter(id=>id!==targetCid);
+  targetOrder.push(targetCid);tw.mv[targetOrderKey]=targetOrder;
+  if(c.blk==="s"&&!String(S.rowLabels.s[targetRow]||"").trim())S.rowLabels.s[targetRow]=S.rowLabels.s[c.i]||"";
+  let saved=false;try{saved=save()===true}catch(e){}
+  if(!saved){restorePlanWeekBackup(backup);return false;}
+  planRefreshViews();return true;
+}
+
 /* ================= PLAN IZGARASI ================= */
 let curWeek=mondayOf(new Date()),calDate=new Date(),selDate=todayKey();
 function setProgTab(t){
