@@ -14,7 +14,6 @@ export interface RefinedProgramBridge{
   addToDay(text:string,day:number,weekOffset:number):unknown;
   addToDays?(text:string,days:number[],weekOffset:number):ProgramAddResult;
   setDayOrder?(week:string,day:number,ids:string[]):unknown;
-  moveTask?(week:string,taskId:string,targetDate:string):unknown;
   openPlanCellMenu(week:string,block:ProgramBlock,row:number,day:number):unknown;
 }
 type LegacyFunction=(...args:any[])=>any;
@@ -131,11 +130,6 @@ export function createRefinedProgramController(bridge:RefinedProgramBridge,now=(
       if(!bridge.setDayOrder||unique.length!==expected.length||unique.some(id=>!expected.includes(id)))return false;
       return bridge.setDayOrder(current.week,current.day,unique)!==false;
     },
-    moveTask(id:string,targetDay:number){
-      const current=snapshot(),task=current.tasks.find(item=>item.id===id);
-      if(!task||!bridge.moveTask||!Number.isInteger(targetDay)||targetDay<0||targetDay>6||targetDay===task.day)return false;
-      const moved=bridge.moveTask(current.week,id,offsetDate(current.week,targetDay))!==false;if(moved)day=targetDay;return moved;
-    },
     openTask(id:string){const current=snapshot(),task=current.tasks.find(item=>item.id===id);if(!task)return false;bridge.openPlanCellMenu(current.week,task.block,task.row,task.day);return true;}
   };
 }
@@ -159,7 +153,7 @@ export function installRefinedProgram():ProgramApi{
   if(installed)return installed;
   const program=document.getElementById("program"),legacy=window as unknown as ProgramWindow;
   const call=(name:string,...args:unknown[])=>{const fn=legacy[name];return typeof fn==="function"?(fn as LegacyFunction).apply(window,args):undefined;};
-  if(!program||!["renderPlan","shiftWeek","thisWeek","setProgTab","toggleCellDone","addToDay","addToDays","programMoveTaskToDate","openPlanCellMenu"].every(name=>typeof legacy[name]==="function"))return {installed:false,refresh(){},destroy(){}};
+  if(!program||!["renderPlan","shiftWeek","thisWeek","setProgTab","toggleCellDone","addToDay","addToDays","openPlanCellMenu"].every(name=>typeof legacy[name]==="function"))return {installed:false,refresh(){},destroy(){}};
   const screen=program;
   const legacyPanel=element("div","rb-program-legacy");legacyPanel.id="refinedProgramLegacy";
   // Keep the classic planner mounted only as an internal compatibility bridge.
@@ -173,7 +167,6 @@ export function installRefinedProgram():ProgramApi{
     toggleCellDone:(week,id)=>call("toggleCellDone",week,id),addToDay:(text,day,offset)=>call("addToDay",text,day,offset),
     addToDays:(text,days,offset)=>call("addToDays",text,days,offset) as ProgramAddResult,
     setDayOrder:(week,day,ids)=>call("programSetDayOrder",week,day,ids),
-    moveTask:(week,taskId,targetDate)=>call("programMoveTaskToDate",week,taskId,targetDate),
     openPlanCellMenu:(week,block,row,day)=>call("openPlanCellMenu",week,block,row,day)
   });
   const heading=element("header","rb-program-heading"),weekSummary=element("div","rb-program-week-summary");heading.append(element("h1","","Programım"),element("p","","Haftanı takvim görünümünde gör; derslerini gün gün takip et."),weekSummary);
@@ -189,8 +182,6 @@ export function installRefinedProgram():ProgramApi{
   const dailyPanel=element("section","rb-program-day");dailyPanel.id="refinedProgramDay";dailyPanel.setAttribute("aria-label","Günlük çalışmalar");
   const weeklyPanel=element("section","rb-program-week-grid");weeklyPanel.id="refinedProgramWeek";weeklyPanel.setAttribute("aria-label","Haftalık ders takvimi");
   const summary=element("div","rb-program-summary"),dayLabel=element("h2"),completion=element("div","rb-program-completion"),count=element("span"),progress=element("progress");progress.max=100;progress.setAttribute("aria-label","Günlük görev tamamlama");completion.append(count,progress);summary.append(dayLabel,completion);
-  const moveBar=element("div","rb-program-movebar"),moveLabel=element("span"),moveDays=element("div","rb-program-move-days"),moveCancel=button("Vazgeç","rb-program-move-cancel");
-  moveBar.hidden=true;moveBar.setAttribute("role","region");moveBar.setAttribute("aria-label","Seçili dersi başka güne taşı");moveBar.append(moveLabel,moveDays,moveCancel);
   const list=element("div","rb-program-tasks");dailyPanel.append(summary,list);
   const actions=element("div","rb-program-actions"),toolbar=element("div","rb-program-toolbar"),add=button("","rb-program-add"),share=button("","rb-program-share"),shareStatus=element("p","rb-program-share-status");
   add.append(icon("plus"),document.createTextNode("Çalışma ekle"));add.setAttribute("aria-controls","refinedProgramAdd");add.setAttribute("aria-expanded","false");
@@ -222,7 +213,7 @@ export function installRefinedProgram():ProgramApi{
   const draftButtons=SHORT_DAYS.map((label,index)=>{const node=button(label);node.setAttribute("aria-label",FULL_DAYS[index]!);node.addEventListener("click",()=>{if(draftDays.has(index))draftDays.delete(index);else draftDays.add(index);updatePreview();});dayOptions.append(node);return node;});
   for(const [label,days] of [["Seçili gün",null],["Hafta içi",[0,1,2,3,4]],["Her gün",[0,1,2,3,4,5,6]]] as const){const node=button(label);node.addEventListener("click",()=>{draftDays=new Set(days??[controller.snapshot().day]);updatePreview();});dayShortcuts.append(node);}
   daysField.append(element("legend","","Hangi günlere eklensin?"),dayOptions,dayShortcuts);preview.append(previewText,previewDays);form.append(formTabs,builder,custom,resourceField,daysField,preview,hint,formActions);
-  toolbar.append(tabs,add);actions.append(share,shareStatus);root.append(heading,toolbar,weekNav,strip,form,feedback,moveBar,dailyPanel,weeklyPanel,actions);
+  toolbar.append(tabs,add);actions.append(share,shareStatus);root.append(heading,toolbar,weekNav,strip,form,feedback,dailyPanel,weeklyPanel,actions);
   let destroyed=false,queued=false;
   const quickText=()=>{const item=subject.value===""?undefined:subjects[Number(subject.value)];return item?refinedProgramQuickText(`${item.exam} ${item.name.replace(/\s*\(AYT\)$/,"")}`,topic.value,questions.value,minutes.value):null;};
   function syncTopics(){topic.replaceChildren(new Option("Genel çalışma",""));const item=subject.value===""?undefined:subjects[Number(subject.value)];item?.topics.forEach(name=>topic.append(new Option(name,name)));topic.disabled=!item;updatePreview();}
@@ -238,23 +229,6 @@ export function installRefinedProgram():ProgramApi{
   quickTab.addEventListener("click",()=>setMode(true));customTab.addEventListener("click",()=>setMode(false));subject.addEventListener("change",syncTopics);for(const field of [topic,questions,minutes,input,resource])field.addEventListener("input",updatePreview);syncTopics();setMode(true);
   const schedule=()=>{if(queued||destroyed)return;queued=true;queueMicrotask(()=>{queued=false;if(!destroyed)refresh();});};
   const originalShare=()=>legacyPanel.querySelector<HTMLButtonElement>("#studentCoachProgramShare [data-coach-share-now]");
-  let selectedMoveTaskId="";
-  const closeMove=()=>{selectedMoveTaskId="";moveBar.hidden=true;moveDays.replaceChildren();};
-  const openMove=(taskId:string)=>{
-    const state=controller.snapshot(),task=state.tasks.find(item=>item.id===taskId)||controller.tasksForDay(state.day).find(item=>item.id===taskId);
-    if(!task)return;
-    selectedMoveTaskId=taskId;moveLabel.textContent=`${task.text} → hangi güne taşınsın?`;moveDays.replaceChildren();
-    SHORT_DAYS.forEach((label,index)=>{
-      const dayButton=button(label);dayButton.disabled=index===task.day;dayButton.setAttribute("aria-label",FULL_DAYS[index]!);
-      dayButton.addEventListener("click",()=>{
-        if(!selectedMoveTaskId)return;
-        if(controller.moveTask(selectedMoveTaskId,index)){feedback.textContent=`Çalışma ${FULL_DAYS[index]} gününe taşındı.`;closeMove();controller.setView("day");refresh();}
-        else feedback.textContent="Çalışma taşınamadı; hedef günde boş yer olmayabilir.";
-      });moveDays.append(dayButton);
-    });
-    moveBar.hidden=false;refresh();
-  };
-  moveCancel.addEventListener("click",()=>{closeMove();refresh();});
   function refresh():void{
     const state=controller.snapshot(),isDaily=state.view==="day",selected=parseDate(state.date),start=parseDate(state.week),end=parseDate(offsetDate(state.week,6));
     screen.dataset.refinedProgram=state.view;daily.setAttribute("aria-pressed",String(isDaily));weekly.setAttribute("aria-pressed",String(!isDaily));
@@ -273,16 +247,15 @@ export function installRefinedProgram():ProgramApi{
     list.replaceChildren();
     if(!state.tasks.length){const empty=element("div","rb-program-empty");empty.append(element("strong","","Bu günün planı henüz boş"),element("p","","Çalışma ekle’ye dokun; dersini ve konunu seç. Aynı çalışmayı birden fazla güne de ekleyebilirsin."));list.append(empty);}
     for(const task of state.tasks){
-      const card=element("article","rb-program-task");card.toggleAttribute("data-done",task.done);card.dataset.taskId=task.id;card.toggleAttribute("data-selected",selectedMoveTaskId===task.id);
-      const select=button(selectedMoveTaskId===task.id?"✓":"○","rb-program-select"),edit=button("✎","rb-program-edit"),check=button("","rb-program-check"),details=button("","rb-program-task-details"),copy=element("span","rb-program-task-copy");
-      select.setAttribute("aria-label",`${task.text}: başka güne taşımak için seç`);edit.setAttribute("aria-label",`${task.text}: düzenle`);
+      const card=element("article","rb-program-task");card.toggleAttribute("data-done",task.done);card.dataset.taskId=task.id;
+      const edit=button("✎","rb-program-edit"),check=button("","rb-program-check"),details=button("","rb-program-task-details"),copy=element("span","rb-program-task-copy");
+      edit.setAttribute("aria-label",`${task.text}: düzenle`);
       check.setAttribute("aria-pressed",String(task.done));check.setAttribute("aria-label",`${task.text}: ${task.done?"tamamlanmadı olarak işaretle":"tamamla"}`);if(task.done)check.append(icon("check"));
       const resource=object(call("cellLink",task.text)),displayText=typeof resource.ad==="string"&&resource.ad?resource.ad:task.text;
       const parts=displayText.split(/\s+·\s+/),title=parts.length>1?parts.shift()!:displayText;
       copy.append(element("strong","",title),element("small","",parts.length>1||title!==displayText?parts.join(" · "):task.label));details.append(copy);details.setAttribute("aria-label",`${task.text}: ayrıntıları aç`);
-      select.addEventListener("click",()=>selectedMoveTaskId===task.id?(closeMove(),refresh()):openMove(task.id));
       edit.addEventListener("click",()=>controller.openTask(task.id));check.addEventListener("click",()=>{controller.toggleTask(task.id);refresh();});details.addEventListener("click",()=>controller.openTask(task.id));
-      card.append(select,edit,check,details);list.append(card);
+      card.append(edit,check,details);list.append(card);
     }
     const weekFocus=document.activeElement instanceof HTMLElement?document.activeElement.dataset.rbWeekTask:undefined;
     weeklyPanel.replaceChildren();
@@ -323,15 +296,14 @@ export function installRefinedProgram():ProgramApi{
             const resource=object(call("cellLink",task.text)),displayText=typeof resource.ad==="string"&&resource.ad?resource.ad:task.text;
             const parts=displayText.split(/\s+·\s+/),first=(parts.shift()||displayText).trim();
             const detail=(parts.join(" · ").trim()||(first===subjectName?task.label:displayText)).replace(/\s+—\s+https?:\/\/\S+\s*$/i,"").trim();
-            const taskButton=element("div","rb-program-calendar-task");taskButton.toggleAttribute("data-done",task.done);taskButton.dataset.rbWeekTask=`${task.day}:${task.id}`;taskButton.toggleAttribute("data-selected",selectedMoveTaskId===task.id);
-            const selectTask=button(selectedMoveTaskId===task.id?"✓":"○","rb-program-calendar-select"),editTask=button("✎","rb-program-calendar-edit");
-            selectTask.setAttribute("aria-label",`${displayText}: başka güne taşı`);editTask.setAttribute("aria-label",`${displayText}: düzenle`);
+            const taskButton=element("div","rb-program-calendar-task");taskButton.toggleAttribute("data-done",task.done);taskButton.dataset.rbWeekTask=`${task.day}:${task.id}`;
+            const editTask=button("✎","rb-program-calendar-edit");
+            editTask.setAttribute("aria-label",`${displayText}: düzenle`);
             const textButton=button("","rb-program-calendar-task-body");textButton.append(element("span","rb-program-calendar-task-state",task.done?"✓":""),element("span","rb-program-calendar-task-text",detail||subjectName));
             textButton.setAttribute("aria-label",`${FULL_DAYS[task.day]}, ${subjectName}: ${displayText}${task.done?", tamamlandı":""}${resource.url?", bağlantı mevcut":""}`);
-            selectTask.addEventListener("click",()=>{controller.selectDay(task.day);selectedMoveTaskId===task.id?(closeMove(),refresh()):openMove(task.id);});
             editTask.addEventListener("click",()=>{controller.selectDay(task.day);controller.openTask(task.id);});
             textButton.addEventListener("click",()=>{controller.selectDay(task.day);controller.openTask(task.id);});
-            taskButton.append(selectTask,editTask,textButton);cell.append(taskButton);
+            taskButton.append(editTask,textButton);cell.append(taskButton);
           }
           row.append(cell);
         });
