@@ -85,7 +85,7 @@ function bootstrapSharePayload(program){
     profile:{name,track:"",targetNetTYT:0,targetNetAYT:0,targetUniversity:"",targetDepartment:""},
     program,
     exams:[],
-    progress:{minutes7:0,questions7:0,completedTopics:0,activeTopics:0,overdueTopics:0},
+    progress:{minutes7:0,questions7:0,completedTopics:0,activeTopics:0,overdueTopics:0,dayReview:{entries:[]}},
     paragraphProblem:{entries:[]},
     topics:{items:[]},
     errorJournal:[],
