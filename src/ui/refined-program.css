@@ -238,5 +238,5 @@
 #program .rb-program-drag{display:grid;place-items:center;min-width:40px;min-height:48px;align-self:stretch;border:1px solid transparent;}
 #program .rb-program-task.is-dragging .rb-program-drag{background:var(--rp-soft);border-color:var(--rp-accent);color:var(--rp-accent);}
 #program .rb-program-tasks.is-reordering{user-select:none;-webkit-user-select:none;cursor:grabbing;}
-#program .rb-program-tasks.is-reordering .rb-program-task{pointer-events:none;}
-#program .rb-program-tasks.is-reordering .rb-program-task.is-dragging{pointer-events:auto;}
+
+
