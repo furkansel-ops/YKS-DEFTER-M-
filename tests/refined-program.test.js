@@ -34,7 +34,7 @@ test("daily cards read only real cells, preserve their identity and never mutate
   const h=harness(),data=h.state.weeks["2026-09-21"];
   data.r[0][4]="  Paragraf · 20 soru  ";data.s[1][4]="AYT Biyoloji\nHücre";data.s[0][5]="Cumartesi çalışması";data.dn["r-0-4"]=1;data.done[4]=true;
   const before=JSON.stringify(h.state),tasks=plain(h.controller.snapshot().tasks);
-  assert.deepEqual(tasks,[{id:"r-0-4",block:"r",row:0,day:4,text:"Paragraf · 20 soru",label:"Sabah rutini",done:true},{id:"s-1-4",block:"s",row:1,day:4,text:"AYT Biyoloji\nHücre",label:"Çalışma",done:false}]);
+  assert.deepEqual(tasks,[{id:"r-0-4",block:"r",row:0,day:4,text:"Paragraf · 20 soru",label:"Sabah rutini",done:true},{id:"s-1-4",block:"s",row:1,day:4,text:"AYT Biyoloji\nHücre",label:"AYT Biyoloji",done:false}]);
   assert.equal(JSON.stringify(h.state),before);assert.equal(h.controller.snapshot().date,"2026-09-25");
   assert.deepEqual(plain(h.controller.snapshot().days[4]),{label:"Cum",date:"2026-09-25",count:2,done:1});
 });
