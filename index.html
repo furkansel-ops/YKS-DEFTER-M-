@@ -1013,6 +1013,23 @@
         </span>
       </div>
       <div class="quickmins" id="quickMins"></div>
+      <div class="focus-custom-time" aria-label="Özel çalışma süresi">
+        <div class="focus-custom-field">
+          <label for="customFocusMin">Özel süre (dk)</label>
+          <div class="focus-custom-control">
+            <input type="number" id="customFocusMin" min="1" max="1440" step="1" inputmode="numeric" placeholder="90">
+            <button class="btn ghost tiny" type="button" onclick="applyCustomFocusMinutes()">Uygula</button>
+          </div>
+        </div>
+        <div class="focus-custom-field">
+          <label for="focusUntilTime">Şu saate kadar çalış</label>
+          <div class="focus-custom-control">
+            <input type="time" id="focusUntilTime" aria-label="Çalışmayı bitirmek istediğin saat">
+            <button class="btn ghost tiny" type="button" onclick="applyFocusUntilTime()">Saate göre ayarla</button>
+          </div>
+        </div>
+      </div>
+      <p class="focus-custom-status" id="focusCustomStatus" role="status" aria-live="polite"></p>
     </div>
 
     <div id="goalWrap" style="display:none;">

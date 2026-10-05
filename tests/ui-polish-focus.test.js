@@ -22,3 +22,17 @@ test("Odak cila katmanı ana stil zincirinden yüklenir",()=>{
   const study=read("modules/study-intelligence-v5.css");
   assert.match(study,/ui-polish-focus-v1\.css"/);
 });
+
+
+test("Odak sayacı özel dakika ve bitiş saatine göre ayarlanabilir",()=>{
+  const index=read("index.html"),app=read("app.js"),css=read("modules/ui-polish-focus-v1.css");
+  assert.match(index,/id="customFocusMin"/);
+  assert.match(index,/id="focusUntilTime"/);
+  assert.match(index,/id="focusCustomStatus"/);
+  assert.match(app,/function applyCustomFocusMinutes\(\)/);
+  assert.match(app,/function applyFocusUntilTime\(\)/);
+  assert.match(app,/Math\.min\(1440,n\|0\)/);
+  assert.match(app,/Başlatırsan .*'de biter/);
+  assert.match(app,/Math\.floor\(s\/3600\)/);
+  assert.match(css,/\.focus-custom-time/);
+});
