@@ -114,6 +114,11 @@
   font-size:52px;
   font-weight:760;
   letter-spacing:-3.2px;
+  font-variant-numeric:tabular-nums;
+}
+#pomo #pomoTime.is-long{
+  font-size:38px;
+  letter-spacing:-2.1px;
 }
 #pomo .dots{gap:8px;margin-top:12px;}
 #pomo .dots i{width:9px;height:9px;}

@@ -36,3 +36,10 @@ test("Odak sayacı özel dakika ve bitiş saatine göre ayarlanabilir",()=>{
   assert.match(app,/Math\.floor\(s\/3600\)/);
   assert.match(css,/\.focus-custom-time/);
 });
+
+
+test("Bir saati geçen odak süresi yuvarlak sayaçta taşmaz",()=>{
+  const app=read("app.js"),css=read("modules/ui-polish-focus-v1.css");
+  assert.match(app,/classList\.toggle\("is-long",timeText\.length>5\)/);
+  assert.match(css,/#pomo #pomoTime\.is-long\{[\s\S]*font-size:38px/);
+});

@@ -2339,7 +2339,12 @@ const ICON_PAUSE='<path d="M9 5v14M15 5v14" stroke-width="2.6" stroke-linecap="r
    kredisi değiştiğinde render edilir. */
 function renderPomoClock(){
   if(pomoState==="running")pomoLeft=Math.max(0,Math.round((pomoEndAt-Date.now())/1000));
-  const tm=el("pomoTime"); if(tm)tm.textContent=fmtT(pomoLeft);
+  const tm=el("pomoTime");
+  if(tm){
+    const timeText=fmtT(pomoLeft);
+    tm.textContent=timeText;
+    tm.classList.toggle("is-long",timeText.length>5);
+  }
   const kalan=pomoTotal?Math.max(0,Math.min(1,pomoLeft/pomoTotal)):0;
   const gecen=1-kalan;
   const ring=el("pomoRing"); if(ring)ring.setAttribute("stroke-dashoffset",(578*(1-gecen)).toFixed(1));
