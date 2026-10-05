@@ -279,7 +279,7 @@ test("gün sonu değerlendirmesi koç paylaşımına güvenli şekilde eklenir",
   assert.match(html,/id="todayReflectionInput" maxlength="3000" rows="6"/);
   assert.match(html,/Kaydet ve koçuma gönder/);
   assert.match(app,/trim\(\)\.slice\(0,3000\)/);
-  assert.match(html,/Koç bağlantın açıksa bu değerlendirme koçuna da görünür/);
+  assert.match(html,/koç bağlantın açıksa raporun koçuna da görünür/);
   assert.match(css,/today-close-saved/);
 });
 
