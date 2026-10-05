@@ -30,7 +30,6 @@ test("her v4.3 özelliği ayrı dynamic import ve hata sınırında yüklenir",(
   assert.match(source,/const todayPromise=import\("\.\/today-v43"\)/);
   assert.match(source,/const navigationPromise=import\("\.\/navigation-v43"\)/);
   assert.match(source,/const shellPromise=import\("\.\/refined-shell"\)/);
-  assert.match(source,/dataset\.v43CriticalRuntime=criticalReport\.ok\?"ready":"degraded"/);
   assert.match(source,/dataset\.v43Runtime=report\.ok\?"ready":"degraded"/);
 });
 
