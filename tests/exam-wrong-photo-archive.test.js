@@ -31,7 +31,7 @@ test("deneme yanlışlarının fotoğrafları mevcut yanlış soru arşivinde g�
 });
 
 test("deneme fotoğraf görüntüleyicisi serbest qbank kaydını yanlışlıkla silmez",()=>{
-  const app=read("app.js");
+  const app=read("app.js"),css=read("app.css");
   assert.match(app,/function ensureWrongPhotoViewer/);
   assert.match(app,/showModal/);
   assert.match(app,/function renderWrongPhotoViewer/);
