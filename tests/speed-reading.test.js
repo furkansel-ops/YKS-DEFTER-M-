@@ -196,10 +196,55 @@ test("expanded passage pool reduces quick repetition while preserving question q
   const {PASSAGES}=await content;assert.ok(PASSAGES.length>=8);
   for(const passage of PASSAGES){assert.ok(passage.questions.length>=3);assert.ok(passage.text.length>400);}
 });
-test("speed reading v2.2 exposes harder YKS questions, skill feedback and versioned lazy assets", async () => {
+test("speed reading v2.3 exposes adaptive difficulty, skill history and versioned lazy assets", async () => {
   const runtime=fs.readFileSync(path.join(base,"runtime.mjs"),"utf8"),css=fs.readFileSync(path.join(base,"speed-reading.css"),"utf8");
   const loader=fs.readFileSync(path.resolve(__dirname,"../modules/speed-reading-learn-v1.js"),"utf8");
   assert.match(runtime,/BUGÜNÜN ANTRENMANI/);assert.match(runtime,/daily-warmup/);assert.match(runtime,/weeklyTrend/);assert.match(runtime,/100 kelime okuma/);
-  assert.match(runtime,/YKS tipi anlama sorusu/);assert.match(runtime,/resultSkillReport/);assert.match(runtime,/sr-test-skills/);
-  assert.match(css,/sr-daily-steps/);assert.match(css,/sr-trend/);assert.match(css,/sr-skill-report/);assert.match(loader,/speed-reading\.css\?v=2\.2\.0/);assert.match(loader,/runtime\.mjs\?v=2\.2\.0/);
+  assert.match(runtime,/YKS tipi anlama sorusu/);assert.match(runtime,/resultSkillReport/);assert.match(runtime,/sr-test-skills/);assert.match(runtime,/recommendedDifficulty/);assert.match(runtime,/questionSkillBreakdown/);
+  assert.match(css,/sr-daily-steps/);assert.match(css,/sr-trend/);assert.match(css,/sr-skill-report/);assert.match(css,/sr-difficulty-card/);assert.match(css,/sr-skill-progress/);assert.match(loader,/speed-reading\.css\?v=2\.3\.0/);assert.match(loader,/runtime\.mjs\?v=2\.3\.0/);
+});
+
+
+test("adaptive difficulty promotes only after sustained comprehension and avoids recent passages", async () => {
+  const m=await model,{PASSAGES}=await content;
+  const medium=m.normalizeState({sessions:[session(m,{id:"m",correct:3,total:5,at:at(1)})]});
+  assert.equal(m.recommendedDifficulty(medium,at(3)).level,"medium");
+  const hard=m.normalizeState({sessions:[
+    session(m,{id:"h1",correct:4,total:5,at:at(1),passageId:"library"}),
+    session(m,{id:"h2",correct:5,total:5,at:at(2),passageId:"garden"})
+  ]});
+  assert.equal(m.recommendedDifficulty(hard,at(3)).level,"hard");
+  const expert=m.normalizeState({sessions:[
+    session(m,{id:"e1",correct:5,total:5,at:at(1),passageId:"map"}),
+    session(m,{id:"e2",correct:5,total:5,at:at(2),passageId:"museum"}),
+    session(m,{id:"e3",correct:5,total:5,at:at(3,9),passageId:"studyroom"})
+  ]});
+  assert.equal(m.recommendedDifficulty(expert,at(3,12)).level,"expert");
+  const next=m.adaptivePassage(PASSAGES,hard,at(3));
+  assert.equal(next.difficulty,"hard");
+  assert.ok(!["library","garden"].includes(next.id));
+});
+
+test("question-type analytics persist per session and aggregate accuracy", async () => {
+  const m=await model;
+  const a=m.createSession({kind:"test",mode:"paragraph",passageId:"library",words:180,readingMs:60000,questionMs:20000,correct:4,total:5,difficulty:"hard",skillResults:[
+    {type:"Çıkarım",correct:true},{type:"Çıkarım",correct:false},{type:"Ana düşünce",correct:true}
+  ]},at(2),"skills-a");
+  const b=m.createSession({kind:"test",mode:"paragraph",passageId:"queue",words:180,readingMs:60000,questionMs:20000,correct:4,total:5,difficulty:"hard",skillResults:[
+    {type:"Çıkarım",correct:true},{type:"Ana düşünce",correct:false}
+  ]},at(3),"skills-b");
+  const saved=m.normalizeState({sessions:[a,b]});
+  assert.equal(saved.sessions[0].difficulty,"hard");
+  assert.equal(saved.sessions[0].skillResults.length,3);
+  const rows=m.questionSkillBreakdown(saved,30,at(3,12));
+  const inference=rows.find(row=>row.type==="Çıkarım"),main=rows.find(row=>row.type==="Ana düşünce");
+  assert.deepEqual({correct:inference.correct,total:inference.total,accuracy:inference.accuracy},{correct:2,total:3,accuracy:67});
+  assert.deepEqual({correct:main.correct,total:main.total,accuracy:main.accuracy},{correct:1,total:2,accuracy:50});
+});
+
+test("every passage declares a supported adaptive difficulty", async () => {
+  const m=await model,{PASSAGES}=await content;
+  const counts={medium:0,hard:0,expert:0};
+  for(const passage of PASSAGES){assert.ok(m.DIFFICULTIES.includes(passage.difficulty),passage.id);counts[passage.difficulty]++;}
+  assert.ok(counts.medium>=3);assert.ok(counts.hard>=3);assert.ok(counts.expert>=3);
 });
