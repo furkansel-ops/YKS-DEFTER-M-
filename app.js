@@ -2384,7 +2384,7 @@ function addManualFocus(){
     setManualFocusStatus("Odak kaydı kaydedilemedi.",true);
     return false;
   }
-  setManualFocusStatus(reportMinutes?sourceLabel+" kaydı eklendi · "+total+" dk":sourceLabel+" kaydı eklendi · "+total+" dk",false);
+  setManualFocusStatus(sourceLabel+" kaydı eklendi · "+total+" dk",false);
   const h=el("manualFocusHours"),m=el("manualFocusMinutes"),topicEl=el("manualFocusTopic"),startEl=el("manualFocusStart");
   if(h)h.value="";if(m)m.value="";if(topicEl)topicEl.value="";if(startEl)startEl.value="";
   renderPomo();renderTimeDist();if(typeof checkBadges==="function")checkBadges(false);
