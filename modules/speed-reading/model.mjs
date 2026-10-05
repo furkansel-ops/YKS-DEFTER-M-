@@ -99,7 +99,52 @@ export function summarize(state, days = 7, now = Date.now()) {
   const qualified = state.sessions.filter(session => session.kind === "test" && session.readingMs >= 5000 && session.comprehension >= 75 && session.at <= now);
   const record = [...qualified].sort((a, b) => b.wpm - a.wpm)[0] || null;
   const bestBalance = [...qualified].sort((a, b) => b.wpm * (b.comprehension / 100) ** 2 - a.wpm * (a.comprehension / 100) ** 2)[0] || null;
-  return {days, tests, sessions, averageWpm: average(tests.map(row => row.wpm)), averageComprehension: average(tests.map(row => row.comprehension)), averageReadingMs: average(tests.map(row => row.readingMs)), averageQuestionMs: questionCount ? Math.round(tests.reduce((sum, row) => sum + row.questionMs, 0) / questionCount) : null, record, bestBalance, streak: dailyStreak(state, now), completedLessons: Object.keys(state.lessons).length, exerciseCount: sessions.filter(row => row.kind === "exercise").length};
+  return {days, tests, sessions, averageWpm: average(tests.map(row => row.wpm)), averageComprehension: average(tests.map(row => row.comprehension)), averageReadingMs: average(tests.map(row => row.readingMs)), average100WordMs: average(tests.map(row => normalizedReadingMs(row)).filter(value => value !== null)), averageQuestionMs: questionCount ? Math.round(tests.reduce((sum, row) => sum + row.questionMs, 0) / questionCount) : null, record, bestBalance, streak: dailyStreak(state, now), completedLessons: Object.keys(state.lessons).length, exerciseCount: sessions.filter(row => row.kind === "exercise").length};
+}
+export function normalizedReadingMs(session, words = 100) {
+  if (!session || !finite(session.words) || session.words <= 0 || !finite(session.readingMs) || session.readingMs < 1 || !finite(words) || words <= 0) return null;
+  return Math.round(session.readingMs / session.words * words);
+}
+export function recommendedPace(state, now = Date.now()) {
+  const valid = state.sessions.filter(row => row.kind === "test" && row.readingMs >= 5000 && row.at <= now).slice(-3);
+  if (!valid.length) return {wpm: 200, label: "Başlangıç temposu", reason: "İlk ölçümden önce 200 kelime/dk ile rahat bir ritim kur.", comprehension: null, samples: 0};
+  const average = values => Math.round(values.reduce((sum, value) => sum + value, 0) / values.length);
+  const averageWpm = average(valid.map(row => row.wpm)), comprehension = average(valid.map(row => row.comprehension));
+  let target = Math.round(averageWpm / 50) * 50;
+  if (comprehension >= 85 && valid.length >= 2) target += 50;
+  else if (comprehension < 75) target -= 50;
+  target = Math.max(150, Math.min(450, target));
+  const label = comprehension < 75 ? "Anlama odaklı tempo" : comprehension >= 85 ? "Bir üst ritim" : "Denge temposu";
+  const reason = comprehension < 75
+    ? `Son ${valid.length} testte anlama %${comprehension}. Önce ritmi biraz düşürüp anlamayı güçlendir.`
+    : comprehension >= 85
+      ? `Son ${valid.length} testte anlama %${comprehension}. Küçük bir hız artışını kontrollü deneyebilirsin.`
+      : `Son ${valid.length} testte anlama %${comprehension}. Şimdilik bu tempoda dengeyi koru.`;
+  return {wpm: target, label, reason, comprehension, samples: valid.length};
+}
+export function dailyTraining(state, now = Date.now()) {
+  const key = localDayKey(now), today = state.sessions.filter(row => localDayKey(row.at) === key && row.at <= now);
+  const warmup = today.some(row => row.kind === "exercise" && ["groups", "lines", "focus", "returns"].includes(row.mode));
+  const paragraph = today.some(row => row.kind === "exercise" && row.mode === "paragraph");
+  const test = today.some(row => row.kind === "test" && row.readingMs >= 5000);
+  const steps = [
+    {id: "warmup", label: "Ritim ısınması", detail: "Kelime gruplarıyla 2–3 dakika", done: warmup},
+    {id: "paragraph", label: "Paragraf turu", detail: "Kendi hızında oku + ana fikir", done: paragraph},
+    {id: "test", label: "Anlama testi", detail: "4 soruyla hız + anlama ölç", done: test}
+  ];
+  return {date: key, steps, completed: steps.filter(step => step.done).length, total: steps.length};
+}
+export function weeklyTrend(state, now = Date.now(), days = 7) {
+  const count = Math.max(1, Math.min(30, Math.round(days) || 7)), rows = [];
+  const dayStart = new Date(now);dayStart.setHours(0, 0, 0, 0);
+  for (let offset = count - 1; offset >= 0; offset--) {
+    const date = new Date(dayStart);date.setDate(date.getDate() - offset);
+    const key = localDayKey(date.getTime()), sessions = state.sessions.filter(row => localDayKey(row.at) === key && row.at <= now);
+    const tests = sessions.filter(row => row.kind === "test" && row.readingMs >= 5000);
+    const average = values => values.length ? Math.round(values.reduce((sum, value) => sum + value, 0) / values.length) : null;
+    rows.push({date: key, label: date.toLocaleDateString("tr-TR", {weekday: "short"}), sessions: sessions.length, tests: tests.length, wpm: average(tests.map(row => row.wpm)), comprehension: average(tests.map(row => row.comprehension))});
+  }
+  return rows;
 }
 export function comparePrevious(state, result) {
   const previous = [...state.sessions].reverse().find(row => row.kind === "test" && row.id !== result.id && row.at <= result.at && row.readingMs >= 5000);
