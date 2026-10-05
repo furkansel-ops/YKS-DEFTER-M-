@@ -29,10 +29,15 @@ test("mevcut uygulama kaydı service worker güncellemesini HTTP cache dışınd
   assert.match(app,/reg\.update\(\)\.catch\(\(\)=>\{\}\)/);
 });
 
-test("service worker online shell ve kritik JS CSS için eski cache'i öne almaz",()=>{
+test("service worker zayıf ağda doğrulanmış cache ile hızlı açılır ve güncellemeyi arkada hazırlar",()=>{
   const sw=fs.readFileSync(path.resolve(__dirname,"../sw.js"),"utf8");
   assert.match(sw,/function cacheLatestShell\(response\)/);
-  assert.match(sw,/if\(isAppEntry\(url\)\)\{\s*if\(!isGuardedShell\(await res\.clone\(\)\.text\(\)\)\)throw[\s\S]*?await cacheLatestShell\(res\)/);
+  assert.match(sw,/cached\?2200:10000/);
+  assert.match(sw,/const refresh=cacheLatestShell\(res\.clone\(\)\)/);
+  assert.match(sw,/event&&typeof event\.waitUntil==="function"/);
+  assert.doesNotMatch(sw,/await cacheLatestShell\(res\)/);
+  assert.match(sw,/preferCacheUntil=Date\.now\(\)\+12000/);
+  assert.match(sw,/if\(cached&&Date\.now\(\)<preferCacheUntil\)return cached/);
   assert.match(sw,/function isCriticalAsset\(url\)/);
   assert.match(sw,/function networkFirstStatic\(req\)/);
   assert.match(sw,/if\(isCriticalAsset\(url\)\)[\s\S]*event\.respondWith\(networkFirstStatic\(req\)\)/);
