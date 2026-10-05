@@ -209,7 +209,7 @@ test("Programım günlükte yalnız tik, haftalıkta yalnız yazıdan düzenleme
   assert.match(source,/const check=button\("","rb-program-check"\)/);
   assert.match(source,/details=element\("div","rb-program-task-details"\)/);
   assert.match(source,/const textButton=button\(detail\|\|subjectName,"rb-program-calendar-task-text"\)/);
-  assert.match(source,/textButton\.addEventListener\("click",\(\)=>\{controller\.selectDay\(task\.day\);openEditor\(task\);\}\)/);
+  assert.match(source,/textButton\.addEventListener\("click",\(\)=>\{controller\.selectDay\(task\.day\);openEditor\(task,state\.week\);\}\)/);
   assert.match(css,/Program interaction cleanup — daily only check, weekly text-only edit/);
 });
 
