@@ -1,3 +1,4 @@
+/* Tam playlist arşivi: ilk 16 ilgili oynatma listesinin video içerikleri eksiksiz paketlenir. */
 import {spawn} from "node:child_process";
 import {readFile,writeFile,mkdir,rm} from "node:fs/promises";
 import {resolve} from "node:path";
