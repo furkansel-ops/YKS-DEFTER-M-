@@ -150,7 +150,7 @@ export function createRefinedProgramController(bridge:RefinedProgramBridge,now=(
       if(!bridge.setDayOrder||unique.length!==expected.length||unique.some(id=>!expected.includes(id)))return false;
       return bridge.setDayOrder(current.week,current.day,unique)!==false;
     },
-    updateTask(id:string,text:string){const current=snapshot(),task=current.tasks.find(item=>item.id===id),value=text.trim();if(!task||!bridge.updateTask||!value||value.length>600)return false;return bridge.updateTask(current.week,id,value)!==false;}
+    updateTask(id:string,text:string,week=bridge.visibleWeek()){const value=text.trim(),match=id.match(/^[rs]-\\d+-([0-6])$/),dayIndex=match?Number(match[1]):-1,task=match&&parseDate(week)?refinedProgramTasks(bridge.readState(),week,dayIndex).find(item=>item.id===id):undefined;if(!task||!bridge.updateTask||!value||value.length>600)return false;return bridge.updateTask(week,id,value)!==false;}
   };
 }
 
@@ -203,9 +203,9 @@ export function installRefinedProgram():ProgramApi{
   const editor=element("div","rb-program-editor");editor.hidden=true;editor.setAttribute("role","dialog");editor.setAttribute("aria-modal","true");editor.setAttribute("aria-labelledby","rbProgramEditorTitle");
   const editorForm=element("form","rb-program-editor-card"),editorHead=element("div","rb-program-editor-head"),editorTitle=element("h2","","Çalışmayı düzenle"),editorClose=button("×","rb-program-editor-close"),editorLabel=element("label","rb-program-editor-label","Çalışma"),editorInput=element("textarea","rb-program-editor-input"),editorHint=element("p","rb-program-editor-hint"),editorActions=element("div","rb-program-editor-actions"),editorCancel=button("Vazgeç"),editorSave=button("Kaydet","rb-program-editor-save");
   editorTitle.id="rbProgramEditorTitle";editorInput.rows=4;editorInput.maxLength=600;editorInput.id="rbProgramEditorInput";editorLabel.htmlFor=editorInput.id;editorClose.setAttribute("aria-label","Düzenlemeyi kapat");editorHint.textContent="En fazla 600 karakter. Değişiklik mevcut çalışmanın üzerine kaydedilir.";editorSave.type="submit";editorHead.append(editorTitle,editorClose);editorActions.append(editorCancel,editorSave);editorForm.append(editorHead,editorLabel,editorInput,editorHint,editorActions);editor.append(editorForm);
-  let editingTaskId="";
-  const closeEditor=()=>{editingTaskId="";editor.hidden=true;editorInput.value="";};
-  const openEditor=(task:RefinedProgramTask)=>{editingTaskId=task.id;editorInput.value=task.text;editor.hidden=false;requestAnimationFrame(()=>{editorInput.focus();editorInput.setSelectionRange(editorInput.value.length,editorInput.value.length);});};
+  let editingTaskId="",editingWeek="";
+  const closeEditor=()=>{editingTaskId="";editingWeek="";editor.hidden=true;editorInput.value="";};
+  const openEditor=(task:RefinedProgramTask,week=controller.snapshot().week)=>{editingTaskId=task.id;editingWeek=week;editorInput.value=task.text;editorHint.textContent="En fazla 600 karakter. Değişiklik mevcut çalışmanın üzerine kaydedilir.";editor.hidden=false;requestAnimationFrame(()=>{editorInput.focus();editorInput.setSelectionRange(editorInput.value.length,editorInput.value.length);});};
 
   const weeklyPanel=element("section","rb-program-week-grid");weeklyPanel.id="refinedProgramWeek";weeklyPanel.setAttribute("aria-label","Haftalık ders takvimi");
   const summary=element("div","rb-program-summary"),dayLabel=element("h2"),completion=element("div","rb-program-completion"),count=element("span"),progress=element("progress");progress.max=100;progress.setAttribute("aria-label","Günlük görev tamamlama");completion.append(count,progress);summary.append(dayLabel,completion);
@@ -325,7 +325,7 @@ export function installRefinedProgram():ProgramApi{
             const taskButton=element("div","rb-program-calendar-task");taskButton.toggleAttribute("data-done",task.done);taskButton.dataset.rbWeekTask=`${task.day}:${task.id}`;
             const stateMark=element("span","rb-program-calendar-task-state",task.done?"✓":"");
             const textButton=button(detail||subjectName,"rb-program-calendar-task-text");textButton.title=displayText;textButton.setAttribute("aria-label",`${FULL_DAYS[task.day]}, ${subjectName}: ${displayText} düzenle`);
-            textButton.addEventListener("click",()=>{controller.selectDay(task.day);openEditor(task);});
+            textButton.addEventListener("click",()=>{controller.selectDay(task.day);openEditor(task,state.week);});
             taskButton.append(stateMark,textButton);cell.append(taskButton);
           }
           row.append(cell);
@@ -360,7 +360,7 @@ export function installRefinedProgram():ProgramApi{
     }finally{submitting=false;save.disabled=false;}
   });
   editorClose.addEventListener("click",closeEditor);editorCancel.addEventListener("click",closeEditor);editor.addEventListener("click",event=>{if(event.target===editor)closeEditor();});
-  editorForm.addEventListener("submit",event=>{event.preventDefault();const value=editorInput.value.trim();if(!editingTaskId||!value){editorHint.textContent="Çalışma boş bırakılamaz.";editorInput.focus();return;}editorSave.disabled=true;try{if(!controller.updateTask(editingTaskId,value)){editorHint.textContent="Değişiklik kaydedilemedi. Tekrar dene.";return;}closeEditor();feedback.textContent="Çalışma güncellendi.";refresh();}finally{editorSave.disabled=false;}});
+  editorForm.addEventListener("submit",event=>{event.preventDefault();const value=editorInput.value.trim();if(!editingTaskId||!editingWeek||!value){editorHint.textContent="Çalışma boş bırakılamaz.";editorInput.focus();return;}editorSave.disabled=true;try{if(!controller.updateTask(editingTaskId,value,editingWeek)){editorHint.textContent="Değişiklik kaydedilemedi. Tekrar dene.";return;}closeEditor();feedback.textContent="Çalışma güncellendi.";refresh();}finally{editorSave.disabled=false;}});
   share.addEventListener("click",()=>originalShare()?.click());
   const wrappers=new Map<string,{original:LegacyFunction;wrapped:LegacyFunction}>();
   const wrap=(name:string,before?:()=>void)=>{
