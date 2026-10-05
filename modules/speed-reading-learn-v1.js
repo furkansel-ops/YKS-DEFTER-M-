@@ -8,7 +8,7 @@
     if (existing?.sheet) return Promise.resolve();
     return new Promise((resolve, reject) => {
       const link = existing || document.createElement("link");
-      link.id = "speedReadingStyles"; link.rel = "stylesheet"; link.href = new URL("speed-reading.css", base).href;
+      link.id = "speedReadingStyles"; link.rel = "stylesheet"; link.href = new URL("speed-reading.css?v=2.1.0", base).href;
       link.onload = () => resolve();
       link.onerror = () => {link.remove(); reject(new Error("Okuma stilleri yüklenemedi."));};
       if (!existing) document.head.appendChild(link);
@@ -20,7 +20,7 @@
     if (window.YKSSpeedReading) {window.YKSSpeedReading.mount(root); return Promise.resolve(window.YKSSpeedReading);}
     if (pending) return pending;
     root.innerHTML = '<p role="status">Okuma alanı hazırlanıyor…</p>';
-    pending = Promise.all([stylesheet(), import(new URL("runtime.mjs", base).href)]).then(([, module]) => {
+    pending = Promise.all([stylesheet(), import(new URL("runtime.mjs?v=2.1.0", base).href)]).then(([, module]) => {
       window.YKSSpeedReading = module.createReadingRuntime(); window.YKSSpeedReading.mount(root); return window.YKSSpeedReading;
     }).catch(() => {
       root.innerHTML = '<p role="alert">Okuma alanı yüklenemedi. Bağlantını kontrol edip yeniden deneyebilirsin.</p><button type="button" id="srLoadRetry">Yeniden dene</button>';
