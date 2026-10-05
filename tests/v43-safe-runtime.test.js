@@ -49,7 +49,7 @@ test("tek özellik arızası çekirdek bootstrap veya yerel veri katmanını blo
   assert.match(main,/const services=installLegacyServiceBridge\(\)/);
   assert.match(main,/const data=installLegacyDataBridge\(\)/);
   assert.match(main,/document\.documentElement\.dataset\.v4Runtime="ready"/);
-  assert.match(safe,/Tek bir v4\.3 özelliği hata verse bile legacy çekirdek ve yerel veri katmanı çalışmaya devam eder/);
+  assert.match(safe,/her özellik kendi fail-open sınırında kalır/);
   assert.doesNotMatch(html,/type="module" id="firebaseSyncModule"/);
   assert.match(html,/type="application\/json" id="legacyFirebaseSyncModule" data-disabled="play-store-release"/);
   assert.match(vite,/prepare-web-cloud-runtime/);
