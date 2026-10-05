@@ -2226,7 +2226,7 @@ function wrongPhotoPick(id){
   const photos=wrongPhotosFor(id),limit=Math.max(1,Number(wrong.n)||1),remaining=Math.max(0,limit-photos.length);
   if(!remaining){toast("Bu kayıttaki tüm yanlış sorular eklendi ✓");return;}
   if(storageBytes()>QA_BLOCK){toast("Depolama dolu — önce eski soru fotoğraflarını sil");return;}
-  const inp=document.createElement("input");inp.type="file";inp.accept="image/*";inp.multiple=true;
+  const inp=document.createElement("input");inp.type="file";inp.accept="image/jpeg,image/png,image/webp";inp.multiple=true;
   inp.onchange=async()=>{
     const files=Array.from(inp.files||[]).slice(0,remaining);if(!files.length)return;
     toast(files.length>1?files.length+" fotoğraf işleniyor…":"Soru fotoğrafı işleniyor…");
@@ -3702,38 +3702,58 @@ function fmtKB(b){
 const QA_WARN=3500000, QA_BLOCK=4500000, QA_MAXPX=900, QA_QUALITY=0.55;
 
 /* ---------- fotoğraf küçültme ---------- */
-function compressImage(file){
+function qaCanvasJpeg(source,width,height){
+  try{
+    const cv=document.createElement("canvas"),ctx=cv.getContext&&cv.getContext("2d");
+    if(!ctx||!width||!height)return "";
+    const sc=Math.min(1,QA_MAXPX/Math.max(width,height));
+    cv.width=Math.max(1,Math.round(width*sc));cv.height=Math.max(1,Math.round(height*sc));
+    ctx.drawImage(source,0,0,cv.width,cv.height);
+    const out=cv.toDataURL("image/jpeg",QA_QUALITY);
+    return /^data:image\/jpeg/i.test(out)&&out.length>32?out:"";
+  }catch(e){return "";}
+}
+function qaReadAsDataUrl(file){
   return new Promise((resolve,reject)=>{
-    if(!file){ reject(new Error("Dosya yok")); return; }
-    if(file.size&&file.size>12000000){ reject(new Error("Fotoğraf çok büyük (12 MB üstü)")); return; }
-    const fr=new FileReader();
-    fr.onerror=()=>reject(new Error("Fotoğraf okunamadı"));
-    fr.onload=()=>{
-      const raw=String(fr.result||"");
-      if(raw.indexOf("data:image")!==0){ reject(new Error("Bu bir resim dosyası değil")); return; }
-      let done=false;
-      const finish=v=>{ if(!done){ done=true; resolve(v); } };
-      /* tarayıcı canvas veremezse ham veriyle devam et */
-      let img;
-      try{ img=new Image(); }catch(e){ finish(raw); return; }
-      img.onerror=()=>finish(raw);
-      img.onload=()=>{
-        try{
-          const cv=document.createElement("canvas");
-          const ctx=cv.getContext?cv.getContext("2d"):null;
-          if(!ctx||!img.width||!img.height){ finish(raw); return; }
-          const sc=Math.min(1,QA_MAXPX/Math.max(img.width,img.height));
-          cv.width=Math.max(1,Math.round(img.width*sc));
-          cv.height=Math.max(1,Math.round(img.height*sc));
-          ctx.drawImage(img,0,0,cv.width,cv.height);
-          const out=cv.toDataURL("image/jpeg",QA_QUALITY);
-          finish(out&&out.length>32?out:raw);
-        }catch(e){ finish(raw); }
-      };
-      setTimeout(()=>finish(raw),4000);   /* yükleme takılırsa bekletme */
-      img.src=raw;
-    };
-    fr.readAsDataURL(file);
+    const fr=new FileReader();fr.onerror=()=>reject(new Error("Fotoğraf okunamadı"));
+    fr.onload=()=>resolve(String(fr.result||""));fr.readAsDataURL(file);
+  });
+}
+function compressImage(file){
+  return new Promise(async(resolve,reject)=>{
+    if(!file){reject(new Error("Dosya yok"));return;}
+    if(file.size&&file.size>12000000){reject(new Error("Fotoğraf çok büyük (12 MB üstü)"));return;}
+    const type=String(file.type||"").toLowerCase(),name=String(file.name||"").toLowerCase(),heic=/heic|heif/.test(type)||/\.(heic|heif)$/.test(name);
+    let objectUrl="";
+    try{
+      objectUrl=URL.createObjectURL(file);
+      const img=new Image(),converted=await new Promise((ok,fail)=>{
+        let settled=false,timer=setTimeout(()=>{if(!settled){settled=true;fail(new Error("decode-timeout"));}},6500);
+        img.onload=()=>{if(settled)return;settled=true;clearTimeout(timer);const out=qaCanvasJpeg(img,img.naturalWidth||img.width,img.naturalHeight||img.height);out?ok(out):fail(new Error("canvas"));};
+        img.onerror=()=>{if(settled)return;settled=true;clearTimeout(timer);fail(new Error("decode"));};
+        img.src=objectUrl;
+      });
+      if(converted){resolve(converted);return;}
+    }catch(e){}finally{if(objectUrl)try{URL.revokeObjectURL(objectUrl)}catch{}}
+    try{
+      if(typeof createImageBitmap==="function"){
+        const bitmap=await createImageBitmap(file),out=qaCanvasJpeg(bitmap,bitmap.width,bitmap.height);try{bitmap.close&&bitmap.close()}catch{}
+        if(out){resolve(out);return;}
+      }
+    }catch(e){}
+    try{
+      const raw=await qaReadAsDataUrl(file);
+      if(!/^data:image\/(jpeg|jpg|png|webp|gif);/i.test(raw)){
+        if(heic)throw new Error("iPad fotoğrafı HEIC olarak geldi ve dönüştürülemedi. Fotoğrafı tekrar seçip dene.");
+        throw new Error("Bu resim biçimi desteklenmiyor");
+      }
+      const img=new Image(),converted=await new Promise((ok,fail)=>{
+        let settled=false,timer=setTimeout(()=>{if(!settled){settled=true;fail(new Error("decode-timeout"));}},5000);
+        img.onload=()=>{if(settled)return;settled=true;clearTimeout(timer);const out=qaCanvasJpeg(img,img.naturalWidth||img.width,img.naturalHeight||img.height);ok(out||raw);};
+        img.onerror=()=>{if(settled)return;settled=true;clearTimeout(timer);fail(new Error("decode"));};img.src=raw;
+      });
+      resolve(converted);
+    }catch(e){reject(new Error(e&&e.message?e.message:"Fotoğraf işlenemedi"));}
   });
 }
 
