@@ -2245,12 +2245,50 @@ function wrongPhotoPick(id){
   };
   inp.click();
 }
-function wrongPhotoOpen(id,index){
-  const wrong=(S.wrongLog||[]).find(x=>Number(x.id)===Number(id)),photos=wrongPhotosFor(id);if(!wrong||!photos[index])return;
+let wrongPhotoViewerState={id:0,index:0};
+function ensureWrongPhotoViewer(){
+  let dlg=el("wrongPhotoViewer");if(dlg)return dlg;
+  dlg=document.createElement("dialog");dlg.id="wrongPhotoViewer";dlg.className="wrong-photo-viewer";dlg.innerHTML=
+    '<div class="wrong-photo-viewer-shell">'+
+      '<div class="wrong-photo-viewer-top"><span id="wrongPhotoViewerCount"></span><button type="button" id="wrongPhotoViewerClose">Kapat</button></div>'+
+      '<div class="wrong-photo-viewer-stage"><img id="wrongPhotoViewerImg" alt="Deneme yanlış soru fotoğrafı"></div>'+
+      '<div class="wrong-photo-viewer-info"><b id="wrongPhotoViewerTitle"></b><small id="wrongPhotoViewerMeta"></small><p id="wrongPhotoViewerNote"></p></div>'+
+      '<div class="wrong-photo-viewer-actions"><button type="button" id="wrongPhotoViewerPrev">‹ Önceki</button><button type="button" id="wrongPhotoViewerDelete">Fotoğrafı sil</button><button type="button" id="wrongPhotoViewerNext">Sonraki ›</button></div>'+
+    '</div>';
+  document.body.appendChild(dlg);
+  const close=()=>{try{if(typeof dlg.close==="function"&&dlg.open)dlg.close();else dlg.removeAttribute("open")}catch{}dlg.style.display="none";document.body.classList.remove("qa-viewer-open")};
+  el("wrongPhotoViewerClose").addEventListener("click",close);
+  dlg.addEventListener("cancel",event=>{event.preventDefault();close()});
+  dlg.addEventListener("click",event=>{if(event.target===dlg)close()});
+  el("wrongPhotoViewerPrev").addEventListener("click",()=>wrongPhotoViewerStep(-1));
+  el("wrongPhotoViewerNext").addEventListener("click",()=>wrongPhotoViewerStep(1));
+  el("wrongPhotoViewerDelete").addEventListener("click",()=>{
+    const state=wrongPhotoViewerState;close();wrongPhotoRemove(state.id,state.index);
+  });
+  return dlg;
+}
+function renderWrongPhotoViewer(){
+  const state=wrongPhotoViewerState,wrong=(S.wrongLog||[]).find(x=>Number(x.id)===Number(state.id)),photos=wrongPhotosFor(state.id);if(!wrong||!photos.length)return false;
+  state.index=Math.max(0,Math.min(state.index,photos.length-1));
   const exam=(S.denemeler||[]).find(d=>Number(d.id)===Number(wrong.deneme)),kindLabel={bilmiyordum:"Bilgi eksiği",dikkat:"Dikkatsizlik",sure:"Süre yetmedi"}[wrong.kind]||"";
-  const details=[exam&&exam.name?exam.name:"",kindLabel,wrong.note||""].filter(Boolean).join(" · ");
-  qaViewList=photos.map((img,i)=>({id:"wrong-"+id+"-"+i,img,subject:wrong.subject,topic:wrong.topic,date:wrong.date||todayKey(),note:details||("Deneme yanlışı · "+(i+1)+". soru"),done:false,wrongId:id,wrongPhotoIndex:i}));
-  qaViewIdx=Math.max(0,Math.min(index,qaViewList.length-1));qaShowViewer(qaViewIdx);
+  const img=el("wrongPhotoViewerImg");if(img){img.onerror=()=>toast("Fotoğraf Safari tarafından açılamadı. Kaydı silmeden farklı tarayıcıda da deneyebilirsin.");img.src=photos[state.index];}
+  el("wrongPhotoViewerCount").textContent=(state.index+1)+" / "+photos.length;
+  el("wrongPhotoViewerTitle").textContent=(wrong.subject||"Ders")+(wrong.topic?" · "+wrong.topic:"");
+  el("wrongPhotoViewerMeta").textContent=[exam&&exam.name?exam.name:"Deneme",kindLabel,wrong.date||""].filter(Boolean).join(" · ");
+  el("wrongPhotoViewerNote").textContent=wrong.note||"";
+  el("wrongPhotoViewerPrev").disabled=photos.length<2;el("wrongPhotoViewerNext").disabled=photos.length<2;
+  return true;
+}
+function wrongPhotoViewerStep(delta){
+  const photos=wrongPhotosFor(wrongPhotoViewerState.id);if(!photos.length)return;
+  wrongPhotoViewerState.index=(wrongPhotoViewerState.index+delta+photos.length)%photos.length;renderWrongPhotoViewer();
+}
+function wrongPhotoOpen(id,index){
+  const photos=wrongPhotosFor(id);if(!photos[index])return;
+  wrongPhotoViewerState={id:Number(id),index:Number(index)||0};
+  const dlg=ensureWrongPhotoViewer();if(!renderWrongPhotoViewer())return;
+  document.body.classList.add("qa-viewer-open");dlg.style.display="block";
+  try{if(typeof dlg.showModal==="function"&&!dlg.open)dlg.showModal();else dlg.setAttribute("open","")}catch{dlg.setAttribute("open","")}
 }
 function wrongPhotoRemove(id,index){
   const photos=wrongPhotosFor(id);if(!photos[index])return;
