@@ -33,3 +33,15 @@
 .sr-answer-review>div[data-correct="false"]{border-left:3px solid color-mix(in srgb,var(--danger,#b84b58) 70%,transparent);padding-left:12px}
 .sr-answer-review>div[data-correct="true"]{border-left:3px solid color-mix(in srgb,var(--success,#24836c) 70%,transparent);padding-left:12px}
 @media(max-width:620px){.sr-test-skills{gap:5px}.sr-test-skills span{font-size:9px}.sr-skill-report{padding:13px}}
+
+
+/* Speed Reading v2.3 — adaptive difficulty + persistent skill analytics */
+.sr-difficulty-card{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin:-4px 0 16px;padding:14px 16px;border:1px solid var(--sr-line);border-radius:14px;background:linear-gradient(135deg,var(--sr-accent-soft),var(--sr-bg))}
+.sr-difficulty-card>div{flex:none}.sr-difficulty-card span{display:block;font-size:9px;font-weight:800;letter-spacing:.08em;color:var(--sr-muted)}.sr-difficulty-card strong{display:block;margin-top:3px;font-size:18px;color:var(--sr-accent)}.sr-difficulty-card p{max-width:56ch;font-size:11px;line-height:1.55}
+.sr-progress-hero{grid-template-columns:repeat(3,minmax(0,1fr))}
+.sr-skill-progress{margin:20px 0;padding:18px 16px;border:1px solid var(--sr-line);border-radius:15px;background:var(--sr-bg)}
+.sr-skill-progress-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:12px}.sr-skill-progress-head h5{margin:0}.sr-skill-progress-head>small{max-width:220px;color:var(--sr-muted);text-align:right}
+.sr-skill-row{display:grid;grid-template-columns:minmax(120px,1.3fr) minmax(100px,2fr) 48px;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--sr-line)}
+.sr-skill-row:first-of-type{border-top:0}.sr-skill-row b,.sr-skill-row small{display:block}.sr-skill-row b{font-size:12px}.sr-skill-row small{margin-top:2px;color:var(--sr-muted);font-size:9px}.sr-skill-row>strong{text-align:right;font-size:12px;color:var(--sr-accent)}
+.sr-skill-meter{height:7px;border-radius:99px;background:var(--sr-soft);overflow:hidden}.sr-skill-meter i{display:block;height:100%;border-radius:inherit;background:var(--sr-accent)}
+@media(max-width:700px){.sr-progress-hero{grid-template-columns:1fr}.sr-difficulty-card{display:block}.sr-difficulty-card p{margin-top:8px}.sr-skill-progress-head{display:block}.sr-skill-progress-head>small{display:block;margin-top:5px;text-align:left}.sr-skill-row{grid-template-columns:minmax(105px,1.35fr) minmax(70px,1.8fr) 42px;gap:8px}}
