@@ -19,3 +19,17 @@
 .sr-trend{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:7px;align-items:end;height:150px;padding:12px 10px 8px;margin:8px 0 20px;border:1px solid var(--sr-line);border-radius:14px;background:var(--sr-bg)}.sr-trend-day{height:100%;display:grid;grid-template-rows:1fr auto auto;gap:3px;text-align:center}.sr-trend-bar{display:flex;align-items:flex-end;justify-content:center;min-height:78px}.sr-trend-bar i{display:block;width:min(20px,65%);min-height:4px;border-radius:6px 6px 2px 2px;background:var(--sr-accent)}.sr-trend-day b{font-size:9px;color:var(--sr-muted)}.sr-trend-day small{font-size:8px;color:var(--sr-ink)}
 @media(max-width:700px){.sr-daily-steps{grid-template-columns:1fr}.sr-progress-hero{grid-template-columns:1fr}.sr-daily-head{align-items:center}.sr-trend{gap:4px}.sr-trend-bar i{width:55%}}
 @media(prefers-reduced-motion:reduce){.sr-daily-progress i{transition:none}}
+
+
+/* Speed Reading v2.2 — harder comprehension + skill feedback */
+.sr-test-skills{display:flex;flex-wrap:wrap;gap:6px;margin:14px 0 2px}
+.sr-test-skills span{display:inline-flex;align-items:center;min-height:28px;padding:5px 9px;border:1px solid var(--sr-line);border-radius:999px;background:var(--sr-soft);color:var(--sr-muted);font-size:10px;font-weight:700;line-height:1.2}
+.sr-skill-report{margin:16px 0 4px;padding:15px 16px;border:1px solid color-mix(in srgb,var(--sr-accent) 26%,var(--sr-line));border-radius:13px;background:var(--sr-accent-soft)}
+.sr-skill-report b{display:block;font-size:12px;color:var(--sr-accent)}
+.sr-skill-report p{margin-top:5px!important;color:var(--sr-ink);font-weight:700}
+.sr-skill-report small{display:block;margin-top:7px;color:var(--sr-muted)}
+.sr-skill-report.is-strong{border-color:color-mix(in srgb,var(--success,#24836c) 34%,var(--sr-line));background:color-mix(in srgb,var(--success,#24836c) 7%,var(--sr-bg))}
+.sr-skill-report.is-strong b{color:var(--success,#24836c)}
+.sr-answer-review>div[data-correct="false"]{border-left:3px solid color-mix(in srgb,var(--danger,#b84b58) 70%,transparent);padding-left:12px}
+.sr-answer-review>div[data-correct="true"]{border-left:3px solid color-mix(in srgb,var(--success,#24836c) 70%,transparent);padding-left:12px}
+@media(max-width:620px){.sr-test-skills{gap:5px}.sr-test-skills span{font-size:9px}.sr-skill-report{padding:13px}}
