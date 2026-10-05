@@ -206,7 +206,7 @@ test("Programım günlükte yalnız tik, haftalıkta yalnız yazıdan düzenleme
   assert.doesNotMatch(source,/const edit=button\("✎","rb-program-edit"\)/);
   assert.doesNotMatch(source,/const editTask=button\("✎","rb-program-calendar-edit"\)/);
   assert.match(source,/const check=button\("","rb-program-check"\)/);
-  assert.match(source,/const details=element\("div","rb-program-task-details"\)/);
+  assert.match(source,/details=element\("div","rb-program-task-details"\)/);
   assert.match(source,/const textButton=button\(detail\|\|subjectName,"rb-program-calendar-task-text"\)/);
   assert.match(source,/textButton\.addEventListener\("click",\(\)=>\{controller\.selectDay\(task\.day\);controller\.openTask\(task\.id\);\}\)/);
   assert.match(css,/Program interaction cleanup — daily only check, weekly text-only edit/);
