@@ -34,7 +34,7 @@
 /* A slow or failed download may offer a retry, but must never uncover the old DOM. */
 (function(){
   var root=document.documentElement;
-  var visualFeatures=["v43Today","v43Analysis","v43Navigation","v43Personalization","refinedShell"];
+  var visualFeatures=["v43Today","v43Navigation","refinedShell"];
   var timeout;
   root.dataset.bootState="loading";
   function updateStatus(){
@@ -44,6 +44,12 @@
     if(retry)retry.hidden=!waiting&&!failed;
   }
   function fail(){if(root.dataset.uiReady!=="true"){root.dataset.bootState="error";updateStatus();}}
+  function noteError(){
+    if(root.dataset.uiReady==="true")return;
+    root.dataset.bootErrorSeen="1";
+    if(root.dataset.bootState==="loading")root.dataset.bootState="waiting";
+    updateStatus();
+  }
   function isReady(){
     return root.dataset.v4Runtime==="ready"&&visualFeatures.every(function(name){return root.dataset[name]==="true"&&root.dataset[name+"Errors"]==="0";})&&
       !!document.getElementById("refinedBrand")&&!!document.getElementById("refinedProgram")&&
@@ -56,13 +62,13 @@
       window.clearTimeout(timeout);root.dataset.bootState="ready";root.dataset.uiReady="true";
     });
   }};
-  timeout=window.setTimeout(function(){if(root.dataset.uiReady!=="true"&&root.dataset.bootState!=="error"){root.dataset.bootState="waiting";updateStatus();}},12000);
+  timeout=window.setTimeout(function(){if(root.dataset.uiReady!=="true"&&root.dataset.bootState!=="error"){root.dataset.bootState="waiting";updateStatus();}},7000);
   document.addEventListener("DOMContentLoaded",function(){
     updateStatus();
     var retry=document.getElementById("yksBootRetry");
     if(retry)retry.addEventListener("click",function(){window.location.reload();});
   },{once:true});
-  window.addEventListener("error",fail,true);
+  window.addEventListener("error",noteError,true);
 })();
 </script>
 <link rel="stylesheet" href="./app.css" id="themes20260821">
