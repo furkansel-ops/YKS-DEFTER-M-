@@ -12,7 +12,8 @@ test("deneme analizi yanlış kaydına not ve çoklu fotoğraf bağlar",()=>{
   assert.match(app,/note:note,questionImgs:\[\]/);
   assert.match(app,/inp\.multiple=true/);
   assert.match(app,/Array\.from\(inp\.files\|\|\[\]\)\.slice\(0,remaining\)/);
-  assert.match(app,/Fotoğraf '+photos\.length+'\/'+limit/);
+  assert.match(app,/ana-photo-btn/);
+  assert.match(app,/photos\.length+'\/'+limit/);
 });
 
 test("deneme yanlışlarının fotoğrafları mevcut yanlış soru arşivinde gösterilir",()=>{
