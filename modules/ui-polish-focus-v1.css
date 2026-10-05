@@ -273,24 +273,3 @@
   #pomo .quickmins button,
   #pomo>.seg button{transition:none!important;}
 }
-
-
-/* Tek seferlik / YPT odak girişi */
-#pomo .focus-manual-entry{display:grid;gap:14px}
-#pomo .focus-manual-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px}
-#pomo .focus-manual-head b{display:block;font-size:14px;color:var(--ink)}
-#pomo .focus-manual-head span:not(.focus-manual-badge){display:block;margin-top:4px;font-size:11px;line-height:1.5;color:var(--label-3)}
-#pomo .focus-manual-badge{flex:0 0 auto;padding:6px 9px;border-radius:999px;background:color-mix(in srgb,var(--accent) 10%,var(--glass));color:var(--accent);font-size:10px;font-weight:800}
-#pomo .focus-manual-duration{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
-#pomo .focus-manual-meta{display:grid;grid-template-columns:1fr 1.25fr .85fr;gap:10px}
-#pomo .focus-manual-duration>div,#pomo .focus-manual-meta>div{display:grid;gap:6px;min-width:0}
-#pomo .focus-manual-entry label{font-size:11px;font-weight:720;color:var(--label-3)}
-#pomo .focus-manual-add{width:100%;min-height:48px}
-#pomo .focus-manual-status{min-height:18px;margin:0;font-size:11px;font-weight:700;color:var(--label-3)}
-#pomo .focus-manual-status.is-success{color:var(--success)}
-#pomo .focus-manual-status.is-error{color:var(--danger,var(--red,#b42318))}
-@media(max-width:759px){
-  #pomo .focus-manual-duration{grid-template-columns:1fr 1fr}
-  #pomo .focus-manual-duration>div:last-child{grid-column:1/-1}
-  #pomo .focus-manual-meta{grid-template-columns:1fr}
-}
