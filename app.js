@@ -483,7 +483,7 @@ function normalize(o){
     const r=o.dayReview[k];
     if(!/^\d{4}-\d{2}-\d{2}$/.test(k)||!r||typeof r!=="object"){delete o.dayReview[k];return;}
     r.mood=["good","mid","hard"].includes(r.mood)?r.mood:"";
-    r.note=typeof r.note==="string"?r.note.slice(0,220):"";
+    r.note=typeof r.note==="string"?r.note.slice(0,3000):"";
     r.at=bigInt(r.at);
     if(!r.mood&&!r.note)delete o.dayReview[k];
   });
@@ -1341,6 +1341,27 @@ function programUpdateTask(wk,id,text){
   const previous=w[blk][row][day];w[blk][row][day]=value;
   let saved=false;try{saved=save()===true;}catch(e){}
   if(!saved){w[blk][row][day]=previous;if(typeof perfInvalidateState==="function")perfInvalidateState();return false;}
+  if(el("program")?.classList.contains("active"))renderPlan();
+  if(el("home")?.classList.contains("active"))renderTodayPlan();
+  return true;
+}
+
+function programDeleteTask(wk,id){
+  if(!validDateKey(wk)||typeof id!=="string"||!/^[rs]-\d+-[0-6]$/.test(id))return false;
+  const parts=id.split("-"),blk=parts[0],row=Number(parts[1]),day=Number(parts[2]),w=getWeek(wk,false);
+  if(!w||!["r","s"].includes(blk)||!Number.isInteger(row)||row<0||!Array.isArray(w[blk])||!Array.isArray(w[blk][row])||!String(w[blk][row][day]||"").trim())return false;
+  const backup=JSON.parse(JSON.stringify(w)),orderKey="order-"+day;
+  w[blk][row][day]="";
+  if(w.dn)delete w.dn[id];
+  if(w.mv){
+    delete w.mv[id];
+    if(Array.isArray(w.mv[orderKey])){
+      w.mv[orderKey]=w.mv[orderKey].filter(taskId=>taskId!==id);
+      if(!w.mv[orderKey].length)delete w.mv[orderKey];
+    }
+  }
+  let saved=false;try{saved=save()===true;}catch(e){}
+  if(!saved){S.weeks[wk]=backup;if(typeof perfInvalidateState==="function")perfInvalidateState();return false;}
   if(el("program")?.classList.contains("active"))renderPlan();
   if(el("home")?.classList.contains("active"))renderTodayPlan();
   return true;
@@ -10536,7 +10557,7 @@ function setTodayMood(mood){
   return true;
 }
 function saveTodayReflection(){
-  const k=todayKey(),inp=el("todayReflectionInput"),note=String(inp?.value||"").trim().slice(0,220);
+  const k=todayKey(),inp=el("todayReflectionInput"),note=String(inp?.value||"").trim().slice(0,3000);
   if(!S.dayReview)S.dayReview={};
   const old=S.dayReview[k]||{},mood=todayMoodDraft.date===k?todayMoodDraft.mood:(old.mood||"");
   if(!note&&!mood)delete S.dayReview[k];
@@ -10560,7 +10581,7 @@ function v25RenderClose(){
     saved.dataset.saved=String(has&&!dirty);
   }
 }
-function v25RenderDaypart(){const h=new Date().getHours(),ey=el("todayHubEyebrow"),title=el("todayHubTitle"),kick=document.querySelector("#home .home-kicker");if(h<12){ey.textContent="Sabah planı";title.textContent="Bugüne başla";if(kick)kick.textContent="Önce sıradaki görevi seç; gün geri kalanını sıraya koyar.";}else if(h<18){ey.textContent="Şu ana kadar";title.textContent="Bugünün durumu";if(kick)kick.textContent="Kalan hedefi gör, sıradaki işi bitir, devam et.";}else{ey.textContent="Akşam";title.textContent="Günü kapat";if(kick)kick.textContent="Kalanları tamamla ya da yarına taşı; günü kısa bir notla kapat.";}}
+function v25RenderDaypart(){const h=new Date().getHours(),ey=el("todayHubEyebrow"),title=el("todayHubTitle"),kick=document.querySelector("#home .home-kicker");if(h<12){ey.textContent="Sabah planı";title.textContent="Bugüne başla";if(kick)kick.textContent="Önce sıradaki görevi seç; gün geri kalanını sıraya koyar.";}else if(h<18){ey.textContent="Şu ana kadar";title.textContent="Bugünün durumu";if(kick)kick.textContent="Kalan hedefi gör, sıradaki işi bitir, devam et.";}else{ey.textContent="Akşam";title.textContent="Günü kapat";if(kick)kick.textContent="Kalanları tamamla ya da yarına taşı; günü detaylı bir raporla kapat.";}}
 function renderV25Today(){try{v25RenderDaypart();v25RenderSummary();v25RenderNext();v25RenderReviews();v25RenderSubjects();v25RenderLast();v25RenderTimeline();v25RenderClose();}catch(e){infraError("v25-today",e);}}
 
 /* Bugün ekranını değiştiren mevcut işlemlerden sonra merkezi de yenile. */
