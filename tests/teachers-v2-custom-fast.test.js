@@ -62,7 +62,7 @@ test("Ortak kanal hocası odaklı aramayla 15 videoya tamamlanır",()=>{
   assert.match(pages,/ARCHIVE_VIDEO_LIMIT=240/);
   assert.match(pages,/teacher\.queryHint\|\|teacher\.name/);
   assert.match(pages,/teacher\.searchOnly\?"focused-search":"search"/);
-  assert.match(pages,/PLAYLIST_FULL_COUNT=16/);
+  assert.match(pages,/PLAYLIST_FULL_COUNT=40/);
   assert.match(pages,/PLAYLIST_VIDEO_LIMIT=500/);
   assert.match(pages,/enrichPlaylistContents/);
   assert.match(pages,/previewSource:"yt-dlp-full"/);
