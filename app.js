@@ -502,9 +502,20 @@ function normalize(o){
     d.subjectResults.forEach(sr=>{ sr.d=+sr.d||0; sr.y=+sr.y||0; sr.b=+sr.b||0; sr.net=+sr.net||0; sr.cap=+sr.cap||0; });
   });
   if(!Array.isArray(o.wrongLog))o.wrongLog=[];
+  o.wrongLog=o.wrongLog.filter(x=>x&&typeof x==="object");
   o.wrongLog.forEach(x=>{
-    if(!x||typeof x!=="object")return;
+    x.id=bigInt(x.id)||Date.now();
+    x.subject=typeof x.subject==="string"?x.subject.slice(0,100):"";
+    x.topic=typeof x.topic==="string"?x.topic.slice(0,140):"";
+    x.note=typeof x.note==="string"?x.note.slice(0,400):"";
+    x.n=Math.max(1,Math.min(200,Math.floor(Number(x.n)||1)));
+    x.date=(typeof x.date==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(x.date))?x.date:todayKey();
+    x.deneme=bigInt(x.deneme)||undefined;
     if(["bilmiyordum","dikkat","sure"].indexOf(x.kind)<0)delete x.kind;
+    const legacy=typeof x.questionImg==="string"&&x.questionImg.length>16?[x.questionImg]:[];
+    const current=Array.isArray(x.questionImgs)?x.questionImgs:[];
+    x.questionImgs=[...legacy,...current].filter(img=>typeof img==="string"&&img.indexOf("data:image")===0&&img.length>16).slice(0,x.n);
+    if(x.questionImg)delete x.questionImg;
   });
   if(!Array.isArray(o.books))o.books=[];
   if(!Array.isArray(o.badges))o.badges=[];
@@ -2202,7 +2213,7 @@ function delWrong(id){
   if(bk&&typeof logAdd==="function")logAdd("sil","Yanlış kaydı silindi: "+(bk.topic||""),{t:"wrong",v:bk});
   save();
   if(bk)pushUndo("Yanlış kaydı silindi",()=>{ S.wrongLog.push(bk); });
-  renderWrongTopics();
+  renderWrongTopics(); if(typeof renderExamWrongArchive==="function")renderExamWrongArchive();
 }
 function wrongPhotosFor(id){
   const w=(S.wrongLog||[]).find(x=>Number(x.id)===Number(id));if(!w)return [];
@@ -2212,28 +2223,75 @@ function wrongPhotosFor(id){
 }
 function wrongPhotoPick(id){
   const wrong=(S.wrongLog||[]).find(x=>Number(x.id)===Number(id));if(!wrong)return;
-  const photos=wrongPhotosFor(id),limit=Math.max(1,Number(wrong.n)||1);
-  if(photos.length>=limit){toast("Bu kayıttaki tüm yanlış sorular eklendi ✓");return;}
+  const photos=wrongPhotosFor(id),limit=Math.max(1,Number(wrong.n)||1),remaining=Math.max(0,limit-photos.length);
+  if(!remaining){toast("Bu kayıttaki tüm yanlış sorular eklendi ✓");return;}
   if(storageBytes()>QA_BLOCK){toast("Depolama dolu — önce eski soru fotoğraflarını sil");return;}
-  const inp=document.createElement("input");inp.type="file";inp.accept="image/*";
-  inp.onchange=()=>{const file=inp.files&&inp.files[0];if(!file)return;toast("Soru fotoğrafı işleniyor…");
-    compressImage(file).then(dataUrl=>{if(storageBytes()+dataUrl.length>QA_BLOCK){toast("Depolama sınırına gelindi — eski soruları sil");return;}
-      const list=wrongPhotosFor(id);if(list.length>=limit)return;list.push(dataUrl);save();renderWrongTopics();toast("Soru "+list.length+"/"+limit+" eklendi ✓");
-    }).catch(e=>toast(String(e.message||e)));
-  };inp.click();
+  const inp=document.createElement("input");inp.type="file";inp.accept="image/*";inp.multiple=true;
+  inp.onchange=async()=>{
+    const files=Array.from(inp.files||[]).slice(0,remaining);if(!files.length)return;
+    toast(files.length>1?files.length+" fotoğraf işleniyor…":"Soru fotoğrafı işleniyor…");
+    let added=0;
+    for(const file of files){
+      try{
+        const dataUrl=await compressImage(file);
+        if(storageBytes()+dataUrl.length>QA_BLOCK){toast("Depolama sınırına gelindi — kalan fotoğraflar eklenmedi");break;}
+        const list=wrongPhotosFor(id);if(list.length>=limit)break;list.push(dataUrl);added++;
+      }catch(e){toast(String(e.message||e));}
+    }
+    if(added){
+      save();renderWrongTopics();if(typeof renderAnaList==="function")renderAnaList();if(typeof renderExamWrongArchive==="function")renderExamWrongArchive();
+      toast(added+" fotoğraf eklendi · "+wrongPhotosFor(id).length+"/"+limit);
+    }
+  };
+  inp.click();
 }
 function wrongPhotoOpen(id,index){
   const wrong=(S.wrongLog||[]).find(x=>Number(x.id)===Number(id)),photos=wrongPhotosFor(id);if(!wrong||!photos[index])return;
-  qaViewList=photos.map((img,i)=>({id:"wrong-"+id+"-"+i,img,subject:wrong.subject,topic:wrong.topic,date:wrong.date||todayKey(),note:"Hata Defteri sorusu "+(i+1),done:false}));
+  const exam=(S.denemeler||[]).find(d=>Number(d.id)===Number(wrong.deneme)),kindLabel={bilmiyordum:"Bilgi eksiği",dikkat:"Dikkatsizlik",sure:"Süre yetmedi"}[wrong.kind]||"";
+  const details=[exam&&exam.name?exam.name:"",kindLabel,wrong.note||""].filter(Boolean).join(" · ");
+  qaViewList=photos.map((img,i)=>({id:"wrong-"+id+"-"+i,img,subject:wrong.subject,topic:wrong.topic,date:wrong.date||todayKey(),note:details||("Deneme yanlışı · "+(i+1)+". soru"),done:false,wrongId:id}));
   qaViewIdx=Math.max(0,Math.min(index,qaViewList.length-1));qaShowViewer(qaViewIdx);
 }
 function wrongPhotoRemove(id,index){
   const photos=wrongPhotosFor(id);if(!photos[index])return;
   if(!confirm((index+1)+". soru fotoğrafı silinsin mi?"))return;
-  photos.splice(index,1);save();renderWrongTopics();toast("Sadece seçtiğin soru fotoğrafı silindi");
+  photos.splice(index,1);save();renderWrongTopics();if(typeof renderAnaList==="function")renderAnaList();if(typeof renderExamWrongArchive==="function")renderExamWrongArchive();toast("Sadece seçtiğin soru fotoğrafı silindi");
+}
+function examWrongArchiveRows(){
+  const out=[];
+  (S.wrongLog||[]).slice().reverse().forEach(w=>{
+    const photos=wrongPhotosFor(w.id);if(!photos.length)return;
+    const exam=(S.denemeler||[]).find(d=>Number(d.id)===Number(w.deneme));
+    photos.forEach((img,index)=>out.push({wrong:w,img,index,exam}));
+  });
+  return out;
+}
+function renderExamWrongArchive(){
+  const root=el("examWrongArchiveGrid"),stats=el("examWrongArchiveStats");if(!root)return;
+  const sub=(el("examWrongArchiveFilter")&&el("examWrongArchiveFilter").value)||"";
+  const all=examWrongArchiveRows(),list=all.filter(row=>!sub||row.wrong.subject===sub);
+  const filter=el("examWrongArchiveFilter");
+  if(filter&&filter.options.length<=1){
+    const names=[...new Set((S.wrongLog||[]).map(w=>w&&w.subject).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"tr"));
+    filter.innerHTML='<option value="">Tüm dersler</option>'+names.map(n=>'<option value="'+esc(n)+'">'+esc(n)+'</option>').join("");
+  }
+  if(stats)stats.textContent=all.length?all.length+" fotoğraflı yanlış · "+new Set(all.map(x=>x.wrong.id)).size+" analiz kaydı":"Henüz fotoğraflı deneme yanlışı yok.";
+  if(!list.length){
+    root.innerHTML='<div class="empty">Deneme analizinde bir yanlışa fotoğraf eklediğinde burada görünecek. Ders, konu, sebep ve deneme bilgisi fotoğrafla birlikte kalır.</div>';
+    return;
+  }
+  const labels={bilmiyordum:"Bilgi eksiği",dikkat:"Dikkatsizlik",sure:"Süre yetmedi"};
+  root.innerHTML=list.map(row=>{
+    const w=row.wrong,exam=row.exam,label=labels[w.kind]||"Sebep yok";
+    return '<button class="exam-wrong-card" type="button" onclick="wrongPhotoOpen('+w.id+','+row.index+')">'+
+      '<span class="exam-wrong-img"><img src="'+row.img+'" alt="'+esc(w.subject)+' yanlış soru" loading="lazy"></span>'+
+      '<span class="exam-wrong-copy"><b>'+esc(w.subject)+(w.topic?' · '+esc(w.topic):'')+'</b><small>'+esc(exam&&exam.name?exam.name:"Deneme")+' · '+esc(label)+'</small>'+(w.note?'<em>'+esc(w.note)+'</em>':'')+'</span>'+
+      '<span class="exam-wrong-open">Aç ›</span></button>';
+  }).join("");
 }
 function renderWrongTopics(){
   if(typeof renderWrongKinds==="function")setTimeout(renderWrongKinds,0);
+  setTimeout(()=>{try{renderExamWrongArchive();}catch(e){}},0);
   const sel=el("wtSubject");
   if(sel&&!sel.options.length){
     sel.innerHTML='<option value="">Ders seç…</option>'+SUBJ_NAMES.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join("");
@@ -3709,6 +3767,7 @@ function qaFilterList(){
   });
 }
 function renderQbank(){
+  try{renderExamWrongArchive();}catch(e){}
   const sel=el("qaSubject");
   if(sel&&!sel.options.length)
     sel.innerHTML='<option value="">Ders seç…</option>'+SUBJ_NAMES.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join("");
@@ -8233,7 +8292,7 @@ function openAnalysis(id,force){
   el("anaSubject").innerHTML='<option value="">Ders seç…</option>'+(
     (anaKnown?anaRows.filter(s=>(s.y|0)>0):force?anaRows:[])
       .map(s=>'<option value="'+esc(s.name)+'">'+esc(s.name)+(anaKnown?' ('+s.y+' yanlış)':'')+'</option>').join(""));
-  el("anaTopic").value=""; el("anaCount").value=""; if(el("anaKind"))el("anaKind").value="";
+  el("anaTopic").value=""; el("anaCount").value=""; if(el("anaKind"))el("anaKind").value=""; if(el("anaNote"))el("anaNote").value="";
   renderAnaList();
   return true;
 }
@@ -8243,15 +8302,17 @@ function anaAdd(){
   const topic=(el("anaTopic").value||"").trim();
   const n=Math.max(1,parseInt(el("anaCount").value,10)||1);
   const kind=(el("anaKind")&&el("anaKind").value)||"";
+  const note=((el("anaNote")&&el("anaNote").value)||"").trim().slice(0,400);
   if(!subj||!topic){ toast("Ders ve konu seç"); return false; }
-  S.wrongLog.push({id:Date.now(),date:d.date,subject:subj,topic:topic,n:n,
-    kind:kind||undefined,deneme:d.id});
+  const wrong={id:Date.now(),date:d.date,subject:subj,topic:topic,n:n,
+    kind:kind||undefined,deneme:d.id,note:note,questionImgs:[]};
+  S.wrongLog.push(wrong);
   if(typeof linkWrongToTopic==="function")linkWrongToTopic(subj,topic,n);
   save();
-  el("anaTopic").value=""; el("anaCount").value=""; if(el("anaKind"))el("anaKind").value="";
-  renderAnaList(); renderWrongTopics();
+  el("anaTopic").value=""; el("anaCount").value=""; if(el("anaKind"))el("anaKind").value=""; if(el("anaNote"))el("anaNote").value="";
+  renderAnaList(); renderWrongTopics();renderExamWrongArchive();
   if(typeof renderWrongKinds==="function")renderWrongKinds();
-  toast("Eklendi ✓");
+  toast("Yanlış kaydedildi · istersen şimdi fotoğrafını ekle");
   return true;
 }
 function anaDelWrong(id){
@@ -8259,7 +8320,7 @@ function anaDelWrong(id){
   if(!bk)return false;
   S.wrongLog=S.wrongLog.filter(x=>x.id!==id); save();
   if(bk&&typeof pushUndo==="function")pushUndo("Yanlış kaydı silindi",()=>{S.wrongLog.push(bk);save();});
-  renderAnaList(); if(typeof renderWrongTopics==="function")renderWrongTopics(); if(typeof renderSubjects==="function")renderSubjects();
+  renderAnaList(); if(typeof renderWrongTopics==="function")renderWrongTopics(); if(typeof renderExamWrongArchive==="function")renderExamWrongArchive(); if(typeof renderSubjects==="function")renderSubjects();
   return true;
 }
 function anaMarked(){
@@ -8274,10 +8335,14 @@ function renderAnaList(){
   const p=toplam?Math.min(100,Math.round(isaret/toplam*100)):0;
   let h='<div class="ctline"><span class="k">İşaretlenen</span><span class="v">'+isaret+' / '+toplam+'</span></div>'+
     '<div class="bar" style="margin-bottom:12px;"><i style="width:'+p+'%"></i></div>';
-  h+=list.length?list.map(x=>
-    '<div class="dayrow"><span class="k">'+esc(x.subject)+' · '+esc(x.topic)+
-    (x.kind?'<br><small>'+({bilmiyordum:"Bilmiyordum",dikkat:"Dikkatsizlik",sure:"Süre yetmedi"}[x.kind]||"")+'</small>':"")+
-    '</span><span class="v">'+x.n+' <button class="del" onclick="anaDelWrong('+x.id+')">sil</button></span></div>').join("")
+  h+=list.length?list.map(x=>{
+    const photos=wrongPhotosFor(x.id),limit=Math.max(1,Number(x.n)||1),kind=({bilmiyordum:"Bilmiyordum",dikkat:"Dikkatsizlik",sure:"Süre yetmedi"}[x.kind]||"");
+    const photoBtn=photos.length<limit?'<button class="btn ghost tiny ana-photo-btn" onclick="wrongPhotoPick('+x.id+')">📷 Fotoğraf '+photos.length+'/'+limit+'</button>':'<button class="btn ghost tiny ana-photo-btn" onclick="wrongPhotoOpen('+x.id+',0)">▣ '+photos.length+' fotoğraf</button>';
+    const view=photos.length?'<button class="btn ghost tiny" onclick="wrongPhotoOpen('+x.id+',0)">Görüntüle</button>':'';
+    return '<div class="dayrow ana-wrong-row"><span class="k"><b>'+esc(x.subject)+' · '+esc(x.topic)+'</b>'+
+      (kind?'<br><small>'+esc(kind)+'</small>':'')+(x.note?'<br><small>'+esc(x.note)+'</small>':'')+
+      '</span><span class="v ana-wrong-actions"><b>'+x.n+' yanlış</b>'+photoBtn+view+'<button class="del" onclick="anaDelWrong('+x.id+')">sil</button></span></div>';
+  }).join("")
     :'<div class="empty">Henüz işaretlemedin.</div>';
   w.innerHTML=h;
   const btn=el("anaClose");
