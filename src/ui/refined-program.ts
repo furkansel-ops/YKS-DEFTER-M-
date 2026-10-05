@@ -302,12 +302,15 @@ export function installRefinedProgram():ProgramApi{
     if(!state.tasks.length){const empty=element("div","rb-program-empty");empty.append(element("strong","","Bu günün planı henüz boş"),element("p","","Çalışma ekle’ye dokun; dersini ve konunu seç. Aynı çalışmayı birden fazla güne de ekleyebilirsin."));list.append(empty);}
     for(const task of state.tasks){
       const card=element("article","rb-program-task");card.toggleAttribute("data-done",task.done);card.dataset.taskId=task.id;
-      const check=button("","rb-program-check"),details=element("div","rb-program-task-details"),copy=element("span","rb-program-task-copy");
+      const check=button("","rb-program-check"),details=button("","rb-program-task-details"),copy=element("span","rb-program-task-copy"),openMark=element("span","rb-program-task-open","›");
       check.setAttribute("aria-pressed",String(task.done));check.setAttribute("aria-label",`${task.text}: ${task.done?"tamamlanmadı olarak işaretle":"tamamla"}`);if(task.done)check.append(icon("check"));
       const resource=object(call("cellLink",task.text)),displayText=typeof resource.ad==="string"&&resource.ad?resource.ad:task.text;
       const parts=displayText.split(/\s+·\s+/),title=parts.length>1?parts.shift()!:displayText;
-      copy.append(element("strong","",title),element("small","",parts.length>1||title!==displayText?parts.join(" · "):task.label));details.append(copy);
+      copy.append(element("strong","",title),element("small","",parts.length>1||title!==displayText?parts.join(" · "):task.label));
+      const resourceBadge=element("span","rb-program-task-resource",typeof resource.url==="string"&&resource.url?"▶ Video / kaynak":"Detayı aç");
+      details.setAttribute("aria-label",`${displayText} çalışma detayını aç`);details.append(copy,resourceBadge,openMark);
       check.addEventListener("click",()=>{controller.toggleTask(task.id);refresh();});
+      details.addEventListener("click",()=>openDetail(task,state.week));
       card.append(check,details);list.append(card);
     }
     const weekFocus=document.activeElement instanceof HTMLElement?document.activeElement.dataset.rbWeekTask:undefined;
@@ -385,6 +388,17 @@ export function installRefinedProgram():ProgramApi{
       feedback.textContent=`${draftDays.size} güne çalışma eklendi. ${previewDays.textContent}`;
       input.value="";resource.value="";form.hidden=true;add.setAttribute("aria-expanded","false");refresh();add.focus();
     }finally{submitting=false;save.disabled=false;}
+  });
+  detailClose.addEventListener("click",closeDetail);detailDialog.addEventListener("click",event=>{if(event.target===detailDialog)closeDetail();});
+  detailVideo.addEventListener("click",()=>{
+    if(!detailTaskText)return;
+    const linked=detailVideo.dataset.hasLink==="true",opened=linked?call("cellOpenLink",detailTaskText):call("cellVideo",detailTaskText);
+    if(opened===false)call("toast",linked?"Bağlantı açılamadı.":"Bu çalışma için konu videosu bulunamadı.");
+  });
+  detailDone.addEventListener("click",()=>{
+    if(!detailTaskId||!detailWeek)return;
+    const current=controller.snapshot().tasks.find(item=>item.id===detailTaskId),wasDone=Boolean(current?.done);
+    if(controller.toggleTask(detailTaskId)){closeDetail();refresh();call("toast",wasDone?"Çalışma tekrar açıldı.":"Çalışma tamamlandı ✓");}
   });
   editorClose.addEventListener("click",closeEditor);editorCancel.addEventListener("click",closeEditor);editor.addEventListener("click",event=>{if(event.target===editor)closeEditor();});
   editorForm.addEventListener("submit",event=>{event.preventDefault();const value=editorInput.value.trim();if(!editingTaskId||!editingWeek||!value){editorHint.textContent="Çalışma boş bırakılamaz.";editorInput.focus();return;}editorSave.disabled=true;try{if(!controller.updateTask(editingTaskId,value,editingWeek)){editorHint.textContent="Değişiklik kaydedilemedi. Tekrar dene.";return;}closeEditor();feedback.textContent="Çalışma güncellendi.";refresh();}finally{editorSave.disabled=false;}});
