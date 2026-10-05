@@ -104,7 +104,7 @@ function sharePayload(s,u){
   const exams=list(s.denemeler).slice(-24).map(d=>({id:String(d?.id||""),type:text(d?.type,16),name:text(d?.name,100),date:text(d?.date,10),totalNet:finite(d?.totalNet),subjectResults:list(d?.subjectResults).slice(0,16).map(x=>({name:text(x?.name,60),net:finite(x?.net)}))}));
   const pp=list(s.lab?.paragraphLog).slice(-100).map(x=>({id:text(x?.id,80),at:finite(x?.at),words:finite(x?.words),seconds:finite(x?.seconds),wpm:finite(x?.wpm),score:finite(x?.score),title:text(x?.title,120)}));
   const errors=list(s.wrongLog).slice(-100).map(x=>({date:text(x?.date,10),subject:text(x?.subject,60),topic:text(x?.topic,100),n:Math.max(1,finite(x?.n,1))}));
-  const dayReviews=Object.entries(s.dayReview&&typeof s.dayReview==="object"?s.dayReview:{}).filter(([date])=>/^\d{4}-\d{2}-\d{2}$/.test(date)).sort(([a],[b])=>a.localeCompare(b)).slice(-14).map(([date,value])=>({date,mood:["good","mid","hard"].includes(value?.mood)?value.mood:"",note:text(value?.note,220),at:finite(value?.at)})).filter(x=>x.mood||x.note);
+  const dayReviews=Object.entries(s.dayReview&&typeof s.dayReview==="object"?s.dayReview:{}).filter(([date])=>/^\d{4}-\d{2}-\d{2}$/.test(date)).sort(([a],[b])=>a.localeCompare(b)).slice(-14).map(([date,value])=>({date,mood:["good","mid","hard"].includes(value?.mood)?value.mood:"",note:text(value?.note,3000),at:finite(value?.at)})).filter(x=>x.mood||x.note);
   return{studentUid:u.uid,version:1,profile:{name:text(s.name||u.displayName,80),track:text(s.puanTuru,8),targetNetTYT:Number(s.targetNetTYT??s.targetNet??0),targetNetAYT:Number(s.targetNetAYT||0),targetUniversity:text(s.targetUniversity,120),targetDepartment:text(s.targetDepartment,120)},program:buildProgramShare(s),exams,progress:{minutes7:sum(s.pomoMin,7),questions7:sum(s.solved,7),completedTopics:topics.filter(x=>x.st>=3).length,activeTopics:topics.filter(x=>x.st>0&&x.st<3).length,overdueTopics:topics.filter(x=>x.deadline&&x.deadline<today()&&x.st<3).length,dayReview:{entries:dayReviews}},paragraphProblem:{entries:pp},topics:{items:topics},errorJournal:errors,updatedAt:serverTimestamp()};
 }
 async function publishShare(options={}){
@@ -180,6 +180,11 @@ function applyAction(a){
       const target=new Date(text(p.date,10)+"T12:00:00");target.setDate(target.getDate()-di.day);const week=dateKey(target);
       if(typeof window.programSetDayOrder!=="function")throw new Error("Program sıralama işlevi hazır değil");
       if(window.programSetDayOrder(week,di.day,order)===false)throw new Error("Program sırası kaydedilemedi");
+    }else if(a.type==="program_task"&&p.operation==="delete"){
+      const sourceWeek=text(p.sourceWeek,10),taskId=text(p.taskId,40);
+      if(!/^\d{4}-\d{2}-\d{2}$/.test(sourceWeek)||!/^[rs]-\d+-[0-6]$/.test(taskId))throw new Error("Program silme bilgisi geçersiz");
+      if(typeof window.programDeleteTask!=="function")throw new Error("Program silme işlevi hazır değil");
+      if(window.programDeleteTask(sourceWeek,taskId)===false)throw new Error("Görev programdan silinemedi");
     }else if(a.type==="program_task"&&p.operation==="move"){
       const sourceWeek=text(p.sourceWeek,10),taskId=text(p.taskId,40),targetDate=text(p.date,10);
       if(!/^\d{4}-\d{2}-\d{2}$/.test(sourceWeek)||!/^[rs]-\d+-[0-6]$/.test(taskId))throw new Error("Program taşıma bilgisi geçersiz");
