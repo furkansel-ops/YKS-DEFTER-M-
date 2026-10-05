@@ -211,13 +211,13 @@
         <div class="today-section-head"><b id="todayCloseTitle">Gün sonu</b><span id="todayCloseHint">Akşam doldurabilirsin</span></div>
         <span class="today-close-saved" id="todayCloseSaved">Henüz kaydedilmedi</span>
       </div>
-      <p class="today-close-copy">Bugünü tek cümleyle kapat. Koç bağlantın açıksa bu değerlendirme koçuna da görünür.</p>
+      <p class="today-close-copy">Bugünü detaylı değerlendir. Neler çalıştığını, nerede zorlandığını ve yarın neye odaklanacağını yaz; koç bağlantın açıksa raporun koçuna da görünür.</p>
       <div class="today-moods" role="group" aria-label="Bugün nasıldı?">
         <button type="button" id="todayMoodGood" onclick="setTodayMood('good')"><span>🙂</span><b>İyi</b></button>
         <button type="button" id="todayMoodMid" onclick="setTodayMood('mid')"><span>😐</span><b>Orta</b></button>
         <button type="button" id="todayMoodHard" onclick="setTodayMood('hard')"><span>😮‍💨</span><b>Zor</b></button>
       </div>
-      <div class="today-note-row"><input type="text" id="todayReflectionInput" maxlength="220" placeholder="Bugünden tek cümle…"><button class="btn ghost tiny" type="button" onclick="saveTodayReflection()">Kaydet</button></div>
+      <div class="today-note-row"><textarea id="todayReflectionInput" maxlength="3000" rows="6" placeholder="Detaylı gün sonu raporu… Bugün neler çalıştın? Nerede zorlandın? Neyi iyi yaptın? Yarın neye odaklanacaksın?"></textarea><button class="btn ghost tiny" type="button" onclick="saveTodayReflection()">Kaydet ve koçuma gönder</button></div>
     </div>
   </section>
 
@@ -1961,7 +1961,7 @@
   </div>
 </div>
 
-<div class="toast" id="toast" role="status" aria-live="polite"></div><script vite-ignore src="./app.js?v=4.1.0-r21"></script>
+<div class="toast" id="toast" role="status" aria-live="polite"></div><script vite-ignore src="./app.js?v=4.1.0-r22"></script>
 
 <script type="application/json" id="legacyFirebaseSyncModule" data-disabled="play-store-release">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
