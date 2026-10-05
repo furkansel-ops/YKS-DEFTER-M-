@@ -198,7 +198,7 @@
 #program .rb-program-calendar-task{display:grid;grid-template-columns:16px minmax(0,1fr);align-items:start;gap:5px;min-width:0;min-height:44px;padding:8px 8px;border:1px solid color-mix(in srgb,var(--rp-subject) 24%,var(--rp-line));border-radius:10px;background:var(--rp-subject-soft);color:var(--rb-ink,var(--label-1,#10213e));text-align:left;}
 #program .rb-program-calendar-resource{display:flex;align-items:center;justify-content:center;min-width:0;min-height:32px!important;padding:5px 7px!important;border:1px solid color-mix(in srgb,var(--rp-subject) 28%,var(--rp-line));border-radius:8px;background:var(--rp-surface);color:var(--rp-subject);font-size:10px!important;font-weight:700!important;line-height:1.2;overflow-wrap:anywhere;}
 #program .rb-program-calendar-task-state{display:grid;place-items:center;width:15px;height:15px;margin-top:1px;border:1.4px solid color-mix(in srgb,var(--rp-subject) 70%,var(--rp-line));border-radius:5px;color:var(--rb-on-accent,#fff);font-size:10px;font-weight:800;line-height:1;}
-#program .rb-program-calendar-task-text{display:-webkit-box;min-width:0;overflow:hidden;overflow-wrap:anywhere;-webkit-box-orient:vertical;-webkit-line-clamp:3;line-clamp:3;font-size:11px;line-height:1.35;font-weight:600;}
+#program .rb-program-calendar-task-text{display:-webkit-box;min-width:0;overflow:hidden;overflow-wrap:anywhere;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;font-size:11px;line-height:1.3;font-weight:600;}
 #program .rb-program-calendar-task[data-done]{opacity:.72;background:color-mix(in srgb,var(--success,#24836c) 8%,var(--rp-surface));border-color:color-mix(in srgb,var(--success,#24836c) 30%,var(--rp-line));}
 #program .rb-program-calendar-task[data-done] .rb-program-calendar-task-state{border-color:var(--success,#24836c);background:var(--success,#24836c);}
 #program .rb-program-calendar-task[data-done] .rb-program-calendar-task-text{text-decoration:line-through;color:var(--rp-muted);}
@@ -256,7 +256,7 @@
 #program .rb-program-task-details{cursor:default!important}
 #program .rb-program-task-details:hover{background:transparent!important}
 #program .rb-program-edit{display:none!important}
-#program .rb-program-calendar-task{display:grid!important;grid-template-columns:16px minmax(0,1fr);align-items:start;gap:5px;padding:7px!important}
+#program .rb-program-calendar-task{display:grid!important;grid-template-columns:16px minmax(0,1fr);align-items:start;gap:5px;min-height:0!important;max-height:46px;overflow:hidden;padding:6px 7px!important}
 #program .rb-program-calendar-edit{display:none!important}
 #program .rb-program-calendar-task-state{pointer-events:none}
 #program .rb-program-calendar-task-text{display:block;width:100%;padding:0;border:0;background:transparent;color:inherit;text-align:left;font:inherit;line-height:inherit;cursor:pointer}
@@ -267,9 +267,13 @@
   display:-webkit-box!important;
   -webkit-box-orient:vertical;
   -webkit-line-clamp:2;
+  line-clamp:2;
   overflow:hidden;
-  max-height:2.9em;
-  line-height:1.45!important;
+  max-height:2.6em;
+  padding:0!important;
+  font-size:11px!important;
+  font-weight:600!important;
+  line-height:1.3!important;
   white-space:normal;
   overflow-wrap:anywhere;
 }
