@@ -261,3 +261,29 @@
 #program .rb-program-calendar-task-state{pointer-events:none}
 #program .rb-program-calendar-task-text{display:block;width:100%;padding:0;border:0;background:transparent;color:inherit;text-align:left;font:inherit;line-height:inherit;cursor:pointer}
 #program .rb-program-calendar-task-text:hover{text-decoration:underline;text-underline-offset:2px}
+
+/* Program weekly compact text + native refined editor */
+#program .rb-program-calendar-task-text{
+  display:-webkit-box!important;
+  -webkit-box-orient:vertical;
+  -webkit-line-clamp:2;
+  overflow:hidden;
+  max-height:2.9em;
+  line-height:1.45!important;
+  white-space:normal;
+  overflow-wrap:anywhere;
+}
+#program .rb-program-editor[hidden]{display:none!important}
+#program .rb-program-editor{position:fixed;inset:0;z-index:10050;display:grid;place-items:center;padding:18px;background:rgba(13,24,43,.36);backdrop-filter:blur(5px)}
+#program .rb-program-editor-card{width:min(520px,100%);display:grid;gap:10px;padding:18px;border:1px solid var(--rp-line);border-radius:18px;background:var(--rp-surface);box-shadow:0 24px 70px rgba(15,31,57,.22)}
+#program .rb-program-editor-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+#program .rb-program-editor-head h2{margin:0;font-size:18px;letter-spacing:-.02em}
+#program .rb-program-editor-close{width:34px;height:34px;min-height:0;padding:0;border:1px solid var(--rp-line);border-radius:10px;background:var(--rp-soft);color:var(--rp-muted);font-size:20px;line-height:1}
+#program .rb-program-editor-label{font-size:11px;font-weight:800;color:var(--rp-muted)}
+#program .rb-program-editor-input{width:100%;min-height:110px;resize:vertical;padding:12px;border:1px solid var(--rp-line);border-radius:12px;background:var(--rp-surface);color:var(--rp-ink);font:inherit;line-height:1.55}
+#program .rb-program-editor-input:focus{outline:2px solid color-mix(in srgb,var(--rp-accent) 28%,transparent);border-color:var(--rp-accent)}
+#program .rb-program-editor-hint{margin:0;color:var(--rp-muted);font-size:10px;line-height:1.5}
+#program .rb-program-editor-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:2px}
+#program .rb-program-editor-actions button{min-height:38px;padding:0 14px;border:1px solid var(--rp-line);border-radius:10px;background:var(--rp-surface);color:var(--rp-ink);font-weight:750}
+#program .rb-program-editor-actions .rb-program-editor-save{border-color:var(--rp-accent);background:var(--rp-accent);color:#fff}
+@media(max-width:640px){#program .rb-program-editor{padding:12px;align-items:end}#program .rb-program-editor-card{border-radius:18px 18px 14px 14px}}
