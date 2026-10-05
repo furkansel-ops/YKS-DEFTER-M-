@@ -1322,6 +1322,19 @@ function programSetDayOrder(wk,day,ids){
   if(el("home")?.classList.contains("active"))renderTodayPlan();
   return true;
 }
+function programUpdateTask(wk,id,text){
+  if(!validDateKey(wk)||typeof id!=="string"||!/^[rs]-\d+-[0-6]$/.test(id))return false;
+  const value=String(text||"").trim();if(!value||value.length>600)return false;
+  const parts=id.split("-"),blk=parts[0],row=Number(parts[1]),day=Number(parts[2]),w=getWeek(wk,false);
+  if(!w||!["r","s"].includes(blk)||!Number.isInteger(row)||row<0||!Array.isArray(w[blk])||!Array.isArray(w[blk][row])||!String(w[blk][row][day]||"").trim())return false;
+  const previous=w[blk][row][day];w[blk][row][day]=value;
+  let saved=false;try{saved=save()===true;}catch(e){}
+  if(!saved){w[blk][row][day]=previous;if(typeof perfInvalidateState==="function")perfInvalidateState();return false;}
+  if(el("program")?.classList.contains("active"))renderPlan();
+  if(el("home")?.classList.contains("active"))renderTodayPlan();
+  return true;
+}
+
 
 
 function programMoveTaskToDate(wk,taskId,targetDate){
