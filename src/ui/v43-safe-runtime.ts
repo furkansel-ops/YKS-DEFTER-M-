@@ -69,9 +69,6 @@ async function loadAll(onCritical:(report:V43RuntimeReport)=>void):Promise<V43Ru
     finishedAt:Date.now(),
     features:criticalFeatures
   };
-  document.documentElement.dataset.v43CriticalRuntime=criticalReport.ok?"ready":"degraded";
-  document.documentElement.dataset.v43CriticalRuntimeErrors=String(criticalFeatures.filter(feature=>!feature.installed||feature.errors>0).length);
-  document.documentElement.dataset.v43CriticalMs=String(Math.max(0,criticalReport.finishedAt-startedAt));
   onCritical(criticalReport);
 
   /* Deneme/analiz/kişiselleştirme/lab gibi ekranlar açılış perdesini tutmaz.
@@ -116,31 +113,16 @@ async function loadAll(onCritical:(report:V43RuntimeReport)=>void):Promise<V43Ru
 
 export function installV43SafeRuntime():V43RuntimeApi{
   if(window.__YKS_V43_RUNTIME__)return window.__YKS_V43_RUNTIME__;
-  let latestReport:V43RuntimeReport|null=null;
-  let resolveCritical:(report:V43RuntimeReport)=>void=()=>{};
+  let latestReport:V43RuntimeReport|null=null,resolveCritical:(report:V43RuntimeReport)=>void=()=>{};
   const criticalReady=new Promise<V43RuntimeReport>(resolve=>{resolveCritical=resolve;});
-  const ready=new Promise<V43RuntimeReport>(resolve=>{
-    window.setTimeout(()=>{
-      let criticalSettled=false;
-      const publishCritical=(report:V43RuntimeReport)=>{if(criticalSettled)return;criticalSettled=true;resolveCritical(report);};
-      void loadAll(publishCritical).then(report=>{
-        latestReport=report;
-        if(!criticalSettled)publishCritical(report);
-        resolve(report);
-      }).catch(error=>{
-        try{console.error("v4.3 runtime loader",error);}catch{}
-        const report:V43RuntimeReport={ok:false,startedAt:Date.now(),finishedAt:Date.now(),features:[]};
-        latestReport=report;
-        document.documentElement.dataset.v43Runtime="degraded";
-        document.documentElement.dataset.v43RuntimeErrors="1";
-        document.documentElement.dataset.v43CriticalRuntime="degraded";
-        document.documentElement.dataset.v43CriticalRuntimeErrors="1";
-        if(!criticalSettled)publishCritical(report);
-        resolve(report);
-      });
-    },0);
-  });
+  const ready=new Promise<V43RuntimeReport>(resolve=>window.setTimeout(()=>{
+    void loadAll(resolveCritical).then(report=>{latestReport=report;resolve(report);}).catch(error=>{
+      try{console.error("v4.3 runtime loader",error);}catch{}
+      const report:V43RuntimeReport={ok:false,startedAt:Date.now(),finishedAt:Date.now(),features:[]};
+      latestReport=report;document.documentElement.dataset.v43Runtime="degraded";document.documentElement.dataset.v43RuntimeErrors="1";
+      resolveCritical(report);resolve(report);
+    });
+  },0));
   const api:V43RuntimeApi={installed:true,criticalReady,ready,latest:()=>latestReport};
-  window.__YKS_V43_RUNTIME__=api;
-  return api;
+  window.__YKS_V43_RUNTIME__=api;return api;
 }
