@@ -2226,7 +2226,7 @@ function qaIsIPadLike(){
   return /iPad|iPhone|iPod/i.test(ua)||(/Macintosh/i.test(ua)&&Number(navigator.maxTouchPoints||0)>1);
 }
 function wrongPhotoStore(id,dataUrl){
-  const wrong=(S.wrongLog||[]).find(x=>Number(x.id)===Number(id));if(!wrong||!/^data:image\/jpeg/i.test(String(dataUrl||"")))return false;
+  const wrong=(S.wrongLog||[]).find(x=>Number(x.id)===Number(id));if(!wrong||!/^data:image\/(jpeg|jpg|png|webp);/i.test(String(dataUrl||"")))return false;
   const list=wrongPhotosFor(id),limit=Math.max(1,Number(wrong.n)||1);
   if(list.length>=limit){toast("Bu kayıttaki tüm yanlış sorular eklendi ✓");return false;}
   if(storageBytes()+dataUrl.length>QA_BLOCK){toast("Depolama sınırına gelindi — eski soru fotoğraflarını sil");return false;}
