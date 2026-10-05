@@ -21,12 +21,12 @@ function harness(){
   for(const name of ["keyOf","parseKey","addDaysKey","dowOf","mondayOf","thisWeek","clone"]){
     const definition=app.match(new RegExp(`^function ${name}\\([^\\n]+$`,"m"));assert.ok(definition,name);vm.runInContext(definition[0],context);
   }
-  for(const name of ["validDateKey","blankWeek","normWeek","getWeek","programTaskCompleted","programSetCellDone","toggleCellDone","programDayTaskIds","programSetDayOrder","shiftWeek","addToDay","addToDays"]){
+  for(const name of ["validDateKey","blankWeek","normWeek","getWeek","programTaskCompleted","programSetCellDone","toggleCellDone","programDayTaskIds","programSetDayOrder","programUpdateTask","shiftWeek","addToDay","addToDays"]){
     const definition=app.match(new RegExp(`function ${name}\\([^\\n]*\\)\\{[\\s\\S]*?\\r?\\n}`));assert.ok(definition,name);vm.runInContext(definition[0],context);
   }
   const controller=api.createRefinedProgramController({readState:()=>state,visibleWeek:()=>context.keyOf(context.curWeek),shiftWeek:context.shiftWeek,thisWeek:context.thisWeek,
     setProgTab:tab=>calls.push(["setProgTab",tab]),toggleCellDone:context.toggleCellDone,addToDay:context.addToDay,addToDays:context.addToDays,setDayOrder:context.programSetDayOrder,
-    openPlanCellMenu:(...args)=>calls.push(["menu",...args])},()=>fixed);
+    updateTask:context.programUpdateTask},()=>fixed);
   return {state,calls,controller,context};
 }
 
@@ -63,12 +63,13 @@ test("full days and blank submissions cannot overwrite existing plan cells",()=>
   assert.equal(JSON.stringify(h.state),before);assert.equal(h.calls.filter(call=>call[0]==="save").length,0);
 });
 
-test("completion and task actions keep legacy cell keys, saving, and menu behavior",()=>{
+test("completion and weekly editing keep the same program cell identity",()=>{
   const h=harness(),data=h.state.weeks["2026-09-21"];data.s[1][4]="Fizik";
   assert.equal(h.controller.toggleTask("s-1-4"),true);assert.equal(data.dn["s-1-4"],1);assert.equal(h.controller.snapshot().tasks[0].done,true);
-  assert.equal(h.controller.openTask("s-1-4"),true);assert.deepEqual(h.calls.find(call=>call[0]==="menu"),["menu","2026-09-21","s",1,4]);
-  assert.equal(h.controller.toggleTask("s-1-4"),true);assert.equal(data.dn["s-1-4"],undefined);assert.equal(h.calls.filter(call=>call[0]==="save").length,2);
-  data.s[1][4]="";assert.equal(h.controller.toggleTask("s-1-4"),false);assert.equal(h.controller.openTask("s-1-4"),false);assert.deepEqual(data.dn,{});
+  assert.equal(h.controller.updateTask("s-1-4","TYT Fizik · Hareket · 30 soru"),true);
+  assert.equal(data.s[1][4],"TYT Fizik · Hareket · 30 soru");assert.equal(data.dn["s-1-4"],1);
+  assert.equal(h.controller.toggleTask("s-1-4"),true);assert.equal(data.dn["s-1-4"],undefined);assert.equal(h.calls.filter(call=>call[0]==="save").length,3);
+  data.s[1][4]="";assert.equal(h.controller.toggleTask("s-1-4"),false);assert.equal(h.controller.updateTask("s-1-4","Yeni"),false);assert.deepEqual(data.dn,{});
 });
 
 test("daily task controller reports a failed completion save without changing its existing task",()=>{
@@ -208,7 +209,7 @@ test("Programım günlükte yalnız tik, haftalıkta yalnız yazıdan düzenleme
   assert.match(source,/const check=button\("","rb-program-check"\)/);
   assert.match(source,/details=element\("div","rb-program-task-details"\)/);
   assert.match(source,/const textButton=button\(detail\|\|subjectName,"rb-program-calendar-task-text"\)/);
-  assert.match(source,/textButton\.addEventListener\("click",\(\)=>\{controller\.selectDay\(task\.day\);controller\.openTask\(task\.id\);\}\)/);
+  assert.match(source,/textButton\.addEventListener\("click",\(\)=>\{controller\.selectDay\(task\.day\);openEditor\(task\);\}\)/);
   assert.match(css,/Program interaction cleanup — daily only check, weekly text-only edit/);
 });
 
@@ -223,4 +224,25 @@ test("kendim yazayım çalışmaları eski satır etiketini değil gerçek dersi
   assert.equal(carsamba.label,"AYT Kimya");
   assert.equal(api.refinedProgramSubjectLabel("TYT fizik soru çözümü","Mat"),"TYT Fizik");
   assert.equal(api.refinedProgramSubjectLabel("Koç · TYT Biyoloji · Hücre tekrar","Mat"),"TYT Biyoloji");
+});
+
+
+test("haftalık uzun görev iki satırda kalır ve yeni editör mevcut hücreyi günceller",()=>{
+  const source=fs.readFileSync(path.join(root,"src/ui/refined-program.ts"),"utf8");
+  const css=fs.readFileSync(path.join(root,"src/ui/refined-program.css"),"utf8");
+  const legacy=fs.readFileSync(path.join(root,"app.js"),"utf8");
+  assert.match(source,/rb-program-editor/);
+  assert.match(source,/controller\.updateTask\(editingTaskId,value\)/);
+  assert.match(source,/programUpdateTask/);
+  assert.match(css,/-webkit-line-clamp:2/);
+  assert.match(css,/rb-program-editor-card/);
+  assert.match(legacy,/function programUpdateTask\(wk,id,text\)/);
+  assert.doesNotMatch(source,/controller\.openTask\(task\.id\)/);
+});
+
+test("programUpdateTask başarısız kayıtta eski metni geri yükler",()=>{
+  const h=harness(),data=h.state.weeks["2026-09-21"];data.s[0][4]="Eski çalışma";
+  const before=JSON.stringify(data);h.context.save=()=>false;
+  assert.equal(h.controller.updateTask("s-0-4","Yeni çalışma"),false);
+  assert.equal(JSON.stringify(data),before);
 });
