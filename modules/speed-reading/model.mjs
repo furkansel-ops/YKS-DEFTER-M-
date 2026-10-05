@@ -3,6 +3,7 @@ export const LEGACY_KEY = "yks-speed-reading-learn-v1";
 export const LESSON_IDS = ["groups", "returns", "focus", "voice"];
 export const EXERCISE_IDS = ["groups", "lines", "focus", "returns", "paragraph"];
 export const SPEEDS = [150, 200, 250, 300, 350, 400, 450];
+export const DIFFICULTIES = ["medium", "hard", "expert"];
 const MAX_SESSIONS = 1000;
 const finite = value => typeof value === "number" && Number.isFinite(value);
 const dateValue = value => finite(value) && value >= 0 && value <= 8640000000000000;
@@ -19,13 +20,17 @@ export function gradeAnswers(questions, answers) {
   const correct = questions.reduce((total, question, index) => total + (Number.isInteger(answers[index]) && answers[index] === question.answer ? 1 : 0), 0);
   return {correct, wrong: questions.length - correct, total: questions.length, comprehension: questions.length ? Math.round(correct / questions.length * 100) : 0};
 }
+const cleanSkillResults = rows => (Array.isArray(rows) ? rows : []).slice(0, 10).map(row => ({
+  type: typeof row?.type === "string" ? row.type.trim().slice(0, 60) : "",
+  correct: row?.correct === true
+})).filter(row => row.type);
 export function performanceFeedback(result) {
   if (result.readingMs < 5000) return {kind: "brief", title: "Daha dengeli bir ölçüm yapalım", message: "Okuma süresi 5 saniyeden kısa. Sonuç kaydedildi; bu ölçüm ortalamalara ve rekorlara katılmadı. Metni anlayarak yeniden dene."};
   if (result.comprehension < 75) return {kind: "review", title: "Önce anlamayı güçlendirelim", message: "Hız tek başına başarı ölçüsü değil. Bir sonraki egzersizde ritmi düşür; ana fikri ve ayrıntıları yakalamaya odaklan."};
   return {kind: "balanced", title: "Anlama ve ritim birlikte ilerliyor", message: "Bu metinde anlama oranını korudun. Birkaç farklı metinde de benzer sonuç aldıktan sonra istersen küçük bir hız artışı deneyebilirsin."};
 }
-export function createSession({kind, mode, passageId, words, readingMs, questionMs = 0, correct = 0, total = 0, targetWpm = 0}, now = Date.now(), id = globalThis.crypto?.randomUUID?.() || `${now}-${Math.random().toString(36).slice(2)}`) {
-  return {id, kind, mode, passageId, at: now, words, readingMs, questionMs, correct, total, targetWpm, wpm: wordsPerMinute(words, readingMs), comprehension: total ? Math.round(correct / total * 100) : 0};
+export function createSession({kind, mode, passageId, words, readingMs, questionMs = 0, correct = 0, total = 0, targetWpm = 0, difficulty = "", skillResults = []}, now = Date.now(), id = globalThis.crypto?.randomUUID?.() || `${now}-${Math.random().toString(36).slice(2)}`) {
+  return {id, kind, mode, passageId, at: now, words, readingMs, questionMs, correct, total, targetWpm, difficulty: DIFFICULTIES.includes(difficulty) ? difficulty : "", skillResults: cleanSkillResults(skillResults), wpm: wordsPerMinute(words, readingMs), comprehension: total ? Math.round(correct / total * 100) : 0};
 }
 function cleanSession(value) {
   if (!value || typeof value !== "object" || typeof value.id !== "string" || !value.id || value.id.length > 100) return null;
@@ -34,7 +39,7 @@ function cleanSession(value) {
   if (!finite(value.questionMs) || value.questionMs < 0 || value.questionMs > 86400000 || !Number.isInteger(value.total) || value.total < 0 || value.total > 10 || !Number.isInteger(value.correct) || value.correct < 0 || value.correct > value.total) return null;
   if (value.kind === "test" && (value.total < 3 || value.total > 5)) return null;
   if (value.kind === "exercise" && !EXERCISE_IDS.includes(value.mode)) return null;
-  return createSession({kind: value.kind, mode: String(value.mode || "reading").slice(0, 30), passageId: value.passageId.slice(0, 100), words: value.words, readingMs: value.readingMs, questionMs: value.questionMs, correct: value.correct, total: value.total, targetWpm: SPEEDS.includes(value.targetWpm) ? value.targetWpm : 0}, value.at, value.id);
+  return createSession({kind: value.kind, mode: String(value.mode || "reading").slice(0, 30), passageId: value.passageId.slice(0, 100), words: value.words, readingMs: value.readingMs, questionMs: value.questionMs, correct: value.correct, total: value.total, targetWpm: SPEEDS.includes(value.targetWpm) ? value.targetWpm : 0, difficulty: value.difficulty, skillResults: value.skillResults}, value.at, value.id);
 }
 export function normalizeState(value, legacy = null) {
   const source = value && typeof value === "object" && !Array.isArray(value) ? value : {};
@@ -122,6 +127,33 @@ export function recommendedPace(state, now = Date.now()) {
       : `Son ${valid.length} testte anlama %${comprehension}. Şimdilik bu tempoda dengeyi koru.`;
   return {wpm: target, label, reason, comprehension, samples: valid.length};
 }
+export function recommendedDifficulty(state, now = Date.now()) {
+  const valid = state.sessions.filter(row => row.kind === "test" && row.readingMs >= 5000 && row.at <= now).slice(-3);
+  if (!valid.length) return {level: "medium", label: "Orta", reason: "İlk testte dengeli bir metinle başlangıç yap."};
+  const average = Math.round(valid.reduce((sum, row) => sum + row.comprehension, 0) / valid.length), last = valid.at(-1)?.comprehension ?? average;
+  if (valid.length >= 3 && average >= 90 && last >= 80) return {level: "expert", label: "Çok zor", reason: `Son ${valid.length} testte ortalama anlama %${average}. Daha yoğun çıkarım ve yakın çeldiricilere geçiyoruz.`};
+  if (valid.length >= 2 && average >= 80 && last >= 70) return {level: "hard", label: "Zor", reason: `Son ${valid.length} testte ortalama anlama %${average}. Bir üst soru yoğunluğu uygun görünüyor.`};
+  return {level: "medium", label: "Orta", reason: `Son ${valid.length} testte ortalama anlama %${average}. Hızı artırmadan önce bu düzeyde anlamayı sağlamlaştıralım.`};
+}
+export function adaptivePassage(passages, state, now = Date.now()) {
+  const recommendation = recommendedDifficulty(state, now), eligible = passages.filter(row => row.difficulty === recommendation.level);
+  const pool = eligible.length ? eligible : passages;
+  const recent = new Set(state.sessions.filter(row => row.kind === "test" && row.at <= now).slice(-2).map(row => row.passageId));
+  const fresh = pool.filter(row => !recent.has(row.id)), candidates = fresh.length ? fresh : pool;
+  const previous = [...state.sessions].reverse().find(row => row.kind === "test" && row.at <= now);
+  const index = candidates.findIndex(row => row.id === previous?.passageId);
+  return candidates[(index + 1) % candidates.length];
+}
+export function questionSkillBreakdown(state, days = 30, now = Date.now()) {
+  const start = new Date(now); start.setHours(0, 0, 0, 0); start.setDate(start.getDate() - Math.max(0, Math.min(89, Math.round(days) - 1)));
+  const rows = state.sessions.filter(row => row.kind === "test" && row.readingMs >= 5000 && row.at >= start.getTime() && row.at <= now);
+  const totals = new Map();
+  for (const session of rows) for (const result of session.skillResults || []) {
+    const current = totals.get(result.type) || {type: result.type, correct: 0, total: 0};
+    current.total++; if (result.correct) current.correct++; totals.set(result.type, current);
+  }
+  return [...totals.values()].map(row => ({...row, accuracy: Math.round(row.correct / row.total * 100)})).sort((a, b) => b.total - a.total || a.accuracy - b.accuracy || a.type.localeCompare(b.type, "tr"));
+}
 export function dailyTraining(state, now = Date.now()) {
   const key = localDayKey(now), today = state.sessions.filter(row => localDayKey(row.at) === key && row.at <= now);
   const warmup = today.some(row => row.kind === "exercise" && ["groups", "lines", "focus", "returns"].includes(row.mode));
@@ -130,7 +162,7 @@ export function dailyTraining(state, now = Date.now()) {
   const steps = [
     {id: "warmup", label: "Ritim ısınması", detail: "Kelime gruplarıyla 2–3 dakika", done: warmup},
     {id: "paragraph", label: "Paragraf turu", detail: "Kendi hızında oku + ana fikir", done: paragraph},
-    {id: "test", label: "Anlama testi", detail: "4 soruyla hız + anlama ölç", done: test}
+    {id: "test", label: "Anlama testi", detail: "5 soruyla hız + anlama ölç", done: test}
   ];
   return {date: key, steps, completed: steps.filter(step => step.done).length, total: steps.length};
 }
