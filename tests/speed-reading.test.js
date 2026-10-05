@@ -152,12 +152,17 @@ test("all learning units contain interactive checks and suitable semantic groups
   for (const group of LESSONS[0].groups) assert.ok(m.wordCount(group) >= 2 && m.wordCount(group) <= 4, group);
   assert.match(LESSONS.find(row => row.id === "voice").explanation, /tamamen susturmak değildir/);
 });
-test("every test text has 3–5 complete questions, distinct answers and sufficient text", async () => {
+test("every test text has five varied YKS-style questions, distinct options and sufficient text", async () => {
   const m = await model, {PASSAGES} = await content;
   assert.equal(new Set(PASSAGES.map(row => row.id)).size, PASSAGES.length);
+  assert.ok(PASSAGES.length >= 10);
   for (const passage of PASSAGES) {
-    assert.ok(m.wordCount(passage.text) >= 100, passage.id); assert.ok(passage.questions.length >= 3 && passage.questions.length <= 5);
-    for (const question of passage.questions) {assert.equal(new Set(question.options).size, 4); assert.ok(question.options[question.answer]); assert.ok(question.explanation); assert.ok(question.type);}
+    assert.ok(m.wordCount(passage.text) >= 100, passage.id); assert.equal(passage.questions.length, 5, passage.id);
+    assert.ok(new Set(passage.questions.map(question => question.type)).size >= 4, passage.id);
+    for (const question of passage.questions) {
+      assert.equal(new Set(question.options).size, 4); assert.ok(question.options[question.answer]); assert.ok(question.explanation.length >= 40); assert.ok(question.type);
+      assert.ok(question.options.filter(option => option.length >= 25).length >= 3, `${passage.id}: ${question.prompt}`);
+    }
     assert.equal(m.gradeAnswers(passage.questions, passage.questions.map(row => row.answer)).comprehension, 100);
   }
 });
@@ -191,9 +196,10 @@ test("expanded passage pool reduces quick repetition while preserving question q
   const {PASSAGES}=await content;assert.ok(PASSAGES.length>=8);
   for(const passage of PASSAGES){assert.ok(passage.questions.length>=3);assert.ok(passage.text.length>400);}
 });
-test("speed reading v2.1 exposes daily plan, adaptive progress and versioned lazy assets", async () => {
+test("speed reading v2.2 exposes harder YKS questions, skill feedback and versioned lazy assets", async () => {
   const runtime=fs.readFileSync(path.join(base,"runtime.mjs"),"utf8"),css=fs.readFileSync(path.join(base,"speed-reading.css"),"utf8");
   const loader=fs.readFileSync(path.resolve(__dirname,"../modules/speed-reading-learn-v1.js"),"utf8");
   assert.match(runtime,/BUGÜNÜN ANTRENMANI/);assert.match(runtime,/daily-warmup/);assert.match(runtime,/weeklyTrend/);assert.match(runtime,/100 kelime okuma/);
-  assert.match(css,/sr-daily-steps/);assert.match(css,/sr-trend/);assert.match(loader,/speed-reading\.css\?v=2\.1\.0/);assert.match(loader,/runtime\.mjs\?v=2\.1\.0/);
+  assert.match(runtime,/YKS tipi anlama sorusu/);assert.match(runtime,/resultSkillReport/);assert.match(runtime,/sr-test-skills/);
+  assert.match(css,/sr-daily-steps/);assert.match(css,/sr-trend/);assert.match(css,/sr-skill-report/);assert.match(loader,/speed-reading\.css\?v=2\.2\.0/);assert.match(loader,/runtime\.mjs\?v=2\.2\.0/);
 });
