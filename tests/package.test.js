@@ -19,9 +19,9 @@ test("HTML kimlikleri benzersiz ve kritik alanlar mevcut",()=>{
 test("sürüm, şema ve PWA önbelleği tutarlı",()=>{
   const html=read("index.html"),app=read("app.js"),sw=read("sw.js"),version=JSON.parse(read("version.json")),releaseVersion=read("src/release/version.ts");
   assert.match(html,/src="\.\/app\.js\?v=4\.1\.0-r21"/);assert.match(html,/src="\.\/modules\/stability\.js\?v=4\.1\.0-r28"/);assert.match(app,/const APP_VERSION="4\.1\.0"/);assert.match(app,/const APP_BUILD="4\.1\.0-r20"/);assert.match(app,/const DATA_SCHEMA=21/);
-  assert.equal(version.version,"4.4.0");assert.equal(version.schema,21);assert.equal(version.build,"4.4.0-r21");assert.match(releaseVersion,/RELEASE_VERSION="4\.4\.0"/);assert.match(releaseVersion,/RELEASE_BUILD="4\.4\.0-r21"/);assert.match(releaseVersion,/LEGACY_CORE_BUILD="4\.1\.0-r20"/);
+  assert.equal(version.version,"4.4.0");assert.equal(version.schema,21);assert.equal(version.build,"4.4.0-r22");assert.match(releaseVersion,/RELEASE_VERSION="4\.4\.0"/);assert.match(releaseVersion,/RELEASE_BUILD="4\.4\.0-r21"/);assert.match(releaseVersion,/LEGACY_CORE_BUILD="4\.1\.0-r20"/);
   assert.match(sw,/const APP_VERSION="4\.4\.0"/);assert.match(sw,/const APP_BUILD="4\.4\.0-r21"/);assert.match(sw,/const CACHE="yks-core-v4\.4\.0-r21"/);assert.match(sw,/yks-core-v4\.4\.0-r1/);assert.match(sw,/yks-core-v4\.3\.1-r1/);assert.match(sw,/yks-core-v4\.3\.0-r1/);assert.match(sw,/yks-core-v4\.2\.0-r1/);assert.match(sw,/yks-core-v4\.1\.0-r40/);
-  ["app.css","app.js?v=4.1.0-r21","modules/core-utils.js?v=4.1.0-r27","modules/stability.js?v=4.1.0-r28","modules/topic-guides.js?v=4.1.0-r20","modules/learning-lab.js?v=4.1.0-r26","modules/target-center.js?v=4.1.0-r20","modules/export-center.js?v=4.1.0-r20","modules/release-selftest.js?v=4.1.0-r20"].forEach(asset=>assert.ok(sw.includes(asset),asset));
+  ["app.css","app.js?v=4.1.0-r22","modules/core-utils.js?v=4.1.0-r27","modules/stability.js?v=4.1.0-r28","modules/topic-guides.js?v=4.1.0-r20","modules/learning-lab.js?v=4.1.0-r26","modules/target-center.js?v=4.1.0-r20","modules/export-center.js?v=4.1.0-r20","modules/release-selftest.js?v=4.1.0-r20"].forEach(asset=>assert.ok(sw.includes(asset),asset));
   assert.match(html,/src="\.\/modules\/learning-lab\.js\?v=4\.1\.0-r26"/);assert.doesNotMatch(sw,/modules\/(topic-coach|learning-tools)\.js/);
 });
 
