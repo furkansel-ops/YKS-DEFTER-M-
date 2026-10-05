@@ -232,12 +232,23 @@ test("haftalık uzun görev iki satırda kalır ve yeni editör mevcut hücreyi 
   const css=fs.readFileSync(path.join(root,"src/ui/refined-program.css"),"utf8");
   const legacy=fs.readFileSync(path.join(root,"app.js"),"utf8");
   assert.match(source,/rb-program-editor/);
-  assert.match(source,/controller\.updateTask\(editingTaskId,value\)/);
+  assert.match(source,/controller\.updateTask\(editingTaskId,value,editingWeek\)/);
+  assert.match(source,/openEditor\(task,state\.week\)/);
   assert.match(source,/programUpdateTask/);
   assert.match(css,/-webkit-line-clamp:2/);
+  assert.match(css,/max-height:46px/);
   assert.match(css,/rb-program-editor-card/);
   assert.match(legacy,/function programUpdateTask\(wk,id,text\)/);
   assert.doesNotMatch(source,/controller\.openTask\(task\.id\)/);
+});
+
+test("weekly edit stays pinned to the week that opened the editor",()=>{
+  const h=harness(),original=h.controller.snapshot().week;
+  h.state.weeks[original].s[0][4]="Eski çalışma";
+  h.controller.moveWeek(1);h.controller.selectDay(1);
+  assert.equal(h.controller.updateTask("s-0-4","Düzeltilmiş çalışma",original),true);
+  assert.equal(h.state.weeks[original].s[0][4],"Düzeltilmiş çalışma");
+  assert.equal(h.state.weeks["2026-09-28"].s[0][4],"");
 });
 
 test("programUpdateTask başarısız kayıtta eski metni geri yükler",()=>{
