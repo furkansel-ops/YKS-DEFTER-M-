@@ -3819,7 +3819,7 @@ function qaShowViewer(i){
   // Viewer her zaman gerçek viewport'a göre hizalansın; dönüştürülmüş uygulama kabuğu fixed katmanı kırpmasın.
   if(ov.parentElement!==document.body)document.body.appendChild(ov);
   document.body.classList.add("qa-viewer-open");
-  ov.style.display="flex";
+  ov.style.transform="none";ov.style.left="0";ov.style.right="0";ov.style.top="0";ov.style.bottom="0";ov.style.width="100vw";ov.style.height="100dvh";ov.style.zIndex="20000";ov.style.display="flex";
   const img=el("qaImg");if(img){img.onerror=()=>toast("Fotoğraf görüntülenemedi. Kaydı silmeden tekrar deneyebilirsin.");img.src=q.img;}
   el("qaInfo").textContent=q.subject+(q.topic?" · "+q.topic:"")+" · "+
     parseKey(q.date).toLocaleDateString("tr-TR",{day:"numeric",month:"long"});
