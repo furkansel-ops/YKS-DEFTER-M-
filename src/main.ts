@@ -206,7 +206,7 @@ document.documentElement.dataset.v4ReleaseVersion=release.version;
 
 /* Kritik görsel modüller ve stiller doğrulanmadan loading kalkmaz. İsteğe bağlı
    özellikler arızalanabilir; eksik yeni kabuk ise eski DOM yerine tekrar deneme sunar. */
-const revealAfterRefinedRuntime=()=>{void v43Runtime.ready.then(()=>window.__YKS_BOOT__?.reveal(),()=>window.__YKS_BOOT__?.fail());};
+const revealAfterRefinedRuntime=()=>{void v43Runtime.criticalReady.then(report=>{if(report.ok)window.__YKS_BOOT__?.reveal();else window.__YKS_BOOT__?.fail();},()=>window.__YKS_BOOT__?.fail());};
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",revealAfterRefinedRuntime,{once:true});
 else revealAfterRefinedRuntime();
 
