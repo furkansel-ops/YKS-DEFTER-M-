@@ -88,6 +88,14 @@ test("koç program düzenlemesi doğrudan güncelleme köprüsünü tercih eder"
   assert.deepEqual(calls,[["update","2026-10-05","s-0-1","Koç · Düzeltilmiş görev"]]);
 });
 
+
+test("koç program silme aksiyonu doğrudan silme köprüsünü kullanır",()=>{
+  const h=harness(),calls=[];
+  h.window.programDeleteTask=(...args)=>{calls.push(args);return true};
+  h.window.testApplyAction({type:"program_task",payload:{operation:"delete",sourceWeek:"2026-10-05",taskId:"s-0-1"}});
+  assert.deepEqual(calls,[["2026-10-05","s-0-1"]]);
+});
+
 test("gerçek addToDay gelecekteki ve geçmişteki koç görevini doğru haftaya yazar",()=>{
   const h=harness();h.installLegacyAddToDay();
   h.window.testApplyAction({type:"program_task",payload:{text:"İleri görev",date:"2026-10-06"}});
