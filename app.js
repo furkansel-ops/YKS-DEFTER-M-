@@ -3818,8 +3818,9 @@ function qaShowViewer(i){
   const ov=el("qaViewer"); if(!ov)return;
   // Viewer her zaman gerçek viewport'a göre hizalansın; dönüştürülmüş uygulama kabuğu fixed katmanı kırpmasın.
   if(ov.parentElement!==document.body)document.body.appendChild(ov);
+  document.body.classList.add("qa-viewer-open");
   ov.style.display="flex";
-  el("qaImg").src=q.img;
+  const img=el("qaImg");if(img){img.onerror=()=>toast("Fotoğraf görüntülenemedi. Kaydı silmeden tekrar deneyebilirsin.");img.src=q.img;}
   el("qaInfo").textContent=q.subject+(q.topic?" · "+q.topic:"")+" · "+
     parseKey(q.date).toLocaleDateString("tr-TR",{day:"numeric",month:"long"});
   el("qaNoteView").textContent=q.note||"";
@@ -3834,7 +3835,7 @@ function qaNext(n){
   if(!qaViewList.length)return;
   qaShowViewer((qaViewIdx+n+qaViewList.length)%qaViewList.length);
 }
-function qaCloseViewer(){ const ov=el("qaViewer"); if(ov)ov.style.display="none"; }
+function qaCloseViewer(){ const ov=el("qaViewer"); if(ov)ov.style.display="none"; document.body.classList.remove("qa-viewer-open"); }
 function qaViewerDone(){ const q=qaViewList[qaViewIdx];if(q&&!q.wrongId)qaToggleDone(q.id); }
 function qaViewerDelete(){
   const q=qaViewList[qaViewIdx];if(!q)return;
