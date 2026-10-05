@@ -6,7 +6,7 @@ const vm=require("node:vm");
 
 const source=fs.readFileSync(path.resolve(__dirname,"../sw.js"),"utf8");
 const scope="https://example.test/YKS-DEFTER-M-/";
-const cacheName="yks-core-v4.4.0-r21";
+const cacheName="yks-core-v4.4.0-r22";
 const guard='<html data-ui-shell="refined-v1"><style id="yksBootGuard"></style>';
 const oldHtml=guard+'<script src="./assets/index-old.js"></script>';
 const newHtml=guard+'<script src="./assets/index-new.js"></script><link href="./assets/index-new.css">';
@@ -137,7 +137,7 @@ test("successful install stores exact checked shell after assets and activates l
   assert.equal(await runtime.body("./index.html"),newHtml);
   assert.equal(await runtime.body("./"),newHtml);
   assert.equal(await runtime.body("./assets/index-new.js"),"new asset");
-  assert.equal(await runtime.body("./__offline_ready__"),"4.4.0-r21");
+  assert.equal(await runtime.body("./__offline_ready__"),"4.4.0-r22");
   assert.equal(runtime.operations[0],"batch");
   assert.equal(runtime.operations.at(-1),"skipWaiting");
   assert.equal(runtime.skipped,1);
@@ -168,7 +168,7 @@ test("first install precaches startup dynamic JS and CSS before marking offline 
   const runtime=harness({manifest,network:shellNetwork});await runtime.install();
   assert.equal(await runtime.body("./assets/theme-startup.js"),"new asset");
   assert.equal(await runtime.body("./assets/today-startup.css"),"new asset");
-  assert.equal(await runtime.body("./__offline_ready__"),"4.4.0-r21");
+  assert.equal(await runtime.body("./__offline_ready__"),"4.4.0-r22");
   assert.equal(runtime.operations[0],"batch");
 });
 
