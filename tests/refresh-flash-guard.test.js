@@ -7,7 +7,7 @@ const root=path.resolve(__dirname,"..");
 const read=file=>fs.readFileSync(path.join(root,file),"utf8");
 const html=read("index.html");
 const controller=html.match(/<script id="yksBootController">([\s\S]*?)<\/script>/)?.[1];
-const features=["v43Today","v43Analysis","v43Navigation","v43Personalization","refinedShell"];
+const features=["v43Today","v43Navigation","refinedShell"];
 
 function harness(){
   const dataset={},frames=[],timers=new Map(),events=new Map(),nodes=new Map();
@@ -57,13 +57,22 @@ test("slow startup offers retry and never reveals legacy UI after a timeout",()=
   assert.equal(h.dataset.uiReady,undefined);
 });
 
-test("a loading error keeps the shell covered and retry only reloads",()=>{
+test("an optional loading error keeps recovery available without permanently locking boot",()=>{
   const h=harness();h.event("DOMContentLoaded");h.event("error");h.timeout();
+  assert.equal(h.dataset.bootState,"waiting");
+  assert.equal(h.dataset.bootErrorSeen,"1");
+  assert.equal(h.dataset.uiReady,undefined);
+  assert.equal(h.retry.hidden,false);
+  assert.match(h.status.textContent,/Bekleyebilir/);
+  h.retry.click();assert.equal(h.reloads(),1);
+});
+
+test("an explicit critical boot failure keeps the shell covered",()=>{
+  const h=harness();h.event("DOMContentLoaded");h.window.__YKS_BOOT__.fail();
   assert.equal(h.dataset.bootState,"error");
   assert.equal(h.dataset.uiReady,undefined);
   assert.equal(h.retry.hidden,false);
   assert.match(h.status.textContent,/tekrar deneyebilirsin/);
-  h.retry.click();assert.equal(h.reloads(),1);
 });
 
 test("a slow or initially failed load may recover when the full new shell arrives",()=>{
@@ -100,8 +109,8 @@ test("the real modern CSS and program DOM must be present before reveal",()=>{
 
 test("bootstrap waits for refined runtime and routes failure to the loading screen",()=>{
   const main=read("src/main.ts"),safe=read("src/ui/v43-safe-runtime.ts"),shell=read("src/ui/refined-shell.ts");
-  assert.match(main,/v43Runtime\.ready\.then\(\(\)=>window\.__YKS_BOOT__\?\.reveal\(\),\(\)=>window\.__YKS_BOOT__\?\.fail\(\)\)/);
+  assert.match(main,/v43Runtime\.criticalReady\.then\(report=>\{if\(report\.ok\)window\.__YKS_BOOT__\?\.reveal\(\);else window\.__YKS_BOOT__\?\.fail\(\);\}/);
   assert.match(main,/document\.addEventListener\("DOMContentLoaded",revealAfterRefinedRuntime,\{once:true\}\)/);
-  assert.ok(safe.indexOf('loadFeature("refinedShell"')>safe.indexOf('loadFeature("v431Resilience"'));
+  assert.ok(safe.indexOf('loadFeature("refinedShell"')<safe.indexOf('loadFeature("v43Analysis"'));
   assert.match(shell,/const program=installRefinedProgram\(\)/);
 });
