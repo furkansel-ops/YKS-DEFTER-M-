@@ -10,7 +10,7 @@ test("deneme analizi yanlış kaydına not ve çoklu fotoğraf bağlar",()=>{
   assert.match(html,/id="anaNote"/);
   assert.match(html,/Neyi kaçırdın\? Doğru yaklaşım neydi\?/);
   assert.match(app,/note:note,questionImgs:\[\]/);
-  assert.match(app,/inp\.multiple=true/);
+  assert.match(app,/inp\.multiple=!qaIsIPadLike\(\)/);
   assert.match(app,/image\/jpeg,image\/png,image\/webp/);
   assert.match(app,/URL\.createObjectURL\(file\)/);
   assert.match(app,/createImageBitmap/);
