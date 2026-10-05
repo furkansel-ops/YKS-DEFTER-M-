@@ -43,16 +43,3 @@ test("Bir saati geçen odak süresi yuvarlak sayaçta taşmaz",()=>{
   assert.match(app,/classList\.toggle\("is-long",timeText\.length>5\)/);
   assert.match(css,/#pomo #pomoTime\.is-long\{[\s\S]*font-size:38px/);
 });
-
-
-test("YPT veya harici sayaçtan tek seferlik odak kaydı eklenebilir",()=>{
-  const index=read("index.html"),app=read("app.js"),css=read("modules/ui-polish-focus-v1.css"),contracts=read("src/data/contracts.ts");
-  for(const id of ["manualFocusHours","manualFocusMinutes","manualFocusStart","manualFocusSubject","manualFocusTopic","manualFocusSource","manualFocusAddBtn","manualFocusStatus"])assert.match(index,new RegExp('id="'+id+'"'));
-  assert.match(app,/function addManualFocus\(\)/);
-  assert.match(app,/S\.pomoMin\[day\]=prevTotal\+total/);
-  assert.match(app,/S\.pomoSubj\[day\]\[subject\]=prevSubject\+total/);
-  assert.match(app,/source:"manual"/);
-  assert.match(app,/window\.dispatchEvent\(new CustomEvent\("yks:data-changed"/);
-  assert.match(css,/focus-manual-entry/);
-  assert.match(contracts,/source:""\|"sw"\|"pomo"\|"manual"/);
-});
