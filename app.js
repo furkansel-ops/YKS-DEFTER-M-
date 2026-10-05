@@ -2265,8 +2265,9 @@ let pomoState="idle",pomoIsWork=true,pomoTimer=null,pomoSubject="";
 let pomoEndAt=0,pomoLeft=25*60,pomoTotal=25*60;
 let pomoStartedAt=0,pomoCredited=0,pomoTask="",wakeLock=null;
 
-function fmtT(s){ s=Math.max(0,s|0); const m=Math.floor(s/60),ss=s%60;
-  return String(m).padStart(2,"0")+":"+String(ss).padStart(2,"0"); }
+function fmtT(s){ s=Math.max(0,s|0); const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),ss=s%60;
+  return h?String(h).padStart(2,"0")+":"+String(m).padStart(2,"0")+":"+String(ss).padStart(2,"0")
+          :String(m).padStart(2,"0")+":"+String(ss).padStart(2,"0"); }
 
 function todaySessions(){ const k=todayKey(); if(!S.sessions[k])S.sessions[k]=[]; return S.sessions[k]; }
 function workCyclesToday(){ return todaySessions().filter(x=>x.type==="work"&&x.done).length; }
@@ -2363,10 +2364,9 @@ function renderPomo(){
 
   const ends=el("pomoEnds");
   if(ends){
-    if(pomoState==="running"){
-      const e=new Date(pomoEndAt);
-      ends.textContent=String(e.getHours()).padStart(2,"0")+":"+String(e.getMinutes()).padStart(2,"0")+"'de biter";
-    } else ends.textContent=pomoState==="paused"?"duraklatıldı":"";
+    if(pomoState==="running")ends.textContent=clockText(new Date(pomoEndAt))+"'de biter";
+    else if(pomoState==="paused")ends.textContent="duraklatıldı · "+Math.ceil(pomoLeft/60)+" dk kaldı";
+    else ends.textContent="Başlatırsan "+clockText(new Date(Date.now()+Math.max(0,pomoLeft)*1000))+"'de biter";
   }
 
   const btnLbl=pomoState==="running"?"Duraklat":(pomoState==="paused"?"Devam et":"Başlat");
@@ -3859,8 +3859,8 @@ const QUICK_MINS=[15,25,45,60];
 function quickPhaseName(){ return pomoIsWork?"çalışma":"mola"; }
 function currentPhaseMin(){ return pomoIsWork?S.workMin:(isLongBreakNext()?S.focus.longBreak:S.breakMin); }
 function setPhaseMin(n){
-  n=Math.max(1,Math.min(180,n|0));
-  if(pomoState!=="idle"){ toast("Süreyi değiştirmek için önce sıfırla"); return; }
+  n=Math.max(1,Math.min(1440,n|0));
+  if(pomoState!=="idle"){ toast("Süreyi değiştirmek için önce sıfırla"); return false; }
   if(pomoIsWork)S.workMin=n;
   else if(isLongBreakNext())S.focus.longBreak=n;
   else S.breakMin=n;
@@ -3868,8 +3868,33 @@ function setPhaseMin(n){
   pomoTotal=pomoPhaseMin(pomoIsWork)*60; pomoLeft=pomoTotal;
   renderPomo();
   toast(n+" dakika · "+quickPhaseName());
+  return true;
 }
 function adjustPhaseMin(d){ setPhaseMin(currentPhaseMin()+d); }
+function clockText(date){
+  return String(date.getHours()).padStart(2,"0")+":"+String(date.getMinutes()).padStart(2,"0");
+}
+function setFocusCustomStatus(message,error){
+  const node=el("focusCustomStatus"); if(!node)return;
+  node.textContent=message||""; node.classList.toggle("is-error",!!error);
+}
+function applyCustomFocusMinutes(){
+  const input=el("customFocusMin"),value=Math.floor(Number(input&&input.value));
+  if(!Number.isFinite(value)||value<1||value>1440){setFocusCustomStatus("1 ile 1440 dakika arasında bir süre gir.",true);return;}
+  if(setPhaseMin(value)){
+    const end=new Date(Date.now()+value*60000);
+    setFocusCustomStatus(value+" dk ayarlandı · şimdi başlarsan "+clockText(end)+"'de biter.",false);
+  }
+}
+function applyFocusUntilTime(){
+  const input=el("focusUntilTime"),raw=String(input&&input.value||"");
+  if(!/^\d{2}:\d{2}$/.test(raw)){setFocusCustomStatus("Bitiş saatini seç.",true);return;}
+  const parts=raw.split(":").map(Number),now=new Date(),end=new Date(now);
+  end.setHours(parts[0],parts[1],0,0);
+  if(end<=now){setFocusCustomStatus("Bugün için şu andan daha ileri bir saat seç.",true);return;}
+  const minutes=Math.max(1,Math.ceil((end-now)/60000));
+  if(setPhaseMin(minutes))setFocusCustomStatus(clockText(end)+"'e kadar "+minutes+" dk çalışma ayarlandı.",false);
+}
 function renderQuick(){
   const w=el("quickMins"); if(!w)return;
   const cur=currentPhaseMin();
@@ -3879,6 +3904,13 @@ function renderQuick(){
   if(lab)lab.textContent=(pomoIsWork?"Çalışma":"Mola")+" süresi · "+cur+" dk";
   const box=el("quickWrap");
   if(box)box.style.opacity=pomoState==="idle"?"1":".45";
+  const custom=el("customFocusMin");
+  if(custom&&document.activeElement!==custom)custom.value=String(cur);
+  const until=el("focusUntilTime");
+  if(until)until.disabled=pomoState!=="idle";
+  if(custom)custom.disabled=pomoState!=="idle";
+  const projected=new Date(Date.now()+Math.max(0,pomoLeft)*1000);
+  if(pomoState==="idle")setFocusCustomStatus("Şimdi başlarsan "+clockText(projected)+"'de biter.",false);
 }
 
 /* ==================================================================
