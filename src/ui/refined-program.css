@@ -250,3 +250,14 @@
 #program .rb-program-calendar-edit{position:absolute;top:5px;right:5px;z-index:2;display:grid;place-items:center;width:29px;height:25px;border:1px solid color-mix(in srgb,var(--rp-subject) 30%,var(--rp-line));border-radius:7px;background:var(--rp-surface);color:var(--rp-subject);font-size:11px;font-weight:800}
 #program .rb-program-calendar-task-body{display:grid;grid-template-columns:16px minmax(0,1fr);align-items:start;gap:5px;width:100%;padding:0;border:0;background:transparent;color:inherit;text-align:left}
 #program .rb-program-calendar-task:hover{transform:none!important}
+
+/* Program interaction cleanup — daily only check, weekly text-only edit */
+#program .rb-program-task{padding:11px 14px!important}
+#program .rb-program-task-details{cursor:default!important}
+#program .rb-program-task-details:hover{background:transparent!important}
+#program .rb-program-edit{display:none!important}
+#program .rb-program-calendar-task{display:grid!important;grid-template-columns:16px minmax(0,1fr);align-items:start;gap:5px;padding:7px!important}
+#program .rb-program-calendar-edit{display:none!important}
+#program .rb-program-calendar-task-state{pointer-events:none}
+#program .rb-program-calendar-task-text{display:block;width:100%;padding:0;border:0;background:transparent;color:inherit;text-align:left;font:inherit;line-height:inherit;cursor:pointer}
+#program .rb-program-calendar-task-text:hover{text-decoration:underline;text-underline-offset:2px}
