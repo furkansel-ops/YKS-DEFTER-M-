@@ -50,3 +50,18 @@ test("Hata Defteri deneme analiz notunu tekrar kaydında korur",()=>{
   assert.match(mod,/const analysisNote=norm\(wrong\.note\)/);
   assert.match(mod,/note:analysisNote/);
 });
+
+
+test("iPad deneme fotoğrafı HEIC yerine uygulama içi kameradan JPEG yakalar",()=>{
+  const app=read("app.js"),css=read("app.css");
+  assert.match(app,/function qaIsIPadLike/);
+  assert.match(app,/Macintosh.*maxTouchPoints/);
+  assert.match(app,/navigator\.mediaDevices\.getUserMedia/);
+  assert.match(app,/facingMode:\{ideal:"environment"\}/);
+  assert.match(app,/cv\.toDataURL\("image\/jpeg",QA_QUALITY\)/);
+  assert.match(app,/function wrongPhotoStore/);
+  assert.match(app,/if\(qaIsIPadLike\(\)\)\{void openWrongPhotoCamera\(id\);return;\}/);
+  assert.match(app,/inp\.accept="image\/\*"/);
+  assert.match(css,/\.wrong-photo-camera::backdrop/);
+  assert.match(css,/\.wrong-photo-camera-stage video/);
+});
