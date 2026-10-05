@@ -2249,7 +2249,7 @@ function wrongPhotoOpen(id,index){
   const wrong=(S.wrongLog||[]).find(x=>Number(x.id)===Number(id)),photos=wrongPhotosFor(id);if(!wrong||!photos[index])return;
   const exam=(S.denemeler||[]).find(d=>Number(d.id)===Number(wrong.deneme)),kindLabel={bilmiyordum:"Bilgi eksiği",dikkat:"Dikkatsizlik",sure:"Süre yetmedi"}[wrong.kind]||"";
   const details=[exam&&exam.name?exam.name:"",kindLabel,wrong.note||""].filter(Boolean).join(" · ");
-  qaViewList=photos.map((img,i)=>({id:"wrong-"+id+"-"+i,img,subject:wrong.subject,topic:wrong.topic,date:wrong.date||todayKey(),note:details||("Deneme yanlışı · "+(i+1)+". soru"),done:false,wrongId:id}));
+  qaViewList=photos.map((img,i)=>({id:"wrong-"+id+"-"+i,img,subject:wrong.subject,topic:wrong.topic,date:wrong.date||todayKey(),note:details||("Deneme yanlışı · "+(i+1)+". soru"),done:false,wrongId:id,wrongPhotoIndex:i}));
   qaViewIdx=Math.max(0,Math.min(index,qaViewList.length-1));qaShowViewer(qaViewIdx);
 }
 function wrongPhotoRemove(id,index){
@@ -3824,16 +3824,23 @@ function qaShowViewer(i){
     parseKey(q.date).toLocaleDateString("tr-TR",{day:"numeric",month:"long"});
   el("qaNoteView").textContent=q.note||"";
   el("qaCount").textContent=(qaViewIdx+1)+" / "+qaViewList.length;
-  el("qaDoneBtn").textContent=q.done?"Tekrar aç":"Çözdüm";
-  el("qaDoneBtn").className=q.done?"btn ghost small":"btn green small";
+  const doneBtn=el("qaDoneBtn");
+  if(doneBtn){
+    if(q.wrongId){doneBtn.textContent="Deneme yanlışı";doneBtn.className="btn ghost small";doneBtn.disabled=true;}
+    else{doneBtn.textContent=q.done?"Tekrar aç":"Çözdüm";doneBtn.className=q.done?"btn ghost small":"btn green small";doneBtn.disabled=false;}
+  }
 }
 function qaNext(n){
   if(!qaViewList.length)return;
   qaShowViewer((qaViewIdx+n+qaViewList.length)%qaViewList.length);
 }
 function qaCloseViewer(){ const ov=el("qaViewer"); if(ov)ov.style.display="none"; }
-function qaViewerDone(){ if(qaViewList[qaViewIdx])qaToggleDone(qaViewList[qaViewIdx].id); }
-function qaViewerDelete(){ if(qaViewList[qaViewIdx])qaDelete(qaViewList[qaViewIdx].id); }
+function qaViewerDone(){ const q=qaViewList[qaViewIdx];if(q&&!q.wrongId)qaToggleDone(q.id); }
+function qaViewerDelete(){
+  const q=qaViewList[qaViewIdx];if(!q)return;
+  if(q.wrongId){const id=q.wrongId,index=q.wrongPhotoIndex||0;qaCloseViewer();wrongPhotoRemove(id,index);return;}
+  qaDelete(q.id);
+}
 
 /* ==================================================================
    DİNLENME KORUMASI
