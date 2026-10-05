@@ -2221,29 +2221,87 @@ function wrongPhotosFor(id){
   if(w.questionImg)delete w.questionImg;
   return w.questionImgs;
 }
-function wrongPhotoPick(id){
+function qaIsIPadLike(){
+  const ua=String(navigator.userAgent||"");
+  return /iPad|iPhone|iPod/i.test(ua)||(/Macintosh/i.test(ua)&&Number(navigator.maxTouchPoints||0)>1);
+}
+function wrongPhotoStore(id,dataUrl){
+  const wrong=(S.wrongLog||[]).find(x=>Number(x.id)===Number(id));if(!wrong||!/^data:image\/jpeg/i.test(String(dataUrl||"")))return false;
+  const list=wrongPhotosFor(id),limit=Math.max(1,Number(wrong.n)||1);
+  if(list.length>=limit){toast("Bu kayıttaki tüm yanlış sorular eklendi ✓");return false;}
+  if(storageBytes()+dataUrl.length>QA_BLOCK){toast("Depolama sınırına gelindi — eski soru fotoğraflarını sil");return false;}
+  list.push(dataUrl);save();renderWrongTopics();if(typeof renderAnaList==="function")renderAnaList();if(typeof renderExamWrongArchive==="function")renderExamWrongArchive();
+  toast("Fotoğraf eklendi · "+list.length+"/"+limit);return true;
+}
+let wrongPhotoCameraStream=null,wrongPhotoCameraId=0;
+function closeWrongPhotoCamera(){
+  const dlg=el("wrongPhotoCamera");
+  if(wrongPhotoCameraStream){try{wrongPhotoCameraStream.getTracks().forEach(track=>track.stop())}catch{}wrongPhotoCameraStream=null;}
+  try{if(dlg&&typeof dlg.close==="function"&&dlg.open)dlg.close()}catch{}
+  if(dlg)dlg.style.display="none";
+}
+function ensureWrongPhotoCamera(){
+  let dlg=el("wrongPhotoCamera");if(dlg)return dlg;
+  dlg=document.createElement("dialog");dlg.id="wrongPhotoCamera";dlg.className="wrong-photo-camera";
+  dlg.innerHTML='<div class="wrong-photo-camera-shell">'+
+    '<div class="wrong-photo-camera-top"><b>Soru fotoğrafını çek</b><button type="button" id="wrongPhotoCameraClose">Kapat</button></div>'+
+    '<div class="wrong-photo-camera-stage"><video id="wrongPhotoCameraVideo" autoplay muted playsinline></video><div id="wrongPhotoCameraStatus">Kamera hazırlanıyor…</div></div>'+
+    '<div class="wrong-photo-camera-actions"><button type="button" id="wrongPhotoCameraFallback">Galeriden seç</button><button type="button" id="wrongPhotoCameraShot">📷 Fotoğrafı çek</button></div>'+
+  '</div>';
+  document.body.appendChild(dlg);
+  el("wrongPhotoCameraClose").addEventListener("click",closeWrongPhotoCamera);
+  dlg.addEventListener("cancel",event=>{event.preventDefault();closeWrongPhotoCamera()});
+  el("wrongPhotoCameraFallback").addEventListener("click",()=>{const id=wrongPhotoCameraId;closeWrongPhotoCamera();wrongPhotoPickFile(id)});
+  el("wrongPhotoCameraShot").addEventListener("click",()=>{
+    const video=el("wrongPhotoCameraVideo");if(!video||!video.videoWidth||!video.videoHeight){toast("Kamera henüz hazır değil");return;}
+    try{
+      const cv=document.createElement("canvas"),sc=Math.min(1,QA_MAXPX/Math.max(video.videoWidth,video.videoHeight));
+      cv.width=Math.max(1,Math.round(video.videoWidth*sc));cv.height=Math.max(1,Math.round(video.videoHeight*sc));
+      const ctx=cv.getContext("2d");if(!ctx)throw new Error("canvas");
+      ctx.drawImage(video,0,0,cv.width,cv.height);
+      const dataUrl=cv.toDataURL("image/jpeg",QA_QUALITY);
+      if(!/^data:image\/jpeg/i.test(dataUrl)||dataUrl.length<32)throw new Error("jpeg");
+      const id=wrongPhotoCameraId;if(wrongPhotoStore(id,dataUrl))closeWrongPhotoCamera();
+    }catch(e){toast("Fotoğraf işlenemedi · Galeriden seçmeyi dene");}
+  });
+  return dlg;
+}
+async function openWrongPhotoCamera(id){
+  wrongPhotoCameraId=Number(id);
+  const dlg=ensureWrongPhotoCamera(),video=el("wrongPhotoCameraVideo"),status=el("wrongPhotoCameraStatus");
+  dlg.style.display="block";try{if(typeof dlg.showModal==="function"&&!dlg.open)dlg.showModal();else dlg.setAttribute("open","")}catch{dlg.setAttribute("open","")}
+  if(status)status.textContent="Kamera hazırlanıyor…";
+  try{
+    if(!navigator.mediaDevices||typeof navigator.mediaDevices.getUserMedia!=="function")throw new Error("camera-api");
+    wrongPhotoCameraStream=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:"environment"}}});
+    if(video){video.srcObject=wrongPhotoCameraStream;video.setAttribute("playsinline","");await Promise.resolve(video.play()).catch(()=>{});}
+    if(status)status.textContent="";
+  }catch(e){
+    closeWrongPhotoCamera();toast("iPad kamerası açılamadı · Galeriden seçim açılıyor");wrongPhotoPickFile(id);
+  }
+}
+function wrongPhotoPickFile(id){
   const wrong=(S.wrongLog||[]).find(x=>Number(x.id)===Number(id));if(!wrong)return;
   const photos=wrongPhotosFor(id),limit=Math.max(1,Number(wrong.n)||1),remaining=Math.max(0,limit-photos.length);
   if(!remaining){toast("Bu kayıttaki tüm yanlış sorular eklendi ✓");return;}
-  if(storageBytes()>QA_BLOCK){toast("Depolama dolu — önce eski soru fotoğraflarını sil");return;}
-  const inp=document.createElement("input");inp.type="file";inp.accept="image/jpeg,image/png,image/webp";inp.multiple=true;
+  const inp=document.createElement("input");inp.type="file";inp.accept="image/*";inp.multiple=!qaIsIPadLike();
   inp.onchange=async()=>{
     const files=Array.from(inp.files||[]).slice(0,remaining);if(!files.length)return;
     toast(files.length>1?files.length+" fotoğraf işleniyor…":"Soru fotoğrafı işleniyor…");
-    let added=0;
     for(const file of files){
-      try{
-        const dataUrl=await compressImage(file);
-        if(storageBytes()+dataUrl.length>QA_BLOCK){toast("Depolama sınırına gelindi — kalan fotoğraflar eklenmedi");break;}
-        const list=wrongPhotosFor(id);if(list.length>=limit)break;list.push(dataUrl);added++;
-      }catch(e){toast(String(e.message||e));}
-    }
-    if(added){
-      save();renderWrongTopics();if(typeof renderAnaList==="function")renderAnaList();if(typeof renderExamWrongArchive==="function")renderExamWrongArchive();
-      toast(added+" fotoğraf eklendi · "+wrongPhotosFor(id).length+"/"+limit);
+      try{const dataUrl=await compressImage(file);wrongPhotoStore(id,dataUrl);}
+      catch(e){toast(String(e&&e.message||e||"Fotoğraf işlenemedi"));}
     }
   };
   inp.click();
+}
+function wrongPhotoPick(id){
+  const wrong=(S.wrongLog||[]).find(x=>Number(x.id)===Number(id));if(!wrong)return;
+  const photos=wrongPhotosFor(id),limit=Math.max(1,Number(wrong.n)||1);
+  if(photos.length>=limit){toast("Bu kayıttaki tüm yanlış sorular eklendi ✓");return;}
+  if(storageBytes()>QA_BLOCK){toast("Depolama dolu — önce eski soru fotoğraflarını sil");return;}
+  if(qaIsIPadLike()){void openWrongPhotoCamera(id);return;}
+  wrongPhotoPickFile(id);
 }
 let wrongPhotoViewerState={id:0,index:0};
 function ensureWrongPhotoViewer(){
