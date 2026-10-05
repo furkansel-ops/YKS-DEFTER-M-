@@ -2768,3 +2768,20 @@ body > .qaviewer .qvimg img{display:block;width:auto;height:auto;max-width:100%;
 .wrong-photo-viewer-actions button:disabled{opacity:.4}
 .wrong-photo-viewer-actions #wrongPhotoViewerDelete{color:#ffb7b7}
 @supports not (height:100dvh){.wrong-photo-viewer{height:100vh}}
+
+/* iPad deneme fotoğrafı: HEIC'e düşmeden canlı kamera karesini JPEG yakalar. */
+.wrong-photo-camera{width:min(760px,100vw);max-width:none;margin:auto;padding:0;border:0;border-radius:18px;background:#0b1220;color:#fff}
+.wrong-photo-camera::backdrop{background:rgba(4,10,20,.82)}
+.wrong-photo-camera[open]{display:block}
+.wrong-photo-camera-shell{display:grid;grid-template-rows:auto minmax(280px,70vh) auto;gap:10px;padding:12px}
+.wrong-photo-camera-top,.wrong-photo-camera-actions{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.wrong-photo-camera-top button,.wrong-photo-camera-actions button{min-height:42px;padding:9px 14px;border:1px solid rgba(255,255,255,.16);border-radius:11px;background:rgba(255,255,255,.08);color:#fff;font:700 13px/1.2 var(--font,system-ui)}
+.wrong-photo-camera-actions #wrongPhotoCameraShot{background:#2563eb;border-color:#2563eb}
+.wrong-photo-camera-stage{position:relative;min-height:0;overflow:hidden;border-radius:14px;background:#000;display:flex;align-items:center;justify-content:center}
+.wrong-photo-camera-stage video{display:block;width:100%;height:100%;object-fit:contain;background:#000}
+#wrongPhotoCameraStatus{position:absolute;inset:auto 12px 12px;padding:7px 10px;border-radius:999px;background:rgba(0,0,0,.58);font-size:12px}
+@media(max-width:820px){
+  .wrong-photo-camera{width:100vw;height:100dvh;margin:0;border-radius:0}
+  .wrong-photo-camera-shell{height:100%;box-sizing:border-box;grid-template-rows:auto minmax(0,1fr) auto;padding:calc(10px + env(safe-area-inset-top)) 10px calc(10px + env(safe-area-inset-bottom))}
+  .wrong-photo-camera-actions{display:grid;grid-template-columns:1fr 1.2fr}
+}
