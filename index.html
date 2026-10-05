@@ -1081,6 +1081,32 @@
 
   <p class="hint" id="pauseStat" style="text-align:center;margin:-4px 0 12px;"></p>
 
+  <button class="foldhead" id="fh_manualfocus" onclick="toggleFold('manualfocus')">
+    <span class="ft">Tek seferlik odak ekle</span>
+    <span class="fi"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
+  </button>
+  <div class="foldbody" id="fb_manualfocus">
+    <div class="card focus-manual-entry">
+      <div class="focus-manual-head">
+        <div><b>Harici sayaçtan odak ekle</b><span>YPT gibi başka bir yerde tuttuğun süreyi bugünün çalışmasına ekler.</span></div>
+        <span class="focus-manual-badge">Tek seferlik</span>
+      </div>
+      <div class="focus-manual-duration">
+        <div><label for="manualFocusHours">Saat</label><input type="number" id="manualFocusHours" min="0" max="24" step="1" inputmode="numeric" placeholder="1"></div>
+        <div><label for="manualFocusMinutes">Dakika</label><input type="number" id="manualFocusMinutes" min="0" max="59" step="1" inputmode="numeric" placeholder="30"></div>
+        <div><label for="manualFocusStart">Başlangıç saati</label><input type="time" id="manualFocusStart"></div>
+      </div>
+      <div class="focus-manual-meta">
+        <div><label for="manualFocusSubject">Ders</label><select id="manualFocusSubject"></select></div>
+        <div><label for="manualFocusTopic">Çalışma / konu</label><input type="text" id="manualFocusTopic" maxlength="100" placeholder="Örn. Paragraf"></div>
+        <div><label for="manualFocusSource">Kaynak</label><select id="manualFocusSource"><option value="ypt" selected>YPT</option><option value="timer">Harici sayaç</option><option value="manual">Manuel</option></select></div>
+      </div>
+      <button class="btn green small focus-manual-add" id="manualFocusAddBtn" type="button" onclick="addManualFocus()">Bugüne odak ekle</button>
+      <p class="focus-manual-status" id="manualFocusStatus" role="status" aria-live="polite"></p>
+      <p class="hint">Başlangıç saatini boş bırakırsan oturum, eklediğin sürenin şu anda bitmiş olduğu varsayılarak kaydedilir.</p>
+    </div>
+  </div>
+
   <h2>Bugünün oturumları</h2>
   <div class="card" id="sessionList"></div>
 

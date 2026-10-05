@@ -317,7 +317,7 @@ function normalize(o){
       reasons:(x.reasons&&typeof x.reasons==="object"&&!Array.isArray(x.reasons))?{
         phone:Math.max(0,Math.min(99,Math.floor(Number(x.reasons.phone)||0))),attention:Math.max(0,Math.min(99,Math.floor(Number(x.reasons.attention)||0))),
         need:Math.max(0,Math.min(99,Math.floor(Number(x.reasons.need)||0))),other:Math.max(0,Math.min(99,Math.floor(Number(x.reasons.other)||0))),break:Math.max(0,Math.min(99,Math.floor(Number(x.reasons.break)||0)))}:{},
-      focusScore:Math.max(0,Math.min(100,Math.floor(Number(x.focusScore)||0))),source:x.source==="sw"?"sw":x.source==="pomo"?"pomo":"",
+      focusScore:Math.max(0,Math.min(100,Math.floor(Number(x.focusScore)||0))),source:x.source==="sw"?"sw":x.source==="pomo"?"pomo":x.source==="manual"?"manual":"",
       plannedMin:Math.max(0,Math.min(360,Math.floor(Number(x.plannedMin)||0))),end:bigInt(x.end),qCredited:!!x.qCredited
     }));
   });
@@ -2332,6 +2332,67 @@ function renderPomoSubjects(){
 }
 function setPomoSubject(n){ pomoSubject=n; renderPomoSubjects(); }
 
+function renderManualFocusForm(){
+  const sel=el("manualFocusSubject");if(!sel)return;
+  const current=sel.value||pomoSubject||(SUBJ_NAMES.includes("Türkçe")?"Türkçe":SUBJ_NAMES[0]||"");
+  sel.innerHTML=SUBJ_NAMES.map(n=>'<option value="'+esc(n)+'">'+esc(n)+'</option>').join("");
+  if(SUBJ_NAMES.includes(current))sel.value=current;
+  else if(SUBJ_NAMES.includes("Türkçe"))sel.value="Türkçe";
+}
+function setManualFocusStatus(message,error){
+  const node=el("manualFocusStatus");if(!node)return;
+  node.textContent=message||"";
+  node.classList.toggle("is-error",!!error);
+  node.classList.toggle("is-success",!!message&&!error);
+}
+function manualFocusStartAt(value,totalMin){
+  const raw=String(value||"").trim(),now=new Date();
+  if(!raw)return Date.now()-totalMin*60000;
+  if(!/^\d{2}:\d{2}$/.test(raw))return 0;
+  const [hour,minute]=raw.split(":").map(Number),date=new Date(now);
+  date.setHours(hour,minute,0,0);
+  if(!Number.isFinite(date.getTime())||date.getTime()>Date.now()+60000)return 0;
+  return date.getTime();
+}
+function addManualFocus(){
+  if(typeof coachBlock==="function"&&coachBlock("manual-focus"))return;
+  const hours=Math.max(0,Math.floor(Number(el("manualFocusHours")?.value)||0));
+  const minutes=Math.max(0,Math.floor(Number(el("manualFocusMinutes")?.value)||0));
+  if(minutes>59){setManualFocusStatus("Dakika alanı 0–59 arasında olmalı.",true);return false}
+  const total=hours*60+minutes;
+  if(total<1||total>1440){setManualFocusStatus("1 dakika ile 24 saat arasında bir süre gir.",true);return false}
+  const subject=String(el("manualFocusSubject")?.value||pomoSubject||"").trim();
+  if(!subject){setManualFocusStatus("Ders seç.",true);return false}
+  const topic=String(el("manualFocusTopic")?.value||"").trim().slice(0,100);
+  const source=String(el("manualFocusSource")?.value||"ypt");
+  const sourceLabel=source==="ypt"?"YPT":source==="timer"?"Harici sayaç":"Manuel";
+  const startAt=manualFocusStartAt(el("manualFocusStart")?.value,total);
+  if(!startAt){setManualFocusStatus("Başlangıç saati bugünden ve şu andan daha erken olmalı.",true);return false}
+  const day=todayKey(),prevTotal=Number(S.pomoMin[day]||0),prevSubject=Number(S.pomoSubj?.[day]?.[subject]||0);
+  if(!S.pomoSubj[day])S.pomoSubj[day]={};
+  if(!S.sessions[day])S.sessions[day]=[];
+  const previousSessions=S.sessions[day].slice();
+  const note=[topic,sourceLabel+" üzerinden eklendi"].filter(Boolean).join(" · ");
+  S.pomoMin[day]=prevTotal+total;
+  S.pomoSubj[day][subject]=prevSubject+total;
+  S.sessions[day].push({t:startAt,end:startAt+total*60000,m:total,subj:subject,topic,task:"",type:"work",done:true,note,source:"manual"});
+  if(S.sessions[day].length>40)S.sessions[day]=S.sessions[day].slice(-40);
+  if(!save()){
+    S.pomoMin[day]=prevTotal;
+    S.pomoSubj[day][subject]=prevSubject;
+    S.sessions[day]=previousSessions;
+    setManualFocusStatus("Odak kaydı kaydedilemedi.",true);
+    return false;
+  }
+  setManualFocusStatus(sourceLabel+" kaydı eklendi · "+total+" dk",false);
+  const h=el("manualFocusHours"),m=el("manualFocusMinutes"),topicEl=el("manualFocusTopic"),startEl=el("manualFocusStart");
+  if(h)h.value="";if(m)m.value="";if(topicEl)topicEl.value="";if(startEl)startEl.value="";
+  renderPomo();renderTimeDist();if(typeof checkBadges==="function")checkBadges(false);
+  if(typeof renderAll==="function"&&el("home")?.classList.contains("active"))renderAll();
+  toast(sourceLabel+" odak kaydı eklendi ✓");
+  return true;
+}
+
 const ICON_PLAY='<path d="M8 5.5v13l11-6.5z"/>';
 const ICON_PAUSE='<path d="M9 5v14M15 5v14" stroke-width="2.6" stroke-linecap="round"/>';
 /* Sayaç çalışırken her saniye tüm odak ekranını tekrar kurmak yerine
@@ -2356,7 +2417,7 @@ function renderPomoClock(){
   }
 }
 function renderPomo(){
-  renderPomoSubjects(); renderPomoTasks();
+  renderPomoSubjects(); renderPomoTasks(); renderManualFocusForm();
   renderPomoClock();
 
   const card=el("focusCard");
@@ -2427,7 +2488,7 @@ function renderSessions(){
   if(!list.length){ w.innerHTML='<div class="empty">Bugün henüz oturum yok.</div>'; return; }
   w.innerHTML=list.slice().reverse().map(x=>{
     const t=new Date(x.t),hh=String(t.getHours()).padStart(2,"0")+":"+String(t.getMinutes()).padStart(2,"0");
-    return `<div class="dayrow"><span class="k">${hh} · ${esc(x.subj||"—")}${x.task?" · plan":""}${x.note?"<br><small>"+esc(x.note)+"</small>":""}</span>
+    return `<div class="dayrow"><span class="k">${hh} · ${esc(x.subj||"—")}${x.task?" · plan":""}${x.source==="manual"?" · manuel":""}${x.note?"<br><small>"+esc(x.note)+"</small>":""}</span>
       <span class="v" style="color:${x.done?"var(--success)":"var(--label-3)"}">${x.m} dk${x.done?"":" · yarıda"}</span></div>`;
   }).join("");
 }
