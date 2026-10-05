@@ -170,7 +170,7 @@ test("linked studies keep the weekly calendar clean and use the shared detail sh
   assert.doesNotMatch(source,/rb-program-calendar-resource/);
   assert.doesNotMatch(source,/rb-program-calendar-task-shell/);
   assert.doesNotMatch(source,/rb-program-resource"/);
-  assert.match(source,/video, bağlantı ve düzenleme seçenekleri açılan detay ekranında/);
+  assert.match(source,/Düzenlemek için yalnız çalışma yazısına dokun/);
 });
 
 
