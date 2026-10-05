@@ -197,18 +197,19 @@ test("daily task ordering persists through mv metadata without changing cell ide
 
 
 
-test("Programım günler arası taşıma sunmaz; taşıma yalnız koç panelindedir",()=>{
+test("Programım günlükte yalnız tik, haftalıkta yalnız yazıdan düzenleme kullanır",()=>{
   const source=fs.readFileSync(path.join(root,"src/ui/refined-program.ts"),"utf8");
   const css=fs.readFileSync(path.join(root,"src/ui/refined-program.css"),"utf8");
   assert.doesNotMatch(source,/rb-program-select/);
   assert.doesNotMatch(source,/rb-program-calendar-select/);
   assert.doesNotMatch(source,/rb-program-movebar/);
-  assert.doesNotMatch(source,/controller\.moveTask/);
-  assert.doesNotMatch(source,/programMoveTaskToDate/);
-  assert.match(source,/rb-program-edit/);
-  assert.match(source,/rb-program-calendar-edit/);
-  assert.match(css,/rb-program-edit/);
-  assert.doesNotMatch(css,/rb-program-movebar/);
+  assert.doesNotMatch(source,/const edit=button\("✎","rb-program-edit"\)/);
+  assert.doesNotMatch(source,/const editTask=button\("✎","rb-program-calendar-edit"\)/);
+  assert.match(source,/const check=button\("","rb-program-check"\)/);
+  assert.match(source,/const details=element\("div","rb-program-task-details"\)/);
+  assert.match(source,/const textButton=button\(detail\|\|subjectName,"rb-program-calendar-task-text"\)/);
+  assert.match(source,/textButton\.addEventListener\("click",\(\)=>\{controller\.selectDay\(task\.day\);controller\.openTask\(task\.id\);\}\)/);
+  assert.match(css,/Program interaction cleanup — daily only check, weekly text-only edit/);
 });
 
 
