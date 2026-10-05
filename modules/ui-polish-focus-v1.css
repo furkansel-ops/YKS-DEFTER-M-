@@ -179,6 +179,31 @@
 #pomo .quickmins button.on{
   box-shadow:0 8px 18px -14px color-mix(in srgb,var(--phase) 60%,transparent);
 }
+#pomo .focus-custom-time{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;
+  margin-top:14px;
+}
+#pomo .focus-custom-field{display:grid;gap:7px;min-width:0;}
+#pomo .focus-custom-field label{font-size:12px;font-weight:720;color:var(--label-3);}
+#pomo .focus-custom-control{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  align-items:center;
+  gap:8px;
+  min-width:0;
+}
+#pomo .focus-custom-control input{min-width:0;margin:0;}
+#pomo .focus-custom-control .btn{min-height:46px;white-space:nowrap;}
+#pomo .focus-custom-status{
+  min-height:20px;
+  margin:10px 0 0;
+  color:var(--label-3);
+  font-size:12px;
+  line-height:1.5;
+}
+#pomo .focus-custom-status.is-error{color:var(--danger,var(--red,#b42318));}
 
 #pomo .card{
   border-color:var(--focus-hairline);
@@ -222,6 +247,7 @@
   #pomo .ctlbtn,#pomo .playbtn{min-height:50px;border-radius:16px;}
   #pomo .ctlbtn{min-width:50px;}
   #pomo .quickmins{grid-template-columns:repeat(2,minmax(0,1fr));}
+  #pomo .focus-custom-time{grid-template-columns:1fr;}
 }
 
 @media (max-width:380px){
