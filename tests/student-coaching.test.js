@@ -274,8 +274,11 @@ test("gün sonu değerlendirmesi koç paylaşımına güvenli şekilde eklenir",
   assert.match(runtime,/dayReviews=Object\.entries\(s\.dayReview/);
   assert.match(runtime,/dayReview:\{entries:dayReviews\}/);
   assert.match(runtime,/slice\(-14\)/);
-  assert.match(runtime,/note:text\(value\?\.note,220\)/);
+  assert.match(runtime,/note:text\(value\?\.note,3000\)/);
   assert.match(html,/id="todayCloseSaved"/);
+  assert.match(html,/id="todayReflectionInput" maxlength="3000" rows="6"/);
+  assert.match(html,/Kaydet ve koçuma gönder/);
+  assert.match(app,/trim\(\)\.slice\(0,3000\)/);
   assert.match(html,/Koç bağlantın açıksa bu değerlendirme koçuna da görünür/);
   assert.match(css,/today-close-saved/);
 });
@@ -301,4 +304,14 @@ test("ruh hali seçimi yazılmış gün sonu cümlesini silmez",()=>{
   const app=read("app.js");
   assert.match(app,/if\(document\.activeElement!==inp&&!draftMood\)inp\.value=r\.note\|\|""/);
   assert.match(app,/todayMoodDraft=\{date:"",mood:""\};[\s\S]*save\(\);[\s\S]*v25RenderClose\(\)/);
+});
+
+
+test("koç program görevini öğrencinin programından güvenli şekilde silebilir",()=>{
+  const runtime=read("public/student-coaching-runtime.js"),app=read("app.js");
+  assert.match(runtime,/p\.operation==="delete"/);
+  assert.match(runtime,/window\.programDeleteTask\(sourceWeek,taskId\)/);
+  assert.match(app,/function programDeleteTask/);
+  assert.match(app,/delete w\.dn\[id\]/);
+  assert.match(app,/w\.mv\[orderKey\]=w\.mv\[orderKey\]\.filter\(taskId=>taskId!==id\)/);
 });
