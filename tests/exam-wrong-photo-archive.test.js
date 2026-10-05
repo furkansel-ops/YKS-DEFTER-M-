@@ -11,6 +11,11 @@ test("deneme analizi yanlış kaydına not ve çoklu fotoğraf bağlar",()=>{
   assert.match(html,/Neyi kaçırdın\? Doğru yaklaşım neydi\?/);
   assert.match(app,/note:note,questionImgs:\[\]/);
   assert.match(app,/inp\.multiple=true/);
+  assert.match(app,/image\/jpeg,image\/png,image\/webp/);
+  assert.match(app,/URL\.createObjectURL\(file\)/);
+  assert.match(app,/createImageBitmap/);
+  assert.match(app,/qaCanvasJpeg/);
+  assert.match(html,/id="qaFile" accept="image\/jpeg,image\/png,image\/webp"/);
   assert.match(app,/Array\.from\(inp\.files\|\|\[\]\)\.slice\(0,remaining\)/);
   assert.match(app,/ana-photo-btn/);
 });
