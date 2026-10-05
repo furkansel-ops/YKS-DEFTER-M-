@@ -188,13 +188,19 @@ function applyAction(a){
     }else if(a.type==="program_task"&&p.operation==="edit"){
       const sourceWeek=text(p.sourceWeek,10),taskId=text(p.taskId,40),value=text(p.text,600);
       if(!/^\d{4}-\d{2}-\d{2}$/.test(sourceWeek)||!/^[rs]-\d+-[0-6]$/.test(taskId)||!value)throw new Error("Program düzenleme bilgisi geçersiz");
-      if(typeof window.programEditTask!=="function")throw new Error("Program düzenleme işlevi hazır değil");
-      if(window.programEditTask(sourceWeek,taskId,value)===false)throw new Error("Görev düzenlenemedi");
+      const editTask=typeof window.programUpdateTask==="function"?window.programUpdateTask:window.programEditTask;
+      if(typeof editTask!=="function")throw new Error("Program düzenleme işlevi hazır değil");
+      if(editTask(sourceWeek,taskId,value)===false)throw new Error("Görev düzenlenemedi");
     }else{
       const v=text(p.text,600);if(!v)throw new Error("Görev boş");
-      if(typeof window.addToDay!=="function")throw new Error("Program işlevi hazır değil");
       const prefix=a.type==="post_exam_task"?"Koç · Deneme sonrası · ":"Koç · ";
-      if(window.addToDay(prefix+v,di.day,di.weekOffset)===false)throw new Error("Programda boş satır bulunamadı");
+      if(typeof window.addToDays==="function"){
+        const result=window.addToDays(prefix+v,[di.day],di.weekOffset);
+        if(!result||result.ok!==true)throw new Error(result?.reason==="full"?"Programda boş satır bulunamadı":"Program görevi kaydedilemedi");
+      }else{
+        if(typeof window.addToDay!=="function")throw new Error("Program işlevi hazır değil");
+        if(window.addToDay(prefix+v,di.day,di.weekOffset)===false)throw new Error("Programda boş satır bulunamadı");
+      }
     }
   }else if(a.type==="topic_deadline"){
     const k=text(p.key,220),d=text(p.date,10);if(!k||!/^\d{4}-\d{2}-\d{2}$/.test(d))throw new Error("Konu hedefi geçersiz");
