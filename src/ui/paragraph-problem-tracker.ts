@@ -12,6 +12,7 @@ type AppWindow=Window&{
   toast?:(message:string)=>void;
   go?:(screen:string)=>unknown;
   renderParagraphProblemTracker?:()=>void;
+  YKSAccountAuth?:{publishShare?:(options?:{manual?:boolean})=>Promise<boolean>|boolean};
 };
 
 const SCREEN_ID="pp";
@@ -46,7 +47,19 @@ function state():Tracker|null{
 function persist():void{
   try{
     const ok=win.save?.();
-    if(ok===false)win.toast?.("Kayıt cihazda saklanamadı");
+    if(ok===false){
+      win.toast?.("Kayıt cihazda saklanamadı");
+      return;
+    }
+    try{win.dispatchEvent(new CustomEvent("yks:data-changed",{detail:{source:"paragraph-problem",at:Date.now()}}));}catch{}
+    try{
+      const result=win.YKSAccountAuth?.publishShare?.();
+      if(result&&typeof (result as Promise<boolean>).catch==="function"){
+        void (result as Promise<boolean>).catch(error=>console.warn("Paragraf/problem koç paylaşımı ertelendi",error));
+      }
+    }catch(error){
+      console.warn("Paragraf/problem koç paylaşımı tetiklenemedi",error);
+    }
   }catch(error){
     console.error("Paragraf/problem kaydı saklanamadı",error);
     win.toast?.("Kayıt sırasında hata oluştu");
