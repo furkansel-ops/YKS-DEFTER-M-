@@ -1,4 +1,7 @@
-/* YKS Defterim — dayanıklı PWA katmanı | v4.4.0 · hızlı açılış\n   cache refresh epoch: 2026-10-03-refined-boot-reading-r21\n   refresh hint: 2026-10-05-ipad-camera-jpeg-r6 */\nconst APP_VERSION="4.4.0";
+/* YKS Defterim — dayanıklı PWA katmanı | v4.4.0 · hızlı açılış
+   cache refresh epoch: 2026-10-03-refined-boot-reading-r21
+   refresh hint: 2026-10-05-ipad-camera-jpeg-r7 */
+const APP_VERSION="4.4.0";
 const APP_BUILD="4.4.0-r21";
 const CACHE="yks-core-v4.4.0-r21";
 const CACHE_LINEAGE=["yks-core-v4.1.0-r20","yks-core-v4.1.0-r21","yks-core-v4.1.0-r22","yks-core-v4.1.0-r23","yks-core-v4.1.0-r24","yks-core-v4.1.0-r25","yks-core-v4.1.0-r26","yks-core-v4.1.0-r27","yks-core-v4.1.0-r28","yks-core-v4.1.0-r29","yks-core-v4.1.0-r30","yks-core-v4.1.0-r31","yks-core-v4.1.0-r32","yks-core-v4.1.0-r33","yks-core-v4.1.0-r34","yks-core-v4.1.0-r35","yks-core-v4.1.0-r36","yks-core-v4.1.0-r37","yks-core-v4.1.0-r38","yks-core-v4.1.0-r39","yks-core-v4.1.0-r40","yks-core-v4.2.0-r1","yks-core-v4.3.0-r1","yks-core-v4.3.1-r1","yks-core-v4.4.0-r1","yks-core-v4.4.0-r2","yks-core-v4.4.0-r3","yks-core-v4.4.0-r4","yks-core-v4.4.0-r5","yks-core-v4.4.0-r6","yks-core-v4.4.0-r7","yks-core-v4.4.0-r8","yks-core-v4.4.0-r9","yks-core-v4.4.0-r10","yks-core-v4.4.0-r11","yks-core-v4.4.0-r12","yks-core-v4.4.0-r13","yks-core-v4.4.0-r14","yks-core-v4.4.0-r15","yks-core-v4.4.0-r16","yks-core-v4.4.0-r17","yks-core-v4.4.0-r18","yks-core-v4.4.0-r19","yks-core-v4.4.0-r20"];
