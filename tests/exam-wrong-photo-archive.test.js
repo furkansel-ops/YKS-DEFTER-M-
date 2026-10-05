@@ -24,6 +24,10 @@ test("deneme yanlışlarının fotoğrafları mevcut yanlış soru arşivinde g�
   assert.match(app,/wrongPhotoOpen\('\+w\.id\+'[,]?'/);
   assert.match(css,/\.exam-wrong-archive-grid/);
   assert.match(css,/\.exam-wrong-card/);
+  assert.match(css,/body > \.qaviewer\{/);
+  assert.match(css,/transform:none!important;z-index:20000!important/);
+  assert.match(app,/ov\.style\.transform="none"/);
+  assert.match(app,/ov\.style\.zIndex="20000"/);
 });
 
 test("deneme fotoğraf görüntüleyicisi serbest qbank kaydını yanlışlıkla silmez",()=>{
