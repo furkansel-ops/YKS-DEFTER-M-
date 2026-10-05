@@ -32,10 +32,12 @@ test("deneme yanlışlarının fotoğrafları mevcut yanlış soru arşivinde g�
 
 test("deneme fotoğraf görüntüleyicisi serbest qbank kaydını yanlışlıkla silmez",()=>{
   const app=read("app.js");
-  assert.match(app,/wrongPhotoIndex:i/);
-  assert.match(app,/if\(q\.wrongId\).*wrongPhotoRemove/s);
-  assert.match(app,/doneBtn\.disabled=true/);
-  assert.match(app,/Deneme yanlışı/);
+  assert.match(app,/function ensureWrongPhotoViewer/);
+  assert.match(app,/showModal/);
+  assert.match(app,/function renderWrongPhotoViewer/);
+  assert.match(app,/wrongPhotoRemove\(state\.id,state\.index\)/);
+  assert.match(app,/wrongPhotoViewerStep/);
+  assert.match(css,/\.wrong-photo-viewer::backdrop/);
 });
 
 test("Hata Defteri deneme analiz notunu tekrar kaydında korur",()=>{
