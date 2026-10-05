@@ -8,6 +8,7 @@ const READY_KEY="./__offline_ready__";
 const CORE=["./","./index.html","./app.css","./app.js?v=4.1.0-r21","./teacher-videos.js?v=4.4.0-r17","./settings-profile-runtime.js?v=3.0.0","./modules/core-utils.js?v=4.1.0-r27","./modules/teachers-curated-v3.js?v=4.4.0-r3","./modules/stability.js?v=4.1.0-r28","./modules/topic-guides.js?v=4.1.0-r20","./modules/learning-lab.js?v=4.1.0-r26","./modules/learning-lab-v2.js?v=4.1.0-r24","./modules/learning-lab-v3.js?v=4.1.0-r28","./modules/target-center.js?v=4.1.0-r20","./modules/export-center.js?v=4.1.0-r20","./modules/error-journal.js?v=4.1.0-r20","./modules/personal-upgrades.js?v=4.1.0-r20","./modules/progress-v2.js?v=4.1.0-r20","./modules/global-search-v42.js?v=4.2.0-r1","./modules/smart-repeat-v42.js?v=4.2.0-r1","./modules/error-topic-lab-v42.js?v=4.2.0-r1","./modules/exam-analysis-v42.js?v=4.2.0-r1","./modules/progress-v42.js?v=4.2.0-r1","./modules/learning-lab-flow-v42.js?v=4.2.0-r1","./modules/release-selftest.js?v=4.1.0-r20","./modules/motivation-quotes-v1.js?v=4.1.0-r5","./modules/motivation-quotes-v2.css?v=4.1.0-r2","./modules/study-intelligence-v5.css?v=4.1.0-r1","./modules/ui-polish-v1.css?v=4.1.0-r1","./modules/ui-polish-home-v2.css?v=4.1.0-r1","./modules/ui-polish-focus-v1.css?v=4.1.0-r1","./modules/ui-polish-exam-v1.css?v=4.1.0-r1","./modules/ui-polish-topics-v1.css?v=4.1.0-r1","./modules/ui-polish-error-journal-v1.css?v=4.1.0-r1","./modules/ui-polish-progress-v1.css?v=4.1.0-r1","./modules/ui-polish-progress-v2.css?v=4.1.0-r1","./modules/ui-polish-more-v1.css?v=4.1.0-r1","./modules/ui-polish-program-v1.css?v=4.1.0-r1","./modules/ui-polish-learning-lab-v1.css?v=4.1.0-r1","./modules/ui-polish-final-v1.css?v=4.1.0-r1","./manifest.webmanifest","./icon-192.png","./icon-512.png","./icon-maskable-512.png","./apple-touch-icon.png"];
 const OFFLINE_TEXT="Çevrimdışı";
 const READING_ASSETS=["./modules/speed-reading-learn-v1.js?v=2.1.0","./modules/speed-reading/runtime.mjs","./modules/speed-reading/model.mjs","./modules/speed-reading/content.mjs","./modules/speed-reading/speed-reading.css"];
+let preferCacheUntil=0;
 
 /* Yalnız yükleme perdesi olan yeni görsel kabuk çalıştırılabilir. Bir CDN/proxy
    eski HTML döndürürse onu ne göster ne de çalışan çevrimdışı kabuğun üstüne yaz. */
@@ -117,32 +118,34 @@ async function cacheLatestShell(response){
     await Promise.all([cache.put("./index.html",response.clone()),cache.put("./",response.clone())]);
   }catch(e){}
 }
-async function navigationResponse(req){
+async function navigationResponse(req,event){
   const url=new URL(req.url);
   /* Eski Android/iOS ana ekran kurulumları ./index.html adresini saklamış olabilir.
      Uygulama kimliğini bozmadan bu eski giriş noktasını kanonik klasör köküne taşı. */
   if(isLegacyIndexEntry(url))return Response.redirect(appRootUrl(),302);
+  const appEntry=isAppEntry(url),cached=appEntry?await guardedCachedShell():null;
   try{
-    const res=await fetchWithTimeout(req,{cache:"no-store"},10000);
+    /* Çalışan bir offline kabuk varsa zayıf bağlantıda 10 saniye bekleme.
+       İlk kurulumda cache yoksa eski uzun pencere korunur. */
+    const res=await fetchWithTimeout(req,{cache:"no-store"},cached?2200:10000);
     if(res&&res.ok){
-      /* Online açılış başarılıysa çevrimdışı kabuğu da aynı HTML ile hemen tazele.
-         Böylece kısa süreli ağ hatasında önceki deploy'un index.html'i geri dönmez. */
-      if(isAppEntry(url)){
+      if(appEntry){
         if(!isGuardedShell(await res.clone().text()))throw new Error("stale-navigation-shell");
-        await cacheLatestShell(res);
+        /* Yeni kabuğu kullanıcıyı bekletmeden arkada atomik olarak hazırla. */
+        const refresh=cacheLatestShell(res.clone());
+        if(event&&typeof event.waitUntil==="function")event.waitUntil(refresh);else void refresh;
       }
       return res;
     }
-    /* Eski ana ekran kısayolu proje içinde artık var olmayan bir yola gidiyorsa
-       404 sayfasını göstermek yerine kanonik uygulama köküne dön. */
-    if(res&&(res.status===404||res.status===410)&&!isAppEntry(url))return Response.redirect(appRootUrl(),302);
+    if(res&&(res.status===404||res.status===410)&&!appEntry)return Response.redirect(appRootUrl(),302);
     if(res&&res.status<500)return res;
     throw new Error("navigation-network");
   }catch(e){
-    /* Çevrimdışıyken de eski/derin bir başlangıç yolu göreli asset yollarını bozmasın. */
-    if(!isAppEntry(url))return Response.redirect(appRootUrl(),302);
-    return (await guardedCachedShell())||
-      new Response(OFFLINE_TEXT,{status:503,headers:{"Content-Type":"text/plain;charset=utf-8","Cache-Control":"no-store"}});
+    /* Cache'e düşülen bu açılışta JS/CSS de aynı doğrulanmış paketten gelsin;
+       her dosyada yeniden yavaş ağı beklemek açılışı onlarca saniye uzatmasın. */
+    if(!appEntry)return Response.redirect(appRootUrl(),302);
+    if(cached){preferCacheUntil=Date.now()+12000;return cached;}
+    return new Response(OFFLINE_TEXT,{status:503,headers:{"Content-Type":"text/plain;charset=utf-8","Cache-Control":"no-store"}});
   }
 }
 function offlineResponse(){return new Response(OFFLINE_TEXT,{status:503,headers:{"Content-Type":"text/plain;charset=utf-8","Cache-Control":"no-store"}});}
@@ -153,14 +156,17 @@ function isCriticalAsset(url){
   return /\/assets\//.test(url.pathname)||/\.(?:js|mjs|css)$/.test(url.pathname)||url.pathname.endsWith("/manifest.webmanifest");
 }
 async function networkFirstStatic(req){
+  const cached=await currentCacheMatch(req);
+  if(cached&&Date.now()<preferCacheUntil)return cached;
   try{
-    const res=await fetchWithTimeout(req,{cache:"no-cache"},8000);
+    const res=await fetchWithTimeout(req,{cache:"no-cache"},cached?3500:8000);
     if(res&&res.ok){
       try{const cache=await caches.open(CACHE);await cache.put(req,res.clone());}catch(e){}
       return res;
     }
   }catch(e){}
-  return (await currentCacheMatch(req))||offlineResponse();
+  if(cached){preferCacheUntil=Math.max(preferCacheUntil,Date.now()+8000);return cached;}
+  return offlineResponse();
 }
 
 self.addEventListener("install",event=>{
@@ -199,7 +205,7 @@ self.addEventListener("fetch",event=>{
     event.respondWith(fetchWithTimeout(req,{cache:"no-store"},3500).catch(()=>offlineResponse()));return;
   }
   if(req.mode==="navigate"){
-    event.respondWith(navigationResponse(req));return;
+    event.respondWith(navigationResponse(req,event));return;
   }
   /* Sabit sürümden doğrulanmış büyük modeller yalnız isteğe bağlı yüklenir.
      Ziyaret başına yeniden indirme yok; uygulama kurulumu bunları beklemez. */
