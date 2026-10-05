@@ -1,5 +1,5 @@
 /* YKS Defterim — dayanıklı PWA katmanı | v4.4.0 · hızlı açılış
-   cache refresh epoch: 2026-10-03-refined-boot-reading-r21\n   refresh hint: 2026-10-05-deneme-photo-viewer-ipad-r4 */
+   cache refresh epoch: 2026-10-03-refined-boot-reading-r21\n   refresh hint: 2026-10-05-ipad-photo-normalization-r5 */
 const APP_VERSION="4.4.0";
 const APP_BUILD="4.4.0-r21";
 const CACHE="yks-core-v4.4.0-r21";
