@@ -2692,10 +2692,11 @@ input,select,textarea{transition:border-color .2s,box-shadow .2s,background .2s,
 
 /* Soru görüntüleyici: uygulama kabuğunun sidebar/transform ölçülerinden bağımsız tam ekran. */
 body > .qaviewer{
-  position:fixed!important;inset:0!important;
+  position:fixed!important;inset:0!important;left:0!important;right:0!important;top:0!important;bottom:0!important;
   width:100dvw!important;height:100dvh!important;max-width:none!important;
   margin:0!important;box-sizing:border-box!important;
-  overflow:hidden;
+  transform:none!important;z-index:20000!important;
+  overflow:hidden;isolation:isolate;
 }
 @supports not (height:100dvh){body > .qaviewer{width:100vw!important;height:100vh!important}}
 @media(max-width:900px){
@@ -2739,3 +2740,14 @@ body > .qaviewer{
 .exam-wrong-copy{min-width:0;display:grid;gap:3px}.exam-wrong-copy b{font-size:11.5px;line-height:1.3}.exam-wrong-copy small{font-size:10px;color:var(--label-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.exam-wrong-copy em{font-style:normal;font-size:10px;color:var(--label-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .exam-wrong-open{font-size:10px;font-weight:750;color:var(--accent);white-space:nowrap}
 @media(max-width:640px){.ana-wrong-actions{max-width:100%!important;justify-content:flex-start}.ana-wrong-row{flex-direction:column}.exam-wrong-archive-head{flex-direction:column}.exam-wrong-archive-head select{width:100%;max-width:none}.exam-wrong-archive-grid{grid-template-columns:1fr}.exam-wrong-card{grid-template-columns:62px minmax(0,1fr) auto}.exam-wrong-img{width:62px;height:62px}}
+
+body.qa-viewer-open{overflow:hidden!important;touch-action:none}
+body > .qaviewer .qvimg{min-height:180px}
+body > .qaviewer .qvimg img{display:block;width:auto;height:auto;max-width:100%;max-height:100%;object-fit:contain}
+@media(max-width:900px){
+  body > .qaviewer .qvtop{margin-bottom:8px}
+  body > .qaviewer .qvimg{border-radius:14px}
+  body > .qaviewer .qvinfo{margin:10px 0 2px;font-size:13px}
+  body > .qaviewer .qvnote{margin-bottom:10px;font-size:12px}
+  body > .qaviewer .qvnav{gap:6px}
+}
