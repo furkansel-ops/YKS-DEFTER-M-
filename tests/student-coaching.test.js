@@ -251,11 +251,21 @@ test("program_task move işlemi görevi başka güne taşır ve paylaşımı tet
 });
 
 
-test("program_task edit işlemi mevcut hücreyi yerinde düzenler",()=>{
+test("program_task edit işlemi doğrudan hücre güncelleme köprüsünü kullanır",()=>{
   const runtime=read("public/student-coaching-runtime.js"),app=read("app.js");
   assert.match(runtime,/p\.operation==="edit"/);
+  assert.match(runtime,/programUpdateTask/);
   assert.match(runtime,/programEditTask/);
+  assert.match(app,/function programUpdateTask/);
   assert.match(app,/function programEditTask/);
+});
+
+test("koçtan yeni program görevi güvenli gün ekleme yolunu tercih eder",()=>{
+  const runtime=read("public/student-coaching-runtime.js"),app=read("app.js");
+  assert.match(runtime,/typeof window\.addToDays==="function"/);
+  assert.match(runtime,/window\.addToDays\(prefix\+v,\[di\.day\],di\.weekOffset\)/);
+  assert.match(runtime,/window\.addToDay/);
+  assert.match(app,/function addToDays/);
 });
 
 
