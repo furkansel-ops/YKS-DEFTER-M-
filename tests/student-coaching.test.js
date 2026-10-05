@@ -270,7 +270,7 @@ test("koçtan yeni program görevi güvenli gün ekleme yolunu tercih eder",()=>
 
 
 test("gün sonu değerlendirmesi koç paylaşımına güvenli şekilde eklenir",()=>{
-  const runtime=read("public/student-coaching-runtime.js"),html=read("index.html"),css=read("app.css");
+  const runtime=read("public/student-coaching-runtime.js"),html=read("index.html"),css=read("app.css"),app=read("app.js");
   assert.match(runtime,/dayReviews=Object\.entries\(s\.dayReview/);
   assert.match(runtime,/dayReview:\{entries:dayReviews\}/);
   assert.match(runtime,/slice\(-14\)/);
