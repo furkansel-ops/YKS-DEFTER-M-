@@ -76,7 +76,7 @@ export interface FocusSession extends UnknownRecord{
   interruptions:number;
   reasons:FocusReasons;
   focusScore:number;
-  source:""|"sw"|"pomo"|"manual";
+  source:""|"sw"|"pomo";
   plannedMin:number;
   qCredited:boolean;
 }
