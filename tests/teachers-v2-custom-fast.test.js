@@ -62,10 +62,11 @@ test("Ortak kanal hocası odaklı aramayla 15 videoya tamamlanır",()=>{
   assert.match(pages,/ARCHIVE_VIDEO_LIMIT=240/);
   assert.match(pages,/teacher\.queryHint\|\|teacher\.name/);
   assert.match(pages,/teacher\.searchOnly\?"focused-search":"search"/);
-  assert.match(pages,/PLAYLIST_PREVIEW_COUNT=10/);
-  assert.match(pages,/feeds\/videos\.xml\?playlist_id=/);
-  assert.match(pages,/previewSource:"youtube-rss"/);
-  assert.match(pages,/listede video önizleme/);
+  assert.match(pages,/PLAYLIST_FULL_COUNT=16/);
+  assert.match(pages,/PLAYLIST_VIDEO_LIMIT=500/);
+  assert.match(pages,/enrichPlaylistContents/);
+  assert.match(pages,/previewSource:"yt-dlp-full"/);
+  assert.match(pages,/listede tam video içeriği/);
 });
 
 test("Geliştirme ve yayın aynı isteğe bağlı medya yükleyicisini kullanır",()=>{
