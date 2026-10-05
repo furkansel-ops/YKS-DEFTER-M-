@@ -51,6 +51,22 @@ test("yeni öğrencinin ilk koç paylaşımı program dahil Firestore şemasın�
   assert.equal(share.program.weeks[0].data.s[0][0],"Matematik");
 });
 
+test("paragraf ve problem takip kayıtları koç paylaşımına doğru şemayla gider",async()=>{
+  const h=harness();
+  h.state.paragraphProblem={entries:[
+    {id:"pp-1",date:"2026-09-18",kind:"paragraph",correct:24,wrong:4,blank:2,createdAt:100},
+    {id:"pp-2",date:"2026-09-17",kind:"problem",correct:18,wrong:2,blank:0,createdAt:90}
+  ]};
+  h.state.lab={paragraphLog:[{id:"legacy",at:1,words:500,seconds:60,wpm:500,score:90,title:"Eski kayıt"}]};
+  await h.signIn();await h.window.YKSAccountAuth.publishShare();
+  const entries=h.docs.get("coachingShares/student-1").paragraphProblem.entries;
+  assert.deepEqual(entries,[
+    {id:"pp-1",date:"2026-09-18",kind:"paragraph",correct:24,wrong:4,blank:2,createdAt:100},
+    {id:"pp-2",date:"2026-09-17",kind:"problem",correct:18,wrong:2,blank:0,createdAt:90}
+  ]);
+  assert.equal(entries.some(item=>item.id==="legacy"),false,"Eski hızlı okuma paragrafLog verisi P&P yerine gönderilmemeli");
+});
+
 test("koç paylaşımı başlangıçta ve sonraki yazımlarda güncel yerel programı v3 haritası olarak taşır",async()=>{
   const seed=harness();await seed.signIn();await seed.window.YKSAccountAuth.publishShare();
   const existing=seed.docs.get("coachingShares/student-1");
