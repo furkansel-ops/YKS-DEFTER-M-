@@ -150,7 +150,7 @@ export function createRefinedProgramController(bridge:RefinedProgramBridge,now=(
       if(!bridge.setDayOrder||unique.length!==expected.length||unique.some(id=>!expected.includes(id)))return false;
       return bridge.setDayOrder(current.week,current.day,unique)!==false;
     },
-    updateTask(id:string,text:string,week=bridge.visibleWeek()){const value=text.trim(),match=id.match(/^[rs]-\\d+-([0-6])$/),dayIndex=match?Number(match[1]):-1,task=match&&parseDate(week)?refinedProgramTasks(bridge.readState(),week,dayIndex).find(item=>item.id===id):undefined;if(!task||!bridge.updateTask||!value||value.length>600)return false;return bridge.updateTask(week,id,value)!==false;}
+    updateTask(id:string,text:string,week=bridge.visibleWeek()){const value=text.trim(),match=id.match(/^[rs]-\d+-([0-6])$/),dayIndex=match?Number(match[1]):-1,task=match&&parseDate(week)?refinedProgramTasks(bridge.readState(),week,dayIndex).find(item=>item.id===id):undefined;if(!task||!bridge.updateTask||!value||value.length>600)return false;return bridge.updateTask(week,id,value)!==false;}
   };
 }
 
