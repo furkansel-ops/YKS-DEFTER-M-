@@ -72,6 +72,22 @@ test("koç görevleri addToDay API'sine hedef tarihin sayısal hafta uzaklığı
   assert.equal(h.tasks[1].day,6);assert.equal(h.tasks[1].weekOffset,-2);
 });
 
+test("koç program görevi güvenli addToDays yolunu kullanır ve eski günü ezmez",()=>{
+  const h=harness(),safeCalls=[];
+  h.window.addToDays=(text,days,weekOffset)=>{safeCalls.push({text,days:[...days],weekOffset});return{ok:true,days:[...days]}};
+  h.window.testApplyAction({type:"program_task",payload:{text:"Yeni görev",date:"2026-10-06"}});
+  assert.deepEqual(safeCalls,[{text:"Koç · Yeni görev",days:[1],weekOffset:3}]);
+  assert.equal(h.tasks.length,0,"Güvenli API varken eski addToDay çağrılmamalı");
+});
+
+test("koç program düzenlemesi doğrudan güncelleme köprüsünü tercih eder",()=>{
+  const h=harness(),calls=[];
+  h.window.programUpdateTask=(...args)=>{calls.push(["update",...args]);return true};
+  h.window.programEditTask=(...args)=>{calls.push(["edit",...args]);return true};
+  h.window.testApplyAction({type:"program_task",payload:{operation:"edit",sourceWeek:"2026-10-05",taskId:"s-0-1",text:"Koç · Düzeltilmiş görev"}});
+  assert.deepEqual(calls,[["update","2026-10-05","s-0-1","Koç · Düzeltilmiş görev"]]);
+});
+
 test("gerçek addToDay gelecekteki ve geçmişteki koç görevini doğru haftaya yazar",()=>{
   const h=harness();h.installLegacyAddToDay();
   h.window.testApplyAction({type:"program_task",payload:{text:"İleri görev",date:"2026-10-06"}});
