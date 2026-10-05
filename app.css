@@ -2722,3 +2722,20 @@ body > .qaviewer{
 #home .today-note-row input{min-height:44px;padding:0 12px;border:1px solid var(--glass-line);border-radius:12px;background:var(--fill);color:var(--label)}
 #home .today-note-row button{min-height:44px!important;padding-inline:14px!important}
 @media(max-width:560px){#home .today-close-top{grid-template-columns:auto 1fr}#home .today-close-saved{grid-column:1/-1;justify-self:start}.today-moods button{min-width:0}}
+
+/* Deneme analizi · fotoğraflı yanlış arşivi */
+.ana-wrong-row{align-items:flex-start;gap:10px}
+.ana-wrong-row .k{min-width:0;line-height:1.35}.ana-wrong-row .k b{font-size:12px}.ana-wrong-row .k small{display:inline-block;margin-top:3px;color:var(--label-3)}
+.ana-wrong-actions{display:flex!important;align-items:center;justify-content:flex-end;gap:6px;flex-wrap:wrap;max-width:62%!important;white-space:normal!important}
+.ana-photo-btn{white-space:nowrap}
+.exam-wrong-archive-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.exam-wrong-archive-head h3{margin:3px 0 0;font-size:16px;letter-spacing:-.01em}
+.exam-wrong-archive-head select{width:auto;min-width:132px;max-width:180px;margin:0}
+.exam-wrong-archive-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:9px}
+.exam-wrong-card{display:grid;grid-template-columns:68px minmax(0,1fr) auto;gap:10px;align-items:center;width:100%;padding:8px;border:.5px solid var(--glass-line);border-radius:14px;background:var(--card);color:var(--ink);text-align:left;cursor:pointer}
+.exam-wrong-card:hover{background:var(--fill)}
+.exam-wrong-img{display:block;width:68px;height:68px;overflow:hidden;border-radius:10px;background:var(--fill)}
+.exam-wrong-img img{width:100%;height:100%;object-fit:cover;display:block}
+.exam-wrong-copy{min-width:0;display:grid;gap:3px}.exam-wrong-copy b{font-size:11.5px;line-height:1.3}.exam-wrong-copy small{font-size:10px;color:var(--label-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.exam-wrong-copy em{font-style:normal;font-size:10px;color:var(--label-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.exam-wrong-open{font-size:10px;font-weight:750;color:var(--accent);white-space:nowrap}
+@media(max-width:640px){.ana-wrong-actions{max-width:100%!important;justify-content:flex-start}.ana-wrong-row{flex-direction:column}.exam-wrong-archive-head{flex-direction:column}.exam-wrong-archive-head select{width:100%;max-width:none}.exam-wrong-archive-grid{grid-template-columns:1fr}.exam-wrong-card{grid-template-columns:62px minmax(0,1fr) auto}.exam-wrong-img{width:62px;height:62px}}
