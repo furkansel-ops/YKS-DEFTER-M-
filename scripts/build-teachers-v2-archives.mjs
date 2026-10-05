@@ -1,4 +1,4 @@
-/* Tam playlist arşivi: ilk 16 ilgili oynatma listesinin video içerikleri eksiksiz paketlenir. */
+/* Tam playlist arşivi: ilk 40 ilgili oynatma listesinin video içerikleri eksiksiz paketlenir. */
 import {spawn} from "node:child_process";
 import {readFile,writeFile,mkdir,rm} from "node:fs/promises";
 import {resolve} from "node:path";
@@ -11,7 +11,7 @@ const ARCHIVE_VIDEO_LIMIT=240;
 const SEARCH_BATCH=40;
 const SEARCH_LIMIT=180;
 const CONCURRENCY=4;
-const PLAYLIST_FULL_COUNT=16;
+const PLAYLIST_FULL_COUNT=40;
 const PLAYLIST_FULL_CONCURRENCY=4;
 const PLAYLIST_FULL_TIMEOUT_MS=35000;
 const PLAYLIST_VIDEO_LIMIT=500;
