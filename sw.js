@@ -1,5 +1,5 @@
 /* YKS Defterim — dayanıklı PWA katmanı | v4.4.0
-   cache refresh epoch: 2026-10-03-refined-boot-reading-r21 */
+   cache refresh epoch: 2026-10-05-exam-wrong-photo-archive */
 const APP_VERSION="4.4.0";
 const APP_BUILD="4.4.0-r21";
 const CACHE="yks-core-v4.4.0-r21";
