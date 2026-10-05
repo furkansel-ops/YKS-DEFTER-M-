@@ -7,7 +7,7 @@ const {stripTypeScriptTypes}=require("node:module");
 const root=path.resolve(__dirname,"..");
 const source=fs.readFileSync(path.join(root,"src/ui/refined-program.ts"),"utf8");
 const runtime=stripTypeScriptTypes(source.replace(/^import "\.\/refined-program\.css";\r?\n/,""),{mode:"strip"}).replace(/^export /gm,"");
-const api=vm.runInNewContext(runtime+"\n({refinedProgramTasks,refinedProgramWeekOffset,refinedProgramQuickText,refinedProgramResourceUrl,refinedProgramSubjectLabel,createRefinedProgramController})",{Date,URL});
+const api=vm.runInNewContext(runtime+"\n({refinedProgramTasks,refinedProgramWeekOffset,refinedProgramQuickText,refinedProgramResourceUrl,refinedProgramTaskDetail,refinedProgramSubjectLabel,createRefinedProgramController})",{Date,URL});
 const plain=value=>JSON.parse(JSON.stringify(value));
 const rows=()=>[Array(7).fill(""),Array(7).fill("")];
 function week(){return {r:rows(),s:rows(),dn:{},done:Array(7).fill(false),mv:{}};}
@@ -136,6 +136,14 @@ test("quick text formats only selected goals and validates meaningful numeric bo
 });
 
 
+test("daily task detail separates lesson copy from its linked video resource",()=>{
+  assert.deepEqual(plain(api.refinedProgramTaskDetail("TYT Matematik · Temel Kavramlar · 30 soru — https://youtu.be/dQw4w9WgXcQ","Matematik")),{
+    display:"TYT Matematik · Temel Kavramlar · 30 soru",title:"TYT Matematik",meta:"Temel Kavramlar · 30 soru",url:"https://youtu.be/dQw4w9WgXcQ",hasVideo:true
+  });
+  assert.deepEqual(plain(api.refinedProgramTaskDetail("TYT Fizik · Hareket","TYT Fizik")),{
+    display:"TYT Fizik · Hareket",title:"TYT Fizik",meta:"Hareket",url:"",hasVideo:false
+  });
+});
 test("optional program video URL accepts safe web links and rejects invalid schemes",()=>{
   assert.equal(api.refinedProgramResourceUrl(""),"");
   assert.equal(api.refinedProgramResourceUrl("  https://youtu.be/dQw4w9WgXcQ  "),"https://youtu.be/dQw4w9WgXcQ");
@@ -198,7 +206,7 @@ test("daily task ordering persists through mv metadata without changing cell ide
 
 
 
-test("Programım günlükte yalnız tik, haftalıkta yalnız yazıdan düzenleme kullanır",()=>{
+test("Programım günlükte ders detay aksiyonlarını, haftalıkta yalnız yazıdan düzenlemeyi kullanır",()=>{
   const source=fs.readFileSync(path.join(root,"src/ui/refined-program.ts"),"utf8");
   const css=fs.readFileSync(path.join(root,"src/ui/refined-program.css"),"utf8");
   assert.doesNotMatch(source,/rb-program-select/);
@@ -207,10 +215,16 @@ test("Programım günlükte yalnız tik, haftalıkta yalnız yazıdan düzenleme
   assert.doesNotMatch(source,/const edit=button\("✎","rb-program-edit"\)/);
   assert.doesNotMatch(source,/const editTask=button\("✎","rb-program-calendar-edit"\)/);
   assert.match(source,/const check=button\("","rb-program-check"\)/);
-  assert.match(source,/details=element\("div","rb-program-task-details"\)/);
+  assert.match(source,/details=button\("","rb-program-task-details"\)/);
+  assert.match(source,/details\.addEventListener\("click",\(\)=>openDetail\(task,state\.week\)\)/);
+  assert.match(source,/detailVideo\.addEventListener\("click"/);
+  assert.match(source,/cellOpenLink/);
+  assert.match(source,/cellVideo/);
+  assert.match(source,/detailDone\.addEventListener\("click"/);
   assert.match(source,/const textButton=button\(detail\|\|subjectName,"rb-program-calendar-task-text"\)/);
   assert.match(source,/textButton\.addEventListener\("click",\(\)=>\{controller\.selectDay\(task\.day\);openEditor\(task,state\.week\);\}\)/);
-  assert.match(css,/Program interaction cleanup — daily only check, weekly text-only edit/);
+  assert.match(css,/\.rb-program-detail-card/);
+  assert.match(css,/\.rb-program-detail-actions/);
 });
 
 
