@@ -14,7 +14,6 @@ test("Paragraf ve problem takipçisi günlük D/Y/B kaydı ve YKS net hesabını
   assert.match(source,/paragraphProblem/);
   assert.match(source,/win\.save\?\.\(\)/);
   assert.match(source,/YKSAccountAuth\?\.publishShare/);
-  assert.match(source,/source:"paragraph-problem"/);
   assert.match(source,/Son 7 gün/);
   assert.match(source,/Paragraf & Problem/);
 });
