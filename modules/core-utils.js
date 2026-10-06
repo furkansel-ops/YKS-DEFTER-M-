@@ -199,6 +199,11 @@
       done:task?.done===true
     }));
     let start=list.findIndex(task=>task.id===String(selectedTaskId||""));
+    if(start<0){
+      const key=value=>String(value||"").toLocaleLowerCase("tr-TR").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/^(tyt|ayt|ydt)\s+/i,"").trim();
+      const wanted=key(fallback);
+      start=list.findIndex(task=>!task.done&&key(task.subject)===wanted);
+    }
     if(start<0)return[{subject:fallback,minutes:total,taskId:""}];
     const usable=list.slice(start).filter((task,index)=>index===0||!task.done);
     const out=[];let remaining=total,lastSubject=fallback;

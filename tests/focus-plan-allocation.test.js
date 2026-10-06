@@ -61,3 +61,27 @@ test("odak ekranı otomatik program dağılımı ve aylık özet arayüzünü ba
   assert.match(html,/id="focusMonthSummary"/);
   assert.match(css,/\.focus-month-hero/);
 });
+
+
+test("görev seçilmezse seçili ders bugünkü programdaki eşleşen görevden başlar",()=>{
+  const tasks=[
+    {id:"s-0-1",text:"TYT Fizik · Hareket · 60 dk",subject:"TYT Fizik",done:false},
+    {id:"s-1-1",text:"TYT Kimya · Kimyasal Türler · 120 dk",subject:"TYT Kimya",done:false}
+  ];
+  assert.deepEqual(core.focusPlanAllocation(tasks,"",180,"Fizik"),[
+    {subject:"TYT Fizik",minutes:60,taskId:"s-0-1"},
+    {subject:"TYT Kimya",minutes:120,taskId:"s-1-1"}
+  ]);
+});
+
+test("aylık ders özeti otomatik dağıtılmış ders dakikalarını ayrı ayrı toplar",()=>{
+  const split=core.focusPlanAllocation([
+    {id:"f",text:"Fizik · 60 dk",subject:"Fizik",done:false},
+    {id:"k",text:"Kimya · 120 dk",subject:"Kimya",done:false}
+  ],"",180,"Fizik");
+  const day={};for(const row of split)day[row.subject]=(day[row.subject]||0)+row.minutes;
+  assert.deepEqual(core.monthSubjectTotals({"2026-10-06":day},"2026-10"),[
+    {subject:"Kimya",minutes:120},
+    {subject:"Fizik",minutes:60}
+  ]);
+});
