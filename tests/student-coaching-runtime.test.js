@@ -51,6 +51,25 @@ test("yeni öğrencinin ilk koç paylaşımı program dahil Firestore şemasın�
   assert.equal(share.program.weeks[0].data.s[0][0],"Matematik");
 });
 
+test("takip raporu için son 7 günün günlük ve ders bazlı dağılımı paylaşılır",async()=>{
+  const h=harness({now:"2026-10-06T12:00:00Z"});
+  h.state.pomoMin={"2026-10-05":90,"2026-10-06":45};
+  h.state.solved={"2026-10-05":120,"2026-10-06":60};
+  h.state.pomoSubj={"2026-10-05":{Matematik:60,Fizik:30},"2026-10-06":{Matematik:45}};
+  h.state.solvedTopic={"2026-10-05":{"TYT|Matematik|Problemler":80,"TYT|Fizik|Hareket":40},"2026-10-06":{"TYT|Matematik|Temel Kavramlar":60}};
+  await h.signIn();await h.window.YKSAccountAuth.publishShare();
+  const progress=h.docs.get("coachingShares/student-1").progress;
+  assert.equal(progress.daily7.length,7);
+  assert.deepEqual(progress.daily7.slice(-2),[
+    {date:"2026-10-05",minutes:90,questions:120},
+    {date:"2026-10-06",minutes:45,questions:60}
+  ]);
+  assert.deepEqual(progress.subjects7,[
+    {name:"Matematik",minutes:105,questions:140},
+    {name:"Fizik",minutes:30,questions:40}
+  ]);
+});
+
 test("paragraf ve problem takip kayıtları koç paylaşımına doğru şemayla gider",async()=>{
   const h=harness();
   h.state.paragraphProblem={entries:[
