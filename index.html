@@ -1174,6 +1174,15 @@
     </div>
   </div>
 
+  <h2>Aylık ders özeti</h2>
+  <div class="card focus-month-card">
+    <div class="focus-month-head">
+      <div><p class="eyebrow" style="margin:0">AYLIK DAĞILIM</p><h3>En çok hangi derse çalıştın?</h3><p class="hint">Takvim ayına göre ders ders toplam çalışma süren.</p></div>
+      <label>Ay<input type="month" id="focusMonthPick" onchange="renderMonthlyFocusSummary()"></label>
+    </div>
+    <div id="focusMonthSummary"></div>
+  </div>
+
   <h2>Derse göre zaman</h2>
   <div class="card">
     <label>Aralık</label>
@@ -1961,7 +1970,7 @@
   </div>
 </div>
 
-<div class="toast" id="toast" role="status" aria-live="polite"></div><script vite-ignore src="./app.js?v=4.1.0-r22"></script>
+<div class="toast" id="toast" role="status" aria-live="polite"></div><script vite-ignore src="./app.js?v=4.1.0-r23"></script>
 
 <script type="application/json" id="legacyFirebaseSyncModule" data-disabled="play-store-release">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
@@ -2224,7 +2233,7 @@ window.addEventListener("online",()=>{if(!user)return;status("Bağlantı geldi",
 
 
 
-<script vite-ignore src="./modules/core-utils.js?v=4.1.0-r27"></script>
+<script vite-ignore src="./modules/core-utils.js?v=4.1.0-r28"></script>
 <script vite-ignore src="./modules/teachers-curated-v3.js?v=4.4.0-r3"></script>
 <script vite-ignore src="./modules/stability.js?v=4.1.0-r28"></script>
 <script vite-ignore src="./modules/topic-guides.js?v=4.1.0-r20"></script>
