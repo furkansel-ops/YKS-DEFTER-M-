@@ -163,6 +163,7 @@ function trackerTemplate():string{return `<div class="pp-page-head"><div><p clas
   </section>
 
   <section class="pp-kpis" data-pp-kpis aria-label="Bugünün özeti"></section>
+  <section class="pp-answer-summary" data-pp-answer-summary aria-label="Doğru yanlış boş soru özeti"></section>
   <section class="pp-kind-grid" data-pp-kind-grid aria-label="Paragraf ve problem karşılaştırması"></section>
 
   <section class="pp-main-grid">
@@ -227,6 +228,10 @@ function renderKpis(root:HTMLElement,entries:Entry[]):void{
     summaryCard("Bugün net",`${fmtNet(today.net)} net`,`${fmtPct(today.accuracy)} doğruluk`,today.accuracy>=80?"good":"neutral")+
     summaryCard("7 günlük hacim",`${weekM.total} soru`,`${active}/7 aktif gün`,weekM.total?"accent":"neutral")+
     summaryCard("Aktif seri",`${streak} gün`,streak>=3?"ritim korunuyor":"düzenli kayıtla büyür",streak>=3?"good":"neutral");
+  root.querySelector<HTMLElement>("[data-pp-answer-summary]")!.innerHTML=
+    `<div class="pp-answer-head"><span>Dönem</span><b>Doğru</b><b>Yanlış</b><b>Boş</b><b>Toplam</b></div>`+
+    `<div class="pp-answer-row today"><span>Bugün</span><strong>${today.correct}</strong><strong>${today.wrong}</strong><strong>${today.blank}</strong><b>${today.total}</b></div>`+
+    `<div class="pp-answer-row week"><span>Son 7 gün</span><strong>${weekM.correct}</strong><strong>${weekM.wrong}</strong><strong>${weekM.blank}</strong><b>${weekM.total}</b></div>`;
 }
 function renderTrend(root:HTMLElement,entries:Entry[]):void{
   const rows=lastDays(14).map(day=>({day,m:metrics(entries.filter(e=>e.date===day))})),max=Math.max(1,...rows.map(x=>x.m.total));
