@@ -99,13 +99,30 @@ function buildProgramShare(s){
   };
 }
 
+function progressDaily(s,days=7){
+  return Array.from({length:days},(_,index)=>{
+    const date=new Date(Date.now()-(days-1-index)*DAY).toISOString().slice(0,10);
+    return{date,minutes:Math.max(0,Math.round(finite(s?.pomoMin?.[date]))),questions:Math.max(0,Math.round(finite(s?.solved?.[date])))};
+  });
+}
+function progressSubjects(s,daily){
+  const dates=new Set(daily.map(item=>item.date)),rows=new Map();
+  const ensure=name=>{const key=text(name,60);if(!key)return null;if(!rows.has(key))rows.set(key,{name:key,minutes:0,questions:0});return rows.get(key)};
+  for(const date of dates){
+    const minutes=s?.pomoSubj?.[date];if(minutes&&typeof minutes==="object")for(const [name,value] of Object.entries(minutes)){const row=ensure(name);if(row)row.minutes+=Math.max(0,finite(value));}
+    const questions=s?.solvedTopic?.[date];if(questions&&typeof questions==="object")for(const [key,value] of Object.entries(questions)){const parts=String(key||"").split("|"),row=ensure(parts[1]||parts[0]);if(row)row.questions+=Math.max(0,finite(value));}
+  }
+  return[...rows.values()].map(row=>({...row,minutes:Math.round(row.minutes),questions:Math.round(row.questions)})).filter(row=>row.minutes||row.questions).sort((a,b)=>(b.minutes+b.questions)-(a.minutes+a.questions)||a.name.localeCompare(b.name,"tr")).slice(0,12);
+}
+
 function sharePayload(s,u){
   const topics=Object.entries(s.topics&&typeof s.topics==="object"?s.topics:{}).slice(0,500).map(([key,v])=>({key:text(key,220),...topicParts(key),st:finite(v?.st),deadline:text(v?.dl,10)}));
   const exams=list(s.denemeler).slice(-24).map(d=>({id:String(d?.id||""),type:text(d?.type,16),name:text(d?.name,100),date:text(d?.date,10),totalNet:finite(d?.totalNet),subjectResults:list(d?.subjectResults).slice(0,16).map(x=>({name:text(x?.name,60),net:finite(x?.net)}))}));
   const pp=list(s.paragraphProblem?.entries).slice(-2000).map(x=>({id:text(x?.id,80),date:text(x?.date,10),kind:x?.kind==="problem"?"problem":"paragraph",correct:Math.max(0,Math.floor(finite(x?.correct))),wrong:Math.max(0,Math.floor(finite(x?.wrong))),blank:Math.max(0,Math.floor(finite(x?.blank))),createdAt:Math.max(0,finite(x?.createdAt))})).filter(x=>x.id&&/^\d{4}-\d{2}-\d{2}$/.test(x.date));
   const errors=list(s.wrongLog).slice(-100).map(x=>({date:text(x?.date,10),subject:text(x?.subject,60),topic:text(x?.topic,100),n:Math.max(1,finite(x?.n,1))}));
   const dayReviews=Object.entries(s.dayReview&&typeof s.dayReview==="object"?s.dayReview:{}).filter(([date])=>/^\d{4}-\d{2}-\d{2}$/.test(date)).sort(([a],[b])=>a.localeCompare(b)).slice(-14).map(([date,value])=>({date,mood:["good","mid","hard"].includes(value?.mood)?value.mood:"",note:text(value?.note,3000),at:finite(value?.at)})).filter(x=>x.mood||x.note);
-  return{studentUid:u.uid,version:1,profile:{name:text(s.name||u.displayName,80),track:text(s.puanTuru,8),targetNetTYT:Number(s.targetNetTYT??s.targetNet??0),targetNetAYT:Number(s.targetNetAYT||0),targetUniversity:text(s.targetUniversity,120),targetDepartment:text(s.targetDepartment,120)},program:buildProgramShare(s),exams,progress:{minutes7:sum(s.pomoMin,7),questions7:sum(s.solved,7),completedTopics:topics.filter(x=>x.st>=3).length,activeTopics:topics.filter(x=>x.st>0&&x.st<3).length,overdueTopics:topics.filter(x=>x.deadline&&x.deadline<today()&&x.st<3).length,dayReview:{entries:dayReviews}},paragraphProblem:{entries:pp},topics:{items:topics},errorJournal:errors,updatedAt:serverTimestamp()};
+  const daily14=progressDaily(s,14),subjects7=progressSubjects(s,daily14.slice(-7));
+  return{studentUid:u.uid,version:1,profile:{name:text(s.name||u.displayName,80),track:text(s.puanTuru,8),targetNetTYT:Number(s.targetNetTYT??s.targetNet??0),targetNetAYT:Number(s.targetNetAYT||0),targetUniversity:text(s.targetUniversity,120),targetDepartment:text(s.targetDepartment,120)},program:buildProgramShare(s),exams,progress:{minutes7:sum(s.pomoMin,7),questions7:sum(s.solved,7),daily14,subjects7,completedTopics:topics.filter(x=>x.st>=3).length,activeTopics:topics.filter(x=>x.st>0&&x.st<3).length,overdueTopics:topics.filter(x=>x.deadline&&x.deadline<today()&&x.st<3).length,dayReview:{entries:dayReviews}},paragraphProblem:{entries:pp},topics:{items:topics},errorJournal:errors,updatedAt:serverTimestamp()};
 }
 async function publishShare(options={}){
   const manual=options?.manual===true,session=rt.session;
@@ -266,7 +283,7 @@ async function onSignedIn({user,auth,db}){
 function onSignedOut(){cleanup();rt.user=rt.auth=rt.db=rt.profile=null;delete document.documentElement.dataset.accountRole}
 
 let resolveAccountReady;try{window.__YKS_ACCOUNT_READY__=new Promise(resolve=>{resolveAccountReady=resolve})}catch{}
-window.YKSAccountAuth={version:"1.2.17",beforeSignIn,onSignedIn,onSignedOut,publishShare};
+window.YKSAccountAuth={version:"1.2.18",beforeSignIn,onSignedIn,onSignedOut,publishShare};
 try{resolveAccountReady?.(window.YKSAccountAuth)}catch{}
 document.documentElement.dataset.studentCoachingBridge="ready";
-window.dispatchEvent(new CustomEvent("yks:student-coaching-ready",{detail:{version:"1.2.17"}}));
+window.dispatchEvent(new CustomEvent("yks:student-coaching-ready",{detail:{version:"1.2.18"}}));
