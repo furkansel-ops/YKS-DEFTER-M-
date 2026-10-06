@@ -221,11 +221,11 @@ function installScreenShell():HTMLElement|null{
 }
 
 function renderKpis(root:HTMLElement,entries:Entry[]):void{
-  const today=metrics(entries.filter(e=>e.date===todayKey())),week=entriesForDays(entries,7),weekM=metrics(week),streak=currentStreak(entries),active=activeDayCount(week);
+  const today=metrics(entries.filter(e=>e.date===todayKey())),weekM=metrics(entriesForDays(entries,7)),streak=currentStreak(entries);
   root.querySelector<HTMLElement>("[data-pp-kpis]")!.innerHTML=
-    summaryCard("Bugün toplam",`${today.total} soru`,`D ${today.correct} · Y ${today.wrong} · B ${today.blank}`,today.total?"accent":"neutral")+
+    summaryCard("Bugün toplam",`${today.total} soru`,`D:${today.correct} Y:${today.wrong} B:${today.blank}`,today.total?"accent":"neutral")+
     summaryCard("Bugün net",`${fmtNet(today.net)} net`,`${fmtPct(today.accuracy)} doğruluk`,today.accuracy>=80?"good":"neutral")+
-    summaryCard("7 günlük hacim",`${weekM.total} soru`,`D ${weekM.correct} · Y ${weekM.wrong} · B ${weekM.blank} · ${active}/7 gün`,weekM.total?"accent":"neutral")+
+    summaryCard("7 günlük hacim",`${weekM.total} soru`,`D:${weekM.correct} Y:${weekM.wrong} B:${weekM.blank}`,weekM.total?"accent":"neutral")+
     summaryCard("Aktif seri",`${streak} gün`,streak>=3?"ritim korunuyor":"düzenli kayıtla büyür",streak>=3?"good":"neutral");
 }
 function renderTrend(root:HTMLElement,entries:Entry[]):void{
