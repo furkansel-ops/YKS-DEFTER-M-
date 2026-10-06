@@ -312,5 +312,7 @@
 #program .rb-program-editor-hint{margin:0;color:var(--rp-muted);font-size:10px;line-height:1.5}
 #program .rb-program-editor-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:2px}
 #program .rb-program-editor-actions button{min-height:38px;padding:0 14px;border:1px solid var(--rp-line);border-radius:10px;background:var(--rp-surface);color:var(--rp-ink);font-weight:750}
+#program .rb-program-editor-actions .rb-program-editor-delete{margin-right:auto;border-color:#f3c8c8;background:#fff5f5;color:#b42318}
+#program .rb-program-editor-actions .rb-program-editor-delete:hover{border-color:#e99b9b;background:#fdecec;color:#921b12}
 #program .rb-program-editor-actions .rb-program-editor-save{border-color:var(--rp-accent);background:var(--rp-accent);color:#fff}
 @media(max-width:640px){#program .rb-program-editor{padding:12px;align-items:end}#program .rb-program-editor-card{border-radius:18px 18px 14px 14px}}
