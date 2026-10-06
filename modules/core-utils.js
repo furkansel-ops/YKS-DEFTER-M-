@@ -179,5 +179,62 @@
     return next;
   }
 
-  return {mergeStates,mergeArray,mergeTopics,mergeWeeks,srsNext,addDays};
+  function plannedMinutes(text){
+    const raw=String(text||"").toLocaleLowerCase("tr-TR");
+    let total=0,match;
+    const hours=/(\d+(?:[.,]\d+)?)\s*(?:saat|sa)\b/g;
+    while((match=hours.exec(raw)))total+=Math.round(Number(String(match[1]).replace(",", "."))*60);
+    const minutes=/(\d+)\s*(?:dk|dakika)\b/g;
+    while((match=minutes.exec(raw)))total+=Math.max(0,Number(match[1])||0);
+    return Math.max(0,Math.min(1440,Math.round(total)));
+  }
+
+  function focusPlanAllocation(tasks,selectedTaskId,totalMinutes,fallbackSubject){
+    const total=Math.max(0,Math.floor(Number(totalMinutes)||0)),fallback=String(fallbackSubject||"Ders").trim()||"Ders";
+    if(!total)return [];
+    const list=(Array.isArray(tasks)?tasks:[]).map(task=>({
+      id:String(task?.id??task?.cid??""),
+      text:String(task?.text??task?.txt??""),
+      subject:String(task?.subject??task?.subj??task?.label??task?.lbl??"").trim(),
+      done:task?.done===true
+    }));
+    let start=list.findIndex(task=>task.id===String(selectedTaskId||""));
+    if(start<0)return[{subject:fallback,minutes:total,taskId:""}];
+    const usable=list.slice(start).filter((task,index)=>index===0||!task.done);
+    const out=[];let remaining=total,lastSubject=fallback;
+    for(let index=0;index<usable.length&&remaining>0;index++){
+      const task=usable[index],subject=task.subject||lastSubject||fallback,planned=plannedMinutes(task.text);
+      lastSubject=subject;
+      if(!planned){
+        const previous=out[out.length-1];
+        if(previous&&previous.subject===subject)previous.minutes+=remaining;
+        else out.push({subject,minutes:remaining,taskId:task.id});
+        remaining=0;break;
+      }
+      const take=Math.min(remaining,planned),previous=out[out.length-1];
+      if(previous&&previous.subject===subject)previous.minutes+=take;
+      else out.push({subject,minutes:take,taskId:task.id});
+      remaining-=take;
+    }
+    if(remaining>0){
+      const subject=lastSubject||fallback,previous=out[out.length-1];
+      if(previous&&previous.subject===subject)previous.minutes+=remaining;
+      else out.push({subject,minutes:remaining,taskId:""});
+    }
+    return out.filter(row=>row.minutes>0);
+  }
+
+  function monthSubjectTotals(pomoSubj,monthKey){
+    const prefix=/^\d{4}-\d{2}$/.test(String(monthKey||""))?String(monthKey):new Date().toISOString().slice(0,7),map={};
+    Object.entries(isObject(pomoSubj)?pomoSubj:{}).forEach(([day,row])=>{
+      if(!day.startsWith(prefix+"-")||!isObject(row))return;
+      Object.entries(row).forEach(([subject,value])=>{
+        const name=String(subject||"Ders").trim()||"Ders",minutes=Math.max(0,Number(value)||0);
+        if(minutes)map[name]=(map[name]||0)+minutes;
+      });
+    });
+    return Object.entries(map).map(([subject,minutes])=>({subject,minutes:Math.round(minutes)})).sort((a,b)=>b.minutes-a.minutes||a.subject.localeCompare(b.subject,"tr"));
+  }
+
+  return {mergeStates,mergeArray,mergeTopics,mergeWeeks,srsNext,addDays,plannedMinutes,focusPlanAllocation,monthSubjectTotals};
 });
