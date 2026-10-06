@@ -59,8 +59,8 @@ test("takip raporu için son 7 günün günlük ve ders bazlı dağılımı payl
   h.state.solvedTopic={"2026-10-05":{"TYT|Matematik|Problemler":80,"TYT|Fizik|Hareket":40},"2026-10-06":{"TYT|Matematik|Temel Kavramlar":60}};
   await h.signIn();await h.window.YKSAccountAuth.publishShare();
   const progress=h.docs.get("coachingShares/student-1").progress;
-  assert.equal(progress.daily7.length,7);
-  assert.deepEqual(progress.daily7.slice(-2),[
+  assert.equal(progress.daily14.length,14);
+  assert.deepEqual(progress.daily14.slice(-2),[
     {date:"2026-10-05",minutes:90,questions:120},
     {date:"2026-10-06",minutes:45,questions:60}
   ]);
