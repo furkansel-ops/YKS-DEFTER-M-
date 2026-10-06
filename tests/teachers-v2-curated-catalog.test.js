@@ -38,7 +38,7 @@ test("hızlı medya üreticisi RSS verisini ağır arşiv sonucu ve gerçek play
   assert.match(source,/async function resolveChannel/);
   assert.match(source,/function parsePlaylists/);
   assert.match(source,/fetchChannelPlaylists/);
-  assert.match(source,/MAX_PLAYLISTS=16/);
+  assert.match(source,/MAX_PLAYLISTS=20/);
   assert.match(source,/CURATED_VIDEOS/);
   assert.match(source,/Doğrulanmış kanal kaynağı olmayan yerleşik hocalar/);
   assert.match(source,/github-pages-curated-yks-rss-deep-preserve/);
