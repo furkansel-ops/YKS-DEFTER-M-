@@ -58,6 +58,18 @@ export const VERIFIED_CHANNELS={
    Bunlar doğrudan doğrulanmış YKS videolarıdır; RSS ile gelen güncel videoların
    önüne değil, aynı öğretmenin alakalı içerik havuzuna eklenir. */
 export const CURATED_VIDEOS={
+  "Rehber Matematik":[
+    {id:"zspU5vVjpLs",title:"2027 TYT Matematik Kampı Başlıyor | 49 Günde Bitiriyoruz"},
+    {id:"f6P_SLrivps",title:"Temel Kavramlar 1 | 49 Günde TYT Matematik Kampı 1. Gün | 2027"},
+    {id:"taQxSST2haM",title:"TYT Matematik Son Genel Tekrar | 2026"}
+  ],
+  "Bıyıklı Matematik":[
+    {id:"DV0tZzKFbw0",title:"55 Günde TYT Matematik Kampı | 2. Gün | Temel Kavramlar | 2027"},
+    {id:"qNT_JmKKO8s",title:"55 Günde TYT Matematik Kampı | 10. Gün | Bölme-Bölünebilme | 2027"}
+  ],
+  "Ferrum":[
+    {id:"Uzz4Z_iV4cA",title:"2027 TYT Kimya Kampı | 0. Gün | Kamp Yol Haritası"}
+  ],
   "Kenan Kara":[
     {id:"VNh6--9IxEg",title:"Doğruda Açı | 2026 TYT-AYT Geometri Kampı | 1. Gün"}
   ],
