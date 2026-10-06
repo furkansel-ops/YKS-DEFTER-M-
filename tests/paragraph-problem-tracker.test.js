@@ -41,6 +41,14 @@ test("Paragraf ve Problem ayrıntılı performans merkezi 7, 14 ve 30 günlük a
   assert.match(source,/bestDay/);
   assert.match(source,/deltaPercent/);
   assert.match(source,/wrongRate/);
+  assert.match(source,/data-pp-answer-summary/);
+  assert.match(source,/Doğru/);
+  assert.match(source,/Yanlış/);
+  assert.match(source,/Boş/);
+  assert.match(source,/weekM\.correct/);
+  assert.match(source,/weekM\.wrong/);
+  assert.match(source,/weekM\.blank/);
+  assert.match(css,/\.pp-answer-summary/);
   assert.match(source,/data-pp-kind-filter/);
   assert.match(source,/data-pp-range-filter/);
   assert.match(css,/\.pp-kind-grid/);
