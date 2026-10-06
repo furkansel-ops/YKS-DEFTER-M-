@@ -21,12 +21,12 @@ function harness(){
   for(const name of ["keyOf","parseKey","addDaysKey","dowOf","mondayOf","thisWeek","clone"]){
     const definition=app.match(new RegExp(`^function ${name}\\([^\\n]+$`,"m"));assert.ok(definition,name);vm.runInContext(definition[0],context);
   }
-  for(const name of ["validDateKey","blankWeek","normWeek","getWeek","programTaskCompleted","programSetCellDone","toggleCellDone","programDayTaskIds","programSetDayOrder","programUpdateTask","shiftWeek","addToDay","addToDays"]){
+  for(const name of ["validDateKey","blankWeek","normWeek","getWeek","programTaskCompleted","programSetCellDone","toggleCellDone","programDayTaskIds","programSetDayOrder","programUpdateTask","programDeleteTask","shiftWeek","addToDay","addToDays"]){
     const definition=app.match(new RegExp(`function ${name}\\([^\\n]*\\)\\{[\\s\\S]*?\\r?\\n}`));assert.ok(definition,name);vm.runInContext(definition[0],context);
   }
   const controller=api.createRefinedProgramController({readState:()=>state,visibleWeek:()=>context.keyOf(context.curWeek),shiftWeek:context.shiftWeek,thisWeek:context.thisWeek,
     setProgTab:tab=>calls.push(["setProgTab",tab]),toggleCellDone:context.toggleCellDone,addToDay:context.addToDay,addToDays:context.addToDays,setDayOrder:context.programSetDayOrder,
-    updateTask:context.programUpdateTask},()=>fixed);
+    updateTask:context.programUpdateTask,deleteTask:context.programDeleteTask},()=>fixed);
   return {state,calls,controller,context};
 }
 
@@ -249,10 +249,15 @@ test("haftalık uzun görev iki satırda kalır ve yeni editör mevcut hücreyi 
   assert.match(source,/controller\.updateTask\(editingTaskId,value,editingWeek\)/);
   assert.match(source,/openEditor\(task,state\.week\)/);
   assert.match(source,/programUpdateTask/);
+  assert.match(source,/programDeleteTask/);
+  assert.match(source,/editorDelete=button\("Sil","rb-program-editor-delete"\)/);
+  assert.match(source,/controller\.deleteTask\(editingTaskId,editingWeek\)/);
+  assert.match(css,/\.rb-program-editor-delete/);
   assert.match(css,/-webkit-line-clamp:2/);
   assert.match(css,/max-height:46px/);
   assert.match(css,/rb-program-editor-card/);
   assert.match(legacy,/function programUpdateTask\(wk,id,text\)/);
+  assert.match(legacy,/function programDeleteTask\(wk,id\)/);
   assert.doesNotMatch(source,/controller\.openTask\(task\.id\)/);
 });
 
@@ -270,4 +275,16 @@ test("programUpdateTask başarısız kayıtta eski metni geri yükler",()=>{
   const before=JSON.stringify(data);h.context.save=()=>false;
   assert.equal(h.controller.updateTask("s-0-4","Yeni çalışma"),false);
   assert.equal(JSON.stringify(data),before);
+});
+
+
+test("weekly editor deletion removes only the selected task and keeps the rest of the day",()=>{
+  const h=harness(),data=h.state.weeks["2026-09-21"];
+  data.s[0][4]="Matematik";data.s[1][4]="Fizik";data.dn["s-0-4"]=1;data.mv["order-4"]=["s-0-4","s-1-4"];
+  assert.equal(h.controller.deleteTask("s-0-4","2026-09-21"),true);
+  assert.equal(data.s[0][4],"");
+  assert.equal(data.s[1][4],"Fizik");
+  assert.equal(data.dn["s-0-4"],undefined);
+  assert.deepEqual(data.mv["order-4"],["s-1-4"]);
+  assert.equal(h.controller.deleteTask("s-0-4","2026-09-21"),false);
 });
