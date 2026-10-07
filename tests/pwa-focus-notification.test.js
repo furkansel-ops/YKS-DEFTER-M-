@@ -11,7 +11,10 @@ test("PWA odak bildirimi service worker üzerinden tek etiketle gösterilir ve k
   assert.match(app,/FOCUS_PWA_NOTIFICATION_TAG="yks-focus-running"/);
   assert.match(app,/reg\.showNotification\(title,options\)/);
   assert.match(app,/reg\.getNotifications\(\{tag:FOCUS_PWA_NOTIFICATION_TAG\}\)/);
-  assert.match(app,/requireInteraction:true/);\n  assert.match(app,/Notification\\.permission==="granted"\\)return true/);\n  assert.doesNotMatch(app,/return !!cfg\\.on/);\n  assert.match(app,/renotify:true/);
+  assert.match(app,/requireInteraction:true/);
+  assert.match(app,/Notification\.permission==="granted"\)return true/);
+  assert.doesNotMatch(app,/return !!cfg\.on/);
+  assert.match(app,/renotify:true/);
   assert.match(app,/void focusPwaNotificationShow\("pomo"\)/);
   assert.match(app,/void focusPwaNotificationShow\("sw"\)/);
   assert.match(app,/void focusPwaNotificationClose\(\)/);
