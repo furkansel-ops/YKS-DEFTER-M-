@@ -3325,3 +3325,51 @@ body > .qaviewer .qvimg img{display:block;width:auto;height:auto;max-width:100%;
   .v29-minimal-stats>div{padding:8px 4px}
   .v29-minimal-actions{gap:7px}
 }
+
+
+/* Focus dashboard daily summary v2 */
+.v29-focus-dashboard{
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:9px;
+  margin:12px 0 16px;
+}
+.v29-dash{
+  position:relative;
+  overflow:hidden;
+  background:var(--card);
+  border:1px solid var(--sep);
+  box-shadow:0 8px 24px rgba(25,42,67,.045);
+}
+.v29-dash.is-primary,
+.v29-dash.is-goal,
+.v29-dash.is-subject{
+  min-height:78px;
+  padding:13px 12px;
+}
+.v29-dash.is-primary{
+  background:linear-gradient(145deg,color-mix(in srgb,var(--accent-soft) 70%,var(--card)),var(--card));
+}
+.v29-dash.is-goal{
+  background:linear-gradient(145deg,color-mix(in srgb,var(--success-soft) 70%,var(--card)),var(--card));
+}
+.v29-dash.is-subject{
+  background:linear-gradient(145deg,color-mix(in srgb,var(--fill) 80%,var(--card)),var(--card));
+}
+.v29-dash.is-primary b,
+.v29-dash.is-goal b{
+  font-size:20px;
+}
+.v29-dash.is-subject b{
+  font-size:15px;
+  line-height:1.25;
+}
+.v29-dash.is-score b{font-size:16px}
+@media(max-width:620px){
+  .v29-focus-dashboard{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .v29-dash.is-primary{grid-column:1/-1}
+}
+@media(max-width:390px){
+  .v29-focus-dashboard{gap:7px}
+  .v29-dash{padding:10px 9px}
+  .v29-dash.is-primary,.v29-dash.is-goal,.v29-dash.is-subject{min-height:72px}
+}
