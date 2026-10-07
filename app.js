@@ -10802,6 +10802,78 @@ try{const q=new URLSearchParams(location.search).get('selftest');if(q==='v29')se
 try{setTimeout(()=>{v29RenderAllFocus();v29RenderSetup()},320)}catch(e){}
 
 
+/* v47 Stopwatch workflow enhancements */
+const __v47SetPomoSubject=setPomoSubject;
+function swPushMarker(label){
+  if(!Array.isArray(S.focus.swLaps))S.focus.swLaps=[];
+  S.focus.swLaps.push({t:swElapsed(),subj:String(label||"").slice(0,90)});
+  if(S.focus.swLaps.length>50)S.focus.swLaps=S.focus.swLaps.slice(-50);
+}
+function swSwitchSubject(next){
+  next=String(next||"").trim();
+  if(!next)return;
+  const current=pomoSubject||SUBJ_NAMES[0]||"Ders";
+  if(next===current){swRenderTools();return;}
+  const s=sw();
+  if(s.run){
+    const now=Date.now(),runStart=Number(s.start)||now,elapsed=swElapsedAt(s,now);
+    swCreditElapsed(elapsed);
+    swHistoryAdd(Math.max(0,now-runStart),current,runStart,now);
+    s.acc=elapsed;
+    s.start=now;
+    swPushMarker("↔ "+current+" → "+next);
+  }
+  const result=__v47SetPomoSubject(next);
+  save();
+  renderSw();
+  renderSwHistory();
+  toast(s.run?"Ders değişti · süre sıfırlanmadı":"Aktif ders: "+next);
+  return result;
+}
+setPomoSubject=function(n){
+  if(S.focus&&S.focus.mode==="sw"&&sw().run&&String(n||"").trim()&&String(n)!==String(pomoSubject||""))return swSwitchSubject(n);
+  const result=__v47SetPomoSubject(n);
+  if(S.focus&&S.focus.mode==="sw")try{swRenderTools()}catch(e){}
+  return result;
+};
+function swMarkBreak(){
+  const s=sw();
+  if(!s.run){toast("Mola işaretlemek için kronometre çalışıyor olmalı");return;}
+  swPause();
+  swPushMarker("☕ Mola");
+  try{setPauseReason("break")}catch(e){}
+  save();
+  renderSw();
+  toast("Mola işaretlendi · kronometre duraklatıldı");
+}
+function swRenderTools(){
+  const s=sw(),active=el("swActiveSubject"),pick=el("swSubjectSwitch"),note=el("swSessionNote"),laps=Array.isArray(S.focus.swLaps)?S.focus.swLaps:[];
+  if(active)active.textContent=pomoSubject||"Ders";
+  if(pick&&document.activeElement!==pick){
+    pick.innerHTML=SUBJ_NAMES.map(n=>'<option value="'+esc(n)+'"'+(n===pomoSubject?' selected':'')+'>'+esc(n)+'</option>').join("");
+  }
+  if(note){
+    const count=laps.length,mode=s.run?"Çalışıyor":(swElapsed()?"Duraklatıldı":"Hazır");
+    note.textContent=mode+" · "+(pomoSubject||"Ders")+(count?" · "+count+" tur/işaret":"")+" · ders değişiminde kronometre sıfırlanmaz.";
+  }
+  const lw=el("swLaps");
+  if(!lw)return;
+  if(!laps.length){lw.innerHTML='<div class="empty">Henüz tur yok. Tur kaydet, mola işaretle veya çalışırken ders değiştir.</div>';return;}
+  let prev=0;
+  const rows=laps.map((L,i)=>{
+    const v=(L&&typeof L==="object")?Math.max(0,Number(L.t)||0):Math.max(0,Number(L)||0),raw=(L&&typeof L==="object")?String(L.subj||""):"",split=Math.max(0,v-prev);prev=v;
+    const isBreak=raw.startsWith("☕"),isSwitch=raw.startsWith("↔"),label=isBreak?"Mola":isSwitch?raw.slice(2).trim():((i+1)+". tur"+(raw?" · "+raw:""));
+    return '<div class="dayrow sw-lap-row '+(isBreak?"is-break":isSwitch?"is-switch":"")+'"><span class="k">'+esc(label)+'</span><span class="v">'+fmtSw(split)+' <em class="dl flat">'+fmtSw(v)+'</em></span></div>';
+  });
+  lw.innerHTML=rows.reverse().join("");
+}
+const __v47RenderSw=renderSw;
+renderSw=function(){
+  const result=__v47RenderSw();
+  swRenderTools();
+  return result;
+};
+
 /* ==================================================================
    YKS DEFTERİM v3.0.0 — DAHA 2.0
    Daha artık bir özellik yığını değil; kart -> alt sayfa düzeninde merkez.
