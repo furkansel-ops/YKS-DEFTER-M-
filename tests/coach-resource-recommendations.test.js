@@ -20,7 +20,7 @@ test('Hocalar kütüphanesi koç önerilerini ayrı alanda gösterir',()=>{
   const css=read('src/ui/teachers-v2-library.css');
   assert.match(source,/type CoachRecommendation=/);
   assert.match(source,/function coachRecommendations\(\)/);
-  assert.match(source,/Koçundan/);
+  assert.match(source,/KOÇUNDAN|Koçunun/);
   assert.match(source,/Önerilen kaynaklar/);
   assert.match(source,/data-library-action="coach-resource"/);
   assert.match(source,/yks:coach-recommendations-changed/);
