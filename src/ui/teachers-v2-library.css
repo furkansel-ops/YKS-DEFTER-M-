@@ -30,3 +30,24 @@
 @media(max-width:560px){.teachers-v2-library{padding:12px;border-radius:17px}.teachers-v2-library-head{align-items:flex-start;flex-direction:column;gap:4px}.teachers-v2-library-continue{grid-template-columns:1fr auto}.teachers-v2-library-continue>span{grid-column:1/-1}.teachers-v2-library-play{grid-template-columns:104px minmax(0,1fr)}}
 @media(pointer:coarse){.teachers-v2-video-save{min-height:38px;padding:0 12px}.teachers-v2-library-remove{width:40px;height:40px}.teachers-v2-library-continue{min-height:52px}}
 @media(prefers-reduced-motion:reduce){.teachers-v2-library-thumb i,.teachers-v2-library-remove{transition:none}}
+
+/* Coach recommendations stage 3 */
+.teachers-v2-coach-recs{margin:0 0 12px;padding:12px;border:1px solid color-mix(in srgb,var(--accent) 22%,var(--sep));border-radius:16px;background:color-mix(in srgb,var(--accent) 5%,var(--glass))}
+.teachers-v2-coach-recs-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:8px}
+.teachers-v2-coach-recs-head span{display:block;margin-bottom:3px;color:var(--accent);font-size:9px;font-weight:850;letter-spacing:.09em}
+.teachers-v2-coach-recs-head h4{margin:0;color:var(--label);font-size:13px}
+.teachers-v2-coach-recs-head small{color:var(--label-3);font-size:10px;font-weight:700}
+.teachers-v2-coach-recs-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.teachers-v2-coach-rec-card{min-width:0;overflow:hidden;border:1px solid var(--sep);border-radius:13px;background:var(--glass)}
+.teachers-v2-coach-rec-main{display:grid;grid-template-columns:104px minmax(0,1fr);gap:9px;align-items:center;width:100%;min-width:0;padding:0;border:0;background:transparent;color:inherit;text-align:left;cursor:pointer}
+.teachers-v2-coach-rec-thumb{position:relative;display:grid;place-items:center;aspect-ratio:16/9;overflow:hidden;background:var(--fill);color:var(--accent)}
+.teachers-v2-coach-rec-thumb img{width:100%;height:100%;object-fit:cover}
+.teachers-v2-coach-rec-thumb>i{font-style:normal;font-size:21px}
+.teachers-v2-coach-rec-thumb>em{position:absolute;left:6px;bottom:6px;padding:3px 6px;border-radius:7px;background:rgba(0,0,0,.72);color:#fff;font-size:8px;font-style:normal;font-weight:800}
+.teachers-v2-coach-rec-copy{min-width:0;display:grid;gap:3px;padding:9px 10px 9px 0}
+.teachers-v2-coach-rec-copy small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--label-3);font-size:9px;font-weight:700}
+.teachers-v2-coach-rec-copy b{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;color:var(--label);font-size:10.8px;line-height:1.35}
+.teachers-v2-coach-rec-copy span{color:var(--accent);font-size:9.5px;font-weight:750}
+@media(hover:hover){.teachers-v2-coach-rec-card:hover{border-color:color-mix(in srgb,var(--accent) 32%,var(--sep))}}
+@media(max-width:720px){.teachers-v2-coach-recs-row{grid-template-columns:1fr}}
+@media(max-width:560px){.teachers-v2-coach-recs{padding:10px}.teachers-v2-coach-rec-main{grid-template-columns:98px minmax(0,1fr)}}
