@@ -106,8 +106,9 @@
 
 
 /* Video watch states v1 — stage 5 */
+.teachers-v2-video-card>.teachers-v2-video-plan{position:static!important;inset:auto!important;display:block;width:calc(100% - 16px);min-height:36px;margin:0 8px 6px}
 .teachers-v2-video-status{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;padding:0 8px 8px}
-.teachers-v2-video-status button{min-height:32px;padding:5px 6px;border:1px solid var(--sep);border-radius:9px;background:var(--fill);color:var(--label-3);font:750 9.5px var(--font);cursor:pointer}
+.teachers-v2-video-status button{position:static!important;inset:auto!important;min-height:32px;padding:5px 6px;border:1px solid var(--sep);border-radius:9px;background:var(--fill);color:var(--label-3);font:750 9.5px var(--font);cursor:pointer}
 .teachers-v2-video-status button:hover{border-color:color-mix(in srgb,var(--accent) 30%,var(--sep));color:var(--accent)}
 .teachers-v2-video-status .teachers-v2-video-watch.on{color:var(--success);border-color:color-mix(in srgb,var(--success) 34%,var(--sep));background:color-mix(in srgb,var(--success) 8%,var(--fill))}
 .teachers-v2-video-status .teachers-v2-video-partial.on{color:#a66a00;border-color:color-mix(in srgb,#d99818 38%,var(--sep));background:color-mix(in srgb,#f5b52f 10%,var(--fill))}
