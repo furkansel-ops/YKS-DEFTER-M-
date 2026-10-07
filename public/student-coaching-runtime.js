@@ -228,6 +228,15 @@ function applyAction(a){
     const k=text(p.key,220),d=text(p.date,10);if(!k||!/^\d{4}-\d{2}-\d{2}$/.test(d))throw new Error("Konu hedefi geçersiz");
     dateInfo(d);
     s.topics??={};s.topics[k]??={st:0,conf:0,ts:null,rev:[]};s.topics[k].dl=d;save();
+  }else if(a.type==="coach_note"&&p.operation==="resource_recommendation"){
+    const kind=text(p.kind,20),resourceId=text(p.id,120),title=text(p.title,180),url=text(p.url,600),teacher=text(p.teacher,100),subject=text(p.subject,80),scope=text(p.scope,10),thumb=text(p.thumb,600);
+    if(!["video","playlist"].includes(kind)||!resourceId||!title||!/^https?:\/\//i.test(url))throw new Error("Kaynak önerisi geçersiz");
+    s.coachRecommendations=Array.isArray(s.coachRecommendations)?s.coachRecommendations:[];
+    const key=kind+":"+resourceId,now=Date.now(),next={key,id:resourceId,kind,title,url,teacher,subject,scope,thumb,coachUid:text(a.coachUid,120),at:now};
+    s.coachRecommendations=s.coachRecommendations.filter(item=>String(item?.key||"")!==key);
+    s.coachRecommendations.push(next);s.coachRecommendations=s.coachRecommendations.slice(-40);
+    if(save()===false)throw new Error("Kaynak önerisi kaydedilemedi");
+    window.dispatchEvent(new CustomEvent("yks:coach-recommendations-changed",{detail:{key}}));
   }else if(a.type==="coach_note"){
     const v=text(p.text,500);if(!v)throw new Error("Not boş");s.coachNotes??=[];s.coachNotes.push({id:`coach-${Date.now()}`,at:Date.now(),coachUid:a.coachUid,text:v});s.coachNotes=s.coachNotes.slice(-80);save();
   }else if(a.type==="resource_recommendation"){
@@ -258,7 +267,7 @@ async function handleAction(change,session=rt.session){
     requireSession(session);
     await updateDoc(change.doc.ref,{status:"applied",updatedAt:serverTimestamp(),handledAt:serverTimestamp(),result});
     if(session!==rt.session)return;
-    toast(a.type==="resource_recommendation"?"Koçundan yeni video önerisi geldi ✓":"Koçundan yeni görev/not geldi ✓");scheduleShare(60);
+    toast(a.type==="resource_recommendation"||(a.type==="coach_note"&&a.payload?.operation==="resource_recommendation")?"Koçundan yeni video önerisi geldi ✓":"Koçundan yeni görev/not geldi ✓");scheduleShare(60);
   }catch(error){
     if(session!==rt.session)return;
     try{await updateDoc(change.doc.ref,{status:"rejected",updatedAt:serverTimestamp(),handledAt:serverTimestamp(),result:text(error?.message||"Uygulanamadı",500)})}catch{}
