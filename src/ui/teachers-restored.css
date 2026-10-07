@@ -89,3 +89,16 @@ body.teachers-v2-open #playOverlay,#teachersV2MediaPlayer{z-index:1500}
   :root[data-visual-system="refined-blue"] .teachers-v2-video-main{grid-template-columns:108px minmax(0,1fr)}
   :root[data-visual-system="refined-blue"] .teachers-v2-link-form>div{flex-direction:column}
 }
+
+/* Playlist progress tracking v1 */
+:root[data-visual-system="refined-blue"] .teachers-v2-playlist-progress{display:grid;gap:5px;margin-top:8px}
+:root[data-visual-system="refined-blue"] .teachers-v2-playlist-progress>span{display:flex;align-items:center;justify-content:space-between;gap:10px;color:var(--rb-muted);font-size:10px;line-height:1.35}
+:root[data-visual-system="refined-blue"] .teachers-v2-playlist-progress>span b{color:var(--rb-ink);font-size:10.5px;font-weight:650}
+:root[data-visual-system="refined-blue"] .teachers-v2-playlist-progress>span em{font-style:normal;text-align:right}
+:root[data-visual-system="refined-blue"] .teachers-v2-playlist-progress>i{display:block;height:6px;overflow:hidden;border-radius:999px;background:var(--rb-surface-alt);box-shadow:inset 0 0 0 1px var(--rb-line)}
+:root[data-visual-system="refined-blue"] .teachers-v2-playlist-progress>i>b{display:block;height:100%;border-radius:inherit;background:var(--rb-accent);transition:width .18s ease}
+:root[data-visual-system="refined-blue"] .teachers-v2-playlist-progress.detail{margin:10px 0 14px;padding:12px;border:1px solid var(--rb-line);border-radius:12px;background:var(--rb-surface-alt)}
+:root[data-visual-system="refined-blue"] .teachers-v2-playlist-progress.detail>span b{font-size:12px}
+:root[data-visual-system="refined-blue"] .teachers-v2-playlist-progress.detail>span em{font-size:10.5px}
+@media(max-width:560px){:root[data-visual-system="refined-blue"] .teachers-v2-playlist-progress>span{align-items:flex-start;flex-direction:column;gap:2px}:root[data-visual-system="refined-blue"] .teachers-v2-playlist-progress>span em{text-align:left}}
+@media(prefers-reduced-motion:reduce){:root[data-visual-system="refined-blue"] .teachers-v2-playlist-progress>i>b{transition:none}}
