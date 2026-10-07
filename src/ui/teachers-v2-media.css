@@ -103,3 +103,17 @@
 @media(max-width:560px){.teachers-v2-video-main{grid-template-columns:116px minmax(0,1fr)}.teachers-v2-media-head{align-items:flex-start}.teachers-v2-media-head-actions{justify-content:flex-start}.teachers-v2-media-tools{align-items:stretch;flex-direction:column}.teachers-v2-video-result{padding-left:2px}.teachers-v2-player-overlay{padding:8px}.teachers-v2-player{border-radius:16px}.teachers-v2-player-head{align-items:flex-start;flex-direction:column}.teachers-v2-player-head>div{width:100%}.teachers-v2-player-head button{flex:1}.teachers-v2-playlist-wrap{grid-template-columns:minmax(0,1fr) 44px}.teachers-v2-playlist-plan{min-height:44px}.teachers-v2-playlist-detail-head{grid-template-columns:1fr 1fr}.teachers-v2-playlist-detail-head>div{grid-column:1/-1;grid-row:1}.teachers-v2-playlist-detail-head>button{grid-row:2}.teachers-v2-playlist-detail-head>.teachers-v2-playlist-plan{width:100%;min-width:0}}
 @media(pointer:coarse){.teachers-v2-video-plan,.teachers-v2-video-watch,.teachers-v2-video-save{min-height:38px!important;padding:0 12px}.teachers-v2-media-filters button,.teachers-v2-media-head-actions button,.teachers-v2-media-shortcuts button,.teachers-v2-load-more,.teachers-v2-playlist-plan{min-height:44px}}
 @media(prefers-reduced-motion:reduce){.teachers-v2-video-card{transition:none}.teachers-v2-media-loading i,.teachers-v2-media-skeleton{animation:none}}
+
+
+/* Video watch states v1 — stage 5 */
+.teachers-v2-video-status{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;padding:0 8px 8px}
+.teachers-v2-video-status button{min-height:32px;padding:5px 6px;border:1px solid var(--sep);border-radius:9px;background:var(--fill);color:var(--label-3);font:750 9.5px var(--font);cursor:pointer}
+.teachers-v2-video-status button:hover{border-color:color-mix(in srgb,var(--accent) 30%,var(--sep));color:var(--accent)}
+.teachers-v2-video-status .teachers-v2-video-watch.on{color:var(--success);border-color:color-mix(in srgb,var(--success) 34%,var(--sep));background:color-mix(in srgb,var(--success) 8%,var(--fill))}
+.teachers-v2-video-status .teachers-v2-video-partial.on{color:#a66a00;border-color:color-mix(in srgb,#d99818 38%,var(--sep));background:color-mix(in srgb,#f5b52f 10%,var(--fill))}
+.teachers-v2-video-status .teachers-v2-video-later.on{color:var(--accent);border-color:color-mix(in srgb,var(--accent) 38%,var(--sep));background:color-mix(in srgb,var(--accent) 9%,var(--fill))}
+.teachers-v2-video-card.status-watched{border-color:color-mix(in srgb,var(--success) 35%,var(--sep));background:color-mix(in srgb,var(--success) 3%,var(--glass-strong))}
+.teachers-v2-video-card.status-partial{border-color:color-mix(in srgb,#d99818 32%,var(--sep))}
+.teachers-v2-video-card.status-later{border-color:color-mix(in srgb,var(--accent) 28%,var(--sep))}
+@media(max-width:420px){.teachers-v2-video-status{grid-template-columns:1fr}.teachers-v2-video-status button{min-height:36px}}
+@media(pointer:coarse){.teachers-v2-video-status button{min-height:42px}}
