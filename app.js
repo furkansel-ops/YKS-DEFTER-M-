@@ -2698,7 +2698,7 @@ function renderSessions(){
 /* --- dakika hesabı: gerçek geçen süreye göre --- */
 function creditMinutes(){
   if(typeof isCoach==="function"&&isCoach())return;
-  if(!pomoIsWork||!pomoStartedAt)return;
+  if(!pomoIsWork||!pomoStartedAt||pomoState==="paused")return;
   /* Cihaz uyursa gerçek geçen süre turdan çok daha uzun olabiliyor.
      Bir turda en fazla o turun uzunluğu kadar dakika yazılır. */
   const tavan=Math.max(1,Math.round(pomoTotal/60));
@@ -4405,6 +4405,137 @@ function swBoot(){
   if(s.run){ clearInterval(swTimer); swTimer=setInterval(swTick,100); requestWake(); }
   renderSw();
 }
+
+/* Android native canlı odak bildirimi köprüsü.
+   Native servis yalnız zamanı ve kullanıcı aksiyonlarını taşır; çalışma dakikalarının
+   tek doğruluk kaynağı burada kalır. Böylece bildirimden duraklat/devam/bitir
+   kullanıldığında aynı dakika ikinci kez yazılmaz. */
+let nativeFocusLastActionRevision=0;
+function nativeFocusBridgeSnapshot(){
+  const day=todayKey(),todayMinutes=Math.max(0,Math.floor(Number(S.pomoMin[day]||0)));
+  const subject=String(pomoSubject||SUBJ_NAMES[0]||"Ders").slice(0,80);
+  const topic=String(typeof pomoTopic!=="undefined"?pomoTopic:"").slice(0,100);
+  const stopwatch=sw(),swMs=Math.max(0,swElapsed());
+  if(stopwatch.run||(pomoState==="idle"&&swMs>0)){
+    return {active:true,mode:"sw",running:!!stopwatch.run,isWork:true,totalMs:0,remainingMs:0,elapsedMs:swMs,
+      startedAt:stopwatch.run?(Number(stopwatch.start)||Math.max(1,Date.now()-swMs)):Math.max(1,Date.now()-swMs),
+      subject:subject,topic:topic,task:"",creditedMinutes:Math.max(0,stopwatch.cr|0),todayMinutes:todayMinutes};
+  }
+  if(pomoState!=="idle"){
+    const totalMs=Math.max(1000,Math.round(Number(pomoTotal)||1)*1000);
+    const remainingMs=pomoState==="running"?Math.max(0,pomoEndAt-Date.now()):Math.max(0,Math.round(Number(pomoLeft)||0)*1000);
+    return {active:true,mode:"pomo",running:pomoState==="running",isWork:!!pomoIsWork,totalMs:totalMs,remainingMs:remainingMs,
+      elapsedMs:Math.max(0,totalMs-remainingMs),startedAt:Math.max(0,Number(pomoStartedAt)||0),
+      subject:subject,topic:topic,task:String(pomoTask||"").slice(0,120),creditedMinutes:Math.max(0,pomoCredited|0),todayMinutes:todayMinutes};
+  }
+  return {active:false,mode:"pomo",running:false,isWork:true,totalMs:0,remainingMs:0,elapsedMs:0,startedAt:0,
+    subject:subject,topic:topic,task:"",creditedMinutes:0,todayMinutes:todayMinutes};
+}
+function nativeFocusAdjustPomoCredit(target){
+  if(typeof isCoach==="function"&&isCoach())return false;
+  const ceiling=Math.max(0,Math.round((Number(pomoTotal)||0)/60));
+  target=Math.max(0,Math.min(ceiling,Math.floor(Number(target)||0)));
+  const before=Math.max(0,pomoCredited|0);
+  if(target===before)return false;
+  const day=todayKey();
+  S.pomoMin[day]=Math.max(0,(S.pomoMin[day]||0)+(target-before));
+  if(target>before)focusCreditAllocation(day,before,target);
+  else{
+    const prev=focusAllocationMap(before),next=focusAllocationMap(target);
+    if(!S.pomoSubj[day])S.pomoSubj[day]={};
+    Object.keys(prev).forEach(subject=>{
+      const remove=Math.max(0,(prev[subject]||0)-(next[subject]||0));
+      if(!remove)return;
+      S.pomoSubj[day][subject]=Math.max(0,(S.pomoSubj[day][subject]||0)-remove);
+      if(!S.pomoSubj[day][subject])delete S.pomoSubj[day][subject];
+    });
+  }
+  pomoCredited=target;
+  return true;
+}
+function nativeFocusAdjustSwCredit(targetMs){
+  if(typeof isCoach==="function"&&isCoach())return false;
+  const state=sw(),target=Math.max(0,Math.floor((Number(targetMs)||0)/60000)),before=Math.max(0,state.cr|0);
+  if(target===before)return false;
+  const day=todayKey(),subject=pomoSubject||SUBJ_NAMES[0]||"Ders",delta=target-before;
+  S.pomoMin[day]=Math.max(0,(S.pomoMin[day]||0)+delta);
+  if(!S.pomoSubj[day])S.pomoSubj[day]={};
+  S.pomoSubj[day][subject]=Math.max(0,(S.pomoSubj[day][subject]||0)+delta);
+  if(!S.pomoSubj[day][subject])delete S.pomoSubj[day][subject];
+  state.cr=target;
+  return true;
+}
+function nativeFocusBridgeApply(nativeState){
+  if(!nativeState||!["pomo","sw"].includes(nativeState.mode))return false;
+  const revision=Math.max(0,Number(nativeState.revision)||0),pending=String(nativeState.pendingAction||"");
+  const freshAction=!!pending&&revision>nativeFocusLastActionRevision;
+  if(freshAction)nativeFocusLastActionRevision=revision;
+  if(nativeState.subject)pomoSubject=String(nativeState.subject).slice(0,80);
+  if(typeof pomoTopic!=="undefined"&&nativeState.topic!==undefined)pomoTopic=String(nativeState.topic||"").slice(0,100);
+  if(nativeState.mode==="pomo"){
+    clearInterval(pomoTimer);pomoTimer=null;
+    pomoIsWork=nativeState.isWork!==false;
+    pomoTotal=Math.max(1,Math.round(Math.max(1000,Number(nativeState.totalMs)||1000)/1000));
+    const remainingMs=Math.max(0,Number(nativeState.remainingMs)||0),elapsedMs=Math.max(0,Math.min(pomoTotal*1000,Number(nativeState.elapsedMs)||0));
+    pomoLeft=Math.max(0,Math.ceil(remainingMs/1000));
+    pomoTask=String(nativeState.task||"").slice(0,120);
+    nativeFocusAdjustPomoCredit(Math.floor(elapsedMs/60000));
+    pomoStartedAt=pomoIsWork?Math.max(1,Date.now()-elapsedMs):0;
+    if(freshAction&&pending==="pause"){
+      const day=todayKey();S.pauses[day]=(S.pauses[day]||0)+1;
+    }
+    if(freshAction&&pending==="finish"){
+      pomoState="running";pomoEndAt=Date.now();pomoLeft=0;
+      finishPhase();
+      renderSessions();renderTimeDist();
+      return true;
+    }
+    if(freshAction&&pending==="stop"){
+      pomoState="paused";pomoEndAt=0;
+      resetPomo();
+      renderSessions();renderTimeDist();
+      return true;
+    }
+    if(nativeState.active){
+      if(nativeState.running){
+        pomoState="running";pomoEndAt=Date.now()+remainingMs;
+        clearInterval(pomoTimer);pomoTimer=setInterval(pomoTick,1000);
+        try{requestWake();}catch(e){}
+      }else{pomoState="paused";pomoEndAt=0;try{releaseWake();}catch(e){}}
+      save();renderPomo();renderTimeDist();
+      return true;
+    }
+    return false;
+  }
+
+  clearInterval(swTimer);swTimer=null;
+  const state=sw(),elapsedMs=Math.max(0,Number(nativeState.elapsedMs)||0);
+  nativeFocusAdjustSwCredit(elapsedMs);
+  if(freshAction&&(pending==="pause"||pending==="stop")&&Number(nativeState.segmentMs)>=1000){
+    const end=Math.max(1,Number(nativeState.actionAt)||Date.now());
+    const start=Math.max(1,Number(nativeState.segmentStartedAt)||end-Number(nativeState.segmentMs));
+    swHistoryAdd(Number(nativeState.segmentMs),pomoSubject||SUBJ_NAMES[0]||"Ders",start,end);
+  }
+  state.acc=elapsedMs;state.start=0;state.run=false;
+  if(freshAction&&pending==="stop"){
+    swRecord();
+    state.run=false;state.start=0;state.acc=0;state.cr=0;S.focus.swLaps=[];
+    try{releaseWake();}catch(e){}
+    save();renderSw();renderSwHistory();renderSessions();renderTimeDist();checkBadges(false);
+    return true;
+  }
+  if(nativeState.active){
+    if(nativeState.running){
+      state.run=true;state.start=Date.now();
+      clearInterval(swTimer);swTimer=setInterval(swTick,100);
+      try{requestWake();}catch(e){}
+    }else try{releaseWake();}catch(e){}
+    save();renderSw();renderSwHistory();renderTimeDist();
+    return true;
+  }
+  return false;
+}
+window.YKSFocusNativeBridge={snapshot:nativeFocusBridgeSnapshot,apply:nativeFocusBridgeApply};
 
 /* ==================================================================
    BAŞLATMA
