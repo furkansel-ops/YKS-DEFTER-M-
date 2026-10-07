@@ -4539,8 +4539,17 @@ function nativeFocusBridgeApply(nativeState){
 window.YKSFocusNativeBridge={snapshot:nativeFocusBridgeSnapshot,apply:nativeFocusBridgeApply};
 
 (function installAndroidFocusNativeRuntime(){
-  const cap=window.Capacitor,plugin=cap&&cap.Plugins&&cap.Plugins.FocusTimer;
-  if(!plugin||typeof plugin.sync!=="function"){
+  const cap=window.Capacitor;
+  const nativeReady=!!(cap&&typeof cap.nativePromise==="function"&&typeof cap.addListener==="function"&&(!cap.isPluginAvailable||cap.isPluginAvailable("FocusTimer")));
+  const plugin=nativeReady?{
+    sync:options=>cap.nativePromise("FocusTimer","sync",options||{}),
+    getState:()=>cap.nativePromise("FocusTimer","getState",{}),
+    ack:options=>cap.nativePromise("FocusTimer","ack",options||{}),
+    checkPermissions:()=>cap.nativePromise("FocusTimer","checkPermissions",{}),
+    requestPermissions:()=>cap.nativePromise("FocusTimer","requestPermissions",{}),
+    addListener:(eventName,listener)=>cap.addListener("FocusTimer",eventName,listener)
+  }:null;
+  if(!plugin){
     document.documentElement.dataset.focusLiveNotification="web";
     return;
   }

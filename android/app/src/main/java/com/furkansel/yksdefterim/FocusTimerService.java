@@ -26,6 +26,7 @@ public class FocusTimerService extends Service {
     static final String ACTION_PAUSE = "com.furkansel.yksdefterim.focus.PAUSE";
     static final String ACTION_RESUME = "com.furkansel.yksdefterim.focus.RESUME";
     static final String ACTION_STOP = "com.furkansel.yksdefterim.focus.STOP";
+    static final String ACTION_DISMISS = "com.furkansel.yksdefterim.focus.DISMISS";
     static final String CHANNEL_ID = "yks_focus_live";
     static final int NOTIFICATION_ID = 4044;
     private static final String PREFS = "yks_focus_native_v1";
@@ -61,6 +62,10 @@ public class FocusTimerService extends Service {
         }
         if (ACTION_STOP.equals(action)) {
             stopFromNotification();
+            return START_NOT_STICKY;
+        }
+        if (ACTION_DISMISS.equals(action)) {
+            dismissPausedNotification();
             return START_NOT_STICKY;
         }
         syncFromIntent(intent);
@@ -172,6 +177,17 @@ public class FocusTimerService extends Service {
         stopSelf();
     }
 
+    private void dismissPausedNotification() {
+        Snapshot state = readState(this);
+        if (!state.active || state.running) {
+            if (state.running) publish(state);
+            return;
+        }
+        handler.removeCallbacks(refreshRunnable);
+        stopForegroundCompat();
+        stopSelf();
+    }
+
     private void finishNaturally(Snapshot state) {
         long now = System.currentTimeMillis();
         state.remainingMs = 0L;
@@ -224,8 +240,9 @@ public class FocusTimerService extends Service {
             .setStyle(new NotificationCompat.BigTextStyle().bigText(detail + " · Bugün " + todayLabel))
             .setCategory(NotificationCompat.CATEGORY_STOPWATCH)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-            .setOngoing(true)
+            .setOngoing(state.running)
             .setOnlyAlertOnce(true)
+            .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
             .setSilent(true)
             .setContentIntent(openAppIntent())
             .setRequestPromotedOngoing(state.running);
@@ -245,9 +262,18 @@ public class FocusTimerService extends Service {
             String frozen = "pomo".equals(state.mode) ? formatDuration(remaining) : formatDuration(elapsed);
             builder.setSubText("Duraklatıldı · " + frozen);
             builder.addAction(0, "Devam et", serviceAction(ACTION_RESUME, 12));
+            builder.setDeleteIntent(serviceAction(ACTION_DISMISS, 14));
         }
         builder.addAction(0, "Bitir", serviceAction(ACTION_STOP, 13));
-        return builder.build();
+        Notification notification = builder.build();
+        if (state.running) {
+            notification.flags |= Notification.FLAG_NO_CLEAR;
+            notification.flags |= Notification.FLAG_ONGOING_EVENT;
+        } else {
+            notification.flags &= ~Notification.FLAG_NO_CLEAR;
+            notification.flags &= ~Notification.FLAG_ONGOING_EVENT;
+        }
+        return notification;
     }
 
     private Notification buildCompletedNotification(Snapshot state) {
