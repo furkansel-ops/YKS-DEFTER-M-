@@ -13,6 +13,7 @@ test('koç kaynak önerisi mevcut güvenli coach_note kanalı üzerinden öğren
   assert.match(runtime,/s\.coachRecommendations=s\.coachRecommendations\.slice\(-40\)/);
   assert.match(runtime,/yks:coach-recommendations-changed/);
   assert.match(runtime,/Koçundan yeni video önerisi geldi/);
+  assert.match(runtime,/topic=text\(p\.topic,120\)/);
 });
 
 test('Hocalar kütüphanesi koç önerilerini ayrı alanda gösterir',()=>{
@@ -20,6 +21,8 @@ test('Hocalar kütüphanesi koç önerilerini ayrı alanda gösterir',()=>{
   const css=read('src/ui/teachers-v2-library.css');
   assert.match(source,/type CoachRecommendation=/);
   assert.match(source,/function coachRecommendations\(\)/);
+  assert.match(source,/topic:String\(row\.topic\|\|""\)/);
+  assert.match(source,/item\.topic/);
   assert.match(source,/KOÇUNDAN|Koçunun/);
   assert.match(source,/Önerilen kaynaklar/);
   assert.match(source,/data-library-action="coach-resource"/);
