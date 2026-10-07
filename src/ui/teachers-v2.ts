@@ -135,8 +135,7 @@ function subjects(teachers:Teacher[]):string[]{const values=new Set<string>();te
 function filteredTeachers(teachers:Teacher[],favs:Set<string>):Teacher[]{const q=norm(state.query);return teachers.filter(t=>{if(state.subject&&!t.d.includes(state.subject))return false;if(state.level&&t.l!==state.level&&t.l!=="hepsi")return false;if(state.favOnly&&!favs.has(t.a))return false;if(q){const hay=norm([t.a,t.n||"",...t.d].join(" "));if(!hay.includes(q))return false;}return true;}).sort((a,b)=>{const af=favs.has(a.a)?0:1,bf=favs.has(b.a)?0:1;if(af!==bf)return af-bf;return a.a.localeCompare(b.a,"tr");});}
 function cardHtml(t:Teacher,favs:Set<string>):string{
   const favorite=favs.has(t.a),content=(t.t&&t.t.length?t.t:["konu","soru"]).slice(0,2),level=LEVEL_LABELS[t.l]||"Her seviye";
-  return `<article class="teachers-v2-card ${favorite?"is-favorite":""}" data-action="open" data-name="${esc(t.a)}" tabindex="0" role="button" aria-label="${esc(t.a)} kaynaklarını aç">
-    ${favorite?'<span class="teachers-v2-favorite-badge">★ Favorin</span>':""}
+  return `<article class="teachers-v2-card" data-action="open" data-name="${esc(t.a)}" tabindex="0" role="button" aria-label="${esc(t.a)} kaynaklarını aç">
     <div class="teachers-v2-card-main">
       <div class="teachers-v2-avatar" aria-hidden="true">${esc(initials(t.a))}</div>
       <div class="teachers-v2-card-copy">
@@ -188,10 +187,6 @@ function buildShell(root:HTMLElement):void{
       <div class="teachers-v2-filter-block"><span>Ders</span><div id="teachersV2SubjectRow" class="teachers-v2-filter-row" aria-label="Ders filtresi"></div></div>
       <div class="teachers-v2-filter-block"><span>Seviye</span><div id="teachersV2LevelRow" class="teachers-v2-filter-row" aria-label="Seviye filtresi"></div></div>
     </section>
-    <section id="teachersV2FavoriteShelf" class="teachers-v2-favorite-shelf" aria-label="Favori hocalarım" hidden>
-      <div class="teachers-v2-favorite-head"><div><span>★ FAVORİ HOCALARIM</span><h3 id="teachersV2FavoriteTitle">Hızlı erişim</h3></div><small id="teachersV2FavoriteHint">Favoriye aldığın hocalar burada görünür.</small></div>
-      <div id="teachersV2FavoriteRow" class="teachers-v2-favorite-row"></div>
-    </section>
     <div class="teachers-v2-summary"><div><strong id="teachersV2ResultText"></strong><span id="teachersV2Sync" class="teachers-v2-sync"><i class="teachers-v2-sync-dot"></i><span>Hazır</span></span></div><button type="button" class="teachers-v2-reset" data-action="reset">Filtreleri temizle</button></div>
     <div id="teachersV2Grid" class="teachers-v2-grid"></div>
   </div>`;
@@ -203,28 +198,9 @@ function buildShell(root:HTMLElement):void{
 }
 function renderSubjectRow(teachers:Teacher[]):void{const row=document.getElementById("teachersV2SubjectRow");if(!row)return;row.innerHTML=["",...subjects(teachers)].map(s=>`<button class="teachers-v2-chip ${state.subject===s?"on":""}" type="button" data-action="subject" data-value="${esc(s)}">${esc(subjectLabel(s))}</button>`).join("");}
 function renderLevelRow():void{const row=document.getElementById("teachersV2LevelRow");if(!row)return;const levels:[[string,string],[string,string],[string,string],[string,string]]=[["","Tüm seviyeler"],["baslangic","Başlangıç"],["orta","Orta"],["ileri","İleri"]];row.innerHTML=levels.map(([value,label])=>`<button class="teachers-v2-chip ${state.level===value?"on":""}" type="button" data-action="level" data-value="${value}">${label}</button>`).join("");}
-function renderFavoriteShelf(teachers:Teacher[],favs:Set<string>):void{
-  const shelf=document.getElementById("teachersV2FavoriteShelf"),row=document.getElementById("teachersV2FavoriteRow");
-  if(!shelf||!row)return;
-  const favorites=teachers.filter(t=>favs.has(t.a)&&(!state.subject||t.d.includes(state.subject))).sort((a,b)=>a.a.localeCompare(b.a,"tr"));
-  shelf.hidden=!favorites.length;
-  if(!favorites.length){row.innerHTML="";return;}
-  const title=document.getElementById("teachersV2FavoriteTitle"),hint=document.getElementById("teachersV2FavoriteHint");
-  if(title)title.textContent=state.subject?subjectLabel(state.subject)+" favorilerin":"Hızlı erişim";
-  if(hint)hint.textContent=state.subject?favorites.length+" favori hoca · seçili derste":favorites.length+" favori hoca · yıldızla yönet";
-  row.innerHTML=favorites.map(t=>`<article class="teachers-v2-favorite-card" data-name="${esc(t.a)}">
-    <button type="button" class="teachers-v2-favorite-open" data-action="open" data-name="${esc(t.a)}" aria-label="${esc(t.a)} kaynaklarını aç">
-      <span class="teachers-v2-favorite-avatar">${esc(initials(t.a))}</span>
-      <span><b>${esc(t.a)}</b><small>${esc(t.d.slice(0,2).map(subjectLabel).join(" · "))}</small></span>
-      <i>›</i>
-    </button>
-    <button type="button" class="teachers-v2-favorite-remove" data-action="favorite" data-name="${esc(t.a)}" aria-label="${esc(t.a)} favorilerden çıkar">★</button>
-  </article>`).join("");
-}
 function renderGrid():void{
   const grid=document.getElementById("teachersV2Grid");if(!grid)return;
   const teachers=currentTeachers(),favs=favoriteNames(),list=filteredTeachers(teachers,favs);
-  renderFavoriteShelf(teachers,favs);
   grid.innerHTML=list.length?list.map(t=>cardHtml(t,favs)).join(""):'<div class="teachers-v2-empty"><b>Bu filtrede hoca bulunamadı.</b><span>Ders, seviye veya arama filtresini değiştir.</span></div>';
   const result=document.getElementById("teachersV2ResultText");if(result)result.textContent=`${list.length} hoca gösteriliyor`;
   const count=document.getElementById("teachersV2Count");if(count)count.textContent=`${teachers.length} hoca`;
