@@ -1197,10 +1197,33 @@
 </section>
 
 <div class="v29-minimal-overlay" id="v29MinimalOverlay" aria-hidden="true">
-  <div class="v29-minimal-top"><div><b id="v29MinimalSubject">Odak</b><span id="v29MinimalGoal"></span></div><button class="btn ghost tiny" onclick="v29ToggleMinimal(false)">Çık</button></div>
-  <div class="v29-minimal-clock" id="v29MinimalClock">25:00</div>
-  <p id="v29MinimalState">Hazır</p>
-  <div class="v29-minimal-actions"><button class="btn green" id="v29MinimalToggle" onclick="v29MinimalToggleTimer()">Başlat</button><button class="btn ghost" onclick="v29QuickBreak()">Hızlı ara</button></div>
+  <div class="v29-minimal-shell">
+    <div class="v29-minimal-top">
+      <div class="v29-minimal-brand"><span class="v29-minimal-dot"></span><span>ODAK MODU</span></div>
+      <button class="v29-minimal-exit" type="button" onclick="v29ToggleMinimal(false)" aria-label="Minimal moddan çık">Çık</button>
+    </div>
+    <div class="v29-minimal-context">
+      <span class="v29-minimal-mode" id="v29MinimalMode">Sayaç</span>
+      <b id="v29MinimalSubject">Odak</b>
+      <span id="v29MinimalGoal"></span>
+    </div>
+    <div class="v29-minimal-ring" id="v29MinimalRing" style="--minimal-progress:0">
+      <div class="v29-minimal-ring-inner">
+        <div class="v29-minimal-clock" id="v29MinimalClock">25:00</div>
+        <p id="v29MinimalState">Hazır</p>
+      </div>
+    </div>
+    <div class="v29-minimal-stats">
+      <div><span>Bugün</span><strong id="v29MinimalToday">0 dk</strong></div>
+      <div><span>Tur</span><strong id="v29MinimalRound">—</strong></div>
+      <div><span>İlerleme</span><strong id="v29MinimalPercent">0%</strong></div>
+    </div>
+    <div class="v29-minimal-actions">
+      <button class="v29-minimal-primary" id="v29MinimalToggle" type="button" onclick="v29MinimalToggleTimer()">Başlat</button>
+      <button class="v29-minimal-secondary" type="button" onclick="v29QuickBreak()">Hızlı ara</button>
+    </div>
+    <p class="v29-minimal-hint" id="v29MinimalHint">Tek iş. Tek ekran. Süreyi sen yönet.</p>
+  </div>
 </div>
 
 <!-- ============================== TAKTİKLER ============================== -->
