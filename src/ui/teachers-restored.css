@@ -115,3 +115,9 @@ body.teachers-v2-open #playOverlay,#teachersV2MediaPlayer{z-index:1500}
 :root[data-visual-system="refined-blue"] .teachers-v2-video-status .teachers-v2-video-later.on{border-color:var(--rb-accent-soft);background:var(--rb-accent-soft);color:var(--rb-accent)}
 :root[data-visual-system="refined-blue"] .teachers-v2-video-save{grid-column:1}
 @media(max-width:420px){:root[data-visual-system="refined-blue"] .teachers-v2-video-status{grid-template-columns:1fr}}
+
+
+/* Playlist video search refined — stage 6 */
+:root[data-visual-system="refined-blue"] .teachers-v2-playlist-video-search{min-height:44px;border-color:var(--rb-line);border-radius:12px;background:var(--rb-surface)}
+:root[data-visual-system="refined-blue"] .teachers-v2-playlist-video-search input{font-size:13px;font-weight:500}
+:root[data-visual-system="refined-blue"] #teachersV2PlaylistVideoResult{color:var(--rb-muted);font-size:10.5px}
