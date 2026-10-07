@@ -28,14 +28,14 @@ test("Capacitor köprüsü native durumunu mevcut Pomodoro ve kronometre akış�
   const plugin=read("android/app/src/main/java/com/furkansel/yksdefterim/FocusTimerPlugin.java");
   const activity=read("android/app/src/main/java/com/furkansel/yksdefterim/MainActivity.java");
   const bridge=read("src/native/android-focus-notification.ts");
-  const main=read("src/main.ts");
+  const index=read("index.html");
   const app=read("app.js");
   assert.match(plugin,/@CapacitorPlugin\([\s\S]*name = "FocusTimer"/);
   assert.match(activity,/registerPlugin\(FocusTimerPlugin\.class\)/);
   assert.match(bridge,/registerPlugin<FocusTimerPlugin>\("FocusTimer"\)/);
   assert.match(bridge,/focusAction/);
   assert.match(bridge,/visibilitychange/);
-  assert.match(main,/installAndroidFocusNotification/);
+  assert.match(index,/src\\/native\\/android-focus-entry\\.ts/);
   assert.match(app,/YKSFocusNativeBridge/);
   assert.match(app,/nativeFocusBridgeApply/);
 });
