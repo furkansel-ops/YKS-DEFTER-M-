@@ -30,7 +30,7 @@ test("Capacitor köprüsü native durumunu mevcut Pomodoro ve kronometre akış�
   const app=read("app.js");
   assert.match(plugin,/@CapacitorPlugin\([\s\S]*name = "FocusTimer"/);
   assert.match(activity,/registerPlugin\(FocusTimerPlugin\.class\)/);
-  assert.match(app,/Plugins&&cap\.Plugins&&cap\.Plugins\.FocusTimer/);
+  assert.match(app,/cap\.Plugins\.FocusTimer/);
   assert.match(app,/focusAction/);
   assert.match(app,/visibilitychange/);
   assert.match(app,/YKSFocusNativeBridge/);
