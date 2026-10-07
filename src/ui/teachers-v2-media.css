@@ -117,3 +117,14 @@
 .teachers-v2-video-card.status-later{border-color:color-mix(in srgb,var(--accent) 28%,var(--sep))}
 @media(max-width:420px){.teachers-v2-video-status{grid-template-columns:1fr}.teachers-v2-video-status button{min-height:36px}}
 @media(pointer:coarse){.teachers-v2-video-status button{min-height:42px}}
+
+
+/* Playlist video search v1 — stage 6 */
+.teachers-v2-playlist-video-search-row{display:flex;align-items:center;gap:10px;margin:0 0 12px}
+.teachers-v2-playlist-video-search{display:flex;align-items:center;gap:8px;min-width:0;flex:1;min-height:42px;padding:0 11px;border:1px solid var(--sep);border-radius:12px;background:var(--glass-strong)}
+.teachers-v2-playlist-video-search:focus-within{border-color:color-mix(in srgb,var(--accent) 46%,var(--sep));box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 10%,transparent)}
+.teachers-v2-playlist-video-search>span{color:var(--label-3);font-size:14px}
+.teachers-v2-playlist-video-search input{min-width:0;width:100%;height:40px;border:0;outline:0;background:transparent;color:var(--label);font:600 12px var(--font)}
+#teachersV2PlaylistVideoResult{flex:0 0 auto;color:var(--label-3);font-size:10.5px;font-weight:700}
+#teachersV2PlaylistVideoMatches>.teachers-v2-playlist-empty{margin-top:2px}
+@media(max-width:560px){.teachers-v2-playlist-video-search-row{align-items:stretch;flex-direction:column;gap:6px}#teachersV2PlaylistVideoResult{padding-left:2px}}
