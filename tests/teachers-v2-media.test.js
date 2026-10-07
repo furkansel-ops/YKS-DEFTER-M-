@@ -21,7 +21,7 @@ test("Hocalar v2 izleme durumu mevcut watched ve save hattını kullanır",()=>{
 test("Hocalar v2 video içi arama ile izlendi ve izlenmedi süzgeçlerini birlikte destekler",()=>{
   const source=media();
   assert.match(source,/id="teachersV2VideoSearch"/);
-  assert.match(source,/type FilterKind=.*"watched"\|"unwatched"/);
+  assert.match(source,/type FilterKind=.*"watched"\|"partial"\|"later"\|"unwatched"/);
   assert.match(source,/\['unwatched','İzlenmedi'\]/);
   assert.match(source,/\['watched','İzlendi'\]/);
   assert.match(source,/norm\(\[(?:video|v)\.title,(?:video|v)\.channel/);
