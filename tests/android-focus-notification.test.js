@@ -19,7 +19,7 @@ test("Android odak canlı bildirimi foreground service ve Live Update şartları
 
 test("Canlı odak bildirimi sayaç, kapsül isteği ve bildirim aksiyonlarını içerir",()=>{
   const service=read("android/app/src/main/java/com/furkansel/yksdefterim/FocusTimerService.java");
-  for(const token of ["setUsesChronometer(true)","setChronometerCountDown(true)","setRequestPromotedOngoing(state.running)","ACTION_PAUSE","ACTION_RESUME","ACTION_STOP","Duraklat","Devam et","Bitir"])assert.ok(service.includes(token),token);
+  for(const token of ["setUsesChronometer(true)","setChronometerCountDown(true)","setRequestPromotedOngoing(state.running)","FOREGROUND_SERVICE_IMMEDIATE","FLAG_NO_CLEAR","ACTION_PAUSE","ACTION_RESUME","ACTION_STOP","ACTION_DISMISS","Duraklat","Devam et","Bitir"])assert.ok(service.includes(token),token);
   assert.match(service,/CATEGORY_STOPWATCH/);
   assert.match(service,/checkSelfPermission\(this, Manifest\.permission\.POST_NOTIFICATIONS\)/);
   assert.match(service,/catch \(SecurityException ignored\)/);
@@ -32,7 +32,8 @@ test("Capacitor köprüsü native durumunu mevcut Pomodoro ve kronometre akış�
   const app=read("app.js");
   assert.match(plugin,/@CapacitorPlugin\([\s\S]*name = "FocusTimer"/);
   assert.match(activity,/registerPlugin\(FocusTimerPlugin\.class\)/);
-  assert.match(app,/cap\.Plugins\.FocusTimer/);
+  assert.match(app,/cap\.nativePromise\("FocusTimer","sync"/);
+  assert.match(app,/cap\.addListener\("FocusTimer"/);
   assert.match(app,/focusAction/);
   assert.match(app,/visibilitychange/);
   assert.match(app,/YKSFocusNativeBridge/);
