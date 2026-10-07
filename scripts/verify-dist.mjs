@@ -5,7 +5,7 @@ import {verifyLocalCssImports} from "./verify-css-imports.mjs";
 
 const root=resolve(import.meta.dirname,".."),dist=resolve(root,"dist");
 const localRelease=JSON.parse(await readFile(resolve(root,"version.json"),"utf8"));
-if(localRelease.version!=="4.4.0"||localRelease.build!=="4.4.0-r22"||localRelease.schema!==21)throw new Error("Yerel v4.4.0 release kimliği beklenen değerle eşleşmiyor");
+if(localRelease.version!=="4.4.0"||localRelease.build!=="4.4.0-r23"||localRelease.schema!==21)throw new Error("Yerel v4.4.0 release kimliği beklenen değerle eşleşmiyor");
 const required=[
   "index.html","404.html","app.js","app.css","sw.js","version.json","manifest.webmanifest",
   "modules/core-utils.js","modules/stability.js","modules/topic-guides.js",
@@ -24,7 +24,7 @@ await verifyLocalCssImports(dist);
 const index=await readFile(resolve(dist,"index.html"),"utf8");
 if(!index.includes('data-ui-shell="refined-v1"')||!index.includes('id="yksBootGuard"')||!index.includes('id="yksBootController"')||index.includes('uiReady="fallback"'))throw new Error("Üretim HTML'i güvenli yeni arayüz açılış sözleşmesini taşımıyor");
 if(!/assets\/index-[^"']+\.js/.test(index))throw new Error("TypeScript üretim paketi index.html içine bağlanmadı");
-if(!index.includes('./app.js?v=4.1.0-r23')||!index.includes('./modules/stability.js?v=4.1.0-r28')||!index.includes('./modules/learning-lab.js?v=4.1.0-r26')||!index.includes('./modules/error-journal.js?v=4.1.0-r24'))throw new Error("Uygulama çalışma zamanı üretim paketinde bağlı değil");
+if(!index.includes('./app.js?v=4.1.0-r24')||!index.includes('./modules/stability.js?v=4.1.0-r28')||!index.includes('./modules/learning-lab.js?v=4.1.0-r26')||!index.includes('./modules/error-journal.js?v=4.1.0-r24'))throw new Error("Uygulama çalışma zamanı üretim paketinde bağlı değil");
 for(const forbidden of ["legacyFirebaseSyncModule","firebaseSyncModule","www.gstatic.com/firebasejs","cloudSyncBox","Google ile giriş"]){
   if(index.includes(forbidden))throw new Error(`Play Store yerel-veri paketinde eski bulut çalışma zamanı kaldı: ${forbidden}`);
 }
