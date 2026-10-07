@@ -2935,7 +2935,7 @@ body > .qaviewer .qvimg img{display:block;width:auto;height:auto;max-width:100%;
 .v29-minimal-ring{
   --minimal-progress:0;
   box-sizing:border-box;
-  width:min(318px,calc(100vw - 72px),40dvh);
+  width:min(318px,68vw,42dvh);
   max-width:100%;
   min-width:0;
   aspect-ratio:1;
@@ -3115,6 +3115,14 @@ body > .qaviewer .qvimg img{display:block;width:auto;height:auto;max-width:100%;
   .v29-minimal-primary,.v29-minimal-secondary{min-height:44px;font-size:12px}
 }
 
+@media(max-height:720px){
+  .v29-minimal-shell{padding-top:64px;padding-bottom:18px}
+  .v29-minimal-top{top:14px}
+  .v29-minimal-context{margin-bottom:10px;gap:3px}
+  .v29-minimal-ring{width:min(258px,60vw,36dvh)}
+  .v29-minimal-stats{margin:10px 0}
+  .v29-minimal-primary,.v29-minimal-secondary{min-height:42px}
+}
 @media(max-height:640px){
   .v29-minimal-shell{justify-content:flex-start}
   .v29-minimal-context{margin-bottom:9px;gap:3px}
