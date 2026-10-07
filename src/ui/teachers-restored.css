@@ -102,3 +102,16 @@ body.teachers-v2-open #playOverlay,#teachersV2MediaPlayer{z-index:1500}
 :root[data-visual-system="refined-blue"] .teachers-v2-playlist-progress.detail>span em{font-size:10.5px}
 @media(max-width:560px){:root[data-visual-system="refined-blue"] .teachers-v2-playlist-progress>span{align-items:flex-start;flex-direction:column;gap:2px}:root[data-visual-system="refined-blue"] .teachers-v2-playlist-progress>span em{text-align:left}}
 @media(prefers-reduced-motion:reduce){:root[data-visual-system="refined-blue"] .teachers-v2-playlist-progress>i>b{transition:none}}
+
+
+/* Video watch states refined — stage 5 */
+:root[data-visual-system="refined-blue"] .teachers-v2-video-card{grid-template-columns:1fr}
+:root[data-visual-system="refined-blue"] .teachers-v2-video-main{grid-column:1}
+:root[data-visual-system="refined-blue"] .teachers-v2-video-plan{grid-column:1;width:100%;position:static!important;min-height:36px!important}
+:root[data-visual-system="refined-blue"] .teachers-v2-video-status{grid-column:1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;padding:0}
+:root[data-visual-system="refined-blue"] .teachers-v2-video-status button{position:static!important;min-height:36px!important;padding:6px;border:1px solid var(--rb-line);border-radius:9px;background:var(--rb-bg);color:var(--rb-muted);font:600 9.5px var(--font)}
+:root[data-visual-system="refined-blue"] .teachers-v2-video-status .teachers-v2-video-watch.on{border-color:color-mix(in srgb,var(--success) 34%,var(--rb-line));background:color-mix(in srgb,var(--success) 8%,var(--rb-bg));color:var(--success)}
+:root[data-visual-system="refined-blue"] .teachers-v2-video-status .teachers-v2-video-partial.on{border-color:color-mix(in srgb,#d99818 35%,var(--rb-line));background:color-mix(in srgb,#f5b52f 10%,var(--rb-bg));color:#986000}
+:root[data-visual-system="refined-blue"] .teachers-v2-video-status .teachers-v2-video-later.on{border-color:var(--rb-accent-soft);background:var(--rb-accent-soft);color:var(--rb-accent)}
+:root[data-visual-system="refined-blue"] .teachers-v2-video-save{grid-column:1}
+@media(max-width:420px){:root[data-visual-system="refined-blue"] .teachers-v2-video-status{grid-template-columns:1fr}}
