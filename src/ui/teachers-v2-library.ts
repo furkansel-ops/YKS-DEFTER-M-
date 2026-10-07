@@ -34,7 +34,7 @@ type VideoBookmark={
 type LibraryState={favorites:Record<string,VideoBookmark>;updatedAt:number};
 type CoachRecommendation={
   key:string;id:string;kind:"video"|"playlist";title:string;url:string;
-  teacher:string;subject:string;scope:string;thumb:string;coachUid:string;at:number;
+  teacher:string;subject:string;topic:string;scope:string;thumb:string;coachUid:string;at:number;
 };
 type IndexedVideo={video:MediaVideo;teacher:TeacherMedia};
 type LegacyWindow=Window&{
@@ -118,14 +118,14 @@ function coachRecommendations():CoachRecommendation[]{
     if(!id||!/^https?:\/\//i.test(url))return null;
     return {
       key:String(row.key||kind+":"+id).slice(0,150),id,kind,title,url,
-      teacher:String(row.teacher||"").slice(0,100),subject:String(row.subject||"").slice(0,80),
+      teacher:String(row.teacher||"").slice(0,100),subject:String(row.subject||"").slice(0,80),topic:String(row.topic||"").slice(0,120),
       scope:String(row.scope||"").slice(0,10),thumb:String(row.thumb||"").slice(0,600),
       coachUid:String(row.coachUid||"").slice(0,120),at:Number(row.at||index||0)
     } satisfies CoachRecommendation;
   }).filter((row):row is CoachRecommendation=>Boolean(row)).sort((a,b)=>b.at-a.at).slice(0,8);
 }
 function recommendationCard(item:CoachRecommendation):string{
-  const meta=[item.teacher,item.scope,item.subject].filter(Boolean).join(" · ");
+  const meta=[item.teacher,item.scope,item.subject,item.topic].filter(Boolean).join(" · ");
   const thumb=item.thumb||(item.kind==="video"?`https://i.ytimg.com/vi/${encodeURIComponent(item.id)}/hqdefault.jpg`:"");
   return `<article class="teachers-v2-coach-rec-card">
     <button type="button" class="teachers-v2-coach-rec-main" data-library-action="coach-resource" data-resource-kind="${esc(item.kind)}" data-resource-id="${esc(item.id)}" data-resource-url="${esc(item.url)}" data-video-title="${esc(item.title)}">
