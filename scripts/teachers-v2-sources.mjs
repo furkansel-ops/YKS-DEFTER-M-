@@ -1,3 +1,4 @@
+/* Manuel tam medya yenileme: 2026-10-07 · YKS 2027 video + playlist arşivi */
 /* Hocalar v2 için tek doğrulama kaynağı.
    Yerleşik katalogda görünen her isim burada gerçek bir YouTube kanalına
    bağlanır. channelId biliniyorsa doğrudan, yalnız handle biliniyorsa hafif
