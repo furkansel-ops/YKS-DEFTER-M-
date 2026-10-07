@@ -43,3 +43,21 @@ test("Bir saati geçen odak süresi yuvarlak sayaçta taşmaz",()=>{
   assert.match(app,/classList\.toggle\("is-long",timeText\.length>5\)/);
   assert.match(css,/#pomo #pomoTime\.is-long\{[\s\S]*font-size:38px/);
 });
+
+
+test("kronometre açılmadığında çalışma süresi bugüne manuel eklenebilir",()=>{
+  const index=read("index.html"),app=read("app.js"),css=read("modules/ui-polish-focus-v1.css"),contracts=read("src/data/contracts.ts");
+  for(const id of ["manualFocusHours","manualFocusMinutes","manualFocusStart","manualFocusSubject","manualFocusTopic","manualFocusSource","manualFocusAddBtn","manualFocusStatus"])assert.match(index,new RegExp('id="'+id+'"'));
+  assert.match(index,/Çalışma süresi ekle/);
+  assert.match(index,/Bugüne süre ekle/);
+  assert.match(app,/function addManualFocus\(\)/);
+  assert.match(app,/S\.pomoMin\[day\]=prevTotal\+total/);
+  assert.match(app,/S\.pomoSubj\[day\]\[subject\]=prevSubject\+total/);
+  assert.match(app,/S\.sessions\[day\]\.push\(\{t:startAt,end:startAt\+total\*60000,m:total/);
+  assert.match(app,/source:"manual"/);
+  assert.match(app,/startAt===-1/);
+  assert.match(app,/Başlangıç saati \+ süre şu anı geçemez/);
+  assert.match(app,/renderPomo\(\);renderTimeDist\(\)/);
+  assert.match(css,/Manual focus entry restored v2/);
+  assert.match(contracts,/source:""\|"sw"\|"pomo"\|"manual"/);
+});
