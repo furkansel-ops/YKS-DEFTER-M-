@@ -140,20 +140,6 @@ const domain=installLegacyDomainBridge();
 const progressAnalysis=installLegacyProgressAnalysisBridge();
 const examAnalysis=installLegacyExamAnalysisBridge();
 const pwa=installPwaRuntime(RELEASE_BUILD);
-document.documentElement.dataset.focusLiveNotificationRuntime="loading";
-void import("./native/android-focus-notification")
-  .then(({installAndroidFocusNotification})=>{
-    const feature=installOptional(
-      "android-focus-notification",
-      ()=>installAndroidFocusNotification(),
-      {installed:false,platform:"deferred"}
-    );
-    document.documentElement.dataset.focusLiveNotificationRuntime=feature.installed?"ready":feature.platform;
-  })
-  .catch(error=>{
-    document.documentElement.dataset.focusLiveNotificationRuntime="deferred";
-    console.error("Android odak canlı bildirimi yüklenemedi",error);
-  });
 
 /* P & P ekran kabuğunun navigasyon doğrulamasından önce kurulması gerekir; ancak
    kurulum hatası artık çekirdek açılışı durdurmaz. */
