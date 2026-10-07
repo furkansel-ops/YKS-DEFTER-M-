@@ -1080,6 +1080,19 @@
           <svg viewBox="0 0 24 24"><path d="M12 3v9l6 3"/><circle cx="12" cy="12" r="9"/></svg>
         </button>
       </div>
+      <div class="sw-session-tools" id="swSessionTools">
+        <div class="sw-active-subject">
+          <span>Aktif ders</span>
+          <strong id="swActiveSubject">—</strong>
+        </div>
+        <label class="sw-subject-switch">
+          <span>Ders değiştir</span>
+          <select id="swSubjectSwitch" onchange="swSwitchSubject(this.value)" aria-label="Kronometrede aktif dersi değiştir"></select>
+        </label>
+        <button class="sw-tool-btn" type="button" onclick="swLap()">Tur kaydet</button>
+        <button class="sw-tool-btn is-break" type="button" onclick="swMarkBreak()">Mola işaretle</button>
+      </div>
+      <p class="sw-session-note" id="swSessionNote">Ders değiştirirsen geçen süre eski derste kalır; kronometre sıfırlanmaz.</p>
     </div>
 
     <h2>Turlar</h2>
