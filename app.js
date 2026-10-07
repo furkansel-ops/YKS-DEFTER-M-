@@ -4535,7 +4535,88 @@ function nativeFocusBridgeApply(nativeState){
   }
   return false;
 }
+
 window.YKSFocusNativeBridge={snapshot:nativeFocusBridgeSnapshot,apply:nativeFocusBridgeApply};
+
+(function installAndroidFocusNativeRuntime(){
+  const cap=window.Capacitor,plugin=cap&&cap.Plugins&&cap.Plugins.FocusTimer;
+  if(!plugin||typeof plugin.sync!=="function"){
+    document.documentElement.dataset.focusLiveNotification="web";
+    return;
+  }
+  let reconciling=false,permissionChecked=false,sessionId="",syncTimer=0,lastRevision=0;
+  const wrapped={};
+  function makeSessionId(snapshot){
+    return snapshot.mode+"-"+(snapshot.startedAt||Date.now())+"-"+Math.random().toString(36).slice(2,8);
+  }
+  async function ensurePermission(){
+    if(permissionChecked)return;
+    permissionChecked=true;
+    try{
+      if(typeof plugin.checkPermissions!=="function"||typeof plugin.requestPermissions!=="function")return;
+      const current=await plugin.checkPermissions();
+      if(current&&current.notifications!=="granted")await plugin.requestPermissions();
+    }catch(e){try{console.warn("Odak canlı bildirim izni alınamadı",e)}catch(_){}}
+  }
+  async function syncFromWeb(){
+    if(reconciling)return;
+    const snapshot=nativeFocusBridgeSnapshot();
+    if(!snapshot)return;
+    if(!snapshot.active){
+      sessionId="";
+      try{await plugin.sync(Object.assign({},snapshot,{sessionId:""}));}catch(e){}
+      return;
+    }
+    if(!sessionId)sessionId=makeSessionId(snapshot);
+    await ensurePermission();
+    try{await plugin.sync(Object.assign({},snapshot,{sessionId:sessionId}));}
+    catch(e){try{console.warn("Odak canlı bildirimi güncellenemedi",e)}catch(_){}}
+  }
+  function queueSync(){
+    clearTimeout(syncTimer);
+    syncTimer=setTimeout(()=>{syncFromWeb()},40);
+  }
+  async function reconcile(state){
+    if(!state||(!state.active&&!state.pendingAction))return;
+    if(state.sessionId)sessionId=state.sessionId;
+    if(state.revision&&state.revision<lastRevision)return;
+    reconciling=true;
+    try{
+      nativeFocusBridgeApply(state);
+      lastRevision=Math.max(lastRevision,Number(state.revision)||0);
+      if(state.revision&&typeof plugin.ack==="function")await plugin.ack({revision:state.revision});
+    }catch(e){try{console.warn("Odak canlı bildirim durumu uygulanamadı",e)}catch(_){}}
+    finally{reconciling=false;}
+    if(state.active)queueSync();else sessionId="";
+  }
+  async function refresh(){
+    try{
+      if(typeof plugin.getState!=="function")return;
+      const state=await plugin.getState();
+      if(state&&state.sessionId)sessionId=state.sessionId;
+      if(state&&(state.active||state.pendingAction))await reconcile(state);
+      else queueSync();
+    }catch(e){try{console.warn("Odak canlı bildirim durumu okunamadı",e)}catch(_){}}
+  }
+  ["startPomo","pausePomo","resetPomo","finishPhase","skipPhase","swStart","swPause","swReset"].forEach(name=>{
+    const original=window[name];
+    if(typeof original!=="function"||wrapped[name])return;
+    wrapped[name]=original;
+    window[name]=function(){
+      const result=original.apply(this,arguments);
+      if(!reconciling)queueSync();
+      return result;
+    };
+  });
+  try{
+    if(typeof plugin.addListener==="function")plugin.addListener("focusAction",state=>{reconcile(state)});
+  }catch(e){}
+  document.addEventListener("visibilitychange",()=>{if(!document.hidden)refresh()});
+  window.addEventListener("pageshow",refresh);
+  window.addEventListener("focus",refresh);
+  setTimeout(refresh,350);
+  document.documentElement.dataset.focusLiveNotification="ready";
+})();
 
 /* ==================================================================
    BAŞLATMA
