@@ -55,3 +55,17 @@ test("tablet dokunma hedefi ve azaltılmış hareket desteği korunur",()=>{
   assert.match(style,/\.v46-choice-card/);
   assert.match(style,/@media \(prefers-reduced-motion:reduce\)/);
 });
+
+
+test("minimal odak modu premium sayaç görünümü ve canlı ilerleme bilgisi gösterir",()=>{
+  const html=read("index.html"),app=read("app.js"),css=read("app.css");
+  for(const id of ["v29MinimalRing","v29MinimalMode","v29MinimalToday","v29MinimalRound","v29MinimalPercent","v29MinimalHint"])assert.match(html,new RegExp('id="'+id+'"'));
+  assert.match(app,/--minimal-progress/);
+  assert.match(app,/todayMin/);
+  assert.match(app,/Pomodoro · Çalışma/);
+  assert.match(app,/dataset\.running/);
+  assert.match(css,/\.v29-minimal-shell/);
+  assert.match(css,/conic-gradient/);
+  assert.match(css,/\.v29-minimal-stats/);
+  assert.match(css,/\.v29-minimal-primary/);
+});
