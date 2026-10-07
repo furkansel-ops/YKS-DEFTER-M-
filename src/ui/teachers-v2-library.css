@@ -51,3 +51,12 @@
 @media(hover:hover){.teachers-v2-coach-rec-card:hover{border-color:color-mix(in srgb,var(--accent) 32%,var(--sep))}}
 @media(max-width:720px){.teachers-v2-coach-recs-row{grid-template-columns:1fr}}
 @media(max-width:560px){.teachers-v2-coach-recs{padding:10px}.teachers-v2-coach-rec-main{grid-template-columns:98px minmax(0,1fr)}}
+
+
+/* Watch state library shelves v1 — stage 5 */
+.teachers-v2-status-columns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:0 0 14px;padding:11px;border:1px solid var(--sep);border-radius:15px;background:color-mix(in srgb,var(--fill) 58%,var(--glass))}
+.teachers-v2-status-columns>section{min-width:0}
+.teachers-v2-status-columns>section:first-child .teachers-v2-library-subhead h4{color:#986000}
+.teachers-v2-status-columns>section:last-child .teachers-v2-library-subhead h4{color:var(--accent)}
+.teachers-v2-status-columns .teachers-v2-library-card{background:var(--glass-strong)}
+@media(max-width:720px){.teachers-v2-status-columns{grid-template-columns:1fr}}
