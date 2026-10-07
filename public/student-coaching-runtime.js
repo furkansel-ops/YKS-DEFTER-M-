@@ -230,6 +230,16 @@ function applyAction(a){
     s.topics??={};s.topics[k]??={st:0,conf:0,ts:null,rev:[]};s.topics[k].dl=d;save();
   }else if(a.type==="coach_note"){
     const v=text(p.text,500);if(!v)throw new Error("Not boş");s.coachNotes??=[];s.coachNotes.push({id:`coach-${Date.now()}`,at:Date.now(),coachUid:a.coachUid,text:v});s.coachNotes=s.coachNotes.slice(-80);save();
+  }else if(a.type==="resource_recommendation"){
+    const kind=text(p.kind,20),resourceId=text(p.id,120),title=text(p.title,180),url=text(p.url,600),teacher=text(p.teacher,100),subject=text(p.subject,80),scope=text(p.scope,10),thumb=text(p.thumb,600);
+    if(!["video","playlist"].includes(kind)||!resourceId||!title||!/^https?:\/\//i.test(url))throw new Error("Kaynak önerisi geçersiz");
+    s.coachRecommendations=Array.isArray(s.coachRecommendations)?s.coachRecommendations:[];
+    const key=kind+":"+resourceId,now=Date.now(),next={key,id:resourceId,kind,title,url,teacher,subject,scope,thumb,coachUid:text(a.coachUid,120),at:now};
+    s.coachRecommendations=s.coachRecommendations.filter(item=>String(item?.key||"")!==key);
+    s.coachRecommendations.push(next);
+    s.coachRecommendations=s.coachRecommendations.slice(-40);
+    if(save()===false)throw new Error("Kaynak önerisi kaydedilemedi");
+    window.dispatchEvent(new CustomEvent("yks:coach-recommendations-changed",{detail:{key}}));
   }else throw new Error("Desteklenmeyen işlem");
   return"Uygulandı";
 }
@@ -248,7 +258,7 @@ async function handleAction(change,session=rt.session){
     requireSession(session);
     await updateDoc(change.doc.ref,{status:"applied",updatedAt:serverTimestamp(),handledAt:serverTimestamp(),result});
     if(session!==rt.session)return;
-    toast("Koçundan yeni görev/not geldi ✓");scheduleShare(60);
+    toast(a.type==="resource_recommendation"?"Koçundan yeni video önerisi geldi ✓":"Koçundan yeni görev/not geldi ✓");scheduleShare(60);
   }catch(error){
     if(session!==rt.session)return;
     try{await updateDoc(change.doc.ref,{status:"rejected",updatedAt:serverTimestamp(),handledAt:serverTimestamp(),result:text(error?.message||"Uygulanamadı",500)})}catch{}
@@ -283,7 +293,7 @@ async function onSignedIn({user,auth,db}){
 function onSignedOut(){cleanup();rt.user=rt.auth=rt.db=rt.profile=null;delete document.documentElement.dataset.accountRole}
 
 let resolveAccountReady;try{window.__YKS_ACCOUNT_READY__=new Promise(resolve=>{resolveAccountReady=resolve})}catch{}
-window.YKSAccountAuth={version:"1.2.18",beforeSignIn,onSignedIn,onSignedOut,publishShare};
+window.YKSAccountAuth={version:"1.2.19",beforeSignIn,onSignedIn,onSignedOut,publishShare};
 try{resolveAccountReady?.(window.YKSAccountAuth)}catch{}
 document.documentElement.dataset.studentCoachingBridge="ready";
-window.dispatchEvent(new CustomEvent("yks:student-coaching-ready",{detail:{version:"1.2.18"}}));
+window.dispatchEvent(new CustomEvent("yks:student-coaching-ready",{detail:{version:"1.2.19"}}));
