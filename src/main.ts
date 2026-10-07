@@ -18,7 +18,6 @@ import {installRecoveryCenter} from "./ui/recovery-center";
 import {installV43SafeRuntime} from "./ui/v43-safe-runtime";
 import {installPlayStoreShell} from "./ui/play-store-shell";
 import {installParagraphProblemTracker} from "./ui/paragraph-problem-tracker";
-import {installAndroidFocusNotification} from "./native/android-focus-notification";
 import {installTeachersV2} from "./ui/teachers-v2";
 import "./ui/visual-stability-hotfix.css";
 import "./ui/recent-feature-stability.css";
@@ -141,12 +140,20 @@ const domain=installLegacyDomainBridge();
 const progressAnalysis=installLegacyProgressAnalysisBridge();
 const examAnalysis=installLegacyExamAnalysisBridge();
 const pwa=installPwaRuntime(RELEASE_BUILD);
-const androidFocusNotification=installOptional(
-  "android-focus-notification",
-  ()=>installAndroidFocusNotification(),
-  {installed:false,platform:"deferred"}
-);
-document.documentElement.dataset.focusLiveNotificationRuntime=androidFocusNotification.installed?"ready":androidFocusNotification.platform;
+document.documentElement.dataset.focusLiveNotificationRuntime="loading";
+void import("./native/android-focus-notification")
+  .then(({installAndroidFocusNotification})=>{
+    const feature=installOptional(
+      "android-focus-notification",
+      ()=>installAndroidFocusNotification(),
+      {installed:false,platform:"deferred"}
+    );
+    document.documentElement.dataset.focusLiveNotificationRuntime=feature.installed?"ready":feature.platform;
+  })
+  .catch(error=>{
+    document.documentElement.dataset.focusLiveNotificationRuntime="deferred";
+    console.error("Android odak canlı bildirimi yüklenemedi",error);
+  });
 
 /* P & P ekran kabuğunun navigasyon doğrulamasından önce kurulması gerekir; ancak
    kurulum hatası artık çekirdek açılışı durdurmaz. */
