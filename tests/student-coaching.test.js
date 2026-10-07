@@ -17,7 +17,7 @@ test("öğrenci uygulaması yalnız öğrenci hesabı olarak açılır ve koç p
 
 test("öğrenci hesap köprüleri auth başlamadan önce güvenli sırada yüklenir",()=>{
   const loader=read("src/ui/student-account-loader.ts");
-  const bridgeAt=loader.indexOf("student-coaching-runtime.js?v=1.2.18");
+  const bridgeAt=loader.indexOf("student-coaching-runtime.js?v=1.2.19");
   const linkAt=loader.indexOf("student-coach-link.js?v=1.3.1");
   const programAt=loader.indexOf("student-program-share-v2.js?v=3.6.2");
   const authAt=loader.indexOf("auth-session-runtime.js?v=1.6.0");
