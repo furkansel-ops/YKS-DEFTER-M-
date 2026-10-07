@@ -263,6 +263,23 @@ function visiblePlaylists(media:TeacherMedia):{items:MediaPlaylist[];total:numbe
   return {items:matches.slice(0,playlistLimit),total:playlists.length,matches:matches.length};
 }
 function findPlaylist(media:TeacherMedia,id:string):MediaPlaylist|undefined{return allPlaylists(media).find(item=>item.id===id);}
+function playlistProgress(item:MediaPlaylist):{watched:number;total:number;percent:number;exact:boolean;next:number}{
+  const videos=(Array.isArray(item.videos)?item.videos:[]).filter(video=>Boolean(video?.id));
+  const declared=Math.max(0,Number(item.videoCount||0)),total=Math.max(declared,videos.length);
+  const watched=videos.reduce((sum,video)=>sum+(isWatched(video.id)?1:0),0);
+  const exact=Boolean(videos.length&&(!declared||videos.length>=declared));
+  const denominator=exact?Math.max(1,total):Math.max(1,videos.length);
+  const percent=Math.max(0,Math.min(100,Math.round(watched/denominator*100)));
+  const nextIndex=videos.findIndex(video=>!isWatched(video.id));
+  return {watched,total:total||videos.length,percent,exact,next:nextIndex<0?-1:nextIndex+1};
+}
+function playlistProgressMarkup(item:MediaPlaylist,detail=false):string{
+  const progress=playlistProgress(item);
+  if(!progress.total)return "";
+  const countLabel=progress.exact?`${progress.watched} / ${progress.total} izlendi`:`${progress.watched} izlendi · ${Math.max(0,(item.videos||[]).length)} video yüklü`;
+  const next=progress.next>0?` · Sıradaki ${progress.next}. video`:(progress.exact&&progress.watched>=progress.total?" · Tamamlandı ✓":"");
+  return `<div class="teachers-v2-playlist-progress ${detail?"detail":""}" aria-label="${esc(countLabel)}"><span><b>${esc(countLabel)}</b><em>${progress.exact?`%${progress.percent}`:"Arşiv yükleniyor"}${esc(next)}</em></span><i aria-hidden="true"><b style="width:${progress.percent}%"></b></i></div>`;
+}
 function findVideo(media:TeacherMedia,id:string):MediaVideo|undefined{
   const direct=(media.videos||[]).find(item=>item.id===id);if(direct)return direct;
   for(const playlist of allPlaylists(media)){const hit=(playlist.videos||[]).find(item=>item.id===id);if(hit)return hit;}
@@ -274,8 +291,10 @@ function playlistEmbed(item:MediaPlaylist):string{
 }
 function playlistDetail(media:TeacherMedia,item:MediaPlaylist):string{
   const videos=Array.isArray(item.videos)?item.videos:[],planned=inProgram(planPlaylistText(item));
+  const progress=playlistProgress(item),videoLabel=progress.exact?`${progress.total} video · ilerlemen kaydediliyor`:(videos.length?`${videos.length} video yüklendi · arşiv tamamlanıyor`:"Listenin tamamını oynatıcıdan izle");
   return `<div class="teachers-v2-playlist-detail">
-    <div class="teachers-v2-playlist-detail-head"><button type="button" data-media-action="playlist-back">‹ Listelere dön</button><div><b>${esc(item.title)}</b><small>${videos.length?`${videos.length} video önizlemesi · Listenin tamamı oynatıcıda`:"Listenin tamamını oynatıcıdan izle"}</small></div><button class="teachers-v2-playlist-plan ${planned?"on":""}" type="button" data-media-action="playlist-program" data-playlist-id="${esc(item.id)}">${planned?"✓ Programda":"Programa ekle"}</button><button type="button" data-media-action="playlist-play" data-playlist-id="${esc(item.id)}">Tüm listeyi izle</button></div>
+    <div class="teachers-v2-playlist-detail-head"><button type="button" data-media-action="playlist-back">‹ Listelere dön</button><div><b>${esc(item.title)}</b><small>${esc(videoLabel)}</small></div><button class="teachers-v2-playlist-plan ${planned?"on":""}" type="button" data-media-action="playlist-program" data-playlist-id="${esc(item.id)}">${planned?"✓ Programda":"Programa ekle"}</button><button type="button" data-media-action="playlist-play" data-playlist-id="${esc(item.id)}">Tüm listeyi izle</button></div>
+    ${playlistProgressMarkup(item,true)}
     ${videos.length?`<div class="teachers-v2-playlist-video-grid">${videoCards(media,videos)}</div>`:'<p class="teachers-v2-playlist-note">Videolar arasında oynatıcının liste düğmesiyle geçebilirsin.</p>'}
   </div>`;
 }
@@ -283,7 +302,10 @@ function playlistCards(media:TeacherMedia):string{
   const view=visiblePlaylists(media);
   if(!view.total)return `<button class="teachers-v2-playlist-fallback" type="button" data-media-action="playlist-search">Oynatma listelerini YouTube'da bul <span>→</span></button>`;
   if(!view.items.length)return `<div class="teachers-v2-playlist-empty"><b>Bu aramada liste bulunamadı.</b><span>Başka bir kelime dene veya bağlantısını aşağıya yapıştır.</span></div>`;
-  return view.items.map(item=>{const planned=inProgram(planPlaylistText(item)),count=Number(item.videoCount||0),preview=item.videos?.length||0;return `<article class="teachers-v2-playlist-wrap"><button class="teachers-v2-playlist-card" type="button" data-media-action="playlist" data-playlist-id="${esc(item.id)}" aria-label="${esc(item.title)} oynatma listesini aç"><span>▤</span><span class="teachers-v2-playlist-copy"><b>${esc(item.title)}</b><small>${count?`${count} video`:preview?`${preview} video önizlemesi`:"Oynatma listesi"} · Listeyi aç</small></span><i>›</i></button><button class="teachers-v2-playlist-plan ${planned?"on":""}" type="button" data-media-action="playlist-program" data-playlist-id="${esc(item.id)}" aria-label="${esc(item.title)} listesini Programım'a ekle">${planned?"✓ Programda":"Programa ekle"}</button></article>`;}).join("");
+  return view.items.map(item=>{
+    const planned=inProgram(planPlaylistText(item)),count=Number(item.videoCount||0),preview=item.videos?.length||0;
+    return `<article class="teachers-v2-playlist-wrap"><button class="teachers-v2-playlist-card" type="button" data-media-action="playlist" data-playlist-id="${esc(item.id)}" aria-label="${esc(item.title)} oynatma listesini aç"><span>▤</span><span class="teachers-v2-playlist-copy"><b>${esc(item.title)}</b><small>${count?`${count} video`:preview?`${preview} video önizlemesi`:"Oynatma listesi"} · Listeyi aç</small>${playlistProgressMarkup(item)}</span><i>›</i></button><button class="teachers-v2-playlist-plan ${planned?"on":""}" type="button" data-media-action="playlist-program" data-playlist-id="${esc(item.id)}" aria-label="${esc(item.title)} listesini Programım'a ekle">${planned?"✓ Programda":"Programa ekle"}</button></article>`;
+  }).join("");
 }
 function playlistSection(media:TeacherMedia):string{
   const active=activePlaylistId?findPlaylist(media,activePlaylistId):undefined,view=visiblePlaylists(media);
