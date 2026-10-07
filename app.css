@@ -3373,3 +3373,82 @@ body > .qaviewer .qvimg img{display:block;width:auto;height:auto;max-width:100%;
   .v29-dash{padding:10px 9px}
   .v29-dash.is-primary,.v29-dash.is-goal,.v29-dash.is-subject{min-height:72px}
 }
+
+
+/* Stopwatch workflow controls v47 */
+.sw-session-tools{
+  margin:18px auto 0;
+  width:min(560px,100%);
+  display:grid;
+  grid-template-columns:minmax(0,1.2fr) minmax(150px,1fr) auto auto;
+  gap:8px;
+  align-items:end;
+  padding:10px;
+  border:1px solid var(--sep);
+  border-radius:16px;
+  background:color-mix(in srgb,var(--fill) 72%,var(--card));
+}
+.sw-active-subject,
+.sw-subject-switch{
+  min-width:0;
+  display:grid;
+  gap:4px;
+}
+.sw-active-subject span,
+.sw-subject-switch>span{
+  font-size:9px;
+  font-weight:850;
+  letter-spacing:.05em;
+  text-transform:uppercase;
+  color:var(--label-3);
+}
+.sw-active-subject strong{
+  min-width:0;
+  font-size:13px;
+  color:var(--label);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.sw-subject-switch select{
+  width:100%;
+  min-height:38px;
+  margin:0;
+  padding:7px 30px 7px 9px;
+  border-radius:11px;
+  font-size:12px;
+}
+.sw-tool-btn{
+  min-height:38px;
+  border:1px solid var(--sep);
+  border-radius:11px;
+  padding:8px 10px;
+  background:var(--card);
+  color:var(--label);
+  font:800 11px var(--font);
+  cursor:pointer;
+  white-space:nowrap;
+}
+.sw-tool-btn.is-break{
+  background:color-mix(in srgb,var(--time-soft) 72%,var(--card));
+  color:var(--time);
+}
+.sw-session-note{
+  margin:8px auto 0;
+  width:min(560px,100%);
+  font-size:10.5px;
+  line-height:1.4;
+  text-align:center;
+  color:var(--label-3);
+}
+.sw-lap-row.is-break .k{color:var(--time);font-weight:800}
+.sw-lap-row.is-switch .k{color:var(--accent);font-weight:800}
+@media(max-width:680px){
+  .sw-session-tools{grid-template-columns:1fr 1fr}
+  .sw-active-subject{grid-column:1/-1}
+  .sw-tool-btn{width:100%}
+}
+@media(max-width:390px){
+  .sw-session-tools{grid-template-columns:1fr;gap:7px}
+  .sw-active-subject{grid-column:auto}
+}
