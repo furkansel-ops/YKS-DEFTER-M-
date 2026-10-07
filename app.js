@@ -4429,17 +4429,15 @@ async function focusPwaNotificationRegistration(){
 }
 async function focusPwaNotificationPermission(){
   try{
-    if(typeof notifCfg!=="function"||typeof notifState!=="function")return false;
-    const cfg=notifCfg();
-    if(cfg.pomo===false)return false;
-    const state=notifState();
-    if(state==="granted")return !!cfg.on;
-    if(state==="default"&&typeof askNotif==="function"){
-      const result=await askNotif();
-      return result==="granted"&&!!notifCfg().on;
+    if(typeof Notification==="undefined")return false;
+    if(Notification.permission==="granted")return true;
+    if(Notification.permission==="denied"){
+      if(typeof toast==="function")toast("Odak bildirimi için bildirim iznini aç");
+      return false;
     }
-  }catch(e){}
-  return false;
+    const result=await Notification.requestPermission();
+    return result==="granted";
+  }catch(e){return false;}
 }
 function focusPwaNotificationBody(mode){
   const subject=String(pomoSubject||SUBJ_NAMES[0]||"Ders").trim()||"Ders";
@@ -4464,12 +4462,25 @@ async function focusPwaNotificationShow(mode){
     icon:"icon-192.png",
     badge:"icon-192.png",
     lang:"tr",
-    silent:true,
     requireInteraction:true,
+    renotify:true,
     data:{kind:"focus",screen:"pomo"},
     actions:[{action:"open-focus",title:"Odak ekranını aç"}]
   };
-  try{await reg.showNotification(title,options);return true;}catch(e){return false;}
+  try{await reg.showNotification(title,options);return true;}
+  catch(e){
+    try{
+      await reg.showNotification(title,{
+        body:options.body,
+        tag:FOCUS_PWA_NOTIFICATION_TAG,
+        icon:"icon-192.png",
+        badge:"icon-192.png",
+        lang:"tr",
+        data:{kind:"focus",screen:"pomo"}
+      });
+      return true;
+    }catch(_){return false;}
+  }
 }
 async function focusPwaNotificationClose(){
   try{
