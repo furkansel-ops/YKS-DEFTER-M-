@@ -54,6 +54,7 @@
 
 
 /* Watch state library shelves v1 — stage 5 */
+.teachers-v2-video-card>.teachers-v2-video-save{position:static!important;inset:auto!important;display:block;width:calc(100% - 16px);min-height:34px;margin:0 8px 8px}
 .teachers-v2-status-columns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:0 0 14px;padding:11px;border:1px solid var(--sep);border-radius:15px;background:color-mix(in srgb,var(--fill) 58%,var(--glass))}
 .teachers-v2-status-columns>section{min-width:0}
 .teachers-v2-status-columns>section:first-child .teachers-v2-library-subhead h4{color:#986000}
