@@ -2731,6 +2731,7 @@ function pomoTick(){
 }
 function finishPhase(){
   clearInterval(pomoTimer); pomoTimer=null;
+  if(typeof focusPwaNotificationClose==="function")void focusPwaNotificationClose();
   creditMinutes();
   const wasWork=pomoIsWork;
   if(wasWork){
@@ -2771,6 +2772,7 @@ function startPomo(){
   clearInterval(pomoTimer);
   pomoTimer=setInterval(pomoTick,1000);
   renderPomo();
+  if(typeof focusPwaNotificationShow==="function")void focusPwaNotificationShow("pomo");
 }
 function pausePomo(){
   clearInterval(pomoTimer); pomoTimer=null;
@@ -2779,6 +2781,7 @@ function pausePomo(){
   pomoState="paused"; stopNoise(); releaseWake();
   const k=todayKey(); S.pauses[k]=(S.pauses[k]||0)+1; save();
   if(typeof showPauseReason==="function")showPauseReason();
+  if(typeof focusPwaNotificationClose==="function")void focusPwaNotificationClose();
   renderPomo();
 }
 function togglePomo(){ if(pomoState==="running")pausePomo(); else startPomo(); }
@@ -2789,6 +2792,7 @@ function resetPomo(){
   pomoState="idle"; pomoIsWork=true;
   pomoStartedAt=0; pomoCredited=0;
   pomoTotal=pomoPhaseMin(true)*60; pomoLeft=pomoTotal;
+  if(typeof focusPwaNotificationClose==="function")void focusPwaNotificationClose();
   renderPomo();
 }
 function skipPhase(){
@@ -4318,6 +4322,7 @@ function swStart(){
   ensureAudio(); requestWake();
   clearInterval(swTimer); swTimer=setInterval(swTick,100);
   renderSw();
+  if(typeof focusPwaNotificationShow==="function")void focusPwaNotificationShow("sw");
 }
 function swPause(){
   const s=sw();
@@ -4331,6 +4336,7 @@ function swPause(){
   swHistoryAdd(Math.max(0,now-runStart),pomoSubject||SUBJ_NAMES[0],runStart,now);
   save();
   releaseWake();
+  if(typeof focusPwaNotificationClose==="function")void focusPwaNotificationClose();
   renderSw(); renderSwHistory();
 }
 function swToggle(){ if(sw().run)swPause(); else swStart(); }
@@ -4353,6 +4359,7 @@ function swReset(){
   s.run=false; s.start=0; s.acc=0; s.cr=0;
   S.focus.swLaps=[];
   clearInterval(swTimer); swTimer=null; releaseWake();
+  if(typeof focusPwaNotificationClose==="function")void focusPwaNotificationClose();
   save(); renderSw(); renderSwHistory(); renderSessions(); renderTimeDist();
   checkBadges(false);
 }
@@ -4402,230 +4409,85 @@ function renderSw(){
 }
 function swBoot(){
   const s=sw();
-  if(s.run){ clearInterval(swTimer); swTimer=setInterval(swTick,100); requestWake(); }
+  if(s.run){ clearInterval(swTimer); swTimer=setInterval(swTick,100); requestWake(); if(typeof focusPwaNotificationShow==="function")void focusPwaNotificationShow("sw"); }
   renderSw();
 }
 
-/* Android native canlı odak bildirimi köprüsü.
-   Native servis yalnız zamanı ve kullanıcı aksiyonlarını taşır; çalışma dakikalarının
-   tek doğruluk kaynağı burada kalır. Böylece bildirimden duraklat/devam/bitir
-   kullanıldığında aynı dakika ikinci kez yazılmaz. */
-let nativeFocusLastActionRevision=0;
-function nativeFocusBridgeSnapshot(){
-  const day=todayKey(),todayMinutes=Math.max(0,Math.floor(Number(S.pomoMin[day]||0)));
-  const subject=String(pomoSubject||SUBJ_NAMES[0]||"Ders").slice(0,80);
-  const topic=String(typeof pomoTopic!=="undefined"?pomoTopic:"").slice(0,100);
-  const stopwatch=sw(),swMs=Math.max(0,swElapsed());
-  if(stopwatch.run||(pomoState==="idle"&&swMs>0)){
-    return {active:true,mode:"sw",running:!!stopwatch.run,isWork:true,totalMs:0,remainingMs:0,elapsedMs:swMs,
-      startedAt:stopwatch.run?(Number(stopwatch.start)||Math.max(1,Date.now()-swMs)):Math.max(1,Date.now()-swMs),
-      subject:subject,topic:topic,task:"",creditedMinutes:Math.max(0,stopwatch.cr|0),todayMinutes:todayMinutes};
-  }
-  if(pomoState!=="idle"){
-    const totalMs=Math.max(1000,Math.round(Number(pomoTotal)||1)*1000);
-    const remainingMs=pomoState==="running"?Math.max(0,pomoEndAt-Date.now()):Math.max(0,Math.round(Number(pomoLeft)||0)*1000);
-    return {active:true,mode:"pomo",running:pomoState==="running",isWork:!!pomoIsWork,totalMs:totalMs,remainingMs:remainingMs,
-      elapsedMs:Math.max(0,totalMs-remainingMs),startedAt:Math.max(0,Number(pomoStartedAt)||0),
-      subject:subject,topic:topic,task:String(pomoTask||"").slice(0,120),creditedMinutes:Math.max(0,pomoCredited|0),todayMinutes:todayMinutes};
-  }
-  return {active:false,mode:"pomo",running:false,isWork:true,totalMs:0,remainingMs:0,elapsedMs:0,startedAt:0,
-    subject:subject,topic:topic,task:"",creditedMinutes:0,todayMinutes:todayMinutes};
+/* PWA Odak bildirimi.
+   Chrome/Android ana ekran kurulumunda service worker üzerinden tek bir
+   Odak bildirimi gösterir. Kapsül/native foreground service kullanılmaz. */
+const FOCUS_PWA_NOTIFICATION_TAG="yks-focus-running";
+async function focusPwaNotificationRegistration(){
+  try{
+    if(!("serviceWorker" in navigator)||!navigator.serviceWorker.ready)return null;
+    let timer=0;
+    const timeout=new Promise(resolve=>{timer=setTimeout(()=>resolve(null),3500);});
+    const reg=await Promise.race([navigator.serviceWorker.ready,timeout]);
+    clearTimeout(timer);
+    return reg&&typeof reg.showNotification==="function"?reg:null;
+  }catch(e){return null;}
 }
-function nativeFocusAdjustPomoCredit(target){
-  if(typeof isCoach==="function"&&isCoach())return false;
-  const ceiling=Math.max(0,Math.round((Number(pomoTotal)||0)/60));
-  target=Math.max(0,Math.min(ceiling,Math.floor(Number(target)||0)));
-  const before=Math.max(0,pomoCredited|0);
-  if(target===before)return false;
-  const day=todayKey();
-  S.pomoMin[day]=Math.max(0,(S.pomoMin[day]||0)+(target-before));
-  if(target>before)focusCreditAllocation(day,before,target);
-  else{
-    const prev=focusAllocationMap(before),next=focusAllocationMap(target);
-    if(!S.pomoSubj[day])S.pomoSubj[day]={};
-    Object.keys(prev).forEach(subject=>{
-      const remove=Math.max(0,(prev[subject]||0)-(next[subject]||0));
-      if(!remove)return;
-      S.pomoSubj[day][subject]=Math.max(0,(S.pomoSubj[day][subject]||0)-remove);
-      if(!S.pomoSubj[day][subject])delete S.pomoSubj[day][subject];
-    });
-  }
-  pomoCredited=target;
-  return true;
-}
-function nativeFocusAdjustSwCredit(targetMs){
-  if(typeof isCoach==="function"&&isCoach())return false;
-  const state=sw(),target=Math.max(0,Math.floor((Number(targetMs)||0)/60000)),before=Math.max(0,state.cr|0);
-  if(target===before)return false;
-  const day=todayKey(),subject=pomoSubject||SUBJ_NAMES[0]||"Ders",delta=target-before;
-  S.pomoMin[day]=Math.max(0,(S.pomoMin[day]||0)+delta);
-  if(!S.pomoSubj[day])S.pomoSubj[day]={};
-  S.pomoSubj[day][subject]=Math.max(0,(S.pomoSubj[day][subject]||0)+delta);
-  if(!S.pomoSubj[day][subject])delete S.pomoSubj[day][subject];
-  state.cr=target;
-  return true;
-}
-function nativeFocusBridgeApply(nativeState){
-  if(!nativeState||!["pomo","sw"].includes(nativeState.mode))return false;
-  const revision=Math.max(0,Number(nativeState.revision)||0),pending=String(nativeState.pendingAction||"");
-  const freshAction=!!pending&&revision>nativeFocusLastActionRevision;
-  if(freshAction)nativeFocusLastActionRevision=revision;
-  if(nativeState.subject)pomoSubject=String(nativeState.subject).slice(0,80);
-  if(typeof pomoTopic!=="undefined"&&nativeState.topic!==undefined)pomoTopic=String(nativeState.topic||"").slice(0,100);
-  if(nativeState.mode==="pomo"){
-    clearInterval(pomoTimer);pomoTimer=null;
-    pomoIsWork=nativeState.isWork!==false;
-    pomoTotal=Math.max(1,Math.round(Math.max(1000,Number(nativeState.totalMs)||1000)/1000));
-    const remainingMs=Math.max(0,Number(nativeState.remainingMs)||0),elapsedMs=Math.max(0,Math.min(pomoTotal*1000,Number(nativeState.elapsedMs)||0));
-    pomoLeft=Math.max(0,Math.ceil(remainingMs/1000));
-    pomoTask=String(nativeState.task||"").slice(0,120);
-    nativeFocusAdjustPomoCredit(Math.floor(elapsedMs/60000));
-    pomoStartedAt=pomoIsWork?Math.max(1,Date.now()-elapsedMs):0;
-    if(freshAction&&pending==="pause"){
-      const day=todayKey();S.pauses[day]=(S.pauses[day]||0)+1;
+async function focusPwaNotificationPermission(){
+  try{
+    if(typeof notifCfg!=="function"||typeof notifState!=="function")return false;
+    const cfg=notifCfg();
+    if(cfg.pomo===false)return false;
+    const state=notifState();
+    if(state==="granted")return !!cfg.on;
+    if(state==="default"&&typeof askNotif==="function"){
+      const result=await askNotif();
+      return result==="granted"&&!!notifCfg().on;
     }
-    if(freshAction&&pending==="finish"){
-      pomoState="running";pomoEndAt=Date.now();pomoLeft=0;
-      finishPhase();
-      renderSessions();renderTimeDist();
-      return true;
-    }
-    if(freshAction&&pending==="stop"){
-      pomoState="paused";pomoEndAt=0;
-      resetPomo();
-      renderSessions();renderTimeDist();
-      return true;
-    }
-    if(nativeState.active){
-      if(nativeState.running){
-        pomoState="running";pomoEndAt=Date.now()+remainingMs;
-        clearInterval(pomoTimer);pomoTimer=setInterval(pomoTick,1000);
-        try{requestWake();}catch(e){}
-      }else{pomoState="paused";pomoEndAt=0;try{releaseWake();}catch(e){}}
-      save();renderPomo();renderTimeDist();
-      return true;
-    }
-    return false;
-  }
-
-  clearInterval(swTimer);swTimer=null;
-  const state=sw(),elapsedMs=Math.max(0,Number(nativeState.elapsedMs)||0);
-  nativeFocusAdjustSwCredit(elapsedMs);
-  if(freshAction&&(pending==="pause"||pending==="stop")&&Number(nativeState.segmentMs)>=1000){
-    const end=Math.max(1,Number(nativeState.actionAt)||Date.now());
-    const start=Math.max(1,Number(nativeState.segmentStartedAt)||end-Number(nativeState.segmentMs));
-    swHistoryAdd(Number(nativeState.segmentMs),pomoSubject||SUBJ_NAMES[0]||"Ders",start,end);
-  }
-  state.acc=elapsedMs;state.start=0;state.run=false;
-  if(freshAction&&pending==="stop"){
-    swRecord();
-    state.run=false;state.start=0;state.acc=0;state.cr=0;S.focus.swLaps=[];
-    try{releaseWake();}catch(e){}
-    save();renderSw();renderSwHistory();renderSessions();renderTimeDist();checkBadges(false);
-    return true;
-  }
-  if(nativeState.active){
-    if(nativeState.running){
-      state.run=true;state.start=Date.now();
-      clearInterval(swTimer);swTimer=setInterval(swTick,100);
-      try{requestWake();}catch(e){}
-    }else try{releaseWake();}catch(e){}
-    save();renderSw();renderSwHistory();renderTimeDist();
-    return true;
-  }
+  }catch(e){}
   return false;
 }
-
-window.YKSFocusNativeBridge={snapshot:nativeFocusBridgeSnapshot,apply:nativeFocusBridgeApply};
-
-(function installAndroidFocusNativeRuntime(){
-  const cap=window.Capacitor;
-  const nativeReady=!!(cap&&typeof cap.nativePromise==="function"&&typeof cap.addListener==="function"&&(!cap.isPluginAvailable||cap.isPluginAvailable("FocusTimer")));
-  const plugin=nativeReady?{
-    sync:options=>cap.nativePromise("FocusTimer","sync",options||{}),
-    getState:()=>cap.nativePromise("FocusTimer","getState",{}),
-    ack:options=>cap.nativePromise("FocusTimer","ack",options||{}),
-    checkPermissions:()=>cap.nativePromise("FocusTimer","checkPermissions",{}),
-    requestPermissions:()=>cap.nativePromise("FocusTimer","requestPermissions",{}),
-    addListener:(eventName,listener)=>cap.addListener("FocusTimer",eventName,listener)
-  }:null;
-  if(!plugin){
-    document.documentElement.dataset.focusLiveNotification="web";
-    return;
+function focusPwaNotificationBody(mode){
+  const subject=String(pomoSubject||SUBJ_NAMES[0]||"Ders").trim()||"Ders";
+  if(mode==="sw"){
+    const started=sw().run&&sw().start?new Date(sw().start):new Date();
+    const when=started.toLocaleTimeString("tr-TR",{hour:"2-digit",minute:"2-digit"});
+    return subject+" · Kronometre çalışıyor · Başlangıç "+when;
   }
-  let reconciling=false,permissionChecked=false,sessionId="",syncTimer=0,lastRevision=0;
-  const wrapped={};
-  function makeSessionId(snapshot){
-    return snapshot.mode+"-"+(snapshot.startedAt||Date.now())+"-"+Math.random().toString(36).slice(2,8);
-  }
-  async function ensurePermission(){
-    if(permissionChecked)return;
-    permissionChecked=true;
-    try{
-      if(typeof plugin.checkPermissions!=="function"||typeof plugin.requestPermissions!=="function")return;
-      const current=await plugin.checkPermissions();
-      if(current&&current.notifications!=="granted")await plugin.requestPermissions();
-    }catch(e){try{console.warn("Odak canlı bildirim izni alınamadı",e)}catch(_){}}
-  }
-  async function syncFromWeb(){
-    if(reconciling)return;
-    const snapshot=nativeFocusBridgeSnapshot();
-    if(!snapshot)return;
-    if(!snapshot.active){
-      sessionId="";
-      try{await plugin.sync(Object.assign({},snapshot,{sessionId:""}));}catch(e){}
-      return;
-    }
-    if(!sessionId)sessionId=makeSessionId(snapshot);
-    await ensurePermission();
-    try{await plugin.sync(Object.assign({},snapshot,{sessionId:sessionId}));}
-    catch(e){try{console.warn("Odak canlı bildirimi güncellenemedi",e)}catch(_){}}
-  }
-  function queueSync(){
-    clearTimeout(syncTimer);
-    syncTimer=setTimeout(()=>{syncFromWeb()},40);
-  }
-  async function reconcile(state){
-    if(!state||(!state.active&&!state.pendingAction))return;
-    if(state.sessionId)sessionId=state.sessionId;
-    if(state.revision&&state.revision<lastRevision)return;
-    reconciling=true;
-    try{
-      nativeFocusBridgeApply(state);
-      lastRevision=Math.max(lastRevision,Number(state.revision)||0);
-      if(state.revision&&typeof plugin.ack==="function")await plugin.ack({revision:state.revision});
-    }catch(e){try{console.warn("Odak canlı bildirim durumu uygulanamadı",e)}catch(_){}}
-    finally{reconciling=false;}
-    if(state.active)queueSync();else sessionId="";
-  }
-  async function refresh(){
-    try{
-      if(typeof plugin.getState!=="function")return;
-      const state=await plugin.getState();
-      if(state&&state.sessionId)sessionId=state.sessionId;
-      if(state&&(state.active||state.pendingAction))await reconcile(state);
-      else queueSync();
-    }catch(e){try{console.warn("Odak canlı bildirim durumu okunamadı",e)}catch(_){}}
-  }
-  ["startPomo","pausePomo","resetPomo","finishPhase","skipPhase","swStart","swPause","swReset"].forEach(name=>{
-    const original=window[name];
-    if(typeof original!=="function"||wrapped[name])return;
-    wrapped[name]=original;
-    window[name]=function(){
-      const result=original.apply(this,arguments);
-      if(!reconciling)queueSync();
-      return result;
-    };
-  });
+  const phase=pomoIsWork?"Odak":"Mola";
+  const left=Math.max(0,Math.ceil((pomoState==="running"?Math.max(0,pomoEndAt-Date.now())/1000:pomoLeft)/60));
+  const topic=String(typeof pomoTopic!=="undefined"?pomoTopic:"").trim();
+  return phase+" · "+subject+(topic?" · "+topic:"")+(left?" · "+left+" dk kaldı":"");
+}
+async function focusPwaNotificationShow(mode){
+  if(!await focusPwaNotificationPermission())return false;
+  const reg=await focusPwaNotificationRegistration();
+  if(!reg)return false;
+  const title=mode==="sw"?"⏱️ Odak devam ediyor":(pomoIsWork?"⏱️ Odak devam ediyor":"☕ Mola devam ediyor");
+  const options={
+    body:focusPwaNotificationBody(mode),
+    tag:FOCUS_PWA_NOTIFICATION_TAG,
+    icon:"icon-192.png",
+    badge:"icon-192.png",
+    lang:"tr",
+    silent:true,
+    requireInteraction:true,
+    data:{kind:"focus",screen:"pomo"},
+    actions:[{action:"open-focus",title:"Odak ekranını aç"}]
+  };
+  try{await reg.showNotification(title,options);return true;}catch(e){return false;}
+}
+async function focusPwaNotificationClose(){
   try{
-    if(typeof plugin.addListener==="function")plugin.addListener("focusAction",state=>{reconcile(state)});
-  }catch(e){}
-  document.addEventListener("visibilitychange",()=>{if(!document.hidden)refresh()});
-  window.addEventListener("pageshow",refresh);
-  window.addEventListener("focus",refresh);
-  setTimeout(refresh,350);
-  document.documentElement.dataset.focusLiveNotification="ready";
-})();
+    const reg=await focusPwaNotificationRegistration();
+    if(!reg||typeof reg.getNotifications!=="function")return false;
+    const list=await reg.getNotifications({tag:FOCUS_PWA_NOTIFICATION_TAG});
+    list.forEach(item=>{try{item.close();}catch(e){}});
+    return true;
+  }catch(e){return false;}
+}
+window.YKSFocusNotification={show:focusPwaNotificationShow,close:focusPwaNotificationClose};
+if("serviceWorker" in navigator){
+  navigator.serviceWorker.addEventListener("message",event=>{
+    if(event&&event.data&&event.data.type==="OPEN_FOCUS"){
+      try{if(typeof go==="function")go("pomo");}catch(e){}
+    }
+  });
+}
 
 /* ==================================================================
    BAŞLATMA
