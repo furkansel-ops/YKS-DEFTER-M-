@@ -2731,7 +2731,7 @@ function pomoTick(){
 }
 function finishPhase(){
   clearInterval(pomoTimer); pomoTimer=null;
-  void focusPwaNotificationClose();
+  if(typeof focusPwaNotificationClose==="function")void focusPwaNotificationClose();
   creditMinutes();
   const wasWork=pomoIsWork;
   if(wasWork){
@@ -2772,7 +2772,7 @@ function startPomo(){
   clearInterval(pomoTimer);
   pomoTimer=setInterval(pomoTick,1000);
   renderPomo();
-  void focusPwaNotificationShow("pomo");
+  if(typeof focusPwaNotificationShow==="function")void focusPwaNotificationShow("pomo");
 }
 function pausePomo(){
   clearInterval(pomoTimer); pomoTimer=null;
@@ -2781,7 +2781,7 @@ function pausePomo(){
   pomoState="paused"; stopNoise(); releaseWake();
   const k=todayKey(); S.pauses[k]=(S.pauses[k]||0)+1; save();
   if(typeof showPauseReason==="function")showPauseReason();
-  void focusPwaNotificationClose();
+  if(typeof focusPwaNotificationClose==="function")void focusPwaNotificationClose();
   renderPomo();
 }
 function togglePomo(){ if(pomoState==="running")pausePomo(); else startPomo(); }
@@ -2792,7 +2792,7 @@ function resetPomo(){
   pomoState="idle"; pomoIsWork=true;
   pomoStartedAt=0; pomoCredited=0;
   pomoTotal=pomoPhaseMin(true)*60; pomoLeft=pomoTotal;
-  void focusPwaNotificationClose();
+  if(typeof focusPwaNotificationClose==="function")void focusPwaNotificationClose();
   renderPomo();
 }
 function skipPhase(){
@@ -4322,7 +4322,7 @@ function swStart(){
   ensureAudio(); requestWake();
   clearInterval(swTimer); swTimer=setInterval(swTick,100);
   renderSw();
-  void focusPwaNotificationShow("sw");
+  if(typeof focusPwaNotificationShow==="function")void focusPwaNotificationShow("sw");
 }
 function swPause(){
   const s=sw();
@@ -4336,7 +4336,7 @@ function swPause(){
   swHistoryAdd(Math.max(0,now-runStart),pomoSubject||SUBJ_NAMES[0],runStart,now);
   save();
   releaseWake();
-  void focusPwaNotificationClose();
+  if(typeof focusPwaNotificationClose==="function")void focusPwaNotificationClose();
   renderSw(); renderSwHistory();
 }
 function swToggle(){ if(sw().run)swPause(); else swStart(); }
@@ -4359,7 +4359,7 @@ function swReset(){
   s.run=false; s.start=0; s.acc=0; s.cr=0;
   S.focus.swLaps=[];
   clearInterval(swTimer); swTimer=null; releaseWake();
-  void focusPwaNotificationClose();
+  if(typeof focusPwaNotificationClose==="function")void focusPwaNotificationClose();
   save(); renderSw(); renderSwHistory(); renderSessions(); renderTimeDist();
   checkBadges(false);
 }
@@ -4409,7 +4409,7 @@ function renderSw(){
 }
 function swBoot(){
   const s=sw();
-  if(s.run){ clearInterval(swTimer); swTimer=setInterval(swTick,100); requestWake(); void focusPwaNotificationShow("sw"); }
+  if(s.run){ clearInterval(swTimer); swTimer=setInterval(swTick,100); requestWake(); if(typeof focusPwaNotificationShow==="function")void focusPwaNotificationShow("sw"); }
   renderSw();
 }
 
