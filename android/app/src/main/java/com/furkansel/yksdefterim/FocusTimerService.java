@@ -210,7 +210,7 @@ public class FocusTimerService extends Service {
         if (state.isWork || "sw".equals(state.mode)) today += (int)Math.floor(elapsed / 60000d);
         String todayLabel = formatMinutes(today);
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(R.mipmap.ic_launcher)
+            .setSmallIcon(R.drawable.yks_launcher_monochrome)
             .setContentTitle("YKS Defterim · " + subject)
             .setContentText(detail + " · Bugün " + todayLabel)
             .setStyle(new NotificationCompat.BigTextStyle().bigText(detail + " · Bugün " + todayLabel))
@@ -245,7 +245,7 @@ public class FocusTimerService extends Service {
     private Notification buildCompletedNotification(Snapshot state) {
         String subject = state.subject.isEmpty() ? "Odak" : state.subject;
         return new NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(R.mipmap.ic_launcher)
+            .setSmallIcon(R.drawable.yks_launcher_monochrome)
             .setContentTitle("Odak tamamlandı · " + subject)
             .setContentText("Süre tamamlandı. Kaydı görmek için YKS Defterim'i aç.")
             .setCategory(NotificationCompat.CATEGORY_REMINDER)
@@ -330,6 +330,8 @@ public class FocusTimerService extends Service {
         Snapshot state = readState(context);
         if (state.revision != revision) return;
         state.pendingAction = "";
+        state.segmentMs = 0L;
+        if (!state.running) state.segmentStartedAt = 0L;
         if (!state.active) {
             clearState(context);
             return;
