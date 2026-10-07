@@ -314,7 +314,7 @@ function playlistDetail(media:TeacherMedia,item:MediaPlaylist):string{
     <div class="teachers-v2-playlist-detail-head"><button type="button" data-media-action="playlist-back">‹ Listelere dön</button><div><b>${esc(item.title)}</b><small>${esc(videoLabel)}</small></div><button class="teachers-v2-playlist-plan ${planned?"on":""}" type="button" data-media-action="playlist-program" data-playlist-id="${esc(item.id)}">${planned?"✓ Programda":"Programa ekle"}</button><button type="button" data-media-action="playlist-play" data-playlist-id="${esc(item.id)}">Tüm listeyi izle</button></div>
     ${playlistProgressMarkup(item,true)}
     ${videos.length?`<div class="teachers-v2-playlist-video-search-row"><label class="teachers-v2-playlist-video-search"><span>⌕</span><input id="teachersV2PlaylistVideoSearch" type="search" autocomplete="off" value="${esc(playlistVideoQuery)}" placeholder="Bu playlistte video ara…" aria-label="Açık oynatma listesindeki videolarda ara"></label><span id="teachersV2PlaylistVideoResult" aria-live="polite">${matches.length} / ${videos.length} video</span></div>`:""}
-    ${videos.length?(matches.length?`<div class="teachers-v2-playlist-video-grid">${videoCards(media,matches)}</div>`:`<div class="teachers-v2-playlist-empty"><b>Bu playlistte eşleşen video bulunamadı.</b><span>Başka bir konu veya video adı dene.</span></div>`):'<p class="teachers-v2-playlist-note">Videolar arasında oynatıcının liste düğmesiyle geçebilirsin.</p>'}
+    ${videos.length?`<div id="teachersV2PlaylistVideoMatches">${matches.length?`<div class="teachers-v2-playlist-video-grid">${videoCards(media,matches)}</div>`:`<div class="teachers-v2-playlist-empty"><b>Bu playlistte eşleşen video bulunamadı.</b><span>Başka bir konu veya video adı dene.</span></div>`}</div>`:'<p class="teachers-v2-playlist-note">Videolar arasında oynatıcının liste düğmesiyle geçebilirsin.</p>'}
   </div>`;
 }
 function playlistCards(media:TeacherMedia):string{
@@ -400,8 +400,12 @@ function renderMediaSection(overlay:HTMLElement,name:string):void{
   const playlistVideoSearch=section.querySelector<HTMLInputElement>("#teachersV2PlaylistVideoSearch");
   playlistVideoSearch?.addEventListener("input",()=>{
     playlistVideoQuery=playlistVideoSearch.value;
-    const fresh=mediaFor(name),item=fresh&&activePlaylistId?findPlaylist(fresh,activePlaylistId):undefined,grid=section.querySelector<HTMLElement>("#teachersV2PlaylistGrid");
-    if(fresh&&item&&grid){grid.innerHTML=playlistDetail(fresh,item);const input=grid.querySelector<HTMLInputElement>("#teachersV2PlaylistVideoSearch");if(input){input.focus({preventScroll:true});input.setSelectionRange(input.value.length,input.value.length);}}
+    const fresh=mediaFor(name),item=fresh&&activePlaylistId?findPlaylist(fresh,activePlaylistId):undefined;
+    if(!fresh||!item)return;
+    const videos=Array.isArray(item.videos)?item.videos:[],query=norm(playlistVideoQuery),matches=query?videos.filter(video=>norm([video.title,video.channel||fresh.channelName||fresh.name].join(" ")).includes(query)):videos;
+    const result=section.querySelector<HTMLElement>("#teachersV2PlaylistVideoResult");if(result)result.textContent=`${matches.length} / ${videos.length} video`;
+    const host=section.querySelector<HTMLElement>("#teachersV2PlaylistVideoMatches");
+    if(host)host.innerHTML=matches.length?`<div class="teachers-v2-playlist-video-grid">${videoCards(fresh,matches)}</div>`:`<div class="teachers-v2-playlist-empty"><b>Bu playlistte eşleşen video bulunamadı.</b><span>Başka bir konu veya video adı dene.</span></div>`;
   });
   section.querySelector<HTMLInputElement>("#teachersV2LinkUrl")?.addEventListener("input",event=>{linkUrl=(event.target as HTMLInputElement).value;});
   section.querySelector<HTMLInputElement>("#teachersV2LinkTitle")?.addEventListener("input",event=>{linkTitle=(event.target as HTMLInputElement).value;});
