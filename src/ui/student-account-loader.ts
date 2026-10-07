@@ -98,7 +98,7 @@ export function installStudentAccountLoader():boolean{
   const settingsReady=loadModuleScript(SETTINGS_SCRIPT_ID,"./settings-profile-runtime.js?v=3.0.0");
   document.documentElement.dataset.studentAccountRuntime="loading";
   const ready=(async()=>{
-    const bridgeReady=await loadModuleScript(STUDENT_COACHING_RUNTIME_ID,"./student-coaching-runtime.js?v=1.2.18");
+    const bridgeReady=await loadModuleScript(STUDENT_COACHING_RUNTIME_ID,"./student-coaching-runtime.js?v=1.2.19");
     if(!bridgeReady||!forceStudentOnlyRegistration(win))return false;
     const linkReady=await loadModuleScript(STUDENT_COACH_LINK_ID,"./student-coach-link.js?v=1.3.1");
     if(!linkReady)return false;
