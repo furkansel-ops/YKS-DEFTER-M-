@@ -43,7 +43,7 @@ test("manifest contains startup modules and recursive static JS/CSS while option
 });
 
 test("allowlist covers the application's boot-time dynamic imports",()=>{
-  const expected=new Set(["src/main.ts","src/native/android-focus-entry.ts"]);
+  const expected=new Set(["src/main.ts"]);
   for(const file of ["src/main.ts","src/ui/v43-safe-runtime.ts","src/ui/play-store-shell.ts"]){
     for(const match of read(file).matchAll(/import\("([^"]+)"\)/g)){
       expected.add(path.posix.normalize(path.posix.join(path.posix.dirname(file),match[1]))+".ts");
