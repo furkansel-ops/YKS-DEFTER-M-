@@ -239,10 +239,15 @@ self.addEventListener("fetch",event=>{
   event.respondWith(currentCacheMatch(req).then(cached=>cached||fresh.catch(()=>null).then(r=>r||offlineResponse())));
 });
 self.addEventListener("notificationclick",event=>{
+  const isFocus=event.notification&&event.notification.data&&event.notification.data.kind==="focus";
   event.notification.close();
-  event.waitUntil(clients.matchAll({type:"window",includeUncontrolled:true}).then(list=>{
+  event.waitUntil(clients.matchAll({type:"window",includeUncontrolled:true}).then(async list=>{
     const client=list.find(c=>"focus" in c);
-    if(client){client.navigate?.(appRootUrl());return client.focus();}
+    if(client){
+      try{if(isFocus)client.postMessage({type:"OPEN_FOCUS"});}catch(e){}
+      try{await client.navigate?.(appRootUrl());}catch(e){}
+      return client.focus();
+    }
     if(clients.openWindow)return clients.openWindow(appRootUrl());
   }));
 });
