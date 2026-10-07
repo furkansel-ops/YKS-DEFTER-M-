@@ -69,3 +69,14 @@ test("minimal odak modu premium sayaç görünümü ve canlı ilerleme bilgisi g
   assert.match(css,/\.v29-minimal-stats/);
   assert.match(css,/\.v29-minimal-primary/);
 });
+
+
+test("minimal odak modu cache ve kısa ekranlarda bozulmadan açılır",()=>{
+  const html=read("index.html"),css=read("app.css");
+  assert.match(html,/app\.css\?v=4\.1\.1-minimal-fix/);
+  assert.match(css,/\.v29-minimal-shell\{[\s\S]*overflow-y:auto/);
+  assert.match(css,/width:min\(318px,68vw,42dvh\)/);
+  assert.match(css,/@media\(max-height:720px\)/);
+  assert.match(css,/@supports not \(height:100dvh\)/);
+  assert.match(css,/background:var\(--card\)/);
+});
