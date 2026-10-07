@@ -21,6 +21,8 @@ test("Canlı odak bildirimi sayaç, kapsül isteği ve bildirim aksiyonlarını 
   const service=read("android/app/src/main/java/com/furkansel/yksdefterim/FocusTimerService.java");
   for(const token of ["setUsesChronometer(true)","setChronometerCountDown(true)","setRequestPromotedOngoing(state.running)","ACTION_PAUSE","ACTION_RESUME","ACTION_STOP","Duraklat","Devam et","Bitir"])assert.ok(service.includes(token),token);
   assert.match(service,/CATEGORY_STOPWATCH/);
+  assert.match(service,/checkSelfPermission\(this, Manifest\.permission\.POST_NOTIFICATIONS\)/);
+  assert.match(service,/catch \(SecurityException ignored\)/);
   assert.match(service,/Bugün /);
 });
 
