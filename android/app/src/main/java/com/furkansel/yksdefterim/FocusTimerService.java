@@ -1,11 +1,13 @@
 package com.furkansel.yksdefterim;
 
+import android.Manifest;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
@@ -184,7 +186,13 @@ public class FocusTimerService extends Service {
         saveState(this, state);
         handler.removeCallbacks(refreshRunnable);
         stopForegroundCompat();
-        NotificationManagerCompat.from(this).notify(NOTIFICATION_ID, buildCompletedNotification(state));
+        if (canPostNotifications()) {
+            try {
+                NotificationManagerCompat.from(this).notify(NOTIFICATION_ID, buildCompletedNotification(state));
+            } catch (SecurityException ignored) {
+                // Kullanıcı bildirim iznini servis çalışırken geri çekmiş olabilir.
+            }
+        }
         FocusTimerPlugin.dispatchState(this);
         stopSelf();
     }
@@ -281,6 +289,11 @@ public class FocusTimerService extends Service {
         channel.enableVibration(false);
         NotificationManager manager = getSystemService(NotificationManager.class);
         if (manager != null) manager.createNotificationChannel(channel);
+    }
+
+    private boolean canPostNotifications() {
+        return Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU
+            || ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED;
     }
 
     private void stopForegroundCompat() {
