@@ -35,7 +35,7 @@ test("Capacitor köprüsü native durumunu mevcut Pomodoro ve kronometre akış�
   assert.match(bridge,/registerPlugin<FocusTimerPlugin>\("FocusTimer"\)/);
   assert.match(bridge,/focusAction/);
   assert.match(bridge,/visibilitychange/);
-  assert.match(index,/src\\/native\\/android-focus-entry\\.ts/);
+  assert.match(index,/src\/native\/android-focus-entry\.ts/);
   assert.match(app,/YKSFocusNativeBridge/);
   assert.match(app,/nativeFocusBridgeApply/);
 });
