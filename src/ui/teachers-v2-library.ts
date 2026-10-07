@@ -50,6 +50,7 @@ let feed:TeachersFeed|null=null;
 let videoIndex=new Map<string,IndexedVideo>();
 let observer:MutationObserver|null=null;
 let lastSignature="";
+let lastTeacherFavoritesSignature="";
 let installed=false;
 
 function esc(value:unknown):string{
@@ -258,6 +259,43 @@ function libraryCard(item:VideoBookmark,kind:"favorite"|"recent"):string{
 function emptyRow(text:string):string{
   return `<div class="teachers-v2-library-empty">${esc(text)}</div>`;
 }
+function favoriteTeacherCards():{name:string;subjects:string;initials:string}[]{
+  const cards=[...document.querySelectorAll<HTMLElement>(".teachers-v2-card[data-name]")];
+  return cards.filter(card=>card.querySelector(".teachers-v2-star.on")).map(card=>{
+    const name=card.dataset.name||"";
+    const subjects=[...card.querySelectorAll<HTMLElement>(".teachers-v2-card-subjects span")].map(x=>x.textContent?.trim()||"").filter(Boolean).join(" · ");
+    const parts=name.trim().split(/\s+/).filter(Boolean),first=parts[0]||"",last=parts[parts.length-1]||first;
+    const initials=parts.length>1?((first[0]||"")+(last[0]||"")).toLocaleUpperCase("tr-TR"):first.slice(0,2).toLocaleUpperCase("tr-TR");
+    return {name,subjects,initials:initials||"YK"};
+  });
+}
+function renderFavoriteTeachers(force=false):void{
+  const root=document.getElementById(ROOT_ID);if(!(root instanceof HTMLElement))return;
+  const favorites=favoriteTeacherCards(),sig=favorites.map(x=>x.name).join("|");
+  if(!force&&sig===lastTeacherFavoritesSignature)return;
+  lastTeacherFavoritesSignature=sig;
+  root.querySelectorAll<HTMLElement>(".teachers-v2-card[data-name]").forEach(card=>{
+    const on=Boolean(card.querySelector(".teachers-v2-star.on"));
+    card.classList.toggle("is-favorite",on);
+    let badge=card.querySelector<HTMLElement>(".teachers-v2-favorite-badge");
+    if(on&&!badge){badge=document.createElement("span");badge.className="teachers-v2-favorite-badge";badge.textContent="★ Favorin";card.appendChild(badge);}
+    if(!on)badge?.remove();
+  });
+  let shelf=document.getElementById("teachersV2FavoriteShelf");
+  if(!favorites.length){shelf?.remove();return;}
+  if(!(shelf instanceof HTMLElement)){
+    shelf=document.createElement("section");
+    shelf.id="teachersV2FavoriteShelf";
+    shelf.className="teachers-v2-favorite-shelf";
+    shelf.setAttribute("aria-label","Favori hocalarım");
+    root.querySelector(".teachers-v2-controls")?.insertAdjacentElement("afterend",shelf);
+  }
+  shelf.innerHTML=`<div class="teachers-v2-favorite-head"><div><span>★ FAVORİ HOCALARIM</span><h3>Hızlı erişim</h3></div><small>${favorites.length} favori hoca · yıldızla yönet</small></div>
+    <div class="teachers-v2-favorite-row">${favorites.map(item=>`<article class="teachers-v2-favorite-card">
+      <button type="button" class="teachers-v2-favorite-open" data-library-action="teacher-open" data-teacher-name="${esc(item.name)}" aria-label="${esc(item.name)} kaynaklarını aç"><span class="teachers-v2-favorite-avatar">${esc(item.initials)}</span><span><b>${esc(item.name)}</b><small>${esc(item.subjects)}</small></span><i>›</i></button>
+      <button type="button" class="teachers-v2-favorite-remove" data-library-action="teacher-remove" data-teacher-name="${esc(item.name)}" aria-label="${esc(item.name)} favorilerden çıkar">★</button>
+    </article>`).join("")}</div>`;
+}
 
 function signature():string{
   const library=readLibrary();
@@ -352,6 +390,15 @@ function handleClick(event:MouseEvent):void{
   if(!action)return;
   const kind=action.dataset.libraryAction||"";
   const id=action.dataset.videoId||"";
+  if(kind==="teacher-open"||kind==="teacher-remove"){
+    event.preventDefault();event.stopPropagation();
+    const name=action.dataset.teacherName||"";
+    const card=[...document.querySelectorAll<HTMLElement>(".teachers-v2-card[data-name]")].find(node=>node.dataset.name===name);
+    if(kind==="teacher-open"){card?.click();return;}
+    card?.querySelector<HTMLButtonElement>(".teachers-v2-star")?.click();
+    window.setTimeout(()=>{lastTeacherFavoritesSignature="";renderFavoriteTeachers(true);},80);
+    return;
+  }
   if(kind==="toggle"||kind==="remove"){
     event.preventDefault();
     event.stopPropagation();
@@ -372,6 +419,7 @@ function handleClick(event:MouseEvent):void{
 
 function refresh(force=false):void{
   decorateVideoCards();
+  renderFavoriteTeachers(force);
   renderLibrary(force);
 }
 
