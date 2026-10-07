@@ -72,8 +72,8 @@ test("minimal odak modu premium sayaç görünümü ve canlı ilerleme bilgisi g
 
 
 test("minimal odak modu cache ve kısa ekranlarda bozulmadan açılır",()=>{
-  const html=read("index.html"),css=read("minimal-focus-fix.css");
-  assert.match(html,/href="\.\/app\.css"/);\n  assert.match(html,/minimal-focus-fix\.css\?v=1\.0\.0/);
+  const html=read("index.html"),css=read("app.css");
+  assert.match(html,/href="\.\/app\.css"/);
   assert.match(css,/\.v29-minimal-shell\{[\s\S]*overflow-y:auto/);
   assert.match(css,/width:min\(318px,68vw,42dvh\)/);
   assert.match(css,/@media\(max-height:720px\)/);
