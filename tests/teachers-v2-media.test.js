@@ -77,7 +77,7 @@ test("Playlist kartına dokununca içerik uygulama içinde açılır ve videolar
   assert.match(source,/function openPlaylistForCurrent/);
   assert.match(source,/data-media-action="playlist-back"/);
   assert.match(source,/teachers-v2-playlist-video-grid/);
-  assert.match(source,/videoCards\(media,videos\)/);
+  assert.match(source,/videoCards\(media,(?:videos|matches)\)/);
   assert.match(source,/youtube-nocookie\.com\/embed\?listType=playlist/);
   assert.match(source,/findVideo\(media,action\.dataset\.videoId/);
   assert.match(source,/addPlanText\(planVideoText\(video\),"Video"\)/);
