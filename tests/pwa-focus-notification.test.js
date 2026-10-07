@@ -33,5 +33,6 @@ test("Android kapsül ve native FocusTimer kodu paketten tamamen kaldırılmış
   assert.doesNotMatch(activity,/FocusTimerPlugin|registerPlugin/);
   assert.equal(fs.existsSync(path.join(root,"android/app/src/main/java/com/furkansel/yksdefterim/FocusTimerService.java")),false);
   assert.equal(fs.existsSync(path.join(root,"android/app/src/main/java/com/furkansel/yksdefterim/FocusTimerPlugin.java")),false);
-  assert.doesNotMatch(app=read("app.js"),/installAndroidFocusNativeRuntime|nativePromise\("FocusTimer"|YKSFocusNativeBridge/);
+  const app=read("app.js");
+  assert.doesNotMatch(app,/installAndroidFocusNativeRuntime|nativePromise\("FocusTimer"|YKSFocusNativeBridge/);
 });
