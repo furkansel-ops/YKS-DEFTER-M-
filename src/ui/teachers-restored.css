@@ -90,7 +90,7 @@ body.teachers-v2-open #playOverlay,#teachersV2MediaPlayer{z-index:1500}
   :root[data-visual-system="refined-blue"] .teachers-v2-link-form>div{flex-direction:column}
 }
 
-/* Playlist progress tracking v1 */
+/* Playlist progress tracking v1.0 — stage 1 */
 :root[data-visual-system="refined-blue"] .teachers-v2-playlist-progress{display:grid;gap:5px;margin-top:8px}
 :root[data-visual-system="refined-blue"] .teachers-v2-playlist-progress>span{display:flex;align-items:center;justify-content:space-between;gap:10px;color:var(--rb-muted);font-size:10px;line-height:1.35}
 :root[data-visual-system="refined-blue"] .teachers-v2-playlist-progress>span b{color:var(--rb-ink);font-size:10.5px;font-weight:650}
