@@ -6,12 +6,22 @@ export interface MascotModel {
   head: THREE.Group;
   leftArm: THREE.Group;
   rightArm: THREE.Group;
+  leftFoot: THREE.Group;
+  rightFoot: THREE.Group;
   eyes: THREE.Group[];
-  rest: { head: THREE.Euler; leftArm: THREE.Euler; rightArm: THREE.Euler };
+  pupils: THREE.Group[];
+  rest: {
+    head: THREE.Euler;
+    leftArm: THREE.Euler;
+    rightArm: THREE.Euler;
+    leftFoot: THREE.Euler;
+    rightFoot: THREE.Euler;
+    pupils: THREE.Vector3[];
+  };
   dispose(): void;
 }
 
-/** Small, texture-free toy models. All moving limbs use shoulder-local pivots. */
+/** Texture-free toys with local shoulder, ankle and eye pivots. */
 export function createMascotModel(id: string): MascotModel {
   const known = ["book", "owl", "cat", "fox", "panda", "robot", "turtle", "rabbit", "penguin", "dragon"];
   const character = known.includes(id) ? id : "book";
@@ -23,8 +33,13 @@ export function createMascotModel(id: string): MascotModel {
   leftArm.name = "left-arm";
   const rightArm = new THREE.Group();
   rightArm.name = "right-arm";
+  const leftFoot = new THREE.Group();
+  leftFoot.name = "left-foot";
+  const rightFoot = new THREE.Group();
+  rightFoot.name = "right-foot";
   const eyes: THREE.Group[] = [];
-  root.add(head, leftArm, rightArm);
+  const pupils: THREE.Group[] = [];
+  root.add(head, leftArm, rightArm, leftFoot, rightFoot);
   const geometries = new Set<THREE.BufferGeometry>();
   const materials = new Map<string, THREE.MeshPhysicalMaterial>();
   const geometry = <T extends THREE.BufferGeometry>(value: T): T => { geometries.add(value); return value; };
@@ -35,7 +50,7 @@ export function createMascotModel(id: string): MascotModel {
     const key = `${color}:${glossy}`;
     const cached = materials.get(key);
     if (cached) return cached;
-    const value = new THREE.MeshPhysicalMaterial({ color, roughness: glossy ? 0.21 : 0.48, metalness: 0, clearcoat: glossy ? 0.5 : 0.2, clearcoatRoughness: 0.4 });
+    const value = new THREE.MeshPhysicalMaterial({ color, roughness: glossy ? 0.18 : 0.4, metalness: 0, clearcoat: glossy ? 0.65 : 0.38, clearcoatRoughness: 0.3 });
     materials.set(key, value);
     return value;
   }
@@ -63,18 +78,34 @@ export function createMascotModel(id: string): MascotModel {
       eye.name = side < 0 ? "left-eye" : "right-eye";
       eye.position.set(side * x, y, z);
       if (white) ball(eye, "#fffdf8", [0, 0, 0], [0.137 * size, 0.182 * size, 0.068]);
-      ball(eye, ink, [side * 0.007, 0, white ? 0.066 : 0], [0.083 * size, 0.119 * size, 0.043], true);
-      ball(eye, "#ffffff", [-0.024 * size, 0.044 * size, white ? 0.105 : 0.037], [0.028 * size, 0.036 * size, 0.014], true);
-      ball(eye, "#a8d9ff", [0.027 * size, -0.04 * size, white ? 0.105 : 0.037], [0.013 * size, 0.016 * size, 0.008], true);
+      // The pupil and both highlights move together; blinking still belongs to the eye.
+      const pupil = new THREE.Group();
+      pupil.name = side < 0 ? "left-pupil" : "right-pupil";
+      ball(pupil, ink, [side * 0.007, 0, white ? 0.066 : 0], [0.087 * size, 0.124 * size, 0.043], true);
+      ball(pupil, "#ffffff", [-0.024 * size, 0.044 * size, white ? 0.105 : 0.037], [0.029 * size, 0.037 * size, 0.014], true);
+      ball(pupil, "#a8d9ff", [0.027 * size, -0.04 * size, white ? 0.105 : 0.037], [0.014 * size, 0.017 * size, 0.008], true);
+      eye.add(pupil);
       head.add(eye);
       eyes.push(eye);
+      pupils.push(pupil);
+      const brow = new THREE.Group();
+      brow.name = side < 0 ? "left-brow" : "right-brow";
+      brow.position.set(side * x, y + 0.205 * size, z - 0.005);
+      brow.rotation.z = side * -0.12;
+      ball(brow, ink, [0, 0, 0], [0.068 * size, 0.021 * size, 0.021]);
+      head.add(brow);
     }
   }
   function cheeks(x: number, y: number, z: number, radius = 0.075): void {
     for (const side of [-1, 1]) ball(head, peach, [side * x, y, z], [radius, radius * 0.62, 0.028]);
   }
   function feet(color: string, width = 0.25): void {
-    for (const side of [-1, 1]) ball(root, color, [side * 0.27, 0.125, 0.12], [width, 0.125, 0.31]);
+    for (const [foot, side] of [[leftFoot, -1], [rightFoot, 1]] as const) {
+      foot.position.set(side * 0.27, 0.24, 0.02);
+      ball(foot, color, [0, -0.115, 0.1], [width, 0.125, 0.31]);
+      const sole = `#${new THREE.Color(color).multiplyScalar(0.78).getHexString()}`;
+      ball(foot, sole, [0, -0.198, 0.11], [width * 0.86, 0.034, 0.275]);
+    }
   }
   function arms(color: string, x = 0.5, y = 1.19, wing = false): void {
     for (const [arm, side] of [[leftArm, -1], [rightArm, 1]] as const) {
@@ -143,6 +174,9 @@ export function createMascotModel(id: string): MascotModel {
       const ring = mesh(head, ringGeometry, "#b2d4ee", [-0.679, y, 0.166], [1, 1, 1], true);
       ring.rotation.y = Math.PI / 2;
     }
+    for (const y of [-0.45, -0.1, 0.25]) box(head, "#dccdaa", [0.704, y, -0.017], [0.014, 0.013, 0.18]);
+    const bookmark = box(head, "#f19a81", [0.38, -0.825, 0.052], [0.105, 0.255, 0.046]);
+    bookmark.name = "bookmark";
     eyePair(0.225, 0.09, 0.285, false, 0.9);
     cheeks(0.355, -0.1, 0.286);
     smile(0.294, -0.17, 0.17);
@@ -164,6 +198,9 @@ export function createMascotModel(id: string): MascotModel {
       feather.rotation.z = x < 0 ? -0.22 : 0.22;
     }
     arms(blue, 0.5, 1.2, true);
+    for (const [wing, side] of [[leftArm, -1], [rightArm, 1]] as const) {
+      for (const y of [-0.23, -0.37]) ball(wing, "#73a7ff", [side * 0.075, y, 0.166], [0.075, 0.055, 0.021]);
+    }
     feet("#f3b147", 0.22);
   } else if (character === "cat" || character === "fox") {
     const fox = character === "fox";
@@ -216,6 +253,7 @@ export function createMascotModel(id: string): MascotModel {
     box(root, "#65b7f9", [0, 0.8, 0], [0.9, 1.08, 0.66]);
     box(root, "#2673d2", [0, 0.875, 0.346], [0.43, 0.18, 0.055]);
     box(root, "#b3e8ff", [0, 1.1, 0.344], [0.12, 0.04, 0.06], true);
+    for (const x of [-0.105, 0.105]) ball(root, x < 0 ? "#b3e8ff" : "#f9c46a", [x, 0.647, 0.347], [0.041, 0.041, 0.026], true);
     head.position.y = 1.8;
     box(head, blue, [0, 0, 0], [1.35, 1.07, 0.88]);
     box(head, "#97d8ff", [0, -0.012, 0.404], [1.15, 0.91, 0.11]);
@@ -240,6 +278,8 @@ export function createMascotModel(id: string): MascotModel {
     body(green, cream, 0.45, 0.59);
     ball(root, "#42884f", [0, 0.87, -0.21], [0.56, 0.64, 0.29]);
     ball(root, "#69a85d", [0, 0.9, -0.365], [0.49, 0.56, 0.18]);
+    ball(root, "#82b76b", [0, 0.93, -0.517], [0.23, 0.28, 0.035]);
+    for (const side of [-1, 1]) ball(root, "#518d4c", [side * 0.305, 0.9, -0.445], [0.066, 0.31, 0.044]);
     for (const y of [0.57, 0.75, 0.94]) ball(root, "#e9dfb9", [0, y, 0.414], [0.295, 0.016, 0.009]);
     headBall(green, 1.77, 0.635, 0.59);
     eyePair(0.265, 0.035, 0.434, false, 0.96);
@@ -248,7 +288,7 @@ export function createMascotModel(id: string): MascotModel {
     arms(green);
     feet(green);
     for (const side of [-1, 1]) {
-      for (const x of [-0.075, 0.005, 0.085]) ball(root, "#c1e1a5", [side * 0.27 + x, 0.085, 0.401], [0.029, 0.026, 0.048]);
+      for (const x of [-0.075, 0.005, 0.085]) ball(side < 0 ? leftFoot : rightFoot, "#c1e1a5", [x, -0.155, 0.381], [0.029, 0.026, 0.048]);
       for (const y of [-0.2, -0.32]) ball(side < 0 ? leftArm : rightArm, "#5fab64", [side * 0.075, y, 0.18], [0.034, 0.04, 0.015]);
     }
   } else if (character === "rabbit") {
@@ -267,10 +307,15 @@ export function createMascotModel(id: string): MascotModel {
     eyePair(0.217, 0.005, 0.425, false, 0.87);
     ball(head, "#e496b7", [0, -0.123, 0.467], [0.052, 0.045, 0.032]);
     smile(0.459, -0.218, 0.1);
+    box(head, cream, [0, -0.27, 0.448], [0.058, 0.065, 0.029]);
     cheeks(0.351, -0.131, 0.362, 0.06);
     arms(lilac, 0.47, 1.025);
     feet(lilac, 0.24);
-    ball(root, cream, [0.4, 0.495, -0.255], [0.18, 0.18, 0.18]);
+    const tail = new THREE.Group();
+    tail.name = "tail";
+    tail.position.set(0.4, 0.495, -0.255);
+    ball(tail, cream, [0, 0, 0], [0.18, 0.18, 0.18]);
+    root.add(tail);
   } else if (character === "penguin") {
     body(navy, cream, 0.54, 0.65);
     headBall(navy, 1.71, 0.64, 0.58);
@@ -325,10 +370,14 @@ export function createMascotModel(id: string): MascotModel {
   const scale = 2.5 / (bounds.max.y - bounds.min.y);
   root.scale.setScalar(scale);
   root.position.y = -bounds.min.y * scale;
-  const rest = { head: head.rotation.clone(), leftArm: leftArm.rotation.clone(), rightArm: rightArm.rotation.clone() };
+  const rest = {
+    head: head.rotation.clone(), leftArm: leftArm.rotation.clone(), rightArm: rightArm.rotation.clone(),
+    leftFoot: leftFoot.rotation.clone(), rightFoot: rightFoot.rotation.clone(),
+    pupils: pupils.map(pupil => pupil.position.clone())
+  };
   let disposed = false;
   return {
-    root, head, leftArm, rightArm, eyes, rest,
+    root, head, leftArm, rightArm, leftFoot, rightFoot, eyes, pupils, rest,
     dispose() {
       if (disposed) return;
       disposed = true;

@@ -23,7 +23,7 @@ test.before(async () => {
   ({ createMascotCamera } = runtime("mascot-scene.ts", ["createMascotCamera"], { THREE, createMascotModel, ...motion }));
 });
 
-test("all ten mascots have finite normalized geometry and independent eyes and shoulder pivots", () => {
+test("all ten mascots have finite normalized geometry and independent face, shoulder and ankle pivots", () => {
   for (const id of IDS) {
     const model = createMascotModel(id);
     try {
@@ -33,7 +33,7 @@ test("all ten mascots have finite normalized geometry and independent eyes and s
       assert.ok(Math.abs(bounds.max.y - 2.5) < 1e-6, `${id}: ears and antenna fit the common height`);
       assert.ok(bounds.max.x > bounds.min.x && bounds.max.z > bounds.min.z, `${id}: actual volume`);
       assert.equal(model.root.name, `mascot-${id}`);
-      for (const part of [model.head, model.leftArm, model.rightArm]) {
+      for (const part of [model.head, model.leftArm, model.rightArm, model.leftFoot, model.rightFoot]) {
         assert.equal(part.parent, model.root, `${id}: independent animation pivot`);
         assert.ok(part.children.length > 0, `${id}: moving part contains geometry`);
       }
@@ -41,12 +41,36 @@ test("all ten mascots have finite normalized geometry and independent eyes and s
       assert.notEqual(model.rest.head, model.head.rotation);
       assert.notEqual(model.rest.leftArm, model.leftArm.rotation);
       assert.notEqual(model.rest.rightArm, model.rightArm.rotation);
+      assert.notEqual(model.rest.leftFoot, model.leftFoot.rotation);
+      assert.notEqual(model.rest.rightFoot, model.rightFoot.rotation);
+      assert.ok(model.leftFoot.position.x < 0 && model.rightFoot.position.x > 0, `${id}: two ankles`);
       assert.equal(model.eyes.length, 2);
       assert.notEqual(model.eyes[0], model.eyes[1]);
       for (const eye of model.eyes) assert.equal(eye.parent, model.head, `${id}: eyes follow the face`);
       model.eyes[0].scale.y = 0.07;
       assert.equal(model.eyes[1].scale.y, 1, `${id}: blinking one eye does not squash the other`);
       assert.equal(model.head.scale.y, 1, `${id}: blinking does not squash the face`);
+
+      assert.equal(model.pupils.length, 2);
+      for (let i = 0; i < model.pupils.length; i++) {
+        const pupil = model.pupils[i];
+        assert.equal(pupil.parent, model.eyes[i], `${id}: gaze also follows blink`);
+        assert.equal(pupil.children.length, 3, `${id}: pupil and both highlights move together`);
+        assert.notEqual(model.rest.pupils[i], pupil.position, `${id}: rest gaze is an independent snapshot`);
+        pupil.position.x = 0.02;
+        assert.equal(model.rest.pupils[i].x, 0, `${id}: gaze cannot overwrite rest position`);
+        pupil.position.copy(model.rest.pupils[i]);
+      }
+      const fixedHead = model.head.matrixWorld.clone();
+      const fixedRightFoot = model.rightFoot.matrixWorld.clone();
+      const movingFootMeshes = model.leftFoot.children.map(part => part.matrixWorld.clone());
+      model.leftFoot.rotation.x = -0.3;
+      model.root.updateMatrixWorld(true);
+      assert.ok(model.leftFoot.children.every((part, i) => !part.matrixWorld.equals(movingFootMeshes[i])), `${id}: toes and sole follow the ankle`);
+      assert.ok(model.rightFoot.matrixWorld.equals(fixedRightFoot), `${id}: opposite foot stays grounded`);
+      assert.ok(model.head.matrixWorld.equals(fixedHead), `${id}: a step does not rotate the face`);
+      model.leftFoot.rotation.copy(model.rest.leftFoot);
+      model.root.updateMatrixWorld(true);
 
       const unchangedRight = model.rightArm.matrixWorld.clone();
       const unchangedHead = model.head.matrixWorld.clone();
@@ -58,16 +82,20 @@ test("all ten mascots have finite normalized geometry and independent eyes and s
       assert.ok(unchangedHead.equals(model.head.matrixWorld), `${id}: waving does not move the head`);
 
       let meshes = 0;
+      const geometries = new Set();
       model.root.traverse(node => {
         assert.ok(node.matrixWorld.elements.every(Number.isFinite), `${id}: finite world matrix`);
         if (!node.isMesh) return;
         meshes++;
+        geometries.add(node.geometry);
         assert.ok(node.geometry.attributes.position.array.every(Number.isFinite), `${id}: finite vertices`);
         for (const material of Array.isArray(node.material) ? node.material : [node.material]) {
           assert.equal(material.map, null, `${id}: geometry renders without network textures`);
         }
       });
       assert.ok(meshes >= 20, `${id}: complete face, body and limbs`);
+      assert.ok(meshes <= 80, `${id}: mobile draw-call budget (${meshes} meshes)`);
+      assert.ok(geometries.size <= 12, `${id}: reuses geometry for limbs and face (${geometries.size} geometries)`);
     } finally {
       model.dispose();
     }
@@ -75,9 +103,9 @@ test("all ten mascots have finite normalized geometry and independent eyes and s
 });
 
 function applyPose(model, action, time, base, accessories) {
-  const pose = mascotPose(action, time);
+  const pose = mascotPose(action, time, model.root.name.replace("mascot-", ""));
   model.root.position.y = base.y + pose.y;
-  model.root.rotation.set(0, pose.yaw, pose.roll);
+  model.root.rotation.set(pose.bodyX, pose.yaw, pose.roll);
   model.root.scale.set(base.scale.x * pose.scaleX, base.scale.y * pose.scaleY, base.scale.z);
   model.head.rotation.copy(model.rest.head);
   model.head.rotation.x += pose.headX;
@@ -88,9 +116,21 @@ function applyPose(model, action, time, base, accessories) {
   model.rightArm.rotation.copy(model.rest.rightArm);
   model.rightArm.rotation.z += pose.rightZ;
   model.eyes.forEach(eye => { eye.scale.y = pose.blink; });
+  model.pupils.forEach((pupil, i) => {
+    pupil.position.copy(model.rest.pupils[i]);
+    pupil.position.x += pose.pupilX;
+    pupil.position.y += pose.pupilY;
+  });
+  model.leftFoot.rotation.copy(model.rest.leftFoot);
+  model.leftFoot.rotation.x += pose.leftFootX;
+  model.rightFoot.rotation.copy(model.rest.rightFoot);
+  model.rightFoot.rotation.x += pose.rightFootX;
   for (const { node, rotation } of accessories) {
     node.rotation.copy(rotation);
-    node.rotation.z += Math.sin(time * 3.4) * 0.08 * (action === "celebrate" ? 1.8 : 1);
+    const side = node.name.startsWith("left") ? -1 : 1;
+    node.rotation.z += pose.accessoryZ * side;
+    if (node.name === "tail") node.rotation.y += pose.accessoryZ * 2;
+    if (node.name.endsWith("wing")) node.rotation.y += pose.accessoryZ * side * 2;
   }
   model.root.updateMatrixWorld(true);
 }
@@ -101,8 +141,8 @@ test("the production camera contains every actual model vertex during greetings,
   const projection = new THREE.Matrix4().multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
   const matrix = new THREE.Matrix4();
   const vertex = new THREE.Vector3();
-  const actions = ["celebrate", "greet", "wave", "stretch", "hop", "dance"];
-  const times = [0, 0.5, 1, 1.5, 1.725, 2, 2.5, 3.2, 3.6];
+  const actions = ["idle", "celebrate", "greet", "wave", "look", "stretch", "hop", "dance", "quiet", "paused"];
+  const times = [...Array.from({ length: 25 }, (_, i) => i * 0.15), 0.93, 1.725, 2.36];
   for (const id of IDS) {
     const model = createMascotModel(id);
     try {

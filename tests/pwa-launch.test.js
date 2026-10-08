@@ -17,7 +17,8 @@ test("service worker eski veya derin ana ekran yolunu uygulama köküne kurtarı
   assert.match(sw,/self\.registration\.scope/);
   assert.match(sw,/res\.status===404\|\|res\.status===410/);
   assert.match(sw,/Response\.redirect\(appRootUrl\(\),302\)/);
-  assert.match(sw,/openWindow\(appRootUrl\(\)\)/);
+  assert.match(sw,/const root=new URL\(appRootUrl\(\)\)/);
+  assert.match(sw,/openWindow\(root\.href\)/);
 });
 
 test("GitHub Pages 404 kurtarma sayfası üretim paketine alınır",()=>{

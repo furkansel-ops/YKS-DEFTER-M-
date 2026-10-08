@@ -22,14 +22,15 @@ async function clearAppCaches():Promise<void>{
 }
 
 async function deleteDeviceData(button:HTMLButtonElement):Promise<void>{
-  if(!confirm("Bu cihazdaki YKS Defterim çalışma verileri, tercihler ve yerel yedekler kalıcı olarak silinecek. Devam edilsin mi?"))return;
-  if(!confirm("Son onay: Bu işlem geri alınamaz. Saklamak istediğin bir yedek varsa önce dışa aktar. Veriler silinsin mi?"))return;
+  if(!confirm("Bu cihazdaki çalışma verileri, tercihler ve yerel yedekler kalıcı olarak silinecek. Devam edilsin mi?"))return;
+  if(!confirm("Son onay: İşlem geri alınamaz. Gerekliyse önce yedek al. Veriler silinsin mi?"))return;
   const original=button.textContent;
   button.disabled=true;
   button.textContent="Veriler siliniyor…";
   try{
     const dataBridge=(window as unknown as {__YKS_DATA__?:{flush?:()=>Promise<void>}}).__YKS_DATA__;
     await dataBridge?.flush?.();
+    await (window as Window&{YKSFocusNotifications?:{shutdown():Promise<void>}}).YKSFocusNotifications?.shutdown();
     await Dexie.delete(YKS_DATABASE_NAME);
     localStorage.clear();
     sessionStorage.clear();

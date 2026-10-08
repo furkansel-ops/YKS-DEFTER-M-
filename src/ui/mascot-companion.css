@@ -32,5 +32,6 @@
 @keyframes rb-mascot-flight{0%,100%{transform:translate(0,0)}20%{transform:translate(calc(var(--celebration-x)*.35),calc(var(--celebration-y)*.55))}40%{transform:translate(var(--celebration-x),var(--celebration-y))}65%{transform:translate(calc(var(--celebration-x)*.55),calc(var(--celebration-y)*.7))}82%{transform:translate(calc(var(--celebration-x)*.18),calc(var(--celebration-y)*.25))}}
 .rb-mascot-canvas{display:block;position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 .rb-companion-picture[data-renderer="webgl"]>img,.rb-companion-picture[data-renderer="webgl"]>.rb-mascot-fallback{display:none!important}
+.rb-companion-picture[data-renderer="webgl"]+.rb-companion-shadow{animation:none;transform:scale(calc(1 - var(--mascot-lift,0)*.35));opacity:calc(.8 - var(--mascot-lift,0)*.4)}
 :root[data-mascot-motion="ready"] .rb-companion.is-celebrating .rb-companion-picture[data-renderer="fallback"]{animation:rb-mascot-celebrate .75s ease-in-out 5}
 @keyframes rb-mascot-celebrate{0%,100%{transform:translateY(0) rotate(0) scale(1)}30%{transform:translateY(-16px) rotate(-12deg) scale(1.06,.96)}65%{transform:translateY(-7px) rotate(12deg) scale(.96,1.07)}}

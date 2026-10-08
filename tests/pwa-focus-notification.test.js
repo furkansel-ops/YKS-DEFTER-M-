@@ -6,27 +6,29 @@ const path=require("node:path");
 const root=path.resolve(__dirname,"..");
 const read=file=>fs.readFileSync(path.join(root,file),"utf8");
 
-test("PWA odak bildirimi service worker üzerinden tek etiketle gösterilir ve kapatılır",()=>{
-  const app=read("app.js");
-  assert.match(app,/FOCUS_PWA_NOTIFICATION_TAG="yks-focus-running"/);
-  assert.match(app,/reg\.showNotification\(title,options\)/);
-  assert.match(app,/reg\.getNotifications\(\{tag:FOCUS_PWA_NOTIFICATION_TAG\}\)/);
-  assert.match(app,/requireInteraction:true/);
-  assert.match(app,/Notification\.permission==="granted"\)return true/);
-  assert.doesNotMatch(app,/return !!cfg\.on/);
-  assert.match(app,/renotify:true/);
-  assert.match(app,/void focusPwaNotificationShow\("pomo"\)/);
-  assert.match(app,/void focusPwaNotificationShow\("sw"\)/);
-  assert.match(app,/void focusPwaNotificationClose\(\)/);
+test("PWA odak bildiriminin tek sahibi kalıcı bildirim köprüsüdür",()=>{
+  const app=read("app.js"),bridge=read("modules/focus-notifications.js"),worker=read("modules/focus-notification-worker.js");
+  assert.doesNotMatch(app,/focusPwaNotification|FOCUS_PWA_NOTIFICATION_TAG|yks-focus-running|YKSFocusNotification=/);
+  assert.match(bridge,/type:"YKS_FOCUS_REQUEST"/);
+  assert.match(bridge,/window\.YKSFocusNotifications=/);
+  assert.match(bridge,/notifCfg\(\)\.pomo!==false/);
+  assert.doesNotMatch(bridge,/notifCfg\(\)\.on/);
+  assert.match(worker,/const TAG = "yks-focus-timer"/);
+  assert.match(worker,/registration\.showNotification\(title/);
+  assert.match(worker,/registration\.getNotifications\(\{ tag: TAG \}\)/);
+  assert.match(worker,/requireInteraction: true, silent: true, renotify: false/);
+  assert.match(worker,/"focus-resume" : "focus-pause"/);
 });
 
-test("Odak bildirimi tıklanınca PWA açılır ve Odak ekranı istenir",()=>{
-  const sw=read("sw.js"),app=read("app.js");
-  assert.match(sw,/notificationclick/);
-  assert.match(sw,/data\.kind==="focus"/);
-  assert.match(sw,/postMessage\(\{type:"OPEN_FOCUS"\}\)/);
-  assert.match(app,/event\.data\.type==="OPEN_FOCUS"/);
-  assert.match(app,/go\("pomo"\)/);
+test("Odak bildirimi açık sayfayı yeniden yüklemeden Odak ekranına yönlendirir",()=>{
+  const worker=read("modules/focus-notification-worker.js"),bridge=read("modules/focus-notifications.js");
+  assert.match(worker,/function handleClick\(event\)/);
+  assert.match(worker,/data\?\.type !== "yks-focus"/);
+  assert.match(worker,/client\.postMessage\(\{ type: "YKS_FOCUS_OPEN" \}\)/);
+  assert.match(worker,/await client\.focus\(\)/);
+  assert.doesNotMatch(worker,/\.navigate\(/);
+  assert.match(bridge,/event\.data\?\.type==="YKS_FOCUS_OPEN"/);
+  assert.match(bridge,/window\.go\?\.\("pomo"\)/);
 });
 
 test("Android kapsül ve native FocusTimer kodu paketten tamamen kaldırılmıştır",()=>{

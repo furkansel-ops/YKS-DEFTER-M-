@@ -36,8 +36,8 @@
     try{
       const x=JSON.parse(localStorage.getItem(RUNTIME_KEY)||"null");
       if(!x||x.version!==1||!["running","paused"].includes(x.state))return null;
-      if(!Number.isFinite(+x.savedAt)||Date.now()-x.savedAt>12*60*60*1000)return null;
-      if(!Number.isFinite(+x.total)||x.total<1||x.total>12*60*60)return null;
+      if(!Number.isFinite(+x.savedAt)||Date.now()-x.savedAt>48*60*60*1000)return null;
+      if(!Number.isFinite(+x.total)||x.total<1||x.total>24*60*60)return null;
       return x;
     }catch(e){return null;}
   }
@@ -114,7 +114,7 @@
     document.addEventListener("visibilitychange",()=>{if(document.hidden)persistRuntime(true);});
     window.addEventListener("pagehide",()=>persistRuntime(true));
     setInterval(()=>{try{if(pomoState==="running")persistRuntime(false);}catch(e){}},15000);
-    bindAccessibility();updateOnlineBanner();loadPersonalUpgrades();loadProgressV2();loadLearningLabV2();loadLearningLabV3();setTimeout(restoreRuntime,180);
+    bindAccessibility();updateOnlineBanner();loadPersonalUpgrades();loadProgressV2();loadLearningLabV2();loadLearningLabV3();setTimeout(()=>{if(window.YKSFocusNotifications)window.YKSFocusNotifications.restore(restoreRuntime);else restoreRuntime();},180);
   }
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",start,{once:true});else start();
   window.YKSStability={persistRuntime,restoreRuntime,clearRuntime,updateOnlineBanner,loadPersonalUpgrades,loadProgressV2,loadLearningLabV2,loadLearningLabV3};

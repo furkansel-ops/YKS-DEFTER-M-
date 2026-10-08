@@ -115,6 +115,43 @@ test("bildirim durum yenilemesi erişilebilir anahtarları gerçek eski durumla 
   legacy.classes.delete("on");h.run('refresh(document.getElementById(ROOT_ID))');assert.equal(button.attributes["aria-checked"],"false");
 });
 
+test("izin açık fakat uygulama bildirimi kapalıysa ayarlar yeniden etkinleştirebilir",async()=>{
+  const h=harness();h.window.Notification=h.context.Notification={permission:"granted"};h.window.S.notif={on:false};
+  const permit=h.root.querySelector("[data-yms-notif-permission]"),status=h.root.querySelector("[data-yms-notif-status]");
+  h.run('refresh(document.getElementById(ROOT_ID));bind(document.getElementById(ROOT_ID))');
+  assert.equal(permit.disabled,false);assert.equal(permit.textContent,"Genel hatırlatmaları aç");assert.match(status.textContent,/Odak açık.*Genel hatırlatmalar kapalı/);assert.equal(status.classes.has("ok"),true);
+  let requested=0;h.window.askNotif=async()=>{requested++;h.window.S.notif.on=true;return"granted"};
+  await permit.emit("click");
+  assert.equal(requested,1);assert.equal(permit.disabled,true);assert.equal(status.classes.has("ok"),true);
+  assert.ok(h.listeners.has("yks:notification-settings"));
+});
+
+test("hem odak hem genel hatırlatmalar kapalıysa izin tek başına etkin bildirim diye gösterilmez",()=>{
+  const h=harness();h.window.Notification=h.context.Notification={permission:"granted"};h.window.S.notif={on:false,pomo:false};
+  h.run('refresh(document.getElementById(ROOT_ID))');
+  const status=h.root.querySelector("[data-yms-notif-status]");assert.equal(status.textContent,"Bildirim tercihleri kapalı");assert.equal(status.classes.has("ok"),false);
+});
+
+test("engellenmiş bildirim izni kullanıcıyı görünür izin yardımına götürür",()=>{
+  const h=harness();h.window.Notification=h.context.Notification={permission:"denied"};
+  const help=new h.Node(),summary=new h.Node();help.selectors.set("summary",summary);h.root.selectors.set("[data-yms-notif-help]",help);
+  h.window.askNotif=()=>{throw new Error("Blocked permissions must not be requested again")};
+  h.run('refresh(document.getElementById(ROOT_ID));bind(document.getElementById(ROOT_ID))');
+  const permit=h.root.querySelector("[data-yms-notif-permission]");assert.equal(permit.textContent,"İzin yardımını aç");permit.emit("click");
+  assert.equal(help.open,true);assert.equal(h.document.activeElement,summary);
+});
+
+test("ayar testi sonucu bekler, çift tıklamayı engeller ve başarısızlığı görünür gösterir",async()=>{
+  const h=harness(),button=new h.Node(),status=new h.Node();
+  h.root.selectors.set("[data-yms-notif-test]",button);h.root.selectors.set("[data-yms-notif-result]",status);
+  let finish,calls=0;h.window.testNotif=()=>{calls++;return new Promise(resolve=>{finish=resolve})};
+  h.run('bind(document.getElementById(ROOT_ID))');
+  const pending=button.emit("click");assert.equal(button.disabled,true);assert.match(status.textContent,/kontrol ediliyor/);
+  await button.emit("click");assert.equal(calls,1);finish(false);await pending;
+  assert.equal(button.disabled,false);assert.match(status.textContent,/kabul edilmedi/);
+  h.window.testNotif=async()=>true;await button.emit("click");assert.match(status.textContent,/Tarayıcı isteği kabul etti/);
+});
+
 test("ayar bağlantıları mevcut program, yedek, sistem ve bildirim işlemlerine ulaşır",()=>{
   const h=harness(),calls=[];
   const selectors=["[data-yms-program]","[data-yms-data]","[data-yms-system]","[data-yms-about]","[data-yms-notif-test]"];
