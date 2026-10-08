@@ -9,3 +9,12 @@
 #home .sn-panel button:focus-visible{outline:2px solid var(--accent,#427ddd);outline-offset:2px}
 #home .sn-hint,#home .sn-status{font-size:11px;line-height:1.4;color:var(--label-2,#667)}
 @media(max-width:560px){#home .sn-panel{padding:13px}#home .sn-line,#home .sn-push-row{align-items:stretch;flex-direction:column}}
+
+#home .sn-actions{display:flex;flex-wrap:wrap;gap:8px;min-width:0;max-width:100%}
+#home .sn-actions button{max-width:100%;min-height:42px;white-space:normal;text-align:center;overflow-wrap:anywhere}
+#home .sn-push-secondary{background:transparent;color:var(--label,#182436);border:1px solid var(--sep,rgba(120,130,150,.25))}
+#home .sn-status{display:block;max-width:100%;overflow-wrap:anywhere}
+@media(max-width:560px){
+ #home .sn-actions{display:grid;grid-template-columns:1fr;width:100%}
+ #home .sn-actions button{width:100%}
+}
