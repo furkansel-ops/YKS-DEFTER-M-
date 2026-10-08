@@ -1,5 +1,4 @@
 import{collection,doc,getDoc,onSnapshot,query,where,setDoc,updateDoc,serverTimestamp}from"https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
-import{installCoachStudentChallenges}from"./coach-challenges-student.js";
 
 const PENDING_ROLE="yks_account_role_pending",ROLE_HINT="yks_account_role_hint",DAY=86400000;
 const rt={auth:null,db:null,user:null,profile:null,stops:[],shareTimer:null,shareInterval:null,sharing:false,pending:false,inFlight:null,actionQueue:Promise.resolve(),session:0};
@@ -276,7 +275,12 @@ async function handleAction(change,session=rt.session){
 }
 async function startStudent(session){
   requireSession(session);
-  rt.stops.push(installCoachStudentChallenges({db:rt.db,user:rt.user}));
+  void import("./coach-challenges-student.js").then(({installCoachStudentChallenges})=>{
+    if(session!==rt.session)return;
+    const stop=installCoachStudentChallenges({db:rt.db,user:rt.user});
+    if(session===rt.session)rt.stops.push(stop);
+    else stop();
+  }).catch(error=>console.warn("Koç görevleri eklentisi başlatılamadı",error));
   const q=query(collection(rt.db,"coachingActions"),where("studentUid","==",rt.user.uid));
   rt.stops.push(onSnapshot(q,snap=>snap.docChanges().forEach(change=>queueAction(change,session)),error=>console.error("Koç action",error)));
   const changed=()=>scheduleShare(120);window.addEventListener("yks:data-changed",changed);rt.stops.push(()=>window.removeEventListener("yks:data-changed",changed));
