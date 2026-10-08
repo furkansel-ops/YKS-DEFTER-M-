@@ -275,6 +275,12 @@ async function handleAction(change,session=rt.session){
 }
 async function startStudent(session){
   requireSession(session);
+  void import("./smart-push-client.js").then(({installStudentSmartPush})=>{
+    if(session!==rt.session)return;
+    const stop=installStudentSmartPush({db:rt.db,user:rt.user});
+    if(session===rt.session)rt.stops.push(stop);
+    else stop();
+  }).catch(error=>console.warn("Akıllı Web Push bileşeni başlatılamadı",error));
   void import("./coach-challenges-student.js").then(({installCoachStudentChallenges})=>{
     if(session!==rt.session)return;
     const stop=installCoachStudentChallenges({db:rt.db,user:rt.user});
