@@ -1,6 +1,6 @@
 import{doc,getDoc,setDoc,deleteDoc,serverTimestamp}from"https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
 /** Opt-in only; reuse the existing /sw.js controlling PWA, do not create a second SW. */
-let active=false,dbRef=null,userRef=null,deviceRef=null,taskTimer=null,stopChanges=[];
+let active=false,dbRef=null,userRef=null,deviceRef=null,taskTimer=null,stopChanges=[],publicVapid=null;
 const KEY="yks-push-device-id";
 const state=()=>{try{return window.YKSLegacyState?.readState?.()||window.S||null}catch{return window.S||null}};
 const statusChanged=()=>window.dispatchEvent(new Event("yks:smart-push-status"));
@@ -62,22 +62,32 @@ export function installStudentSmartPush({db,user}){
   dbRef=db;userRef=user;active=true;
   const id=deviceId();
   deviceRef=doc(db,"users",user.uid,"pushDevices",id);
+  // Apple Web Push requires requesting permission directly inside the tap handler.
+  // Fetch public VAPID config on account connection, never just before requesting permission.
+  void getDoc(doc(db,"publicConfig","push")).then(setting=>{
+    if(!active||userRef?.uid!==user.uid)return;
+    const vapid=setting.data()?.vapidPublicKey;
+    publicVapid=typeof vapid==="string"&&vapid.length>=40?vapid:null;
+    if(publicVapid)status="Sunucu anahtarı hazır; bildirimleri etkinleştirebilirsin.";
+    statusChanged();
+  }).catch(()=>{publicVapid=null;status="Sunucu bağlantısı hazır değil.";statusChanged();});
   async function enable(){
     if(!active||userRef?.uid!==user.uid)throw Error("Öğrenci hesabıyla giriş yapman gerekiyor.");
     if(!isSecureContext||!("serviceWorker" in navigator)||!("PushManager" in window)||
       typeof Notification==="undefined")throw Error("Bu cihazda Web Push desteklenmiyor.");
     const cfg=readConfig();
     if(!cfg)throw Error("Önce akıllı hatırlatmaları etkinleştir.");
-    const setting=await getDoc(doc(db,"publicConfig","push"));
-    const vapid=setting.data()?.vapidPublicKey;
-    if(!setting.exists()||typeof vapid!=="string"||vapid.length<40)
-      throw Error("Gerçek Firebase ortamında Web Push VAPID anahtarı henüz yapılandırılmadı.");
-    const permission=await Notification.requestPermission();
+    if(!publicVapid)
+      throw Error("Sunucu VAPID anahtarı henüz hazır değil. Telefon Push'u bağlanamaz.");
+    // This is the first asynchronous boundary: requestPermission MUST be invoked
+    // synchronously from the user's actual tap (not after any Firebase await).
+    const permissionPromise=Notification.requestPermission();
+    const permission=await permissionPromise;
     if(permission!=="granted")throw Error("Cihaz bildirim izni verilmedi.");
     const registration=await navigator.serviceWorker.ready;
     let subscription=await registration.pushManager.getSubscription();
     if(!subscription)subscription=await registration.pushManager.subscribe({
-      userVisibleOnly:true,applicationServerKey:urlBase64ToUint8Array(vapid)
+      userVisibleOnly:true,applicationServerKey:urlBase64ToUint8Array(publicVapid)
     });
     if(!subscription?.endpoint)throw Error("Push aboneliği oluşturulamadı.");
     const key=subscription.toJSON().keys??{};
@@ -97,13 +107,26 @@ export function installStudentSmartPush({db,user}){
     if(ref)await deleteDoc(ref);
     status="Telefon bildirimi bağlantısı kaldırıldı.";statusChanged();return status;
   }
-  window.YKSSmartPush={enable,disable,status:()=>status};
+  async function localTest(){
+    if(!active||Notification.permission!=="granted")
+      throw Error("Önce bu cihaz için bildirim izni ver.");
+    const reg=await navigator.serviceWorker.ready;
+    await reg.showNotification("YKS Defterim · Yerel test",{
+      body:"Bu, sunucu üzerinden gelmeyen yerel bir cihaz bildirimidir.",
+      tag:"yks-local-push-test",data:{type:"yks-local-test"}
+    });
+    return "Yerel test gösterildi. Bu işlem gerçek Firebase Push gönderimini doğrulamaz.";
+  }
+  window.YKSSmartPush={enable,disable,localTest,status:()=>status};
+  let lastOptIn=Boolean(readConfig());
   const changed=()=>{
-    if(!readConfig()){
-      void disable().catch(error=>console.warn("Bildirimden çıkış kaydedilemedi",error));
-      return;
+    const optIn=Boolean(readConfig());
+    if(!optIn){
+      if(lastOptIn)void disable().catch(error=>console.warn("Bildirimden çıkış kaydedilemedi",error));
+    }else{
+      void syncDevice().catch(error=>console.warn("Bildirim cihaz profili",error));
     }
-    void syncDevice().catch(error=>console.warn("Bildirim cihaz profili",error));
+    lastOptIn=optIn;
   };
   for(const event of ["yks:data-changed","yks:smart-reminders-settings","online"])
     {window.addEventListener(event,changed);stopChanges.push(()=>window.removeEventListener(event,changed));}
@@ -111,7 +134,7 @@ export function installStudentSmartPush({db,user}){
   statusChanged();changed();
   return()=>{
     const oldRef=deviceRef;
-    active=false;userRef=null;dbRef=null;deviceRef=null;
+    active=false;userRef=null;dbRef=null;deviceRef=null;publicVapid=null;
     for(const stop of stopChanges.splice(0))stop();
     if(taskTimer){clearInterval(taskTimer);taskTimer=null;}
     delete window.YKSSmartPush;
