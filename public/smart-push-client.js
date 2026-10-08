@@ -89,23 +89,39 @@ export function installStudentSmartPush({db,user}){
     statusChanged();return status;
   }
   async function disable(){
-    const sub=await(await navigator.serviceWorker.ready).pushManager.getSubscription();
+    const ref=deviceRef;
+    const registration=await navigator.serviceWorker.getRegistration();
+    const sub=await registration?.pushManager?.getSubscription();
     if(sub)await sub.unsubscribe();
-    try{await deleteDoc(deviceRef);}catch{}
+    if(ref)await deleteDoc(ref);
     status="Telefon bildirimi bağlantısı kaldırıldı.";statusChanged();return status;
   }
   window.YKSSmartPush={enable,disable,status:()=>status};
-  const changed=()=>{void syncDevice().catch(error=>console.warn("Bildirim cihaz profili",error));};
+  const changed=()=>{
+    if(!readConfig()){
+      void disable().catch(error=>console.warn("Bildirimden çıkış kaydedilemedi",error));
+      return;
+    }
+    void syncDevice().catch(error=>console.warn("Bildirim cihaz profili",error));
+  };
   for(const event of ["yks:data-changed","yks:smart-reminders-settings","online"])
     {window.addEventListener(event,changed);stopChanges.push(()=>window.removeEventListener(event,changed));}
   taskTimer=window.setInterval(changed,240000);
   statusChanged();changed();
   return()=>{
+    const oldRef=deviceRef;
     active=false;userRef=null;dbRef=null;deviceRef=null;
     for(const stop of stopChanges.splice(0))stop();
     if(taskTimer){clearInterval(taskTimer);taskTimer=null;}
     delete window.YKSSmartPush;
-    // Avoid delivering another student's push after logout or account switch.
-    void disable().catch(error=>console.warn("Eski push cihaz bağı kapatılamadı",error));
+    // Unsubscribe + remove previous student's device record on logout.
+    void (async()=>{
+      try{
+        const registration=await navigator.serviceWorker.getRegistration();
+        const subscription=await registration?.pushManager?.getSubscription();
+        if(subscription)await subscription.unsubscribe();
+        if(oldRef)await deleteDoc(oldRef);
+      }catch(error){console.warn("Eski push cihaz bağı kapatılamadı",error);}
+    })();
   };
 }
