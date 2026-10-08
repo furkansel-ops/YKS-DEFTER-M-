@@ -211,7 +211,7 @@ export function calculateStudyGamification(state:StudyGamificationState|null|und
     if(qualifies&&!wasEarned)newBadgeIds.push(b.id);
     return {id:b.id,icon:b.icon,title:b.title,description:b.description,rarity:b.rarity,
       xp:XP_BY_RARITY[b.rarity],progress:Math.min(b.goal,b.value),goal:b.goal,
-      unlocked:wasEarned||qualifies,unlockedAt:wasEarned?old.at:null,pending:!!b.pending};
+      unlocked:wasEarned,unlockedAt:wasEarned?old.at:null,pending:!!b.pending};
   });
   const earnedXp=badges.reduce((sum,b)=>{
     if(!b.unlocked)return sum;
