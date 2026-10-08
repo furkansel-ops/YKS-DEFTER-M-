@@ -130,3 +130,16 @@
 @media(prefers-reduced-motion:reduce){
   .sg-reward-notice,.sg-reward-symbol{animation:none}
 }
+
+
+/* Prevent cramped buttons and cut-off badges on smaller Android/iPad viewports. */
+#home .sg-cta,#home .sg-cancel,#home .sg-rest-button,
+#home .sg-goal-edit,#home .sg-rest-select{min-height:42px;touch-action:manipulation}
+#home .sg-badge,#home .sg-top,#home .sg-protection{box-sizing:border-box;max-width:100%}
+#home .sg-protection-head{flex-wrap:wrap}
+.sg-reward-close{min-width:42px;min-height:42px;touch-action:manipulation}
+@media(max-width:380px){
+  #home .sg-week{min-width:0;gap:2px}
+  #home .sg-day{min-width:0}
+  #home .sg-goal-fields{grid-template-columns:1fr}
+}
