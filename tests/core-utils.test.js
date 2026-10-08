@@ -63,3 +63,26 @@ test("Öğrenme Laboratuvarı kayıtları cihazlar arasında birleşir",()=>{
   assert.deepEqual(new Set(lab.timelineFav),new Set(["t1","t2"]));
   assert.deepEqual(new Set(lab.topicFav),new Set(["TYT|Matematik|Problemler","AYT|Fizik (AYT)|Dalgalar"]));
 });
+
+
+test("oyunlaştırma farklı cihazlardaki rozetleri ve dinlenme günlerini korur",()=>{
+  const base={version:1,activatedAt:1791453600000,activationDay:"2026-10-08",baselineMinutes:15,baselineQuestions:4};
+  const remote={gamification:{...base,goals:[{from:"2026-10-08",minutes:90,questions:60}],
+    earned:{"first-focus":{at:1791453900000,xp:30}},restDays:["2026-10-10"]}};
+  const local={gamification:{...base,goals:[{from:"2026-10-09",minutes:120,questions:80}],
+    earned:{"first-streak":{at:1791454000000,xp:30}},restDays:["2026-10-16"]}};
+  const merged=core.mergeStates(remote,local,21).gamification;
+  assert.equal(merged.activatedAt,base.activatedAt);
+  assert.deepEqual(Object.keys(merged.earned).sort(),["first-focus","first-streak"]);
+  assert.deepEqual(merged.goals.map(x=>x.from),["2026-10-08","2026-10-09"]);
+  assert.deepEqual(merged.restDays,["2026-10-10","2026-10-16"]);
+});
+test("farklı oyunlaştırma başlangıçları birbiriyle karıştırılmaz",()=>{
+  const make=activatedAt=>({version:1,activatedAt,activationDay:"2026-10-08",
+    baselineMinutes:0,baselineQuestions:0,goals:[],earned:{},restDays:[]});
+  const early=make(1000),late=make(2000);
+  late.earned["future"]={at:3000,xp:600};
+  const merged=core.mergeStates({gamification:late},{gamification:early},21).gamification;
+  assert.equal(merged.activatedAt,1000);
+  assert.deepEqual(merged.earned,{});
+});
