@@ -143,18 +143,6 @@ const pwa=installPwaRuntime(RELEASE_BUILD);
 
 /* P & P ekran kabuğunun navigasyon doğrulamasından önce kurulması gerekir; ancak
    kurulum hatası artık çekirdek açılışı durdurmaz. */
-/* Aşama 1: başarımlar isteğe bağlı ve ayrı paket. Ana açılışın arızalanmasını önler. */
-document.documentElement.dataset.studyGamification="loading";
-void import("./ui/study-gamification")
-  .then(({installStudyGamification})=>{
-    const instance=installOptional("study-gamification",()=>installStudyGamification(),{installed:false});
-    document.documentElement.dataset.studyGamification=instance.installed?"ready":"deferred";
-  })
-  .catch(error=>{
-    document.documentElement.dataset.studyGamification="deferred";
-    console.error("Başarım modülü açılmadı",error);
-  });
-
 const paragraphProblem=installOptional(
   "paragraph-problem",
   ()=>installParagraphProblemTracker(),
@@ -196,20 +184,8 @@ const playStoreShell=installOptional(
   {installed:false,legacyCloudRemoved:false}
 );
 document.documentElement.dataset.playStorePrivacy=playStoreShell.installed?"ready":"deferred";
-document.documentElement.dataset.topSyncIndicator="loading";
-void import("./ui/top-sync-indicator")
-  .then(({installTopSyncIndicator})=>{
-    const indicator=installOptional(
-      "top-sync-indicator",
-      ()=>installTopSyncIndicator(),
-      {installed:false,state:"off" as const}
-    );
-    document.documentElement.dataset.topSyncIndicator=indicator.installed?"ready":"deferred";
-  })
-  .catch(error=>{
-    document.documentElement.dataset.topSyncIndicator="deferred";
-    console.error("Üst senkron durum göstergesi yüklenemedi",error);
-  });
+/* Hafif, hata yalıtımlı isteğe bağlı başlangıç köprüsü. */
+void import("./ui/startup-extras").catch(error=>console.error("İsteğe bağlı başlangıç",error));
 const v43Runtime=installV43SafeRuntime();
 document.documentElement.dataset.v43RuntimeHost=String(v43Runtime.installed);
 
