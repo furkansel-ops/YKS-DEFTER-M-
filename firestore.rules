@@ -686,45 +686,14 @@ service cloud.firestore {
       allow delete: if false;
     }
 
-    // Public VAPID key is published by an administrator. The private key is never stored in Firestore.
+    // Only administrators configure the public VAPID key (private key is a secret).
     match /publicConfig/push {
       allow get: if verifiedUser();
       allow list, create, update, delete: if false;
     }
 
     function validPushDevice(data,deviceId) {
-      return deviceId.matches('^[A-Za-z0-9_-]{8,80}
-      allow read: if ownsUserSpace(userId);
-      allow create: if ownsUserSpace(userId)
-        && validActiveMeta(request.resource.data);
-      allow update: if ownsUserSpace(userId)
-        && (
-          advancesActiveRevision()
-          || startsDeletion()
-          || completesDeletion()
-        );
-      allow delete: if false;
-    }
-
-    match /users/{userId}/chunks/{chunkId} {
-      allow read: if ownsUserSpace(userId);
-      allow create: if ownsUserSpace(userId)
-        && validChunk(userId, chunkId);
-      allow update: if false;
-      allow delete: if ownsUserSpace(userId)
-        && canDeleteChunk(userId, chunkId);
-    }
-
-    match /users/{userId}/{document=**} {
-      allow read, write: if false;
-    }
-
-    match /{document=**} {
-      allow read, write: if false;
-    }
-  }
-}
-)
+      return deviceId.matches('^[A-Za-z0-9_-]{8,80}$')
         && data.keys().hasAll([
           'deviceId','endpoint','p256dh','auth','day','goalMinutes','goalQuestions',
           'minutes','questions','restDay','quietStart','quietEnd','timeZone','updatedAt'
@@ -735,134 +704,10 @@ service cloud.firestore {
         ])
         && data.deviceId == deviceId
         && data.endpoint is string && data.endpoint.size() <= 2048
-        && data.endpoint.matches('^https://[^ ]{1,2040}
-      allow read: if ownsUserSpace(userId);
-      allow create: if ownsUserSpace(userId)
-        && validActiveMeta(request.resource.data);
-      allow update: if ownsUserSpace(userId)
-        && (
-          advancesActiveRevision()
-          || startsDeletion()
-          || completesDeletion()
-        );
-      allow delete: if false;
-    }
-
-    match /users/{userId}/chunks/{chunkId} {
-      allow read: if ownsUserSpace(userId);
-      allow create: if ownsUserSpace(userId)
-        && validChunk(userId, chunkId);
-      allow update: if false;
-      allow delete: if ownsUserSpace(userId)
-        && canDeleteChunk(userId, chunkId);
-    }
-
-    match /users/{userId}/{document=**} {
-      allow read, write: if false;
-    }
-
-    match /{document=**} {
-      allow read, write: if false;
-    }
-  }
-}
-)
-        && data.p256dh is string && data.p256dh.matches('^[A-Za-z0-9_=-]{20,180}
-      allow read: if ownsUserSpace(userId);
-      allow create: if ownsUserSpace(userId)
-        && validActiveMeta(request.resource.data);
-      allow update: if ownsUserSpace(userId)
-        && (
-          advancesActiveRevision()
-          || startsDeletion()
-          || completesDeletion()
-        );
-      allow delete: if false;
-    }
-
-    match /users/{userId}/chunks/{chunkId} {
-      allow read: if ownsUserSpace(userId);
-      allow create: if ownsUserSpace(userId)
-        && validChunk(userId, chunkId);
-      allow update: if false;
-      allow delete: if ownsUserSpace(userId)
-        && canDeleteChunk(userId, chunkId);
-    }
-
-    match /users/{userId}/{document=**} {
-      allow read, write: if false;
-    }
-
-    match /{document=**} {
-      allow read, write: if false;
-    }
-  }
-}
-)
-        && data.auth is string && data.auth.matches('^[A-Za-z0-9_=-]{10,90}
-      allow read: if ownsUserSpace(userId);
-      allow create: if ownsUserSpace(userId)
-        && validActiveMeta(request.resource.data);
-      allow update: if ownsUserSpace(userId)
-        && (
-          advancesActiveRevision()
-          || startsDeletion()
-          || completesDeletion()
-        );
-      allow delete: if false;
-    }
-
-    match /users/{userId}/chunks/{chunkId} {
-      allow read: if ownsUserSpace(userId);
-      allow create: if ownsUserSpace(userId)
-        && validChunk(userId, chunkId);
-      allow update: if false;
-      allow delete: if ownsUserSpace(userId)
-        && canDeleteChunk(userId, chunkId);
-    }
-
-    match /users/{userId}/{document=**} {
-      allow read, write: if false;
-    }
-
-    match /{document=**} {
-      allow read, write: if false;
-    }
-  }
-}
-)
-        && data.day is string && data.day.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}
-      allow read: if ownsUserSpace(userId);
-      allow create: if ownsUserSpace(userId)
-        && validActiveMeta(request.resource.data);
-      allow update: if ownsUserSpace(userId)
-        && (
-          advancesActiveRevision()
-          || startsDeletion()
-          || completesDeletion()
-        );
-      allow delete: if false;
-    }
-
-    match /users/{userId}/chunks/{chunkId} {
-      allow read: if ownsUserSpace(userId);
-      allow create: if ownsUserSpace(userId)
-        && validChunk(userId, chunkId);
-      allow update: if false;
-      allow delete: if ownsUserSpace(userId)
-        && canDeleteChunk(userId, chunkId);
-    }
-
-    match /users/{userId}/{document=**} {
-      allow read, write: if false;
-    }
-
-    match /{document=**} {
-      allow read, write: if false;
-    }
-  }
-}
-)
+        && data.endpoint.matches('^https://[^ ]{1,2040}$')
+        && data.p256dh is string && data.p256dh.matches('^[A-Za-z0-9_=-]{20,180}$')
+        && data.auth is string && data.auth.matches('^[A-Za-z0-9_=-]{10,90}$')
+        && data.day is string && data.day.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
         && data.goalMinutes is int && data.goalMinutes >= 1 && data.goalMinutes <= 1440
         && data.goalQuestions is int && data.goalQuestions >= 1 && data.goalQuestions <= 5000
         && data.minutes is int && data.minutes >= 0 && data.minutes <= 1440
@@ -884,8 +729,6 @@ service cloud.firestore {
         && request.resource.data.createdAt == resource.data.createdAt;
       allow delete: if ownsUserSpace(userId);
     }
-
-    // Server-only deduplication of notification deliveries.
     match /smartPushLogs/{logId} {
       allow read, write: if false;
     }
