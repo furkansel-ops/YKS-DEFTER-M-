@@ -11,6 +11,8 @@ export type GamificationProfile={
   baselineQuestions:number;
   goals:DailyGoal[];
   earned:Record<string,EarnedBadge>;
+  /** Dinlenme günleri yalnız önceden planlanır; haftada en fazla bir gün. */
+  restDays?:string[];
 };
 export type StudyGamificationState={
   pomoMin?:Record<string,unknown>;
@@ -24,11 +26,13 @@ export type StudyBadge={
   rarity:BadgeRarity;xp:number;progress:number;goal:number;
   unlocked:boolean;unlockedAt:number|null;pending:boolean;
 };
-export type StudyWeekDay={key:string;label:string;completed:boolean;today:boolean};
+export type StudyDayStatus="completed"|"rest"|"shield"|"missed"|"pending";
+export type StudyWeekDay={key:string;label:string;completed:boolean;today:boolean;status:StudyDayStatus};
 export type StudyGamificationSnapshot={
   activated:boolean;todayKey:string;todayMinutes:number;todayQuestions:number;
   goalMinutes:number;goalQuestions:number;todayCompleted:boolean;
   currentStreak:number;longestStreak:number;activeDays:number;
+  shields:number;shieldsUsed:number;shieldLimit:number;restDays:string[];
   totalMinutes:number;totalQuestions:number;totalExams:number;
   xp:number;level:number;rank:string;levelProgress:number;levelGoal:number;
   earnedBadges:number;badges:StudyBadge[];newBadgeIds:string[];
@@ -72,7 +76,7 @@ export function createGamificationProfile(
   return {version:1,activatedAt:now.getTime(),activationDay:day,
     baselineMinutes:amount(state.pomoMin?.[day],1440),
     baselineQuestions:amount(state.solved?.[day],5000),
-    goals:[{from:day,minutes,questions}],earned:{}};
+    goals:[{from:day,minutes,questions}],earned:{},restDays:[]};
 }
 export function setNextDayGoal(
   profile:GamificationProfile,now:Date,minutes:number,questions:number
@@ -83,6 +87,20 @@ export function setNextDayGoal(
   return {...profile,goals:[...profile.goals.filter(g=>g.from!==next),{from:next,minutes,questions}]
     .sort((a,b)=>a.from.localeCompare(b.from))};
 }
+/** Yalnız gün başlamadan planlama yapılır. Aynı ISO haftasına ikinci dinlenme eklenmez. */
+export function planRestDay(profile:GamificationProfile,day:string,now:Date):GamificationProfile{
+  if(!isDayKey(day)||day<=keyOf(now)||day<profile.activationDay)
+    throw new Error("Dinlenme günü ancak gelecek bir tarih için seçilebilir.");
+  const existing=(profile.restDays??[]).filter(isDayKey);
+  const monday=(key:string)=>{
+    const date=new Date(Number(key.slice(0,4)),Number(key.slice(5,7))-1,Number(key.slice(8)),12);
+    return shiftDay(key,-(date.getDay()+6)%7);
+  };
+  if(existing.some(key=>monday(key)===monday(day)))
+    throw new Error("Bu hafta için dinlenme günü zaten belirlendi.");
+  return {...profile,restDays:[...existing,day].sort()};
+}
+
 function rankFor(level:number):string{
   if(level>=35)return "YKS Efsanesi";
   if(level>=20)return "Usta";
@@ -139,27 +157,46 @@ export function calculateStudyGamification(state:StudyGamificationState|null|und
       const minutes=Math.max(0,amount(state?.pomoMin?.[key],1440)-(baseline?profile.baselineMinutes:0));
       const questions=Math.max(0,amount(state?.solved?.[key],5000)-(baseline?profile.baselineQuestions:0));
       const goal=validGoals(goals,key);
-      const completed=minutes>=goal.minutes&&questions>=goal.questions;
-      dayRecords.set(key,{minutes,questions,completed});
+      dayRecords.set(key,{minutes,questions,completed:minutes>=goal.minutes&&questions>=goal.questions});
       totalMinutes+=minutes;totalQuestions+=questions;
-      if(completed)activeDays++;
-      // Mola değil, kaydedilmiş odak süresi. Günde 120 süre + 80 soru XP üst sınırı.
-      workXp+=Math.min(120,Math.floor(minutes/2))+Math.min(80,Math.floor(questions/2))+(completed?50:0);
+      workXp+=Math.min(120,Math.floor(minutes/2))+Math.min(80,Math.floor(questions/2));
     }
   }
-  const successful=[...dayRecords.entries()].filter(([,d])=>d.completed).map(([key])=>key).sort();
-  const completedDays=new Set(successful);
-  let longestStreak=0,run=0,previous="";
-  for(const key of successful){
-    run=previous&&shiftDay(previous,1)===key?run+1:1;
-    longestStreak=Math.max(longestStreak,run);
-    previous=key;
+  // Kalkan durumu kayıtlardan yeniden hesaplanır: offline gelen çalışma eksik
+  // günü tamamlarsa yanlışlıkla harcanmış kalkan otomatik geri kazanılır.
+  const restDays=(activated?profile.restDays??[]:[]).filter(isDayKey);
+  const plannedRest=new Set<string>();
+  const plannedWeeks=new Set<string>();
+  for(const day of [...restDays].sort()){
+    const date=new Date(Number(day.slice(0,4)),Number(day.slice(5,7))-1,Number(day.slice(8)),12);
+    const monday=shiftDay(day,-((date.getDay()+6)%7));
+    if(day>=profile!.activationDay&&!plannedWeeks.has(monday)){
+      plannedWeeks.add(monday);plannedRest.add(day);
+    }
   }
-  const todayCompleted=completedDays.has(todayKey);
-  let cursor=todayCompleted?todayKey:shiftDay(todayKey,-1),currentStreak=0;
-  while(completedDays.has(cursor)&&currentStreak<36600){
-    currentStreak++;cursor=shiftDay(cursor,-1);
+  let shields=0,shieldsUsed=0,earnedCounter=0,currentStreak=0,longestStreak=0;
+  const dayStatuses=new Map<string,StudyDayStatus>();
+  if(activated){
+    let day=profile.activationDay,guard=0;
+    while(day<=todayKey&&guard++<36600){
+      const record=dayRecords.get(day);
+      let status:StudyDayStatus;
+      if(plannedRest.has(day))status="rest";
+      else if(record?.completed){
+        status="completed";activeDays++;currentStreak++;
+        workXp+=50;
+        earnedCounter++;
+        if(earnedCounter===7){earnedCounter=0;shields=Math.min(2,shields+1);}
+      }else if(day===todayKey)status="pending";
+      else if(currentStreak>0&&shields>0){
+        status="shield";shields--;shieldsUsed++;
+      }else {status="missed";currentStreak=0;}
+      longestStreak=Math.max(longestStreak,currentStreak);
+      dayStatuses.set(day,status);
+      day=shiftDay(day,1);
+    }
   }
+  const todayCompleted=dayStatuses.get(todayKey)==="completed";
   const totalExams=activated?(state?.denemeler??[]).filter(exam=>{
     const stamp=Number(exam?.at);
     return Number.isFinite(stamp)&&stamp>=profile.activatedAt&&stamp<=now.getTime()
@@ -189,11 +226,13 @@ export function calculateStudyGamification(state:StudyGamificationState|null|und
   const week:Array<StudyWeekDay>=Array.from({length:7},(_,i)=>{
     const day=new Date(monday);day.setDate(day.getDate()+i);
     const key=keyOf(day);
-    return {key,label:WEEKDAYS[day.getDay()]??"?",completed:completedDays.has(key),today:key===todayKey};
+    const status=dayStatuses.get(key)??"pending";
+    return {key,label:WEEKDAYS[day.getDay()]??"?",completed:status==="completed",today:key===todayKey,status};
   });
   return {activated,todayKey,todayMinutes:todayRecord?.minutes??0,todayQuestions:todayRecord?.questions??0,
     goalMinutes:goal.minutes,goalQuestions:goal.questions,todayCompleted,
     currentStreak,longestStreak,activeDays,totalMinutes,totalQuestions,totalExams,
+    shields,shieldsUsed,shieldLimit:2,restDays:[...plannedRest].sort(),
     xp,level:levelInfo.level,rank:rankFor(levelInfo.level),
     levelProgress:levelInfo.progress,levelGoal:levelInfo.goal,
     earnedBadges:badges.filter(b=>b.unlocked).length,badges,newBadgeIds,week};
