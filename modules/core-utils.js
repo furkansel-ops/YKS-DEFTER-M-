@@ -194,13 +194,34 @@
         if(!earned[id]||value.at<earned[id].at)earned[id]=clone(value);
       }
     }
+    // Ödül ve bildirimler cihazlar arasında yalnız kimlikle birleştirilir.
+    const coachRewards={};
+    for(const source of [remote.coachRewards,local.coachRewards]){
+      if(!isObject(source))continue;
+      for(const [id,entry] of Object.entries(source)){
+        if(!isObject(entry)||!Number.isSafeInteger(entry.at)||entry.at<=0||![20,35,50].includes(entry.xp))continue;
+        if(!coachRewards[id]||entry.at<coachRewards[id].at)coachRewards[id]=clone(entry);
+      }
+    }
+    const noticeMap=new Map();
+    for(const source of [remote.coachNotifications,local.coachNotifications]){
+      if(!Array.isArray(source))continue;
+      for(const entry of source){
+        if(!isObject(entry)||typeof entry.id!=="string"||!Number.isSafeInteger(entry.at)||entry.at<=0)continue;
+        if(!noticeMap.has(entry.id))noticeMap.set(entry.id,clone(entry));
+      }
+    }
+    const coachNotifications=[...noticeMap.values()].sort((a,b)=>b.at-a.at).slice(0,100);
+    const coachSeen=Object.assign({},isObject(remote.coachSeen)?remote.coachSeen:{},
+      isObject(local.coachSeen)?local.coachSeen:{});
     const rests=new Set([...(Array.isArray(remote.restDays)?remote.restDays:[]),
                          ...(Array.isArray(local.restDays)?local.restDays:[])].filter(x=>typeof x==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(x)));
     return Object.assign({},clone(remote),clone(local),{
       activatedAt:a,activationDay:remote.activationDay,
       baselineMinutes:remote.baselineMinutes,baselineQuestions:remote.baselineQuestions,
       goals:[...goals.values()].sort((x,y)=>x.from.localeCompare(y.from)),
-      earned,restDays:[...rests].sort(),tasks:mergeGamificationTasks(remote.tasks,local.tasks)
+      earned,restDays:[...rests].sort(),tasks:mergeGamificationTasks(remote.tasks,local.tasks),
+      coachRewards,coachSeen,coachNotifications
     });
   }
 
