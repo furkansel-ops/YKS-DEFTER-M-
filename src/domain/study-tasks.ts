@@ -108,9 +108,26 @@ function eligibleWeeklyDays(profile:GamificationProfile,monday:string):string[]{
   }
   return out;
 }
-function dailyTask(profile:GamificationProfile,day:string,metric:TaskMetric,slot:number,now:Date):StudyTask{
+/** Son 14 günün gerçek ortalaması; yeterli geçmiş yoksa kişisel hedef aynen kullanılır.
+ * Eski kayıtlar yalnız zorluk uyarlamak için okunur, hiçbir eski XP verilmez. */
+function adaptiveFactor(state:StudyGamificationState,profile:GamificationProfile,day:string):number{
+  const goal=goalOn(profile,day);
+  let total=0,count=0;
+  for(let offset=1;offset<=14;offset++){
+    const prev=shiftDay(day,-offset);
+    const minutes=safeCount(state.pomoMin?.[prev],1440);
+    const questions=safeCount(state.solved?.[prev],5000);
+    if(!minutes&&!questions)continue;
+    total+=(Math.min(2,minutes/goal.minutes)+Math.min(2,questions/goal.questions))/2;
+    count++;
+  }
+  if(count<3)return 1;
+  return Math.min(1.10,Math.max(.8,total/count));
+}
+
+function dailyTask(profile:GamificationProfile,day:string,metric:TaskMetric,slot:number,now:Date,state?:StudyGamificationState):StudyTask{
   const goal=goalOn(profile,day),difficulty=difficultyForDay(profile,day);
-  const factor=LEVEL_RATE[difficulty];
+  const factor=LEVEL_RATE[difficulty]*(state?adaptiveFactor(state,profile,day):1);
   let goalMinutes=0,goalQuestions=0,title="";
   if(metric==="focus"){goalMinutes=Math.max(10,Math.round(goal.minutes*factor));title=goalMinutes+" dakika odaklan";}
   else if(metric==="questions"){goalQuestions=Math.max(5,Math.round(goal.questions*factor));title=goalQuestions+" soru çöz";}
@@ -135,14 +152,14 @@ function weeklyTasks(profile:GamificationProfile,week:string,now:Date):StudyTask
   ];
 }
 /** Her iki türün de dönemi ilk kez açıldığında tek seferlik, değişmez tanımı kaydedilir. */
-export function ensureCurrentTasks(profile:GamificationProfile,now:Date):GamificationProfile{
+export function ensureCurrentTasks(profile:GamificationProfile,now:Date,state?:StudyGamificationState):GamificationProfile{
   const day=keyOf(now);
   if(day<profile.activationDay||now.getTime()<profile.activatedAt)return profile;
   const week=mondayOf(day),store=cloneStore(taskStore(profile));
   let dirty=false;
   if(!Array.isArray(store.daily[day])&&!restDays(profile).has(day)){
-    store.daily[day]=[dailyTask(profile,day,"focus",0,now),
-      dailyTask(profile,day,"questions",1,now),dailyTask(profile,day,"balanced",2,now)];
+    store.daily[day]=[dailyTask(profile,day,"focus",0,now,state),
+      dailyTask(profile,day,"questions",1,now,state),dailyTask(profile,day,"balanced",2,now,state)];
     dirty=true;
   }
   if(!Array.isArray(store.weekly[week])){
@@ -231,7 +248,7 @@ export function rerollDailyTask(state:StudyGamificationState,profile:Gamificatio
   if(store.claims[current.id]||taskView(state,profile,current,now).progress>0)
     throw new Error("Başlanmış görev değiştirilemez.");
   const kind:TaskMetric=current.goalQuestions>0&&current.goalMinutes===0?"extra-focus":"extra-questions";
-  const replaced=dailyTask(profile,day,kind,Number(current.id.split(":").at(-1)),now);
+  const replaced=dailyTask(profile,day,kind,Number(current.id.split(":").at(-1)),now,state);
   store.daily[day]=tasks.map((task,i)=>i===index?replaced:task);
   store.rerolledDays=[...store.rerolledDays,day];
   return {...profile,tasks:store};
