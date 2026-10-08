@@ -173,6 +173,46 @@ export function getStudyInsights(state:DataState,profile:GamificationProfile,now
     {id:"day-questions",label:"Bir günde en çok soru",value:dailyQuestions.value,unit:"soru",day:dailyQuestions.day},
     {id:"week-focus",label:"Bir haftada en çok odak",value:weeklyRecord.value,unit:"dk",day:weeklyRecord.day}
   ];
+  let bestSession={minutes:0,day:""};
+  for(const logs of Object.values(state.sessions??{})){
+    if(!Array.isArray(logs))continue;
+    for(const entry of logs){
+      const stamp=Number(entry?.t);
+      if(entry?.type!=="work"||entry.done!==true||!Number.isSafeInteger(stamp)||
+        stamp<profile.activatedAt||stamp>now.getTime())continue;
+      const minutes=number(entry.m,1440);
+      if(minutes>bestSession.minutes)bestSession={minutes,day:localDay(new Date(stamp))};
+    }
+  }
+  if(bestSession.minutes>0)records.push({id:"longest-session",label:"En uzun odak oturumu",
+    value:bestSession.minutes,unit:"dk",day:bestSession.day});
+  let bestSubject={minutes:0,day:"",name:""};
+  for(const [day,row] of Object.entries(state.pomoSubj??{})){
+    if(!dayOk(day)||day<activated||day>today||!row||typeof row!=="object")continue;
+    for(const [name,value] of Object.entries(row)){
+      const previous=day===activated?profile.baselineSubjectMinutes?.[name]:0;
+      if(previous==null)continue;
+      const minutes=Math.max(0,number(value,1440)-number(previous,1440));
+      if(minutes>bestSubject.minutes)bestSubject={minutes,day,name:sourceName(name)?.label??name};
+    }
+  }
+  if(bestSubject.minutes>0)records.push({id:"subject-day",label:"Bir günde en çok ders: "+bestSubject.name,
+    value:bestSubject.minutes,unit:"dk",day:bestSubject.day});
+  let bestParagraph={questions:0,day:""};
+  for(const [day,row] of Object.entries(state.solvedTopic??{})){
+    if(!dayOk(day)||day<activated||day>today||!row||typeof row!=="object")continue;
+    let count=0;
+    for(const [key,value] of Object.entries(row)){
+      if(!key.toLocaleLowerCase("tr-TR").includes("paragraf"))continue;
+      const previous=day===activated?profile.baselineTopicQuestions?.[key]:0;
+      if(previous==null)continue;
+      count+=Math.max(0,number(value,5000)-number(previous,5000));
+    }
+    if(count>bestParagraph.questions)bestParagraph={questions:count,day};
+  }
+  if(bestParagraph.questions>0)records.push({id:"paragraph-day",label:"Günlük paragraf soru rekoru",
+    value:bestParagraph.questions,unit:"soru",day:bestParagraph.day});
+
   for(const exam of exams.filter(x=>x.type==="TYT"||x.type==="AYT")){
     if(exam.bestNet!=null)records.push({id:"best-"+exam.type.toLowerCase(),label:"En iyi "+exam.type+" neti",
       value:exam.bestNet,unit:"net",day:""});
