@@ -8,10 +8,10 @@ test("Aşama 1 başarımlar: etkinleşme, iki hedef, ertesi gün hedefi, seviye 
   // TS domain gerçek kaynak dosyası Node 22+ type-stripping ile çalıştırılır.
   const filename=path.resolve(__dirname,"../src/domain/study-gamification.ts");
   const sourceUrl=require("node:url").pathToFileURL(filename).href;
-  const script=String.raw\`
+  const script=String.raw`
 import assert from "node:assert/strict";
 import {createGamificationProfile,calculateStudyGamification,setNextDayGoal,levelForXp}
-  from "\${sourceUrl}";
+  from "${sourceUrl}";
 const at=new Date("2026-10-08T10:00:00+03:00");
 const state={
   pomoMin:{"2026-10-07":400,"2026-10-08":50},
@@ -66,7 +66,7 @@ assert.deepEqual(levelForXp(450),{level:3,progress:0,goal:300});
 assert.throws(()=>createGamificationProfile(at,0,0,state),/Süre/);
 assert.throws(()=>setNextDayGoal(state.gamification,at,90,-10),/Soru/);
 console.log("OK: 16 temel oyunlaştırma senaryosu");
-\`;
+`;
   const result=spawnSync(process.execPath,["--experimental-strip-types","--input-type=module","-e",script],{
     cwd:path.resolve(__dirname,".."),encoding:"utf8",timeout:20000
   });
