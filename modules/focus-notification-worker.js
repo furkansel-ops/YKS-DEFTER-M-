@@ -142,18 +142,22 @@
       await closeLegacyTimer().catch(() => {});
       if (!enabled || !value.snapshot) { await closeTimer(); return null; }
       const snapshot = currentSnapshot(value.snapshot, Date.now()), paused = snapshot.state === "paused";
-      const stopwatch = snapshot.mode === "sw", subject = snapshot.subject || (snapshot.isWork ? "Odak oturumu" : "Mola");
+      const stopwatch = snapshot.mode === "sw", expired = !stopwatch && snapshot.left <= 0;
+      const subject = snapshot.subject || (snapshot.isWork ? "Odak oturumu" : "Mola");
       const title = stopwatch ? (paused ? "Kronometre duraklatıldı" : "Kronometre sürüyor")
+        : expired ? (snapshot.isWork ? "Odak süresi doldu" : "Mola süresi doldu")
         : (paused ? (snapshot.isWork ? "Odak duraklatıldı" : "Mola duraklatıldı") : (snapshot.isWork ? "Odak sürüyor" : "Mola sürüyor"));
       const detail = stopwatch ? (paused ? "Geçen süre: " + duration(snapshot.elapsed / 1000) : "Başlangıç: " + time(snapshot.startedAt))
+        : expired ? "Tamamlamak için bildirime dokun"
         : (paused ? "Kalan: " + duration(snapshot.left) : "Bitiş: " + time(snapshot.endAt));
-      const actions = (stopwatch || snapshot.left > 0) ? [
-        { action: paused ? "focus-resume" : "focus-pause", title: paused ? "Devam et" : "Duraklat" },
-        { action: "focus-open", title: "Uygulamayı aç" }
-      ] : [{ action: "focus-open", title: "Uygulamayı aç" }];
+      // Keep the control separate from opening the app: the notification body
+      // already opens Odak, and one action also avoids older Chrome action clashes.
+      const actions = expired ? [] : [
+        { action: paused ? "focus-resume" : "focus-pause", title: paused ? "Devam et" : "Duraklat" }
+      ];
       await worker.registration.showNotification(title, {
         body: subject + " · " + detail, tag: TAG, lang: "tr", dir: "ltr",
-        icon: new URL("icon-192.png", root()).href, badge: new URL("icon-192.png", root()).href,
+        icon: new URL("icon-192.png", root()).href, badge: new URL("notification-badge.png", root()).href,
         requireInteraction: true, silent: true, renotify: false, actions,
         data: { type: "yks-focus", id: snapshot.id, revision: value.revision }
       });
@@ -236,7 +240,7 @@
         return next(previous, snapshot);
       });
       if (changed) { await notify(result, true); await broadcast(result); }
-      if (expired) await openFocus();
+      if (expired) await notify(result, true);
     }).catch(() => {});
     event.waitUntil(pending);
     return true;

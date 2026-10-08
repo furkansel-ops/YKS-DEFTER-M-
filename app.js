@@ -7114,7 +7114,7 @@ async function notify(title,body,tag){
   const c=notifCfg();
   if(tag==="pomo"?!c.pomo:!c.on)return false;
   if(notifState()!=="granted")return false;
-  const opts={body:body||"",tag:tag||"yks",icon:"icon-192.png",badge:"icon-192.png",lang:"tr"};
+  const opts={body:body||"",tag:tag||"yks",icon:"icon-192.png",badge:"notification-badge.png",lang:"tr"};
   try{
     const sw=navigator.serviceWorker;
     if(sw){

@@ -6,7 +6,7 @@ const vm=require("node:vm");
 
 const source=fs.readFileSync(path.resolve(__dirname,"../sw.js"),"utf8");
 const scope="https://example.test/YKS-DEFTER-M-/";
-const cacheName="yks-core-v4.4.0-r26";
+const cacheName="yks-core-v4.4.0-r27";
 const guard='<html data-ui-shell="refined-v1"><style id="yksBootGuard"></style>';
 const oldHtml=guard+'<script src="./assets/index-old.js"></script>';
 const newHtml=guard+'<script src="./assets/index-new.js"></script><link href="./assets/index-new.css">';
@@ -41,7 +41,7 @@ function harness({initial={},network=async()=>new Response("asset"),rejectBatch=
   const context=vm.createContext({
     URL,Request,Response,AbortController,setTimeout,clearTimeout,fetch,
     importScripts(url){
-      assert.equal(url,"./modules/focus-notification-worker.js?v=4.4.0-r26");imports.push(url);
+      assert.equal(url,"./modules/focus-notification-worker.js?v=4.4.0-r27");imports.push(url);
       vm.runInContext(fs.readFileSync(path.resolve(__dirname,"../modules/focus-notification-worker.js"),"utf8"),context);
     },
     caches:{
@@ -143,7 +143,7 @@ test("successful install stores exact checked shell after assets and activates l
   assert.equal(await runtime.body("./index.html"),newHtml);
   assert.equal(await runtime.body("./"),newHtml);
   assert.equal(await runtime.body("./assets/index-new.js"),"new asset");
-  assert.equal(await runtime.body("./__offline_ready__"),"4.4.0-r26");
+  assert.equal(await runtime.body("./__offline_ready__"),"4.4.0-r27");
   assert.equal(runtime.operations[0],"batch");
   assert.equal(runtime.operations.at(-1),"skipWaiting");
   assert.equal(runtime.skipped,1);
@@ -174,7 +174,7 @@ test("first install precaches startup dynamic JS and CSS before marking offline 
   const runtime=harness({manifest,network:shellNetwork});await runtime.install();
   assert.equal(await runtime.body("./assets/theme-startup.js"),"new asset");
   assert.equal(await runtime.body("./assets/today-startup.css"),"new asset");
-  assert.equal(await runtime.body("./__offline_ready__"),"4.4.0-r26");
+  assert.equal(await runtime.body("./__offline_ready__"),"4.4.0-r27");
   assert.equal(runtime.operations[0],"batch");
 });
 
@@ -255,13 +255,13 @@ test("speed reading lazy modules are installed before offline readiness is grant
 
 test("focus control worker imports once, dispatches requests and precaches both offline modules",async()=>{
   const runtime=harness({network:shellNetwork});await runtime.install();
-  assert.deepEqual(runtime.imports,["./modules/focus-notification-worker.js?v=4.4.0-r26"]);
-  for(const name of ["focus-notifications","focus-notification-worker"])assert.equal(await runtime.body("./modules/"+name+".js?v=4.4.0-r26"),"new asset");
-  assert.equal(await runtime.body("./app.js?v=4.1.0-r27"),"new asset");
+  assert.deepEqual(runtime.imports,["./modules/focus-notification-worker.js?v=4.4.0-r27"]);
+  for(const name of ["focus-notifications","focus-notification-worker"])assert.equal(await runtime.body("./modules/"+name+".js?v=4.4.0-r27"),"new asset");
+  assert.equal(await runtime.body("./app.js?v=4.1.0-r28"),"new asset");
   assert.equal(await runtime.body("./modules/stability.js?v=4.1.0-r29"),"new asset");
   const response=await runtime.message({type:"YKS_FOCUS_REQUEST",operation:"read"});
   assert.equal(response.ok,false);assert.equal(response.error,"storage_unavailable","focus worker owns this message even when IDB is unavailable");
-  const version=await runtime.message({type:"GET_VERSION"});assert.equal(version.build,"4.4.0-r26");
+  const version=await runtime.message({type:"GET_VERSION"});assert.equal(version.build,"4.4.0-r27");
 });
 
 test("current timer clicks dispatch to focus worker and preserve an open app form",async()=>{
