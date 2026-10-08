@@ -1,6 +1,13 @@
 import{doc,getDoc,setDoc,deleteDoc,serverTimestamp}from"https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
 /** Opt-in only; reuse the existing /sw.js controlling PWA, do not create a second SW. */
 let active=false,dbRef=null,userRef=null,deviceRef=null,taskTimer=null,stopChanges=[],publicVapid=null;
+let authGeneration=0;
+const pendingDeviceWrites=new Set();
+function trackedDeviceWrite(request){
+  pendingDeviceWrites.add(request);
+  void request.finally(()=>pendingDeviceWrites.delete(request)).catch(()=>{});
+  return request;
+}
 const KEY="yks-push-device-id";
 const state=()=>{try{return window.YKSLegacyState?.readState?.()||window.S||null}catch{return window.S||null}};
 const statusChanged=()=>window.dispatchEvent(new Event("yks:smart-push-status"));
@@ -43,34 +50,41 @@ async function syncDevice(force=false){
   if(!navigator.onLine)return;
   const next=readConfig();if(!next)return;
   const serialized=JSON.stringify(next),now=Date.now();
+  const generation=authGeneration,ref=deviceRef;
   if(!force&&serialized===previousPayload&&now-lastSyncAt<180000)return;
   if(!force&&now-lastSyncAt<60000)return;
   const subscription=await(await navigator.serviceWorker.ready).pushManager.getSubscription();
   if(!subscription)return;
   const keys=subscription.toJSON().keys??{};
   if(!keys.p256dh||!keys.auth)return;
-  await setDoc(deviceRef,{
+  if(!active||generation!==authGeneration||!ref)return;
+  await trackedDeviceWrite(setDoc(ref,{
     deviceId:deviceId(),endpoint:subscription.endpoint,
     p256dh:keys.p256dh,auth:keys.auth,
     ...next,updatedAt:serverTimestamp()
-  },{merge:true});
+  },{merge:true}));
+  if(generation!==authGeneration)return;
   previousPayload=serialized;lastSyncAt=now;
 }
 let status="Telefon bildirimleri bağlı değil.";
 export function installStudentSmartPush({db,user}){
   if(!db||!user?.emailVerified)return()=>{};
   dbRef=db;userRef=user;active=true;
+  const generation=++authGeneration;
   const id=deviceId();
   deviceRef=doc(db,"users",user.uid,"pushDevices",id);
   // Apple Web Push requires requesting permission directly inside the tap handler.
   // Fetch public VAPID config on account connection, never just before requesting permission.
   void getDoc(doc(db,"publicConfig","push")).then(setting=>{
-    if(!active||userRef?.uid!==user.uid)return;
+    if(!active||generation!==authGeneration||userRef?.uid!==user.uid)return;
     const vapid=setting.data()?.vapidPublicKey;
     publicVapid=typeof vapid==="string"&&vapid.length>=40?vapid:null;
     if(publicVapid)status="Sunucu anahtarı hazır; bildirimleri etkinleştirebilirsin.";
     statusChanged();
-  }).catch(()=>{publicVapid=null;status="Sunucu bağlantısı hazır değil.";statusChanged();});
+  }).catch(()=>{
+    if(generation!==authGeneration)return;
+    publicVapid=null;status="Sunucu bağlantısı hazır değil.";statusChanged();
+  });
   async function enable(){
     if(!active||userRef?.uid!==user.uid)throw Error("Öğrenci hesabıyla giriş yapman gerekiyor.");
     if(!isSecureContext||!("serviceWorker" in navigator)||!("PushManager" in window)||
@@ -84,27 +98,33 @@ export function installStudentSmartPush({db,user}){
     const permissionPromise=Notification.requestPermission();
     const permission=await permissionPromise;
     if(permission!=="granted")throw Error("Cihaz bildirim izni verilmedi.");
+    if(!active||generation!==authGeneration)throw Error("Kullanıcı oturumu değişti.");
     const registration=await navigator.serviceWorker.ready;
     let subscription=await registration.pushManager.getSubscription();
     if(!subscription)subscription=await registration.pushManager.subscribe({
       userVisibleOnly:true,applicationServerKey:urlBase64ToUint8Array(publicVapid)
     });
     if(!subscription?.endpoint)throw Error("Push aboneliği oluşturulamadı.");
+    if(!active||generation!==authGeneration)throw Error("Kullanıcı oturumu değişti.");
     const key=subscription.toJSON().keys??{};
     if(!key.auth||!key.p256dh)throw Error("Push aboneliğinde şifreleme anahtarları eksik.");
-    const existing=await getDoc(deviceRef);
-    await setDoc(deviceRef,{deviceId:id,endpoint:subscription.endpoint,auth:key.auth,p256dh:key.p256dh,
-      ...cfg,...(existing.exists()?{}:{createdAt:serverTimestamp()}),updatedAt:serverTimestamp()},{merge:true});
+    const ref=deviceRef;
+    const existing=await getDoc(ref);
+    if(!active||generation!==authGeneration)throw Error("Kullanıcı oturumu değişti.");
+    await trackedDeviceWrite(setDoc(ref,{deviceId:id,endpoint:subscription.endpoint,auth:key.auth,p256dh:key.p256dh,
+      ...cfg,...(existing.exists()?{}:{createdAt:serverTimestamp()}),updatedAt:serverTimestamp()},{merge:true}));
+    if(!active||generation!==authGeneration)throw Error("Kullanıcı oturumu değişti.");
     status="Telefon bildirimlerine abone olundu. Gerçek gönderim için sunucu gerekir.";
     await syncDevice(true);
     statusChanged();return status;
   }
   async function disable(){
-    const ref=deviceRef;
+    const gen=authGeneration,ref=deviceRef;
     const registration=await navigator.serviceWorker.getRegistration();
     const sub=await registration?.pushManager?.getSubscription();
+    if(gen!==authGeneration)return "Önceki oturum kapatıldı.";
     if(sub)await sub.unsubscribe();
-    if(ref)await deleteDoc(ref);
+    if(ref)await trackedDeviceWrite(deleteDoc(ref));
     status="Telefon bildirimi bağlantısı kaldırıldı.";statusChanged();return status;
   }
   async function localTest(){
@@ -138,6 +158,7 @@ export function installStudentSmartPush({db,user}){
   statusChanged();changed();
   return()=>{
     const oldRef=deviceRef;
+    ++authGeneration;
     active=false;userRef=null;dbRef=null;deviceRef=null;publicVapid=null;
     for(const stop of stopChanges.splice(0))stop();
     if(taskTimer){clearInterval(taskTimer);taskTimer=null;}
@@ -145,9 +166,11 @@ export function installStudentSmartPush({db,user}){
     // Unsubscribe + remove previous student's device record on logout.
     void (async()=>{
       try{
+        // An in-flight enrollment cannot recreate an old account record after cleanup.
+        await Promise.allSettled([...pendingDeviceWrites]);
         const registration=await navigator.serviceWorker.getRegistration();
         const subscription=await registration?.pushManager?.getSubscription();
-        if(subscription)await subscription.unsubscribe();
+        if(!active&&subscription)await subscription.unsubscribe();
         if(oldRef)await deleteDoc(oldRef);
       }catch(error){console.warn("Eski push cihaz bağı kapatılamadı",error);}
     })();
