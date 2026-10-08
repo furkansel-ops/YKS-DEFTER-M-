@@ -48,6 +48,17 @@ try{
   await assertFails(setDoc(doc(c,"coachChallenges",student+"_"+coach+"_"+week+"_1"),data("1")));
   await assertFails(setDoc(doc(c,"coachChallenges",claim("3")),data("3")));
   await assertFails(setDoc(doc(c,"coachChallenges",claim("1")),data("1",{xp:1000})));
+  // A forged weekStart must never open additional XP slots in the same real week.
+  await assertFails(setDoc(doc(c,"coachChallenges",student+"_2026-09-28_0"),
+    data("0",{weekStart:"2026-09-28",startDay:"2026-10-09"})));
+  await assertFails(setDoc(doc(c,"coachChallenges",student+"_2026-10-06_0"),
+    data("0",{weekStart:"2026-10-06",startDay:"2026-10-09"})));
+  await assertFails(setDoc(doc(c,"coachChallenges",student+"_2026-10-05_3"),data("3")));
+  await assertFails(setDoc(doc(c,"coachChallenges",student+"_2026-10-12_0"),
+    data("0",{weekStart:"2026-10-12",startDay:"2026-10-09"})));
+  await assertFails(setDoc(doc(c,"coachChallenges",student+"_2026-10-05_free-12345678"),
+    data("free-12345678",{weekStart:"2026-10-05",dueDay:"2026-12-20",
+      kind:"manual",xp:0,goalMinutes:0,goalQuestions:0})));
   await assertSucceeds(setDoc(doc(c,"coachChallenges",claim("1")),data("1")));
   await assertSucceeds(setDoc(doc(c,"coachChallenges",claim("2")),data("2")));
   await assertFails(setDoc(doc(o,"coachChallenges",claim("2")),data("2",{coachUid:other})));
