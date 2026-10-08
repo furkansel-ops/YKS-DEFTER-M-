@@ -561,6 +561,41 @@ service cloud.firestore {
         && data.createdAt is timestamp && data.updatedAt is timestamp;
     }
 
+    function challengeProgressUpdate() {
+      return resource.data.kind != 'manual'
+        && resource.data.status in ['assigned', 'in_progress']
+        && request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['minutesDone','questionsDone','status','updatedAt'])
+        && request.resource.data.minutesDone >= resource.data.minutesDone
+        && request.resource.data.questionsDone >= resource.data.questionsDone
+        && request.resource.data.status in ['in_progress','completed']
+        && (request.resource.data.status != 'completed'
+          || (request.resource.data.minutesDone >= resource.data.goalMinutes
+            && request.resource.data.questionsDone >= resource.data.goalQuestions));
+    }
+    function challengeManualSubmission() {
+      return resource.data.kind == 'manual'
+        && resource.data.status in ['assigned','in_progress']
+        && request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['status','updatedAt','submittedAt'])
+        && request.resource.data.status == 'submitted'
+        && request.resource.data.submittedAt == request.time;
+    }
+    function challengeCoachApproval() {
+      return resource.data.kind == 'manual'
+        && resource.data.status == 'submitted'
+        && request.resource.data.status == 'approved'
+        && request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['status','updatedAt','approvedAt'])
+        && request.resource.data.approvedAt == request.time;
+    }
+    function challengeCoachCancellation() {
+      return resource.data.status in ['assigned','in_progress','submitted']
+        && request.resource.data.status == 'cancelled'
+        && request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['status','updatedAt']);
+    }
+
     match /coachChallenges/{challengeId} {
       allow get: if verifiedUser()
         && (request.auth.uid == resource.data.studentUid ||
@@ -592,44 +627,12 @@ service cloud.firestore {
         && request.resource.data.updatedAt == request.time
         && (
           (request.auth.uid == resource.data.studentUid
-            && profileRole(request.auth.uid, 'student')
-            && resource.data.status in ['assigned', 'in_progress']
-            && request.resource.data.minutesDone >= resource.data.minutesDone
-            && request.resource.data.questionsDone >= resource.data.questionsDone
-            && (
-              (resource.data.kind != 'manual'
-                && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-                  'minutesDone', 'questionsDone', 'status', 'updatedAt'
-                ])
-                && request.resource.data.status in ['in_progress', 'completed']
-                && (request.resource.data.status != 'completed'
-                  || (request.resource.data.minutesDone >= resource.data.goalMinutes
-                    && request.resource.data.questionsDone >= resource.data.goalQuestions)))
-              ||
-              (resource.data.kind == 'manual'
-                && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-                  'status', 'updatedAt', 'submittedAt'
-                ])
-                && request.resource.data.status == 'submitted'
-                && request.resource.data.submittedAt == request.time)
-            ))
+            && profileRole(request.auth.uid,'student')
+            && (challengeProgressUpdate() || challengeManualSubmission()))
           ||
           (request.auth.uid == resource.data.coachUid
-            && profileRole(request.auth.uid, 'coach')
-            && (
-              (resource.data.kind == 'manual' && resource.data.status == 'submitted'
-                && request.resource.data.status == 'approved'
-                && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-                  'status', 'updatedAt', 'approvedAt'
-                ])
-                && request.resource.data.approvedAt == request.time)
-              ||
-              (resource.data.status in ['assigned', 'in_progress', 'submitted']
-                && request.resource.data.status == 'cancelled'
-                && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-                  'status', 'updatedAt'
-                ]))
-          )
+            && profileRole(request.auth.uid,'coach')
+            && (challengeCoachApproval() || challengeCoachCancellation()))
         );
       allow delete: if false;
     }
