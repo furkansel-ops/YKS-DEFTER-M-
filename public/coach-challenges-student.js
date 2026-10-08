@@ -8,7 +8,14 @@ const rootId="studentCoachChallenges",str=(x,n=100)=>String(x??"").trim().slice(
 const dateKey=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
 const finite=(v,max)=>Number.isFinite(Number(v))?Math.min(max,Math.max(0,Math.floor(Number(v)))):0;
 const state=()=>{try{return window.S||window.YKSLegacyState?.readState?.()||null}catch{return window.S||null}};
-const save=()=>{try{return(window.save?.()??window.YKSLegacyState?.save?.())!==false}catch{return false}};
+const save=()=>{
+  try{
+    if(typeof window.YKSLegacyState?.save==="function")
+      return window.YKSLegacyState.save()!==false;
+    if(typeof window.save==="function")return window.save()!==false;
+    return false; // No persistence API must never be interpreted as a successful save.
+  }catch{return false;}
+};
 const day=(s)=>{const d=new Date(s+"T12:00:00");return /^\d{4}-\d{2}-\d{2}$/.test(s)&&dateKey(d)===s;};
 const el=(tag,cls="",label="")=>{const x=document.createElement(tag);if(cls)x.className=cls;x.textContent=label;return x;};
 let items=[],uid="",stopEvents=[],timer=null,busy=new Set(),trustedReceipts=null;
@@ -117,7 +124,7 @@ function render(){
     const head=el("div","scc-item-head");
     const recordedReward=Boolean(profile?.coachRewards?.[task.id]);
     const rewardLabel=!task.xp?"Ödülsüz":
-      recordedReward?"✓ +"+task.xp+" XP":
+      recordedReward?(receiptsVerified?"✓ +":"Önbellek: +")+task.xp+" XP":
       "🎁 "+task.xp+" XP hedefi";
     head.append(el("strong","",str(task.title,120)),el("b","",rewardLabel));
     card.append(head,el("p","",str(task.subject,100)||"Genel çalışma"));
