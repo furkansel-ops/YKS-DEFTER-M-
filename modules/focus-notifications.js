@@ -148,12 +148,13 @@
   }
   for(const name of ["startPomo","pausePomo","resetPomo","finishPhase","skipPhase","swStart","swPause","swReset"]){
     const original=window[name];if(typeof original!=="function")continue;
-    window[name]=function(){const result=original.apply(this,arguments);changed(name);return result;};
+    window[name]=function(){if(closed)return;const result=original.apply(this,arguments);changed(name);return result;};
   }
   let selectionDepth=0;
   for(const name of ["swSwitchSubject","setPomoSubject","setPomoTopic","setPomoTask"]){
     const original=window[name];if(typeof original!=="function")continue;
     window[name]=function(){
+      if(closed)return;
       const before=pomoSubject,wasRunning=sw().run;selectionDepth++;
       let result;try{result=original.apply(this,arguments);}finally{selectionDepth--;}
       if(!applying&&selectionDepth===0){

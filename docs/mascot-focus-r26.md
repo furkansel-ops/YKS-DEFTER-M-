@@ -63,3 +63,17 @@ izin yardımını ve gerçek teslim sonucunu gösterir. `sw.js` yeni dosyaları
 Tarayıcı senaryolarında gerçek Edge service worker/IndexedDB kullanılır.
 Otomatik `notificationclick` olayları gerçek işletim sistemi çekmecesine
 fiziksel dokunma veya fiziksel HONOR cihaz testi yerine geçmez.
+
+## Doğrulama
+
+- `npm run release:check`: 794 test, TypeScript, üretim paketi, çevrimdışı
+  önbellek ve sürüm kontrolleri geçti. Ana paket 259997 bayt; mevcut bütçe korundu.
+- Maskot: 28 gerçek Edge kontrolü; on karakter, görev kutlamaları, odak ve
+  azaltılmış hareket, WebGL yedeği, 360/390/412/1440 px görünüm.
+- Bildirim: 14 gerçek Edge kontrolü; gerçek bildirim API'si, sayfa kapalıyken
+  duraklat/devam et ve yeniden açılış, duraklama dakikalarının hariç tutulması,
+  eski bildirim, ayar kapatma, izin reddi, 360/390/412/1024 px görünüm.
+- r25'in özel 24 saat süre ayarı, derslere dakika dağıtımı, kronometrede ders
+  değiştirme/mola işaretleme ve hızlı açılış akışları korunur.
+- Cihaz verileri silinirken sayaç durdurulur; gecikmiş geri yükleme, sayfadan
+  ayrılma veya yeniden başlat düğmesi eski odak kaydını oluşturamaz.

@@ -302,6 +302,7 @@ test("shutdown zeroes clocks before lifecycle persistence and ignores a late res
   assert.deepEqual(deleted, ["yks-focus-notifications-v1"]);
   assert.equal(app.record.snapshot, null);
   release(); await restoring; await settle();
+  app.state.startPomo(); app.state.swStart();
   assert.equal(fallback, 0); assert.equal(app.intervals.size, 0);
   assert.equal(app.state.pomoState, "idle"); assert.equal(app.state.pomoStartedAt, 0); assert.equal(app.state.pomoEndAt, 0);
   assert.deepEqual(clone(app.state.sw()), { run: false, start: 0, acc: 0, cr: 0 });
