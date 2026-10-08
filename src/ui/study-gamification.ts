@@ -2,6 +2,7 @@ import {calculateStudyGamification,createGamificationProfile,setNextDayGoal,plan
 import type {StudyBadge,StudyGamificationSnapshot,StudyGamificationState} from "../domain/study-gamification";
 import {installStudyTaskPanel} from "./study-tasks-panel.ts";
 import {installStudyInsightsPanel} from "./study-insights-panel.ts";
+import {installSmartReminders} from "./smart-reminders.ts";
 import "./study-gamification.css";
 
 type LegacyWindow=Window&{
@@ -312,6 +313,7 @@ export function installStudyGamification():{installed:boolean}{
   document.documentElement.dataset.studyGamificationListeners="ready";
   installStudyTaskPanel({readState,saveState,toast:message=>runtime.toast?.(message)});
   installStudyInsightsPanel({readState,toast:message=>runtime.toast?.(message)});
+  installSmartReminders({readState,saveState,toast:message=>runtime.toast?.(message)});
   for(const event of ["yks:data-changed","yks:data-primary-ready","yks:auth-state","yks:navigation"]){
     window.addEventListener(event,schedule);
   }
