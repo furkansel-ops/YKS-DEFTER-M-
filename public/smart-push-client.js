@@ -108,8 +108,12 @@ export function installStudentSmartPush({db,user}){
     status="Telefon bildirimi bağlantısı kaldırıldı.";statusChanged();return status;
   }
   async function localTest(){
-    if(!active||Notification.permission!=="granted")
-      throw Error("Önce bu cihaz için bildirim izni ver.");
+    if(!active||!isSecureContext||!("serviceWorker" in navigator)||
+      typeof Notification==="undefined")throw Error("Bu cihazda yerel bildirim desteği yok.");
+    // Independent of Firebase/VAPID and triggered immediately from the test tap.
+    // This verifies OS permission and local display only, NOT remote push delivery.
+    const asked=Notification.requestPermission();
+    if(await asked!=="granted")throw Error("Bildirim izni verilmedi.");
     const reg=await navigator.serviceWorker.ready;
     await reg.showNotification("YKS Defterim · Yerel test",{
       body:"Bu, sunucu üzerinden gelmeyen yerel bir cihaz bildirimidir.",
