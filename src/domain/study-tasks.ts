@@ -173,9 +173,30 @@ export function taskView(state:StudyGamificationState,profile:GamificationProfil
   const claimed=!!claim&&Number.isFinite(claim.at)&&claim.at>0;
   const expired=task.scope==="daily"?task.period<keyOf(now):shiftDay(task.period,6)<keyOf(now);
   return {task,minutes:data.minutes,questions:data.questions,progress,
-    complete:progress===100,claimed,expired,
+    complete:(task.goalMinutes===0||data.minutes>=task.goalMinutes)&&
+      (task.goalQuestions===0||data.questions>=task.goalQuestions),claimed,expired,
     label:[task.goalMinutes?data.minutes+" / "+task.goalMinutes+" dk":"",
       task.goalQuestions?data.questions+" / "+task.goalQuestions+" soru":""].filter(Boolean).join(" · ")};
+}
+/** Dinlenme günü sonradan planlanırsa haftalık hedef artmaz; en fazla bir gün düşebilir. */
+function adjustedView(state:StudyGamificationState,profile:GamificationProfile,task:StudyTask,now:Date):StudyTaskView{
+  const view=taskView(state,profile,task,now);
+  if(task.scope!=="weekly")return view;
+  const days=eligibleWeeklyDays(profile,task.period);
+  const multiplier=LEVEL_RATE[task.difficulty];
+  const goalMinutes=task.goalMinutes>0?Math.min(task.goalMinutes,
+    Math.max(10,Math.round(days.reduce((sum,k)=>sum+goalOn(profile,k).minutes,0)*multiplier))):0;
+  const goalQuestions=task.goalQuestions>0?Math.min(task.goalQuestions,
+    Math.max(5,Math.round(days.reduce((sum,k)=>sum+goalOn(profile,k).questions,0)*multiplier))):0;
+  const progress=Math.round(100*Math.min(
+    goalMinutes?Math.min(1,view.minutes/goalMinutes):1,
+    goalQuestions?Math.min(1,view.questions/goalQuestions):1
+  ));
+  return {...view,progress,
+    complete:(goalMinutes===0||view.minutes>=goalMinutes)&&
+      (goalQuestions===0||view.questions>=goalQuestions),
+    label:[goalMinutes?view.minutes+" / "+goalMinutes+" dk":"",
+      goalQuestions?view.questions+" / "+goalQuestions+" soru":""].filter(Boolean).join(" · ")};
 }
 function allTasks(store:StudyTaskStore):StudyTask[]{
   return [...Object.values(store.daily),...Object.values(store.weekly)]
@@ -191,7 +212,7 @@ export function grantCompletedTasks(state:StudyGamificationState,profile:Gamific
     if(task.period>today||task.createdAt<profile.activatedAt||task.createdAt>now.getTime())continue;
     if(task.scope==="daily"&&rests.has(task.period))continue;
     if(store.claims[task.id])continue;
-    const view=taskView(state,profile,task,now);
+    const view=adjustedView(state,profile,task,now);
     if(!view.complete)continue;
     store.claims[task.id]={at:now.getTime(),xp:task.xp};
     granted.push(task);
@@ -223,23 +244,7 @@ export function taskPanel(state:StudyGamificationState,now=new Date()):TaskPanel
   }
   const store=taskStore(profile),rests=restDays(profile);
   const daily=(rests.has(day)?[]:store.daily[day]??[]).map(t=>taskView(state,profile,t,now));
-  const weekly=(store.weekly[week]??[]).map(t=>{
-    const view=taskView(state,profile,t,now);
-    // Haftada dinlenme günü sonradan planlandıysa haftalık hedef yalnız düşebilir.
-    const effectiveDays=eligibleWeeklyDays(profile,week);
-    const multiplier=LEVEL_RATE[t.difficulty];
-    const target=t.goalMinutes>0?
-      Math.max(10,Math.round(effectiveDays.reduce((sum,k)=>sum+goalOn(profile,k).minutes,0)*multiplier)):
-      Math.max(5,Math.round(effectiveDays.reduce((sum,k)=>sum+goalOn(profile,k).questions,0)*multiplier));
-    if(t.goalMinutes>0){
-      const newGoal=Math.min(t.goalMinutes,target);
-      return {...view,progress:Math.min(100,Math.round(view.minutes/newGoal*100)),
-        complete:view.minutes>=newGoal,label:view.minutes+" / "+newGoal+" dk"};
-    }
-    const newGoal=Math.min(t.goalQuestions,target);
-    return {...view,progress:Math.min(100,Math.round(view.questions/newGoal*100)),
-      complete:view.questions>=newGoal,label:view.questions+" / "+newGoal+" soru"};
-  });
+  const weekly=(store.weekly[week]??[]).map(t=>adjustedView(state,profile,t,now));
   const rewardXp=Object.values(store.claims).reduce((sum,c)=>sum+
     (Number.isFinite(c?.xp)&&c.xp>=0&&c.xp<=100?c.xp:0),0);
   return {day,week,difficulty:difficultyForDay(profile,day),
