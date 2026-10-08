@@ -18,6 +18,9 @@ export type GamificationProfile={
   baselineSubjectMinutes?:Record<string,number>;
   baselineTopicQuestions?:Record<string,number>;
   tasks?:import("./study-tasks.ts").StudyTaskStore;
+  coachRewards?:Record<string,{at:number;xp:number}>;
+  coachSeen?:Record<string,string>;
+  coachNotifications?:Array<{id:string;at:number;title:string;text:string;status:string}>;
 };
 export type StudyGamificationState={
   pomoMin?:Record<string,unknown>;
@@ -248,7 +251,16 @@ export function calculateStudyGamification(state:StudyGamificationState|null|und
       id.startsWith("weekly:")?claim?.xp===100:false;
     return total+(valid&&Number.isFinite(claim?.at)&&claim.at>=profile!.activatedAt?claim.xp:0);
   },0);
-  const xp=workXp+earnedXp+taskRewardXp,levelInfo=levelForXp(xp);
+  const coachWeekly=new Map<string,number>();
+  for(const [id,reward] of Object.entries(profile?.coachRewards??{})){
+    const matches=id.match(/^(.+)_([0-9]{4}-[0-9]{2}-[0-9]{2})_([012])$/);
+    if(!matches||!Number.isSafeInteger(reward?.at)||reward.at<profile!.activatedAt||
+      ![20,35,50].includes(reward.xp))continue;
+    const week=matches[1]+"_"+matches[2];
+    coachWeekly.set(week,Math.min(150,(coachWeekly.get(week)??0)+reward.xp));
+  }
+  const coachRewardXp=[...coachWeekly.values()].reduce((sum,x)=>sum+x,0);
+  const xp=workXp+earnedXp+taskRewardXp+coachRewardXp,levelInfo=levelForXp(xp);
   const goal=validGoals(goals,todayKey);
   const todayRecord=dayRecords.get(todayKey);
   const today=new Date(now.getFullYear(),now.getMonth(),now.getDate(),12);
