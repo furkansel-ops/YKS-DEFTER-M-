@@ -134,6 +134,40 @@
     };
   }
 
+  /* İki cihazın kazanılmış rozet, hedef ve dinlenme planları birleştirilir.
+     Farklı etkinleşme kimlikleri birbirine karıştırılmaz: ilk etkinleştirme korunur. */
+  function mergeGamification(remote,local){
+    if(!isObject(remote))return isObject(local)?clone(local):undefined;
+    if(!isObject(local))return clone(remote);
+    const a=Number(remote.activatedAt),b=Number(local.activatedAt);
+    if(!Number.isSafeInteger(a)||a<=0)return clone(local);
+    if(!Number.isSafeInteger(b)||b<=0)return clone(remote);
+    if(a!==b)return clone(a<b?remote:local);
+    const goals=new Map();
+    for(const row of [...(Array.isArray(remote.goals)?remote.goals:[]),
+                      ...(Array.isArray(local.goals)?local.goals:[])]){
+      if(!isObject(row)||typeof row.from!=="string"||!Number.isInteger(row.minutes)||!Number.isInteger(row.questions))continue;
+      const old=goals.get(row.from);
+      if(!old||Number(row.updatedAt||0)>=Number(old.updatedAt||0))goals.set(row.from,clone(row));
+    }
+    const earned={};
+    for(const source of [remote.earned,local.earned]){
+      if(!isObject(source))continue;
+      for(const [id,value] of Object.entries(source)){
+        if(!isObject(value)||!Number.isFinite(value.at)||value.at<=0)continue;
+        if(!earned[id]||value.at<earned[id].at)earned[id]=clone(value);
+      }
+    }
+    const rests=new Set([...(Array.isArray(remote.restDays)?remote.restDays:[]),
+                         ...(Array.isArray(local.restDays)?local.restDays:[])].filter(x=>typeof x==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(x)));
+    return Object.assign({},clone(remote),clone(local),{
+      activatedAt:a,activationDay:remote.activationDay,
+      baselineMinutes:remote.baselineMinutes,baselineQuestions:remote.baselineQuestions,
+      goals:[...goals.values()].sort((x,y)=>x.from.localeCompare(y.from)),
+      earned,restDays:[...rests].sort()
+    });
+  }
+
   function mergeStates(remote,local,schemaVersion){
     const r=isObject(remote)?remote:{},l=isObject(local)?local:{};
     const out=Object.assign({},clone(r),clone(l));
@@ -157,6 +191,7 @@
     out.favTeachers=[...new Set([...(Array.isArray(r.favTeachers)?r.favTeachers:[]),...(Array.isArray(l.favTeachers)?l.favTeachers:[])])];
     out.learning=mergeLearning(r.learning,l.learning);
     out.lab=mergeLab(r.lab,l.lab);
+    out.gamification=mergeGamification(r.gamification,l.gamification);
     out.v=Math.max(Number(schemaVersion)||0,Number(r.v)||0,Number(l.v)||0);
     return out;
   }
