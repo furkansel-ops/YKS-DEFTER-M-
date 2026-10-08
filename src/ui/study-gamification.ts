@@ -26,8 +26,11 @@ function readState():StudyGamificationState|null{
   catch{return runtime.S??null;}
 }
 function saveState():boolean{
-  try{return (runtime.YKSLegacyState?.save?.()??runtime.save?.())!==false;}
-  catch(error){console.error("Başarım kaydı yapılamadı",error);return false;}
+  try{
+    const save=runtime.YKSLegacyState?.save??runtime.save;
+    if(typeof save!=="function")return false;
+    return save()!==false;
+  }catch(error){console.error("Başarım kaydı yapılamadı",error);return false;}
 }
 function mount():HTMLElement|null{
   const existing=document.getElementById(ROOT_ID);
@@ -76,14 +79,18 @@ function goalForm(snapshot:StudyGamificationSnapshot,initial:boolean):HTMLElemen
     const current=readState();
     if(!current){status.textContent="Öğrenci verileri henüz hazır değil.";return;}
     try{
+      const before=current.gamification;
       if(initial){
-        if(current.gamification){status.textContent="Başarımlar zaten etkin. Sayfayı yenile.";return;}
+        if(before){status.textContent="Başarımlar zaten etkin. Sayfayı yenile.";return;}
         current.gamification=createGamificationProfile(new Date(),minutes,questions,current);
       }else{
-        if(!current.gamification)return;
-        current.gamification=setNextDayGoal(current.gamification,new Date(),minutes,questions);
+        if(!before)return;
+        current.gamification=setNextDayGoal(before,new Date(),minutes,questions);
       }
-      if(!saveState()){status.textContent="Kayıt başarısız. Tekrar dene.";return;}
+      if(!saveState()){
+        current.gamification=before;
+        status.textContent="Kayıt başarısız. Veriler değiştirilmedi, tekrar dene.";return;
+      }
       editing=false;
       runtime.toast?.(initial?"🎯 Başarım yolculuğun başladı!":"Hedefler yarından itibaren geçerli.");
       schedule();
@@ -190,13 +197,15 @@ function refresh():void{
   // Tekil rozet kimliği saklanır; her yeniden çizimde aynı ödül yazılmaz.
   if(snapshot.activated&&profile&&snapshot.newBadgeIds.length){
     const time=Date.now();
+    const priorEarned={...(profile.earned??{})};
+    profile.earned??={};
     for(const id of snapshot.newBadgeIds){
       const badge=snapshot.badges.find(item=>item.id===id);
       if(badge&&!profile.earned[id])profile.earned[id]={at:time,xp:badge.xp};
     }
     if(saveState()){
       runtime.toast?.("🏆 "+snapshot.newBadgeIds.length+" yeni başarım kazandın!");
-    }
+    }else profile.earned=priorEarned;
     snapshot=calculateStudyGamification(state);
   }
   if(previousLevel>0&&snapshot.level>previousLevel)runtime.toast?.("⚡ Seviye "+snapshot.level+" oldun!");
