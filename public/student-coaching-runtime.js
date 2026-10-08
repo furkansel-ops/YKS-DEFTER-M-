@@ -275,6 +275,18 @@ async function handleAction(change,session=rt.session){
 }
 async function startStudent(session){
   requireSession(session);
+  void import("./smart-push-client.js").then(({installStudentSmartPush})=>{
+    if(session!==rt.session)return;
+    const stop=installStudentSmartPush({db:rt.db,user:rt.user});
+    if(session===rt.session)rt.stops.push(stop);
+    else stop();
+  }).catch(error=>console.warn("Akıllı Web Push bileşeni başlatılamadı",error));
+  void import("./coach-challenges-student.js").then(({installCoachStudentChallenges})=>{
+    if(session!==rt.session)return;
+    const stop=installCoachStudentChallenges({db:rt.db,user:rt.user});
+    if(session===rt.session)rt.stops.push(stop);
+    else stop();
+  }).catch(error=>console.warn("Koç görevleri eklentisi başlatılamadı",error));
   const q=query(collection(rt.db,"coachingActions"),where("studentUid","==",rt.user.uid));
   rt.stops.push(onSnapshot(q,snap=>snap.docChanges().forEach(change=>queueAction(change,session)),error=>console.error("Koç action",error)));
   const changed=()=>scheduleShare(120);window.addEventListener("yks:data-changed",changed);rt.stops.push(()=>window.removeEventListener("yks:data-changed",changed));

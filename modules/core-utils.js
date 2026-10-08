@@ -134,6 +134,106 @@
     };
   }
 
+  function mergeGamificationTasks(remote,local){
+    const r=isObject(remote)?remote:{},l=isObject(local)?local:{};
+    const joinPeriods=kind=>{
+      const out=Object.assign({},clone(isObject(r[kind])?r[kind]:{}));
+      for(const [period,tasks] of Object.entries(isObject(l[kind])?l[kind]:{})){
+        if(!Array.isArray(tasks)){continue;}
+        if(!Array.isArray(out[period])){out[period]=clone(tasks);continue;}
+        // Aynı dönem içindeki yenileme, kaynak görev kimliğini değiştirmez.
+        const changed=Array.isArray(l.rerolledDays)&&l.rerolledDays.includes(period);
+        const otherChanged=Array.isArray(r.rerolledDays)&&r.rerolledDays.includes(period);
+        if(changed&&!otherChanged)out[period]=clone(tasks);
+      }
+      return out;
+    };
+    const claims={};
+    for(const source of [r.claims,l.claims]){
+      if(!isObject(source))continue;
+      for(const [id,claim] of Object.entries(source)){
+        if(!isObject(claim)||!Number.isSafeInteger(claim.at)||claim.at<=0)continue;
+        if(!claims[id]||claim.at<claims[id].at)claims[id]=clone(claim);
+      }
+    }
+    const schedule=new Map();
+    for(const row of [...(Array.isArray(r.difficultySchedule)?r.difficultySchedule:[]),
+      ...(Array.isArray(l.difficultySchedule)?l.difficultySchedule:[])]){
+      if(!isObject(row)||typeof row.from!=="string")continue;
+      schedule.set(row.from,clone(row));
+    }
+    return {
+      daily:joinPeriods("daily"),weekly:joinPeriods("weekly"),claims,
+      difficultySchedule:[...schedule.values()].sort((a,b)=>a.from.localeCompare(b.from)),
+      rerolledDays:[...new Set([...(Array.isArray(r.rerolledDays)?r.rerolledDays:[]),
+        ...(Array.isArray(l.rerolledDays)?l.rerolledDays:[])])].sort()
+    };
+  }
+
+  /* İki cihazın kazanılmış rozet, hedef ve dinlenme planları birleştirilir.
+     Farklı etkinleşme kimlikleri birbirine karıştırılmaz: ilk etkinleştirme korunur. */
+  function mergeGamification(remote,local){
+    if(!isObject(remote))return isObject(local)?clone(local):undefined;
+    if(!isObject(local))return clone(remote);
+    const a=Number(remote.activatedAt),b=Number(local.activatedAt);
+    if(!Number.isSafeInteger(a)||a<=0)return clone(local);
+    if(!Number.isSafeInteger(b)||b<=0)return clone(remote);
+    if(a!==b)return clone(a<b?remote:local);
+    const goals=new Map();
+    for(const row of [...(Array.isArray(remote.goals)?remote.goals:[]),
+                      ...(Array.isArray(local.goals)?local.goals:[])]){
+      if(!isObject(row)||typeof row.from!=="string"||!Number.isInteger(row.minutes)||!Number.isInteger(row.questions))continue;
+      const old=goals.get(row.from);
+      if(!old||Number(row.updatedAt||0)>=Number(old.updatedAt||0))goals.set(row.from,clone(row));
+    }
+    const earned={};
+    for(const source of [remote.earned,local.earned]){
+      if(!isObject(source))continue;
+      for(const [id,value] of Object.entries(source)){
+        if(!isObject(value)||!Number.isFinite(value.at)||value.at<=0)continue;
+        if(!earned[id]||value.at<earned[id].at)earned[id]=clone(value);
+      }
+    }
+    // Ödül ve bildirimler cihazlar arasında yalnız kimlikle birleştirilir.
+    const coachRewards={};
+    for(const source of [remote.coachRewards,local.coachRewards]){
+      if(!isObject(source))continue;
+      for(const [id,entry] of Object.entries(source)){
+        if(!isObject(entry)||!Number.isSafeInteger(entry.at)||entry.at<=0||![20,35,50].includes(entry.xp))continue;
+        if(!coachRewards[id]||entry.at<coachRewards[id].at)coachRewards[id]=clone(entry);
+      }
+    }
+    const noticeMap=new Map();
+    for(const source of [remote.coachNotifications,local.coachNotifications]){
+      if(!Array.isArray(source))continue;
+      for(const entry of source){
+        if(!isObject(entry)||typeof entry.id!=="string"||!Number.isSafeInteger(entry.at)||entry.at<=0)continue;
+        if(!noticeMap.has(entry.id))noticeMap.set(entry.id,clone(entry));
+      }
+    }
+    const coachNotifications=[...noticeMap.values()].sort((a,b)=>b.at-a.at).slice(0,100);
+    const coachSeen=Object.assign({},isObject(remote.coachSeen)?remote.coachSeen:{},
+      isObject(local.coachSeen)?local.coachSeen:{});
+    const remoteReminders=isObject(remote.smartReminders)?remote.smartReminders:null;
+    const localReminders=isObject(local.smartReminders)?local.smartReminders:null;
+    const smartReminders=remoteReminders||localReminders?Object.assign({},
+      clone(remoteReminders||{}),clone(localReminders||{}),{
+        lastShown:Object.assign({},
+          clone(isObject(remoteReminders?.lastShown)?remoteReminders.lastShown:{}),
+          clone(isObject(localReminders?.lastShown)?localReminders.lastShown:{}))
+      }):null;
+    const rests=new Set([...(Array.isArray(remote.restDays)?remote.restDays:[]),
+                         ...(Array.isArray(local.restDays)?local.restDays:[])].filter(x=>typeof x==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(x)));
+    return Object.assign({},clone(remote),clone(local),{
+      activatedAt:a,activationDay:remote.activationDay,
+      baselineMinutes:remote.baselineMinutes,baselineQuestions:remote.baselineQuestions,
+      goals:[...goals.values()].sort((x,y)=>x.from.localeCompare(y.from)),
+      earned,restDays:[...rests].sort(),tasks:mergeGamificationTasks(remote.tasks,local.tasks),
+      coachRewards,coachSeen,coachNotifications,
+      ...(smartReminders?{smartReminders}:{})
+    });
+  }
+
   function mergeStates(remote,local,schemaVersion){
     const r=isObject(remote)?remote:{},l=isObject(local)?local:{};
     const out=Object.assign({},clone(r),clone(l));
@@ -157,6 +257,7 @@
     out.favTeachers=[...new Set([...(Array.isArray(r.favTeachers)?r.favTeachers:[]),...(Array.isArray(l.favTeachers)?l.favTeachers:[])])];
     out.learning=mergeLearning(r.learning,l.learning);
     out.lab=mergeLab(r.lab,l.lab);
+    out.gamification=mergeGamification(r.gamification,l.gamification);
     out.v=Math.max(Number(schemaVersion)||0,Number(r.v)||0,Number(l.v)||0);
     return out;
   }
