@@ -21,7 +21,8 @@ test("v4.3 Today 2.0 keeps the existing home contracts and promotes the manual p
 test("v4.3 Today 2.0 collapses secondary information without writing study data",()=>{
   const source=read("src/ui/today-v43.ts");
   assert.match(source,/Günün detaylarını göster/);
-  assert.match(source,/Diğer araçları aç/);
+  assert.match(source,/Hızlı soru girişi ve öneriler/);
+  assert.doesNotMatch(source,/makeToggle\("Diğer araçları aç"/);
   assert.match(source,/data-v43-secondary|v43Secondary/);
   assert.doesNotMatch(source,/localStorage\.(?:setItem|removeItem|clear)/);
   assert.doesNotMatch(source,/indexedDB\./);
@@ -75,4 +76,19 @@ test("gün sonu kartı koç bağlantısının hemen üstüne taşınır",()=>{
   assert.match(source,/const dayEnd=getElement<HTMLElement>\("todayClose"\)/);
   assert.match(source,/home\.insertBefore\(dayEnd,shortcut\)/);
   assert.match(css,/#home\.v43-today>#todayClose\+\.rb-home-coach/);
+});
+
+test("Bugün: only meaningful quick entry and recommendations are promoted; old nodes survive hidden",()=>{
+  const today=read("src/ui/today-v43.ts"),styles=read("src/ui/today-v43.css");
+  assert.match(today,/function promoteQuickTools/);
+  assert.match(today,/function promoteDayActions/);
+  assert.match(today,/querySelector<HTMLElement>\("\.quick-entry"\)/);
+  assert.match(today,/getElementById\("fb_konu"\)/);
+  assert.match(today,/getElementById\("suggestBox"\)/);
+  assert.match(today,/archive\.append\(node\)/);
+  assert.match(today,/archive\.setAttribute\("aria-hidden","true"\)/);
+  assert.match(today,/relocateWeeklyGoals/);
+  assert.match(today,/home-tools-ready/);
+  assert.match(styles,/#home\.v43-today \.rb-quick-tools/);
+  assert.match(styles,/\.v43-secondary\[data-v43-secondary\]\{display:none!important\}/);
 });
