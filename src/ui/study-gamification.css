@@ -1,89 +1,89 @@
 /* Çalışma serisi ve başarımlar: ana sayfanın diğer modüllerinden yalıtılmıştır. */
-#home .sg-panel{
+:is(#home,#ymsAchievementsContent) .sg-panel{
   margin:14px 0 16px;padding:18px;
   border:1px solid var(--sep,rgba(120,130,150,.18));
   border-radius:20px;background:var(--glass,var(--card,#fff));
   box-shadow:0 5px 24px rgba(25,37,62,.045);min-width:0
 }
-#home .sg-header,#home .sg-level-head,#home .sg-level-foot,#home .sg-daily-text,#home .sg-week-head,#home .sg-badges-head{
+:is(#home,#ymsAchievementsContent) .sg-header,:is(#home,#ymsAchievementsContent) .sg-level-head,:is(#home,#ymsAchievementsContent) .sg-level-foot,:is(#home,#ymsAchievementsContent) .sg-daily-text,:is(#home,#ymsAchievementsContent) .sg-week-head,:is(#home,#ymsAchievementsContent) .sg-badges-head{
   display:flex;justify-content:space-between;align-items:center;gap:10px
 }
-#home .sg-eyebrow{font-size:10px;letter-spacing:.11em;font-weight:800;color:var(--label-3,var(--label-2,#777))}
-#home .sg-header h2{font-size:18px;line-height:1.3;margin:3px 0 0;letter-spacing:-.025em;color:var(--label,#182436)}
-#home .sg-more{font:inherit;font-size:12px;font-weight:750;white-space:nowrap;cursor:pointer;background:var(--fill,#f1f4f9);color:var(--accent,#3769cf);padding:8px 11px;border:0;border-radius:11px}
-#home .sg-more:focus-visible{outline:2px solid var(--accent,#3769cf);outline-offset:2px}
-#home .sg-top{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:10px;margin-top:14px}
-#home .sg-streak,#home .sg-level{border:1px solid var(--sep,rgba(120,130,150,.18));border-radius:16px;padding:13px;min-width:0;background:var(--fill,rgba(80,95,125,.05))}
-#home .sg-streak{display:flex;gap:10px;align-items:center}
-#home .sg-flame{display:grid;place-items:center;width:49px;height:49px;flex:none;font-size:28px;border-radius:15px;background:rgba(255,157,62,.13)}
-#home .sg-streak-copy{min-width:0;display:flex;flex-direction:column}
-#home .sg-streak-copy strong{font-size:28px;line-height:1;font-weight:850;letter-spacing:-.04em;font-variant-numeric:tabular-nums;color:var(--label,#17273b)}
-#home .sg-streak-copy span{font-size:11.5px;font-weight:700;margin-top:5px;color:var(--label,#182436)}
-#home .sg-streak-copy small,#home .sg-level-foot small{font-size:10.5px;color:var(--label-2,#778)}
-#home .sg-streak-copy small{margin-top:5px}
-#home .sg-level{display:flex;flex-direction:column;justify-content:center;gap:9px}
-#home .sg-level-head strong{font-size:12px;line-height:1.35;color:var(--label,#182436)}
-#home .sg-level-head span{font-size:10.5px;white-space:nowrap;color:var(--label-2,#778);font-variant-numeric:tabular-nums}
-#home .sg-rail{height:8px;border-radius:999px;overflow:hidden;background:rgba(124,137,158,.18)}
-#home .sg-rail-fill{display:block;height:100%;max-width:100%;border-radius:inherit;background:linear-gradient(90deg,var(--accent,#4484e8),#76b1fc);transition:width .3s ease}
-#home .sg-daily{margin-top:12px;padding:11px 12px;border-radius:14px;background:var(--fill,rgba(80,95,125,.05))}
-#home .sg-daily-text{font-size:12px;margin-bottom:8px}
-#home .sg-daily-text strong{color:var(--label,#17273b)}
-#home .sg-daily-text span{color:var(--label-2,#778);font-weight:750;font-variant-numeric:tabular-nums;white-space:nowrap}
-#home .sg-daily-progress .sg-rail-fill{background:linear-gradient(90deg,#ee9742,#f4c76c)}
-#home .sg-hint{margin:7px 0 0;font-size:10.5px;color:var(--label-2,#778)}
-#home .sg-complete{color:var(--success,#21946f)}
-#home .sg-week{margin-top:14px}
-#home .sg-week-head{font-size:12px;font-weight:750;margin-bottom:9px}
-#home .sg-week-head small{font-weight:500;font-size:10.5px;color:var(--label-2,#778)}
-#home .sg-week-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
-#home .sg-day{min-width:0;text-align:center;padding:8px 2px;border-radius:11px;background:var(--fill,rgba(80,95,125,.05));border:1px solid transparent}
-#home .sg-day span{display:block;font-size:10px;color:var(--label-2,#778)}
-#home .sg-day b{display:grid;place-items:center;width:25px;height:25px;margin:5px auto 0;border-radius:9px;font-size:15px;background:rgba(124,137,158,.13);color:var(--label-3,#777)}
-#home .sg-day.is-done b{background:rgba(34,173,118,.15);color:var(--success,#21946f)}
-#home .sg-day.is-today{border-color:var(--accent,#4484e8)}
-#home .sg-badges{margin-top:16px;border-top:1px solid var(--sep,rgba(120,130,150,.18));padding-top:14px}
-#home .sg-badges-head{font-size:12px;margin-bottom:10px}
-#home .sg-badges-head span{font-size:11px;color:var(--label-2,#778)}
-#home .sg-badges-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
-#home .sg-badge{display:flex;align-items:flex-start;gap:9px;position:relative;min-width:0;border-radius:13px;border:1px solid var(--sep,rgba(120,130,150,.18));padding:10px;background:var(--fill,rgba(80,95,125,.05));overflow:hidden}
-#home .sg-badge.is-locked{opacity:.78}
-#home .sg-badge.is-unlocked{border-color:rgba(228,171,68,.4);background:linear-gradient(130deg,rgba(252,190,75,.08),transparent)}
-#home .sg-badge-icon{width:35px;height:35px;flex:none;display:grid;place-items:center;font-size:20px;border-radius:11px;background:rgba(124,137,158,.1)}
-#home .sg-badge.is-unlocked .sg-badge-icon{background:rgba(252,190,75,.14)}
-#home .sg-badge-copy{min-width:0;display:flex;flex-direction:column;gap:3px;padding-bottom:6px}
-#home .sg-badge-copy strong{font-size:11.5px;color:var(--label,#182436);overflow-wrap:anywhere}
-#home .sg-badge-copy span,#home .sg-badge-copy small{font-size:10px;line-height:1.35;color:var(--label-2,#778);overflow-wrap:anywhere}
-#home .sg-badge-copy small{font-weight:700;color:var(--accent,#4484e8)}
-#home .sg-badge-progress{position:absolute;bottom:0;left:0;right:0;border-radius:0;height:3px}
+:is(#home,#ymsAchievementsContent) .sg-eyebrow{font-size:10px;letter-spacing:.11em;font-weight:800;color:var(--label-3,var(--label-2,#777))}
+:is(#home,#ymsAchievementsContent) .sg-header h2{font-size:18px;line-height:1.3;margin:3px 0 0;letter-spacing:-.025em;color:var(--label,#182436)}
+:is(#home,#ymsAchievementsContent) .sg-more{font:inherit;font-size:12px;font-weight:750;white-space:nowrap;cursor:pointer;background:var(--fill,#f1f4f9);color:var(--accent,#3769cf);padding:8px 11px;border:0;border-radius:11px}
+:is(#home,#ymsAchievementsContent) .sg-more:focus-visible{outline:2px solid var(--accent,#3769cf);outline-offset:2px}
+:is(#home,#ymsAchievementsContent) .sg-top{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:10px;margin-top:14px}
+:is(#home,#ymsAchievementsContent) .sg-streak,:is(#home,#ymsAchievementsContent) .sg-level{border:1px solid var(--sep,rgba(120,130,150,.18));border-radius:16px;padding:13px;min-width:0;background:var(--fill,rgba(80,95,125,.05))}
+:is(#home,#ymsAchievementsContent) .sg-streak{display:flex;gap:10px;align-items:center}
+:is(#home,#ymsAchievementsContent) .sg-flame{display:grid;place-items:center;width:49px;height:49px;flex:none;font-size:28px;border-radius:15px;background:rgba(255,157,62,.13)}
+:is(#home,#ymsAchievementsContent) .sg-streak-copy{min-width:0;display:flex;flex-direction:column}
+:is(#home,#ymsAchievementsContent) .sg-streak-copy strong{font-size:28px;line-height:1;font-weight:850;letter-spacing:-.04em;font-variant-numeric:tabular-nums;color:var(--label,#17273b)}
+:is(#home,#ymsAchievementsContent) .sg-streak-copy span{font-size:11.5px;font-weight:700;margin-top:5px;color:var(--label,#182436)}
+:is(#home,#ymsAchievementsContent) .sg-streak-copy small,:is(#home,#ymsAchievementsContent) .sg-level-foot small{font-size:10.5px;color:var(--label-2,#778)}
+:is(#home,#ymsAchievementsContent) .sg-streak-copy small{margin-top:5px}
+:is(#home,#ymsAchievementsContent) .sg-level{display:flex;flex-direction:column;justify-content:center;gap:9px}
+:is(#home,#ymsAchievementsContent) .sg-level-head strong{font-size:12px;line-height:1.35;color:var(--label,#182436)}
+:is(#home,#ymsAchievementsContent) .sg-level-head span{font-size:10.5px;white-space:nowrap;color:var(--label-2,#778);font-variant-numeric:tabular-nums}
+:is(#home,#ymsAchievementsContent) .sg-rail{height:8px;border-radius:999px;overflow:hidden;background:rgba(124,137,158,.18)}
+:is(#home,#ymsAchievementsContent) .sg-rail-fill{display:block;height:100%;max-width:100%;border-radius:inherit;background:linear-gradient(90deg,var(--accent,#4484e8),#76b1fc);transition:width .3s ease}
+:is(#home,#ymsAchievementsContent) .sg-daily{margin-top:12px;padding:11px 12px;border-radius:14px;background:var(--fill,rgba(80,95,125,.05))}
+:is(#home,#ymsAchievementsContent) .sg-daily-text{font-size:12px;margin-bottom:8px}
+:is(#home,#ymsAchievementsContent) .sg-daily-text strong{color:var(--label,#17273b)}
+:is(#home,#ymsAchievementsContent) .sg-daily-text span{color:var(--label-2,#778);font-weight:750;font-variant-numeric:tabular-nums;white-space:nowrap}
+:is(#home,#ymsAchievementsContent) .sg-daily-progress .sg-rail-fill{background:linear-gradient(90deg,#ee9742,#f4c76c)}
+:is(#home,#ymsAchievementsContent) .sg-hint{margin:7px 0 0;font-size:10.5px;color:var(--label-2,#778)}
+:is(#home,#ymsAchievementsContent) .sg-complete{color:var(--success,#21946f)}
+:is(#home,#ymsAchievementsContent) .sg-week{margin-top:14px}
+:is(#home,#ymsAchievementsContent) .sg-week-head{font-size:12px;font-weight:750;margin-bottom:9px}
+:is(#home,#ymsAchievementsContent) .sg-week-head small{font-weight:500;font-size:10.5px;color:var(--label-2,#778)}
+:is(#home,#ymsAchievementsContent) .sg-week-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+:is(#home,#ymsAchievementsContent) .sg-day{min-width:0;text-align:center;padding:8px 2px;border-radius:11px;background:var(--fill,rgba(80,95,125,.05));border:1px solid transparent}
+:is(#home,#ymsAchievementsContent) .sg-day span{display:block;font-size:10px;color:var(--label-2,#778)}
+:is(#home,#ymsAchievementsContent) .sg-day b{display:grid;place-items:center;width:25px;height:25px;margin:5px auto 0;border-radius:9px;font-size:15px;background:rgba(124,137,158,.13);color:var(--label-3,#777)}
+:is(#home,#ymsAchievementsContent) .sg-day.is-done b{background:rgba(34,173,118,.15);color:var(--success,#21946f)}
+:is(#home,#ymsAchievementsContent) .sg-day.is-today{border-color:var(--accent,#4484e8)}
+:is(#home,#ymsAchievementsContent) .sg-badges{margin-top:16px;border-top:1px solid var(--sep,rgba(120,130,150,.18));padding-top:14px}
+:is(#home,#ymsAchievementsContent) .sg-badges-head{font-size:12px;margin-bottom:10px}
+:is(#home,#ymsAchievementsContent) .sg-badges-head span{font-size:11px;color:var(--label-2,#778)}
+:is(#home,#ymsAchievementsContent) .sg-badges-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+:is(#home,#ymsAchievementsContent) .sg-badge{display:flex;align-items:flex-start;gap:9px;position:relative;min-width:0;border-radius:13px;border:1px solid var(--sep,rgba(120,130,150,.18));padding:10px;background:var(--fill,rgba(80,95,125,.05));overflow:hidden}
+:is(#home,#ymsAchievementsContent) .sg-badge.is-locked{opacity:.78}
+:is(#home,#ymsAchievementsContent) .sg-badge.is-unlocked{border-color:rgba(228,171,68,.4);background:linear-gradient(130deg,rgba(252,190,75,.08),transparent)}
+:is(#home,#ymsAchievementsContent) .sg-badge-icon{width:35px;height:35px;flex:none;display:grid;place-items:center;font-size:20px;border-radius:11px;background:rgba(124,137,158,.1)}
+:is(#home,#ymsAchievementsContent) .sg-badge.is-unlocked .sg-badge-icon{background:rgba(252,190,75,.14)}
+:is(#home,#ymsAchievementsContent) .sg-badge-copy{min-width:0;display:flex;flex-direction:column;gap:3px;padding-bottom:6px}
+:is(#home,#ymsAchievementsContent) .sg-badge-copy strong{font-size:11.5px;color:var(--label,#182436);overflow-wrap:anywhere}
+:is(#home,#ymsAchievementsContent) .sg-badge-copy span,:is(#home,#ymsAchievementsContent) .sg-badge-copy small{font-size:10px;line-height:1.35;color:var(--label-2,#778);overflow-wrap:anywhere}
+:is(#home,#ymsAchievementsContent) .sg-badge-copy small{font-weight:700;color:var(--accent,#4484e8)}
+:is(#home,#ymsAchievementsContent) .sg-badge-progress{position:absolute;bottom:0;left:0;right:0;border-radius:0;height:3px}
 @media(max-width:530px){
-  #home .sg-panel{padding:13px;border-radius:17px}
-  #home .sg-top{grid-template-columns:1fr}
-  #home .sg-badges-grid{grid-template-columns:1fr}
-  #home .sg-streak{padding:12px}
-  #home .sg-level{padding:12px}
-  #home .sg-day{padding:6px 0}
+  :is(#home,#ymsAchievementsContent) .sg-panel{padding:13px;border-radius:17px}
+  :is(#home,#ymsAchievementsContent) .sg-top{grid-template-columns:1fr}
+  :is(#home,#ymsAchievementsContent) .sg-badges-grid{grid-template-columns:1fr}
+  :is(#home,#ymsAchievementsContent) .sg-streak{padding:12px}
+  :is(#home,#ymsAchievementsContent) .sg-level{padding:12px}
+  :is(#home,#ymsAchievementsContent) .sg-day{padding:6px 0}
 }
-@media(prefers-reduced-motion:reduce){#home .sg-rail-fill{transition:none}}
+@media(prefers-reduced-motion:reduce){:is(#home,#ymsAchievementsContent) .sg-rail-fill{transition:none}}
 
 
 /* Aşama 1: kişisel süre + soru hedefleri, erişilebilir formlar */
-#home .sg-intro{font-size:12px;line-height:1.55;color:var(--label-2,#667);margin:10px 0}
-#home .sg-form{margin-top:12px;padding:13px;border:1px solid var(--sep,rgba(120,130,150,.18));border-radius:14px;background:var(--fill,rgba(80,95,125,.05))}
-#home .sg-goal-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-#home .sg-goal-label{min-width:0;display:flex;flex-direction:column;gap:6px;font-size:11px;font-weight:650;color:var(--label,#182436)}
-#home .sg-goal-input{width:100%;min-width:0;box-sizing:border-box;border:1px solid var(--sep,rgba(120,130,150,.25));border-radius:10px;padding:10px;font-size:14px;background:var(--glass,var(--card,#fff));color:var(--label,#182436)}
-#home .sg-goal-input:focus-visible{outline:2px solid var(--accent,#4484e8);outline-offset:2px}
-#home .sg-form-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
-#home .sg-cta,#home .sg-cancel,#home .sg-goal-edit{font:inherit;border:0;border-radius:10px;padding:9px 13px;cursor:pointer}
-#home .sg-cta{font-size:12px;font-weight:750;color:#fff;background:var(--accent,#427ddd)}
-#home .sg-cancel{font-size:12px;font-weight:700;background:var(--glass,var(--card,#fff));color:var(--label,#182436)}
-#home .sg-goal-edit{font-size:10.5px;font-weight:750;padding:5px 9px;background:var(--glass,var(--card,#fff));color:var(--accent,#3769cf)}
-#home .sg-feedback{color:var(--danger,#c83f3f);font-size:11px;margin:8px 0 0}
-#home .sg-feedback:empty{display:none}
-#home .sg-daily-text+.sg-rail{margin-bottom:10px}
-#home .sg-cta:focus-visible,#home .sg-cancel:focus-visible,#home .sg-goal-edit:focus-visible{outline:2px solid var(--accent,#4484e8);outline-offset:2px}
-@media(max-width:390px){#home .sg-goal-fields{grid-template-columns:1fr}#home .sg-form{padding:10px}}
+:is(#home,#ymsAchievementsContent) .sg-intro{font-size:12px;line-height:1.55;color:var(--label-2,#667);margin:10px 0}
+:is(#home,#ymsAchievementsContent) .sg-form{margin-top:12px;padding:13px;border:1px solid var(--sep,rgba(120,130,150,.18));border-radius:14px;background:var(--fill,rgba(80,95,125,.05))}
+:is(#home,#ymsAchievementsContent) .sg-goal-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+:is(#home,#ymsAchievementsContent) .sg-goal-label{min-width:0;display:flex;flex-direction:column;gap:6px;font-size:11px;font-weight:650;color:var(--label,#182436)}
+:is(#home,#ymsAchievementsContent) .sg-goal-input{width:100%;min-width:0;box-sizing:border-box;border:1px solid var(--sep,rgba(120,130,150,.25));border-radius:10px;padding:10px;font-size:14px;background:var(--glass,var(--card,#fff));color:var(--label,#182436)}
+:is(#home,#ymsAchievementsContent) .sg-goal-input:focus-visible{outline:2px solid var(--accent,#4484e8);outline-offset:2px}
+:is(#home,#ymsAchievementsContent) .sg-form-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+:is(#home,#ymsAchievementsContent) .sg-cta,:is(#home,#ymsAchievementsContent) .sg-cancel,:is(#home,#ymsAchievementsContent) .sg-goal-edit{font:inherit;border:0;border-radius:10px;padding:9px 13px;cursor:pointer}
+:is(#home,#ymsAchievementsContent) .sg-cta{font-size:12px;font-weight:750;color:#fff;background:var(--accent,#427ddd)}
+:is(#home,#ymsAchievementsContent) .sg-cancel{font-size:12px;font-weight:700;background:var(--glass,var(--card,#fff));color:var(--label,#182436)}
+:is(#home,#ymsAchievementsContent) .sg-goal-edit{font-size:10.5px;font-weight:750;padding:5px 9px;background:var(--glass,var(--card,#fff));color:var(--accent,#3769cf)}
+:is(#home,#ymsAchievementsContent) .sg-feedback{color:var(--danger,#c83f3f);font-size:11px;margin:8px 0 0}
+:is(#home,#ymsAchievementsContent) .sg-feedback:empty{display:none}
+:is(#home,#ymsAchievementsContent) .sg-daily-text+.sg-rail{margin-bottom:10px}
+:is(#home,#ymsAchievementsContent) .sg-cta:focus-visible,:is(#home,#ymsAchievementsContent) .sg-cancel:focus-visible,:is(#home,#ymsAchievementsContent) .sg-goal-edit:focus-visible{outline:2px solid var(--accent,#4484e8);outline-offset:2px}
+@media(max-width:390px){:is(#home,#ymsAchievementsContent) .sg-goal-fields{grid-template-columns:1fr}:is(#home,#ymsAchievementsContent) .sg-form{padding:10px}}
 
 
 /* Başarım açılışı: hafif animasyon, klavye ile kapatılabilir ve reduced-motion dostu. */
@@ -107,25 +107,25 @@
 .sg-reward-close:focus-visible{outline:2px solid var(--accent,#427ddd)}
 @keyframes sg-award-in{0%{opacity:0;transform:translateY(20px) scale(.96)}100%{opacity:1;transform:translateY(0) scale(1)}}
 @keyframes sg-symbol-in{0%{transform:scale(.65) rotate(-10deg)}60%{transform:scale(1.13) rotate(4deg)}100%{transform:scale(1) rotate(0)}}
-#home .sg-protection{margin-top:12px;border:1px solid var(--sep,rgba(120,130,150,.18));border-radius:14px;padding:12px;min-width:0}
-#home .sg-protection-head{display:flex;justify-content:space-between;align-items:center;gap:10px}
-#home .sg-protection-head strong{font-size:12px;color:var(--label,#182436)}
-#home .sg-protection-head span{font-size:11px;font-weight:700;white-space:nowrap;color:var(--accent,#427ddd)}
-#home .sg-protection-meta{font-size:10.5px;color:var(--label-2,#667)}
-#home .sg-rest-section{display:flex;flex-direction:column;gap:8px;margin-top:12px}
-#home .sg-rest-label{font-size:12px;font-weight:700;color:var(--label,#182436)}
-#home .sg-rest-options{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}
-#home .sg-rest-select{min-width:0;max-width:100%;padding:9px;border:1px solid var(--sep,rgba(120,130,150,.22));background:var(--glass,var(--card,#fff));color:var(--label,#182436);border-radius:10px;font-size:12px}
-#home .sg-rest-button{cursor:pointer;border:0;border-radius:10px;padding:9px 11px;font-weight:700;font-size:11.5px;color:#fff;background:var(--accent,#427ddd)}
-#home .sg-rest-button:disabled{opacity:.45;cursor:not-allowed}
-#home .sg-rest-select:focus-visible,#home .sg-rest-button:focus-visible{outline:2px solid var(--accent,#427ddd);outline-offset:2px}
-#home .sg-day.is-rest b{background:rgba(72,154,114,.11);color:var(--success,#21946f);font-size:13px}
-#home .sg-day.is-shield b{background:rgba(77,137,235,.11);font-size:13px}
-#home .sg-day.is-missed b{background:rgba(196,86,80,.13);color:var(--danger,#c83f3f)}
+:is(#home,#ymsAchievementsContent) .sg-protection{margin-top:12px;border:1px solid var(--sep,rgba(120,130,150,.18));border-radius:14px;padding:12px;min-width:0}
+:is(#home,#ymsAchievementsContent) .sg-protection-head{display:flex;justify-content:space-between;align-items:center;gap:10px}
+:is(#home,#ymsAchievementsContent) .sg-protection-head strong{font-size:12px;color:var(--label,#182436)}
+:is(#home,#ymsAchievementsContent) .sg-protection-head span{font-size:11px;font-weight:700;white-space:nowrap;color:var(--accent,#427ddd)}
+:is(#home,#ymsAchievementsContent) .sg-protection-meta{font-size:10.5px;color:var(--label-2,#667)}
+:is(#home,#ymsAchievementsContent) .sg-rest-section{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+:is(#home,#ymsAchievementsContent) .sg-rest-label{font-size:12px;font-weight:700;color:var(--label,#182436)}
+:is(#home,#ymsAchievementsContent) .sg-rest-options{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}
+:is(#home,#ymsAchievementsContent) .sg-rest-select{min-width:0;max-width:100%;padding:9px;border:1px solid var(--sep,rgba(120,130,150,.22));background:var(--glass,var(--card,#fff));color:var(--label,#182436);border-radius:10px;font-size:12px}
+:is(#home,#ymsAchievementsContent) .sg-rest-button{cursor:pointer;border:0;border-radius:10px;padding:9px 11px;font-weight:700;font-size:11.5px;color:#fff;background:var(--accent,#427ddd)}
+:is(#home,#ymsAchievementsContent) .sg-rest-button:disabled{opacity:.45;cursor:not-allowed}
+:is(#home,#ymsAchievementsContent) .sg-rest-select:focus-visible,:is(#home,#ymsAchievementsContent) .sg-rest-button:focus-visible{outline:2px solid var(--accent,#427ddd);outline-offset:2px}
+:is(#home,#ymsAchievementsContent) .sg-day.is-rest b{background:rgba(72,154,114,.11);color:var(--success,#21946f);font-size:13px}
+:is(#home,#ymsAchievementsContent) .sg-day.is-shield b{background:rgba(77,137,235,.11);font-size:13px}
+:is(#home,#ymsAchievementsContent) .sg-day.is-missed b{background:rgba(196,86,80,.13);color:var(--danger,#c83f3f)}
 @media(max-width:460px){
   .sg-reward-notice{left:14px;right:14px;width:auto}
-  #home .sg-rest-options{grid-template-columns:1fr}
-  #home .sg-rest-button{min-height:39px}
+  :is(#home,#ymsAchievementsContent) .sg-rest-options{grid-template-columns:1fr}
+  :is(#home,#ymsAchievementsContent) .sg-rest-button{min-height:39px}
 }
 @media(prefers-reduced-motion:reduce){
   .sg-reward-notice,.sg-reward-symbol{animation:none}
@@ -133,13 +133,13 @@
 
 
 /* Prevent cramped buttons and cut-off badges on smaller Android/iPad viewports. */
-#home .sg-cta,#home .sg-cancel,#home .sg-rest-button,
-#home .sg-goal-edit,#home .sg-rest-select{min-height:42px;touch-action:manipulation}
-#home .sg-badge,#home .sg-top,#home .sg-protection{box-sizing:border-box;max-width:100%}
-#home .sg-protection-head{flex-wrap:wrap}
+:is(#home,#ymsAchievementsContent) .sg-cta,:is(#home,#ymsAchievementsContent) .sg-cancel,:is(#home,#ymsAchievementsContent) .sg-rest-button,
+:is(#home,#ymsAchievementsContent) .sg-goal-edit,:is(#home,#ymsAchievementsContent) .sg-rest-select{min-height:42px;touch-action:manipulation}
+:is(#home,#ymsAchievementsContent) .sg-badge,:is(#home,#ymsAchievementsContent) .sg-top,:is(#home,#ymsAchievementsContent) .sg-protection{box-sizing:border-box;max-width:100%}
+:is(#home,#ymsAchievementsContent) .sg-protection-head{flex-wrap:wrap}
 .sg-reward-close{min-width:42px;min-height:42px;touch-action:manipulation}
 @media(max-width:380px){
-  #home .sg-week{min-width:0;gap:2px}
-  #home .sg-day{min-width:0}
-  #home .sg-goal-fields{grid-template-columns:1fr}
+  :is(#home,#ymsAchievementsContent) .sg-week{min-width:0;gap:2px}
+  :is(#home,#ymsAchievementsContent) .sg-day{min-width:0}
+  :is(#home,#ymsAchievementsContent) .sg-goal-fields{grid-template-columns:1fr}
 }
