@@ -54,18 +54,23 @@ async function sendOnce(ref,device,kind,id,day){
     sender();
     await webPush.sendNotification({endpoint:device.endpoint,
       keys:{auth:device.auth,p256dh:device.p256dh}},payload,{TTL:3600,urgency:"normal"});
-    await log.update({sentAt:new Date()});
-    return true;
   }catch(error){
     if(error?.statusCode===404||error?.statusCode===410){
       await ref.delete().catch(()=>{});
+      // Expired subscriptions are deliberately not retried.
       return false;
     }
-    // Release reservation after definite delivery failure; caller may retry.
-    await log.delete().catch(()=>{});
-    console.warn("Web Push send failed",error?.statusCode||error?.message);
+    // Network failures may occur AFTER the push server accepted the message.
+    // Keep the reservation so retries cannot show the same alert twice.
+    try{await log.update({failedAt:new Date(),failureCode:String(error?.statusCode||"unknown")});}
+    catch(logError){console.warn("Push delivery failure log unavailable",logError?.message);}
+    console.warn("Web Push delivery uncertain or failed",error?.statusCode||error?.message);
     return false;
   }
+  // Never treat a log-write failure as a second push delivery opportunity.
+  try{await log.update({sentAt:new Date()});}
+  catch(error){console.warn("Push delivered but receipt update failed",error?.message);}
+  return true;
 }
 async function sendToStudent(uid,kind,messageId){
   if(!uid||typeof uid!=="string")return;
