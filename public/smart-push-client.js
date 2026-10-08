@@ -82,8 +82,9 @@ export function installStudentSmartPush({db,user}){
     if(!subscription?.endpoint)throw Error("Push aboneliği oluşturulamadı.");
     const key=subscription.toJSON().keys??{};
     if(!key.auth||!key.p256dh)throw Error("Push aboneliğinde şifreleme anahtarları eksik.");
+    const existing=await getDoc(deviceRef);
     await setDoc(deviceRef,{deviceId:id,endpoint:subscription.endpoint,auth:key.auth,p256dh:key.p256dh,
-      ...cfg,createdAt:serverTimestamp(),updatedAt:serverTimestamp()});
+      ...cfg,...(existing.exists()?{}:{createdAt:serverTimestamp()}),updatedAt:serverTimestamp()},{merge:true});
     status="Telefon bildirimlerine abone olundu. Gerçek gönderim için sunucu gerekir.";
     await syncDevice(true);
     statusChanged();return status;
