@@ -63,6 +63,7 @@ test("Aşama 3: gizli başarım gerçek oturum, pazar görevi ve kusursuz haftad
     'const good=getStudyInsights(state,state.gamification,now,history);',
     'assert.equal(good.hidden.earlyBird,true);assert.equal(good.hidden.nightOwl,true);',
     'assert.equal(good.hidden.lastMinute,true);assert.equal(good.hidden.perfectWeek,true);',
+    'assert.equal(good.records.find(x=>x.id==="longest-session").value,35);',
     'const bad=getStudyInsights(state,state.gamification,now,{...history,"2026-10-09":"shield"});',
     'assert.equal(bad.hidden.perfectWeek,false);'
   ]);
