@@ -13,6 +13,7 @@ const categories=[
   {id:"account",title:"Hesap ve senkron",description:"Hesabın ve cihazlar arası eşitleme",keywords:"giriş çıkış google bulut oturum güvenlik",icon:"user"},
   {id:"appearance",title:"Görünüm ve maskot",description:"Yazı boyutu ve çalışma arkadaşın",keywords:"tema yazı boyutu font görünüm maskot arkadaş animasyon karakter",icon:"palette"},
   {id:"study",title:"Çalışma ve program",description:"Günlük hedefin ve ekran tercihlerin",keywords:"kişiselleştir sınav kapsamı tyt ayt ydt bugün kart soru hedef program",icon:"calendar"},
+  {id:"achievements",title:"Başarımlar",description:"Seri, XP, rozetler, görevler ve gelişim",keywords:"başarım rozet xp seviye seri kalkan dinlenme meydan okuma ustalık takvim rekor kariyer",icon:"award"},
   {id:"notifications",title:"Bildirimler",description:"Odak, tekrar ve gün sonu hatırlatmaları",keywords:"izin pomodoro akşam saat hatırlatıcı bildirim",icon:"bell"},
   {id:"coach",title:"Koç bağlantısı",description:"Koç kodun ve program paylaşımı",keywords:"kod koçum bağlantı paylaş öğrenci",icon:"chat"},
   {id:"data",title:"Veri ve yedek",description:"Kayıtlarını yönet ve yedekle",keywords:"dışa aktar içe al yedek kurtar veri gizlilik sil",icon:"database"},
@@ -22,6 +23,7 @@ const icons={
   user:'<circle cx="12" cy="7" r="4"/><path d="M4 21v-3a8 8 0 0 1 16 0v3Z"/>',
   palette:'<path d="M12 3a9 9 0 1 0 0 18h1a2 2 0 0 0 1.4-3.4 1.5 1.5 0 0 1 1.1-2.6H17a4 4 0 0 0 4-4c0-4.4-4-8-9-8Z"/><circle cx="7.5" cy="10" r=".7"/><circle cx="11" cy="7" r=".7"/><circle cx="15.5" cy="8" r=".7"/>',
   calendar:'<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M7 3v4m10-4v4M3 11h18"/>',
+  award:'<circle cx="12" cy="8" r="5"/><path d="m9 13-2 9 5-3 5 3-2-9"/>',
   bell:'<path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/>',
   chat:'<path d="M21 11a8 8 0 0 1-8 8H9l-6 3 1.5-6A8 8 0 1 1 21 11Z"/>',
   database:'<ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 4 16 4 16 0V5M4 12c0 4 16 4 16 0"/>',
@@ -37,6 +39,12 @@ function styles(){
   const s=document.createElement("style");s.id="yksModernSettingsStyles";
   s.textContent=`
 /* Refined settings: one overview, one detail, shared theme tokens. */
+.yms-achievements{display:grid;gap:14px;min-width:0;max-width:100%}
+.yms-achievements>.sg-panel,.yms-achievements>.st-panel,.yms-achievements>.si-panel{margin:0!important;max-width:100%;min-width:0;box-sizing:border-box}
+.yms-achievements .sg-panel,.yms-achievements .st-panel,.yms-achievements .si-panel{background:var(--ys-surface,var(--card,#fff));}
+.yms-achievements [data-yms-achievements-loading]:has(~ .sg-panel){display:none!important}
+@media(max-width:560px){.yms-achievements{gap:12px}.yms-achievements>.sg-panel,.yms-achievements>.st-panel,.yms-achievements>.si-panel{padding:13px!important}}
+
 .yms-wrap,.yms-modal{--ys-surface:var(--rb-surface,var(--card,#fff));--ys-alt:var(--rb-surface-alt,var(--card-2,#f0f5fc));--ys-ink:var(--rb-ink,var(--label,#10203f));--ys-muted:var(--rb-muted,var(--label-2,#62718b));--ys-line:var(--rb-line,var(--line,#e4eaf3));--ys-accent:var(--rb-accent,var(--accent,#1266ee));--ys-soft:var(--rb-accent-soft,var(--accent-soft,#eaf2ff));color:var(--ys-ink)}
 .yms-wrap{max-width:840px;margin:16px auto 28px}.yms-wrap [hidden],.yms-modal [hidden],[data-yms-hidden="true"]{display:none!important}
 #mrp_ayar:has(.yms-wrap)>.v30-subhead{display:grid!important;gap:11px;margin:0 auto 18px!important;padding:0!important;max-width:840px;background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important}#mrp_ayar:has(.yms-wrap)>.v30-subhead .v30-back{justify-self:start;padding:5px 0!important;background:transparent!important;border:0!important;color:var(--rb-accent,var(--accent))!important;font-size:14px!important;font-weight:500!important;min-height:32px!important}#mrp_ayar:has(.yms-wrap)>.v30-subhead h1{font-size:32px!important;line-height:1.15;font-weight:700;letter-spacing:-.04em}#mrp_ayar:has(.yms-wrap:not([data-category="overview"]))>.v30-subhead{display:none!important}
@@ -120,6 +128,7 @@ function markup(){return `
   ${section("account",`<div class="yms-account-host" data-yms-account-slot></div><div class="yms-empty" data-yms-account-empty>Hesap bağlantısı hazırlanıyor. İnternet bağlantını kontrol ederek tekrar deneyebilirsin.<div class="yms-actions"><button type="button" data-yms-account-refresh>Durumu yenile</button></div></div>`)}
   ${section("appearance",'<div class="yms-appearance-host" data-yms-appearance-slot></div><section class="yms-card"><h3 class="yms-title">Çalışma arkadaşın</h3><div class="yms-notif-item"><span><b>Maskot bana eşlik etsin</b><small>10 karakterden birini seç. Odaklanırken sessizce bekler.</small></span><button class="yms-toggle" type="button" role="switch" aria-checked="true" aria-label="Maskot bana eşlik etsin" data-yms-mascot-toggle></button></div><p class="yms-note" data-yms-mascot-status></p><div class="yms-actions"><button type="button" data-yms-mascot-choose>Maskotunu seç</button></div></section>')}
   ${section("study",`<section class="yms-card"><h3 class="yms-title">Günlük çalışma hedefi</h3><label class="yms-field" for="ymsQuestionTarget"><span>Günlük soru sayısı</span><input id="ymsQuestionTarget" type="number" min="0" max="10000" step="1" inputmode="numeric"></label><div class="yms-actions"><button class="primary" type="button" data-yms-target-save>Hedefi kaydet</button><button type="button" data-yms-program>Programıma git</button></div><p class="yms-note" role="status" data-yms-target-status></p></section><div class="yms-personal-host" data-yms-personal-slot><div class="yms-empty">Ekran tercihlerin hazırlanıyor…</div></div>`)}
+  ${section("achievements",`<div class="yms-achievements" id="ymsAchievementsContent" aria-label="Seri, XP, rozetler ve görevler"><div class="yms-empty" data-yms-achievements-loading>Başarımlar hazırlanıyor…</div></div>`)}
   ${section("notifications",`<div><span class="yms-status-pill" role="status" data-yms-notif-status></span><p class="yms-note">Destekleyen cihazlarda odak süreni bildirimden duraklatıp devam ettirebilirsin. Uygulama tamamen kapatılır veya cihaz tarafından uyutulursa süre sonu uyarısı gelmeyebilir.</p></div><div class="yms-card"><div class="yms-notif-list">${notifButton("pomo","Odak bildirimleri","Süreyi bildirimden yönet; odak ve mola bitişinde haber al","notifPomo")}${notifButton("review","Tekrar zamanı","Planlı konu tekrarlarını hatırlat","notifReview")}${notifButton("evening","Gün sonu hatırlatması","Günün kaydını tamamlamayı hatırlat","notifEvening")}</div><label class="yms-note" for="ymsNotifTime">Akşam hatırlatma saati</label><div class="yms-time-row"><input id="ymsNotifTime" type="time" aria-label="Akşam hatırlatma saati"><button class="yms-edit" type="button" data-yms-notif-time>Kaydet</button></div><p class="yms-note" role="status" data-yms-time-status></p><div class="yms-actions"><button type="button" data-yms-notif-permission>Bildirim izni ver</button><button type="button" data-yms-notif-test>Deneme bildirimi</button><button type="button" data-yms-notif-refresh>Durumu yenile</button></div><p class="yms-note" role="status" data-yms-notif-result></p></div><details class="yms-advanced" data-yms-notif-help><summary>Bildirim görünmüyorsa</summary><p class="yms-note">Chrome'da Ayarlar → Site ayarları → Bildirimler bölümünden YKS Defterim'e izin ver. Tablet veya telefonunun Ayarlar → Bildirimler bölümünde Chrome ve YKS Defterim izinlerini de kontrol et.</p><p class="yms-note">Rahatsız Etmeyin ve pil tasarrufu bildirimleri sessize alabilir ya da geciktirebilir. Ana ekrana eklenmiş olması bu izinlerin açık olduğu anlamına gelmez.</p><p class="yms-note">Deneme bildirimini görüyorsan cihaz iznin çalışıyor. Bildirim düğmeleri görünmüyorsa bildirimi genişlet. iPhone ve iPad'de uygulamayı ana ekrandan açman gerekir.</p></details>`)}
   ${section("coach",'<div class="yms-coach-host" data-yms-coach-slot></div><div class="yms-empty" data-yms-coach-empty>Koç kodunu oluşturmak ve çalışma bilgilerini paylaşmak için öğrenci hesabınla giriş yap.<div class="yms-actions"><button class="primary" type="button" data-yms-open-account>Hesabıma git</button></div></div>')}
   ${section("data",`<div class="yms-card"><h3 class="yms-title">Çalışmaların sende kalsın</h3><p class="yms-note">Veri merkezinde yedek oluşturabilir, dosyadan geri yükleyebilir ve cihazdaki kayıtlarını yönetebilirsin.</p><div class="yms-actions"><button class="primary" type="button" data-yms-data>Veri ve yedek merkezini aç</button></div></div>`)}
@@ -210,7 +219,9 @@ function render(){
     const head=panel.querySelector(".v30-subhead");if(head)head.after(root);else panel.prepend(root);
     bind(root);root.querySelector("#ymsSearch").value=view.query;filterCategories(root);showCategory(view.category,false);
   }
-  adoptPanels(root);refresh(root);observePanels(panel);return true;
+  adoptPanels(root);refresh(root);observePanels(panel);
+  window.dispatchEvent(new Event("yks:achievements-settings-ready"));
+  return true;
 }
 
 function openEditor(){
