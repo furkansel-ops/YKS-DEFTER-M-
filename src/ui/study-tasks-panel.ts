@@ -123,7 +123,7 @@ export function installStudyTaskPanel(port:Port):void{
       if(!root||!state?.gamification)return;
       const now=new Date();
       const previous=state.gamification;
-      let next=ensureCurrentTasks(previous,now);
+      let next=ensureCurrentTasks(previous,now,state);
       const reward=grantCompletedTasks({...state,gamification:next},next,now);
       next=reward.profile;
       if(next!==previous){
