@@ -36,13 +36,50 @@ function saveState():boolean{
 }
 function mount():HTMLElement|null{
   const existing=document.getElementById(ROOT_ID);
-  if(existing)return existing;
-  const anchor=document.querySelector("#home .home-overview");
-  if(!anchor)return null;
+  const settingsHost=document.getElementById("ymsAchievementsContent");
+  if(existing){
+    if(settingsHost&&existing.parentElement!==settingsHost)settingsHost.appendChild(existing);
+    return existing;
+  }
+  const fallback=document.querySelector("#home .home-overview");
+  if(!settingsHost&&!fallback)return null;
   const root=node("section","sg-panel");
   root.id=ROOT_ID;root.setAttribute("aria-label","Günlük seri, XP ve başarımlar");
-  anchor.insertAdjacentElement("afterend",root);
+  if(settingsHost)settingsHost.appendChild(root);
+  else fallback?.insertAdjacentElement("afterend",root);
   return root;
+}
+
+function openAchievements():void{
+  const win=window as LegacyWindow&{v30Action?:(action:string)=>unknown;go?:(screen:string)=>unknown};
+  try{
+    if(typeof win.v30Action==="function")win.v30Action("settings");
+    else win.go?.("more");
+    window.dispatchEvent(new CustomEvent("yks:open-settings",{detail:{category:"achievements"}}));
+  }catch(error){console.warn("Başarımlar açılamadı",error);}
+}
+
+/** Keep Today focused: only a tiny progress summary, full tools live in Settings. */
+function renderTodayTeaser(snapshot:StudyGamificationSnapshot):void{
+  const home=document.getElementById("home"),hub=document.getElementById("todayHub");
+  if(!home||!hub)return;
+  let link=document.getElementById("todayAchievementShortcut") as HTMLButtonElement|null;
+  if(!link){
+    link=node("button","sg-today-shortcut") as HTMLButtonElement;
+    link.id="todayAchievementShortcut";link.type="button";
+    link.setAttribute("aria-label","Ayarlar içindeki Başarımlar bölümünü aç");
+    const left=node("span","sg-today-shortcut-title","🏆 Başarımlar");
+    const right=node("span","sg-today-shortcut-metrics");
+    right.dataset.sgQuickMetrics="true";
+    const arrow=node("span","sg-today-shortcut-arrow","›");
+    link.append(left,right,arrow);link.addEventListener("click",openAchievements);
+    hub.insertAdjacentElement("afterend",link);
+  }
+  const summary=link.querySelector<HTMLElement>("[data-sg-quick-metrics]");
+  const text=snapshot.activated?
+    `🔥 ${snapshot.currentStreak} gün   ·   ⚡ ${snapshot.xp} XP   ·   🏅 ${snapshot.earnedBadges}/${snapshot.badges.length}`:
+    "Serini ve rozetlerini başlat";
+  if(summary&&summary.textContent!==text)summary.textContent=text;
 }
 function bar(percent:number,className=""):HTMLElement{
   const track=node("div","sg-rail "+className),fill=node("span","sg-rail-fill");
@@ -300,6 +337,7 @@ function refresh():void{
   if(previousLevel>0&&snapshot.level>previousLevel)celebrate("⚡ Seviye "+snapshot.level,"Yeni unvan: "+snapshot.rank,"✨");
   previousLevel=snapshot.level;
   render(snapshot,root);
+  renderTodayTeaser(snapshot);
 }
 function schedule():void{
   if(renderQueued)return;
@@ -312,7 +350,7 @@ export function installStudyGamification():{installed:boolean}{
   document.documentElement.dataset.studyGamificationListeners="ready";
   installStudyTaskPanel({readState,saveState,toast:message=>runtime.toast?.(message)});
   installStudyInsightsPanel({readState,toast:message=>runtime.toast?.(message)});
-  for(const event of ["yks:data-changed","yks:data-primary-ready","yks:auth-state","yks:navigation"]){
+  for(const event of ["yks:data-changed","yks:data-primary-ready","yks:auth-state","yks:navigation","yks:achievements-settings-ready"]){
     window.addEventListener(event,schedule);
   }
   window.addEventListener("focus",schedule);
