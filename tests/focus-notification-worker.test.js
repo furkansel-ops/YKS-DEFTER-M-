@@ -127,8 +127,8 @@ test("notification uses absolute deadline, silent replacement, scoped assets and
   assert.doesNotMatch(notice.body, /Özel not|task-1|kalan/i);
   assert.deepEqual(notice.data, { type: "yks-focus", id: "session-a", revision: 1 });
   assert.equal(notice.silent, true); assert.equal(notice.renotify, false); assert.equal(notice.requireInteraction, true);
-  assert.equal(notice.icon, scope + "icon-192.png"); assert.equal(notice.actions.length, 2);
-  assert.equal(notice.actions[0].action, "focus-pause");
+  assert.equal(notice.icon, scope + "icon-192.png"); assert.equal(notice.badge, scope + "notification-badge.png");
+  assert.deepEqual(notice.actions, [{ action: "focus-pause", title: "Duraklat" }]);
 });
 
 test("worker restart can pause and resume with no open app while excluding paused time", async () => {
@@ -140,12 +140,40 @@ test("worker restart can pause and resume with no open app while excluding pause
   assert.equal(paused.revision, 2); assert.equal(paused.snapshot.state, "paused"); assert.equal(paused.snapshot.left, 1380);
   assert.equal(paused.snapshot.credited, 1); assert.equal(paused.snapshot.endAt, 0);
   assert.equal(restarted.notices[0].title, "Odak duraklatıldı"); assert.match(restarted.notices[0].body, /23 dk 00 sn/);
+  assert.deepEqual(restarted.notices[0].actions, [{ action: "focus-resume", title: "Devam et" }]);
   restarted.advance(600000);
   await restarted.click("focus-resume");
   const resumed = storage.value();
   assert.equal(resumed.revision, 3); assert.equal(resumed.snapshot.state, "running"); assert.equal(resumed.snapshot.left, 1380);
   assert.equal(resumed.snapshot.startedAt, epoch + 600000); assert.equal(resumed.snapshot.credited, 1);
   assert.equal(resumed.snapshot.endAt, epoch + 2100000); assert.equal(restarted.opened.length, 0);
+  assert.deepEqual(restarted.notices.at(-1).actions, [{ action: "focus-pause", title: "Duraklat" }]);
+});
+
+test("pause and resume never focus or navigate an existing app window", async () => {
+  const actions = [];
+  const app = harness({ clients: [{
+    url: scope,
+    postMessage(value) { actions.push(value.type); },
+    focus() { actions.push("focus"); },
+    navigate() { actions.push("navigate"); }
+  }] });
+  for (const mode of ["pomo", "sw"]) {
+    const revision = app.storage.value()?.revision || 0;
+    await app.request({ operation: "sync", expectedRevision: revision,
+      snapshot: app.snapshot({ id: "control-" + mode, mode, elapsed: 0 }), enabled: true });
+    actions.length = 0;
+    app.advance(30000);
+    await app.click("focus-pause");
+    assert.equal(app.storage.value().snapshot.state, "paused");
+    assert.deepEqual(app.notices.at(-1).actions, [{ action: "focus-resume", title: "Devam et" }]);
+    app.advance(60000);
+    await app.click("focus-resume");
+    assert.equal(app.storage.value().snapshot.state, "running");
+    assert.deepEqual(app.notices.at(-1).actions, [{ action: "focus-pause", title: "Duraklat" }]);
+    assert.deepEqual(actions, ["YKS_FOCUS_STATE", "YKS_FOCUS_STATE"]);
+    assert.equal(app.opened.length, 0);
+  }
 });
 
 test("stale revisions and older session actions cannot affect the current timer", async () => {
@@ -243,12 +271,41 @@ test("request identity marks only mutation broadcasts and is never persisted or 
   assert.equal(bad.ok, false); assert.equal(bad.error, "invalid_request"); assert.equal(app.storage.value().revision, 3);
 });
 
-test("expired countdown actions open app for completion without inventing study credits", async () => {
-  const app = harness();
-  await app.request({ operation: "sync", expectedRevision: 0, snapshot: app.snapshot({ credited: 5 }), enabled: true });
-  app.advance(1501000); await app.click("focus-pause");
-  assert.equal(app.storage.value().revision, 1); assert.equal(app.storage.value().snapshot.credited, 5);
-  assert.deepEqual(app.opened, [scope + "?focus=1"]);
+test("expired pause and resume refresh the notice without opening an app or inventing study credits", async () => {
+  for (const existingWindow of [false, true]) {
+    for (const action of ["focus-pause", "focus-resume"]) {
+      const actions = [], app = harness({ clients: existingWindow ? [{
+        url: scope, postMessage(value) { actions.push(value.type); },
+        focus() { actions.push("focus"); }, navigate() { actions.push("navigate"); }
+      }] : [] });
+      await app.request({ operation: "sync", expectedRevision: 0, snapshot: app.snapshot({ credited: 5 }), enabled: true });
+      const saved = app.storage.value();
+      actions.length = 0;
+      app.advance(1501000); await app.click(action);
+      assert.deepEqual(app.storage.value(), saved);
+      assert.deepEqual(app.opened, []); assert.deepEqual(actions, []);
+      const expired = app.notices.at(-1);
+      assert.equal(expired.title, "Odak süresi doldu");
+      assert.equal(expired.body, "Matematik · Tamamlamak için bildirime dokun");
+      assert.deepEqual(expired.actions, []);
+      await app.click("");
+      if (existingWindow) {
+        assert.deepEqual(actions, ["YKS_FOCUS_OPEN", "focus"]); assert.deepEqual(app.opened, []);
+      } else assert.deepEqual(app.opened, [scope + "?focus=1"]);
+    }
+  }
+});
+
+test("already elapsed work and break notifications contain no timer action", async () => {
+  for (const isWork of [true, false]) {
+    const app = harness();
+    await app.request({ operation: "sync", expectedRevision: 0,
+      snapshot: app.snapshot({ left: 0, endAt: epoch, isWork, subject: "" }), enabled: true });
+    const notice = app.notices.at(-1);
+    assert.equal(notice.title, isWork ? "Odak süresi doldu" : "Mola süresi doldu");
+    assert.deepEqual(notice.actions, []);
+    assert.match(notice.body, /Tamamlamak için bildirime dokun/);
+  }
 });
 
 test("open reuses the scoped window without reloading it and leaves unrelated notifications alone", async () => {

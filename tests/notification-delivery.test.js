@@ -39,6 +39,7 @@ test("mobile notifications use the active service worker and resolve only after 
   await flush();
   assert.equal(h.sent.length,1);assert.equal(settled,false);assert.equal(h.desktop.length,0);
   assert.equal(h.sent[0].opts.tag,"pomo");assert.equal(h.sent[0].opts.lang,"tr");
+  assert.equal(h.sent[0].opts.badge,"notification-badge.png");assert.equal(h.sent[0].opts.icon,"icon-192.png");
   delivery.resolve();assert.equal(await pending,true);assert.equal(h.pending,0);
   assert.equal(h.run('typeof window.YKSNotificationDelivery.show'),"function");
 });
