@@ -167,7 +167,8 @@ export function getStudyInsights(state:DataState,profile:GamificationProfile,now
     return {type,count:rows.length,bestNet:rows.length?Math.max(...rows.map(x=>Number(x.totalNet))):null,
       lastNet:rows.length?Number(rows.at(-1)!.totalNet):null,maxGrowth:Math.round(gain*100)/100};
   });
-  const maxNetGain=Math.max(...exams.map(x=>x.maxGrowth),0);
+  // Branş denemeleri farklı dersleri kapsayabildiğinden genel +5 net rozetinde karıştırılmaz.
+  const maxNetGain=Math.max(0,...exams.filter(x=>x.type!=="BRANS").map(x=>x.maxGrowth));
   const records:PersonalRecord[]=[
     {id:"day-focus",label:"Bir günde en çok odak",value:dailyMinutes.value,unit:"dk",day:dailyMinutes.day},
     {id:"day-questions",label:"Bir günde en çok soru",value:dailyQuestions.value,unit:"soru",day:dailyQuestions.day},
