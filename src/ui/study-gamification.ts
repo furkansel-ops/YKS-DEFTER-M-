@@ -1,6 +1,7 @@
 import {calculateStudyGamification,createGamificationProfile,setNextDayGoal,planRestDay,shiftDay,keyOf} from "../domain/study-gamification";
 import type {StudyBadge,StudyGamificationSnapshot,StudyGamificationState} from "../domain/study-gamification";
 import {installStudyTaskPanel} from "./study-tasks-panel.ts";
+import {installStudyInsightsPanel} from "./study-insights-panel.ts";
 import "./study-gamification.css";
 
 type LegacyWindow=Window&{
@@ -185,20 +186,21 @@ function badgeCard(badge:StudyBadge):HTMLElement{
   const icon=node("span","sg-badge-icon",badge.unlocked?badge.icon:"🔒");
   icon.setAttribute("aria-hidden","true");
   const copy=node("div","sg-badge-copy");
-  const title=node("strong","",badge.title);
-  const description=node("span","",badge.description);
+  const title=node("strong","",badge.hidden&&!badge.unlocked?"Gizli Başarım":badge.title);
+  const description=node("span","",badge.hidden&&!badge.unlocked?"???":badge.description);
   const status=node("small","",
     badge.unlocked?"Kazanıldı · +"+badge.xp+" XP":
+    badge.hidden?"Henüz keşfedilmedi":
     badge.pending?"Sonraki aşamada aktif":
       Math.round(badge.progress/badge.goal*100)+"% · "+badge.rarity);
   add(copy,title,description,status);add(card,icon,copy);
-  if(locked&&!badge.pending)card.appendChild(bar(badge.progress/badge.goal*100,"sg-badge-progress"));
+  if(locked&&!badge.pending&&!badge.hidden)card.appendChild(bar(badge.progress/badge.goal*100,"sg-badge-progress"));
   card.title=badge.rarity+" başarım";
   return card;
 }
 function featured(snapshot:StudyGamificationSnapshot):StudyBadge[]{
   const earned=snapshot.badges.filter(b=>b.unlocked).slice(-2).reverse();
-  const candidates=snapshot.badges.filter(b=>!b.unlocked&&!b.pending)
+  const candidates=snapshot.badges.filter(b=>!b.unlocked&&!b.pending&&!b.hidden)
     .sort((a,b)=>b.progress/b.goal-a.progress/a.goal);
   return [...earned,...candidates].slice(0,4);
 }
@@ -309,6 +311,7 @@ export function installStudyGamification():{installed:boolean}{
   if(document.documentElement.dataset.studyGamificationListeners==="ready"){schedule();return {installed:true};}
   document.documentElement.dataset.studyGamificationListeners="ready";
   installStudyTaskPanel({readState,saveState,toast:message=>runtime.toast?.(message)});
+  installStudyInsightsPanel({readState});
   for(const event of ["yks:data-changed","yks:data-primary-ready","yks:auth-state","yks:navigation"]){
     window.addEventListener(event,schedule);
   }
