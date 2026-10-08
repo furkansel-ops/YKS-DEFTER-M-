@@ -21,8 +21,13 @@ function bar(progress:number){
 }
 function rootNode():HTMLElement|null{
   const existing=document.getElementById("studyInsightsPanel");
-  if(existing)return existing;
   const anchor=document.getElementById("studyTasksPanel")??document.getElementById("studyGamification");
+  const settingsHost=document.getElementById("ymsAchievementsContent");
+  if(existing){
+    if(settingsHost&&anchor?.parentElement===settingsHost&&existing.parentElement!==settingsHost)
+      anchor.insertAdjacentElement("afterend",existing);
+    return existing;
+  }
   if(!anchor)return null;
   const root=make("section","si-panel");root.id="studyInsightsPanel";
   root.setAttribute("aria-label","Çalışma takvimi, kişisel rekorlar ve ders ustalığı");
@@ -154,7 +159,7 @@ export function installStudyInsightsPanel(port:Bridge):void{
       renderMastery(root,model.mastery);
     });
   };
-  for(const event of ["yks:data-changed","yks:data-primary-ready","yks:auth-state"])
+  for(const event of ["yks:data-changed","yks:data-primary-ready","yks:auth-state","yks:achievements-settings-ready"])
     window.addEventListener(event,refresh);
   window.addEventListener("pageshow",refresh);
   window.addEventListener("focus",refresh);
