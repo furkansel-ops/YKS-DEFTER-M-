@@ -24,7 +24,7 @@ test("receipt ledger rejects other users, forged XP and pre-activation awards",a
     ["studentOne_2026-10-05_0",receipt(uid,"2026-10-05","0",20,at+300)],
     ["other_2026-10-05_0",receipt("other","2026-10-05","0",35,at+300)],
     ["studentOne_2026-10-05_1",receipt(uid,"2026-10-05","1",50,at-200)],
-    ["studentOne_2026-10-05_2",receipt(uid,"2026-10-05","2",35,at+300,at-100)],
+    ["studentOne_2026-10-05_2",receipt(uid,"2026-10-05","2",35,at+300,at+100)],
     ["studentOne_2026-10-12_0",receipt(uid,"2026-10-12","0",1000,at+300)],
     ["studentOne_2026-10-19_0",receipt(uid,"2026-10-19","0",20,at+300,at+400)]
   ];
@@ -81,7 +81,7 @@ function harness(){
       return listener;
     };
     const snapshot=(id,reward,fromCache=false)=>emit("coachXpReceipts","studentOne",
-      id?[[id,reward]]:[],{metadata:meta(fromCache,false)});
+      id?[[id,reward]]:[],meta(fromCache,false));
     return {install:sandbox.__install,state,writes,listeners,events,emit,snapshot};
   });
 }
@@ -106,7 +106,7 @@ test("old student snapshot cannot overwrite the active new student's receipt XP"
   const second=h.install({db:{},user:{uid:"studentTwo"}});
   const bAt=1791453600500;
   h.emit("coachXpReceipts","studentTwo",[["studentTwo_2026-10-05_1",
-    receipt("studentTwo","2026-10-05","1",35,bAt)]],{metadata:meta(false,false)});
+    receipt("studentTwo","2026-10-05","1",35,bAt)]],meta(false,false));
   assert.equal(h.state.gamification.coachRewards["studentTwo_2026-10-05_1"].xp,35);
   const before=h.writes.length;
   oldCallback({docs:[],metadata:meta(false,false)});
