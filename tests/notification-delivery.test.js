@@ -91,6 +91,25 @@ test("disabled or denied notifications do not request permission or post anythin
   }
 });
 
+test("focus completion follows the focus preference and system permission even when general reminders are off",async()=>{
+  const h=harness({on:false});
+  assert.equal(await h.run('notify("Çalışma bitti", "Mola zamanı", "pomo")'),true);
+  assert.equal(await h.run('notify("Günü kapat", "Hatırlatma", "aksam")'),false);
+  assert.equal(h.sent.length,1);assert.equal(h.sent[0].opts.tag,"pomo");
+  h.S.notif.pomo=false;
+  assert.equal(await h.run('notify("Çalışma bitti", "Mola zamanı", "pomo")'),false);
+  h.S.notif.pomo=true;h.Notification.permission="denied";
+  assert.equal(await h.run('notify("Çalışma bitti", "Mola zamanı", "pomo")'),false);
+  assert.equal(h.sent.length,1);assert.equal(h.requests,0);
+});
+
+test("focus preference changes during registration wait suppress a pending completion notification",async()=>{
+  const registration=deferred(),h=harness({on:false,worker:{getRegistration:()=>registration.promise}});
+  const pending=h.run('notify("Çalışma bitti", "Mola zamanı", "pomo")');await flush();
+  h.S.notif.pomo=false;registration.resolve(h.reg);
+  assert.equal(await pending,false);assert.equal(h.sent.length,0);
+});
+
 test("constructor fallback is restricted to desktops without service worker support",async()=>{
   const desktop=harness({worker:undefined,userAgent:"Desktop Firefox"});
   assert.equal(await desktop.run('notify("Test", "", "test")'),true);assert.equal(desktop.desktop.length,1);

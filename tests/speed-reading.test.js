@@ -1,5 +1,6 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
+const fs = require("node:fs");
 const {pathToFileURL} = require("node:url");
 const path = require("node:path");
 const base = path.resolve(__dirname, "../modules/speed-reading");
@@ -151,12 +152,99 @@ test("all learning units contain interactive checks and suitable semantic groups
   for (const group of LESSONS[0].groups) assert.ok(m.wordCount(group) >= 2 && m.wordCount(group) <= 4, group);
   assert.match(LESSONS.find(row => row.id === "voice").explanation, /tamamen susturmak değildir/);
 });
-test("every test text has 3–5 complete questions, distinct answers and sufficient text", async () => {
+test("every test text has five varied YKS-style questions, distinct options and sufficient text", async () => {
   const m = await model, {PASSAGES} = await content;
   assert.equal(new Set(PASSAGES.map(row => row.id)).size, PASSAGES.length);
+  assert.ok(PASSAGES.length >= 10);
   for (const passage of PASSAGES) {
-    assert.ok(m.wordCount(passage.text) >= 100, passage.id); assert.ok(passage.questions.length >= 3 && passage.questions.length <= 5);
-    for (const question of passage.questions) {assert.equal(new Set(question.options).size, 4); assert.ok(question.options[question.answer]); assert.ok(question.explanation); assert.ok(question.type);}
+    assert.ok(m.wordCount(passage.text) >= 100, passage.id); assert.equal(passage.questions.length, 5, passage.id);
+    assert.ok(new Set(passage.questions.map(question => question.type)).size >= 4, passage.id);
+    for (const question of passage.questions) {
+      assert.equal(new Set(question.options).size, 4); assert.ok(question.options[question.answer]); assert.ok(question.explanation.length >= 40); assert.ok(question.type);
+      assert.ok(question.options.filter(option => option.length >= 25).length >= 3, `${passage.id}: ${question.prompt}`);
+    }
     assert.equal(m.gradeAnswers(passage.questions, passage.questions.map(row => row.answer)).comprehension, 100);
   }
+});
+
+
+test("adaptive pace protects comprehension before increasing speed", async () => {
+  const m=await model;
+  const low=m.normalizeState({sessions:[session(m,{id:"low",correct:2,total:4,words:300})]});
+  assert.ok(m.recommendedPace(low).wpm<300);
+  const strong=m.normalizeState({sessions:[session(m,{id:"a",correct:4,total:4,words:250,at:at(1)}),session(m,{id:"b",correct:4,total:4,words:250,at:at(2)})]});
+  assert.ok(m.recommendedPace(strong,at(3)).wpm>=250);
+  assert.equal(m.recommendedPace(m.normalizeState(null)).wpm,200);
+});
+test("daily training tracks warmup paragraph and test independently", async () => {
+  const m=await model, rows=[
+    session(m,{id:"warm",kind:"exercise",mode:"groups",total:1,correct:1,at:at(3,9)}),
+    session(m,{id:"para",kind:"exercise",mode:"paragraph",total:1,correct:1,at:at(3,10)}),
+    session(m,{id:"test",at:at(3,11)})
+  ];
+  const plan=m.dailyTraining(m.normalizeState({sessions:rows}),at(3,12));
+  assert.equal(plan.completed,3);assert.deepEqual(plan.steps.map(step=>step.done),[true,true,true]);
+});
+test("normalized 100-word time and seven-day trend compare different passage lengths fairly", async () => {
+  const m=await model, a=session(m,{id:"a",words:200,readingMs:80000,at:at(1)}),b=session(m,{id:"b",words:100,readingMs:40000,at:at(3)});
+  assert.equal(m.normalizedReadingMs(a),40000);
+  const saved=m.normalizeState({sessions:[a,b]}),summary=m.summarize(saved,7,at(3));
+  assert.equal(summary.average100WordMs,40000);
+  const trend=m.weeklyTrend(saved,at(3));assert.equal(trend.length,7);assert.equal(trend.at(-1).wpm,b.wpm);
+});
+test("expanded passage pool reduces quick repetition while preserving question quality", async () => {
+  const {PASSAGES}=await content;assert.ok(PASSAGES.length>=8);
+  for(const passage of PASSAGES){assert.ok(passage.questions.length>=3);assert.ok(passage.text.length>400);}
+});
+test("speed reading v2.3 exposes adaptive difficulty, skill history and versioned lazy assets", async () => {
+  const runtime=fs.readFileSync(path.join(base,"runtime.mjs"),"utf8"),css=fs.readFileSync(path.join(base,"speed-reading.css"),"utf8");
+  const loader=fs.readFileSync(path.resolve(__dirname,"../modules/speed-reading-learn-v1.js"),"utf8");
+  assert.match(runtime,/BUGÜNÜN ANTRENMANI/);assert.match(runtime,/daily-warmup/);assert.match(runtime,/weeklyTrend/);assert.match(runtime,/100 kelime okuma/);
+  assert.match(runtime,/YKS tipi anlama sorusu/);assert.match(runtime,/resultSkillReport/);assert.match(runtime,/sr-test-skills/);assert.match(runtime,/recommendedDifficulty/);assert.match(runtime,/questionSkillBreakdown/);
+  assert.match(css,/sr-daily-steps/);assert.match(css,/sr-trend/);assert.match(css,/sr-skill-report/);assert.match(css,/sr-difficulty-card/);assert.match(css,/sr-skill-progress/);assert.match(loader,/speed-reading\.css\?v=2\.3\.0/);assert.match(loader,/runtime\.mjs\?v=2\.3\.0/);
+});
+
+
+test("adaptive difficulty promotes only after sustained comprehension and avoids recent passages", async () => {
+  const m=await model,{PASSAGES}=await content;
+  const medium=m.normalizeState({sessions:[session(m,{id:"m",correct:3,total:5,at:at(1)})]});
+  assert.equal(m.recommendedDifficulty(medium,at(3)).level,"medium");
+  const hard=m.normalizeState({sessions:[
+    session(m,{id:"h1",correct:4,total:5,at:at(1),passageId:"library"}),
+    session(m,{id:"h2",correct:5,total:5,at:at(2),passageId:"garden"})
+  ]});
+  assert.equal(m.recommendedDifficulty(hard,at(3)).level,"hard");
+  const expert=m.normalizeState({sessions:[
+    session(m,{id:"e1",correct:5,total:5,at:at(1),passageId:"map"}),
+    session(m,{id:"e2",correct:5,total:5,at:at(2),passageId:"museum"}),
+    session(m,{id:"e3",correct:5,total:5,at:at(3,9),passageId:"studyroom"})
+  ]});
+  assert.equal(m.recommendedDifficulty(expert,at(3,12)).level,"expert");
+  const next=m.adaptivePassage(PASSAGES,hard,at(3));
+  assert.equal(next.difficulty,"hard");
+  assert.ok(!["library","garden"].includes(next.id));
+});
+
+test("question-type analytics persist per session and aggregate accuracy", async () => {
+  const m=await model;
+  const a=m.createSession({kind:"test",mode:"paragraph",passageId:"library",words:180,readingMs:60000,questionMs:20000,correct:4,total:5,difficulty:"hard",skillResults:[
+    {type:"Çıkarım",correct:true},{type:"Çıkarım",correct:false},{type:"Ana düşünce",correct:true}
+  ]},at(2),"skills-a");
+  const b=m.createSession({kind:"test",mode:"paragraph",passageId:"queue",words:180,readingMs:60000,questionMs:20000,correct:4,total:5,difficulty:"hard",skillResults:[
+    {type:"Çıkarım",correct:true},{type:"Ana düşünce",correct:false}
+  ]},at(3),"skills-b");
+  const saved=m.normalizeState({sessions:[a,b]});
+  assert.equal(saved.sessions[0].difficulty,"hard");
+  assert.equal(saved.sessions[0].skillResults.length,3);
+  const rows=m.questionSkillBreakdown(saved,30,at(3,12));
+  const inference=rows.find(row=>row.type==="Çıkarım"),main=rows.find(row=>row.type==="Ana düşünce");
+  assert.deepEqual({correct:inference.correct,total:inference.total,accuracy:inference.accuracy},{correct:2,total:3,accuracy:67});
+  assert.deepEqual({correct:main.correct,total:main.total,accuracy:main.accuracy},{correct:1,total:2,accuracy:50});
+});
+
+test("every passage declares a supported adaptive difficulty", async () => {
+  const m=await model,{PASSAGES}=await content;
+  const counts={medium:0,hard:0,expert:0};
+  for(const passage of PASSAGES){assert.ok(m.DIFFICULTIES.includes(passage.difficulty),passage.id);counts[passage.difficulty]++;}
+  assert.ok(counts.medium>=3);assert.ok(counts.hard>=3);assert.ok(counts.expert>=3);
 });

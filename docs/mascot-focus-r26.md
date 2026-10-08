@@ -1,4 +1,4 @@
-# r22 — Hareketli maskotlar ve web uygulamasında odak bildirimi
+# r26 — Hareketli maskotlar ve web uygulamasında odak bildirimi
 
 ## Maskotlar
 

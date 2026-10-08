@@ -21,20 +21,23 @@ test("Hocalar v2 izleme durumu mevcut watched ve save hattını kullanır",()=>{
 test("Hocalar v2 video içi arama ile izlendi ve izlenmedi süzgeçlerini birlikte destekler",()=>{
   const source=media();
   assert.match(source,/id="teachersV2VideoSearch"/);
-  assert.match(source,/type FilterKind=.*"watched"\|"unwatched"/);
+  assert.match(source,/type FilterKind=.*"watched"\|"partial"\|"later"\|"unwatched"/);
   assert.match(source,/\['unwatched','İzlenmedi'\]/);
   assert.match(source,/\['watched','İzlendi'\]/);
   assert.match(source,/norm\(\[(?:video|v)\.title,(?:video|v)\.channel/);
   assert.match(source,/updateVideoGrid/);
 });
 
-test("Hocalar v2 oynatma ve izlendi işaretini ayrı kullanıcı eylemleri olarak tutar",()=>{
+test("Hocalar v2 oynatma ve üçlü izleme durumunu ayrı kullanıcı eylemleri olarak tutar",()=>{
   const source=media();
   assert.match(source,/data-media-action="play"/);
-  assert.match(source,/data-media-action="watch"/);
-  assert.match(source,/aria-pressed="\$\{seen\?"true":"false"\}"/);
+  assert.match(source,/data-media-action="status"/);
+  assert.match(source,/data-watch-status="watched"/);
+  assert.match(source,/data-watch-status="partial"/);
+  assert.match(source,/data-watch-status="later"/);
+  assert.match(source,/aria-pressed="\$\{status==="watched"\}"/);
   assert.match(source,/if\(type==="play"\)[\s\S]*?openPlayer/);
-  assert.match(source,/if\(type==="watch"\)[\s\S]*?toggleWatched/);
+  assert.match(source,/if\(type==="status"\)[\s\S]*?setWatchStatus/);
 });
 
 test("Hocalar v2 medya cilası tablet dokunma ve azaltılmış hareket durumlarını korur",()=>{
@@ -74,7 +77,7 @@ test("Playlist kartına dokununca içerik uygulama içinde açılır ve videolar
   assert.match(source,/function openPlaylistForCurrent/);
   assert.match(source,/data-media-action="playlist-back"/);
   assert.match(source,/teachers-v2-playlist-video-grid/);
-  assert.match(source,/videoCards\(media,videos\)/);
+  assert.match(source,/videoCards\(media,(?:videos|matches)\)/);
   assert.match(source,/youtube-nocookie\.com\/embed\?listType=playlist/);
   assert.match(source,/findVideo\(media,action\.dataset\.videoId/);
   assert.match(source,/addPlanText\(planVideoText\(video\),"Video"\)/);

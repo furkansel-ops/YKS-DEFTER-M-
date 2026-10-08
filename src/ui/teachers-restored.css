@@ -89,3 +89,35 @@ body.teachers-v2-open #playOverlay,#teachersV2MediaPlayer{z-index:1500}
   :root[data-visual-system="refined-blue"] .teachers-v2-video-main{grid-template-columns:108px minmax(0,1fr)}
   :root[data-visual-system="refined-blue"] .teachers-v2-link-form>div{flex-direction:column}
 }
+
+/* Playlist progress tracking v1.0 — stage 1 */
+:root[data-visual-system="refined-blue"] .teachers-v2-playlist-progress{display:grid;gap:5px;margin-top:8px}
+:root[data-visual-system="refined-blue"] .teachers-v2-playlist-progress>span{display:flex;align-items:center;justify-content:space-between;gap:10px;color:var(--rb-muted);font-size:10px;line-height:1.35}
+:root[data-visual-system="refined-blue"] .teachers-v2-playlist-progress>span b{color:var(--rb-ink);font-size:10.5px;font-weight:650}
+:root[data-visual-system="refined-blue"] .teachers-v2-playlist-progress>span em{font-style:normal;text-align:right}
+:root[data-visual-system="refined-blue"] .teachers-v2-playlist-progress>i{display:block;height:6px;overflow:hidden;border-radius:999px;background:var(--rb-surface-alt);box-shadow:inset 0 0 0 1px var(--rb-line)}
+:root[data-visual-system="refined-blue"] .teachers-v2-playlist-progress>i>b{display:block;height:100%;border-radius:inherit;background:var(--rb-accent);transition:width .18s ease}
+:root[data-visual-system="refined-blue"] .teachers-v2-playlist-progress.detail{margin:10px 0 14px;padding:12px;border:1px solid var(--rb-line);border-radius:12px;background:var(--rb-surface-alt)}
+:root[data-visual-system="refined-blue"] .teachers-v2-playlist-progress.detail>span b{font-size:12px}
+:root[data-visual-system="refined-blue"] .teachers-v2-playlist-progress.detail>span em{font-size:10.5px}
+@media(max-width:560px){:root[data-visual-system="refined-blue"] .teachers-v2-playlist-progress>span{align-items:flex-start;flex-direction:column;gap:2px}:root[data-visual-system="refined-blue"] .teachers-v2-playlist-progress>span em{text-align:left}}
+@media(prefers-reduced-motion:reduce){:root[data-visual-system="refined-blue"] .teachers-v2-playlist-progress>i>b{transition:none}}
+
+
+/* Video watch states refined — stage 5 */
+:root[data-visual-system="refined-blue"] .teachers-v2-video-card{grid-template-columns:1fr}
+:root[data-visual-system="refined-blue"] .teachers-v2-video-main{grid-column:1}
+:root[data-visual-system="refined-blue"] .teachers-v2-video-plan{grid-column:1;width:100%;position:static!important;min-height:36px!important}
+:root[data-visual-system="refined-blue"] .teachers-v2-video-status{grid-column:1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;padding:0}
+:root[data-visual-system="refined-blue"] .teachers-v2-video-status button{position:static!important;min-height:36px!important;padding:6px;border:1px solid var(--rb-line);border-radius:9px;background:var(--rb-bg);color:var(--rb-muted);font:600 9.5px var(--font)}
+:root[data-visual-system="refined-blue"] .teachers-v2-video-status .teachers-v2-video-watch.on{border-color:color-mix(in srgb,var(--success) 34%,var(--rb-line));background:color-mix(in srgb,var(--success) 8%,var(--rb-bg));color:var(--success)}
+:root[data-visual-system="refined-blue"] .teachers-v2-video-status .teachers-v2-video-partial.on{border-color:color-mix(in srgb,#d99818 35%,var(--rb-line));background:color-mix(in srgb,#f5b52f 10%,var(--rb-bg));color:#986000}
+:root[data-visual-system="refined-blue"] .teachers-v2-video-status .teachers-v2-video-later.on{border-color:var(--rb-accent-soft);background:var(--rb-accent-soft);color:var(--rb-accent)}
+:root[data-visual-system="refined-blue"] .teachers-v2-video-save{grid-column:1}
+@media(max-width:420px){:root[data-visual-system="refined-blue"] .teachers-v2-video-status{grid-template-columns:1fr}}
+
+
+/* Playlist video search refined — stage 6 */
+:root[data-visual-system="refined-blue"] .teachers-v2-playlist-video-search{min-height:44px;border-color:var(--rb-line);border-radius:12px;background:var(--rb-surface)}
+:root[data-visual-system="refined-blue"] .teachers-v2-playlist-video-search input{font-size:13px;font-weight:500}
+:root[data-visual-system="refined-blue"] #teachersV2PlaylistVideoResult{color:var(--rb-muted);font-size:10.5px}

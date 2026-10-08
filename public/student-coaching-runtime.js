@@ -1,11 +1,11 @@
 import{collection,doc,getDoc,onSnapshot,query,where,setDoc,updateDoc,serverTimestamp}from"https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
 
 const PENDING_ROLE="yks_account_role_pending",ROLE_HINT="yks_account_role_hint",DAY=86400000;
-const rt={auth:null,db:null,user:null,profile:null,stops:[],shareTimer:null,shareInterval:null,sharing:false,pending:false,inFlight:null,session:0};
+const rt={auth:null,db:null,user:null,profile:null,stops:[],shareTimer:null,shareInterval:null,sharing:false,pending:false,inFlight:null,actionQueue:Promise.resolve(),session:0};
 const text=(v,n=160)=>String(v??"").trim().slice(0,n);
 const list=v=>Array.isArray(v)?v:[];
 const finite=(v,fallback=0)=>Number.isFinite(Number(v))?Number(v):fallback;
-const state=()=>{try{return window.YKSLegacyState?.readState?.()||window.S||null}catch{return window.S||null}};
+const state=()=>{try{return window.S||window.YKSLegacyState?.readState?.()||null}catch{return window.S||null}};
 const save=()=>{try{return window.save?.()??window.YKSLegacyState?.save?.()}catch{return false}};
 const toast=m=>{try{window.toast?.(m)}catch{console.info(m)}};
 const dateKey=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
@@ -38,7 +38,7 @@ async function ensureProfile(user,db){
 function cleanup(){
   rt.session++;
   rt.stops.splice(0).forEach(fn=>{try{fn()}catch{}});
-  clearTimeout(rt.shareTimer);rt.shareTimer=null;clearInterval(rt.shareInterval);rt.shareInterval=null;rt.sharing=false;rt.pending=false;rt.inFlight=null;
+  clearTimeout(rt.shareTimer);rt.shareTimer=null;clearInterval(rt.shareInterval);rt.shareInterval=null;rt.sharing=false;rt.pending=false;rt.inFlight=null;rt.actionQueue=Promise.resolve();
 }
 function sum(map,days){let n=0;for(let i=0;i<days;i++)n+=Number(map?.[new Date(Date.now()-i*DAY).toISOString().slice(0,10)]||0)||0;return n}
 function topicParts(k){const p=String(k||"").split("|");return{exam:p[0]||"YKS",subject:p[1]||"Ders",topic:p.slice(2).join("|")||p[1]||k}}
@@ -99,12 +99,30 @@ function buildProgramShare(s){
   };
 }
 
+function progressDaily(s,days=7){
+  return Array.from({length:days},(_,index)=>{
+    const date=new Date(Date.now()-(days-1-index)*DAY).toISOString().slice(0,10);
+    return{date,minutes:Math.max(0,Math.round(finite(s?.pomoMin?.[date]))),questions:Math.max(0,Math.round(finite(s?.solved?.[date])))};
+  });
+}
+function progressSubjects(s,daily){
+  const dates=new Set(daily.map(item=>item.date)),rows=new Map();
+  const ensure=name=>{const key=text(name,60);if(!key)return null;if(!rows.has(key))rows.set(key,{name:key,minutes:0,questions:0});return rows.get(key)};
+  for(const date of dates){
+    const minutes=s?.pomoSubj?.[date];if(minutes&&typeof minutes==="object")for(const [name,value] of Object.entries(minutes)){const row=ensure(name);if(row)row.minutes+=Math.max(0,finite(value));}
+    const questions=s?.solvedTopic?.[date];if(questions&&typeof questions==="object")for(const [key,value] of Object.entries(questions)){const parts=String(key||"").split("|"),row=ensure(parts[1]||parts[0]);if(row)row.questions+=Math.max(0,finite(value));}
+  }
+  return[...rows.values()].map(row=>({...row,minutes:Math.round(row.minutes),questions:Math.round(row.questions)})).filter(row=>row.minutes||row.questions).sort((a,b)=>(b.minutes+b.questions)-(a.minutes+a.questions)||a.name.localeCompare(b.name,"tr")).slice(0,12);
+}
+
 function sharePayload(s,u){
   const topics=Object.entries(s.topics&&typeof s.topics==="object"?s.topics:{}).slice(0,500).map(([key,v])=>({key:text(key,220),...topicParts(key),st:finite(v?.st),deadline:text(v?.dl,10)}));
   const exams=list(s.denemeler).slice(-24).map(d=>({id:String(d?.id||""),type:text(d?.type,16),name:text(d?.name,100),date:text(d?.date,10),totalNet:finite(d?.totalNet),subjectResults:list(d?.subjectResults).slice(0,16).map(x=>({name:text(x?.name,60),net:finite(x?.net)}))}));
-  const pp=list(s.lab?.paragraphLog).slice(-100).map(x=>({id:text(x?.id,80),at:finite(x?.at),words:finite(x?.words),seconds:finite(x?.seconds),wpm:finite(x?.wpm),score:finite(x?.score),title:text(x?.title,120)}));
+  const pp=list(s.paragraphProblem?.entries).slice(-2000).map(x=>({id:text(x?.id,80),date:text(x?.date,10),kind:x?.kind==="problem"?"problem":"paragraph",correct:Math.max(0,Math.floor(finite(x?.correct))),wrong:Math.max(0,Math.floor(finite(x?.wrong))),blank:Math.max(0,Math.floor(finite(x?.blank))),createdAt:Math.max(0,finite(x?.createdAt))})).filter(x=>x.id&&/^\d{4}-\d{2}-\d{2}$/.test(x.date));
   const errors=list(s.wrongLog).slice(-100).map(x=>({date:text(x?.date,10),subject:text(x?.subject,60),topic:text(x?.topic,100),n:Math.max(1,finite(x?.n,1))}));
-  return{studentUid:u.uid,version:1,profile:{name:text(s.name||u.displayName,80),track:text(s.puanTuru,8),targetNetTYT:Number(s.targetNetTYT??s.targetNet??0),targetNetAYT:Number(s.targetNetAYT||0),targetUniversity:text(s.targetUniversity,120),targetDepartment:text(s.targetDepartment,120)},program:buildProgramShare(s),exams,progress:{minutes7:sum(s.pomoMin,7),questions7:sum(s.solved,7),completedTopics:topics.filter(x=>x.st>=3).length,activeTopics:topics.filter(x=>x.st>0&&x.st<3).length,overdueTopics:topics.filter(x=>x.deadline&&x.deadline<today()&&x.st<3).length},paragraphProblem:{entries:pp},topics:{items:topics},errorJournal:errors,updatedAt:serverTimestamp()};
+  const dayReviews=Object.entries(s.dayReview&&typeof s.dayReview==="object"?s.dayReview:{}).filter(([date])=>/^\d{4}-\d{2}-\d{2}$/.test(date)).sort(([a],[b])=>a.localeCompare(b)).slice(-14).map(([date,value])=>({date,mood:["good","mid","hard"].includes(value?.mood)?value.mood:"",note:text(value?.note,3000),at:finite(value?.at)})).filter(x=>x.mood||x.note);
+  const daily14=progressDaily(s,14),subjects7=progressSubjects(s,daily14.slice(-7));
+  return{studentUid:u.uid,version:1,profile:{name:text(s.name||u.displayName,80),track:text(s.puanTuru,8),targetNetTYT:Number(s.targetNetTYT??s.targetNet??0),targetNetAYT:Number(s.targetNetAYT||0),targetUniversity:text(s.targetUniversity,120),targetDepartment:text(s.targetDepartment,120)},program:buildProgramShare(s),exams,progress:{minutes7:sum(s.pomoMin,7),questions7:sum(s.solved,7),daily14,subjects7,completedTopics:topics.filter(x=>x.st>=3).length,activeTopics:topics.filter(x=>x.st>0&&x.st<3).length,overdueTopics:topics.filter(x=>x.deadline&&x.deadline<today()&&x.st<3).length,dayReview:{entries:dayReviews}},paragraphProblem:{entries:pp},topics:{items:topics},errorJournal:errors,updatedAt:serverTimestamp()};
 }
 async function publishShare(options={}){
   const manual=options?.manual===true,session=rt.session;
@@ -172,36 +190,99 @@ function dateInfo(date){
 function applyAction(a){
   const s=state();if(!s)throw new Error("Öğrenci verisi hazır değil");const p=a.payload||{};
   if(a.type==="program_task"||a.type==="post_exam_task"){
-    const v=text(p.text,220),di=dateInfo(text(p.date,10)||today());if(!v)throw new Error("Görev boş");
-    if(typeof window.addToDay!=="function")throw new Error("Program işlevi hazır değil");
-    const prefix=a.type==="post_exam_task"?"Koç · Deneme sonrası · ":"Koç · ";
-    if(window.addToDay(prefix+v,di.day,di.weekOffset)===false)throw new Error("Programda boş satır bulunamadı");
+    const di=dateInfo(text(p.date,10)||today());
+    if(a.type==="program_task"&&p.operation==="order"){
+      const order=Array.isArray(p.order)?p.order.map(id=>text(id,40)).filter(Boolean):[];
+      if(!order.length||order.length>48||order.some(id=>!/^[rs]-\d+-[0-6]$/.test(id)))throw new Error("Program sırası geçersiz");
+      const target=new Date(text(p.date,10)+"T12:00:00");target.setDate(target.getDate()-di.day);const week=dateKey(target);
+      if(typeof window.programSetDayOrder!=="function")throw new Error("Program sıralama işlevi hazır değil");
+      if(window.programSetDayOrder(week,di.day,order)===false)throw new Error("Program sırası kaydedilemedi");
+    }else if(a.type==="program_task"&&p.operation==="delete"){
+      const sourceWeek=text(p.sourceWeek,10),taskId=text(p.taskId,40);
+      if(!/^\d{4}-\d{2}-\d{2}$/.test(sourceWeek)||!/^[rs]-\d+-[0-6]$/.test(taskId))throw new Error("Program silme bilgisi geçersiz");
+      if(typeof window.programDeleteTask!=="function")throw new Error("Program silme işlevi hazır değil");
+      if(window.programDeleteTask(sourceWeek,taskId)===false)throw new Error("Görev programdan silinemedi");
+    }else if(a.type==="program_task"&&p.operation==="move"){
+      const sourceWeek=text(p.sourceWeek,10),taskId=text(p.taskId,40),targetDate=text(p.date,10);
+      if(!/^\d{4}-\d{2}-\d{2}$/.test(sourceWeek)||!/^[rs]-\d+-[0-6]$/.test(taskId))throw new Error("Program taşıma bilgisi geçersiz");
+      if(typeof window.programMoveTaskToDate!=="function")throw new Error("Program taşıma işlevi hazır değil");
+      if(window.programMoveTaskToDate(sourceWeek,taskId,targetDate)===false)throw new Error("Görev hedef güne taşınamadı");
+    }else if(a.type==="program_task"&&p.operation==="edit"){
+      const sourceWeek=text(p.sourceWeek,10),taskId=text(p.taskId,40),value=text(p.text,600);
+      if(!/^\d{4}-\d{2}-\d{2}$/.test(sourceWeek)||!/^[rs]-\d+-[0-6]$/.test(taskId)||!value)throw new Error("Program düzenleme bilgisi geçersiz");
+      const editTask=typeof window.programUpdateTask==="function"?window.programUpdateTask:window.programEditTask;
+      if(typeof editTask!=="function")throw new Error("Program düzenleme işlevi hazır değil");
+      if(editTask(sourceWeek,taskId,value)===false)throw new Error("Görev düzenlenemedi");
+    }else{
+      const v=text(p.text,600);if(!v)throw new Error("Görev boş");
+      const prefix=a.type==="post_exam_task"?"Koç · Deneme sonrası · ":"Koç · ";
+      if(typeof window.addToDays==="function"){
+        const result=window.addToDays(prefix+v,[di.day],di.weekOffset);
+        if(!result||result.ok!==true)throw new Error(result?.reason==="full"?"Programda boş satır bulunamadı":"Program görevi kaydedilemedi");
+      }else{
+        if(typeof window.addToDay!=="function")throw new Error("Program işlevi hazır değil");
+        if(window.addToDay(prefix+v,di.day,di.weekOffset)===false)throw new Error("Programda boş satır bulunamadı");
+      }
+    }
   }else if(a.type==="topic_deadline"){
     const k=text(p.key,220),d=text(p.date,10);if(!k||!/^\d{4}-\d{2}-\d{2}$/.test(d))throw new Error("Konu hedefi geçersiz");
     dateInfo(d);
     s.topics??={};s.topics[k]??={st:0,conf:0,ts:null,rev:[]};s.topics[k].dl=d;save();
+  }else if(a.type==="coach_note"&&p.operation==="resource_recommendation"){
+    const kind=text(p.kind,20),resourceId=text(p.id,120),title=text(p.title,180),url=text(p.url,600),teacher=text(p.teacher,100),subject=text(p.subject,80),topic=text(p.topic,120),scope=text(p.scope,10),thumb=text(p.thumb,600);
+    if(!["video","playlist"].includes(kind)||!resourceId||!title||!/^https?:\/\//i.test(url))throw new Error("Kaynak önerisi geçersiz");
+    s.coachRecommendations=Array.isArray(s.coachRecommendations)?s.coachRecommendations:[];
+    const key=kind+":"+resourceId,now=Date.now(),next={key,id:resourceId,kind,title,url,teacher,subject,topic,scope,thumb,coachUid:text(a.coachUid,120),at:now};
+    s.coachRecommendations=s.coachRecommendations.filter(item=>String(item?.key||"")!==key);
+    s.coachRecommendations.push(next);s.coachRecommendations=s.coachRecommendations.slice(-40);
+    if(save()===false)throw new Error("Kaynak önerisi kaydedilemedi");
+    window.dispatchEvent(new CustomEvent("yks:coach-recommendations-changed",{detail:{key}}));
   }else if(a.type==="coach_note"){
     const v=text(p.text,500);if(!v)throw new Error("Not boş");s.coachNotes??=[];s.coachNotes.push({id:`coach-${Date.now()}`,at:Date.now(),coachUid:a.coachUid,text:v});s.coachNotes=s.coachNotes.slice(-80);save();
+  }else if(a.type==="resource_recommendation"){
+    const kind=text(p.kind,20),resourceId=text(p.id,120),title=text(p.title,180),url=text(p.url,600),teacher=text(p.teacher,100),subject=text(p.subject,80),topic=text(p.topic,120),scope=text(p.scope,10),thumb=text(p.thumb,600);
+    if(!["video","playlist"].includes(kind)||!resourceId||!title||!/^https?:\/\//i.test(url))throw new Error("Kaynak önerisi geçersiz");
+    s.coachRecommendations=Array.isArray(s.coachRecommendations)?s.coachRecommendations:[];
+    const key=kind+":"+resourceId,now=Date.now(),next={key,id:resourceId,kind,title,url,teacher,subject,topic,scope,thumb,coachUid:text(a.coachUid,120),at:now};
+    s.coachRecommendations=s.coachRecommendations.filter(item=>String(item?.key||"")!==key);
+    s.coachRecommendations.push(next);
+    s.coachRecommendations=s.coachRecommendations.slice(-40);
+    if(save()===false)throw new Error("Kaynak önerisi kaydedilemedi");
+    window.dispatchEvent(new CustomEvent("yks:coach-recommendations-changed",{detail:{key}}));
   }else throw new Error("Desteklenmeyen işlem");
   return"Uygulandı";
 }
-async function handleAction(change){
+function queueAction(change,session){
+  rt.actionQueue=rt.actionQueue.then(()=>handleAction(change,session)).catch(error=>{if(session===rt.session)console.error("Koç action işleme",error)});
+}
+async function handleAction(change,session=rt.session){
   if(!["added","modified"].includes(change.type))return;const a=change.doc.data();if(a.status!=="pending")return;
   try{
-    const result=applyAction(a);await updateDoc(change.doc.ref,{status:"applied",updatedAt:serverTimestamp(),handledAt:serverTimestamp(),result});
-    toast("Koçundan yeni görev/not geldi ✓");scheduleShare(200);
+    const ready=await waitForState(30000,session);requireSession(session);
+    if(!ready){console.warn("Koç görevi öğrenci verisi hazır olmadığı için beklemede bırakıldı");return}
+    const result=applyAction(a);requireSession(session);
+    if(a.type==="program_task"||a.type==="post_exam_task"){
+      try{await window.YKSStudentProgramShareV2?.publish?.(true)}catch(error){console.warn("Koç görevi program paylaşımı",error)}
+    }
+    requireSession(session);
+    await updateDoc(change.doc.ref,{status:"applied",updatedAt:serverTimestamp(),handledAt:serverTimestamp(),result});
+    if(session!==rt.session)return;
+    toast(a.type==="resource_recommendation"||(a.type==="coach_note"&&a.payload?.operation==="resource_recommendation")?"Koçundan yeni video önerisi geldi ✓":"Koçundan yeni görev/not geldi ✓");scheduleShare(60);
   }catch(error){
+    if(session!==rt.session)return;
     try{await updateDoc(change.doc.ref,{status:"rejected",updatedAt:serverTimestamp(),handledAt:serverTimestamp(),result:text(error?.message||"Uygulanamadı",500)})}catch{}
   }
 }
 async function startStudent(session){
-  await waitForState(4000,session);
   requireSession(session);
-  scheduleShare(200);
-  const changed=()=>scheduleShare();window.addEventListener("yks:data-changed",changed);rt.stops.push(()=>window.removeEventListener("yks:data-changed",changed));
-  rt.shareInterval=setInterval(()=>scheduleShare(120),60000);
   const q=query(collection(rt.db,"coachingActions"),where("studentUid","==",rt.user.uid));
-  rt.stops.push(onSnapshot(q,snap=>snap.docChanges().forEach(change=>void handleAction(change)),error=>console.error("Koç action",error)));
+  rt.stops.push(onSnapshot(q,snap=>snap.docChanges().forEach(change=>queueAction(change,session)),error=>console.error("Koç action",error)));
+  const changed=()=>scheduleShare(120);window.addEventListener("yks:data-changed",changed);rt.stops.push(()=>window.removeEventListener("yks:data-changed",changed));
+  const wake=()=>{if(session!==rt.session)return;if(document.visibilityState&&document.visibilityState!=="visible")return;scheduleShare(60)};
+  window.addEventListener("online",wake);rt.stops.push(()=>window.removeEventListener("online",wake));
+  document.addEventListener?.("visibilitychange",wake);rt.stops.push(()=>document.removeEventListener?.("visibilitychange",wake));
+  rt.shareInterval=setInterval(()=>scheduleShare(120),60000);
+  const ready=await waitForState(4000,session);requireSession(session);if(ready)scheduleShare(60);
 }
 
 async function onSignedIn({user,auth,db}){
@@ -221,7 +302,7 @@ async function onSignedIn({user,auth,db}){
 function onSignedOut(){cleanup();rt.user=rt.auth=rt.db=rt.profile=null;delete document.documentElement.dataset.accountRole}
 
 let resolveAccountReady;try{window.__YKS_ACCOUNT_READY__=new Promise(resolve=>{resolveAccountReady=resolve})}catch{}
-window.YKSAccountAuth={version:"1.2.7",beforeSignIn,onSignedIn,onSignedOut,publishShare};
+window.YKSAccountAuth={version:"1.2.20",beforeSignIn,onSignedIn,onSignedOut,publishShare};
 try{resolveAccountReady?.(window.YKSAccountAuth)}catch{}
 document.documentElement.dataset.studentCoachingBridge="ready";
-window.dispatchEvent(new CustomEvent("yks:student-coaching-ready",{detail:{version:"1.2.7"}}));
+window.dispatchEvent(new CustomEvent("yks:student-coaching-ready",{detail:{version:"1.2.20"}}));

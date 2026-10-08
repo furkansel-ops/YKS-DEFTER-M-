@@ -36,8 +36,8 @@
     try{
       const x=JSON.parse(localStorage.getItem(RUNTIME_KEY)||"null");
       if(!x||x.version!==1||!["running","paused"].includes(x.state))return null;
-      if(!Number.isFinite(+x.savedAt)||Date.now()-x.savedAt>12*60*60*1000)return null;
-      if(!Number.isFinite(+x.total)||x.total<1||x.total>12*60*60)return null;
+      if(!Number.isFinite(+x.savedAt)||Date.now()-x.savedAt>48*60*60*1000)return null;
+      if(!Number.isFinite(+x.total)||x.total<1||x.total>24*60*60)return null;
       return x;
     }catch(e){return null;}
   }

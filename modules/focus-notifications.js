@@ -5,10 +5,10 @@
   let meta={},revision=0,ready=false,reconciling=true,applying=false,closed=false,serial=0,chain=Promise.resolve();
   try{meta=JSON.parse(localStorage.getItem(KEY)||"{}")||{};revision=Number(meta.revision)||0;}catch(_){}
   const supported=()=>"serviceWorker" in navigator&&typeof MessageChannel!=="undefined";
-  const enabled=()=>typeof Notification!=="undefined"&&Notification.permission==="granted"&&typeof notifCfg==="function"&&notifCfg().on&&notifCfg().pomo;
+  const enabled=()=>typeof Notification!=="undefined"&&Notification.permission==="granted"&&typeof notifCfg==="function"&&notifCfg().pomo!==false;
   const uuid=()=>globalThis.crypto?.randomUUID?.()||Date.now().toString(36)+Math.random().toString(36).slice(2);
   const sender=uuid()+":";let requestNumber=0;
-  function saveMeta(){try{localStorage.setItem(KEY,JSON.stringify(meta));}catch(_){} }
+  function saveMeta(){if(closed)return;try{localStorage.setItem(KEY,JSON.stringify(meta));}catch(_){} }
   function status(text){const node=document.getElementById("focusNotificationStatus");if(node)node.textContent=text;}
   function stopIntervals(){clearInterval(pomoTimer);pomoTimer=null;clearInterval(swTimer);swTimer=null;}
   function pauseOther(mode){
@@ -23,7 +23,7 @@
     }
   }
   function resumeIntervals(){
-    if(reconciling)return;
+    if(closed||reconciling)return;
     if(pomoState==="running"&&!pomoTimer)pomoTimer=setInterval(()=>window.pomoTick(),1000);
     if(sw().run&&!swTimer)swTimer=setInterval(()=>window.swTick(),100);
   }
@@ -33,7 +33,7 @@
     if(state==="idle")return null;
     if(!meta.id||meta.mode!==mode){meta={id:uuid(),mode,revision,historyElapsed:mode==="sw"?watch.acc:0};saveMeta();}
     const now=Date.now();
-    return {version:1,id:meta.id,mode,state,isWork:mode==="sw"||!!pomoIsWork,total:mode==="sw"?43200:pomoTotal,
+    return {version:1,id:meta.id,mode,state,isWork:mode==="sw"||!!pomoIsWork,total:mode==="sw"?86400:pomoTotal,
       left:mode==="sw"?0:state==="running"?Math.max(0,(pomoEndAt-now)/1000):pomoLeft,
       endAt:mode==="pomo"&&state==="running"?pomoEndAt:0,
       elapsed:mode==="sw"?swElapsed():0,startedAt:mode==="sw"?(meta.startedAt||watch.start||now-watch.acc):pomoStartedAt,
@@ -41,7 +41,7 @@
       topic:String(typeof pomoTopic!=="undefined"?pomoTopic:"").slice(0,100),task:String(pomoTask||"").slice(0,100),savedAt:now};
   }
   function checkpoint(){
-    if(!meta.id)return;
+    if(closed||!meta.id)return;
     const credited=meta.mode==="sw"?sw().cr:pomoCredited;if(meta.credited===credited)return;
     meta.credited=credited;saveMeta();
   }
@@ -65,9 +65,9 @@
     saveMeta();
   }
   function apply(record){
-    if(!record||!Number.isFinite(record.revision)||record.revision<revision)return;
+    if(closed||!record||!Number.isFinite(record.revision)||record.revision<revision)return;
     const x=record.snapshot,previousId=meta.id;
-    if(x&&Date.now()-x.savedAt>12*60*60*1000)return;
+    if(x&&Date.now()-x.savedAt>48*60*60*1000)return;
     applying=true;stopIntervals();
     try{
       if(!x){
@@ -80,7 +80,7 @@
       pauseOther(x.mode||"pomo");
       pomoSubject=x.subject||pomoSubject;pomoTask=x.task||"";if(typeof pomoTopic!=="undefined")pomoTopic=x.topic||"";
       if(x.mode==="sw"){
-        const watch=sw(),now=Date.now(),elapsed=Math.min(86400000,Math.max(0,x.elapsed+(x.state==="running"?now-x.savedAt:0)));
+        const watch=sw(),now=Date.now(),elapsed=Math.min(604800000,Math.max(0,x.elapsed+(x.state==="running"?now-x.savedAt:0)));
         const priorElapsed=historyElapsed;
         watch.cr=Math.max(credited,same?watch.cr||0:0);watch.acc=elapsed;watch.start=x.state==="running"?now:0;watch.run=x.state==="running";
         swCreditElapsed(elapsed);
@@ -91,8 +91,8 @@
         const now=Date.now(),left=x.state==="running"?Math.max(0,(x.endAt-now)/1000):x.left;
         pomoCredited=Math.max(credited,same?pomoCredited:0,savedCredit);pomoTotal=x.total;pomoIsWork=x.isWork;
         pomoLeft=Math.max(0,Math.min(x.total,left));pomoEndAt=x.state==="running"?x.endAt:0;
-        pomoStartedAt=x.isWork?now-(x.total-pomoLeft)*1000:0;pomoState=x.state;
-        creditMinutes();window.YKSStability?.persistRuntime(true);renderPomo();
+        pomoStartedAt=x.isWork?now-(x.total-pomoLeft)*1000:0;pomoState="running";
+        creditMinutes();pomoState=x.state;window.YKSStability?.persistRuntime(true);renderPomo();
       }
       recordMeta(record);checkpoint();
       if(typeof setFocusMode==="function")setFocusMode(x.mode||"pomo",true);
@@ -111,6 +111,7 @@
     const at=serial;
     chain=chain.catch(()=>{}).then(async()=>{
       const result=await request(value?"sync":"clear",value);
+      if(closed)return;
       if(!result?.ok){if(result?.error==="revision_conflict"){apply(result);return;}throw new Error("Bildirimden kontrol şu an kullanılamıyor. Süren uygulamada devam ediyor.");}
       revision=result.revision;if(at===serial){recordMeta(result);checkpoint();}else{meta.revision=revision;saveMeta();}delivery(result);
     }).catch(error=>status(error.message));
@@ -120,20 +121,23 @@
     reconciling=true;stopIntervals();const at=serial;
     try{
       await chain.catch(()=>{});
+      if(closed)return;
       const result=await request("read");
+      if(closed)return;
       if(!result?.ok)throw new Error("Bildirimden kontrol şu an kullanılamıyor. Süren uygulamada devam ediyor.");
       if(at===serial){
         if(result.snapshot)apply(result);
         else if(!result.snapshot&&result.revision>revision&&meta.id)apply(result);
         else {revision=result.revision;restore?.();}
       }else revision=result.revision;
-    }catch(error){restore?.();status(error.message);}
-    finally{reconciling=false;ready=true;resumeIntervals();}
+    }catch(error){if(!closed){if(at===serial)restore?.();status(error.message);}}
+    finally{reconciling=closed;ready=!closed;resumeIntervals();}
+    if(closed)return;
     if(pomoState==="running"&&pomoEndAt<=Date.now())window.pomoTick();
     publish();
   }
   function changed(name){
-    if(applying)return;serial++;
+    if(closed||applying)return;serial++;
     if(name==="swStart"&&sw().run)pauseOther("sw");
     if(name==="startPomo"&&pomoState==="running"){pauseOther("pomo");if(pomoIsWork)pomoStartedAt=Date.now()-(pomoTotal-pomoLeft)*1000;}
     if(name==="resetPomo"||name==="finishPhase"||name==="swReset"){
@@ -146,7 +150,21 @@
     const original=window[name];if(typeof original!=="function")continue;
     window[name]=function(){const result=original.apply(this,arguments);changed(name);return result;};
   }
-  for(const name of ["pomoTick","swTick"]){const original=window[name];window[name]=function(){if(reconciling)return;const result=original.apply(this,arguments);checkpoint();return result;};}
+  let selectionDepth=0;
+  for(const name of ["swSwitchSubject","setPomoSubject","setPomoTopic","setPomoTask"]){
+    const original=window[name];if(typeof original!=="function")continue;
+    window[name]=function(){
+      const before=pomoSubject,wasRunning=sw().run;selectionDepth++;
+      let result;try{result=original.apply(this,arguments);}finally{selectionDepth--;}
+      if(!applying&&selectionDepth===0){
+        serial++;
+        if(wasRunning&&before!==pomoSubject){meta.historyElapsed=sw().acc;meta.credited=sw().cr;saveMeta();}
+        publish(snapshot(S.focus.mode));
+      }
+      return result;
+    };
+  }
+  for(const name of ["pomoTick","swTick"]){const original=window[name];window[name]=function(){if(closed||reconciling)return;const result=original.apply(this,arguments);checkpoint();return result;};}
   function openFocus(){window.go?.("pomo");if(typeof setFocusMode==="function")setFocusMode(meta.mode||"pomo",true);}
   navigator.serviceWorker?.addEventListener("message",event=>{
     if(closed)return;
@@ -169,8 +187,16 @@
     if(new URL(location.href).searchParams.get("focus")==="1"){setTimeout(openFocus,300);const url=new URL(location.href);url.searchParams.delete("focus");history.replaceState(history.state,"",url.href);}
   }
   async function shutdown(){
-    closed=true;ready=false;reconciling=true;stopIntervals();await chain.catch(()=>{});
+    closed=true;ready=false;reconciling=true;stopIntervals();
+    pomoState="idle";pomoStartedAt=0;pomoCredited=0;pomoEndAt=0;pomoLeft=pomoTotal;
+    Object.assign(sw(),{run:false,start:0,acc:0,cr:0});meta={revision};
+    stopNoise();releaseWake();window.YKSStability?.clearRuntime();
+    await chain.catch(()=>{});
     try{const latest=await request("read");if(latest.ok){revision=latest.revision;await request("clear");}}catch(_){}
+    if(typeof indexedDB!=="undefined")await new Promise((resolve,reject)=>{
+      const deletion=indexedDB.deleteDatabase("yks-focus-notifications-v1");
+      deletion.onsuccess=()=>resolve();deletion.onerror=deletion.onblocked=()=>reject(new Error("Odak bildirim verileri silinemedi. Diğer açık uygulama pencerelerini kapatıp tekrar dene."));
+    });
   }
   window.YKSFocusNotifications={restore:callback=>reconcile(callback),refresh:()=>reconcile(),snapshot,checkpoint,shutdown};
   stopIntervals();

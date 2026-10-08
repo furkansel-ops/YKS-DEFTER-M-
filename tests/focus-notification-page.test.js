@@ -74,7 +74,7 @@ function harness({ meta = { id: "a", mode: "pomo", revision: 1, credited: 1 }, s
     swCreditElapsed(elapsed) { const watch = state.sw(), total = Math.floor(elapsed / 60000); if (total > watch.cr) { minutes += total - watch.cr; watch.cr = total; } },
     swHistoryAdd(...args) { histories.push(args); },
     creditMinutes() {
-      if (!state.pomoIsWork || !state.pomoStartedAt) return;
+      if (!state.pomoIsWork || !state.pomoStartedAt || state.pomoState === "paused") return;
       const total = Math.min(Math.floor((now - state.pomoStartedAt) / 60000), Math.round(state.pomoTotal / 60));
       if (total > state.pomoCredited) { minutes += total - state.pomoCredited; state.pomoCredited = total; }
     },
@@ -86,6 +86,17 @@ function harness({ meta = { id: "a", mode: "pomo", revision: 1, credited: 1 }, s
     swStart() { state.sw().run = true; state.sw().start = now; },
     swPause() { const elapsed = state.swElapsed(); state.sw().acc = elapsed; state.sw().run = false; state.sw().start = 0; },
     swReset() { Object.assign(state.sw(), { run: false, start: 0, acc: 0, cr: 0 }); },
+    swSwitchSubject(subject) {
+      const watch = state.sw();
+      if (watch.run && subject !== state.pomoSubject) {
+        const elapsed = state.swElapsed(); state.swCreditElapsed(elapsed);
+        state.swHistoryAdd(now - watch.start, state.pomoSubject, watch.start, now);
+        watch.acc = elapsed; watch.start = now;
+      }
+      state.pomoSubject = subject;
+    },
+    setPomoSubject(subject) { if (state.S.focus.mode === "sw" && state.sw().run) return state.swSwitchSubject(subject); state.pomoSubject = subject; },
+    setPomoTask(value) { state.pomoTask = value; }, setPomoTopic(value) { state.pomoTopic = value; },
     pomoTick() { state.creditMinutes(); }, swTick() { state.swCreditElapsed(state.swElapsed()); },
     YKSStability: { clearRuntime() { local.delete("yks_focus_runtime_v1"); }, persistRuntime() {} },
     ...initial
@@ -225,4 +236,83 @@ test("foreground reconciliation waits for an in-flight local action before readi
   const refreshed = app.state.YKSFocusNotifications.refresh(); await settle();
   release(); await refreshed; await settle();
   assert.equal(app.state.pomoState, "running"); assert.equal(app.record.snapshot.state, "running");
+});
+
+test("stopwatch subject switch updates background identity and history before remote pause", async () => {
+  const app = harness({ meta: { id: "a", mode: "sw", revision: 1, credited: 0, historyElapsed: 0 },
+    snapshot: timer({ mode: "sw", state: "running", total: 86400, left: 0, elapsed: 0, credited: 0 }),
+    initial: { pomoState: "idle", S: { focus: { mode: "sw", sw: { run: true, acc: 0, start: epoch, cr: 0 } } } } });
+  await app.restore(); app.advance(180000);
+  app.state.swSwitchSubject("Fizik"); await settle();
+  assert.equal(app.record.snapshot.subject, "Fizik"); assert.equal(app.record.snapshot.credited, 3);
+  assert.equal(app.histories.length, 1); assert.equal(app.histories[0][0], 180000); assert.equal(app.histories[0][1], "Matematik");
+  assert.equal(JSON.parse(app.local.get(key)).historyElapsed, 180000);
+  app.advance(60000);
+  await app.message({ type: "YKS_FOCUS_STATE", revision: app.record.revision + 1,
+    snapshot: timer({ mode: "sw", subject: "Fizik", total: 86400, left: 0, elapsed: 240000, credited: 3, savedAt: epoch + 240000 }) });
+  assert.equal(app.histories.length, 2); assert.equal(app.histories[1][0], 60000); assert.equal(app.histories[1][1], "Fizik");
+  assert.equal(app.minutes, 4); assert.equal(app.state.pomoSubject, "Fizik");
+});
+
+test("failed startup reconciliation cannot restore an old timer over a new local stopwatch", async () => {
+  let release, held = false, fallback = 0;
+  const app = harness({ initial: { pomoState: "idle", pomoStartedAt: 0, pomoEndAt: 0 }, onRequest: data => {
+    if (data.operation === "sync") return { ok: false, error: "storage_unavailable" };
+    if (data.operation !== "read" || held) return;
+    held = true;
+    return new Promise(resolve => { release = () => resolve({ ok: false, error: "storage_unavailable" }); });
+  } });
+  const restoring = app.state.YKSFocusNotifications.restore(() => { fallback++; app.state.pomoState = "running"; });
+  await settle(); app.state.swStart();
+  release(); await restoring; await settle();
+  assert.equal(fallback, 0);
+  assert.equal(app.state.pomoState, "idle"); assert.equal(app.state.sw().run, true);
+  assert.equal(app.intervals.size, 1);
+});
+
+test("focus preference remains independent of reminder opt-in while respecting permission and its own toggle", async () => {
+  for (const [config, permission, expected] of [
+    [{ on: false, pomo: true }, "granted", true],
+    [{ on: true, pomo: false }, "granted", false],
+    [{ on: false, pomo: true }, "denied", false]
+  ]) {
+    const app = harness({ initial: { notifCfg: () => config, Notification: { permission } } });
+    await app.restore();
+    assert.equal(app.requests.find(request => request.operation === "sync").enabled, expected);
+  }
+});
+
+test("shutdown zeroes clocks before lifecycle persistence and ignores a late restoration response", async () => {
+  let release, held = false, fallback = 0;
+  const deleted = [];
+  const app = harness({ initial: { indexedDB: { deleteDatabase(name) {
+    deleted.push(name); const request = {};
+    Promise.resolve().then(() => request.onsuccess?.()); return request;
+  } } }, onRequest: (data, record) => {
+    if (data.operation !== "read" || held) return;
+    held = true;
+    const original = clone(record);
+    return new Promise(resolve => { release = () => resolve({ ok: true, ...original }); });
+  } });
+  const restoring = app.state.YKSFocusNotifications.restore(() => fallback++);
+  await settle();
+  app.local.set("yks_focus_runtime_v1", "old timer");
+  await app.state.YKSFocusNotifications.shutdown();
+  assert.equal(app.local.has("yks_focus_runtime_v1"), false);
+  assert.deepEqual(deleted, ["yks-focus-notifications-v1"]);
+  assert.equal(app.record.snapshot, null);
+  release(); await restoring; await settle();
+  assert.equal(fallback, 0); assert.equal(app.intervals.size, 0);
+  assert.equal(app.state.pomoState, "idle"); assert.equal(app.state.pomoStartedAt, 0); assert.equal(app.state.pomoEndAt, 0);
+  assert.deepEqual(clone(app.state.sw()), { run: false, start: 0, acc: 0, cr: 0 });
+  app.local.clear();
+  // Exercise the actual legacy persistence callback used by its pagehide listener.
+  const stability = fs.readFileSync(path.resolve(__dirname, "../modules/stability.js"), "utf8");
+  const persistence = stability.slice(stability.indexOf("function runtimeSnapshot()"), stability.indexOf("function clearRuntime()"));
+  app.state.APP_VERSION = "4.1.0";
+  vm.runInContext('const RUNTIME_KEY="yks_focus_runtime_v1";let lastRuntimeWrite=0;' + persistence + 'window.persistAfterDelete=persistRuntime;', app.state);
+  app.state.persistAfterDelete(true);
+  app.listeners.pagehide(); app.state.YKSFocusNotifications.checkpoint();
+  await app.state.YKSFocusNotifications.refresh();
+  assert.equal(app.local.size, 0, "late lifecycle callbacks cannot recreate deleted focus metadata");
 });

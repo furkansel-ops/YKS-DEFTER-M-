@@ -17,9 +17,9 @@ test("öğrenci uygulaması yalnız öğrenci hesabı olarak açılır ve koç p
 
 test("öğrenci hesap köprüleri auth başlamadan önce güvenli sırada yüklenir",()=>{
   const loader=read("src/ui/student-account-loader.ts");
-  const bridgeAt=loader.indexOf("student-coaching-runtime.js?v=1.2.7");
+  const bridgeAt=loader.indexOf("student-coaching-runtime.js?v=1.2.20");
   const linkAt=loader.indexOf("student-coach-link.js?v=1.3.1");
-  const programAt=loader.indexOf("student-program-share-v2.js?v=3.6.1");
+  const programAt=loader.indexOf("student-program-share-v2.js?v=3.6.2");
   const authAt=loader.indexOf("auth-session-runtime.js?v=1.6.0");
   assert.ok(bridgeAt>=0&&linkAt>bridgeAt&&programAt>linkAt&&authAt>programAt);
 });
@@ -112,7 +112,7 @@ test("Programım v3 koç aynası için değişiklikleri canlı ve tekrarsız yay
 
 test("Programım paylaşımı yerel değişiklikleri event olmasa da izler",()=>{
   const runtime=read("public/student-program-share-v2.js");
-  for(const token of["watchLocalProgram","setInterval(watchLocalProgram,1500)","localProgramHash","version:\"3.6.1\""])assert.ok(runtime.includes(token),token);
+  for(const token of["watchLocalProgram","setInterval(watchLocalProgram,1500)","localProgramHash","version:\"3.6.2\""])assert.ok(runtime.includes(token),token);
   assert.match(runtime,/remoteHash!==currentHash/);
 });
 
@@ -133,8 +133,8 @@ test("Koç eşitleme runtime web ve native açılışta garanti edilir ve save s
   assert.match(shell,/import\("\.\/student-account-loader"\)/);
   assert.match(shell,/installStudentAccountLoader\(\)/);
   assert.match(shell,/const native=isNativeApp\(\)/);
-  assert.match(loader,/student-coaching-runtime\.js\?v=1\.2\.7/);
-  assert.match(runtime,/version:\"1\.2\.7\"/);
+  assert.match(loader,/student-coaching-runtime\.js\?v=1\.2\.20/);
+  assert.match(runtime,/version:\"1\.2\.20\"/);
   assert.match(app,/CustomEvent\(\"yks:data-changed\"/);
   assert.match(app,/source:\"save\"/);
 });
@@ -173,7 +173,7 @@ test("öğrenci koça bilgileri manuel paylaşabilir ve program paylaşımı zor
   assert.match(link,/studentCoachProgramShare/);
   assert.match(program,/async function publishProgram\(force=false\)/);
   assert.match(program,/if\(!manual&&hash&&hash===rt\.lastHash\)return true/);
-  assert.match(program,/version:"3\.6\.1"/);
+  assert.match(program,/version:"3\.6\.2"/);
 });
 
 
@@ -186,7 +186,7 @@ test("manuel koç paylaşımı devam eden otomatik yazımı bekler ve gerçek Fi
   assert.match(runtime,/dataset\.coachShareError/);
   assert.match(program,/if\(manual&&rt\.inFlight\)await rt\.inFlight/);
   assert.match(program,/dataset\.studentProgramShareError/);
-  assert.match(program,/version:"3\.6\.1"/);
+  assert.match(program,/version:"3\.6\.2"/);
 });
 
 
@@ -197,4 +197,121 @@ test("Program paylaşımı Firestore için iç içe array üretmez",()=>{
   assert.match(program,/out\[String\(r\)\]=Array\.from\(\{length:7\}/);
   assert.doesNotMatch(main,/return Array\.from\(\{length:rowCount\}/);
   assert.doesNotMatch(program,/return Array\.from\(\{length:rowCount\}/);
+});
+
+
+test("koç program görevleri video bağlantısı ve ayrıntılar için 600 karaktere kadar korunur",()=>{
+  const runtime=read("public/student-coaching-runtime.js");
+  assert.match(runtime,/text\(p\.text,600\)/);
+  assert.match(runtime,/version:"1\.2\.20"/);
+});
+
+
+test("koç görev dinleyicisi state beklemeden başlar ve işlemleri sıraya alır",()=>{
+  const runtime=read("public/student-coaching-runtime.js");
+  const start=runtime.indexOf("function startStudent");
+  const listener=runtime.indexOf("onSnapshot(q",start);
+  const wait=runtime.indexOf("waitForState(4000",start);
+  assert.ok(start>=0&&listener>start&&wait>listener);
+  assert.match(runtime,/actionQueue:Promise\.resolve\(\)/);
+  assert.match(runtime,/queueAction\(change,session\)/);
+  assert.match(runtime,/visibilitychange/);
+  assert.match(runtime,/addEventListener\("online",wake\)/);
+});
+
+
+test("koç görevi uygulandıktan sonra program paylaşımı zorla gönderilir",()=>{
+  const runtime=read("public/student-coaching-runtime.js");
+  const program=read("public/student-program-share-v2.js");
+  assert.match(runtime,/window\.S\|\|window\.YKSLegacyState/);
+  assert.match(program,/window\.S\|\|window\.YKSLegacyState/);
+  assert.match(runtime,/YKSStudentProgramShareV2\?\.publish\?\.\(true\)/);
+  const apply=runtime.indexOf("const result=applyAction(a)");
+  const publish=runtime.indexOf("YKSStudentProgramShareV2?.publish?.(true)",apply);
+  const applied=runtime.indexOf('status:"applied"',apply);
+  assert.ok(apply>=0&&publish>apply&&applied>publish);
+});
+
+
+test("koç günlük program sırası kontrollü action ile uygulanır ve anında paylaşılır",()=>{
+  const runtime=read("public/student-coaching-runtime.js");
+  assert.match(runtime,/operation==="order"/);
+  assert.match(runtime,/programSetDayOrder/);
+  assert.match(runtime,/YKSStudentProgramShareV2\?\.publish\?\.\(true\)/);
+});
+
+
+test("program_task move işlemi görevi başka güne taşır ve paylaşımı tetikler",()=>{
+  const runtime=read("public/student-coaching-runtime.js"),app=read("app.js");
+  assert.match(runtime,/p\.operation==="move"/);
+  assert.match(runtime,/programMoveTaskToDate/);
+  assert.match(app,/function programMoveTaskToDate/);
+  assert.match(app,/targetOrder\.push\(targetCid\)/);
+  assert.match(runtime,/YKSStudentProgramShareV2\?\.publish\?\.\(true\)/);
+});
+
+
+test("program_task edit işlemi doğrudan hücre güncelleme köprüsünü kullanır",()=>{
+  const runtime=read("public/student-coaching-runtime.js"),app=read("app.js");
+  assert.match(runtime,/p\.operation==="edit"/);
+  assert.match(runtime,/programUpdateTask/);
+  assert.match(runtime,/programEditTask/);
+  assert.match(app,/function programUpdateTask/);
+  assert.match(app,/function programEditTask/);
+});
+
+test("koçtan yeni program görevi güvenli gün ekleme yolunu tercih eder",()=>{
+  const runtime=read("public/student-coaching-runtime.js"),app=read("app.js");
+  assert.match(runtime,/typeof window\.addToDays==="function"/);
+  assert.match(runtime,/window\.addToDays\(prefix\+v,\[di\.day\],di\.weekOffset\)/);
+  assert.match(runtime,/window\.addToDay/);
+  assert.match(app,/function addToDays/);
+});
+
+
+test("gün sonu değerlendirmesi koç paylaşımına güvenli şekilde eklenir",()=>{
+  const runtime=read("public/student-coaching-runtime.js"),html=read("index.html"),css=read("app.css"),app=read("app.js");
+  assert.match(runtime,/dayReviews=Object\.entries\(s\.dayReview/);
+  assert.match(runtime,/dayReview:\{entries:dayReviews\}/);
+  assert.match(runtime,/slice\(-14\)/);
+  assert.match(runtime,/note:text\(value\?\.note,3000\)/);
+  assert.match(html,/id="todayCloseSaved"/);
+  assert.match(html,/id="todayReflectionInput" maxlength="3000" rows="6"/);
+  assert.match(html,/Kaydet ve koçuma gönder/);
+  assert.match(app,/trim\(\)\.slice\(0,3000\)/);
+  assert.match(html,/koç bağlantın açıksa raporun koçuna da görünür/);
+  assert.match(css,/today-close-saved/);
+});
+
+
+test("gün sonu ruh hali Kaydet basılmadan koça gönderilmez",()=>{
+  const app=read("app.js");
+  const moodStart=app.indexOf("function setTodayMood");
+  const saveStart=app.indexOf("function saveTodayReflection",moodStart);
+  const moodBlock=app.slice(moodStart,saveStart);
+  const saveEnd=app.indexOf("function v25RenderClose",saveStart);
+  const saveBlock=app.slice(saveStart,saveEnd);
+  assert.match(moodBlock,/todayMoodDraft=\{date:todayKey\(\),mood\}/);
+  assert.doesNotMatch(moodBlock,/\bsave\(\)/);
+  assert.match(saveBlock,/const old=S\.dayReview\[k\]\|\|\{\},mood=todayMoodDraft\.date===k\?todayMoodDraft\.mood/);
+  assert.match(saveBlock,/S\.dayReview\[k\]=\{mood,note,at:Date\.now\(\)\}/);
+  assert.match(saveBlock,/\bsave\(\)/);
+  assert.match(app,/Kaydet'e basınca koçunla paylaşılacak/);
+});
+
+
+test("ruh hali seçimi yazılmış gün sonu cümlesini silmez",()=>{
+  const app=read("app.js");
+  assert.match(app,/if\(document\.activeElement!==inp&&!draftMood\)inp\.value=r\.note\|\|""/);
+  assert.match(app,/todayMoodDraft=\{date:"",mood:""\};[\s\S]*save\(\);[\s\S]*v25RenderClose\(\)/);
+});
+
+
+test("koç program görevini öğrencinin programından güvenli şekilde silebilir",()=>{
+  const runtime=read("public/student-coaching-runtime.js"),app=read("app.js");
+  assert.match(runtime,/p\.operation==="delete"/);
+  assert.match(runtime,/window\.programDeleteTask\(sourceWeek,taskId\)/);
+  assert.match(app,/function programDeleteTask/);
+  assert.match(app,/delete w\.dn\[id\]/);
+  assert.match(app,/w\.mv\[orderKey\]=w\.mv\[orderKey\]\.filter\(taskId=>taskId!==id\)/);
 });

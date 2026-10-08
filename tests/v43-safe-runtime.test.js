@@ -26,6 +26,10 @@ test("her v4.3 özelliği ayrı dynamic import ve hata sınırında yüklenir",(
   assert.match(source,/catch\(error\)\{return publishFeature/);
   assert.match(source,/window\.setTimeout/);
   assert.match(source,/__YKS_V43_RUNTIME__/);
+  assert.match(source,/criticalReady:Promise<V43RuntimeReport>/);
+  assert.match(source,/const todayPromise=import\("\.\/today-v43"\)/);
+  assert.match(source,/const navigationPromise=import\("\.\/navigation-v43"\)/);
+  assert.match(source,/const shellPromise=import\("\.\/refined-shell"\)/);
   assert.match(source,/dataset\.v43Runtime=report\.ok\?"ready":"degraded"/);
 });
 
@@ -44,7 +48,7 @@ test("tek özellik arızası çekirdek bootstrap veya yerel veri katmanını blo
   assert.match(main,/const services=installLegacyServiceBridge\(\)/);
   assert.match(main,/const data=installLegacyDataBridge\(\)/);
   assert.match(main,/document\.documentElement\.dataset\.v4Runtime="ready"/);
-  assert.match(safe,/Tek bir v4\.3 özelliği hata verse bile legacy çekirdek ve yerel veri katmanı çalışmaya devam eder/);
+  assert.match(safe,/her özellik kendi fail-open sınırında kalır/);
   assert.doesNotMatch(html,/type="module" id="firebaseSyncModule"/);
   assert.match(html,/type="application\/json" id="legacyFirebaseSyncModule" data-disabled="play-store-release"/);
   assert.match(vite,/prepare-web-cloud-runtime/);

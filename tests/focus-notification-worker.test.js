@@ -67,7 +67,7 @@ function harness({ storage = indexedDB(), clients = [], failNotify = false, noti
         if (failNotify) throw new Error("Permission denied");
         notices.push(clone({ title, ...options }));
       },
-      async getNotifications(options) { assert.equal(options.tag, "yks-focus-timer"); return notifications; }
+      async getNotifications(options) { assert.ok(["yks-focus-timer", "yks-focus-running"].includes(options.tag)); return notifications.filter(value => value.tag === options.tag); }
     },
     clients: {
       async matchAll() { return clients; },
@@ -204,7 +204,7 @@ test("missing persistence and aborted writes never claim success or show a timer
 
 test("malformed snapshots and foreign client origins or sibling paths are rejected", async () => {
   const app = harness();
-  for (const overrides of [{ total: 43201 }, { left: 1501 }, { id: "bad\nid" }, { state: "idle" }, { credited: -1 }, { savedAt: NaN }, { isWork: "true" }, { mode: "sw", elapsed: -1 }]) {
+  for (const overrides of [{ total: 86401 }, { left: 1501 }, { id: "bad\nid" }, { state: "idle" }, { credited: -1 }, { savedAt: NaN }, { isWork: "true" }, { mode: "sw", elapsed: -1 }]) {
     const result = await app.request({ operation: "sync", expectedRevision: 0, snapshot: app.snapshot(overrides), enabled: true });
     assert.equal(result.ok, false); assert.equal(result.error, "invalid_snapshot");
   }
@@ -283,7 +283,7 @@ test("stopwatch accumulates elapsed time and pauses/resumes after worker restart
   await restarted.click("focus-resume"); restarted.advance(15000);
   read = await restarted.request({ operation: "read" });
   assert.equal(read.snapshot.elapsed, 105000); assert.equal(read.snapshot.startedAt, epoch - 60000);
-  assert.equal(read.snapshot.credited, 1); assert.equal(read.snapshot.total, 43200); assert.equal(read.snapshot.endAt, 0);
+  assert.equal(read.snapshot.credited, 1); assert.equal(read.snapshot.total, 86400); assert.equal(read.snapshot.endAt, 0);
   assert.equal(read.revision, 3);
 });
 
@@ -292,4 +292,31 @@ test("bad stored state cannot be silently overwritten", async () => {
   const read = await app.request({ operation: "read" });
   assert.equal(read.ok, false); assert.equal(read.error, "invalid_stored_state");
   assert.deepEqual(storage.value(), { revision: -1, snapshot: null });
+});
+
+test("24-hour custom timers and long stopwatches retain the existing supported durations", async () => {
+  const app = harness();
+  const day = 86400000;
+  let result = await app.request({ operation: "sync", expectedRevision: 0,
+    snapshot: app.snapshot({ total: 86400, left: 86400, endAt: epoch + day }), enabled: true });
+  assert.equal(result.ok, true); assert.equal(result.snapshot.total, 86400);
+  app.advance(13 * 3600000);
+  await app.click("focus-pause");
+  assert.equal(app.storage.value().snapshot.left, 11 * 3600);
+  result = await app.request({ operation: "sync", expectedRevision: 2,
+    snapshot: app.snapshot({ id: "long-watch", mode: "sw", elapsed: 2 * day, credited: 2880 }), enabled: true });
+  assert.equal(result.ok, true); assert.equal(result.snapshot.elapsed, 2 * day);
+  app.advance(10 * day);
+  const limited = await app.request({ operation: "read" });
+  assert.equal(limited.snapshot.elapsed, 7 * day);
+});
+
+test("replacement removes only the preceding release's focus notification", async () => {
+  const closed = [], app = harness({ notifications: [
+    { tag: "yks-focus-running", data: { kind: "focus" }, close() { closed.push("old-focus"); } },
+    { tag: "yks-focus-running", data: { kind: "lesson" }, close() { closed.push("lesson"); } },
+    { tag: "other", data: { kind: "focus" }, close() { closed.push("other"); } }
+  ] });
+  await app.request({ operation: "sync", expectedRevision: 0, snapshot: app.snapshot(), enabled: true });
+  assert.deepEqual(closed, ["old-focus"]); assert.equal(app.notices.length, 1);
 });

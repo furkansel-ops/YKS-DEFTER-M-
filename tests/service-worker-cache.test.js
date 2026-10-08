@@ -6,13 +6,13 @@ const vm=require("node:vm");
 
 const source=fs.readFileSync(path.resolve(__dirname,"../sw.js"),"utf8");
 const scope="https://example.test/YKS-DEFTER-M-/";
-const cacheName="yks-core-v4.4.0-r22";
+const cacheName="yks-core-v4.4.0-r26";
 const guard='<html data-ui-shell="refined-v1"><style id="yksBootGuard"></style>';
 const oldHtml=guard+'<script src="./assets/index-old.js"></script>';
 const newHtml=guard+'<script src="./assets/index-new.js"></script><link href="./assets/index-new.css">';
 
 function harness({initial={},network=async()=>new Response("asset"),rejectBatch=false,windowClients=[],manifest={version:1,entry:"./assets/index-new.js",assets:["./assets/index-new.js"]}}={}){
-  const stores=new Map(),events={},operations=[];
+  const stores=new Map(),events={},operations=[],imports=[],opened=[];
   let skipped=0;
   const key=input=>new URL(typeof input==="string"?input:input.url,scope).href;
   const fetch=async input=>key(input).endsWith("/offline-startup-assets.json")&&manifest!==null
@@ -40,6 +40,10 @@ function harness({initial={},network=async()=>new Response("asset"),rejectBatch=
   for(const [url,body] of Object.entries(initial))cache.entries.set(key(url),new Response(body));
   const context=vm.createContext({
     URL,Request,Response,AbortController,setTimeout,clearTimeout,fetch,
+    importScripts(url){
+      assert.equal(url,"./modules/focus-notification-worker.js?v=4.4.0-r26");imports.push(url);
+      vm.runInContext(fs.readFileSync(path.resolve(__dirname,"../modules/focus-notification-worker.js"),"utf8"),context);
+    },
     caches:{
       async open(name){if(!stores.has(name))stores.set(name,createCache());return stores.get(name);},
       async delete(name){operations.push(`delete:${name}`);return stores.delete(name);},
@@ -48,17 +52,19 @@ function harness({initial={},network=async()=>new Response("asset"),rejectBatch=
     self:{
       registration:{scope},location:{href:new URL("sw.js",scope).href,origin:new URL(scope).origin},
       addEventListener:(name,callback)=>{events[name]=callback;},
-      skipWaiting:async()=>{skipped++;operations.push("skipWaiting");},clients:{claim:async()=>{operations.push("claim");},matchAll:async()=>windowClients}
+      skipWaiting:async()=>{skipped++;operations.push("skipWaiting");},clients:{claim:async()=>{operations.push("claim");},matchAll:async()=>windowClients,openWindow:async url=>{opened.push(url);}}
     }
   });
   vm.runInContext(source,context);
   return {
-    context,operations,stores,
+    context,operations,stores,imports,opened,
     get skipped(){return skipped;},
     async body(url){return (await stores.get(cacheName)?.match(url))?.text();},
     async install(){let pending;events.install({waitUntil:value=>{pending=value;}});await pending;},
     async activate(){let pending;events.activate({waitUntil:value=>{pending=value;}});await pending;},
-    async refresh(response){await context.cacheLatestShell(response);}
+    async refresh(response){await context.cacheLatestShell(response);},
+    async message(data){let pending,response;events.message({data,source:{type:"window",url:scope},ports:[{postMessage:value=>{response=value;}}],waitUntil:value=>{pending=value;}});await pending;return response;},
+    async click(notification,action=""){let pending;events.notificationclick({notification,action,waitUntil:value=>{pending=value;}});await pending;}
   };
 }
 
@@ -137,7 +143,7 @@ test("successful install stores exact checked shell after assets and activates l
   assert.equal(await runtime.body("./index.html"),newHtml);
   assert.equal(await runtime.body("./"),newHtml);
   assert.equal(await runtime.body("./assets/index-new.js"),"new asset");
-  assert.equal(await runtime.body("./__offline_ready__"),"4.4.0-r22");
+  assert.equal(await runtime.body("./__offline_ready__"),"4.4.0-r26");
   assert.equal(runtime.operations[0],"batch");
   assert.equal(runtime.operations.at(-1),"skipWaiting");
   assert.equal(runtime.skipped,1);
@@ -168,7 +174,7 @@ test("first install precaches startup dynamic JS and CSS before marking offline 
   const runtime=harness({manifest,network:shellNetwork});await runtime.install();
   assert.equal(await runtime.body("./assets/theme-startup.js"),"new asset");
   assert.equal(await runtime.body("./assets/today-startup.css"),"new asset");
-  assert.equal(await runtime.body("./__offline_ready__"),"4.4.0-r22");
+  assert.equal(await runtime.body("./__offline_ready__"),"4.4.0-r26");
   assert.equal(runtime.operations[0],"batch");
 });
 
@@ -245,4 +251,42 @@ test("speed reading lazy modules are installed before offline readiness is grant
   for(const file of ["runtime.mjs","model.mjs","content.mjs","speed-reading.css"])assert.equal(await runtime.body("./modules/speed-reading/"+file),"new asset");
   const broken=harness({initial:previous,network:async url=>url.endsWith("/speed-reading/model.mjs")?new Response("missing",{status:404}):shellNetwork(url)});
   await assert.rejects(broken.install());assert.equal(broken.skipped,0);assert.equal(await broken.body("./index.html"),oldHtml);
+});
+
+test("focus control worker imports once, dispatches requests and precaches both offline modules",async()=>{
+  const runtime=harness({network:shellNetwork});await runtime.install();
+  assert.deepEqual(runtime.imports,["./modules/focus-notification-worker.js?v=4.4.0-r26"]);
+  for(const name of ["focus-notifications","focus-notification-worker"])assert.equal(await runtime.body("./modules/"+name+".js?v=4.4.0-r26"),"new asset");
+  assert.equal(await runtime.body("./app.js?v=4.1.0-r27"),"new asset");
+  assert.equal(await runtime.body("./modules/stability.js?v=4.1.0-r29"),"new asset");
+  const response=await runtime.message({type:"YKS_FOCUS_REQUEST",operation:"read"});
+  assert.equal(response.ok,false);assert.equal(response.error,"storage_unavailable","focus worker owns this message even when IDB is unavailable");
+  const version=await runtime.message({type:"GET_VERSION"});assert.equal(version.build,"4.4.0-r26");
+});
+
+test("current timer clicks dispatch to focus worker and preserve an open app form",async()=>{
+  const actions=[];
+  const runtime=harness({windowClients:[{url:scope,postMessage(value){actions.push(value.type);},focus(){actions.push("focus");},navigate(){throw new Error("must not reload");}}]});
+  await runtime.click({tag:"yks-focus-timer",data:{type:"yks-focus",id:"a",revision:1},close(){throw new Error("generic handler must not own timer");}});
+  assert.deepEqual(actions,["YKS_FOCUS_OPEN","focus"]);assert.equal(runtime.opened.length,0);
+});
+
+test("legacy focus and generic notifications only focus scoped clients without reloading",async()=>{
+  const actions=[];
+  const runtime=harness({windowClients:[
+    {url:"https://example.test/another-app/",focus(){throw new Error("another app must not be focused");}},
+    {url:scope+"?page=program",postMessage(value){actions.push(value.type);},focus(){actions.push("focus");},navigate(){throw new Error("must not reload");}}
+  ]});
+  await runtime.click({tag:"yks-focus-running",data:{kind:"focus"},close(){actions.push("close");}});
+  assert.deepEqual(actions,["close","YKS_FOCUS_OPEN","focus"]);
+  actions.length=0;
+  await runtime.click({tag:"lesson-reminder",data:{kind:"lesson"},close(){actions.push("close");}});
+  assert.deepEqual(actions,["close","focus"]);
+});
+
+test("notification with no scoped client opens the correct app root and optional focus route",async()=>{
+  const runtime=harness({windowClients:[{url:"https://example.test/another-app/",focus(){throw new Error("wrong app");}}]});
+  await runtime.click({tag:"yks-focus-running",data:{kind:"focus"},close(){}});
+  await runtime.click({tag:"lesson-reminder",data:{kind:"lesson"},close(){}});
+  assert.deepEqual(runtime.opened,[scope+"?focus=1",scope]);
 });

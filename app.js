@@ -317,7 +317,7 @@ function normalize(o){
       reasons:(x.reasons&&typeof x.reasons==="object"&&!Array.isArray(x.reasons))?{
         phone:Math.max(0,Math.min(99,Math.floor(Number(x.reasons.phone)||0))),attention:Math.max(0,Math.min(99,Math.floor(Number(x.reasons.attention)||0))),
         need:Math.max(0,Math.min(99,Math.floor(Number(x.reasons.need)||0))),other:Math.max(0,Math.min(99,Math.floor(Number(x.reasons.other)||0))),break:Math.max(0,Math.min(99,Math.floor(Number(x.reasons.break)||0)))}:{},
-      focusScore:Math.max(0,Math.min(100,Math.floor(Number(x.focusScore)||0))),source:x.source==="sw"?"sw":x.source==="pomo"?"pomo":"",
+      focusScore:Math.max(0,Math.min(100,Math.floor(Number(x.focusScore)||0))),source:x.source==="sw"?"sw":x.source==="pomo"?"pomo":x.source==="manual"?"manual":"",
       plannedMin:Math.max(0,Math.min(360,Math.floor(Number(x.plannedMin)||0))),end:bigInt(x.end),qCredited:!!x.qCredited
     }));
   });
@@ -483,7 +483,7 @@ function normalize(o){
     const r=o.dayReview[k];
     if(!/^\d{4}-\d{2}-\d{2}$/.test(k)||!r||typeof r!=="object"){delete o.dayReview[k];return;}
     r.mood=["good","mid","hard"].includes(r.mood)?r.mood:"";
-    r.note=typeof r.note==="string"?r.note.slice(0,220):"";
+    r.note=typeof r.note==="string"?r.note.slice(0,3000):"";
     r.at=bigInt(r.at);
     if(!r.mood&&!r.note)delete o.dayReview[k];
   });
@@ -502,9 +502,20 @@ function normalize(o){
     d.subjectResults.forEach(sr=>{ sr.d=+sr.d||0; sr.y=+sr.y||0; sr.b=+sr.b||0; sr.net=+sr.net||0; sr.cap=+sr.cap||0; });
   });
   if(!Array.isArray(o.wrongLog))o.wrongLog=[];
+  o.wrongLog=o.wrongLog.filter(x=>x&&typeof x==="object");
   o.wrongLog.forEach(x=>{
-    if(!x||typeof x!=="object")return;
+    x.id=bigInt(x.id)||Date.now();
+    x.subject=typeof x.subject==="string"?x.subject.slice(0,100):"";
+    x.topic=typeof x.topic==="string"?x.topic.slice(0,140):"";
+    x.note=typeof x.note==="string"?x.note.slice(0,400):"";
+    x.n=Math.max(1,Math.min(200,Math.floor(Number(x.n)||1)));
+    x.date=(typeof x.date==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(x.date))?x.date:todayKey();
+    x.deneme=bigInt(x.deneme)||undefined;
     if(["bilmiyordum","dikkat","sure"].indexOf(x.kind)<0)delete x.kind;
+    const legacy=typeof x.questionImg==="string"&&x.questionImg.length>16?[x.questionImg]:[];
+    const current=Array.isArray(x.questionImgs)?x.questionImgs:[];
+    x.questionImgs=[...legacy,...current].filter(img=>typeof img==="string"&&img.indexOf("data:image")===0&&img.length>16).slice(0,x.n);
+    if(x.questionImg)delete x.questionImg;
   });
   if(!Array.isArray(o.books))o.books=[];
   if(!Array.isArray(o.badges))o.badges=[];
@@ -1293,6 +1304,106 @@ function toggleCellDone(wk,cid){
   if(el("home").classList.contains("active"))renderTodayPlan();
   return true;
 }
+
+function programDayTaskIds(w,day){
+  if(!w||!Number.isInteger(day)||day<0||day>6)return[];
+  const ids=[];
+  ["r","s"].forEach(blk=>{(Array.isArray(w[blk])?w[blk]:[]).forEach((row,index)=>{if(String(row?.[day]||"").trim())ids.push(blk+"-"+index+"-"+day);});});
+  return ids;
+}
+function programSetDayOrder(wk,day,ids){
+  if(!validDateKey(wk)||!Number.isInteger(day)||day<0||day>6||!Array.isArray(ids))return false;
+  const w=getWeek(wk,false);if(!w)return false;
+  const current=programDayTaskIds(w,day),allowed=new Set(current),next=[];
+  for(const raw of ids){
+    const id=String(raw||"");
+    if(allowed.has(id)&&!next.includes(id))next.push(id);
+  }
+  current.forEach(id=>{if(!next.includes(id))next.push(id);});
+  if(next.length!==current.length)return false;
+  const key="order-"+day,had=Object.prototype.hasOwnProperty.call(w.mv,key),previous=w.mv[key];
+  w.mv[key]=next;
+  let saved=false;try{saved=save()===true;}catch(e){}
+  if(!saved){
+    if(had)w.mv[key]=previous;else delete w.mv[key];
+    if(typeof perfInvalidateState==="function")perfInvalidateState();
+    return false;
+  }
+  if(el("program")?.classList.contains("active"))renderPlan();
+  if(el("home")?.classList.contains("active"))renderTodayPlan();
+  return true;
+}
+function programUpdateTask(wk,id,text){
+  if(!validDateKey(wk)||typeof id!=="string"||!/^[rs]-\d+-[0-6]$/.test(id))return false;
+  const value=String(text||"").trim();if(!value||value.length>600)return false;
+  const parts=id.split("-"),blk=parts[0],row=Number(parts[1]),day=Number(parts[2]),w=getWeek(wk,false);
+  if(!w||!["r","s"].includes(blk)||!Number.isInteger(row)||row<0||!Array.isArray(w[blk])||!Array.isArray(w[blk][row])||!String(w[blk][row][day]||"").trim())return false;
+  const previous=w[blk][row][day];w[blk][row][day]=value;
+  let saved=false;try{saved=save()===true;}catch(e){}
+  if(!saved){w[blk][row][day]=previous;if(typeof perfInvalidateState==="function")perfInvalidateState();return false;}
+  if(el("program")?.classList.contains("active"))renderPlan();
+  if(el("home")?.classList.contains("active"))renderTodayPlan();
+  return true;
+}
+
+function programDeleteTask(wk,id){
+  if(!validDateKey(wk)||typeof id!=="string"||!/^[rs]-\d+-[0-6]$/.test(id))return false;
+  const parts=id.split("-"),blk=parts[0],row=Number(parts[1]),day=Number(parts[2]),w=getWeek(wk,false);
+  if(!w||!["r","s"].includes(blk)||!Number.isInteger(row)||row<0||!Array.isArray(w[blk])||!Array.isArray(w[blk][row])||!String(w[blk][row][day]||"").trim())return false;
+  const backup=JSON.parse(JSON.stringify(w)),orderKey="order-"+day;
+  w[blk][row][day]="";
+  if(w.dn)delete w.dn[id];
+  if(w.mv){
+    delete w.mv[id];
+    if(Array.isArray(w.mv[orderKey])){
+      w.mv[orderKey]=w.mv[orderKey].filter(taskId=>taskId!==id);
+      if(!w.mv[orderKey].length)delete w.mv[orderKey];
+    }
+  }
+  let saved=false;try{saved=save()===true;}catch(e){}
+  if(!saved){S.weeks[wk]=backup;if(typeof perfInvalidateState==="function")perfInvalidateState();return false;}
+  if(el("program")?.classList.contains("active"))renderPlan();
+  if(el("home")?.classList.contains("active"))renderTodayPlan();
+  return true;
+}
+
+
+
+function programMoveTaskToDate(wk,taskId,targetDate){
+  if(!validDateKey(wk)||typeof taskId!=="string"||!/^[rs]-\d+-[0-6]$/.test(taskId)||!validDateKey(targetDate))return false;
+  const parts=taskId.split("-"),blk=parts[0],rowIndex=+parts[1],sourceDay=+parts[2],c=planCellData(wk,blk,rowIndex,sourceDay);
+  if(!c)return false;
+  const target=new Date(targetDate+"T12:00:00"),targetWk=keyOf(mondayOf(target)),targetDay=dowOf(target);
+  if(targetWk===c.wk&&targetDay===c.d)return true;
+  const backup=planWeekBackup([...new Set([c.wk,targetWk])]),tw=getWeek(targetWk,true);
+  let targetRow=c.i;
+  if(!tw[c.blk]||!tw[c.blk][targetRow]||String(tw[c.blk][targetRow][targetDay]||"").trim())targetRow=planFindEmpty(tw,c.blk,targetDay,-1);
+  if(targetRow<0){restorePlanWeekBackup(backup);return false;}
+  const targetCid=c.blk+"-"+targetRow+"-"+targetDay,sourceOrderKey="order-"+c.d,targetOrderKey="order-"+targetDay;
+  tw[c.blk][targetRow][targetDay]=c.txt;delete tw.dn[targetCid];
+  if(!tw.mv||typeof tw.mv!=="object")tw.mv={};
+  tw.mv[targetCid]={from:addDaysKey(c.wk,c.d),at:Date.now()};
+  c.w[c.blk][c.i][c.d]="";delete c.w.dn[c.cid];if(c.w.mv)delete c.w.mv[c.cid];
+  const sourceOrder=Array.isArray(c.w.mv?.[sourceOrderKey])?c.w.mv[sourceOrderKey].filter(id=>id!==c.cid):[];
+  if(sourceOrder.length)c.w.mv[sourceOrderKey]=sourceOrder;else if(c.w.mv)delete c.w.mv[sourceOrderKey];
+  const targetOrder=Array.isArray(tw.mv[targetOrderKey])?tw.mv[targetOrderKey].filter(id=>id!==targetCid):programDayTaskIds(tw,targetDay).filter(id=>id!==targetCid);
+  targetOrder.push(targetCid);tw.mv[targetOrderKey]=targetOrder;
+  if(c.blk==="s"&&!String(S.rowLabels.s[targetRow]||"").trim())S.rowLabels.s[targetRow]=S.rowLabels.s[c.i]||"";
+  let saved=false;try{saved=save()===true}catch(e){}
+  if(!saved){restorePlanWeekBackup(backup);return false;}
+  planRefreshViews();return true;
+}
+function programEditTask(wk,taskId,nextText){
+  if(!validDateKey(wk)||typeof taskId!=="string"||!/^[rs]-\d+-[0-6]$/.test(taskId))return false;
+  const value=String(nextText||"").trim();if(!value||value.length>600)return false;
+  const parts=taskId.split("-"),blk=parts[0],row=+parts[1],day=+parts[2],w=getWeek(wk,false);
+  if(!w||!w[blk]?.[row]||!String(w[blk][row][day]||"").trim())return false;
+  const previous=w[blk][row][day];w[blk][row][day]=value;
+  let saved=false;try{saved=save()===true}catch(e){}
+  if(!saved){w[blk][row][day]=previous;if(typeof perfInvalidateState==="function")perfInvalidateState();return false}
+  planRefreshViews();return true;
+}
+
 
 /* ================= PLAN IZGARASI ================= */
 let curWeek=mondayOf(new Date()),calDate=new Date(),selDate=todayKey();
@@ -2123,7 +2234,7 @@ function delWrong(id){
   if(bk&&typeof logAdd==="function")logAdd("sil","Yanlış kaydı silindi: "+(bk.topic||""),{t:"wrong",v:bk});
   save();
   if(bk)pushUndo("Yanlış kaydı silindi",()=>{ S.wrongLog.push(bk); });
-  renderWrongTopics();
+  renderWrongTopics(); if(typeof renderExamWrongArchive==="function")renderExamWrongArchive();
 }
 function wrongPhotosFor(id){
   const w=(S.wrongLog||[]).find(x=>Number(x.id)===Number(id));if(!w)return [];
@@ -2131,30 +2242,173 @@ function wrongPhotosFor(id){
   if(w.questionImg)delete w.questionImg;
   return w.questionImgs;
 }
+function qaIsIPadLike(){
+  const ua=String(navigator.userAgent||"");
+  return /iPad|iPhone|iPod/i.test(ua)||(/Macintosh/i.test(ua)&&Number(navigator.maxTouchPoints||0)>1);
+}
+function wrongPhotoStore(id,dataUrl){
+  const wrong=(S.wrongLog||[]).find(x=>Number(x.id)===Number(id));if(!wrong||!/^data:image\/(jpeg|jpg|png|webp);/i.test(String(dataUrl||"")))return false;
+  const list=wrongPhotosFor(id),limit=Math.max(1,Number(wrong.n)||1);
+  if(list.length>=limit){toast("Bu kayıttaki tüm yanlış sorular eklendi ✓");return false;}
+  if(storageBytes()+dataUrl.length>QA_BLOCK){toast("Depolama sınırına gelindi — eski soru fotoğraflarını sil");return false;}
+  list.push(dataUrl);save();renderWrongTopics();if(typeof renderAnaList==="function")renderAnaList();if(typeof renderExamWrongArchive==="function")renderExamWrongArchive();
+  toast("Fotoğraf eklendi · "+list.length+"/"+limit);return true;
+}
+let wrongPhotoCameraStream=null,wrongPhotoCameraId=0;
+function closeWrongPhotoCamera(){
+  const dlg=el("wrongPhotoCamera");
+  if(wrongPhotoCameraStream){try{wrongPhotoCameraStream.getTracks().forEach(track=>track.stop())}catch{}wrongPhotoCameraStream=null;}
+  try{if(dlg&&typeof dlg.close==="function"&&dlg.open)dlg.close()}catch{}
+  if(dlg)dlg.style.display="none";
+}
+function ensureWrongPhotoCamera(){
+  let dlg=el("wrongPhotoCamera");if(dlg)return dlg;
+  dlg=document.createElement("dialog");dlg.id="wrongPhotoCamera";dlg.className="wrong-photo-camera";
+  dlg.innerHTML='<div class="wrong-photo-camera-shell">'+
+    '<div class="wrong-photo-camera-top"><b>Soru fotoğrafını çek</b><button type="button" id="wrongPhotoCameraClose">Kapat</button></div>'+
+    '<div class="wrong-photo-camera-stage"><video id="wrongPhotoCameraVideo" autoplay muted playsinline></video><div id="wrongPhotoCameraStatus">Kamera hazırlanıyor…</div></div>'+
+    '<div class="wrong-photo-camera-actions"><button type="button" id="wrongPhotoCameraFallback">Galeriden seç</button><button type="button" id="wrongPhotoCameraShot">📷 Fotoğrafı çek</button></div>'+
+  '</div>';
+  document.body.appendChild(dlg);
+  el("wrongPhotoCameraClose").addEventListener("click",closeWrongPhotoCamera);
+  dlg.addEventListener("cancel",event=>{event.preventDefault();closeWrongPhotoCamera()});
+  el("wrongPhotoCameraFallback").addEventListener("click",()=>{const id=wrongPhotoCameraId;closeWrongPhotoCamera();wrongPhotoPickFile(id)});
+  el("wrongPhotoCameraShot").addEventListener("click",()=>{
+    const video=el("wrongPhotoCameraVideo");if(!video||!video.videoWidth||!video.videoHeight){toast("Kamera henüz hazır değil");return;}
+    try{
+      const cv=document.createElement("canvas"),sc=Math.min(1,QA_MAXPX/Math.max(video.videoWidth,video.videoHeight));
+      cv.width=Math.max(1,Math.round(video.videoWidth*sc));cv.height=Math.max(1,Math.round(video.videoHeight*sc));
+      const ctx=cv.getContext("2d");if(!ctx)throw new Error("canvas");
+      ctx.drawImage(video,0,0,cv.width,cv.height);
+      const dataUrl=cv.toDataURL("image/jpeg",QA_QUALITY);
+      if(!/^data:image\/jpeg/i.test(dataUrl)||dataUrl.length<32)throw new Error("jpeg");
+      const id=wrongPhotoCameraId;if(wrongPhotoStore(id,dataUrl))closeWrongPhotoCamera();
+    }catch(e){toast("Fotoğraf işlenemedi · Galeriden seçmeyi dene");}
+  });
+  return dlg;
+}
+async function openWrongPhotoCamera(id){
+  wrongPhotoCameraId=Number(id);
+  const dlg=ensureWrongPhotoCamera(),video=el("wrongPhotoCameraVideo"),status=el("wrongPhotoCameraStatus");
+  dlg.style.display="block";try{if(typeof dlg.showModal==="function"&&!dlg.open)dlg.showModal();else dlg.setAttribute("open","")}catch{dlg.setAttribute("open","")}
+  if(status)status.textContent="Kamera hazırlanıyor…";
+  try{
+    if(!navigator.mediaDevices||typeof navigator.mediaDevices.getUserMedia!=="function")throw new Error("camera-api");
+    wrongPhotoCameraStream=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:"environment"}}});
+    if(video){video.srcObject=wrongPhotoCameraStream;video.setAttribute("playsinline","");await Promise.resolve(video.play()).catch(()=>{});}
+    if(status)status.textContent="";
+  }catch(e){
+    closeWrongPhotoCamera();toast("iPad kamerası açılamadı · Galeriden seçim açılıyor");wrongPhotoPickFile(id);
+  }
+}
+function wrongPhotoPickFile(id){
+  const wrong=(S.wrongLog||[]).find(x=>Number(x.id)===Number(id));if(!wrong)return;
+  const photos=wrongPhotosFor(id),limit=Math.max(1,Number(wrong.n)||1),remaining=Math.max(0,limit-photos.length);
+  if(!remaining){toast("Bu kayıttaki tüm yanlış sorular eklendi ✓");return;}
+  const inp=document.createElement("input");inp.type="file";inp.accept="image/*";inp.multiple=!qaIsIPadLike();
+  inp.onchange=async()=>{
+    const files=Array.from(inp.files||[]).slice(0,remaining);if(!files.length)return;
+    toast(files.length>1?files.length+" fotoğraf işleniyor…":"Soru fotoğrafı işleniyor…");
+    for(const file of files){
+      try{const dataUrl=await compressImage(file);wrongPhotoStore(id,dataUrl);}
+      catch(e){toast(String(e&&e.message||e||"Fotoğraf işlenemedi"));}
+    }
+  };
+  inp.click();
+}
 function wrongPhotoPick(id){
   const wrong=(S.wrongLog||[]).find(x=>Number(x.id)===Number(id));if(!wrong)return;
   const photos=wrongPhotosFor(id),limit=Math.max(1,Number(wrong.n)||1);
   if(photos.length>=limit){toast("Bu kayıttaki tüm yanlış sorular eklendi ✓");return;}
   if(storageBytes()>QA_BLOCK){toast("Depolama dolu — önce eski soru fotoğraflarını sil");return;}
-  const inp=document.createElement("input");inp.type="file";inp.accept="image/*";
-  inp.onchange=()=>{const file=inp.files&&inp.files[0];if(!file)return;toast("Soru fotoğrafı işleniyor…");
-    compressImage(file).then(dataUrl=>{if(storageBytes()+dataUrl.length>QA_BLOCK){toast("Depolama sınırına gelindi — eski soruları sil");return;}
-      const list=wrongPhotosFor(id);if(list.length>=limit)return;list.push(dataUrl);save();renderWrongTopics();toast("Soru "+list.length+"/"+limit+" eklendi ✓");
-    }).catch(e=>toast(String(e.message||e)));
-  };inp.click();
+  if(qaIsIPadLike()){void openWrongPhotoCamera(id);return;}
+  wrongPhotoPickFile(id);
+}
+let wrongPhotoViewerState={id:0,index:0};
+function ensureWrongPhotoViewer(){
+  let dlg=el("wrongPhotoViewer");if(dlg)return dlg;
+  dlg=document.createElement("dialog");dlg.id="wrongPhotoViewer";dlg.className="wrong-photo-viewer";dlg.innerHTML=
+    '<div class="wrong-photo-viewer-shell">'+
+      '<div class="wrong-photo-viewer-top"><span id="wrongPhotoViewerCount"></span><button type="button" id="wrongPhotoViewerClose">Kapat</button></div>'+
+      '<div class="wrong-photo-viewer-stage"><img id="wrongPhotoViewerImg" alt="Deneme yanlış soru fotoğrafı"></div>'+
+      '<div class="wrong-photo-viewer-info"><b id="wrongPhotoViewerTitle"></b><small id="wrongPhotoViewerMeta"></small><p id="wrongPhotoViewerNote"></p></div>'+
+      '<div class="wrong-photo-viewer-actions"><button type="button" id="wrongPhotoViewerPrev">‹ Önceki</button><button type="button" id="wrongPhotoViewerDelete">Fotoğrafı sil</button><button type="button" id="wrongPhotoViewerNext">Sonraki ›</button></div>'+
+    '</div>';
+  document.body.appendChild(dlg);
+  const close=()=>{try{if(typeof dlg.close==="function"&&dlg.open)dlg.close();else dlg.removeAttribute("open")}catch{}dlg.style.display="none";document.body.classList.remove("qa-viewer-open")};
+  el("wrongPhotoViewerClose").addEventListener("click",close);
+  dlg.addEventListener("cancel",event=>{event.preventDefault();close()});
+  dlg.addEventListener("click",event=>{if(event.target===dlg)close()});
+  el("wrongPhotoViewerPrev").addEventListener("click",()=>wrongPhotoViewerStep(-1));
+  el("wrongPhotoViewerNext").addEventListener("click",()=>wrongPhotoViewerStep(1));
+  el("wrongPhotoViewerDelete").addEventListener("click",()=>{
+    const state=wrongPhotoViewerState;close();wrongPhotoRemove(state.id,state.index);
+  });
+  return dlg;
+}
+function renderWrongPhotoViewer(){
+  const state=wrongPhotoViewerState,wrong=(S.wrongLog||[]).find(x=>Number(x.id)===Number(state.id)),photos=wrongPhotosFor(state.id);if(!wrong||!photos.length)return false;
+  state.index=Math.max(0,Math.min(state.index,photos.length-1));
+  const exam=(S.denemeler||[]).find(d=>Number(d.id)===Number(wrong.deneme)),kindLabel={bilmiyordum:"Bilgi eksiği",dikkat:"Dikkatsizlik",sure:"Süre yetmedi"}[wrong.kind]||"";
+  const img=el("wrongPhotoViewerImg");if(img){img.onerror=()=>toast("Fotoğraf Safari tarafından açılamadı. Kaydı silmeden farklı tarayıcıda da deneyebilirsin.");img.src=photos[state.index];}
+  el("wrongPhotoViewerCount").textContent=(state.index+1)+" / "+photos.length;
+  el("wrongPhotoViewerTitle").textContent=(wrong.subject||"Ders")+(wrong.topic?" · "+wrong.topic:"");
+  el("wrongPhotoViewerMeta").textContent=[exam&&exam.name?exam.name:"Deneme",kindLabel,wrong.date||""].filter(Boolean).join(" · ");
+  el("wrongPhotoViewerNote").textContent=wrong.note||"";
+  el("wrongPhotoViewerPrev").disabled=photos.length<2;el("wrongPhotoViewerNext").disabled=photos.length<2;
+  return true;
+}
+function wrongPhotoViewerStep(delta){
+  const photos=wrongPhotosFor(wrongPhotoViewerState.id);if(!photos.length)return;
+  wrongPhotoViewerState.index=(wrongPhotoViewerState.index+delta+photos.length)%photos.length;renderWrongPhotoViewer();
 }
 function wrongPhotoOpen(id,index){
-  const wrong=(S.wrongLog||[]).find(x=>Number(x.id)===Number(id)),photos=wrongPhotosFor(id);if(!wrong||!photos[index])return;
-  qaViewList=photos.map((img,i)=>({id:"wrong-"+id+"-"+i,img,subject:wrong.subject,topic:wrong.topic,date:wrong.date||todayKey(),note:"Hata Defteri sorusu "+(i+1),done:false}));
-  qaViewIdx=Math.max(0,Math.min(index,qaViewList.length-1));qaShowViewer(qaViewIdx);
+  const photos=wrongPhotosFor(id);if(!photos[index])return;
+  wrongPhotoViewerState={id:Number(id),index:Number(index)||0};
+  const dlg=ensureWrongPhotoViewer();if(!renderWrongPhotoViewer())return;
+  document.body.classList.add("qa-viewer-open");dlg.style.display="block";
+  try{if(typeof dlg.showModal==="function"&&!dlg.open)dlg.showModal();else dlg.setAttribute("open","")}catch{dlg.setAttribute("open","")}
 }
 function wrongPhotoRemove(id,index){
   const photos=wrongPhotosFor(id);if(!photos[index])return;
   if(!confirm((index+1)+". soru fotoğrafı silinsin mi?"))return;
-  photos.splice(index,1);save();renderWrongTopics();toast("Sadece seçtiğin soru fotoğrafı silindi");
+  photos.splice(index,1);save();renderWrongTopics();if(typeof renderAnaList==="function")renderAnaList();if(typeof renderExamWrongArchive==="function")renderExamWrongArchive();toast("Sadece seçtiğin soru fotoğrafı silindi");
+}
+function examWrongArchiveRows(){
+  const out=[];
+  (S.wrongLog||[]).slice().reverse().forEach(w=>{
+    const photos=wrongPhotosFor(w.id);if(!photos.length)return;
+    const exam=(S.denemeler||[]).find(d=>Number(d.id)===Number(w.deneme));
+    photos.forEach((img,index)=>out.push({wrong:w,img,index,exam}));
+  });
+  return out;
+}
+function renderExamWrongArchive(){
+  const root=el("examWrongArchiveGrid"),stats=el("examWrongArchiveStats");if(!root)return;
+  const sub=(el("examWrongArchiveFilter")&&el("examWrongArchiveFilter").value)||"";
+  const all=examWrongArchiveRows(),list=all.filter(row=>!sub||row.wrong.subject===sub);
+  const filter=el("examWrongArchiveFilter");
+  if(filter&&filter.options.length<=1){
+    const names=[...new Set((S.wrongLog||[]).map(w=>w&&w.subject).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"tr"));
+    filter.innerHTML='<option value="">Tüm dersler</option>'+names.map(n=>'<option value="'+esc(n)+'">'+esc(n)+'</option>').join("");
+  }
+  if(stats)stats.textContent=all.length?all.length+" fotoğraflı yanlış · "+new Set(all.map(x=>x.wrong.id)).size+" analiz kaydı":"Henüz fotoğraflı deneme yanlışı yok.";
+  if(!list.length){
+    root.innerHTML='<div class="empty">Deneme analizinde bir yanlışa fotoğraf eklediğinde burada görünecek. Ders, konu, sebep ve deneme bilgisi fotoğrafla birlikte kalır.</div>';
+    return;
+  }
+  const labels={bilmiyordum:"Bilgi eksiği",dikkat:"Dikkatsizlik",sure:"Süre yetmedi"};
+  root.innerHTML=list.map(row=>{
+    const w=row.wrong,exam=row.exam,label=labels[w.kind]||"Sebep yok";
+    return '<button class="exam-wrong-card" type="button" onclick="wrongPhotoOpen('+w.id+','+row.index+')">'+
+      '<span class="exam-wrong-img"><img src="'+row.img+'" alt="'+esc(w.subject)+' yanlış soru" loading="lazy"></span>'+
+      '<span class="exam-wrong-copy"><b>'+esc(w.subject)+(w.topic?' · '+esc(w.topic):'')+'</b><small>'+esc(exam&&exam.name?exam.name:"Deneme")+' · '+esc(label)+'</small>'+(w.note?'<em>'+esc(w.note)+'</em>':'')+'</span>'+
+      '<span class="exam-wrong-open">Aç ›</span></button>';
+  }).join("");
 }
 function renderWrongTopics(){
   if(typeof renderWrongKinds==="function")setTimeout(renderWrongKinds,0);
+  setTimeout(()=>{try{renderExamWrongArchive();}catch(e){}},0);
   const sel=el("wtSubject");
   if(sel&&!sel.options.length){
     sel.innerHTML='<option value="">Ders seç…</option>'+SUBJ_NAMES.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join("");
@@ -2186,8 +2440,9 @@ let pomoState="idle",pomoIsWork=true,pomoTimer=null,pomoSubject="";
 let pomoEndAt=0,pomoLeft=25*60,pomoTotal=25*60;
 let pomoStartedAt=0,pomoCredited=0,pomoTask="",wakeLock=null;
 
-function fmtT(s){ s=Math.max(0,s|0); const m=Math.floor(s/60),ss=s%60;
-  return String(m).padStart(2,"0")+":"+String(ss).padStart(2,"0"); }
+function fmtT(s){ s=Math.max(0,s|0); const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),ss=s%60;
+  return h?String(h).padStart(2,"0")+":"+String(m).padStart(2,"0")+":"+String(ss).padStart(2,"0")
+          :String(m).padStart(2,"0")+":"+String(ss).padStart(2,"0"); }
 
 function todaySessions(){ const k=todayKey(); if(!S.sessions[k])S.sessions[k]=[]; return S.sessions[k]; }
 function workCyclesToday(){ return todaySessions().filter(x=>x.type==="work"&&x.done).length; }
@@ -2230,10 +2485,34 @@ function todayTaskOptions(){
   ["r","s"].forEach(blk=>(w[blk]||[]).forEach((row,i)=>{
     const txt=row[dw];
     if(!txt||!txt.trim())return;
-    const cid=blk+"-"+i+"-"+dw;
-    out.push({cid:cid,txt:txt.trim(),done:!!w.dn[cid]});
+    const cid=blk+"-"+i+"-"+dw,lbl=blk==="r"?(S.rowLabels.r[i]||"Rutin"):(S.rowLabels.s[i]||"Görev");
+    out.push({cid:cid,txt:txt.trim(),lbl:lbl,done:!!w.dn[cid]});
   }));
+  const order=w.mv&&Array.isArray(w.mv["order-"+dw])?w.mv["order-"+dw]:null;
+  if(order){const rank=new Map();order.forEach((id,index)=>{if(!rank.has(id))rank.set(id,index)});out.sort((a,b)=>(rank.get(a.cid)??9999)-(rank.get(b.cid)??9999));}
   return out;
+}
+function focusPlanTasks(){
+  return todayTaskOptions().map(item=>{
+    const meta=typeof v25TaskMeta==="function"?v25TaskMeta(item):{subj:""};
+    return {id:item.cid,text:item.txt,subject:meta.subj||item.lbl||pomoSubject||"Ders",done:item.done};
+  });
+}
+function focusAllocation(total){
+  if(!window.YKSCore||typeof window.YKSCore.focusPlanAllocation!=="function")return [{subject:pomoSubject||"Ders",minutes:Math.max(0,total|0),taskId:pomoTask||""}];
+  return window.YKSCore.focusPlanAllocation(focusPlanTasks(),pomoTask,total,pomoSubject||"Ders");
+}
+function focusAllocationMap(total){
+  const map={};focusAllocation(total).forEach(row=>{map[row.subject]=(map[row.subject]||0)+row.minutes});return map;
+}
+function focusCreditAllocation(day,before,after){
+  const prev=focusAllocationMap(before),next=focusAllocationMap(after);
+  if(!S.pomoSubj[day])S.pomoSubj[day]={};
+  Object.keys(next).forEach(subject=>{const add=(next[subject]||0)-(prev[subject]||0);if(add>0)S.pomoSubj[day][subject]=(S.pomoSubj[day][subject]||0)+add;});
+}
+function focusAllocationLabel(split,fallback){
+  if(!Array.isArray(split)||!split.length)return fallback||"Ders";
+  return split.map(row=>row.subject+" "+fmtHM(row.minutes)).join(" + ");
 }
 function renderPomoTasks(){
   const sel=el("pomoTask"); if(!sel)return;
@@ -2252,6 +2531,70 @@ function renderPomoSubjects(){
 }
 function setPomoSubject(n){ pomoSubject=n; renderPomoSubjects(); }
 
+function renderManualFocusForm(){
+  const sel=el("manualFocusSubject");if(!sel)return;
+  const current=sel.value||pomoSubject||(SUBJ_NAMES.includes("Türkçe")?"Türkçe":SUBJ_NAMES[0]||"");
+  sel.innerHTML=SUBJ_NAMES.map(n=>'<option value="'+esc(n)+'">'+esc(n)+'</option>').join("");
+  if(SUBJ_NAMES.includes(current))sel.value=current;
+  else if(SUBJ_NAMES.includes("Türkçe"))sel.value="Türkçe";
+}
+function setManualFocusStatus(message,error){
+  const node=el("manualFocusStatus");if(!node)return;
+  node.textContent=message||"";
+  node.classList.toggle("is-error",!!error);
+  node.classList.toggle("is-success",!!message&&!error);
+}
+function manualFocusStartAt(value,totalMin){
+  const raw=String(value||"").trim(),now=new Date();
+  if(!raw)return Date.now()-totalMin*60000;
+  if(!/^\d{2}:\d{2}$/.test(raw))return 0;
+  const [hour,minute]=raw.split(":").map(Number),date=new Date(now);
+  date.setHours(hour,minute,0,0);
+  if(!Number.isFinite(date.getTime())||date.getTime()>Date.now()+60000)return 0;
+  if(date.getTime()+totalMin*60000>Date.now()+60000)return -1;
+  return date.getTime();
+}
+function addManualFocus(){
+  if(typeof coachBlock==="function"&&coachBlock("manual-focus"))return false;
+  const hours=Math.max(0,Math.floor(Number(el("manualFocusHours")?.value)||0));
+  const minutes=Math.max(0,Math.floor(Number(el("manualFocusMinutes")?.value)||0));
+  if(hours>24){setManualFocusStatus("Saat alanı 0–24 arasında olmalı.",true);return false}
+  if(minutes>59){setManualFocusStatus("Dakika alanı 0–59 arasında olmalı.",true);return false}
+  const total=hours*60+minutes;
+  if(total<1||total>1440){setManualFocusStatus("1 dakika ile 24 saat arasında bir süre gir.",true);return false}
+  const subject=String(el("manualFocusSubject")?.value||pomoSubject||"").trim();
+  if(!subject){setManualFocusStatus("Ders seç.",true);return false}
+  const topic=String(el("manualFocusTopic")?.value||"").trim().slice(0,100);
+  const source=String(el("manualFocusSource")?.value||"manual");
+  const sourceLabel=source==="ypt"?"YPT":source==="timer"?"Harici sayaç":"Manuel";
+  const startAt=manualFocusStartAt(el("manualFocusStart")?.value,total);
+  if(startAt===-1){setManualFocusStatus("Başlangıç saati + süre şu anı geçemez.",true);return false}
+  if(!startAt){setManualFocusStatus("Başlangıç saati bugünden ve şu andan daha erken olmalı.",true);return false}
+  const day=todayKey(),prevTotal=Number(S.pomoMin[day]||0),prevSubject=Number(S.pomoSubj?.[day]?.[subject]||0);
+  if(!S.pomoSubj[day])S.pomoSubj[day]={};
+  if(!S.sessions[day])S.sessions[day]=[];
+  const previousSessions=S.sessions[day].slice();
+  const note=[topic,sourceLabel+" üzerinden eklendi"].filter(Boolean).join(" · ");
+  S.pomoMin[day]=prevTotal+total;
+  S.pomoSubj[day][subject]=prevSubject+total;
+  S.sessions[day].push({t:startAt,end:startAt+total*60000,m:total,subj:subject,topic,task:"",type:"work",done:true,note,source:"manual"});
+  if(S.sessions[day].length>40)S.sessions[day]=S.sessions[day].slice(-40);
+  if(!save()){
+    S.pomoMin[day]=prevTotal;
+    S.pomoSubj[day][subject]=prevSubject;
+    S.sessions[day]=previousSessions;
+    setManualFocusStatus("Odak kaydı kaydedilemedi.",true);
+    return false;
+  }
+  setManualFocusStatus(sourceLabel+" kaydı eklendi · "+fmtHM(total),false);
+  const h=el("manualFocusHours"),m=el("manualFocusMinutes"),topicEl=el("manualFocusTopic"),startEl=el("manualFocusStart");
+  if(h)h.value="";if(m)m.value="";if(topicEl)topicEl.value="";if(startEl)startEl.value="";
+  renderPomo();renderTimeDist();if(typeof checkBadges==="function")checkBadges(false);
+  if(typeof renderAll==="function"&&el("home")?.classList.contains("active"))renderAll();
+  toast(sourceLabel+" odak kaydı eklendi ✓");
+  return true;
+}
+
 const ICON_PLAY='<path d="M8 5.5v13l11-6.5z"/>';
 const ICON_PAUSE='<path d="M9 5v14M15 5v14" stroke-width="2.6" stroke-linecap="round"/>';
 /* Sayaç çalışırken her saniye tüm odak ekranını tekrar kurmak yerine
@@ -2259,7 +2602,12 @@ const ICON_PAUSE='<path d="M9 5v14M15 5v14" stroke-width="2.6" stroke-linecap="r
    kredisi değiştiğinde render edilir. */
 function renderPomoClock(){
   if(pomoState==="running")pomoLeft=Math.max(0,Math.round((pomoEndAt-Date.now())/1000));
-  const tm=el("pomoTime"); if(tm)tm.textContent=fmtT(pomoLeft);
+  const tm=el("pomoTime");
+  if(tm){
+    const timeText=fmtT(pomoLeft);
+    tm.textContent=timeText;
+    tm.classList.toggle("is-long",timeText.length>5);
+  }
   const kalan=pomoTotal?Math.max(0,Math.min(1,pomoLeft/pomoTotal)):0;
   const gecen=1-kalan;
   const ring=el("pomoRing"); if(ring)ring.setAttribute("stroke-dashoffset",(578*(1-gecen)).toFixed(1));
@@ -2271,7 +2619,7 @@ function renderPomoClock(){
   }
 }
 function renderPomo(){
-  renderPomoSubjects(); renderPomoTasks();
+  renderPomoSubjects(); renderPomoTasks(); renderManualFocusForm();
   renderPomoClock();
 
   const card=el("focusCard");
@@ -2284,10 +2632,9 @@ function renderPomo(){
 
   const ends=el("pomoEnds");
   if(ends){
-    if(pomoState==="running"){
-      const e=new Date(pomoEndAt);
-      ends.textContent=String(e.getHours()).padStart(2,"0")+":"+String(e.getMinutes()).padStart(2,"0")+"'de biter";
-    } else ends.textContent=pomoState==="paused"?"duraklatıldı":"";
+    if(pomoState==="running")ends.textContent=clockText(new Date(pomoEndAt))+"'de biter";
+    else if(pomoState==="paused")ends.textContent="duraklatıldı · "+Math.ceil(pomoLeft/60)+" dk kaldı";
+    else ends.textContent="Başlatırsan "+clockText(new Date(Date.now()+Math.max(0,pomoLeft)*1000))+"'de biter";
   }
 
   const btnLbl=pomoState==="running"?"Duraklat":(pomoState==="paused"?"Devam et":"Başlat");
@@ -2342,8 +2689,8 @@ function renderSessions(){
   const list=todaySessions().filter(x=>x.type==="work");
   if(!list.length){ w.innerHTML='<div class="empty">Bugün henüz oturum yok.</div>'; return; }
   w.innerHTML=list.slice().reverse().map(x=>{
-    const t=new Date(x.t),hh=String(t.getHours()).padStart(2,"0")+":"+String(t.getMinutes()).padStart(2,"0");
-    return `<div class="dayrow"><span class="k">${hh} · ${esc(x.subj||"—")}${x.task?" · plan":""}${x.note?"<br><small>"+esc(x.note)+"</small>":""}</span>
+    const t=new Date(x.t),hh=String(t.getHours()).padStart(2,"0")+":"+String(t.getMinutes()).padStart(2,"0"),label=focusAllocationLabel(x.split,x.subj||"—");
+    return `<div class="dayrow"><span class="k">${hh} · ${esc(label)}${x.task?" · plan":""}${x.source==="manual"?" · manuel":""}${x.note?"<br><small>"+esc(x.note)+"</small>":""}</span>
       <span class="v" style="color:${x.done?"var(--success)":"var(--label-3)"}">${x.m} dk${x.done?"":" · yarıda"}</span></div>`;
   }).join("");
 }
@@ -2351,25 +2698,25 @@ function renderSessions(){
 /* --- dakika hesabı: gerçek geçen süreye göre --- */
 function creditMinutes(){
   if(typeof isCoach==="function"&&isCoach())return;
-  if(!pomoIsWork||!pomoStartedAt)return;
+  if(!pomoIsWork||!pomoStartedAt||pomoState==="paused")return;
   /* Cihaz uyursa gerçek geçen süre turdan çok daha uzun olabiliyor.
      Bir turda en fazla o turun uzunluğu kadar dakika yazılır. */
   const tavan=Math.max(1,Math.round(pomoTotal/60));
   let elapsed=Math.floor((Date.now()-pomoStartedAt)/60000);
   if(elapsed>tavan)elapsed=tavan;
-  const add=elapsed-pomoCredited;
+  const before=pomoCredited,add=elapsed-before;
   if(add<=0)return;
   pomoCredited=elapsed;
   const k=todayKey();
   S.pomoMin[k]=(S.pomoMin[k]||0)+add;
-  if(!S.pomoSubj[k])S.pomoSubj[k]={};
-  S.pomoSubj[k][pomoSubject]=(S.pomoSubj[k][pomoSubject]||0)+add;
+  focusCreditAllocation(k,before,elapsed);
   save();
 }
 function recordSession(done){
   const mins=pomoCredited;
   if(!pomoIsWork||mins<1)return;
-  todaySessions().push({t:pomoStartedAt,m:mins,subj:pomoSubject,task:pomoTask,type:"work",done:!!done});
+  const split=focusAllocation(mins);
+  todaySessions().push({t:pomoStartedAt,m:mins,subj:pomoSubject,task:pomoTask,split:split,type:"work",done:!!done});
   if(S.sessions[todayKey()].length>40)S.sessions[todayKey()]=S.sessions[todayKey()].slice(-40);
   save();
 }
@@ -2451,7 +2798,18 @@ function skipPhase(){
 function toggleSound(){ S.sound=!S.sound; save(); renderPomo(); if(S.sound)beep(1); }
 
 /* ================= ZAMAN DAĞILIMI ================= */
+function renderMonthlyFocusSummary(){
+  const box=el("focusMonthSummary");if(!box)return;
+  const picker=el("focusMonthPick"),month=(picker&&picker.value)||todayKey().slice(0,7);
+  if(picker&&!picker.value)picker.value=month;
+  const rows=window.YKSCore&&typeof window.YKSCore.monthSubjectTotals==="function"?window.YKSCore.monthSubjectTotals(S.pomoSubj,month):[];
+  if(!rows.length){box.innerHTML='<div class="empty">Bu ay için ders bazlı çalışma süresi henüz yok.</div>';return;}
+  const total=rows.reduce((sum,row)=>sum+row.minutes,0),top=rows[0],max=Math.max(1,top.minutes);
+  box.innerHTML='<div class="focus-month-hero"><span>Bu ay en çok</span><b>'+esc(top.subject)+'</b><strong>'+fmtHM(top.minutes)+'</strong><small>Toplam '+fmtHM(total)+' çalışma</small></div>'+
+    '<div class="focus-month-ranking">'+rows.slice(0,8).map((row,index)=>'<div class="focus-month-row"><span>'+(index+1)+'</span><b>'+esc(row.subject)+'</b><i><em style="width:'+Math.round(row.minutes/max*100)+'%"></em></i><strong>'+fmtHM(row.minutes)+'</strong></div>').join('')+'</div>';
+}
 function renderTimeDist(){
+  renderMonthlyFocusSummary();
   const w=el("timeDist"); if(!w)return;
   const range=parseInt((el("tdRange")||{value:"7"}).value,10)||7;
   const agg={}; let total=0;
@@ -3522,38 +3880,58 @@ function fmtKB(b){
 const QA_WARN=3500000, QA_BLOCK=4500000, QA_MAXPX=900, QA_QUALITY=0.55;
 
 /* ---------- fotoğraf küçültme ---------- */
-function compressImage(file){
+function qaCanvasJpeg(source,width,height){
+  try{
+    const cv=document.createElement("canvas"),ctx=cv.getContext&&cv.getContext("2d");
+    if(!ctx||!width||!height)return "";
+    const sc=Math.min(1,QA_MAXPX/Math.max(width,height));
+    cv.width=Math.max(1,Math.round(width*sc));cv.height=Math.max(1,Math.round(height*sc));
+    ctx.drawImage(source,0,0,cv.width,cv.height);
+    const out=cv.toDataURL("image/jpeg",QA_QUALITY);
+    return /^data:image\/jpeg/i.test(out)&&out.length>32?out:"";
+  }catch(e){return "";}
+}
+function qaReadAsDataUrl(file){
   return new Promise((resolve,reject)=>{
-    if(!file){ reject(new Error("Dosya yok")); return; }
-    if(file.size&&file.size>12000000){ reject(new Error("Fotoğraf çok büyük (12 MB üstü)")); return; }
-    const fr=new FileReader();
-    fr.onerror=()=>reject(new Error("Fotoğraf okunamadı"));
-    fr.onload=()=>{
-      const raw=String(fr.result||"");
-      if(raw.indexOf("data:image")!==0){ reject(new Error("Bu bir resim dosyası değil")); return; }
-      let done=false;
-      const finish=v=>{ if(!done){ done=true; resolve(v); } };
-      /* tarayıcı canvas veremezse ham veriyle devam et */
-      let img;
-      try{ img=new Image(); }catch(e){ finish(raw); return; }
-      img.onerror=()=>finish(raw);
-      img.onload=()=>{
-        try{
-          const cv=document.createElement("canvas");
-          const ctx=cv.getContext?cv.getContext("2d"):null;
-          if(!ctx||!img.width||!img.height){ finish(raw); return; }
-          const sc=Math.min(1,QA_MAXPX/Math.max(img.width,img.height));
-          cv.width=Math.max(1,Math.round(img.width*sc));
-          cv.height=Math.max(1,Math.round(img.height*sc));
-          ctx.drawImage(img,0,0,cv.width,cv.height);
-          const out=cv.toDataURL("image/jpeg",QA_QUALITY);
-          finish(out&&out.length>32?out:raw);
-        }catch(e){ finish(raw); }
-      };
-      setTimeout(()=>finish(raw),4000);   /* yükleme takılırsa bekletme */
-      img.src=raw;
-    };
-    fr.readAsDataURL(file);
+    const fr=new FileReader();fr.onerror=()=>reject(new Error("Fotoğraf okunamadı"));
+    fr.onload=()=>resolve(String(fr.result||""));fr.readAsDataURL(file);
+  });
+}
+function compressImage(file){
+  return new Promise(async(resolve,reject)=>{
+    if(!file){reject(new Error("Dosya yok"));return;}
+    if(file.size&&file.size>12000000){reject(new Error("Fotoğraf çok büyük (12 MB üstü)"));return;}
+    const type=String(file.type||"").toLowerCase(),name=String(file.name||"").toLowerCase(),heic=/heic|heif/.test(type)||/\.(heic|heif)$/.test(name);
+    let objectUrl="";
+    try{
+      objectUrl=URL.createObjectURL(file);
+      const img=new Image(),converted=await new Promise((ok,fail)=>{
+        let settled=false,timer=setTimeout(()=>{if(!settled){settled=true;fail(new Error("decode-timeout"));}},6500);
+        img.onload=()=>{if(settled)return;settled=true;clearTimeout(timer);const out=qaCanvasJpeg(img,img.naturalWidth||img.width,img.naturalHeight||img.height);out?ok(out):fail(new Error("canvas"));};
+        img.onerror=()=>{if(settled)return;settled=true;clearTimeout(timer);fail(new Error("decode"));};
+        img.src=objectUrl;
+      });
+      if(converted){resolve(converted);return;}
+    }catch(e){}finally{if(objectUrl)try{URL.revokeObjectURL(objectUrl)}catch{}}
+    try{
+      if(typeof createImageBitmap==="function"){
+        const bitmap=await createImageBitmap(file),out=qaCanvasJpeg(bitmap,bitmap.width,bitmap.height);try{bitmap.close&&bitmap.close()}catch{}
+        if(out){resolve(out);return;}
+      }
+    }catch(e){}
+    try{
+      const raw=await qaReadAsDataUrl(file);
+      if(!/^data:image\/(jpeg|jpg|png|webp|gif);/i.test(raw)){
+        if(heic)throw new Error("iPad fotoğrafı HEIC olarak geldi ve dönüştürülemedi. Fotoğrafı tekrar seçip dene.");
+        throw new Error("Bu resim biçimi desteklenmiyor");
+      }
+      const img=new Image(),converted=await new Promise((ok,fail)=>{
+        let settled=false,timer=setTimeout(()=>{if(!settled){settled=true;fail(new Error("decode-timeout"));}},5000);
+        img.onload=()=>{if(settled)return;settled=true;clearTimeout(timer);const out=qaCanvasJpeg(img,img.naturalWidth||img.width,img.naturalHeight||img.height);ok(out||raw);};
+        img.onerror=()=>{if(settled)return;settled=true;clearTimeout(timer);fail(new Error("decode"));};img.src=raw;
+      });
+      resolve(converted);
+    }catch(e){reject(new Error(e&&e.message?e.message:"Fotoğraf işlenemedi"));}
   });
 }
 
@@ -3625,6 +4003,7 @@ function qaFilterList(){
   });
 }
 function renderQbank(){
+  try{renderExamWrongArchive();}catch(e){}
   const sel=el("qaSubject");
   if(sel&&!sel.options.length)
     sel.innerHTML='<option value="">Ders seç…</option>'+SUBJ_NAMES.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join("");
@@ -3675,22 +4054,30 @@ function qaShowViewer(i){
   const ov=el("qaViewer"); if(!ov)return;
   // Viewer her zaman gerçek viewport'a göre hizalansın; dönüştürülmüş uygulama kabuğu fixed katmanı kırpmasın.
   if(ov.parentElement!==document.body)document.body.appendChild(ov);
-  ov.style.display="flex";
-  el("qaImg").src=q.img;
+  document.body.classList.add("qa-viewer-open");
+  ov.style.transform="none";ov.style.left="0";ov.style.right="0";ov.style.top="0";ov.style.bottom="0";ov.style.width="100vw";ov.style.height="100dvh";ov.style.zIndex="20000";ov.style.display="flex";
+  const img=el("qaImg");if(img){img.onerror=()=>toast("Fotoğraf görüntülenemedi. Kaydı silmeden tekrar deneyebilirsin.");img.src=q.img;}
   el("qaInfo").textContent=q.subject+(q.topic?" · "+q.topic:"")+" · "+
     parseKey(q.date).toLocaleDateString("tr-TR",{day:"numeric",month:"long"});
   el("qaNoteView").textContent=q.note||"";
   el("qaCount").textContent=(qaViewIdx+1)+" / "+qaViewList.length;
-  el("qaDoneBtn").textContent=q.done?"Tekrar aç":"Çözdüm";
-  el("qaDoneBtn").className=q.done?"btn ghost small":"btn green small";
+  const doneBtn=el("qaDoneBtn");
+  if(doneBtn){
+    if(q.wrongId){doneBtn.textContent="Deneme yanlışı";doneBtn.className="btn ghost small";doneBtn.disabled=true;}
+    else{doneBtn.textContent=q.done?"Tekrar aç":"Çözdüm";doneBtn.className=q.done?"btn ghost small":"btn green small";doneBtn.disabled=false;}
+  }
 }
 function qaNext(n){
   if(!qaViewList.length)return;
   qaShowViewer((qaViewIdx+n+qaViewList.length)%qaViewList.length);
 }
-function qaCloseViewer(){ const ov=el("qaViewer"); if(ov)ov.style.display="none"; }
-function qaViewerDone(){ if(qaViewList[qaViewIdx])qaToggleDone(qaViewList[qaViewIdx].id); }
-function qaViewerDelete(){ if(qaViewList[qaViewIdx])qaDelete(qaViewList[qaViewIdx].id); }
+function qaCloseViewer(){ const ov=el("qaViewer"); if(ov)ov.style.display="none"; document.body.classList.remove("qa-viewer-open"); }
+function qaViewerDone(){ const q=qaViewList[qaViewIdx];if(q&&!q.wrongId)qaToggleDone(q.id); }
+function qaViewerDelete(){
+  const q=qaViewList[qaViewIdx];if(!q)return;
+  if(q.wrongId){const id=q.wrongId,index=q.wrongPhotoIndex||0;qaCloseViewer();wrongPhotoRemove(id,index);return;}
+  qaDelete(q.id);
+}
 
 /* ==================================================================
    DİNLENME KORUMASI
@@ -3780,8 +4167,8 @@ const QUICK_MINS=[15,25,45,60];
 function quickPhaseName(){ return pomoIsWork?"çalışma":"mola"; }
 function currentPhaseMin(){ return pomoIsWork?S.workMin:(isLongBreakNext()?S.focus.longBreak:S.breakMin); }
 function setPhaseMin(n){
-  n=Math.max(1,Math.min(180,n|0));
-  if(pomoState!=="idle"){ toast("Süreyi değiştirmek için önce sıfırla"); return; }
+  n=Math.max(1,Math.min(1440,n|0));
+  if(pomoState!=="idle"){ toast("Süreyi değiştirmek için önce sıfırla"); return false; }
   if(pomoIsWork)S.workMin=n;
   else if(isLongBreakNext())S.focus.longBreak=n;
   else S.breakMin=n;
@@ -3789,8 +4176,33 @@ function setPhaseMin(n){
   pomoTotal=pomoPhaseMin(pomoIsWork)*60; pomoLeft=pomoTotal;
   renderPomo();
   toast(n+" dakika · "+quickPhaseName());
+  return true;
 }
 function adjustPhaseMin(d){ setPhaseMin(currentPhaseMin()+d); }
+function clockText(date){
+  return String(date.getHours()).padStart(2,"0")+":"+String(date.getMinutes()).padStart(2,"0");
+}
+function setFocusCustomStatus(message,error){
+  const node=el("focusCustomStatus"); if(!node)return;
+  node.textContent=message||""; node.classList.toggle("is-error",!!error);
+}
+function applyCustomFocusMinutes(){
+  const input=el("customFocusMin"),value=Math.floor(Number(input&&input.value));
+  if(!Number.isFinite(value)||value<1||value>1440){setFocusCustomStatus("1 ile 1440 dakika arasında bir süre gir.",true);return;}
+  if(setPhaseMin(value)){
+    const end=new Date(Date.now()+value*60000);
+    setFocusCustomStatus(value+" dk ayarlandı · şimdi başlarsan "+clockText(end)+"'de biter.",false);
+  }
+}
+function applyFocusUntilTime(){
+  const input=el("focusUntilTime"),raw=String(input&&input.value||"");
+  if(!/^\d{2}:\d{2}$/.test(raw)){setFocusCustomStatus("Bitiş saatini seç.",true);return;}
+  const parts=raw.split(":").map(Number),now=new Date(),end=new Date(now);
+  end.setHours(parts[0],parts[1],0,0);
+  if(end<=now){setFocusCustomStatus("Bugün için şu andan daha ileri bir saat seç.",true);return;}
+  const minutes=Math.max(1,Math.ceil((end-now)/60000));
+  if(setPhaseMin(minutes))setFocusCustomStatus(clockText(end)+"'e kadar "+minutes+" dk çalışma ayarlandı.",false);
+}
 function renderQuick(){
   const w=el("quickMins"); if(!w)return;
   const cur=currentPhaseMin();
@@ -3800,6 +4212,13 @@ function renderQuick(){
   if(lab)lab.textContent=(pomoIsWork?"Çalışma":"Mola")+" süresi · "+cur+" dk";
   const box=el("quickWrap");
   if(box)box.style.opacity=pomoState==="idle"?"1":".45";
+  const custom=el("customFocusMin");
+  if(custom&&document.activeElement!==custom)custom.value=String(cur);
+  const until=el("focusUntilTime");
+  if(until)until.disabled=pomoState!=="idle";
+  if(custom)custom.disabled=pomoState!=="idle";
+  const projected=new Date(Date.now()+Math.max(0,pomoLeft)*1000);
+  if(pomoState==="idle")setFocusCustomStatus("Şimdi başlarsan "+clockText(projected)+"'de biter.",false);
 }
 
 /* ==================================================================
@@ -6677,7 +7096,7 @@ async function askNotif(){
     save(); renderNotifSettings(); notifDiag();
     notifSettingsChanged();
     if(p==="granted")void notify("YKS Defterim","Bildirim iznin açık. Odak bildirimlerini ayarlardan yönetebilirsin.","acildi");
-    toast(p==="granted"?"Bildirimler açıldı ✓":"Bildirim izni verilmedi");
+    toast(p==="granted"?"Bildirim izni açık ✓":"Bildirim izni verilmedi");
     return p;
   }catch(e){ notifSettingsChanged(); toast("İzin istenemedi; Chrome site izinlerini kontrol et"); return "yok"; }
 }
@@ -6693,7 +7112,7 @@ function notifWait(promise){
 }
 async function notify(title,body,tag){
   const c=notifCfg();
-  if(!c.on)return false;
+  if(tag==="pomo"?!c.pomo:!c.on)return false;
   if(notifState()!=="granted")return false;
   const opts={body:body||"",tag:tag||"yks",icon:"icon-192.png",badge:"icon-192.png",lang:"tr"};
   try{
@@ -6708,7 +7127,8 @@ async function notify(title,body,tag){
       const reg=found.ok&&found.value;
       if(!reg||typeof reg.showNotification!=="function")return false;
       /* İzin veya uygulama ayarı kayıt beklenirken değişmiş olabilir. */
-      if(!notifCfg().on||notifState()!=="granted")return false;
+      const current=notifCfg();
+      if((tag==="pomo"?!current.pomo:!current.on)||notifState()!=="granted")return false;
       const sent=await notifWait(reg.showNotification(title,opts));
       return sent.ok;
     }
@@ -6742,7 +7162,7 @@ function renderNotifSettings(){
   if(p==="yok"){ st.textContent="Bu tarayıcı bildirim desteklemiyor."; st.style.color="var(--label-3)"; }
   else if(p==="denied"){ st.textContent="Bildirim izni engellenmiş. Chrome site ayarlarından açabilirsin."; st.style.color="var(--label-3)"; }
   else if(p!=="granted"){ st.textContent="Bildirimleri açmak için izin ver."; st.style.color="var(--label-3)"; }
-  else if(!c.on){ st.textContent="İzin var ama bildirimler kapalı."; st.style.color="var(--label-3)"; }
+  else if(!c.on){ st.textContent=c.pomo?"Odak bildirimleri açık; genel hatırlatmalar kapalı.":"İzin var; odak bildirimleri ve genel hatırlatmalar kapalı."; st.style.color=c.pomo?"var(--success)":"var(--label-3)"; }
   else {
     let ek="";
     try{
@@ -6765,7 +7185,7 @@ function notifDiag(){
   const satir=[];
   satir.push("Destek: "+(notifSupported()?"var":"yok"));
   satir.push("İzin: "+notifState());
-  satir.push("Uygulama ayarı: "+(c.on?"açık":"kapalı"));
+  satir.push("Genel hatırlatmalar: "+(c.on?"açık":"kapalı"));
   satir.push("Adres: "+location.protocol);
   satir.push("Çevrimdışı katman: "+(("serviceWorker" in navigator)
     ?((navigator.serviceWorker&&navigator.serviceWorker.controller)?"etkin":"kayıtlı değil")
@@ -6783,7 +7203,7 @@ function notifDiag(){
   if(notifState()==="denied")
     satir.push("UYARI: izin reddedilmiş. Tarayıcı → site ayarları → Bildirimler'den açman gerekiyor.");
   if(notifState()==="granted"&&!c.on)
-    satir.push("UYARI: izin var ama uygulama ayarı kapalı — 'Bildirimlere izin ver'e tekrar bas.");
+    satir.push("NOT: Genel hatırlatmalar kapalı. Ayarlardan açabilirsin; odak bildirimleri ayrı tercihini kullanır.");
   if(anaEkran==="hayır")
     satir.push("NOT: iPhone'da bildirimler yalnız uygulama ana ekrana eklenmişse çalışır.");
   satir.push("Görünmüyorsa: Chrome → Ayarlar → Site ayarları → Bildirimler; ayrıca tablet/telefon Ayarları → Bildirimler → Chrome / YKS Defterim izinlerini kontrol et.");
@@ -8151,7 +8571,7 @@ function openAnalysis(id,force){
   el("anaSubject").innerHTML='<option value="">Ders seç…</option>'+(
     (anaKnown?anaRows.filter(s=>(s.y|0)>0):force?anaRows:[])
       .map(s=>'<option value="'+esc(s.name)+'">'+esc(s.name)+(anaKnown?' ('+s.y+' yanlış)':'')+'</option>').join(""));
-  el("anaTopic").value=""; el("anaCount").value=""; if(el("anaKind"))el("anaKind").value="";
+  el("anaTopic").value=""; el("anaCount").value=""; if(el("anaKind"))el("anaKind").value=""; if(el("anaNote"))el("anaNote").value="";
   renderAnaList();
   return true;
 }
@@ -8161,15 +8581,17 @@ function anaAdd(){
   const topic=(el("anaTopic").value||"").trim();
   const n=Math.max(1,parseInt(el("anaCount").value,10)||1);
   const kind=(el("anaKind")&&el("anaKind").value)||"";
+  const note=((el("anaNote")&&el("anaNote").value)||"").trim().slice(0,400);
   if(!subj||!topic){ toast("Ders ve konu seç"); return false; }
-  S.wrongLog.push({id:Date.now(),date:d.date,subject:subj,topic:topic,n:n,
-    kind:kind||undefined,deneme:d.id});
+  const wrong={id:Date.now(),date:d.date,subject:subj,topic:topic,n:n,
+    kind:kind||undefined,deneme:d.id,note:note,questionImgs:[]};
+  S.wrongLog.push(wrong);
   if(typeof linkWrongToTopic==="function")linkWrongToTopic(subj,topic,n);
   save();
-  el("anaTopic").value=""; el("anaCount").value=""; if(el("anaKind"))el("anaKind").value="";
-  renderAnaList(); renderWrongTopics();
+  el("anaTopic").value=""; el("anaCount").value=""; if(el("anaKind"))el("anaKind").value=""; if(el("anaNote"))el("anaNote").value="";
+  renderAnaList(); renderWrongTopics();renderExamWrongArchive();
   if(typeof renderWrongKinds==="function")renderWrongKinds();
-  toast("Eklendi ✓");
+  toast("Yanlış kaydedildi · istersen şimdi fotoğrafını ekle");
   return true;
 }
 function anaDelWrong(id){
@@ -8177,7 +8599,7 @@ function anaDelWrong(id){
   if(!bk)return false;
   S.wrongLog=S.wrongLog.filter(x=>x.id!==id); save();
   if(bk&&typeof pushUndo==="function")pushUndo("Yanlış kaydı silindi",()=>{S.wrongLog.push(bk);save();});
-  renderAnaList(); if(typeof renderWrongTopics==="function")renderWrongTopics(); if(typeof renderSubjects==="function")renderSubjects();
+  renderAnaList(); if(typeof renderWrongTopics==="function")renderWrongTopics(); if(typeof renderExamWrongArchive==="function")renderExamWrongArchive(); if(typeof renderSubjects==="function")renderSubjects();
   return true;
 }
 function anaMarked(){
@@ -8192,10 +8614,14 @@ function renderAnaList(){
   const p=toplam?Math.min(100,Math.round(isaret/toplam*100)):0;
   let h='<div class="ctline"><span class="k">İşaretlenen</span><span class="v">'+isaret+' / '+toplam+'</span></div>'+
     '<div class="bar" style="margin-bottom:12px;"><i style="width:'+p+'%"></i></div>';
-  h+=list.length?list.map(x=>
-    '<div class="dayrow"><span class="k">'+esc(x.subject)+' · '+esc(x.topic)+
-    (x.kind?'<br><small>'+({bilmiyordum:"Bilmiyordum",dikkat:"Dikkatsizlik",sure:"Süre yetmedi"}[x.kind]||"")+'</small>':"")+
-    '</span><span class="v">'+x.n+' <button class="del" onclick="anaDelWrong('+x.id+')">sil</button></span></div>').join("")
+  h+=list.length?list.map(x=>{
+    const photos=wrongPhotosFor(x.id),limit=Math.max(1,Number(x.n)||1),kind=({bilmiyordum:"Bilmiyordum",dikkat:"Dikkatsizlik",sure:"Süre yetmedi"}[x.kind]||"");
+    const photoBtn=photos.length<limit?'<button class="btn ghost tiny ana-photo-btn" onclick="wrongPhotoPick('+x.id+')">📷 Fotoğraf '+photos.length+'/'+limit+'</button>':'<button class="btn ghost tiny ana-photo-btn" onclick="wrongPhotoOpen('+x.id+',0)">▣ '+photos.length+' fotoğraf</button>';
+    const view=photos.length?'<button class="btn ghost tiny" onclick="wrongPhotoOpen('+x.id+',0)">Görüntüle</button>':'';
+    return '<div class="dayrow ana-wrong-row"><span class="k"><b>'+esc(x.subject)+' · '+esc(x.topic)+'</b>'+
+      (kind?'<br><small>'+esc(kind)+'</small>':'')+(x.note?'<br><small>'+esc(x.note)+'</small>':'')+
+      '</span><span class="v ana-wrong-actions"><b>'+x.n+' yanlış</b>'+photoBtn+view+'<button class="del" onclick="anaDelWrong('+x.id+')">sil</button></span></div>';
+  }).join("")
     :'<div class="empty">Henüz işaretlemedin.</div>';
   w.innerHTML=h;
   const btn=el("anaClose");
@@ -10256,10 +10682,40 @@ function v25RenderReviews(){const w=el("todayReviews"),wrap=el("todayReviewWrap"
 function v25RenderSubjects(){const w=el("todaySubjectDist");if(!w)return;const m=S.pomoSubj[todayKey()]||{},a=Object.keys(m).map(n=>({n,m:+m[n]||0})).filter(x=>x.m>0).sort((x,y)=>y.m-x.m),mx=a[0]?.m||1;if(!a.length){w.innerHTML='<div class="today-review-empty">Ders etiketli çalışma henüz yok.</div>';return;}w.innerHTML=a.slice(0,5).map(x=>'<div class="today-subj-row"><span class="name">'+esc(x.n)+'</span><span class="mins">'+fmtHM(x.m)+'</span><div class="today-subj-bar"><i style="width:'+Math.round(x.m/mx*100)+'%"></i></div></div>').join('');}
 function v25RenderLast(){const w=el("todayLastSession"),when=el("todayLastWhen");if(!w||!when)return;const x=v25LatestFocus();v25LastFocus=x;if(!x){when.textContent="—";w.innerHTML='<div class="today-review-empty">Henüz çalışma oturumu yok.</div>';return;}const d=new Date(x.at),hh=d.toLocaleTimeString("tr-TR",{hour:"2-digit",minute:"2-digit"});when.textContent=hh;w.innerHTML='<div class="today-last-title">'+esc(x.subj||"Ders")+(x.topic?' · '+esc(x.topic):'')+'</div><div class="today-last-meta">'+fmtHM(Math.max(1,Math.round(x.min)))+' çalışma</div><div class="today-last-actions"><button class="btn ghost tiny" onclick="v25ContinueLast()">Devam et</button></div>'; }
 function v25RenderTimeline(){const w=el("todayTimeline");if(!w)return;const a=v25FocusEvents(),b=[{n:"Sabah",from:0,to:12,m:0,c:0},{n:"Öğlen",from:12,to:18,m:0,c:0},{n:"Akşam",from:18,to:24,m:0,c:0}];a.forEach(x=>{const h=new Date(x.at).getHours(),z=b.find(y=>h>=y.from&&h<y.to)||b[2];z.m+=x.min;z.c++;});w.innerHTML=b.map(x=>'<div class="today-timeblock"><b>'+x.n+'</b><strong>'+fmtHM(Math.round(x.m))+'</strong><small>'+x.c+' odak kaydı</small></div>').join('');}
-function setTodayMood(mood){if(!["good","mid","hard"].includes(mood))return false;const k=todayKey();if(!S.dayReview)S.dayReview={};const old=S.dayReview[k]||{};S.dayReview[k]={mood,note:String(old.note||"").slice(0,220),at:Date.now()};save();v25RenderClose();toast("Gün değerlendirmesi kaydedildi");return true;}
-function saveTodayReflection(){const k=todayKey(),inp=el("todayReflectionInput"),note=String(inp?.value||"").trim().slice(0,220);if(!S.dayReview)S.dayReview={};const old=S.dayReview[k]||{};if(!note&&!old.mood){delete S.dayReview[k];}else S.dayReview[k]={mood:old.mood||"",note,at:Date.now()};save();v25RenderClose();toast(note?"Günün notu kaydedildi":"Günün notu temizlendi");}
-function v25RenderClose(){const box=el("todayClose"),inp=el("todayReflectionInput");if(!box||!inp)return;const h=new Date().getHours(),k=todayKey(),r=(S.dayReview&&S.dayReview[k])||{};box.classList.toggle("soft",h<18&&!v25PlanToday().dayDone);el("todayCloseTitle").textContent=h>=18?"Günü kapat":"Gün sonu değerlendirmesi";el("todayCloseHint").textContent=h>=18?"Bugün nasıldı?":"Akşam istersen doldur";if(document.activeElement!==inp)inp.value=r.note||"";[["good","todayMoodGood"],["mid","todayMoodMid"],["hard","todayMoodHard"]].forEach(([m,id])=>el(id)?.classList.toggle("on",r.mood===m));}
-function v25RenderDaypart(){const h=new Date().getHours(),ey=el("todayHubEyebrow"),title=el("todayHubTitle"),kick=document.querySelector("#home .home-kicker");if(h<12){ey.textContent="Sabah planı";title.textContent="Bugüne başla";if(kick)kick.textContent="Önce sıradaki görevi seç; gün geri kalanını sıraya koyar.";}else if(h<18){ey.textContent="Şu ana kadar";title.textContent="Bugünün durumu";if(kick)kick.textContent="Kalan hedefi gör, sıradaki işi bitir, devam et.";}else{ey.textContent="Akşam";title.textContent="Günü kapat";if(kick)kick.textContent="Kalanları tamamla ya da yarına taşı; günü kısa bir notla kapat.";}}
+let todayMoodDraft={date:"",mood:""};
+function setTodayMood(mood){
+  if(!["good","mid","hard"].includes(mood))return false;
+  todayMoodDraft={date:todayKey(),mood};
+  v25RenderClose();
+  toast("Ruh hali seçildi · Kaydet'e basınca koçunla paylaşılacak");
+  return true;
+}
+function saveTodayReflection(){
+  const k=todayKey(),inp=el("todayReflectionInput"),note=String(inp?.value||"").trim().slice(0,3000);
+  if(!S.dayReview)S.dayReview={};
+  const old=S.dayReview[k]||{},mood=todayMoodDraft.date===k?todayMoodDraft.mood:(old.mood||"");
+  if(!note&&!mood)delete S.dayReview[k];
+  else S.dayReview[k]={mood,note,at:Date.now()};
+  todayMoodDraft={date:"",mood:""};
+  save();
+  v25RenderClose();
+  toast(note||mood?"Gün sonu kaydedildi ve koçunla paylaşıldı":"Gün sonu notu temizlendi");
+}
+function v25RenderClose(){
+  const box=el("todayClose"),inp=el("todayReflectionInput");if(!box||!inp)return;
+  const h=new Date().getHours(),k=todayKey(),r=(S.dayReview&&S.dayReview[k])||{},saved=el("todayCloseSaved"),draftMood=todayMoodDraft.date===k?todayMoodDraft.mood:"",mood=draftMood||r.mood||"",dirty=!!draftMood&&draftMood!==String(r.mood||"");
+  box.classList.toggle("soft",h<18&&!v25PlanToday().dayDone);
+  el("todayCloseTitle").textContent=h>=18?"Günü kapat":"Gün sonu değerlendirmesi";
+  el("todayCloseHint").textContent=h>=18?"Bugün nasıldı?":"Akşam istersen doldur";
+  if(document.activeElement!==inp&&!draftMood)inp.value=r.note||"";
+  [["good","todayMoodGood"],["mid","todayMoodMid"],["hard","todayMoodHard"]].forEach(([m,id])=>el(id)?.classList.toggle("on",mood===m));
+  if(saved){
+    const has=!!(r.mood||r.note);
+    saved.textContent=dirty?"Kaydetmeye hazır":has?"Koçunla paylaşıldı":"Henüz kaydedilmedi";
+    saved.dataset.saved=String(has&&!dirty);
+  }
+}
+function v25RenderDaypart(){const h=new Date().getHours(),ey=el("todayHubEyebrow"),title=el("todayHubTitle"),kick=document.querySelector("#home .home-kicker");if(h<12){ey.textContent="Sabah planı";title.textContent="Bugüne başla";if(kick)kick.textContent="Önce sıradaki görevi seç; gün geri kalanını sıraya koyar.";}else if(h<18){ey.textContent="Şu ana kadar";title.textContent="Bugünün durumu";if(kick)kick.textContent="Kalan hedefi gör, sıradaki işi bitir, devam et.";}else{ey.textContent="Akşam";title.textContent="Günü kapat";if(kick)kick.textContent="Kalanları tamamla ya da yarına taşı; günü detaylı bir raporla kapat.";}}
 function renderV25Today(){try{v25RenderDaypart();v25RenderSummary();v25RenderNext();v25RenderReviews();v25RenderSubjects();v25RenderLast();v25RenderTimeline();v25RenderClose();}catch(e){infraError("v25-today",e);}}
 
 /* Bugün ekranını değiştiren mevcut işlemlerden sonra merkezi de yenile. */
@@ -10412,8 +10868,8 @@ saveSessionNote=function(){const x=v29SessionReviewTarget();if(!x){hideSessionNo
 function v29SkipSessionReview(){const x=v29SessionReviewTarget();if(x){x.focusScore=v29ScoreSession(x);save()}v29ReviewSession=null;hideSessionNote();v29RenderAllFocus()}
 try{el("v29ActualQ")?.addEventListener("input",v29RenderFinishPreview);el("v29Quality")?.addEventListener("change",v29RenderFinishPreview)}catch(e){}
 function v29SessionList(days){const start=addDaysKey(todayKey(),-(days-1)),out=[];Object.keys(S.sessions||{}).filter(k=>k>=start&&k<=todayKey()).sort().forEach(k=>(S.sessions[k]||[]).forEach((x,i)=>{if(x&&x.type==="work"&&x.m>0)out.push(Object.assign({day:k,_i:i},x))}));return out}
-function v29DashboardData(){const list=v29SessionList(1),mins=S.pomoMin[todayKey()]||0,longest=list.reduce((a,x)=>Math.max(a,x.m||0),0),ints=list.reduce((a,x)=>a+(x.interruptions||0),0)+(v29CurrentRuntime().interruptions||0),goal=Math.max(0,S.focus.goalMin||0),remain=Math.max(0,goal-mins);return {list,mins,longest,ints,goal,remain}}
-function v29RenderDashboard(){const w=el("v29Dashboard");if(!w)return;const d=v29DashboardData(),avg=d.list.filter(x=>x.focusScore>0),score=avg.length?Math.round(avg.reduce((a,x)=>a+x.focusScore,0)/avg.length):0;const items=[[fmtHM(d.mins),"bugün odak"],[d.list.length,"oturum"],[d.longest?d.longest+" dk":"—","en uzun"],[d.ints,"kesinti"],[d.goal?(d.remain?fmtHM(d.remain):"✓"):"—",d.goal?"hedefe kalan":"günlük hedef"]];w.innerHTML=items.map(x=>'<div class="v29-dash"><b>'+x[0]+'</b><span>'+x[1]+'</span></div>').join('')+(score?'<div class="v29-dash"><b class="v29-score '+v29ScoreClass(score)+'">'+score+'</b><span>ort. odak puanı</span></div>':'')}
+function v29DashboardData(){const list=v29SessionList(1),mins=S.pomoMin[todayKey()]||0,longest=list.reduce((a,x)=>Math.max(a,x.m||0),0),ints=list.reduce((a,x)=>a+(x.interruptions||0),0)+(v29CurrentRuntime().interruptions||0),goal=Math.max(0,S.focus.goalMin||0),remain=Math.max(0,goal-mins),todaySubj=(S.pomoSubj&&S.pomoSubj[todayKey()])||{},topEntry=Object.entries(todaySubj).map(([subject,minutes])=>[subject,Math.max(0,Number(minutes)||0)]).sort((a,b)=>b[1]-a[1])[0]||null,topSubject=topEntry?topEntry[0]:"",topMinutes=topEntry?topEntry[1]:0;return {list,mins,longest,ints,goal,remain,topSubject,topMinutes}}
+function v29RenderDashboard(){const w=el("v29Dashboard");if(!w)return;const d=v29DashboardData(),avg=d.list.filter(x=>x.focusScore>0),score=avg.length?Math.round(avg.reduce((a,x)=>a+x.focusScore,0)/avg.length):0;const remainValue=d.goal?(d.remain?fmtHM(d.remain):"✓"):"—",remainLabel=d.goal?(d.remain?"hedefe kalan":"hedef tamam"):"günlük hedef",topValue=d.topSubject||"—",topLabel=d.topSubject?(fmtHM(d.topMinutes)+" · en çok çalışılan"):"en çok çalışılan";const items=[{v:fmtHM(d.mins),l:"bugün toplam",c:"is-primary"},{v:remainValue,l:remainLabel,c:"is-goal"},{v:topValue,l:topLabel,c:"is-subject"},{v:d.list.length,l:"oturum",c:""},{v:d.longest?d.longest+" dk":"—",l:"en uzun",c:""},{v:d.ints,l:"kesinti",c:""}];if(score)items.push({v:score,l:"ort. odak puanı",c:"is-score "+v29ScoreClass(score)});w.innerHTML=items.map(x=>'<div class="v29-dash '+x.c+'"><b>'+esc(String(x.v))+'</b><span>'+esc(String(x.l))+'</span></div>').join('')}
 function v29SessionLabel(x){return (x.subj||"Ders")+(x.topic?" · "+x.topic:"")}
 function v29RenderTimeline(){const w=el("v29Timeline");if(!w)return;const a=v29SessionList(1).sort((x,y)=>(x.t||0)-(y.t||0));if(!a.length){w.innerHTML='<div class="empty">Bugün oturum yaptıkça saat saat akış burada oluşur.</div>';return}w.innerHTML='<div class="v29-timeline">'+a.map(x=>{const st=new Date(x.t||0),en=new Date((x.end||((x.t||0)+(x.m||0)*60000))),hh=st.toLocaleTimeString("tr-TR",{hour:"2-digit",minute:"2-digit"}),eh=en.toLocaleTimeString("tr-TR",{hour:"2-digit",minute:"2-digit"});return '<div class="v29-tl-row"><span class="v29-tl-time">'+hh+'</span><div class="v29-tl-main"><b>'+esc(v29SessionLabel(x))+'</b><span>'+esc(x.goal||"")+(x.actualQ?' · '+x.actualQ+' soru':'')+'</span></div><span class="v29-tl-dur">'+x.m+' dk<br>'+eh+'</span></div>'}).join('')+'</div>'}
 function v29RenderUnified(){const w=el("v29UnifiedHistory");if(!w)return;const a=v29SessionList(30).sort((x,y)=>(y.t||0)-(x.t||0)).slice(0,40);if(!a.length){w.innerHTML='<div class="empty">Pomodoro ve kronometre oturumların tek listede burada görünür.</div>';return}w.innerHTML=a.map(x=>{const dt=parseKey(x.day).toLocaleDateString("tr-TR",{day:"numeric",month:"short"}),mode=x.source==="sw"?'Kronometre':x.source==="pomo"?'Pomodoro':'Oturum',sc=x.focusScore?'<span class="v29-focus-score-pill '+v29ScoreClass(x.focusScore)+'">'+x.focusScore+'/100</span>':'';return '<div class="v29-unified-row"><div class="v29-unified-head"><b>'+esc(v29SessionLabel(x))+' '+sc+'</b><span>'+dt+' · '+x.m+' dk</span></div><div class="v29-unified-meta">'+mode+(x.goal?' · '+esc(x.goal):'')+(x.actualQ?' · '+x.actualQ+' soru':'')+(x.interruptions?' · '+x.interruptions+' kesinti':'')+(x.note?' · '+esc(x.note):'')+'</div></div>'}).join('')}
@@ -10434,7 +10890,7 @@ const __v29RenderSw=renderSw;renderSw=function(){const r=__v29RenderSw();try{v29
 const __v29SetPomoSubject=setPomoSubject;setPomoSubject=function(n){const r=__v29SetPomoSubject(n);v29RenderSetup();return r}
 const __v29SetPomoTopic=setPomoTopic;setPomoTopic=function(v){const r=__v29SetPomoTopic(v);v29RenderSetup();return r}
 function v29ToggleMinimal(force){const ov=el('v29MinimalOverlay');if(!ov)return;const on=typeof force==='boolean'?force:!ov.classList.contains('show');ov.classList.toggle('show',on);ov.setAttribute('aria-hidden',on?'false':'true');document.body.classList.toggle('v29-minimal-lock',on);v29RenderMinimal()}
-function v29RenderMinimal(){const ov=el('v29MinimalOverlay');if(!ov)return;const sub=el('v29MinimalSubject'),goal=el('v29MinimalGoal'),clock=el('v29MinimalClock'),state=el('v29MinimalState'),btn=el('v29MinimalToggle');if(sub)sub.textContent=(pomoSubject||'Ders')+(typeof pomoTopic!=='undefined'&&pomoTopic?' · '+pomoTopic:'');if(goal)goal.textContent=[v29Goal(),v29GoalQ()?v29GoalQ()+' soru':''].filter(Boolean).join(' · ');if(S.focus.mode==='sw'){const ms=swElapsed();if(clock)clock.textContent=fmtSw(ms);if(state)state.textContent=sw().run?'Kronometre çalışıyor':(ms?'Duraklatıldı':'Hazır');if(btn)btn.textContent=sw().run?'Duraklat':(ms?'Devam et':'Başlat')}else{if(clock)clock.textContent=fmtT(pomoLeft);if(state)state.textContent=pomoState==='running'?'Odak devam ediyor':pomoState==='paused'?'Duraklatıldı':'Hazır';if(btn)btn.textContent=pomoState==='running'?'Duraklat':pomoState==='paused'?'Devam et':'Başlat'}}
+function v29RenderMinimal(){const ov=el('v29MinimalOverlay');if(!ov)return;const sub=el('v29MinimalSubject'),goal=el('v29MinimalGoal'),clock=el('v29MinimalClock'),state=el('v29MinimalState'),btn=el('v29MinimalToggle'),mode=el('v29MinimalMode'),ring=el('v29MinimalRing'),today=el('v29MinimalToday'),round=el('v29MinimalRound'),percent=el('v29MinimalPercent'),hint=el('v29MinimalHint');if(sub)sub.textContent=(pomoSubject||'Ders')+(typeof pomoTopic!=='undefined'&&pomoTopic?' · '+pomoTopic:'');if(goal)goal.textContent=[v29Goal(),v29GoalQ()?v29GoalQ()+' soru':''].filter(Boolean).join(' · ')||'Dikkatini tek işe ver';const todayMin=Math.max(0,Math.round(S.pomoMin?.[todayKey()]||0));if(today)today.textContent=fmtHM(todayMin);if(S.focus.mode==='sw'){const ms=swElapsed(),running=!!sw().run;if(mode)mode.textContent='Kronometre';if(clock)clock.textContent=fmtSw(ms);if(state)state.textContent=running?'Odak devam ediyor':(ms?'Duraklatıldı':'Hazır');if(btn)btn.textContent=running?'Duraklat':(ms?'Devam et':'Başlat');if(ring)ring.style.setProperty('--minimal-progress',running?100:18);if(percent)percent.textContent=running?'∞':'—';if(round)round.textContent='Serbest';if(hint)hint.textContent=running?'Süre akıyor. Dikkatini bölme.':'Hazırsan kaldığın yerden devam et.'}else{const total=Math.max(1,Number(pomoTotal)||1),left=Math.max(0,Number(pomoLeft)||0),progress=Math.max(0,Math.min(100,Math.round((total-left)/total*100))),running=pomoState==='running';if(mode)mode.textContent=pomoIsWork?'Pomodoro · Çalışma':'Pomodoro · Mola';if(clock)clock.textContent=fmtT(left);if(state)state.textContent=running?(pomoIsWork?'Odak devam ediyor':'Mola devam ediyor'):pomoState==='paused'?'Duraklatıldı':'Hazır';if(btn)btn.textContent=running?'Duraklat':pomoState==='paused'?'Devam et':'Başlat';if(ring)ring.style.setProperty('--minimal-progress',progress);if(percent)percent.textContent=progress+'%';if(round)round.textContent=Math.max(1,Math.round(total/60))+' dk';if(hint)hint.textContent=running?(pomoIsWork?'Bu turda sadece seçtiğin işe odaklan.':'Nefes al, ekranı bırak ve dinlen.'):'Hazırsan tek dokunuşla başla.'}ov.dataset.running=(S.focus.mode==='sw'?sw().run:pomoState==='running')?'1':'0';ov.dataset.phase=S.focus.mode==='sw'?'stopwatch':(pomoIsWork?'work':'break')}
 function v29MinimalToggleTimer(){if(S.focus.mode==='sw')swToggle();else togglePomo();v29RenderMinimal()}
 function v29QuickBreak(){if(S.focus.mode==='sw'){if(sw().run)swPause();else toast('Kronometre zaten duraklatılmış')}else{if(pomoState==='running')pausePomo();else toast('Sayaç zaten duraklatılmış')}v29RenderMinimal()}
 const __v29PomoClock=renderPomoClock;renderPomoClock=function(){const r=__v29PomoClock();v29RenderMinimal();return r}
@@ -10444,6 +10900,78 @@ const __v29Built=runBuiltInSelfTest;runBuiltInSelfTest=function(){__v29Built();c
 try{const q=new URLSearchParams(location.search).get('selftest');if(q==='v29')setTimeout(runV29SelfTest,260)}catch(e){}
 try{setTimeout(()=>{v29RenderAllFocus();v29RenderSetup()},320)}catch(e){}
 
+
+/* v47 Stopwatch workflow enhancements */
+const __v47SetPomoSubject=setPomoSubject;
+function swPushMarker(label){
+  if(!Array.isArray(S.focus.swLaps))S.focus.swLaps=[];
+  S.focus.swLaps.push({t:swElapsed(),subj:String(label||"").slice(0,90)});
+  if(S.focus.swLaps.length>50)S.focus.swLaps=S.focus.swLaps.slice(-50);
+}
+function swSwitchSubject(next){
+  next=String(next||"").trim();
+  if(!next)return;
+  const current=pomoSubject||SUBJ_NAMES[0]||"Ders";
+  if(next===current){swRenderTools();return;}
+  const s=sw();
+  if(s.run){
+    const now=Date.now(),runStart=Number(s.start)||now,elapsed=swElapsedAt(s,now);
+    swCreditElapsed(elapsed);
+    swHistoryAdd(Math.max(0,now-runStart),current,runStart,now);
+    s.acc=elapsed;
+    s.start=now;
+    swPushMarker("↔ "+current+" → "+next);
+  }
+  const result=__v47SetPomoSubject(next);
+  save();
+  renderSw();
+  renderSwHistory();
+  toast(s.run?"Ders değişti · süre sıfırlanmadı":"Aktif ders: "+next);
+  return result;
+}
+setPomoSubject=function(n){
+  if(S.focus&&S.focus.mode==="sw"&&sw().run&&String(n||"").trim()&&String(n)!==String(pomoSubject||""))return swSwitchSubject(n);
+  const result=__v47SetPomoSubject(n);
+  if(S.focus&&S.focus.mode==="sw")try{swRenderTools()}catch(e){}
+  return result;
+};
+function swMarkBreak(){
+  const s=sw();
+  if(!s.run){toast("Mola işaretlemek için kronometre çalışıyor olmalı");return;}
+  swPause();
+  swPushMarker("☕ Mola");
+  try{setPauseReason("break")}catch(e){}
+  save();
+  renderSw();
+  toast("Mola işaretlendi · kronometre duraklatıldı");
+}
+function swRenderTools(){
+  const s=sw(),active=el("swActiveSubject"),pick=el("swSubjectSwitch"),note=el("swSessionNote"),laps=Array.isArray(S.focus.swLaps)?S.focus.swLaps:[];
+  if(active)active.textContent=pomoSubject||"Ders";
+  if(pick&&document.activeElement!==pick){
+    pick.innerHTML=SUBJ_NAMES.map(n=>'<option value="'+esc(n)+'"'+(n===pomoSubject?' selected':'')+'>'+esc(n)+'</option>').join("");
+  }
+  if(note){
+    const count=laps.length,mode=s.run?"Çalışıyor":(swElapsed()?"Duraklatıldı":"Hazır");
+    note.textContent=mode+" · "+(pomoSubject||"Ders")+(count?" · "+count+" tur/işaret":"")+" · ders değişiminde kronometre sıfırlanmaz.";
+  }
+  const lw=el("swLaps");
+  if(!lw)return;
+  if(!laps.length){lw.innerHTML='<div class="empty">Henüz tur yok. Tur kaydet, mola işaretle veya çalışırken ders değiştir.</div>';return;}
+  let prev=0;
+  const rows=laps.map((L,i)=>{
+    const v=(L&&typeof L==="object")?Math.max(0,Number(L.t)||0):Math.max(0,Number(L)||0),raw=(L&&typeof L==="object")?String(L.subj||""):"",split=Math.max(0,v-prev);prev=v;
+    const isBreak=raw.startsWith("☕"),isSwitch=raw.startsWith("↔"),label=isBreak?"Mola":isSwitch?raw.slice(2).trim():((i+1)+". tur"+(raw?" · "+raw:""));
+    return '<div class="dayrow sw-lap-row '+(isBreak?"is-break":isSwitch?"is-switch":"")+'"><span class="k">'+esc(label)+'</span><span class="v">'+fmtSw(split)+' <em class="dl flat">'+fmtSw(v)+'</em></span></div>';
+  });
+  lw.innerHTML=rows.reverse().join("");
+}
+const __v47RenderSw=renderSw;
+renderSw=function(){
+  const result=__v47RenderSw();
+  swRenderTools();
+  return result;
+};
 
 /* ==================================================================
    YKS DEFTERİM v3.0.0 — DAHA 2.0

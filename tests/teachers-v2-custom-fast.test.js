@@ -32,6 +32,9 @@ test("Ferrum doğrulanmış kimya kanalıyla doğrudan hızlı erişime bağlan�
   const source=custom(),feedPatch=patcher(),sourceMap=sources();
   assert.match(source,/ferrum:\{subject:"Kimya",channelId:"UC0yco2kB3xW3WI__8E8HaKw",channelName:"Ferrum"\}/);
   assert.match(sourceMap,/"Ferrum":\{channelId:"UC0yco2kB3xW3WI__8E8HaKw",channelName:"Ferrum"\}/);
+  assert.match(sourceMap,/"Rehber Matematik":\[[\s\S]*zspU5vVjpLs[\s\S]*f6P_SLrivps/);
+  assert.match(sourceMap,/"Bıyıklı Matematik":\[[\s\S]*DV0tZzKFbw0[\s\S]*qNT_JmKKO8s/);
+  assert.match(sourceMap,/"Ferrum":\[[\s\S]*Uzz4Z_iV4cA/);
   assert.match(feedPatch,/channelSource:teacher\.searchOnly\?"verified-shared-search":\(teacher\.channelId\?"verified":"verified-handle"\)/);
 });
 
@@ -40,7 +43,7 @@ test("Doğrulanmış hocaların hızlı önizlemesi yt-dlp yerine YouTube RSS ku
   assert.match(source,/feeds\/videos\.xml\?channel_id=/);
   assert.match(source,/AbortController/);
   assert.match(source,/RSS_TIMEOUT_MS=7000/);
-  assert.match(source,/MAX_PREVIEW_VIDEOS=15/);
+  assert.match(source,/MAX_PREVIEW_VIDEOS=24/);
   assert.match(source,/CONCURRENCY=8/);
   assert.doesNotMatch(source,/spawn\(/);
   assert.doesNotMatch(source,/yt_dlp/);
@@ -52,20 +55,21 @@ test("Doğrulanmış hocaların hızlı önizlemesi yt-dlp yerine YouTube RSS ku
   assert.match(source,/playlists=mergePlaylists\(playlists,freshPlaylists\)/);
 });
 
-test("Ortak kanal hocası odaklı aramayla 15 videoya tamamlanır",()=>{
+test("Ortak kanal hocası odaklı aramayla 24 videoya tamamlanır",()=>{
   const sourceMap=sources(),deep=refresh(),pages=archive();
   assert.match(sourceMap,/"Görkem Şahin · Benim Hocam":\{[^\n]*searchOnly:true[^\n]*queryHint:"Görkem Şahin Kimya"/);
-  assert.match(deep,/const MAX_VIDEOS=15/);
+  assert.match(deep,/const MAX_VIDEOS=24/);
   assert.match(deep,/SEARCH_BATCH=24/);
   assert.match(deep,/teacher\.queryHint\|\|teacher\.name/);
   assert.match(deep,/odaklı arama sonucu/);
   assert.match(pages,/ARCHIVE_VIDEO_LIMIT=240/);
   assert.match(pages,/teacher\.queryHint\|\|teacher\.name/);
   assert.match(pages,/teacher\.searchOnly\?"focused-search":"search"/);
-  assert.match(pages,/PLAYLIST_PREVIEW_COUNT=10/);
-  assert.match(pages,/feeds\/videos\.xml\?playlist_id=/);
-  assert.match(pages,/previewSource:"youtube-rss"/);
-  assert.match(pages,/listede video önizleme/);
+  assert.match(pages,/PLAYLIST_FULL_COUNT=40/);
+  assert.match(pages,/PLAYLIST_VIDEO_LIMIT=500/);
+  assert.match(pages,/enrichPlaylistContents/);
+  assert.match(pages,/previewSource:"yt-dlp-full"/);
+  assert.match(pages,/listede tam video içeriği/);
 });
 
 test("Geliştirme ve yayın aynı isteğe bağlı medya yükleyicisini kullanır",()=>{

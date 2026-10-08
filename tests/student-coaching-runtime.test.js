@@ -51,6 +51,41 @@ test("yeni öğrencinin ilk koç paylaşımı program dahil Firestore şemasın�
   assert.equal(share.program.weeks[0].data.s[0][0],"Matematik");
 });
 
+test("takip raporu için son 7 günün günlük ve ders bazlı dağılımı paylaşılır",async()=>{
+  const h=harness({now:"2026-10-06T12:00:00Z"});
+  h.state.pomoMin={"2026-10-05":90,"2026-10-06":45};
+  h.state.solved={"2026-10-05":120,"2026-10-06":60};
+  h.state.pomoSubj={"2026-10-05":{Matematik:60,Fizik:30},"2026-10-06":{Matematik:45}};
+  h.state.solvedTopic={"2026-10-05":{"TYT|Matematik|Problemler":80,"TYT|Fizik|Hareket":40},"2026-10-06":{"TYT|Matematik|Temel Kavramlar":60}};
+  await h.signIn();await h.window.YKSAccountAuth.publishShare();
+  const progress=h.docs.get("coachingShares/student-1").progress;
+  assert.equal(progress.daily14.length,14);
+  assert.deepEqual(progress.daily14.slice(-2),[
+    {date:"2026-10-05",minutes:90,questions:120},
+    {date:"2026-10-06",minutes:45,questions:60}
+  ]);
+  assert.deepEqual(progress.subjects7,[
+    {name:"Matematik",minutes:105,questions:140},
+    {name:"Fizik",minutes:30,questions:40}
+  ]);
+});
+
+test("paragraf ve problem takip kayıtları koç paylaşımına doğru şemayla gider",async()=>{
+  const h=harness();
+  h.state.paragraphProblem={entries:[
+    {id:"pp-1",date:"2026-09-18",kind:"paragraph",correct:24,wrong:4,blank:2,createdAt:100},
+    {id:"pp-2",date:"2026-09-17",kind:"problem",correct:18,wrong:2,blank:0,createdAt:90}
+  ]};
+  h.state.lab={paragraphLog:[{id:"legacy",at:1,words:500,seconds:60,wpm:500,score:90,title:"Eski kayıt"}]};
+  await h.signIn();await h.window.YKSAccountAuth.publishShare();
+  const entries=h.docs.get("coachingShares/student-1").paragraphProblem.entries;
+  assert.deepEqual(entries,[
+    {id:"pp-1",date:"2026-09-18",kind:"paragraph",correct:24,wrong:4,blank:2,createdAt:100},
+    {id:"pp-2",date:"2026-09-17",kind:"problem",correct:18,wrong:2,blank:0,createdAt:90}
+  ]);
+  assert.equal(entries.some(item=>item.id==="legacy"),false,"Eski hızlı okuma paragrafLog verisi P&P yerine gönderilmemeli");
+});
+
 test("koç paylaşımı başlangıçta ve sonraki yazımlarda güncel yerel programı v3 haritası olarak taşır",async()=>{
   const seed=harness();await seed.signIn();await seed.window.YKSAccountAuth.publishShare();
   const existing=seed.docs.get("coachingShares/student-1");
@@ -70,6 +105,30 @@ test("koç görevleri addToDay API'sine hedef tarihin sayısal hafta uzaklığı
   h.window.testApplyAction({type:"post_exam_task",payload:{text:"Geçmiş görev",date:"2026-09-06"}});
   assert.equal(h.tasks[0].day,0);assert.equal(h.tasks[0].weekOffset,3);
   assert.equal(h.tasks[1].day,6);assert.equal(h.tasks[1].weekOffset,-2);
+});
+
+test("koç program görevi güvenli addToDays yolunu kullanır ve eski günü ezmez",()=>{
+  const h=harness(),safeCalls=[];
+  h.window.addToDays=(text,days,weekOffset)=>{safeCalls.push({text,days:[...days],weekOffset});return{ok:true,days:[...days]}};
+  h.window.testApplyAction({type:"program_task",payload:{text:"Yeni görev",date:"2026-10-06"}});
+  assert.deepEqual(safeCalls,[{text:"Koç · Yeni görev",days:[1],weekOffset:3}]);
+  assert.equal(h.tasks.length,0,"Güvenli API varken eski addToDay çağrılmamalı");
+});
+
+test("koç program düzenlemesi doğrudan güncelleme köprüsünü tercih eder",()=>{
+  const h=harness(),calls=[];
+  h.window.programUpdateTask=(...args)=>{calls.push(["update",...args]);return true};
+  h.window.programEditTask=(...args)=>{calls.push(["edit",...args]);return true};
+  h.window.testApplyAction({type:"program_task",payload:{operation:"edit",sourceWeek:"2026-10-05",taskId:"s-0-1",text:"Koç · Düzeltilmiş görev"}});
+  assert.deepEqual(calls,[["update","2026-10-05","s-0-1","Koç · Düzeltilmiş görev"]]);
+});
+
+
+test("koç program silme aksiyonu doğrudan silme köprüsünü kullanır",()=>{
+  const h=harness(),calls=[];
+  h.window.programDeleteTask=(...args)=>{calls.push(args);return true};
+  h.window.testApplyAction({type:"program_task",payload:{operation:"delete",sourceWeek:"2026-10-05",taskId:"s-0-1"}});
+  assert.deepEqual(calls,[["2026-10-05","s-0-1"]]);
 });
 
 test("gerçek addToDay gelecekteki ve geçmişteki koç görevini doğru haftaya yazar",()=>{
@@ -199,7 +258,7 @@ test("yerel veriyi bekleyen eski giriş yeni oturumda dinleyici ve zamanlayıcı
   assert.ok([...h.timers.values()].some(timer=>timer.ms===50));
   h.window.YKSAccountAuth.onSignedOut();h.window.S=h.state;await h.signIn("student-2");
   h.runTimer(50);await first;
-  assert.equal(h.intervals.size,1);assert.equal(h.events.size,1);
+  assert.equal(h.intervals.size,1);assert.equal(h.events.size,2);
   await h.window.YKSAccountAuth.publishShare();
   assert.equal(h.docs.get("coachingShares/student-2").studentUid,"student-2");
   assert.equal(h.docs.has("coachingShares/student-1"),false);

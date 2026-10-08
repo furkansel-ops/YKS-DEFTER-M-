@@ -7,7 +7,7 @@ const {stripTypeScriptTypes}=require("node:module");
 const root=path.resolve(__dirname,"..");
 const source=fs.readFileSync(path.join(root,"src/ui/refined-program.ts"),"utf8");
 const runtime=stripTypeScriptTypes(source.replace(/^import "\.\/refined-program\.css";\r?\n/,""),{mode:"strip"}).replace(/^export /gm,"");
-const api=vm.runInNewContext(runtime+"\n({refinedProgramTasks,refinedProgramWeekOffset,refinedProgramQuickText,refinedProgramResourceUrl,refinedProgramSubjectLabel,createRefinedProgramController})",{Date,URL});
+const api=vm.runInNewContext(runtime+"\n({refinedProgramTasks,refinedProgramWeekOffset,refinedProgramQuickText,refinedProgramResourceUrl,refinedProgramTaskDetail,refinedProgramSubjectLabel,createRefinedProgramController})",{Date,URL});
 const plain=value=>JSON.parse(JSON.stringify(value));
 const rows=()=>[Array(7).fill(""),Array(7).fill("")];
 function week(){return {r:rows(),s:rows(),dn:{},done:Array(7).fill(false),mv:{}};}
@@ -21,12 +21,12 @@ function harness(){
   for(const name of ["keyOf","parseKey","addDaysKey","dowOf","mondayOf","thisWeek","clone"]){
     const definition=app.match(new RegExp(`^function ${name}\\([^\\n]+$`,"m"));assert.ok(definition,name);vm.runInContext(definition[0],context);
   }
-  for(const name of ["blankWeek","normWeek","getWeek","programTaskCompleted","programSetCellDone","toggleCellDone","shiftWeek","addToDay","addToDays"]){
+  for(const name of ["validDateKey","blankWeek","normWeek","getWeek","programTaskCompleted","programSetCellDone","toggleCellDone","programDayTaskIds","programSetDayOrder","programUpdateTask","programDeleteTask","shiftWeek","addToDay","addToDays"]){
     const definition=app.match(new RegExp(`function ${name}\\([^\\n]*\\)\\{[\\s\\S]*?\\r?\\n}`));assert.ok(definition,name);vm.runInContext(definition[0],context);
   }
   const controller=api.createRefinedProgramController({readState:()=>state,visibleWeek:()=>context.keyOf(context.curWeek),shiftWeek:context.shiftWeek,thisWeek:context.thisWeek,
-    setProgTab:tab=>calls.push(["setProgTab",tab]),toggleCellDone:context.toggleCellDone,addToDay:context.addToDay,addToDays:context.addToDays,
-    openPlanCellMenu:(...args)=>calls.push(["menu",...args])},()=>fixed);
+    setProgTab:tab=>calls.push(["setProgTab",tab]),toggleCellDone:context.toggleCellDone,addToDay:context.addToDay,addToDays:context.addToDays,setDayOrder:context.programSetDayOrder,
+    updateTask:context.programUpdateTask,deleteTask:context.programDeleteTask},()=>fixed);
   return {state,calls,controller,context};
 }
 
@@ -34,7 +34,7 @@ test("daily cards read only real cells, preserve their identity and never mutate
   const h=harness(),data=h.state.weeks["2026-09-21"];
   data.r[0][4]="  Paragraf · 20 soru  ";data.s[1][4]="AYT Biyoloji\nHücre";data.s[0][5]="Cumartesi çalışması";data.dn["r-0-4"]=1;data.done[4]=true;
   const before=JSON.stringify(h.state),tasks=plain(h.controller.snapshot().tasks);
-  assert.deepEqual(tasks,[{id:"r-0-4",block:"r",row:0,day:4,text:"Paragraf · 20 soru",label:"Sabah rutini",done:true},{id:"s-1-4",block:"s",row:1,day:4,text:"AYT Biyoloji\nHücre",label:"Çalışma",done:false}]);
+  assert.deepEqual(tasks,[{id:"r-0-4",block:"r",row:0,day:4,text:"Paragraf · 20 soru",label:"Sabah rutini",done:true},{id:"s-1-4",block:"s",row:1,day:4,text:"AYT Biyoloji\nHücre",label:"AYT Biyoloji",done:false}]);
   assert.equal(JSON.stringify(h.state),before);assert.equal(h.controller.snapshot().date,"2026-09-25");
   assert.deepEqual(plain(h.controller.snapshot().days[4]),{label:"Cum",date:"2026-09-25",count:2,done:1});
 });
@@ -63,12 +63,13 @@ test("full days and blank submissions cannot overwrite existing plan cells",()=>
   assert.equal(JSON.stringify(h.state),before);assert.equal(h.calls.filter(call=>call[0]==="save").length,0);
 });
 
-test("completion and task actions keep legacy cell keys, saving, and menu behavior",()=>{
+test("completion and weekly editing keep the same program cell identity",()=>{
   const h=harness(),data=h.state.weeks["2026-09-21"];data.s[1][4]="Fizik";
   assert.equal(h.controller.toggleTask("s-1-4"),true);assert.equal(data.dn["s-1-4"],1);assert.equal(h.controller.snapshot().tasks[0].done,true);
-  assert.equal(h.controller.openTask("s-1-4"),true);assert.deepEqual(h.calls.find(call=>call[0]==="menu"),["menu","2026-09-21","s",1,4]);
-  assert.equal(h.controller.toggleTask("s-1-4"),true);assert.equal(data.dn["s-1-4"],undefined);assert.equal(h.calls.filter(call=>call[0]==="save").length,2);
-  data.s[1][4]="";assert.equal(h.controller.toggleTask("s-1-4"),false);assert.equal(h.controller.openTask("s-1-4"),false);assert.deepEqual(data.dn,{});
+  assert.equal(h.controller.updateTask("s-1-4","TYT Fizik · Hareket · 30 soru"),true);
+  assert.equal(data.s[1][4],"TYT Fizik · Hareket · 30 soru");assert.equal(data.dn["s-1-4"],1);
+  assert.equal(h.controller.toggleTask("s-1-4"),true);assert.equal(data.dn["s-1-4"],undefined);assert.equal(h.calls.filter(call=>call[0]==="save").length,3);
+  data.s[1][4]="";assert.equal(h.controller.toggleTask("s-1-4"),false);assert.equal(h.controller.updateTask("s-1-4","Yeni"),false);assert.deepEqual(data.dn,{});
 });
 
 test("daily task controller reports a failed completion save without changing its existing task",()=>{
@@ -135,6 +136,14 @@ test("quick text formats only selected goals and validates meaningful numeric bo
 });
 
 
+test("daily task detail separates lesson copy from its linked video resource",()=>{
+  assert.deepEqual(plain(api.refinedProgramTaskDetail("TYT Matematik · Temel Kavramlar · 30 soru — https://youtu.be/dQw4w9WgXcQ","Matematik")),{
+    display:"TYT Matematik · Temel Kavramlar · 30 soru",title:"TYT Matematik",meta:"Temel Kavramlar · 30 soru",url:"https://youtu.be/dQw4w9WgXcQ",hasVideo:true
+  });
+  assert.deepEqual(plain(api.refinedProgramTaskDetail("TYT Fizik · Hareket","TYT Fizik")),{
+    display:"TYT Fizik · Hareket",title:"TYT Fizik",meta:"Hareket",url:"",hasVideo:false
+  });
+});
 test("optional program video URL accepts safe web links and rejects invalid schemes",()=>{
   assert.equal(api.refinedProgramResourceUrl(""),"");
   assert.equal(api.refinedProgramResourceUrl("  https://youtu.be/dQw4w9WgXcQ  "),"https://youtu.be/dQw4w9WgXcQ");
@@ -170,7 +179,7 @@ test("linked studies keep the weekly calendar clean and use the shared detail sh
   assert.doesNotMatch(source,/rb-program-calendar-resource/);
   assert.doesNotMatch(source,/rb-program-calendar-task-shell/);
   assert.doesNotMatch(source,/rb-program-resource"/);
-  assert.match(source,/video, bağlantı ve düzenleme seçenekleri açılan detay ekranında/);
+  assert.match(source,/Düzenlemek için yalnız çalışma yazısına dokun/);
 });
 
 
@@ -181,4 +190,101 @@ test("program detail sheet owns linked resource playback actions",()=>{
   assert.match(legacy,/planSheetResourceHtml\(c\)/);
   assert.match(legacy,/link\.listId\?"▶ Oynatma listesini aç":link\.videoId\?"▶ Videoyu izle":"↗ Bağlantıyı aç"/);
   assert.match(legacy,/return cellOpenLink\(c\.txt\)/);
+});
+
+
+test("daily task ordering persists through mv metadata without changing cell identity",()=>{
+  const h=harness(),data=h.state.weeks["2026-09-21"];
+  data.r[0][4]="Paragraf";data.s[0][4]="Matematik";data.s[1][4]="Biyoloji";
+  assert.deepEqual(plain(h.controller.snapshot().tasks).map(task=>task.id),["r-0-4","s-0-4","s-1-4"]);
+  assert.equal(h.controller.reorder(["s-1-4","r-0-4","s-0-4"]),true);
+  assert.deepEqual(plain(data.mv["order-4"]),["s-1-4","r-0-4","s-0-4"]);
+  assert.deepEqual(plain(h.controller.snapshot().tasks).map(task=>task.id),["s-1-4","r-0-4","s-0-4"]);
+  assert.equal(data.r[0][4],"Paragraf");assert.equal(data.s[0][4],"Matematik");assert.equal(data.s[1][4],"Biyoloji");
+});
+
+
+
+
+test("Programım günlükte ders detay aksiyonlarını, haftalıkta yalnız yazıdan düzenlemeyi kullanır",()=>{
+  const source=fs.readFileSync(path.join(root,"src/ui/refined-program.ts"),"utf8");
+  const css=fs.readFileSync(path.join(root,"src/ui/refined-program.css"),"utf8");
+  assert.doesNotMatch(source,/rb-program-select/);
+  assert.doesNotMatch(source,/rb-program-calendar-select/);
+  assert.doesNotMatch(source,/rb-program-movebar/);
+  assert.doesNotMatch(source,/const edit=button\("✎","rb-program-edit"\)/);
+  assert.doesNotMatch(source,/const editTask=button\("✎","rb-program-calendar-edit"\)/);
+  assert.match(source,/const check=button\("","rb-program-check"\)/);
+  assert.match(source,/details=button\("","rb-program-task-details"\)/);
+  assert.match(source,/details\.addEventListener\("click",\(\)=>openDetail\(task,state\.week\)\)/);
+  assert.match(source,/detailVideo\.addEventListener\("click"/);
+  assert.match(source,/cellOpenLink/);
+  assert.match(source,/cellVideo/);
+  assert.match(source,/detailDone\.addEventListener\("click"/);
+  assert.match(source,/const textButton=button\(detail\|\|subjectName,"rb-program-calendar-task-text"\)/);
+  assert.match(source,/textButton\.addEventListener\("click",\(\)=>\{controller\.selectDay\(task\.day\);openEditor\(task,state\.week\);\}\)/);
+  assert.match(css,/\.rb-program-detail-card/);
+  assert.match(css,/\.rb-program-detail-actions/);
+});
+
+
+test("kendim yazayım çalışmaları eski satır etiketini değil gerçek dersi gösterir",()=>{
+  const h=harness(),data=h.state.weeks["2026-09-21"];
+  h.state.rowLabels.s[0]="Mat";
+  data.s[0][1]="TYT fizik soru çözümü";
+  data.s[0][2]="AYT Kimya · Organik tekrar";
+  const sali=h.controller.tasksForDay(1)[0],carsamba=h.controller.tasksForDay(2)[0];
+  assert.equal(sali.label,"TYT Fizik");
+  assert.equal(carsamba.label,"AYT Kimya");
+  assert.equal(api.refinedProgramSubjectLabel("TYT fizik soru çözümü","Mat"),"TYT Fizik");
+  assert.equal(api.refinedProgramSubjectLabel("Koç · TYT Biyoloji · Hücre tekrar","Mat"),"TYT Biyoloji");
+});
+
+
+test("haftalık uzun görev iki satırda kalır ve yeni editör mevcut hücreyi günceller",()=>{
+  const source=fs.readFileSync(path.join(root,"src/ui/refined-program.ts"),"utf8");
+  const css=fs.readFileSync(path.join(root,"src/ui/refined-program.css"),"utf8");
+  const legacy=fs.readFileSync(path.join(root,"app.js"),"utf8");
+  assert.match(source,/rb-program-editor/);
+  assert.match(source,/controller\.updateTask\(editingTaskId,value,editingWeek\)/);
+  assert.match(source,/openEditor\(task,state\.week\)/);
+  assert.match(source,/programUpdateTask/);
+  assert.match(source,/programDeleteTask/);
+  assert.match(source,/editorDelete=button\("Sil","rb-program-editor-delete"\)/);
+  assert.match(source,/controller\.deleteTask\(editingTaskId,editingWeek\)/);
+  assert.match(css,/\.rb-program-editor-delete/);
+  assert.match(css,/-webkit-line-clamp:2/);
+  assert.match(css,/max-height:46px/);
+  assert.match(css,/rb-program-editor-card/);
+  assert.match(legacy,/function programUpdateTask\(wk,id,text\)/);
+  assert.match(legacy,/function programDeleteTask\(wk,id\)/);
+  assert.doesNotMatch(source,/controller\.openTask\(task\.id\)/);
+});
+
+test("weekly edit stays pinned to the week that opened the editor",()=>{
+  const h=harness(),original=h.controller.snapshot().week;
+  h.state.weeks[original].s[0][4]="Eski çalışma";
+  h.controller.moveWeek(1);h.controller.selectDay(1);
+  assert.equal(h.controller.updateTask("s-0-4","Düzeltilmiş çalışma",original),true);
+  assert.equal(h.state.weeks[original].s[0][4],"Düzeltilmiş çalışma");
+  assert.equal(h.state.weeks["2026-09-28"].s[0][4],"");
+});
+
+test("programUpdateTask başarısız kayıtta eski metni geri yükler",()=>{
+  const h=harness(),data=h.state.weeks["2026-09-21"];data.s[0][4]="Eski çalışma";
+  const before=JSON.stringify(data);h.context.save=()=>false;
+  assert.equal(h.controller.updateTask("s-0-4","Yeni çalışma"),false);
+  assert.equal(JSON.stringify(data),before);
+});
+
+
+test("weekly editor deletion removes only the selected task and keeps the rest of the day",()=>{
+  const h=harness(),data=h.state.weeks["2026-09-21"];
+  data.s[0][4]="Matematik";data.s[1][4]="Fizik";data.dn["s-0-4"]=1;data.mv["order-4"]=["s-0-4","s-1-4"];
+  assert.equal(h.controller.deleteTask("s-0-4","2026-09-21"),true);
+  assert.equal(data.s[0][4],"");
+  assert.equal(data.s[1][4],"Fizik");
+  assert.equal(data.dn["s-0-4"],undefined);
+  assert.deepEqual(data.mv["order-4"],["s-1-4"]);
+  assert.equal(h.controller.deleteTask("s-0-4","2026-09-21"),false);
 });

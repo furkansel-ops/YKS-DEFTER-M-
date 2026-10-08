@@ -6,8 +6,8 @@
   const STORE = "state";
   const KEY = "current";
   const TAG = "yks-focus-timer";
-  const MAX_SECONDS = 12 * 60 * 60;
-  const MAX_ELAPSED = 24 * 60 * 60 * 1000;
+  const MAX_SECONDS = 24 * 60 * 60;
+  const MAX_ELAPSED = 7 * 24 * 60 * 60 * 1000;
   let queue = Promise.resolve();
   let opening;
 
@@ -124,6 +124,10 @@
     const notifications = await worker.registration.getNotifications({ tag: TAG });
     for (const notification of notifications) if (notification.tag === TAG && notification.data?.type === "yks-focus") notification.close();
   }
+  async function closeLegacyTimer() {
+    const notifications = await worker.registration.getNotifications({ tag: "yks-focus-running" });
+    for (const notification of notifications) if (notification.tag === "yks-focus-running" && notification.data?.kind === "focus") notification.close();
+  }
   function time(value) {
     return new Date(value).toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" });
   }
@@ -133,6 +137,9 @@
   }
   async function notify(value, enabled) {
     try {
+      // The preceding release used a different timer tag. Leave all unrelated
+      // reminders alone while replacing that obsolete focus notification.
+      await closeLegacyTimer().catch(() => {});
       if (!enabled || !value.snapshot) { await closeTimer(); return null; }
       const snapshot = currentSnapshot(value.snapshot, Date.now()), paused = snapshot.state === "paused";
       const stopwatch = snapshot.mode === "sw", subject = snapshot.subject || (snapshot.isWork ? "Odak oturumu" : "Mola");

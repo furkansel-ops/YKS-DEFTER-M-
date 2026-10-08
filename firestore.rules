@@ -462,7 +462,8 @@ service cloud.firestore {
       return actionType == 'program_task'
         || actionType == 'topic_deadline'
         || actionType == 'coach_note'
-        || actionType == 'post_exam_task';
+        || actionType == 'post_exam_task'
+        || actionType == 'resource_recommendation';
     }
 
     match /coachingMessages/{messageId} {

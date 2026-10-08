@@ -57,7 +57,8 @@ type ArchiveIndex={
 };
 type ArchivePage={version:number;teacher:string;page:number;pageSize:number;total:number;videos:MediaVideo[]};
 type ArchiveState={meta:ArchiveIndex;videos:MediaVideo[];loaded:Set<number>;loading:Set<number>};
-type WatchedRecord={at?:number;title?:string;subj?:string;topic?:string;ch?:string;hoca?:string};
+type WatchStatus="watched"|"partial"|"later";
+type WatchedRecord={at?:number;title?:string;subj?:string;topic?:string;ch?:string;hoca?:string;status?:WatchStatus};
 type LegacyPlanCell={wk?:string;blk?:"r"|"s";i?:number;d?:number};
 type LegacyWindow=Window&{
   watchedMap?:()=>Record<string,WatchedRecord>;
@@ -68,7 +69,7 @@ type LegacyWindow=Window&{
   renderPlan?:()=>void;
   renderTodayPlan?:()=>void;
 };
-type FilterKind="all"|"tyt"|"ayt"|"soru"|"deneme"|"kamp"|"watched"|"unwatched";
+type FilterKind="all"|"tyt"|"ayt"|"soru"|"deneme"|"kamp"|"watched"|"partial"|"later"|"unwatched";
 
 const legacy=window as LegacyWindow;
 const CACHE_KEY="yks_teachers_v2_media_cache";
@@ -83,6 +84,7 @@ let currentFilter:FilterKind="all";
 let activeTeacher="";
 let videoQuery="";
 let playlistQuery="";
+let playlistVideoQuery="";
 let activePlaylistId="";
 let visibleLimit=PAGE_SIZE;
 let playlistLimit=PLAYLIST_PAGE_SIZE;
@@ -200,15 +202,22 @@ async function loadNextArchivePage(name:string,force=false):Promise<boolean>{
   return false;
 }
 function watchedMap():Record<string,WatchedRecord>|null{try{const map=legacy.watchedMap?.();return map&&typeof map==="object"&&!Array.isArray(map)?map:null;}catch{return null;}}
-function isWatched(videoId:string):boolean{const map=watchedMap();return Boolean(videoId&&map?.[videoId]);}
-function watchedCount(media:TeacherMedia):number{const map=watchedMap();if(!map)return 0;return (media.videos||[]).reduce((sum,v)=>sum+(map[v.id]?1:0),0);}
-function toggleWatched(video:MediaVideo,media:TeacherMedia):void{
+function watchStatus(videoId:string):WatchStatus|null{
+  const record=videoId?watchedMap()?.[videoId]:null;if(!record)return null;
+  return record.status==="partial"||record.status==="later"||record.status==="watched"?record.status:"watched";
+}
+function isWatched(videoId:string):boolean{return watchStatus(videoId)==="watched";}
+function watchedCount(media:TeacherMedia):number{return (media.videos||[]).reduce((sum,v)=>sum+(isWatched(v.id)?1:0),0);}
+function setWatchStatus(video:MediaVideo,media:TeacherMedia,status:WatchStatus):void{
   if(!video.id)return;const map=watchedMap();if(!map||typeof legacy.save!=="function"){legacy.toast?.("İzleme kaydı şu an hazır değil");return;}
-  const previous=map[video.id],removing=Boolean(previous);
-  if(removing)delete map[video.id];else map[video.id]={at:Date.now(),title:String(video.title||"").slice(0,120),subj:String(media.subject||"").slice(0,60),topic:"",ch:String(video.channel||media.channelName||media.name||"").slice(0,60),hoca:String(media.name||activeTeacher||"").slice(0,60)};
-  try{if(legacy.save()===false)throw new Error("save failed");legacy.toast?.(removing?"İzledim işareti kaldırıldı":"İzledim ✓");}
+  const previous=map[video.id],current=watchStatus(video.id),clearing=current===status;
+  if(clearing)delete map[video.id];
+  else map[video.id]={at:Date.now(),title:String(video.title||"").slice(0,120),subj:String(media.subject||"").slice(0,60),topic:"",ch:String(video.channel||media.channelName||media.name||"").slice(0,60),hoca:String(media.name||activeTeacher||"").slice(0,60),status};
+  const labels:Record<WatchStatus,string>={watched:"İzlendi ✓",partial:"Yarım kaldı · devam et",later:"Sonra izleye kaydedildi"};
+  try{if(legacy.save()===false)throw new Error("save failed");legacy.toast?.(clearing?"Video durumu kaldırıldı":labels[status]);}
   catch{if(previous)map[video.id]=previous;else delete map[video.id];legacy.toast?.("İzleme kaydı saklanamadı");}
 }
+function toggleWatched(video:MediaVideo,media:TeacherMedia):void{setWatchStatus(video,media,"watched");}
 function kindForTitle(title:string):FilterKind[]{
   const text=norm(title),out:FilterKind[]=["all"];
   if(/\btyt\b/.test(text))out.push("tyt");if(/\bayt\b/.test(text))out.push("ayt");
@@ -217,8 +226,10 @@ function kindForTitle(title:string):FilterKind[]{
 }
 function filteredVideos(media:TeacherMedia):MediaVideo[]{
   let videos=(media.videos||[]).slice();
-  if(currentFilter==="watched")videos=videos.filter(v=>isWatched(v.id));
-  else if(currentFilter==="unwatched")videos=videos.filter(v=>!isWatched(v.id));
+  if(currentFilter==="watched")videos=videos.filter(v=>watchStatus(v.id)==="watched");
+  else if(currentFilter==="partial")videos=videos.filter(v=>watchStatus(v.id)==="partial");
+  else if(currentFilter==="later")videos=videos.filter(v=>watchStatus(v.id)==="later");
+  else if(currentFilter==="unwatched")videos=videos.filter(v=>watchStatus(v.id)===null);
   else if(currentFilter!=="all")videos=videos.filter(v=>kindForTitle(v.title).includes(currentFilter));
   const query=norm(videoQuery);if(query)videos=videos.filter(v=>norm([v.title,v.channel||media.channelName||media.name].join(" ")).includes(query));return videos;
 }
@@ -245,14 +256,19 @@ function addPlanText(text:string,label:string):boolean{
 function videoCards(media:TeacherMedia,videos:MediaVideo[]):string{
   if(!videos.length){const filtered=currentFilter!=="all"||Boolean(videoQuery.trim());return `<div class="teachers-v2-media-empty"><b>${filtered?"Bu süzgeçte yüklenmiş video bulunamadı.":"Henüz video verisi yok."}</b><span>${hasMoreArchive(media.name)?"Arşivde daha fazla video var; aşağıdaki düğmeyle devam et.":"Aramayı veya süzgeci değiştir."}</span></div>`;}
   return videos.map(video=>{
-    const seen=isWatched(video.id),planned=inProgram(planVideoText(video)),channel=video.channel||media.channelName||media.name;
-    return `<article class="teachers-v2-video-card ${seen?"seen":""}" data-video-id="${esc(video.id)}" data-video-title="${esc(video.title)}" data-video-channel="${esc(channel)}" data-video-thumb="${esc(video.thumbnail||"")}">
+    const status=watchStatus(video.id),seen=status==="watched",planned=inProgram(planVideoText(video)),channel=video.channel||media.channelName||media.name;
+    const badge=status==="watched"?"İzlendi":status==="partial"?"Yarım kaldı":status==="later"?"Sonra izle":"";
+    return `<article class="teachers-v2-video-card ${status?`status-${status}`:""}" data-video-id="${esc(video.id)}" data-video-title="${esc(video.title)}" data-video-channel="${esc(channel)}" data-video-thumb="${esc(video.thumbnail||"")}">
       <button class="teachers-v2-video-main" type="button" data-media-action="play" data-video-id="${esc(video.id)}" data-video-title="${esc(video.title)}" aria-label="${esc(video.title)} videosunu oynat">
-        <span class="teachers-v2-video-thumb">${video.thumbnail?`<img src="${esc(video.thumbnail)}" alt="" loading="lazy" referrerpolicy="no-referrer">`:""}<i>▶</i>${seen?'<em>İzlendi</em>':""}</span>
+        <span class="teachers-v2-video-thumb">${video.thumbnail?`<img src="${esc(video.thumbnail)}" alt="" loading="lazy" referrerpolicy="no-referrer">`:""}<i>▶</i>${badge?`<em>${esc(badge)}</em>`:""}</span>
         <span class="teachers-v2-video-copy"><b>${esc(video.title)}</b><small>${esc(channel)}</small></span>
       </button>
       <button class="teachers-v2-video-plan ${planned?"on":""}" type="button" data-media-action="program" data-video-id="${esc(video.id)}">${planned?"✓ Programda":"Programa ekle"}</button>
-      <button class="teachers-v2-video-watch ${seen?"on":""}" type="button" data-media-action="watch" data-video-id="${esc(video.id)}" aria-pressed="${seen?"true":"false"}">${seen?"✓ İzlendi":"○ İzledim"}</button>
+      <div class="teachers-v2-video-status" role="group" aria-label="Video izleme durumu">
+        <button class="teachers-v2-video-watch ${status==="watched"?"on":""}" type="button" data-media-action="status" data-watch-status="watched" data-video-id="${esc(video.id)}" aria-pressed="${status==="watched"}">✓ İzledim</button>
+        <button class="teachers-v2-video-partial ${status==="partial"?"on":""}" type="button" data-media-action="status" data-watch-status="partial" data-video-id="${esc(video.id)}" aria-pressed="${status==="partial"}">◐ Yarım kaldı</button>
+        <button class="teachers-v2-video-later ${status==="later"?"on":""}" type="button" data-media-action="status" data-watch-status="later" data-video-id="${esc(video.id)}" aria-pressed="${status==="later"}">＋ Sonra izle</button>
+      </div>
     </article>`;
   }).join("");
 }
@@ -263,6 +279,24 @@ function visiblePlaylists(media:TeacherMedia):{items:MediaPlaylist[];total:numbe
   return {items:matches.slice(0,playlistLimit),total:playlists.length,matches:matches.length};
 }
 function findPlaylist(media:TeacherMedia,id:string):MediaPlaylist|undefined{return allPlaylists(media).find(item=>item.id===id);}
+function playlistProgress(item:MediaPlaylist):{watched:number;total:number;percent:number;exact:boolean;next:number}{
+  const videos=(Array.isArray(item.videos)?item.videos:[]).filter(video=>Boolean(video?.id));
+  const declared=Math.max(0,Number(item.videoCount||0)),total=Math.max(declared,videos.length);
+  const watched=videos.reduce((sum,video)=>sum+(isWatched(video.id)?1:0),0);
+  const exact=Boolean(videos.length&&(!declared||videos.length>=declared));
+  const denominator=exact?Math.max(1,total):Math.max(1,videos.length);
+  const percent=Math.max(0,Math.min(100,Math.round(watched/denominator*100)));
+  const partialIndex=videos.findIndex(video=>watchStatus(video.id)==="partial");
+  const nextIndex=partialIndex>=0?partialIndex:videos.findIndex(video=>!isWatched(video.id));
+  return {watched,total:total||videos.length,percent,exact,next:nextIndex<0?-1:nextIndex+1};
+}
+function playlistProgressMarkup(item:MediaPlaylist,detail=false):string{
+  const progress=playlistProgress(item);
+  if(!progress.total)return "";
+  const countLabel=progress.exact?`${progress.watched} / ${progress.total} izlendi`:`${progress.watched} izlendi · ${Math.max(0,(item.videos||[]).length)} video yüklü`;
+  const next=progress.next>0?` · Sıradaki ${progress.next}. video`:(progress.exact&&progress.watched>=progress.total?" · Tamamlandı ✓":"");
+  return `<div class="teachers-v2-playlist-progress ${detail?"detail":""}" aria-label="${esc(countLabel)}"><span><b>${esc(countLabel)}</b><em>${progress.exact?`%${progress.percent}`:"Arşiv yükleniyor"}${esc(next)}</em></span><i aria-hidden="true"><b style="width:${progress.percent}%"></b></i></div>`;
+}
 function findVideo(media:TeacherMedia,id:string):MediaVideo|undefined{
   const direct=(media.videos||[]).find(item=>item.id===id);if(direct)return direct;
   for(const playlist of allPlaylists(media)){const hit=(playlist.videos||[]).find(item=>item.id===id);if(hit)return hit;}
@@ -274,16 +308,23 @@ function playlistEmbed(item:MediaPlaylist):string{
 }
 function playlistDetail(media:TeacherMedia,item:MediaPlaylist):string{
   const videos=Array.isArray(item.videos)?item.videos:[],planned=inProgram(planPlaylistText(item));
+  const query=norm(playlistVideoQuery),matches=query?videos.filter(video=>norm([video.title,video.channel||media.channelName||media.name].join(" ")).includes(query)):videos;
+  const progress=playlistProgress(item),videoLabel=progress.exact?`${progress.total} video · ilerlemen kaydediliyor`:(videos.length?`${videos.length} video yüklendi · arşiv tamamlanıyor`:"Listenin tamamını oynatıcıdan izle");
   return `<div class="teachers-v2-playlist-detail">
-    <div class="teachers-v2-playlist-detail-head"><button type="button" data-media-action="playlist-back">‹ Listelere dön</button><div><b>${esc(item.title)}</b><small>${videos.length?`${videos.length} video önizlemesi · Listenin tamamı oynatıcıda`:"Listenin tamamını oynatıcıdan izle"}</small></div><button class="teachers-v2-playlist-plan ${planned?"on":""}" type="button" data-media-action="playlist-program" data-playlist-id="${esc(item.id)}">${planned?"✓ Programda":"Programa ekle"}</button><button type="button" data-media-action="playlist-play" data-playlist-id="${esc(item.id)}">Tüm listeyi izle</button></div>
-    ${videos.length?`<div class="teachers-v2-playlist-video-grid">${videoCards(media,videos)}</div>`:'<p class="teachers-v2-playlist-note">Videolar arasında oynatıcının liste düğmesiyle geçebilirsin.</p>'}
+    <div class="teachers-v2-playlist-detail-head"><button type="button" data-media-action="playlist-back">‹ Listelere dön</button><div><b>${esc(item.title)}</b><small>${esc(videoLabel)}</small></div><button class="teachers-v2-playlist-plan ${planned?"on":""}" type="button" data-media-action="playlist-program" data-playlist-id="${esc(item.id)}">${planned?"✓ Programda":"Programa ekle"}</button><button type="button" data-media-action="playlist-play" data-playlist-id="${esc(item.id)}">Tüm listeyi izle</button></div>
+    ${playlistProgressMarkup(item,true)}
+    ${videos.length?`<div class="teachers-v2-playlist-video-search-row"><label class="teachers-v2-playlist-video-search"><span>⌕</span><input id="teachersV2PlaylistVideoSearch" type="search" autocomplete="off" value="${esc(playlistVideoQuery)}" placeholder="Bu playlistte video ara…" aria-label="Açık oynatma listesindeki videolarda ara"></label><span id="teachersV2PlaylistVideoResult" aria-live="polite">${matches.length} / ${videos.length} video</span></div>`:""}
+    ${videos.length?`<div id="teachersV2PlaylistVideoMatches">${matches.length?`<div class="teachers-v2-playlist-video-grid">${videoCards(media,matches)}</div>`:`<div class="teachers-v2-playlist-empty"><b>Bu playlistte eşleşen video bulunamadı.</b><span>Başka bir konu veya video adı dene.</span></div>`}</div>`:'<p class="teachers-v2-playlist-note">Videolar arasında oynatıcının liste düğmesiyle geçebilirsin.</p>'}
   </div>`;
 }
 function playlistCards(media:TeacherMedia):string{
   const view=visiblePlaylists(media);
   if(!view.total)return `<button class="teachers-v2-playlist-fallback" type="button" data-media-action="playlist-search">Oynatma listelerini YouTube'da bul <span>→</span></button>`;
   if(!view.items.length)return `<div class="teachers-v2-playlist-empty"><b>Bu aramada liste bulunamadı.</b><span>Başka bir kelime dene veya bağlantısını aşağıya yapıştır.</span></div>`;
-  return view.items.map(item=>{const planned=inProgram(planPlaylistText(item)),count=Number(item.videoCount||0),preview=item.videos?.length||0;return `<article class="teachers-v2-playlist-wrap"><button class="teachers-v2-playlist-card" type="button" data-media-action="playlist" data-playlist-id="${esc(item.id)}" aria-label="${esc(item.title)} oynatma listesini aç"><span>▤</span><span class="teachers-v2-playlist-copy"><b>${esc(item.title)}</b><small>${count?`${count} video`:preview?`${preview} video önizlemesi`:"Oynatma listesi"} · Listeyi aç</small></span><i>›</i></button><button class="teachers-v2-playlist-plan ${planned?"on":""}" type="button" data-media-action="playlist-program" data-playlist-id="${esc(item.id)}" aria-label="${esc(item.title)} listesini Programım'a ekle">${planned?"✓ Programda":"Programa ekle"}</button></article>`;}).join("");
+  return view.items.map(item=>{
+    const planned=inProgram(planPlaylistText(item)),count=Number(item.videoCount||0),preview=item.videos?.length||0;
+    return `<article class="teachers-v2-playlist-wrap"><button class="teachers-v2-playlist-card" type="button" data-media-action="playlist" data-playlist-id="${esc(item.id)}" aria-label="${esc(item.title)} oynatma listesini aç"><span>▤</span><span class="teachers-v2-playlist-copy"><b>${esc(item.title)}</b><small>${count?`${count} video`:preview?`${preview} video önizlemesi`:"Oynatma listesi"} · Listeyi aç</small>${playlistProgressMarkup(item)}</span><i>›</i></button><button class="teachers-v2-playlist-plan ${planned?"on":""}" type="button" data-media-action="playlist-program" data-playlist-id="${esc(item.id)}" aria-label="${esc(item.title)} listesini Programım'a ekle">${planned?"✓ Programda":"Programa ekle"}</button></article>`;
+  }).join("");
 }
 function playlistSection(media:TeacherMedia):string{
   const active=activePlaylistId?findPlaylist(media,activePlaylistId):undefined,view=visiblePlaylists(media);
@@ -304,7 +345,7 @@ function isCurrent(overlay:HTMLElement,name:string):boolean{return overlay===las
 async function openPlaylistForCurrent(id:string):Promise<void>{
   if(!activeTeacher||!lastOverlay||!id)return;
   const name=activeTeacher,overlay=lastOverlay;
-  activePlaylistId=id;
+  activePlaylistId=id;playlistVideoQuery="";
   renderMediaSection(overlay,name);
   if(hasMorePlaylistData(name))await loadArchiveIndex(name,false);
   if(isCurrent(overlay,name)&&activePlaylistId===id)renderMediaSection(overlay,name);
@@ -347,7 +388,7 @@ function renderMediaSection(overlay:HTMLElement,name:string):void{
     <div id="teachersV2Panel-playlists" class="teachers-v2-media-panel" role="tabpanel" aria-labelledby="teachersV2Tab-playlists" ${mediaView==="playlists"?"":"hidden"}>${media?playlistSection(media):empty}</div>
     <div id="teachersV2Panel-videos" class="teachers-v2-media-panel" role="tabpanel" aria-labelledby="teachersV2Tab-videos" ${mediaView==="videos"?"":"hidden"}>
       <div class="teachers-v2-media-tools"><label class="teachers-v2-video-search"><span>⌕</span><input id="teachersV2VideoSearch" type="search" autocomplete="off" value="${esc(videoQuery)}" placeholder="Konu veya video adı ara…" aria-label="Bu hocanın video arşivinde ara"></label><span id="teachersV2VideoResult" class="teachers-v2-video-result" aria-live="polite">${media?`${visible.length} / ${filtered.length} sonuç`:""}</span></div>
-      <div class="teachers-v2-media-filters" role="group" aria-label="Video filtresi">${([['all','Tümü'],['tyt','TYT'],['ayt','AYT'],['deneme','Deneme'],['soru','Soru'],['kamp','Kamp / Seri'],['unwatched','İzlenmedi'],['watched','İzlendi']] as [FilterKind,string][]).map(([value,label])=>`<button type="button" class="${currentFilter===value?"on":""}" data-media-action="filter" data-filter="${value}" aria-pressed="${currentFilter===value}">${label}</button>`).join("")}</div>
+      <div class="teachers-v2-media-filters" role="group" aria-label="Video filtresi">${([['all','Tümü'],['tyt','TYT'],['ayt','AYT'],['deneme','Deneme'],['soru','Soru'],['kamp','Kamp / Seri'],['unwatched','İzlenmedi'],['partial','Yarım kaldı'],['later','Sonra izle'],['watched','İzlendi']] as [FilterKind,string][]).map(([value,label])=>`<button type="button" class="${currentFilter===value?"on":""}" data-media-action="filter" data-filter="${value}" aria-pressed="${currentFilter===value}">${label}</button>`).join("")}</div>
       <div id="teachersV2VideoGrid" class="teachers-v2-video-grid">${media?videoCards(media,visible):empty}</div>
       <button id="teachersV2LoadMore" class="teachers-v2-load-more" type="button" data-media-action="more" ${moreState.hidden?"hidden":""}>${esc(moreState.text)}</button>
     </div>
@@ -356,6 +397,16 @@ function renderMediaSection(overlay:HTMLElement,name:string):void{
   search?.addEventListener("input",()=>{videoQuery=search.value;visibleLimit=PAGE_SIZE;searchRevision++;searching=false;const fresh=mediaFor(name);if(fresh)updateVideoGrid(section,fresh);window.clearTimeout(searchTimer);searchTimer=window.setTimeout(()=>void ensureFilterResults(),250);});
   const playlistSearch=section.querySelector<HTMLInputElement>("#teachersV2PlaylistSearch");
   playlistSearch?.addEventListener("input",()=>{playlistQuery=playlistSearch.value;playlistLimit=PLAYLIST_PAGE_SIZE;const fresh=mediaFor(name);if(fresh)updatePlaylistGrid(section,fresh);void ensurePlaylistArchive();});
+  const playlistVideoSearch=section.querySelector<HTMLInputElement>("#teachersV2PlaylistVideoSearch");
+  playlistVideoSearch?.addEventListener("input",()=>{
+    playlistVideoQuery=playlistVideoSearch.value;
+    const fresh=mediaFor(name),item=fresh&&activePlaylistId?findPlaylist(fresh,activePlaylistId):undefined;
+    if(!fresh||!item)return;
+    const videos=Array.isArray(item.videos)?item.videos:[],query=norm(playlistVideoQuery),matches=query?videos.filter(video=>norm([video.title,video.channel||fresh.channelName||fresh.name].join(" ")).includes(query)):videos;
+    const result=section.querySelector<HTMLElement>("#teachersV2PlaylistVideoResult");if(result)result.textContent=`${matches.length} / ${videos.length} video`;
+    const host=section.querySelector<HTMLElement>("#teachersV2PlaylistVideoMatches");
+    if(host)host.innerHTML=matches.length?`<div class="teachers-v2-playlist-video-grid">${videoCards(fresh,matches)}</div>`:`<div class="teachers-v2-playlist-empty"><b>Bu playlistte eşleşen video bulunamadı.</b><span>Başka bir konu veya video adı dene.</span></div>`;
+  });
   section.querySelector<HTMLInputElement>("#teachersV2LinkUrl")?.addEventListener("input",event=>{linkUrl=(event.target as HTMLInputElement).value;});
   section.querySelector<HTMLInputElement>("#teachersV2LinkTitle")?.addEventListener("input",event=>{linkTitle=(event.target as HTMLInputElement).value;});
   section.querySelector(".teachers-v2-media-tabs")?.addEventListener("keydown",event=>{const key=(event as KeyboardEvent).key;if(!["ArrowLeft","ArrowRight","Home","End"].includes(key))return;event.preventDefault();event.stopPropagation();const view=key==="Home"?"playlists":key==="End"?"videos":mediaView==="videos"?"playlists":"videos";switchMediaView(view);lastOverlay?.querySelector<HTMLElement>('#teachersV2Tab-'+view)?.focus();});
@@ -445,16 +496,17 @@ function handleMediaClick(event:MouseEvent):void{
   if(type==="playlist-more"){playlistLimit+=PLAYLIST_PAGE_SIZE;const section=lastOverlay?.querySelector<HTMLElement>(".teachers-v2-media-section");if(section&&media)updatePlaylistGrid(section,media);return;}
   if(type==="playlist-play"){const item=media?findPlaylist(media,action.dataset.playlistId||""):undefined;if(item)openPlaylistPlayer(item);return;}
   if(type==="filter"){
-    const value=action.dataset.filter as FilterKind|undefined;if(value&&["all","tyt","ayt","soru","deneme","kamp","watched","unwatched"].includes(value))currentFilter=value;visibleLimit=PAGE_SIZE;
+    const value=action.dataset.filter as FilterKind|undefined;if(value&&["all","tyt","ayt","soru","deneme","kamp","watched","partial","later","unwatched"].includes(value))currentFilter=value;visibleLimit=PAGE_SIZE;
     searchRevision++;searching=false;const section=lastOverlay?.querySelector<HTMLElement>(".teachers-v2-media-section");if(section&&media)updateVideoGrid(section,media);void ensureFilterResults();return;
   }
   if(type==="more"){void loadMoreForCurrent();return;}
   if(type==="refresh"){archiveStates.delete(keyFor(activeTeacher));if(lastOverlay)void refreshOverlayMedia(lastOverlay,activeTeacher,true);return;}
   if(type==="play"){openPlayer(action.dataset.videoId||"",action.dataset.videoTitle||"");return;}
+  if(type==="status"){const video=media?findVideo(media,action.dataset.videoId||""):undefined,status=action.dataset.watchStatus as WatchStatus|undefined;if(video&&media&&status&&["watched","partial","later"].includes(status)){setWatchStatus(video,media,status);if(lastOverlay)renderMediaSection(lastOverlay,activeTeacher);}return;}
   if(type==="watch"){const video=media?findVideo(media,action.dataset.videoId||""):undefined;if(video&&media){toggleWatched(video,media);if(lastOverlay)renderMediaSection(lastOverlay,activeTeacher);}return;}
   if(type==="program"){const video=media?findVideo(media,action.dataset.videoId||""):undefined;if(video)addPlanText(planVideoText(video),"Video");return;}
   if(type==="playlist"){void openPlaylistForCurrent(action.dataset.playlistId||"");return;}
-  if(type==="playlist-back"){activePlaylistId="";if(lastOverlay&&media)renderMediaSection(lastOverlay,activeTeacher);return;}
+  if(type==="playlist-back"){activePlaylistId="";playlistVideoQuery="";if(lastOverlay&&media)renderMediaSection(lastOverlay,activeTeacher);return;}
   if(type==="playlist-youtube"){openExternal(action.dataset.playlistUrl||"");return;}
   if(type==="playlist-program"){const item=media?findPlaylist(media,action.dataset.playlistId||""):undefined;if(item)addPlanText(planPlaylistText(item),"Oynatma listesi");return;}
   if(type==="playlist-search"){openExternal(playlistSearchUrl(activeTeacher));return;}
@@ -462,7 +514,7 @@ function handleMediaClick(event:MouseEvent):void{
   if(type==="search")openExternal(youtubeSearchUrl(activeTeacher,action.dataset.kind||""));
 }
 function enhanceOverlay(overlay:HTMLElement):void{
-  const heading=overlay.querySelector(".teachers-v2-profile h2")?.textContent?.trim();if(!heading)return;activeTeacher=heading;currentFilter="all";videoQuery="";playlistQuery="";activePlaylistId="";visibleLimit=PAGE_SIZE;playlistLimit=PLAYLIST_PAGE_SIZE;mediaView="playlists";linkUrl="";linkTitle="";searchRevision++;searching=false;window.clearTimeout(searchTimer);lastOverlay=overlay;overlay.removeEventListener("click",handleMediaClick);overlay.addEventListener("click",handleMediaClick);renderMediaSection(overlay,heading);void previewOverlayMedia(overlay,heading,false);
+  const heading=overlay.querySelector(".teachers-v2-profile h2")?.textContent?.trim();if(!heading)return;activeTeacher=heading;currentFilter="all";videoQuery="";playlistQuery="";playlistVideoQuery="";activePlaylistId="";visibleLimit=PAGE_SIZE;playlistLimit=PLAYLIST_PAGE_SIZE;mediaView="playlists";linkUrl="";linkTitle="";searchRevision++;searching=false;window.clearTimeout(searchTimer);lastOverlay=overlay;overlay.removeEventListener("click",handleMediaClick);overlay.addEventListener("click",handleMediaClick);renderMediaSection(overlay,heading);void previewOverlayMedia(overlay,heading,false);
 }
 function decorateCards():void{
   if(!feed)return;document.querySelectorAll<HTMLElement>(".teachers-v2-card[data-name]").forEach(card=>{

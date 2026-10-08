@@ -55,3 +55,28 @@ test("tablet dokunma hedefi ve azaltılmış hareket desteği korunur",()=>{
   assert.match(style,/\.v46-choice-card/);
   assert.match(style,/@media \(prefers-reduced-motion:reduce\)/);
 });
+
+
+test("minimal odak modu premium sayaç görünümü ve canlı ilerleme bilgisi gösterir",()=>{
+  const html=read("index.html"),app=read("app.js"),css=read("app.css");
+  for(const id of ["v29MinimalRing","v29MinimalMode","v29MinimalToday","v29MinimalRound","v29MinimalPercent","v29MinimalHint"])assert.match(html,new RegExp('id="'+id+'"'));
+  assert.match(app,/--minimal-progress/);
+  assert.match(app,/todayMin/);
+  assert.match(app,/Pomodoro · Çalışma/);
+  assert.match(app,/dataset\.running/);
+  assert.match(css,/\.v29-minimal-shell/);
+  assert.match(css,/conic-gradient/);
+  assert.match(css,/\.v29-minimal-stats/);
+  assert.match(css,/\.v29-minimal-primary/);
+});
+
+
+test("minimal odak modu cache ve kısa ekranlarda bozulmadan açılır",()=>{
+  const html=read("index.html"),css=read("app.css");
+  assert.match(html,/href="\.\/app\.css"/);
+  assert.match(css,/\.v29-minimal-shell\{[\s\S]*overflow-y:auto/);
+  assert.match(css,/width:min\(318px,68vw,42dvh\)/);
+  assert.match(css,/@media\(max-height:720px\)/);
+  assert.match(css,/@supports not \(height:100dvh\)/);
+  assert.match(css,/background:var\(--card\)/);
+});

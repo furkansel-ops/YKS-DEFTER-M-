@@ -34,7 +34,7 @@
 /* A slow or failed download may offer a retry, but must never uncover the old DOM. */
 (function(){
   var root=document.documentElement;
-  var visualFeatures=["v43Today","v43Analysis","v43Navigation","v43Personalization","refinedShell"];
+  var visualFeatures=["v43Today","v43Navigation","refinedShell"];
   var timeout;
   root.dataset.bootState="loading";
   function updateStatus(){
@@ -44,6 +44,12 @@
     if(retry)retry.hidden=!waiting&&!failed;
   }
   function fail(){if(root.dataset.uiReady!=="true"){root.dataset.bootState="error";updateStatus();}}
+  function noteError(){
+    if(root.dataset.uiReady==="true")return;
+    root.dataset.bootErrorSeen="1";
+    if(root.dataset.bootState==="loading")root.dataset.bootState="waiting";
+    updateStatus();
+  }
   function isReady(){
     return root.dataset.v4Runtime==="ready"&&visualFeatures.every(function(name){return root.dataset[name]==="true"&&root.dataset[name+"Errors"]==="0";})&&
       !!document.getElementById("refinedBrand")&&!!document.getElementById("refinedProgram")&&
@@ -56,13 +62,13 @@
       window.clearTimeout(timeout);root.dataset.bootState="ready";root.dataset.uiReady="true";
     });
   }};
-  timeout=window.setTimeout(function(){if(root.dataset.uiReady!=="true"&&root.dataset.bootState!=="error"){root.dataset.bootState="waiting";updateStatus();}},12000);
+  timeout=window.setTimeout(function(){if(root.dataset.uiReady!=="true"&&root.dataset.bootState!=="error"){root.dataset.bootState="waiting";updateStatus();}},7000);
   document.addEventListener("DOMContentLoaded",function(){
     updateStatus();
     var retry=document.getElementById("yksBootRetry");
     if(retry)retry.addEventListener("click",function(){window.location.reload();});
   },{once:true});
-  window.addEventListener("error",fail,true);
+  window.addEventListener("error",noteError,true);
 })();
 </script>
 <link rel="stylesheet" href="./app.css" id="themes20260821">
@@ -200,13 +206,18 @@
     </div>
     <div class="today-panel today-timeline-panel"><div class="today-section-head"><b>Günün akışı</b><span>odak oturumları</span></div><div id="todayTimeline"></div></div>
     <div class="today-close" id="todayClose">
-      <div class="today-section-head"><b id="todayCloseTitle">Gün sonu</b><span id="todayCloseHint">Akşam doldurabilirsin</span></div>
-      <div class="today-moods" role="group" aria-label="Bugün nasıldı?">
-        <button type="button" id="todayMoodGood" onclick="setTodayMood('good')">İyi</button>
-        <button type="button" id="todayMoodMid" onclick="setTodayMood('mid')">Orta</button>
-        <button type="button" id="todayMoodHard" onclick="setTodayMood('hard')">Zor</button>
+      <div class="today-close-top">
+        <span class="today-close-icon">☾</span>
+        <div class="today-section-head"><b id="todayCloseTitle">Gün sonu</b><span id="todayCloseHint">Akşam doldurabilirsin</span></div>
+        <span class="today-close-saved" id="todayCloseSaved">Henüz kaydedilmedi</span>
       </div>
-      <div class="today-note-row"><input type="text" id="todayReflectionInput" maxlength="220" placeholder="Bugünden tek cümle…"><button class="btn ghost tiny" type="button" onclick="saveTodayReflection()">Kaydet</button></div>
+      <p class="today-close-copy">Bugünü detaylı değerlendir. Neler çalıştığını, nerede zorlandığını ve yarın neye odaklanacağını yaz; koç bağlantın açıksa raporun koçuna da görünür.</p>
+      <div class="today-moods" role="group" aria-label="Bugün nasıldı?">
+        <button type="button" id="todayMoodGood" onclick="setTodayMood('good')"><span>🙂</span><b>İyi</b></button>
+        <button type="button" id="todayMoodMid" onclick="setTodayMood('mid')"><span>😐</span><b>Orta</b></button>
+        <button type="button" id="todayMoodHard" onclick="setTodayMood('hard')"><span>😮‍💨</span><b>Zor</b></button>
+      </div>
+      <div class="today-note-row"><textarea id="todayReflectionInput" maxlength="3000" rows="6" placeholder="Detaylı gün sonu raporu… Bugün neler çalıştın? Nerede zorlandın? Neyi iyi yaptın? Yarın neye odaklanacaksın?"></textarea><button class="btn ghost tiny" type="button" onclick="saveTodayReflection()">Kaydet ve koçuma gönder</button></div>
     </div>
   </section>
 
@@ -877,8 +888,17 @@
     <span class="fi"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
   </button>
   <div class="foldbody" id="fb_arsiv">
+    <div class="card exam-wrong-archive-card">
+      <div class="exam-wrong-archive-head">
+        <div><p class="eyebrow" style="margin:0;">Deneme yanlışları</p><h3>Fotoğraflı yanlış arşivi</h3><p class="hint" style="margin:4px 0 0;">Deneme analizinde eklediğin fotoğraflar; ders, konu, sebep ve notuyla burada kalır.</p></div>
+        <select id="examWrongArchiveFilter" onchange="renderExamWrongArchive()" aria-label="Deneme yanlışlarını derse göre filtrele"><option value="">Tüm dersler</option></select>
+      </div>
+      <p class="hint" id="examWrongArchiveStats" style="margin:12px 0 0;"></p>
+      <div id="examWrongArchiveGrid" class="exam-wrong-archive-grid" style="margin-top:12px;"></div>
+    </div>
     <div class="card">
-      <input type="file" id="qaFile" accept="image/*" capture="environment" style="display:none" onchange="qaPickFile(this)">
+      <p class="eyebrow" style="margin-top:0;">Serbest arşiv kaydı</p>
+      <input type="file" id="qaFile" accept="image/jpeg,image/png,image/webp" capture="environment" style="display:none" onchange="qaPickFile(this)">
       <button class="btn ghost small" style="width:100%;" onclick="document.getElementById('qaFile').click()">Sorunun fotoğrafını çek / seç</button>
       <div class="qapreview" id="qaPreview" style="display:none;"></div>
       <div class="row2" style="margin-top:12px;">
@@ -1008,6 +1028,23 @@
         </span>
       </div>
       <div class="quickmins" id="quickMins"></div>
+      <div class="focus-custom-time" aria-label="Özel çalışma süresi">
+        <div class="focus-custom-field">
+          <label for="customFocusMin">Özel süre (dk)</label>
+          <div class="focus-custom-control">
+            <input type="number" id="customFocusMin" min="1" max="1440" step="1" inputmode="numeric" placeholder="90">
+            <button class="btn ghost tiny" type="button" onclick="applyCustomFocusMinutes()">Uygula</button>
+          </div>
+        </div>
+        <div class="focus-custom-field">
+          <label for="focusUntilTime">Şu saate kadar çalış</label>
+          <div class="focus-custom-control">
+            <input type="time" id="focusUntilTime" aria-label="Çalışmayı bitirmek istediğin saat">
+            <button class="btn ghost tiny" type="button" onclick="applyFocusUntilTime()">Saate göre ayarla</button>
+          </div>
+        </div>
+      </div>
+      <p class="focus-custom-status" id="focusCustomStatus" role="status" aria-live="polite"></p>
     </div>
 
     <div id="goalWrap" style="display:none;">
@@ -1043,6 +1080,19 @@
           <svg viewBox="0 0 24 24"><path d="M12 3v9l6 3"/><circle cx="12" cy="12" r="9"/></svg>
         </button>
       </div>
+      <div class="sw-session-tools" id="swSessionTools">
+        <div class="sw-active-subject">
+          <span>Aktif ders</span>
+          <strong id="swActiveSubject">—</strong>
+        </div>
+        <label class="sw-subject-switch">
+          <span>Ders değiştir</span>
+          <select id="swSubjectSwitch" onchange="swSwitchSubject(this.value)" aria-label="Kronometrede aktif dersi değiştir"></select>
+        </label>
+        <button class="sw-tool-btn" type="button" onclick="swLap()">Tur kaydet</button>
+        <button class="sw-tool-btn is-break" type="button" onclick="swMarkBreak()">Mola işaretle</button>
+      </div>
+      <p class="sw-session-note" id="swSessionNote">Ders değiştirirsen geçen süre eski derste kalır; kronometre sıfırlanmaz.</p>
     </div>
 
     <h2>Turlar</h2>
@@ -1058,6 +1108,26 @@
   </div>
 
   <p class="hint" id="pauseStat" style="text-align:center;margin:-4px 0 12px;"></p>
+
+  <section class="focus-manual-entry card" aria-labelledby="manualFocusTitle">
+    <div class="focus-manual-head">
+      <div><span class="eyebrow">MANUEL KAYIT</span><b id="manualFocusTitle">Çalışma süresi ekle</b><span>Kronometreyi açmadığın veya YPT gibi başka bir yerde tuttuğun süreyi bugüne ekle.</span></div>
+      <span class="focus-manual-badge">Bugün</span>
+    </div>
+    <div class="focus-manual-duration">
+      <div><label for="manualFocusHours">Saat</label><input type="number" id="manualFocusHours" min="0" max="24" step="1" inputmode="numeric" placeholder="1"></div>
+      <div><label for="manualFocusMinutes">Dakika</label><input type="number" id="manualFocusMinutes" min="0" max="59" step="1" inputmode="numeric" placeholder="30"></div>
+      <div><label for="manualFocusStart">Başlangıç saati</label><input type="time" id="manualFocusStart"></div>
+    </div>
+    <div class="focus-manual-meta">
+      <div><label for="manualFocusSubject">Ders</label><select id="manualFocusSubject"></select></div>
+      <div><label for="manualFocusTopic">Çalışma / konu</label><input type="text" id="manualFocusTopic" maxlength="100" placeholder="Örn. Paragraf"></div>
+      <div><label for="manualFocusSource">Kaynak</label><select id="manualFocusSource"><option value="manual" selected>Manuel</option><option value="ypt">YPT</option><option value="timer">Harici sayaç</option></select></div>
+    </div>
+    <button class="btn green small focus-manual-add" id="manualFocusAddBtn" type="button" onclick="addManualFocus()">Bugüne süre ekle</button>
+    <p class="focus-manual-status" id="manualFocusStatus" role="status" aria-live="polite"></p>
+    <p class="hint">Başlangıç saatini boş bırakırsan eklediğin sürenin şimdi bittiği kabul edilir.</p>
+  </section>
 
   <h2>Bugünün oturumları</h2>
   <div class="card" id="sessionList"></div>
@@ -1137,6 +1207,15 @@
     </div>
   </div>
 
+  <h2>Aylık ders özeti</h2>
+  <div class="card focus-month-card">
+    <div class="focus-month-head">
+      <div><p class="eyebrow" style="margin:0">AYLIK DAĞILIM</p><h3>En çok hangi derse çalıştın?</h3><p class="hint">Takvim ayına göre ders ders toplam çalışma süren.</p></div>
+      <label>Ay<input type="month" id="focusMonthPick" onchange="renderMonthlyFocusSummary()"></label>
+    </div>
+    <div id="focusMonthSummary"></div>
+  </div>
+
   <h2>Derse göre zaman</h2>
   <div class="card">
     <label>Aralık</label>
@@ -1151,10 +1230,33 @@
 </section>
 
 <div class="v29-minimal-overlay" id="v29MinimalOverlay" aria-hidden="true">
-  <div class="v29-minimal-top"><div><b id="v29MinimalSubject">Odak</b><span id="v29MinimalGoal"></span></div><button class="btn ghost tiny" onclick="v29ToggleMinimal(false)">Çık</button></div>
-  <div class="v29-minimal-clock" id="v29MinimalClock">25:00</div>
-  <p id="v29MinimalState">Hazır</p>
-  <div class="v29-minimal-actions"><button class="btn green" id="v29MinimalToggle" onclick="v29MinimalToggleTimer()">Başlat</button><button class="btn ghost" onclick="v29QuickBreak()">Hızlı ara</button></div>
+  <div class="v29-minimal-shell">
+    <div class="v29-minimal-top">
+      <div class="v29-minimal-brand"><span class="v29-minimal-dot"></span><span>ODAK MODU</span></div>
+      <button class="v29-minimal-exit" type="button" onclick="v29ToggleMinimal(false)" aria-label="Minimal moddan çık">Çık</button>
+    </div>
+    <div class="v29-minimal-context">
+      <span class="v29-minimal-mode" id="v29MinimalMode">Sayaç</span>
+      <b id="v29MinimalSubject">Odak</b>
+      <span id="v29MinimalGoal"></span>
+    </div>
+    <div class="v29-minimal-ring" id="v29MinimalRing" style="--minimal-progress:0">
+      <div class="v29-minimal-ring-inner">
+        <div class="v29-minimal-clock" id="v29MinimalClock">25:00</div>
+        <p id="v29MinimalState">Hazır</p>
+      </div>
+    </div>
+    <div class="v29-minimal-stats">
+      <div><span>Bugün</span><strong id="v29MinimalToday">0 dk</strong></div>
+      <div><span>Tur</span><strong id="v29MinimalRound">—</strong></div>
+      <div><span>İlerleme</span><strong id="v29MinimalPercent">0%</strong></div>
+    </div>
+    <div class="v29-minimal-actions">
+      <button class="v29-minimal-primary" id="v29MinimalToggle" type="button" onclick="v29MinimalToggleTimer()">Başlat</button>
+      <button class="v29-minimal-secondary" type="button" onclick="v29QuickBreak()">Hızlı ara</button>
+    </div>
+    <p class="v29-minimal-hint" id="v29MinimalHint">Tek iş. Tek ekran. Süreyi sen yönet.</p>
+  </div>
 </div>
 
 <!-- ============================== TAKTİKLER ============================== -->
@@ -1787,7 +1889,10 @@
       <datalist id="anaTopics"></datalist>
       <label>Yanlışın sebebi</label>
       <select id="anaKind"><option value="">Sebep seçmedim</option><option value="bilmiyordum">Bilmiyordum</option><option value="dikkat">Dikkatsizlik</option><option value="sure">Süre yetmedi</option></select>
-      <button class="btn ghost small" style="width:100%;margin-top:12px;" onclick="anaAdd()">Ekle</button>
+      <label>Analiz notu</label>
+      <input type="text" id="anaNote" maxlength="400" placeholder="Neyi kaçırdın? Doğru yaklaşım neydi?">
+      <p class="hint" style="margin-top:8px;">Önce yanlışı kaydet; sonra aşağıdaki satırdan soru fotoğrafını ekleyebilirsin.</p>
+      <button class="btn ghost small" style="width:100%;margin-top:12px;" onclick="anaAdd()">Yanlışı kaydet</button>
     </div>
     <div id="anaList" style="margin-top:14px;"></div>
     <div class="row2" style="margin-top:14px;">
@@ -1921,7 +2026,7 @@
   </div>
 </div>
 
-<div class="toast" id="toast" role="status" aria-live="polite"></div><script vite-ignore src="./app.js?v=4.1.0-r21"></script>
+<div class="toast" id="toast" role="status" aria-live="polite"></div><script vite-ignore src="./app.js?v=4.1.0-r27"></script>
 
 <script type="application/json" id="legacyFirebaseSyncModule" data-disabled="play-store-release">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
@@ -2184,10 +2289,10 @@ window.addEventListener("online",()=>{if(!user)return;status("Bağlantı geldi",
 
 
 
-<script vite-ignore src="./modules/core-utils.js?v=4.1.0-r27"></script>
+<script vite-ignore src="./modules/core-utils.js?v=4.1.0-r28"></script>
 <script vite-ignore src="./modules/teachers-curated-v3.js?v=4.4.0-r3"></script>
-<script vite-ignore src="./modules/stability.js?v=4.1.0-r28"></script>
-<script vite-ignore src="./modules/focus-notifications.js?v=4.4.0-r22"></script>
+<script vite-ignore src="./modules/stability.js?v=4.1.0-r29"></script>
+<script vite-ignore src="./modules/focus-notifications.js?v=4.4.0-r26"></script>
 <script vite-ignore src="./modules/topic-guides.js?v=4.1.0-r20"></script>
 <script vite-ignore src="./modules/learning-lab.js?v=4.1.0-r26"></script>
 <script vite-ignore src="./modules/target-center.js?v=4.1.0-r20"></script>
@@ -2197,6 +2302,6 @@ window.addEventListener("online",()=>{if(!user)return;status("Bağlantı geldi",
   <script vite-ignore src="./modules/study-intelligence-v5.js?v=4.1.0-r1"></script>
 <script vite-ignore src="./modules/release-selftest.js?v=4.1.0-r20"></script>
 <script type="module" src="./src/main.ts"></script>
-<script vite-ignore src="./modules/speed-reading-learn-v1.js?v=2.0.0"></script>
+<script vite-ignore src="./modules/speed-reading-learn-v1.js?v=2.1.0"></script>
 </body>
 </html>

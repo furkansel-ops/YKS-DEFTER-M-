@@ -14,6 +14,7 @@ type TeacherMedia={
   videos?:MediaVideo[];
 };
 type TeachersFeed={teachers:Record<string,TeacherMedia>;generatedAt?:string|null};
+type WatchStatus="watched"|"partial"|"later";
 type WatchedRecord={
   at?:number;
   title?:string;
@@ -21,6 +22,7 @@ type WatchedRecord={
   topic?:string;
   ch?:string;
   hoca?:string;
+  status?:WatchStatus;
 };
 type VideoBookmark={
   id:string;
@@ -32,6 +34,10 @@ type VideoBookmark={
   savedAt:number;
 };
 type LibraryState={favorites:Record<string,VideoBookmark>;updatedAt:number};
+type CoachRecommendation={
+  key:string;id:string;kind:"video"|"playlist";title:string;url:string;
+  teacher:string;subject:string;topic:string;scope:string;thumb:string;coachUid:string;at:number;
+};
 type IndexedVideo={video:MediaVideo;teacher:TeacherMedia};
 type LegacyWindow=Window&{
   watchedMap?:()=>Record<string,WatchedRecord>;
@@ -50,6 +56,7 @@ let feed:TeachersFeed|null=null;
 let videoIndex=new Map<string,IndexedVideo>();
 let observer:MutationObserver|null=null;
 let lastSignature="";
+let lastTeacherFavoritesSignature="";
 let installed=false;
 
 function esc(value:unknown):string{
@@ -104,6 +111,30 @@ function readLibrary():LibraryState{
   const state=stateRecord();
   if(!state||!isRecord(state.studyPrefs))return normalizeLibrary(EMPTY_LIBRARY);
   return normalizeLibrary(state.studyPrefs[LIB_PREF_KEY]);
+}
+
+function coachRecommendations():CoachRecommendation[]{
+  const state=stateRecord(),rows=Array.isArray(state?.coachRecommendations)?state.coachRecommendations:[];
+  return rows.filter(isRecord).map((row,index)=>{
+    const kind=row.kind==="playlist"?"playlist":"video",id=String(row.id||"").slice(0,120),title=String(row.title||"Koç önerisi").slice(0,180),url=String(row.url||"").slice(0,600);
+    if(!id||!/^https?:\/\//i.test(url))return null;
+    return {
+      key:String(row.key||kind+":"+id).slice(0,150),id,kind,title,url,
+      teacher:String(row.teacher||"").slice(0,100),subject:String(row.subject||"").slice(0,80),topic:String(row.topic||"").slice(0,120),
+      scope:String(row.scope||"").slice(0,10),thumb:String(row.thumb||"").slice(0,600),
+      coachUid:String(row.coachUid||"").slice(0,120),at:Number(row.at||index||0)
+    } satisfies CoachRecommendation;
+  }).filter((row):row is CoachRecommendation=>Boolean(row)).sort((a,b)=>b.at-a.at).slice(0,8);
+}
+function recommendationCard(item:CoachRecommendation):string{
+  const meta=[item.teacher,item.scope,item.subject,item.topic].filter(Boolean).join(" · ");
+  const thumb=item.thumb||(item.kind==="video"?`https://i.ytimg.com/vi/${encodeURIComponent(item.id)}/hqdefault.jpg`:"");
+  return `<article class="teachers-v2-coach-rec-card">
+    <button type="button" class="teachers-v2-coach-rec-main" data-library-action="coach-resource" data-resource-kind="${esc(item.kind)}" data-resource-id="${esc(item.id)}" data-resource-url="${esc(item.url)}" data-video-title="${esc(item.title)}">
+      <span class="teachers-v2-coach-rec-thumb">${thumb?`<img src="${esc(thumb)}" alt="" loading="lazy" referrerpolicy="no-referrer">`:"<i>▤</i>"}<em>${item.kind==="playlist"?"Playlist":"Video"}</em></span>
+      <span class="teachers-v2-coach-rec-copy"><small>${esc(meta||"Koç önerisi")}</small><b>${esc(item.title)}</b><span>Koçunun önerisi · Aç →</span></span>
+    </button>
+  </article>`;
 }
 
 function saveLibrary(next:LibraryState):boolean{
@@ -222,16 +253,20 @@ function relativeTime(at:number):string{
   return `${Math.max(1,Math.floor(diff/day))} gün önce`;
 }
 
-function recentItems():VideoBookmark[]{
+function recordStatus(record:WatchedRecord|undefined):WatchStatus|null{
+  if(!record)return null;
+  return record.status==="partial"||record.status==="later"||record.status==="watched"?record.status:"watched";
+}
+function statusItems(status:WatchStatus,limit=8):VideoBookmark[]{
   const map=watchedMap();
   return Object.entries(map)
     .map(([id,record])=>({id,record,indexed:videoIndex.get(id)}))
-    .filter(row=>Boolean(row.indexed||row.record?.hoca))
+    .filter(row=>recordStatus(row.record)===status&&Boolean(row.indexed||row.record?.hoca))
     .sort((a,b)=>Number(b.record?.at||0)-Number(a.record?.at||0))
-    .slice(0,8)
+    .slice(0,limit)
     .map(({id,record,indexed})=>({
       id,
-      title:String(indexed?.video.title||record?.title||"İzlenen video"),
+      title:String(indexed?.video.title||record?.title||(status==="partial"?"Yarım kalan video":status==="later"?"Sonra izlenecek video":"İzlenen video")),
       teacher:String(indexed?.teacher.name||record?.hoca||""),
       channel:String(indexed?.video.channel||record?.ch||indexed?.teacher.channelName||""),
       thumbnail:String(indexed?.video.thumbnail||`https://i.ytimg.com/vi/${encodeURIComponent(id)}/hqdefault.jpg`),
@@ -239,17 +274,18 @@ function recentItems():VideoBookmark[]{
       savedAt:Number(record?.at||0)
     }));
 }
+function recentItems():VideoBookmark[]{return statusItems("watched",8);}
 
 function favoriteItems():VideoBookmark[]{
   return Object.values(readLibrary().favorites).sort((a,b)=>b.savedAt-a.savedAt).slice(0,12);
 }
 
-function libraryCard(item:VideoBookmark,kind:"favorite"|"recent"):string{
+function libraryCard(item:VideoBookmark,kind:"favorite"|"recent"|"partial"|"later"):string{
   const time=relativeTime(item.savedAt);
   return `<article class="teachers-v2-library-card" data-video-id="${esc(item.id)}">
     <button type="button" class="teachers-v2-library-play" data-library-action="play" data-video-id="${esc(item.id)}" data-video-title="${esc(item.title)}" aria-label="${esc(item.title)} videosunu oynat">
       <span class="teachers-v2-library-thumb"><img src="${esc(item.thumbnail)}" alt="" loading="lazy" referrerpolicy="no-referrer"><i>▶</i></span>
-      <span class="teachers-v2-library-copy"><small>${esc(item.teacher||item.channel||"Hoca")}${time?` · ${esc(time)}`:""}</small><b>${esc(item.title)}</b></span>
+      <span class="teachers-v2-library-copy"><small>${kind==="partial"?"◐ Yarım kaldı · ":kind==="later"?"＋ Sonra izle · ":""}${esc(item.teacher||item.channel||"Hoca")}${time?` · ${esc(time)}`:""}</small><b>${esc(item.title)}</b></span>
     </button>
     ${kind==="favorite"?`<button type="button" class="teachers-v2-library-remove" data-library-action="remove" data-video-id="${esc(item.id)}" aria-label="Kaydedilenlerden çıkar">★</button>`:""}
   </article>`;
@@ -257,6 +293,43 @@ function libraryCard(item:VideoBookmark,kind:"favorite"|"recent"):string{
 
 function emptyRow(text:string):string{
   return `<div class="teachers-v2-library-empty">${esc(text)}</div>`;
+}
+function favoriteTeacherCards():{name:string;subjects:string;initials:string}[]{
+  const cards=[...document.querySelectorAll<HTMLElement>(".teachers-v2-card[data-name]")];
+  return cards.filter(card=>card.querySelector(".teachers-v2-star.on")).map(card=>{
+    const name=card.dataset.name||"";
+    const subjects=[...card.querySelectorAll<HTMLElement>(".teachers-v2-card-subjects span")].map(x=>x.textContent?.trim()||"").filter(Boolean).join(" · ");
+    const parts=name.trim().split(/\s+/).filter(Boolean),first=parts[0]||"",last=parts[parts.length-1]||first;
+    const initials=parts.length>1?((first[0]||"")+(last[0]||"")).toLocaleUpperCase("tr-TR"):first.slice(0,2).toLocaleUpperCase("tr-TR");
+    return {name,subjects,initials:initials||"YK"};
+  });
+}
+function renderFavoriteTeachers(force=false):void{
+  const root=document.getElementById(ROOT_ID);if(!(root instanceof HTMLElement))return;
+  const favorites=favoriteTeacherCards(),sig=favorites.map(x=>x.name).join("|");
+  if(!force&&sig===lastTeacherFavoritesSignature)return;
+  lastTeacherFavoritesSignature=sig;
+  root.querySelectorAll<HTMLElement>(".teachers-v2-card[data-name]").forEach(card=>{
+    const on=Boolean(card.querySelector(".teachers-v2-star.on"));
+    card.classList.toggle("is-favorite",on);
+    let badge=card.querySelector<HTMLElement>(".teachers-v2-favorite-badge");
+    if(on&&!badge){badge=document.createElement("span");badge.className="teachers-v2-favorite-badge";badge.textContent="★ Favorin";card.appendChild(badge);}
+    if(!on)badge?.remove();
+  });
+  let shelf=document.getElementById("teachersV2FavoriteShelf");
+  if(!favorites.length){shelf?.remove();return;}
+  if(!(shelf instanceof HTMLElement)){
+    shelf=document.createElement("section");
+    shelf.id="teachersV2FavoriteShelf";
+    shelf.className="teachers-v2-favorite-shelf";
+    shelf.setAttribute("aria-label","Favori hocalarım");
+    root.querySelector(".teachers-v2-controls")?.insertAdjacentElement("afterend",shelf);
+  }
+  shelf.innerHTML=`<div class="teachers-v2-favorite-head"><div><span>★ FAVORİ HOCALARIM</span><h3>Hızlı erişim</h3></div><small>${favorites.length} favori hoca · yıldızla yönet</small></div>
+    <div class="teachers-v2-favorite-row">${favorites.map(item=>`<article class="teachers-v2-favorite-card">
+      <button type="button" class="teachers-v2-favorite-open" data-library-action="teacher-open" data-teacher-name="${esc(item.name)}" aria-label="${esc(item.name)} kaynaklarını aç"><span class="teachers-v2-favorite-avatar">${esc(item.initials)}</span><span><b>${esc(item.name)}</b><small>${esc(item.subjects)}</small></span><i>›</i></button>
+      <button type="button" class="teachers-v2-favorite-remove" data-library-action="teacher-remove" data-teacher-name="${esc(item.name)}" aria-label="${esc(item.name)} favorilerden çıkar">★</button>
+    </article>`).join("")}</div>`;
 }
 
 function signature():string{
@@ -267,9 +340,10 @@ function signature():string{
     .filter(([id,item])=>Boolean(item?.hoca||videoIndex.has(id)))
     .sort((a,b)=>Number(b[1]?.at||0)-Number(a[1]?.at||0))
     .slice(0,30)
-    .map(([id,item])=>`${id}:${Number(item?.at||0)}`)
+    .map(([id,item])=>`${id}:${recordStatus(item)||"none"}:${Number(item?.at||0)}`)
     .join("|");
-  return `${feed?.generatedAt||""}::${favPart}::${recentPart}`;
+  const coachPart=coachRecommendations().map(item=>`${item.key}:${item.at}`).join("|");
+  return `${feed?.generatedAt||""}::${favPart}::${recentPart}::${coachPart}`;
 }
 
 function ensurePanel():HTMLElement|null{
@@ -295,14 +369,22 @@ function renderLibrary(force=false):void{
   lastSignature=nextSignature;
   const favorites=favoriteItems();
   const recent=recentItems();
-  const latest=recent[0]||null;
-  panel.hidden=!favorites.length&&!recent.length;
+  const partial=statusItems("partial",8);
+  const later=statusItems("later",8);
+  const recommendations=coachRecommendations();
+  const latest=partial[0]||recent[0]||null;
+  panel.hidden=!favorites.length&&!recent.length&&!partial.length&&!later.length&&!recommendations.length;
   if(panel.hidden){panel.replaceChildren();return;}
   panel.innerHTML=`<div class="teachers-v2-library-head">
       <div><span class="teachers-v2-library-kicker">Kişisel video alanın</span><h3>Kütüphanem</h3></div>
-      <span class="teachers-v2-library-stats">${favorites.length} kaydedilen · ${recent.length} son izlenen</span>
+      <span class="teachers-v2-library-stats">${recommendations.length?recommendations.length+" koç önerisi · ":""}${partial.length?partial.length+" yarım · ":""}${later.length?later.length+" sonra izle · ":""}${recent.length} izlendi</span>
     </div>
-    ${latest?`<button type="button" class="teachers-v2-library-continue" data-library-action="play" data-video-id="${esc(latest.id)}" data-video-title="${esc(latest.title)}"><span>Son izlediğin</span><b>${esc(latest.title)}</b><em>Tekrar aç →</em></button>`:""}
+    ${recommendations.length?`<section class="teachers-v2-coach-recs"><div class="teachers-v2-coach-recs-head"><div><span>KOÇUNDAN</span><h4>Önerilen kaynaklar</h4></div><small>${recommendations.length} öneri</small></div><div class="teachers-v2-coach-recs-row">${recommendations.map(recommendationCard).join("")}</div></section>`:""}
+    ${latest?`<button type="button" class="teachers-v2-library-continue" data-library-action="play" data-video-id="${esc(latest.id)}" data-video-title="${esc(latest.title)}"><span>${partial.length?"Yarım kaldı":"Son izlediğin"}</span><b>${esc(latest.title)}</b><em>${partial.length?"Devam et →":"Tekrar aç →"}</em></button>`:""}
+    ${partial.length||later.length?`<div class="teachers-v2-status-columns">
+      <section><div class="teachers-v2-library-subhead"><h4>◐ Yarım kaldı</h4><span>${partial.length}</span></div><div class="teachers-v2-library-row">${partial.length?partial.slice(0,6).map(item=>libraryCard(item,"partial")).join(""):emptyRow("Yarım bıraktığın videolar burada görünür.")}</div></section>
+      <section><div class="teachers-v2-library-subhead"><h4>＋ Sonra izle</h4><span>${later.length}</span></div><div class="teachers-v2-library-row">${later.length?later.slice(0,6).map(item=>libraryCard(item,"later")).join(""):emptyRow("Sonra izleye aldığın videolar burada görünür.")}</div></section>
+    </div>`:""}
     <div class="teachers-v2-library-columns">
       <section><div class="teachers-v2-library-subhead"><h4>★ Kaydettiklerim</h4><span>${favorites.length}</span></div><div class="teachers-v2-library-row">${favorites.length?favorites.slice(0,6).map(item=>libraryCard(item,"favorite")).join(""):emptyRow("Kaydettiğin videolar burada görünür.")}</div></section>
       <section><div class="teachers-v2-library-subhead"><h4>↻ Son izlenenler</h4><span>${recent.length}</span></div><div class="teachers-v2-library-row">${recent.length?recent.slice(0,6).map(item=>libraryCard(item,"recent")).join(""):emptyRow("İzledim dediğin videolar burada görünür.")}</div></section>
@@ -352,6 +434,22 @@ function handleClick(event:MouseEvent):void{
   if(!action)return;
   const kind=action.dataset.libraryAction||"";
   const id=action.dataset.videoId||"";
+  if(kind==="coach-resource"){
+    event.preventDefault();
+    const resourceKind=action.dataset.resourceKind||"video",resourceId=action.dataset.resourceId||"",url=action.dataset.resourceUrl||"";
+    if(resourceKind==="video"&&resourceId){openPlayer(resourceId,action.dataset.videoTitle||"Koç önerisi");return;}
+    if(/^https?:\/\//i.test(url))window.open(url,"_blank","noopener,noreferrer");
+    return;
+  }
+  if(kind==="teacher-open"||kind==="teacher-remove"){
+    event.preventDefault();event.stopPropagation();
+    const name=action.dataset.teacherName||"";
+    const card=[...document.querySelectorAll<HTMLElement>(".teachers-v2-card[data-name]")].find(node=>node.dataset.name===name);
+    if(kind==="teacher-open"){card?.click();return;}
+    card?.querySelector<HTMLButtonElement>(".teachers-v2-star")?.click();
+    window.setTimeout(()=>{lastTeacherFavoritesSignature="";renderFavoriteTeachers(true);},80);
+    return;
+  }
   if(kind==="toggle"||kind==="remove"){
     event.preventDefault();
     event.stopPropagation();
@@ -372,6 +470,7 @@ function handleClick(event:MouseEvent):void{
 
 function refresh(force=false):void{
   decorateVideoCards();
+  renderFavoriteTeachers(force);
   renderLibrary(force);
 }
 
@@ -388,6 +487,7 @@ function install():void{
   observer.observe(document.documentElement,{childList:true,subtree:true});
   window.addEventListener("storage",event=>{if(event.key==="yks"){lastSignature="";refresh(true);}});
   window.addEventListener("yks:data-primary-ready",()=>{lastSignature="";refresh(true);});
+  window.addEventListener("yks:coach-recommendations-changed",()=>{lastSignature="";refresh(true);});
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){lastSignature="";refresh(true);}});
   void loadFeed().finally(()=>{lastSignature="";refresh(true);});
   document.documentElement.dataset.teachersV2Library="ready";

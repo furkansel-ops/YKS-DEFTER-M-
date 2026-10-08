@@ -8,8 +8,8 @@ const CURATED_CATALOG=resolve(ROOT,"modules/teachers-curated-v3.js");
 const RSS_TIMEOUT_MS=7000;
 const PLAYLIST_TIMEOUT_MS=8500;
 const CONCURRENCY=8;
-const MAX_PREVIEW_VIDEOS=15;
-const MAX_PLAYLISTS=16;
+const MAX_PREVIEW_VIDEOS=24;
+const MAX_PLAYLISTS=20;
 const KNOWN_CHANNELS=VERIFIED_CHANNELS;
 
 function decodeXml(value=""){

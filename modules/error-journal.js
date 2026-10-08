@@ -217,7 +217,8 @@
       if(subject&&topic&&after>before){
         const wrong=S.wrongLog[after-1]||{},sourceRef="wrong:"+String(wrong.id||Date.now());
         const denemeName=(()=>{try{const d=Array.isArray(S.denemeler)?S.denemeler.find(x=>x&&x.id===wrong.deneme):null;return norm(d&&d.name);}catch(e){return "";}})();
-        addEntry({subject,topic,type:KIND_MAP[kind]||"Bilgi eksiği",count,review:true,source:denemeName?"Deneme · "+denemeName:"Deneme analizi",sourceRef,denemeId:wrong.deneme||null,note:count>1?count+" yanlış deneme analizinden aktarıldı":"Deneme analizinden aktarıldı"},{render:false});
+        const analysisNote=norm(wrong.note)|| (count>1?count+" yanlış deneme analizinden aktarıldı":"Deneme analizinden aktarıldı");
+        addEntry({subject,topic,type:KIND_MAP[kind]||"Bilgi eksiği",count,review:true,source:denemeName?"Deneme · "+denemeName:"Deneme analizi",sourceRef,denemeId:wrong.deneme||null,note:analysisNote},{render:false});
         renderAllJournal();toastSafe("Yanlış Hata Defteri'ne ve tekrara eklendi");
       }
       return out;

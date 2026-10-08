@@ -13,6 +13,7 @@ test("Paragraf ve problem takipçisi günlük D/Y/B kaydı ve YKS net hesabını
   assert.match(source,/e\.correct-e\.wrong\/4/);
   assert.match(source,/paragraphProblem/);
   assert.match(source,/win\.save\?\.\(\)/);
+  assert.match(source,/YKSAccountAuth\?\.publishShare/);
   assert.match(source,/Son 7 gün/);
   assert.match(source,/Paragraf & Problem/);
 });
@@ -40,6 +41,11 @@ test("Paragraf ve Problem ayrıntılı performans merkezi 7, 14 ve 30 günlük a
   assert.match(source,/bestDay/);
   assert.match(source,/deltaPercent/);
   assert.match(source,/wrongRate/);
+  assert.match(source,/Doğru/);
+  assert.match(source,/Yanlış/);
+  assert.match(source,/Boş/);
+  assert.match(source,/D:\$\{today\.correct\} Y:\$\{today\.wrong\} B:\$\{today\.blank\}/);
+  assert.match(source,/D:\$\{weekM\.correct\} Y:\$\{weekM\.wrong\} B:\$\{weekM\.blank\}/);
   assert.match(source,/data-pp-kind-filter/);
   assert.match(source,/data-pp-range-filter/);
   assert.match(css,/\.pp-kind-grid/);

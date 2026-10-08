@@ -119,11 +119,17 @@ test("izin açık fakat uygulama bildirimi kapalıysa ayarlar yeniden etkinleşt
   const h=harness();h.window.Notification=h.context.Notification={permission:"granted"};h.window.S.notif={on:false};
   const permit=h.root.querySelector("[data-yms-notif-permission]"),status=h.root.querySelector("[data-yms-notif-status]");
   h.run('refresh(document.getElementById(ROOT_ID));bind(document.getElementById(ROOT_ID))');
-  assert.equal(permit.disabled,false);assert.equal(permit.textContent,"Bildirimleri aç");assert.match(status.textContent,/kapalı/);assert.equal(status.classes.has("ok"),false);
+  assert.equal(permit.disabled,false);assert.equal(permit.textContent,"Genel hatırlatmaları aç");assert.match(status.textContent,/Odak açık.*Genel hatırlatmalar kapalı/);assert.equal(status.classes.has("ok"),true);
   let requested=0;h.window.askNotif=async()=>{requested++;h.window.S.notif.on=true;return"granted"};
   await permit.emit("click");
   assert.equal(requested,1);assert.equal(permit.disabled,true);assert.equal(status.classes.has("ok"),true);
   assert.ok(h.listeners.has("yks:notification-settings"));
+});
+
+test("hem odak hem genel hatırlatmalar kapalıysa izin tek başına etkin bildirim diye gösterilmez",()=>{
+  const h=harness();h.window.Notification=h.context.Notification={permission:"granted"};h.window.S.notif={on:false,pomo:false};
+  h.run('refresh(document.getElementById(ROOT_ID))');
+  const status=h.root.querySelector("[data-yms-notif-status]");assert.equal(status.textContent,"Bildirim tercihleri kapalı");assert.equal(status.classes.has("ok"),false);
 });
 
 test("engellenmiş bildirim izni kullanıcıyı görünür izin yardımına götürür",()=>{
