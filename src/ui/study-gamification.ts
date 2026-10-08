@@ -38,15 +38,25 @@ function mount():HTMLElement|null{
   const existing=document.getElementById(ROOT_ID);
   const settingsHost=document.getElementById("ymsAchievementsContent");
   if(existing){
-    if(settingsHost&&existing.parentElement!==settingsHost)settingsHost.appendChild(existing);
+    if(settingsHost){
+      if(existing.parentElement!==settingsHost)settingsHost.appendChild(existing);
+      // Move related panels as one unit, irrespective of event listener order.
+      for(const id of ["studyTasksPanel","studyInsightsPanel"]){
+        const section=document.getElementById(id);
+        if(section&&section.parentElement!==settingsHost)settingsHost.appendChild(section);
+      }
+      settingsHost.querySelector("[data-yms-achievements-loading]")?.setAttribute("hidden","");
+    }
     return existing;
   }
   const fallback=document.querySelector("#home .home-overview");
   if(!settingsHost&&!fallback)return null;
   const root=node("section","sg-panel");
   root.id=ROOT_ID;root.setAttribute("aria-label","Günlük seri, XP ve başarımlar");
-  if(settingsHost)settingsHost.appendChild(root);
-  else fallback?.insertAdjacentElement("afterend",root);
+  if(settingsHost){
+    settingsHost.appendChild(root);
+    settingsHost.querySelector("[data-yms-achievements-loading]")?.setAttribute("hidden","");
+  }else fallback?.insertAdjacentElement("afterend",root);
   return root;
 }
 
