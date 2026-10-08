@@ -143,6 +143,18 @@ const pwa=installPwaRuntime(RELEASE_BUILD);
 
 /* P & P ekran kabuğunun navigasyon doğrulamasından önce kurulması gerekir; ancak
    kurulum hatası artık çekirdek açılışı durdurmaz. */
+/* Aşama 1: başarımlar isteğe bağlı ve ayrı paket. Ana açılışın arızalanmasını önler. */
+document.documentElement.dataset.studyGamification="loading";
+void import("./ui/study-gamification")
+  .then(({installStudyGamification})=>{
+    const instance=installOptional("study-gamification",()=>installStudyGamification(),{installed:false});
+    document.documentElement.dataset.studyGamification=instance.installed?"ready":"deferred";
+  })
+  .catch(error=>{
+    document.documentElement.dataset.studyGamification="deferred";
+    console.error("Başarım modülü açılmadı",error);
+  });
+
 const paragraphProblem=installOptional(
   "paragraph-problem",
   ()=>installParagraphProblemTracker(),
