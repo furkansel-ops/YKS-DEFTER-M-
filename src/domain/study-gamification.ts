@@ -21,6 +21,7 @@ export type GamificationProfile={
   coachRewards?:Record<string,{at:number;xp:number}>;
   coachSeen?:Record<string,string>;
   coachNotifications?:Array<{id:string;at:number;title:string;text:string;status:string}>;
+  smartReminders?:import("./smart-reminders.ts").ReminderSettings;
 };
 export type StudyGamificationState={
   pomoMin?:Record<string,unknown>;
