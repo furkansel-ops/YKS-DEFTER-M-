@@ -311,7 +311,7 @@ export function installStudyGamification():{installed:boolean}{
   if(document.documentElement.dataset.studyGamificationListeners==="ready"){schedule();return {installed:true};}
   document.documentElement.dataset.studyGamificationListeners="ready";
   installStudyTaskPanel({readState,saveState,toast:message=>runtime.toast?.(message)});
-  installStudyInsightsPanel({readState});
+  installStudyInsightsPanel({readState,toast:message=>runtime.toast?.(message)});
   for(const event of ["yks:data-changed","yks:data-primary-ready","yks:auth-state","yks:navigation"]){
     window.addEventListener(event,schedule);
   }
