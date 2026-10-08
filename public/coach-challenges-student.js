@@ -44,7 +44,8 @@ function syncNotice(id,task,status){
 function syncReward(id,task){
   if(!["completed","approved"].includes(task.status)||!task.xp)return;
   const s=state(),profile=s?.gamification;if(!profile||!Number.isFinite(profile.activatedAt))return;
-  if(task.createdAt?.toMillis?.()<profile.activatedAt)return;
+  const createdAt=task.createdAt?.toMillis?.();
+  if(!Number.isSafeInteger(createdAt)||createdAt<profile.activatedAt)return;
   if(!Object.values(allowed).includes(task.xp)||!["0","1","2"].includes(task.slot))return;
   profile.coachRewards??={};if(profile.coachRewards[id])return;
   profile.coachRewards[id]={at:Date.now(),xp:task.xp};
