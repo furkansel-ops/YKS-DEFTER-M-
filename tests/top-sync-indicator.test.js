@@ -34,10 +34,12 @@ test("Üst senkron noktasının renkleri yeşil turuncu kırmızı ve küçük t
   assert.match(css,/prefers-reduced-motion:reduce/);
 });
 
-test("Gösterge ana başlangıç paketini şişirmemek için dinamik yüklenir",()=>{
-  const main=read("src/main.ts");
-  assert.match(main,/import\("\.\/ui\/top-sync-indicator"\)/);
-  assert.match(main,/installTopSyncIndicator/);
-  assert.match(main,/dataset\.topSyncIndicator="loading"/);
+test("Gösterge ve başarımlar küçük isteğe bağlı başlangıç modülünde dinamik yüklenir",()=>{
+  const main=read("src/main.ts"),extras=read("src/ui/startup-extras.ts");
+  assert.match(main,/import\("\.\/ui\/startup-extras"\)/);
+  assert.match(extras,/import\("\.\/top-sync-indicator"\)/);
+  assert.match(extras,/import\("\.\/study-gamification"\)/);
+  assert.match(extras,/installTopSyncIndicator/);
+  assert.match(extras,/dataset\.topSyncIndicator="loading"/);
   assert.doesNotMatch(main,/^import \{installTopSyncIndicator\}/m);
 });
