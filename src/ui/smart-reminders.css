@@ -1,0 +1,11 @@
+#home .sn-panel{margin:12px 0 20px;padding:16px;border-radius:18px;background:var(--glass,var(--card,#fff));border:1px solid var(--sep,rgba(120,130,150,.16));min-width:0;color:var(--label,#182436)}
+#home .sn-panel h2{font-size:17px;margin:0 0 7px}
+#home .sn-description,#home .sn-foot{font-size:11px;line-height:1.55;color:var(--label-2,#667)}
+#home .sn-line,#home .sn-push-row{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin:12px 0}
+#home .sn-panel button{border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer;font-size:12px}
+#home .sn-toggle{background:var(--accent,#427ddd);color:#fff;border:0}
+#home .sn-push{border:1px solid var(--sep,rgba(120,130,150,.25));background:var(--fill,rgba(80,95,125,.04));color:var(--label,#182436)}
+#home .sn-panel button:disabled{opacity:.5;cursor:default}
+#home .sn-panel button:focus-visible{outline:2px solid var(--accent,#427ddd);outline-offset:2px}
+#home .sn-hint,#home .sn-status{font-size:11px;line-height:1.4;color:var(--label-2,#667)}
+@media(max-width:560px){#home .sn-panel{padding:13px}#home .sn-line,#home .sn-push-row{align-items:stretch;flex-direction:column}}
