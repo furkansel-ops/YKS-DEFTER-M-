@@ -98,7 +98,7 @@ function renderCalendar(container:HTMLElement,days:CalendarDay[],now:Date,refres
   for(let day=1;day<=last;day++){
     const key=dateKey(new Date(year,monthIndex,day,12)),item=daysByKey.get(key);
     if(item){monthMinutes+=item.minutes;monthQuestions+=item.questions;if(item.status==="completed")completed++;}
-    const status=item?.status??"before-start";
+    const status=item?.status??(key>dateKey(now)?"future":"before-start");
     const button=make("button","si-cal-day si-"+status,day.toString());
     button.type="button";button.disabled=!item||status==="before-start"||status==="future";
     button.setAttribute("aria-label",labelDate(key)+" · "+
