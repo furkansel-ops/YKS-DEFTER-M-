@@ -143,3 +143,21 @@
   :is(#home,#ymsAchievementsContent) .sg-day{min-width:0}
   :is(#home,#ymsAchievementsContent) .sg-goal-fields{grid-template-columns:1fr}
 }
+
+
+/* Small Today-only achievement preview: all detailed panels are in Settings. */
+#home.v43-today #studyGamification,#home.v43-today #studyTasksPanel,
+#home.v43-today #studyInsightsPanel{display:none!important}
+#home.v43-today .sg-today-shortcut{appearance:none;display:flex;align-items:center;gap:11px;width:100%;min-width:0;
+ min-height:57px;padding:12px 16px;border:1px solid var(--rb-line,var(--sep,#e4ebf5));border-radius:16px;
+ color:var(--rb-ink,var(--label,#16243e));background:var(--rb-surface,var(--card,#fff));text-align:left;cursor:pointer;
+ box-shadow:0 2px 10px rgba(28,51,85,.035)}
+#home.v43-today .sg-today-shortcut-title{font-size:13px;font-weight:750;white-space:nowrap}
+#home.v43-today .sg-today-shortcut-metrics{font-size:12px;color:var(--rb-muted,var(--label-2,#617087));
+ overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#home.v43-today .sg-today-shortcut-arrow{font-size:24px;line-height:1;margin-left:auto;color:var(--rb-accent,#276cdf)}
+#home.v43-today .sg-today-shortcut:hover{border-color:var(--rb-accent,#276cdf)}
+#home.v43-today .sg-today-shortcut:focus-visible{outline:2px solid var(--rb-accent,#276cdf);outline-offset:2px}
+@media(max-width:450px){#home.v43-today .sg-today-shortcut{gap:8px;padding:12px}
+ #home.v43-today .sg-today-shortcut-title{font-size:12px}
+ #home.v43-today .sg-today-shortcut-metrics{font-size:10px}}
