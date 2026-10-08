@@ -5,7 +5,7 @@ import"./smart-reminders.css";
 
 type UserState=StudyGamificationState&{gamification?:GamificationProfile&{smartReminders?:ReminderSettings}};
 type Bridge={readState:()=>StudyGamificationState|null;saveState:()=>boolean;toast?:(message:string)=>void};
-type PushBridge={enable:()=>Promise<string>;disable:()=>Promise<string>;status:()=>string};
+type PushBridge={enable:()=>Promise<string>;disable:()=>Promise<string>;localTest:()=>Promise<string>;status:()=>string};
 type SmartWindow=Window&{YKSSmartPush?:PushBridge};
 let installed=false,queued=false;
 const node=<K extends keyof HTMLElementTagNameMap>(tag:K,cls="",value=""):HTMLElementTagNameMap[K]=>{
@@ -65,9 +65,31 @@ function render(port:Bridge,refresh:()=>void){
     catch(error){status.textContent=error instanceof Error?error.message:"Bildirim bağlantısı kurulamadı.";}
     finally{push.disabled=false;}
   });
-  pushRow.append(push,status);root.appendChild(pushRow);
+  const disconnect=node("button","sn-push-secondary","Telefon bildirimini kapat");
+  disconnect.type="button";disconnect.setAttribute("aria-label","Bu cihazın Web Push aboneliğini kaldır");
+  disconnect.addEventListener("click",async()=>{
+    const api=(window as SmartWindow).YKSSmartPush;
+    if(!api){status.textContent="Bu cihazda bağlı bildirim oturumu bulunamadı.";return;}
+    disconnect.disabled=true;
+    try{status.textContent=await api.disable();}
+    catch(error){status.textContent=error instanceof Error?error.message:"Abonelik kaldırılamadı.";}
+    finally{disconnect.disabled=false;}
+  });
+  const test=node("button","sn-push-secondary","Yerel bildirimi dene");
+  test.type="button";test.disabled=!data.enabled;
+  test.addEventListener("click",async()=>{
+    const api=(window as SmartWindow).YKSSmartPush;
+    if(!api){status.textContent="Önce bildirim bağlantısı kurulmalı.";return;}
+    test.disabled=true;
+    try{status.textContent=await api.localTest();}
+    catch(error){status.textContent=error instanceof Error?error.message:"Yerel bildirim gösterilemedi.";}
+    finally{test.disabled=false;}
+  });
+  const actions=node("div","sn-actions");
+  actions.append(push,disconnect,test);
+  pushRow.append(actions,status);root.appendChild(pushRow);
   root.appendChild(node("small","sn-foot",
-    "Uygulama içi hatırlatmalar yalnız uygulama açıkken çalışır. Telefon bildirimi için izin, Web Push aboneliği ve sunucu gönderimi birlikte gereklidir."));
+    "Yerel test yalnız cihazın bildirim iznini ve görünümünü sınar; gerçek sunucu Push teslimini doğrulamaz. iPad'de iPadOS 16.4+ ve Ana Ekran'a eklenmiş uygulama gerekir."));
 }
 export function installSmartReminders(port:Bridge):void{
   if(installed)return;installed=true;
