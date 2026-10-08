@@ -25,6 +25,7 @@ assert.equal(panel.daily[0].minutes,0);
 assert.equal(panel.daily[0].questions,0);
 assert.equal(panel.weekly[0].minutes,0);
 assert.equal(panel.daily[0].task.xp,25);
+assert.equal(panel.daily[0].task.goalMinutes,45,"Az geçmiş veride normal hedef kullanılmalı");
 assert.equal(panel.weekly[0].task.xp,100);
 const previous=state.gamification;
 assert.equal(ensureCurrentTasks(previous,first),previous,"Yeniden çizimde görevleri tekrar üretme");
@@ -47,11 +48,12 @@ assert.equal(calculateStudyGamification(state,date("2026-10-08","14:00")).xp,xpB
 assert.throws(()=>rerollDailyTask(state,state.gamification,date("2026-10-08","14:00"),
  panel.daily[0].task.id),/hakkın/);
 const next=date("2026-10-09","12:00");
-state.gamification=ensureCurrentTasks(state.gamification,next);
+state.gamification=ensureCurrentTasks(state.gamification,next,state);
 panel=taskPanel(state,next);
 assert.equal(panel.daily.length,3);
 assert.equal(panel.daily[0].task.xp,35,"Zor görevler ancak ertesi gün açılır");
 assert.equal(panel.daily[0].task.difficulty,"hard");
+assert.equal(panel.daily[0].task.goalMinutes,60);
 state.gamification=planRestDay(state.gamification,"2026-10-10",date("2026-10-09","12:00"));
 state.gamification=ensureCurrentTasks(state.gamification,date("2026-10-10","12:00"));
 panel=taskPanel(state,date("2026-10-10","12:00"));
