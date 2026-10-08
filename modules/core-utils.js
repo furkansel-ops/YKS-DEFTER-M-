@@ -134,6 +134,42 @@
     };
   }
 
+  function mergeGamificationTasks(remote,local){
+    const r=isObject(remote)?remote:{},l=isObject(local)?local:{};
+    const joinPeriods=kind=>{
+      const out=Object.assign({},clone(isObject(r[kind])?r[kind]:{}));
+      for(const [period,tasks] of Object.entries(isObject(l[kind])?l[kind]:{})){
+        if(!Array.isArray(tasks)){continue;}
+        if(!Array.isArray(out[period])){out[period]=clone(tasks);continue;}
+        // Aynı dönem içindeki yenileme, kaynak görev kimliğini değiştirmez.
+        const changed=Array.isArray(l.rerolledDays)&&l.rerolledDays.includes(period);
+        const otherChanged=Array.isArray(r.rerolledDays)&&r.rerolledDays.includes(period);
+        if(changed&&!otherChanged)out[period]=clone(tasks);
+      }
+      return out;
+    };
+    const claims={};
+    for(const source of [r.claims,l.claims]){
+      if(!isObject(source))continue;
+      for(const [id,claim] of Object.entries(source)){
+        if(!isObject(claim)||!Number.isSafeInteger(claim.at)||claim.at<=0)continue;
+        if(!claims[id]||claim.at<claims[id].at)claims[id]=clone(claim);
+      }
+    }
+    const schedule=new Map();
+    for(const row of [...(Array.isArray(r.difficultySchedule)?r.difficultySchedule:[]),
+      ...(Array.isArray(l.difficultySchedule)?l.difficultySchedule:[])]){
+      if(!isObject(row)||typeof row.from!=="string")continue;
+      schedule.set(row.from,clone(row));
+    }
+    return {
+      daily:joinPeriods("daily"),weekly:joinPeriods("weekly"),claims,
+      difficultySchedule:[...schedule.values()].sort((a,b)=>a.from.localeCompare(b.from)),
+      rerolledDays:[...new Set([...(Array.isArray(r.rerolledDays)?r.rerolledDays:[]),
+        ...(Array.isArray(l.rerolledDays)?l.rerolledDays:[])])].sort()
+    };
+  }
+
   /* İki cihazın kazanılmış rozet, hedef ve dinlenme planları birleştirilir.
      Farklı etkinleşme kimlikleri birbirine karıştırılmaz: ilk etkinleştirme korunur. */
   function mergeGamification(remote,local){
@@ -164,7 +200,7 @@
       activatedAt:a,activationDay:remote.activationDay,
       baselineMinutes:remote.baselineMinutes,baselineQuestions:remote.baselineQuestions,
       goals:[...goals.values()].sort((x,y)=>x.from.localeCompare(y.from)),
-      earned,restDays:[...rests].sort()
+      earned,restDays:[...rests].sort(),tasks:mergeGamificationTasks(remote.tasks,local.tasks)
     });
   }
 
