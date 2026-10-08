@@ -95,6 +95,30 @@ try{
   await assertSucceeds(getDocs(query(collection(s,"coachChallenges"),where("studentUid","==",student))));
   // A coach may query only their own linked tasks, not a stranger's collection.
   await assertFails(getDocs(collection(outsider,"coachChallenges")));
+  // Push enrollment belongs only to the authenticated student.
+  const pushDevice="ab12cd34ef56gh78";
+  const devicePayload={
+    deviceId:pushDevice,endpoint:"https://push.example.com/endpoint-"+pushDevice,
+    auth:"abcdef1234567890aabbccddeeff",
+    p256dh:"abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOP",
+    day:"2026-10-08",goalMinutes:60,goalQuestions:40,
+    minutes:15,questions:10,restDay:false,quietStart:22,quietEnd:8,
+    timeZone:"Europe/Istanbul",createdAt:serverTimestamp(),updatedAt:serverTimestamp()
+  };
+  const subPath="users/"+student+"/pushDevices/"+pushDevice;
+  await assertSucceeds(setDoc(doc(s,subPath),devicePayload));
+  await assertSucceeds(getDoc(doc(s,subPath)));
+  await assertFails(getDoc(doc(c,subPath)));
+  await assertFails(setDoc(doc(c,"users/"+student+"/pushDevices/otherdevice"),
+    {...devicePayload,deviceId:"otherdevice"}));
+  await assertFails(updateDoc(doc(s,subPath),{endpoint:"http://untrusted",
+    updatedAt:serverTimestamp()}));
+  await assertSucceeds(updateDoc(doc(s,subPath),{
+    minutes:25,questions:20,updatedAt:serverTimestamp()
+  }));
+  await assertFails(getDoc(doc(outsider,"publicConfig","push")));
+  await assertFails(setDoc(doc(s,"publicConfig","push"),{vapidPublicKey:"fake"}));
+  await assertFails(setDoc(doc(s,"smartPushLogs","fake"),{status:"sent"}));
   console.log("PASS: Firestore emulator — assignment, limits, tampering, approval, receipts, queries");
 }catch(err){console.error("FAIL: Firestore emulator challenge security",err);process.exitCode=1;}
 finally{await env.cleanup();}
