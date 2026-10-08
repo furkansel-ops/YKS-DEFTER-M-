@@ -11,7 +11,7 @@ const save=()=>{try{return(window.save?.()??window.YKSLegacyState?.save?.())!==f
 const allowed={easy:20,normal:35,hard:50};
 const day=(s)=>{const d=new Date(s+"T12:00:00");return /^\d{4}-\d{2}-\d{2}$/.test(s)&&dateKey(d)===s;};
 const el=(tag,cls="",label="")=>{const x=document.createElement(tag);if(cls)x.className=cls;x.textContent=label;return x;};
-let items=[],uid="",stopEvents=[],timer=null,busy=new Set();
+let items=[],uid="",stopEvents=[],timer=null,busy=new Set(),trustedReceipts=null;
 const visibleToast=(text)=>{
   const hour=new Date().getHours();
   if(hour>=8&&hour<22)try{window.toast?.(text)}catch{}
@@ -41,15 +41,30 @@ function syncNotice(id,task,status){
   }
   if(status==="assigned"||status==="approved"||status==="completed")visibleToast("🎯 "+label+": "+str(task.title,70));
 }
-function syncReward(id,task){
-  if(!["completed","approved"].includes(task.status)||!task.xp)return;
-  const s=state(),profile=s?.gamification;if(!profile||!Number.isFinite(profile.activatedAt))return;
-  const createdAt=task.createdAt?.toMillis?.();
-  if(!Number.isSafeInteger(createdAt)||createdAt<profile.activatedAt)return;
-  if(!Object.values(allowed).includes(task.xp)||!["0","1","2"].includes(task.slot))return;
-  profile.coachRewards??={};if(profile.coachRewards[id])return;
-  profile.coachRewards[id]={at:Date.now(),xp:task.xp};
-  if(!save())delete profile.coachRewards[id];
+// XP is never issued from a user-editable challenge progress/status document.
+// Only read-only, server-created coachXpReceipts can supply coach reward points.
+function refreshTrustedReceipts(){
+  if(!trustedReceipts)return;
+  const profile=state()?.gamification;
+  if(!profile||!Number.isSafeInteger(profile.activatedAt))return;
+  const canonical={};
+  for(const [id,reward] of trustedReceipts){
+    const claimedAt=reward.createdAt?.toMillis?.();
+    const assignedAt=reward.assignedAt?.toMillis?.();
+    if(reward.studentUid!==uid||!Number.isSafeInteger(claimedAt)||
+      !Number.isSafeInteger(assignedAt)||claimedAt<profile.activatedAt||
+      assignedAt<profile.activatedAt||!["0","1","2"].includes(reward.slot)||
+      reward.xp!==allowed[reward.difficulty]||
+      id!==reward.studentUid+"_"+reward.weekStart+"_"+reward.slot)continue;
+    canonical[id]={at:claimedAt,xp:reward.xp};
+  }
+  // Rebuild from server receipts. Invalid or removed local grants are not trusted.
+  const current=profile.coachRewards??{};
+  const old=JSON.stringify(Object.entries(current).sort());
+  const next=JSON.stringify(Object.entries(canonical).sort());
+  if(old===next)return;
+  profile.coachRewards=canonical;
+  if(!save())profile.coachRewards=current;
 }
 function recorded(task){
   const s=state();let minutes=0,questions=0;
@@ -148,12 +163,18 @@ export function installCoachStudentChallenges({db,user}){
   if(!db||!user?.uid)return()=>{};
   uid=user.uid;
   const q=query(collection(db,"coachChallenges"),where("studentUid","==",uid));
+  trustedReceipts=null;
   const stop=onSnapshot(q,snapshot=>{
     items=snapshot.docs.map(row=>({id:row.id,ref:row.ref,...row.data()}));
-    for(const item of items){syncNotice(item.id,item,item.status);syncReward(item.id,item);}
+    for(const item of items)syncNotice(item.id,item,item.status);
     schedule();
   },error=>console.warn("Koç görevleri henüz okunamıyor",error));
-  const changed=()=>schedule();
+  const stopReceipts=onSnapshot(query(collection(db,"coachXpReceipts"),
+    where("studentUid","==",uid)),snapshot=>{
+      trustedReceipts=new Map(snapshot.docs.map(row=>[row.id,row.data()]));
+      refreshTrustedReceipts();schedule();
+  },error=>console.warn("Koç XP makbuzları okunamadı",error));
+  const changed=()=>{refreshTrustedReceipts();schedule();};
   window.addEventListener("yks:data-changed",changed);
   window.addEventListener("pageshow",changed);
   document.addEventListener("visibilitychange",changed);
@@ -162,7 +183,8 @@ export function installCoachStudentChallenges({db,user}){
     ()=>document.removeEventListener("visibilitychange",changed)];
   schedule();
   return()=>{
-    stop();for(const fn of stopEvents)fn();stopEvents=[];
+    stop();stopReceipts();for(const fn of stopEvents)fn();stopEvents=[];
+    trustedReceipts=null;
     uid="";items=[];if(timer){clearTimeout(timer);timer=null;}
     document.getElementById(rootId)?.remove();
   };
