@@ -41,8 +41,13 @@ function harness({initial={},network=async()=>new Response("asset"),rejectBatch=
   const context=vm.createContext({
     URL,Request,Response,AbortController,setTimeout,clearTimeout,fetch,
     importScripts(url){
-      assert.equal(url,"./modules/focus-notification-worker.js?v=4.4.0-r27");imports.push(url);
-      vm.runInContext(fs.readFileSync(path.resolve(__dirname,"../modules/focus-notification-worker.js"),"utf8"),context);
+      const files={
+        "./modules/focus-notification-worker.js?v=4.4.0-r27":"focus-notification-worker.js",
+        "./modules/smart-push-worker.js?v=0.1.0":"smart-push-worker.js"
+      };
+      assert.ok(files[url],"Unexpected service worker import: "+url);
+      imports.push(url);
+      vm.runInContext(fs.readFileSync(path.resolve(__dirname,"../modules",files[url]),"utf8"),context);
     },
     caches:{
       async open(name){if(!stores.has(name))stores.set(name,createCache());return stores.get(name);},
@@ -255,7 +260,7 @@ test("speed reading lazy modules are installed before offline readiness is grant
 
 test("focus control worker imports once, dispatches requests and precaches both offline modules",async()=>{
   const runtime=harness({network:shellNetwork});await runtime.install();
-  assert.deepEqual(runtime.imports,["./modules/focus-notification-worker.js?v=4.4.0-r27"]);
+  assert.deepEqual(runtime.imports,["./modules/focus-notification-worker.js?v=4.4.0-r27","./modules/smart-push-worker.js?v=0.1.0"]);
   for(const name of ["focus-notifications","focus-notification-worker"])assert.equal(await runtime.body("./modules/"+name+".js?v=4.4.0-r27"),"new asset");
   assert.equal(await runtime.body("./app.js?v=4.1.0-r28"),"new asset");
   assert.equal(await runtime.body("./modules/stability.js?v=4.1.0-r29"),"new asset");
