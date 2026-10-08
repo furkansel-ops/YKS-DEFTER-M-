@@ -704,7 +704,7 @@ service cloud.firestore {
         ])
         && data.deviceId == deviceId
         && data.endpoint is string && data.endpoint.size() <= 2048
-        && data.endpoint.matches('^https://[^ ]{1,2040}$')
+        && data.endpoint.matches('^https://[^ ]+$')
         && data.p256dh is string && data.p256dh.matches('^[A-Za-z0-9_=-]{20,180}$')
         && data.auth is string && data.auth.matches('^[A-Za-z0-9_=-]{10,90}$')
         && data.day is string && data.day.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
