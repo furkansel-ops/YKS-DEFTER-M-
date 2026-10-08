@@ -21,6 +21,7 @@ function localTime(date,zone){
   }catch{return null;}
 }
 function quiet(hour,start=22,end=8){
+  if(start===end)return false;
   return start<end?hour>=start&&hour<end:hour>=start||hour<end;
 }
 function sender(){
