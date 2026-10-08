@@ -1,5 +1,6 @@
 import {calculateStudyGamification,createGamificationProfile,setNextDayGoal,planRestDay,shiftDay,keyOf} from "../domain/study-gamification";
 import type {StudyBadge,StudyGamificationSnapshot,StudyGamificationState} from "../domain/study-gamification";
+import {installStudyTaskPanel} from "./study-tasks-panel.ts";
 import "./study-gamification.css";
 
 type LegacyWindow=Window&{
@@ -307,6 +308,7 @@ export function installStudyGamification():{installed:boolean}{
   if(!mount())return {installed:false};
   if(document.documentElement.dataset.studyGamificationListeners==="ready"){schedule();return {installed:true};}
   document.documentElement.dataset.studyGamificationListeners="ready";
+  installStudyTaskPanel({readState,saveState,toast:message=>runtime.toast?.(message)});
   for(const event of ["yks:data-changed","yks:data-primary-ready","yks:auth-state","yks:navigation"]){
     window.addEventListener(event,schedule);
   }
