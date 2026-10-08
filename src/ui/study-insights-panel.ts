@@ -4,13 +4,14 @@ import type {StudyGamificationState} from "../domain/study-gamification.ts";
 import type {CalendarDay,SubjectMastery} from "../domain/study-insights.ts";
 import "./study-insights-panel.css";
 
-type Bridge={readState:()=>StudyGamificationState|null};
+type Bridge={readState:()=>StudyGamificationState|null;toast?:(message:string)=>void};
 const make=<K extends keyof HTMLElementTagNameMap>(
   tag:K,classes="",value=""):HTMLElementTagNameMap[K]=>{
   const el=document.createElement(tag);if(classes)el.className=classes;
   if(value)el.textContent=value;return el;
 };
 let mounted=false,queued=false,monthOffset=0,selectedDay="";
+let recordBaseline:Map<string,number>|null=null,recordAccount="";
 const labelDate=(day:string)=>new Date(day+"T12:00:00").toLocaleDateString("tr-TR",{day:"numeric",month:"long",year:"numeric"});
 const dateKey=(date:Date)=>date.getFullYear()+"-"+String(date.getMonth()+1).padStart(2,"0")+"-"+String(date.getDate()).padStart(2,"0");
 const clamp=(value:number)=>Math.max(0,Math.min(100,value));
@@ -136,6 +137,14 @@ export function installStudyInsightsPanel(port:Bridge):void{
       const now=new Date(),base=calculateStudyGamification(state,now);
       if(!base.activated)return;
       const model=getStudyInsights(state,state.gamification,now,base.history);
+      const account=String(state.gamification.activatedAt);
+      if(account!==recordAccount){recordBaseline=null;recordAccount=account;}
+      if(recordBaseline){
+        const changed=model.records.find(row=>row.value>0&&row.value>(recordBaseline?.get(row.id)??0));
+        if(changed)port.toast?.("🏆 Yeni kişisel rekor: "+changed.label+" — "+
+          changed.value.toLocaleString("tr-TR")+" "+changed.unit);
+      }
+      recordBaseline=new Map(model.records.map(row=>[row.id,row.value]));
       root.replaceChildren();
       const heading=make("div","si-title");
       heading.append(make("span","","YKS KARİYERİ"),make("h2","","Gelişimim"));
