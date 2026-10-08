@@ -158,7 +158,7 @@ export function getStudyInsights(state:DataState,profile:GamificationProfile,now
   const types=["TYT","AYT","YDT","BRANS"] as const;
   const exams:ExamProgress[]=types.map(type=>{
     const rows=(state.denemeler??[]).filter(x=>x&&x.type===type&&dayOk(String(x.date??""))&&
-      x.date>=activated&&x.date<=today&&Number.isFinite(x.at)&&Number(x.at)>=profile.activatedAt&&
+      String(x.date)>=activated&&String(x.date)<=today&&Number.isFinite(Number(x.at))&&Number(x.at)>=profile.activatedAt&&
       Number(x.at)<=now.getTime()&&Number.isFinite(Number(x.totalNet)))
       .sort((a,b)=>String(a.date).localeCompare(String(b.date))||Number(a.at)-Number(b.at));
     let gain=0;
@@ -178,7 +178,7 @@ export function getStudyInsights(state:DataState,profile:GamificationProfile,now
       value:exam.bestNet,unit:"net",day:""});
   }
   const calendar:CalendarDay[]=[];
-  const first=addDay(today,-41);
+  const first=addDay(today,-365);
   for(let day=first;day<=today;day=addDay(day,1)){
     const status:CalendarDay["status"]=day<activated?"before-start":history[day]??"pending";
     const data=day>=activated?dayData.get(day)??{minutes:0,questions:0}:{minutes:0,questions:0};
