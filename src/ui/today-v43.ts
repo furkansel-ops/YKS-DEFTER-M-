@@ -267,7 +267,7 @@ export function installTodayV43():{installed:boolean;validate:()=>string[]}{
   home.classList.add("v43-today");home.dataset.v43Today="ready";home.dataset.rbToday="ready";
   installHeader(home);if(todayHub){installTodayDetails(todayHub);home.append(todayHub);}
   installTasks(home);promoteDayActions(home);
-  const quickTools=promoteQuickTools(home);
+  promoteQuickTools(home);
   const quote=getElement("sozBox");
   const preserved=new Set<HTMLElement>();
   Array.from(home.children).forEach(node=>{
