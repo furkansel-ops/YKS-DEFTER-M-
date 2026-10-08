@@ -839,8 +839,8 @@ service cloud.firestore {
     match /coachChallenges/{challengeId} {
       allow get, list: if verifiedUser()
         && (request.auth.uid == resource.data.studentUid ||
-          request.auth.uid == resource.data.coachUid)
-        && activeCoachingLink(resource.data.studentUid, resource.data.coachUid);
+          (request.auth.uid == resource.data.coachUid &&
+            activeCoachingLink(resource.data.studentUid, resource.data.coachUid)));
       allow create: if verifiedUser()
         && profileRole(request.auth.uid, 'coach')
         && validCoachChallenge(request.resource.data, challengeId)
