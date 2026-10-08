@@ -30,7 +30,9 @@ async function deleteDeviceData(button:HTMLButtonElement):Promise<void>{
   try{
     const dataBridge=(window as unknown as {__YKS_DATA__?:{flush?:()=>Promise<void>}}).__YKS_DATA__;
     await dataBridge?.flush?.();
+    await (window as Window&{YKSFocusNotifications?:{shutdown():Promise<void>}}).YKSFocusNotifications?.shutdown();
     await Dexie.delete(YKS_DATABASE_NAME);
+    await Dexie.delete("yks-focus-notifications-v1");
     localStorage.clear();
     sessionStorage.clear();
     await clearAppCaches();

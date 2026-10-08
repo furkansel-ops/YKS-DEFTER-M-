@@ -6629,10 +6629,10 @@ function unwatch(id){
 
 /* ==================================================================
    BİLDİRİMLER
-   Tarayıcı bildirimi; uygulama açıkken ya da arka planda sekme
-   olarak dururken çalışır. Uygulama tamamen kapalıyken bildirim
-   göndermek bir sunucu gerektirir — o yüzden koç özeti e-posta ile
-   Apps Script üzerinden gönderilir.
+   Mobilde bildirimler service worker üzerinden gönderilir.
+   Tarayıcının isteği kabul etmesi, işletim sisteminin bildirimi
+   gösterdiğini kanıtlamaz. Askıya alınan sayfanın zamanlayıcıları
+   tam vaktinde bildirim göndermeyi garanti etmez.
    ================================================================== */
 function validTime(v){
   const m=/^(\d{2}):(\d{2})$/.exec(String(v||""));
@@ -6659,51 +6659,71 @@ function notifState(){
   if(!notifSupported())return "yok";
   try{ return Notification.permission; }catch(e){ return "yok"; }
 }
-function askNotif(){
-  if(!notifSupported()){ toast("Bu tarayıcı bildirim desteklemiyor"); return Promise.resolve("yok"); }
+function notifSettingsChanged(){
+  try{ window.dispatchEvent(new Event("yks:notification-settings")); }catch(e){}
+}
+async function askNotif(){
+  if(!notifSupported()){ notifSettingsChanged(); toast("Bu tarayıcı bildirim desteklemiyor"); return "yok"; }
   if(notifState()==="denied"){
     toast("İzin daha önce reddedilmiş — tarayıcı ayarlarından açman gerekiyor");
     notifDiag();
-    return Promise.resolve("denied");
+    notifSettingsChanged();
+    return "denied";
   }
-  return Promise.resolve(Notification.requestPermission()).then(p=>{
+  try{
+    const p=notifState()==="granted"?"granted":await Notification.requestPermission();
     const c=notifCfg();
     c.on=(p==="granted");
     save(); renderNotifSettings(); notifDiag();
-    if(p==="granted")notify("YKS Defterim","Bildirimler açıldı. Böyle görünecek.","acildi");
+    notifSettingsChanged();
+    if(p==="granted")void notify("YKS Defterim","Bildirim iznin açık. Odak bildirimlerini ayarlardan yönetebilirsin.","acildi");
     toast(p==="granted"?"Bildirimler açıldı ✓":"Bildirim izni verilmedi");
     return p;
-  }).catch(()=>{ toast("İzin istenemedi"); return "yok"; });
+  }catch(e){ notifSettingsChanged(); toast("İzin istenemedi; Chrome site izinlerini kontrol et"); return "yok"; }
 }
-function notify(title,body,tag){
+/* Geç çözülen kayıt isteği bildirim gönderemez; zaman aşımından sonra
+   ikinci bir yöntem denenmez. Böylece aynı bildirim iki kez oluşmaz. */
+function notifWait(promise){
+  return new Promise(resolve=>{
+    const timeout=setTimeout(()=>resolve({ok:false}),4000);
+    Promise.resolve(promise).then(value=>{
+      clearTimeout(timeout); resolve({ok:true,value});
+    },()=>{ clearTimeout(timeout); resolve({ok:false}); });
+  });
+}
+async function notify(title,body,tag){
   const c=notifCfg();
   if(!c.on)return false;
   if(notifState()!=="granted")return false;
   const opts={body:body||"",tag:tag||"yks",icon:"icon-192.png",badge:"icon-192.png",lang:"tr"};
-  /* Doğrudan Notification dene. serviceWorker.ready bazı durumlarda hiç
-     çözülmüyor; ona bağlanırsan bildirim sessizce hiç çıkmıyor. */
-  let ok1=false;
-  try{ new Notification(title,opts); ok1=true; }catch(e){ ok1=false; }
-  if(ok1)return true;
-  /* Bazı tarayıcılar (özellikle mobil) yalnız service worker üzerinden
-     bildirime izin veriyor; orada da zaman aşımı koy. */
   try{
-    if(navigator.serviceWorker&&navigator.serviceWorker.ready){
-      let bitti=false;
-      const zaman=setTimeout(()=>{ bitti=true; },4000);
-      navigator.serviceWorker.ready.then(reg=>{
-        clearTimeout(zaman);
-        if(bitti||!reg||!reg.showNotification)return;
-        try{ reg.showNotification(title,opts); }catch(e){}
-      }).catch(()=>{ clearTimeout(zaman); });
-      return true;
+    const sw=navigator.serviceWorker;
+    if(sw){
+      const found=await notifWait((async()=>{
+        let reg=null;
+        try{ if(typeof sw.getRegistration==="function")reg=await sw.getRegistration(); }catch(e){}
+        if(reg&&reg.active&&typeof reg.showNotification==="function")return reg;
+        return sw.ready;
+      })());
+      const reg=found.ok&&found.value;
+      if(!reg||typeof reg.showNotification!=="function")return false;
+      /* İzin veya uygulama ayarı kayıt beklenirken değişmiş olabilir. */
+      if(!notifCfg().on||notifState()!=="granted")return false;
+      const sent=await notifWait(reg.showNotification(title,opts));
+      return sent.ok;
     }
+    /* Service worker desteklemeyen masaüstü tarayıcı için eski yol. */
+    if(/Android|iPad|iPhone|iPod/i.test(navigator.userAgent||""))return false;
+    new Notification(title,opts);
+    return true;
   }catch(e){}
   return false;
 }
+try{ window.YKSNotificationDelivery={show:notify}; }catch(e){}
 function toggleNotif(kind){
   const c=notifCfg();
   c[kind]=!c[kind]; save(); renderNotifSettings();
+  notifSettingsChanged();
   scheduleEvening();
 }
 function saveEveningAt(){
@@ -6720,7 +6740,8 @@ function renderNotifSettings(){
   const st=el("notifStatus"); if(!st)return;
   const p=notifState();
   if(p==="yok"){ st.textContent="Bu tarayıcı bildirim desteklemiyor."; st.style.color="var(--label-3)"; }
-  else if(p!=="granted"){ st.textContent="İzin verilmedi. Bildirimleri açmak için izin ver."; st.style.color="var(--label-3)"; }
+  else if(p==="denied"){ st.textContent="Bildirim izni engellenmiş. Chrome site ayarlarından açabilirsin."; st.style.color="var(--label-3)"; }
+  else if(p!=="granted"){ st.textContent="Bildirimleri açmak için izin ver."; st.style.color="var(--label-3)"; }
   else if(!c.on){ st.textContent="İzin var ama bildirimler kapalı."; st.style.color="var(--label-3)"; }
   else {
     let ek="";
@@ -6729,7 +6750,7 @@ function renderNotifSettings(){
       const ios=/iPad|iPhone|iPod/.test(navigator.userAgent||"");
       if(ios&&!standalone)ek=" iPhone'da bildirim için uygulamayı ana ekrana eklemen gerekir.";
     }catch(e){}
-    st.textContent="Bildirimler açık."+ek;
+    st.textContent="Bildirim izni açık. Test bildirimiyle cihaz ayarlarını kontrol edebilirsin."+ek;
     st.style.color=ek?"var(--time)":"var(--success)";
   }
   [["notifPomo","pomo"],["notifReview","review"],["notifEvening","evening"]].forEach(x=>{
@@ -6765,25 +6786,28 @@ function notifDiag(){
     satir.push("UYARI: izin var ama uygulama ayarı kapalı — 'Bildirimlere izin ver'e tekrar bas.");
   if(anaEkran==="hayır")
     satir.push("NOT: iPhone'da bildirimler yalnız uygulama ana ekrana eklenmişse çalışır.");
+  satir.push("Görünmüyorsa: Chrome → Ayarlar → Site ayarları → Bildirimler; ayrıca tablet/telefon Ayarları → Bildirimler → Chrome / YKS Defterim izinlerini kontrol et.");
+  satir.push("Rahatsız Etmeyin ve pil tasarrufu bildirimleri geciktirebilir. Tarayıcının kabul ettiği bir bildirim cihazda sessize alınmış olabilir.");
+  satir.push("Uygulama askıya alınır veya tamamen kapatılırsa süre sonu bildirimi tam vaktinde garanti edilemez.");
   const metin=satir.join("\n");
   if(box)box.textContent=metin;
   return metin;
 }
-function testNotif(){
+async function testNotif(){
   if(!notifSupported()){ notifDiag(); toast("Bu tarayıcı bildirim desteklemiyor"); return false; }
   const p=notifState();
   if(p==="denied"){ notifDiag(); toast("İzin reddedilmiş — tarayıcı ayarlarından açman gerekiyor"); return false; }
   if(p!=="granted"){ notifDiag(); toast("Önce 'Bildirimlere izin ver' düğmesine bas"); return false; }
   const c=notifCfg();
-  if(!c.on){ c.on=true; save(); renderNotifSettings(); }
+  if(!c.on){ c.on=true; save(); renderNotifSettings(); notifSettingsChanged(); }
   notifDiag();
-  const okN=notify("YKS Defterim","Bildirimler çalışıyor. Böyle görünecek.","test");
-  toast(okN?"Bildirim gönderildi · gelmezse aşağıdaki tanıya bak":"Bildirim gönderilemedi");
+  const okN=await notify("YKS Defterim","Bu test bildirimi görünüyorsa cihaz bildirimlerine erişebiliyorsun.","test");
+  toast(okN?"Tarayıcı bildirimi kabul etti; görünmüyorsa cihaz izinlerini kontrol et":"Bildirim kabul edilmedi; izinleri ve bağlantıyı kontrol et");
   return okN;
 }
 
 /* --- akşam hatırlatması --- */
-let eveningTimer=null;
+let eveningTimer=null,eveningDeliveryDay="",reviewDeliveryDay="";
 function eveningDelay(){
   const c=notifCfg();
   const p=c.eveningAt.split(":");
@@ -6798,12 +6822,17 @@ function eveningText(){
   if(done)return "Bugünü tamamladın · "+fmtHM(m)+" · "+q+" soru. Yarının planına bakabilirsin.";
   return "Bugünü işaretlemedin. "+(m||q?fmtHM(m)+" · "+q+" soru kaydı var.":"Bugün için kayıt yok.");
 }
-function fireEvening(){
+async function fireEvening(){
   const c=notifCfg();
   if(!c.on||!c.evening)return false;
-  if(c.lastEvening===todayKey())return false;
-  c.lastEvening=todayKey(); save();
-  return notify("Günü kapat",eveningText(),"aksam");
+  const day=todayKey();
+  if(c.lastEvening===day||eveningDeliveryDay===day)return false;
+  eveningDeliveryDay=day;
+  try{
+    const accepted=await notify("Günü kapat",eveningText(),"aksam");
+    if(accepted){ c.lastEvening=day; save(); }
+    return accepted;
+  }finally{ eveningDeliveryDay=""; }
 }
 function scheduleEvening(){
   clearTimeout(eveningTimer); eveningTimer=null;
@@ -6819,18 +6848,23 @@ function scheduleEvening(){
   eveningTimer=setTimeout(()=>{ if(eveningDelay()<=0)fireEvening(); scheduleEvening(); },d+500);
 }
 /* --- tekrar hatırlatması --- */
-function fireReview(){
+async function fireReview(){
   const c=notifCfg();
   if(!c.on||!c.review)return false;
-  if(c.lastReview===todayKey())return false;
+  const day=todayKey();
+  if(c.lastReview===day||reviewDeliveryDay===day)return false;
   const n=(typeof reviewQueue==="function")?reviewQueue().length:0;
   const od=(typeof overdueTopics==="function")?overdueTopics().length:0;
   if(!n&&!od)return false;
-  c.lastReview=todayKey(); save();
+  reviewDeliveryDay=day;
   const parts=[];
   if(n)parts.push(n+" konunun tekrar zamanı geldi");
   if(od)parts.push(od+" konu hedef tarihini aştı");
-  return notify("Tekrar zamanı",parts.join(" · "),"tekrar");
+  try{
+    const accepted=await notify("Tekrar zamanı",parts.join(" · "),"tekrar");
+    if(accepted){ c.lastReview=day; save(); }
+    return accepted;
+  }finally{ reviewDeliveryDay=""; }
 }
 
 /* ---------- koç e-postası ---------- */

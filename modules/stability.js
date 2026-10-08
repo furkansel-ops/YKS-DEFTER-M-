@@ -114,7 +114,7 @@
     document.addEventListener("visibilitychange",()=>{if(document.hidden)persistRuntime(true);});
     window.addEventListener("pagehide",()=>persistRuntime(true));
     setInterval(()=>{try{if(pomoState==="running")persistRuntime(false);}catch(e){}},15000);
-    bindAccessibility();updateOnlineBanner();loadPersonalUpgrades();loadProgressV2();loadLearningLabV2();loadLearningLabV3();setTimeout(restoreRuntime,180);
+    bindAccessibility();updateOnlineBanner();loadPersonalUpgrades();loadProgressV2();loadLearningLabV2();loadLearningLabV3();setTimeout(()=>{if(window.YKSFocusNotifications)window.YKSFocusNotifications.restore(restoreRuntime);else restoreRuntime();},180);
   }
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",start,{once:true});else start();
   window.YKSStability={persistRuntime,restoreRuntime,clearRuntime,updateOnlineBanner,loadPersonalUpgrades,loadProgressV2,loadLearningLabV2,loadLearningLabV3};
