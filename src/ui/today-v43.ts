@@ -76,11 +76,64 @@ function installTodayDetails(todayHub:HTMLElement):void{
 
 function installSecondaryArea(home:HTMLElement,preserved:Set<HTMLElement>):void{
   if(home.querySelector("[data-v43-secondary]"))return;
-  const candidates=Array.from(home.children).filter((node):node is HTMLElement=>node instanceof HTMLElement).filter(node=>!preserved.has(node));
-  const shell=document.createElement("section");shell.className="v43-secondary";shell.dataset.v43Secondary="true";
-  const body=document.createElement("div");body.className="v43-secondary-body";body.hidden=true;
-  candidates.forEach(node=>body.append(node));
-  shell.append(makeToggle("Diğer araçları aç",body,"v43-secondary-toggle"),body);home.append(shell);
+  // The old catch-all drawer duplicated Today's metrics, analysis and journals.
+  // Keep all legacy DOM IDs for existing renders/saves, but park obsolete visual
+  // blocks out of sight. Relevant entry tools get explicit homes instead.
+  const candidates=Array.from(home.children)
+    .filter((node):node is HTMLElement=>node instanceof HTMLElement)
+    .filter(node=>!preserved.has(node));
+  const shell=document.createElement("section");shell.className="v43-secondary";
+  shell.dataset.v43Secondary="true";shell.hidden=true;
+  const archive=document.createElement("div");archive.className="v43-secondary-body";
+  archive.hidden=true;archive.setAttribute("aria-hidden","true");
+  candidates.forEach(node=>archive.append(node));
+  shell.append(archive);home.append(shell);
+}
+
+function promoteQuickTools(home:HTMLElement):HTMLElement|null{
+  const quick=home.querySelector<HTMLElement>(".quick-entry");
+  const topic=document.getElementById("fh_konu"),topicBody=document.getElementById("fb_konu");
+  const suggestion=document.getElementById("suggestBox");
+  if(!quick&&!topic&&!suggestion)return null;
+  let section=home.querySelector<HTMLElement>(".rb-quick-tools");
+  if(section)return section;
+  section=document.createElement("section");section.className="rb-quick-tools";
+  const drawer=document.createElement("details");drawer.className="rb-quick-drawer";
+  const summary=document.createElement("summary");summary.textContent="✍️ Hızlı soru girişi ve öneriler";
+  summary.setAttribute("aria-label","Hızlı soru girişi ve çalışma önerilerini aç");
+  const content=document.createElement("div");content.className="rb-quick-content";
+  if(quick)content.append(quick);
+  if(topic)content.append(topic);
+  if(topicBody)content.append(topicBody);
+  if(suggestion){
+    const heading=document.createElement("h3");heading.textContent="Bugün ne çalışayım?";
+    content.append(heading,suggestion);
+  }
+  drawer.append(summary,content);
+  const more=document.createElement("button");more.type="button";more.className="rb-all-tools";
+  more.textContent="Tüm araçlar →";more.addEventListener("click",()=>{
+    (window as TodayWindow).go?.("more");
+  });
+  section.append(drawer,more);
+  const anchor=home.querySelector<HTMLElement>(".rb-today-tasks");
+  if(anchor)anchor.insertAdjacentElement("afterend",section);
+  else home.append(section);
+  return section;
+}
+
+function promoteDayActions(home:HTMLElement):void{
+  const actions=home.querySelector<HTMLElement>(".home-actions");
+  if(!actions)return;
+  actions.classList.add("rb-today-actions");
+  const anchor=home.querySelector<HTMLElement>(".rb-today-tasks");
+  if(anchor)anchor.insertAdjacentElement("afterend",actions);
+}
+
+function relocateWeeklyGoals():void{
+  const target=document.getElementById("ymsWeeklyGoalsSlot");
+  const control=document.getElementById("fh_soz"),body=document.getElementById("fb_soz");
+  if(!target||!control||!body)return;
+  if(control.parentElement!==target)target.append(control,body);
 }
 
 const METRICS=[
@@ -213,17 +266,23 @@ export function installTodayV43():{installed:boolean;validate:()=>string[]}{
   if(home.dataset.rbToday==="ready")return {installed:true,validate};
   home.classList.add("v43-today");home.dataset.v43Today="ready";home.dataset.rbToday="ready";
   installHeader(home);if(todayHub){installTodayDetails(todayHub);home.append(todayHub);}
-  installTasks(home);const quote=getElement("sozBox");
+  installTasks(home);promoteDayActions(home);
+  promoteQuickTools(home);
+  const quote=getElement("sozBox");
   const preserved=new Set<HTMLElement>();
   Array.from(home.children).forEach(node=>{
     if(!(node instanceof HTMLElement))return;
-    if(node.classList.contains("home-head")||node.classList.contains("rb-today-tasks")||["todayHub","sozBox","dgBanner","restBanner","backupBanner"].includes(node.id))preserved.add(node);
+    if(node.classList.contains("home-head")||node.classList.contains("rb-today-tasks")||
+      node.classList.contains("rb-today-actions")||node.classList.contains("rb-quick-tools")||
+      ["todayHub","sozBox","dgBanner","restBanner","backupBanner"].includes(node.id))preserved.add(node);
   });
   const head=home.querySelector<HTMLElement>(".home-head");
   if(head){home.prepend(head);installCompactQuote(home);}
   else if(quote)home.prepend(quote);
   ["dgBanner","restBanner","backupBanner"].forEach(id=>{const node=getElement(id);if(node)home.append(node);});
   installSecondaryArea(home,preserved);
+  relocateWeeklyGoals();
+  window.addEventListener("yks:home-tools-ready",relocateWeeklyGoals);
   const refresh=()=>{refreshMetrics();refreshTasks();const next=getElement("todayNext");if(next)enhanceTodayNext(next);refreshCoachShortcut(home);};
   refresh();
   // Legacy renders replace card contents after completion, sync, import and focus sessions.

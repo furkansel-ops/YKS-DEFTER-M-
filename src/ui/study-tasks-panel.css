@@ -1,44 +1,44 @@
 /* Görev kartları mevcut tema değişkenlerini kullanır ve ana ekranı taşırmaz. */
-#home .st-panel{margin:12px 0 20px;padding:17px;border:1px solid var(--sep,rgba(120,130,150,.18));border-radius:20px;background:var(--glass,var(--card,#fff));box-shadow:0 5px 24px rgba(25,37,62,.045);min-width:0;color:var(--label,#182436)}
-#home .st-header{display:flex;justify-content:space-between;align-items:center}
-#home .st-eyebrow{font-size:10px;letter-spacing:.11em;font-weight:800;color:var(--label-3,#777)}
-#home .st-header h2{margin:3px 0 0;font-size:18px;line-height:1.35;letter-spacing:-.025em}
-#home .st-settings{margin-top:13px;padding:11px;background:var(--fill,rgba(80,95,125,.06));border-radius:12px}
-#home .st-settings-label{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;font-weight:650}
-#home .st-difficulty{background:var(--glass,var(--card,#fff));color:var(--label,#182436);border:1px solid var(--sep,rgba(120,130,150,.2));padding:8px;border-radius:10px;min-width:100px;font-size:12px}
-#home .st-group{margin-top:16px}
-#home .st-group-head{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:9px}
-#home .st-group-head strong{font-size:13px}
-#home .st-group-head span{font-size:10.5px;font-weight:650;color:var(--label-2,#778)}
-#home .st-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
-#home .st-task{padding:12px;border:1px solid var(--sep,rgba(120,130,150,.18));background:var(--fill,rgba(80,95,125,.05));border-radius:13px;min-width:0;display:flex;flex-direction:column;gap:9px}
-#home .st-task.st-claimed{border-color:rgba(40,162,113,.28)}
-#home .st-task-top{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
-#home .st-task-copy{display:flex;flex-direction:column;gap:4px;min-width:0}
-#home .st-task-copy strong{font-size:11.5px;line-height:1.45;overflow-wrap:anywhere}
-#home .st-task-status{font-size:10px;color:var(--label-2,#778)}
-#home .st-reward{font-size:11px;color:var(--accent,#427ddd);font-weight:800;white-space:nowrap}
-#home .st-bar{height:7px;border-radius:99px;overflow:hidden;background:rgba(124,137,158,.17)}
-#home .st-bar-fill{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--accent,#427ddd),#72b0ef)}
-#home .st-task.st-claimed .st-bar-fill{background:var(--success,#22946d)}
-#home .st-task-foot{display:flex;justify-content:space-between;align-items:center;gap:5px}
-#home .st-task-foot small{font-size:10px;color:var(--label-2,#778);overflow-wrap:anywhere}
-#home .st-reroll{align-self:flex-start;border:1px solid var(--sep,rgba(120,130,150,.22));border-radius:8px;padding:7px 9px;background:var(--glass,var(--card,#fff));color:var(--accent,#427ddd);font:inherit;font-size:10.5px;font-weight:700;cursor:pointer}
-#home .st-reroll:focus-visible,#home .st-difficulty:focus-visible{outline:2px solid var(--accent,#427ddd);outline-offset:2px}
-#home .st-empty{margin:0;padding:12px;border-radius:11px;font-size:12px;background:var(--fill,rgba(80,95,125,.05));color:var(--label-2,#778)}
-#home .st-note{margin:13px 0 0;font-size:10.5px;line-height:1.55;color:var(--label-2,#778)}
+:is(#home,#ymsAchievementsContent) .st-panel{margin:12px 0 20px;padding:17px;border:1px solid var(--sep,rgba(120,130,150,.18));border-radius:20px;background:var(--glass,var(--card,#fff));box-shadow:0 5px 24px rgba(25,37,62,.045);min-width:0;color:var(--label,#182436)}
+:is(#home,#ymsAchievementsContent) .st-header{display:flex;justify-content:space-between;align-items:center}
+:is(#home,#ymsAchievementsContent) .st-eyebrow{font-size:10px;letter-spacing:.11em;font-weight:800;color:var(--label-3,#777)}
+:is(#home,#ymsAchievementsContent) .st-header h2{margin:3px 0 0;font-size:18px;line-height:1.35;letter-spacing:-.025em}
+:is(#home,#ymsAchievementsContent) .st-settings{margin-top:13px;padding:11px;background:var(--fill,rgba(80,95,125,.06));border-radius:12px}
+:is(#home,#ymsAchievementsContent) .st-settings-label{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;font-weight:650}
+:is(#home,#ymsAchievementsContent) .st-difficulty{background:var(--glass,var(--card,#fff));color:var(--label,#182436);border:1px solid var(--sep,rgba(120,130,150,.2));padding:8px;border-radius:10px;min-width:100px;font-size:12px}
+:is(#home,#ymsAchievementsContent) .st-group{margin-top:16px}
+:is(#home,#ymsAchievementsContent) .st-group-head{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:9px}
+:is(#home,#ymsAchievementsContent) .st-group-head strong{font-size:13px}
+:is(#home,#ymsAchievementsContent) .st-group-head span{font-size:10.5px;font-weight:650;color:var(--label-2,#778)}
+:is(#home,#ymsAchievementsContent) .st-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+:is(#home,#ymsAchievementsContent) .st-task{padding:12px;border:1px solid var(--sep,rgba(120,130,150,.18));background:var(--fill,rgba(80,95,125,.05));border-radius:13px;min-width:0;display:flex;flex-direction:column;gap:9px}
+:is(#home,#ymsAchievementsContent) .st-task.st-claimed{border-color:rgba(40,162,113,.28)}
+:is(#home,#ymsAchievementsContent) .st-task-top{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+:is(#home,#ymsAchievementsContent) .st-task-copy{display:flex;flex-direction:column;gap:4px;min-width:0}
+:is(#home,#ymsAchievementsContent) .st-task-copy strong{font-size:11.5px;line-height:1.45;overflow-wrap:anywhere}
+:is(#home,#ymsAchievementsContent) .st-task-status{font-size:10px;color:var(--label-2,#778)}
+:is(#home,#ymsAchievementsContent) .st-reward{font-size:11px;color:var(--accent,#427ddd);font-weight:800;white-space:nowrap}
+:is(#home,#ymsAchievementsContent) .st-bar{height:7px;border-radius:99px;overflow:hidden;background:rgba(124,137,158,.17)}
+:is(#home,#ymsAchievementsContent) .st-bar-fill{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--accent,#427ddd),#72b0ef)}
+:is(#home,#ymsAchievementsContent) .st-task.st-claimed .st-bar-fill{background:var(--success,#22946d)}
+:is(#home,#ymsAchievementsContent) .st-task-foot{display:flex;justify-content:space-between;align-items:center;gap:5px}
+:is(#home,#ymsAchievementsContent) .st-task-foot small{font-size:10px;color:var(--label-2,#778);overflow-wrap:anywhere}
+:is(#home,#ymsAchievementsContent) .st-reroll{align-self:flex-start;border:1px solid var(--sep,rgba(120,130,150,.22));border-radius:8px;padding:7px 9px;background:var(--glass,var(--card,#fff));color:var(--accent,#427ddd);font:inherit;font-size:10.5px;font-weight:700;cursor:pointer}
+:is(#home,#ymsAchievementsContent) .st-reroll:focus-visible,:is(#home,#ymsAchievementsContent) .st-difficulty:focus-visible{outline:2px solid var(--accent,#427ddd);outline-offset:2px}
+:is(#home,#ymsAchievementsContent) .st-empty{margin:0;padding:12px;border-radius:11px;font-size:12px;background:var(--fill,rgba(80,95,125,.05));color:var(--label-2,#778)}
+:is(#home,#ymsAchievementsContent) .st-note{margin:13px 0 0;font-size:10.5px;line-height:1.55;color:var(--label-2,#778)}
 @media(max-width:560px){
-  #home .st-panel{padding:13px;border-radius:17px}
-  #home .st-list{grid-template-columns:1fr}
-  #home .st-settings-label{align-items:flex-start;flex-direction:column}
+  :is(#home,#ymsAchievementsContent) .st-panel{padding:13px;border-radius:17px}
+  :is(#home,#ymsAchievementsContent) .st-list{grid-template-columns:1fr}
+  :is(#home,#ymsAchievementsContent) .st-settings-label{align-items:flex-start;flex-direction:column}
 }
-@media(prefers-reduced-motion:reduce){#home .st-bar-fill{transition:none}}
+@media(prefers-reduced-motion:reduce){:is(#home,#ymsAchievementsContent) .st-bar-fill{transition:none}}
 
 
 /* Coarse pointers (Android/iPad) need touch-friendly tap targets. */
-#home .st-difficulty,#home .st-reroll{min-height:42px;touch-action:manipulation}
-#home .st-task{max-width:100%;box-sizing:border-box}
-#home .st-task-foot{flex-wrap:wrap}
+:is(#home,#ymsAchievementsContent) .st-difficulty,:is(#home,#ymsAchievementsContent) .st-reroll{min-height:42px;touch-action:manipulation}
+:is(#home,#ymsAchievementsContent) .st-task{max-width:100%;box-sizing:border-box}
+:is(#home,#ymsAchievementsContent) .st-task-foot{flex-wrap:wrap}
 @media(min-width:601px) and (max-width:1024px){
-  #home .st-list{grid-template-columns:repeat(2,minmax(0,1fr))}
+  :is(#home,#ymsAchievementsContent) .st-list{grid-template-columns:repeat(2,minmax(0,1fr))}
 }

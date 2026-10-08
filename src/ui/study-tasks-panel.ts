@@ -12,8 +12,13 @@ const element=<K extends keyof HTMLElementTagNameMap>(tag:K,className="",text=""
 };
 function mount():HTMLElement|null{
   const current=document.getElementById("studyTasksPanel");
-  if(current)return current;
   const parent=document.getElementById("studyGamification");
+  const settingsHost=document.getElementById("ymsAchievementsContent");
+  if(current){
+    if(settingsHost&&parent?.parentElement===settingsHost&&current.parentElement!==settingsHost)
+      parent.insertAdjacentElement("afterend",current);
+    return current;
+  }
   if(!parent)return null;
   const root=element("section","st-panel");root.id="studyTasksPanel";
   root.setAttribute("aria-label","Günlük görevler ve haftalık meydan okumalar");
@@ -138,7 +143,7 @@ export function installStudyTaskPanel(port:Port):void{
       render(port,root,taskPanel(state,now),refresh);
     });
   };
-  for(const name of ["yks:data-changed","yks:data-primary-ready","yks:auth-state","yks:navigation"])
+  for(const name of ["yks:data-changed","yks:data-primary-ready","yks:auth-state","yks:navigation","yks:achievements-settings-ready"])
     window.addEventListener(name,refresh);
   window.addEventListener("pageshow",refresh);
   window.addEventListener("focus",refresh);

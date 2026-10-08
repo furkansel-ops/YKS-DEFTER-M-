@@ -162,3 +162,30 @@
 /* Gün sonu kartı, koç bağlantısının hemen üstünde sabit görünür */
 #home.v43-today>#todayClose{margin:14px 0 8px!important}
 #home.v43-today>#todayClose+.rb-home-coach{margin-top:0!important}
+
+
+/* Today refresh: intentionally hide the legacy catch-all drawer without removing its data nodes. */
+#home.v43-today .v43-secondary[data-v43-secondary]{display:none!important}
+#home.v43-today .rb-today-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0}
+#home.v43-today .rb-today-actions .btn{min-height:42px;flex:1 1 135px;border-radius:12px}
+#home.v43-today .rb-quick-tools{display:flex;align-items:center;gap:10px;min-width:0}
+#home.v43-today .rb-quick-drawer{flex:1 1 auto;min-width:0;border:1px solid var(--rb-line,#e8eef7);
+ border-radius:16px;background:var(--rb-surface,#fff)}
+#home.v43-today .rb-quick-drawer>summary{list-style:none;cursor:pointer;min-height:48px;display:flex;align-items:center;
+ padding:11px 15px;font-weight:650;font-size:13px;color:var(--rb-ink,var(--label))}
+#home.v43-today .rb-quick-drawer>summary::-webkit-details-marker{display:none}
+#home.v43-today .rb-quick-drawer>summary:after{content:"⌄";margin-left:auto;font-size:17px;color:var(--rb-muted,var(--label-2))}
+#home.v43-today .rb-quick-drawer[open]>summary:after{transform:rotate(180deg)}
+#home.v43-today .rb-quick-content{display:grid;gap:12px;padding:0 14px 14px;min-width:0}
+#home.v43-today .rb-quick-content>h3{font-size:13px;font-weight:650;margin:5px 0 0}
+#home.v43-today .rb-quick-content>.quick-entry,#home.v43-today .rb-quick-content>#suggestBox{margin:0;min-width:0}
+#home.v43-today .rb-all-tools{appearance:none;min-height:46px;padding:0 13px;border:1px solid var(--rb-line,#e8eef7);
+ border-radius:13px;background:var(--rb-surface,#fff);color:var(--rb-accent,var(--accent,#2469db));font:inherit;font-size:12px;
+ font-weight:700;white-space:nowrap;cursor:pointer}
+#home.v43-today .rb-quick-drawer>summary:focus-visible,#home.v43-today .rb-all-tools:focus-visible{
+ outline:2px solid var(--rb-accent,#2469db);outline-offset:2px}
+@media(max-width:440px){
+ #home.v43-today .rb-quick-tools{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px}
+ #home.v43-today .rb-all-tools{padding:0 9px;font-size:11px}
+ #home.v43-today .rb-quick-drawer>summary{font-size:12px;padding-inline:10px}
+}
