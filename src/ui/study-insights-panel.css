@@ -43,3 +43,20 @@
 #home .si-empty{font-size:11px;color:var(--label-2,#778)}
 @media(max-width:550px){#home .si-panel{padding:12px;border-radius:16px}#home .si-record-grid,#home .si-mastery-list{grid-template-columns:1fr}#home .si-cal-grid{gap:3px}#home .si-cal-day{min-height:33px}}
 @media(prefers-reduced-motion:reduce){#home .si-rail-fill{transition:none}}
+
+
+/* Touch-first refinement: keep the 7-column calendar legible on tablets and phones. */
+#home .si-cal-grid,#home .si-record-grid,#home .si-mastery-list{min-width:0;max-width:100%}
+#home .si-month-nav button{min-width:40px;min-height:44px;touch-action:manipulation}
+#home .si-cal-day{min-width:0;min-height:44px;touch-action:manipulation}
+#home .si-day-detail,#home .si-record,#home .si-mastery{max-width:100%;box-sizing:border-box;overflow-wrap:anywhere}
+#home .si-exam-line{overflow-wrap:anywhere}
+@media(max-width:400px){
+  #home .si-cal-grid{gap:2px}
+  #home .si-month-nav{gap:4px}
+  #home .si-month-nav>span{min-width:84px}
+  #home .si-cal-day{min-height:40px;padding:2px 0;border-radius:8px}
+}
+@media(min-width:601px) and (max-width:1024px){
+  #home .si-record-grid,#home .si-mastery-list{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
