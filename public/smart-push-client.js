@@ -70,6 +70,7 @@ let status="Telefon bildirimleri bağlı değil.";
 export function installStudentSmartPush({db,user}){
   if(!db||!user?.emailVerified)return()=>{};
   dbRef=db;userRef=user;active=true;
+  previousPayload="";lastSyncAt=0;
   const generation=++authGeneration;
   const id=deviceId();
   deviceRef=doc(db,"users",user.uid,"pushDevices",id);
