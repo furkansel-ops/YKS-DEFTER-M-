@@ -1,146 +1,200 @@
-/** Günlük çalışma serisi ve başarımlar; mevcut öğrenci kayıtlarından türetilir.
- * Ayrı XP sayacı tutulmaz: aynı kayıt yeniden işlenince ödül tekrar verilmez.
+/** YKS Defterim: bağımsız, deterministik Aşama 1 oyunlaştırma hesabı.
+ * İlk etkinleştirmeden önceki kayıtlar ödül üretmez. Hiçbir eski istatistik silinmez.
  */
+export type DailyGoal={from:string;minutes:number;questions:number};
+export type EarnedBadge={at:number;xp:number};
+export type GamificationProfile={
+  version:1;
+  activatedAt:number;
+  activationDay:string;
+  baselineMinutes:number;
+  baselineQuestions:number;
+  goals:DailyGoal[];
+  earned:Record<string,EarnedBadge>;
+};
 export type StudyGamificationState={
   pomoMin?:Record<string,unknown>;
   solved?:Record<string,unknown>;
-  denemeler?:Array<{date?:unknown}>;
+  denemeler?:Array<{date?:unknown;at?:unknown;type?:unknown}>;
+  gamification?:GamificationProfile;
 };
+export type BadgeRarity="Bronz"|"Gümüş"|"Altın"|"Elmas"|"Efsanevi";
 export type StudyBadge={
-  id:string;
-  icon:string;
-  title:string;
-  description:string;
-  unlocked:boolean;
-  progress:number;
-  goal:number;
-  xp:number;
+  id:string;icon:string;title:string;description:string;
+  rarity:BadgeRarity;xp:number;progress:number;goal:number;
+  unlocked:boolean;unlockedAt:number|null;pending:boolean;
 };
 export type StudyWeekDay={key:string;label:string;completed:boolean;today:boolean};
 export type StudyGamificationSnapshot={
-  todayKey:string;
-  todayMinutes:number;
-  dailyGoal:number;
-  todayCompleted:boolean;
-  currentStreak:number;
-  longestStreak:number;
-  activeDays:number;
-  totalMinutes:number;
-  totalQuestions:number;
-  totalExams:number;
-  xp:number;
-  level:number;
-  rank:string;
-  levelProgress:number;
-  levelGoal:number;
-  earnedBadges:number;
-  badges:StudyBadge[];
+  activated:boolean;todayKey:string;todayMinutes:number;todayQuestions:number;
+  goalMinutes:number;goalQuestions:number;todayCompleted:boolean;
+  currentStreak:number;longestStreak:number;activeDays:number;
+  totalMinutes:number;totalQuestions:number;totalExams:number;
+  xp:number;level:number;rank:string;levelProgress:number;levelGoal:number;
+  earnedBadges:number;badges:StudyBadge[];newBadgeIds:string[];
   week:StudyWeekDay[];
 };
+const WEEKDAYS=["Pz","Pt","Sa","Ça","Pe","Cu","Ct"] as const;
+const XP_BY_RARITY:Record<BadgeRarity,number>={Bronz:30,"Gümüş":75,"Altın":150,"Elmas":300,"Efsanevi":600};
 
-const DAILY_GOAL=30;
-const LEVEL_STEP=450;
-const WEEKDAYS=["Pz","Pt","Sa","Ça","Pe","Cu","Ct"];
-
-function dayKey(date:Date):string{
-  return String(date.getFullYear()).padStart(4,"0")+"-"+String(date.getMonth()+1).padStart(2,"0")+"-"+String(date.getDate()).padStart(2,"0");
+export function keyOf(date:Date):string{
+  return date.getFullYear()+"-"+String(date.getMonth()+1).padStart(2,"0")+"-"+String(date.getDate()).padStart(2,"0");
 }
-function validKey(value:string):boolean{
-  if(!/^\d{4}-\d{2}-\d{2}$/.test(value))return false;
-  const year=Number(value.slice(0,4)),month=Number(value.slice(5,7)),day=Number(value.slice(8));
-  if(year<2000||year>2100)return false;
-  const date=new Date(year,month-1,day);
-  return date.getFullYear()===year&&date.getMonth()===month-1&&date.getDate()===day;
+function isDayKey(key:string):boolean{
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(key))return false;
+  const d=new Date(Number(key.slice(0,4)),Number(key.slice(5,7))-1,Number(key.slice(8)),12);
+  return key===keyOf(d);
 }
-function shiftKey(key:string,offset:number):string{
-  const date=new Date(Number(key.slice(0,4)),Number(key.slice(5,7))-1,Number(key.slice(8)),12);
-  date.setDate(date.getDate()+offset);
-  return dayKey(date);
+export function shiftDay(key:string,n:number):string{
+  const d=new Date(Number(key.slice(0,4)),Number(key.slice(5,7))-1,Number(key.slice(8)),12);
+  d.setDate(d.getDate()+n);
+  return keyOf(d);
 }
-function count(value:unknown,limit:number):number{
-  const numeric=Number(value);
-  return Number.isFinite(numeric)?Math.max(0,Math.min(limit,Math.floor(numeric))):0;
+function amount(value:unknown,max:number):number{
+  const n=Number(value);
+  return Number.isFinite(n)?Math.max(0,Math.min(max,Math.floor(n))):0;
+}
+function validGoals(goals:DailyGoal[],day:string):DailyGoal{
+  const rows=goals.filter(g=>isDayKey(g.from)&&g.from<=day).sort((a,b)=>b.from.localeCompare(a.from));
+  return rows[0]??{from:day,minutes:90,questions:60};
+}
+function normalizedGoals(goals:DailyGoal[]):DailyGoal[]{
+  return [...goals].filter(g=>isDayKey(g.from)&&Number.isInteger(g.minutes)&&g.minutes>=15&&g.minutes<=480
+    &&Number.isInteger(g.questions)&&g.questions>=10&&g.questions<=300)
+    .sort((a,b)=>a.from.localeCompare(b.from)).slice(-400);
+}
+export function createGamificationProfile(
+  now:Date,minutes:number,questions:number,state:StudyGamificationState
+):GamificationProfile{
+  if(!Number.isInteger(minutes)||minutes<15||minutes>480)throw new Error("Süre hedefi 15–480 dakika olmalı.");
+  if(!Number.isInteger(questions)||questions<10||questions>300)throw new Error("Soru hedefi 10–300 arasında olmalı.");
+  const day=keyOf(now);
+  return {version:1,activatedAt:now.getTime(),activationDay:day,
+    baselineMinutes:amount(state.pomoMin?.[day],1440),
+    baselineQuestions:amount(state.solved?.[day],5000),
+    goals:[{from:day,minutes,questions}],earned:{}};
+}
+export function setNextDayGoal(
+  profile:GamificationProfile,now:Date,minutes:number,questions:number
+):GamificationProfile{
+  if(!Number.isInteger(minutes)||minutes<15||minutes>480)throw new Error("Süre hedefi 15–480 dakika olmalı.");
+  if(!Number.isInteger(questions)||questions<10||questions>300)throw new Error("Soru hedefi 10–300 arasında olmalı.");
+  const next=shiftDay(keyOf(now),1);
+  return {...profile,goals:[...profile.goals.filter(g=>g.from!==next),{from:next,minutes,questions}]
+    .sort((a,b)=>a.from.localeCompare(b.from))};
 }
 function rankFor(level:number):string{
-  if(level>=40)return "YKS Efsanesi";
-  if(level>=25)return "Usta";
-  if(level>=14)return "Savaşçı";
-  if(level>=6)return "Çırak";
+  if(level>=35)return "YKS Efsanesi";
+  if(level>=20)return "Usta";
+  if(level>=10)return "Savaşçı";
+  if(level>=5)return "Çırak";
   return "Acemi";
 }
-function badge(id:string,icon:string,title:string,description:string,progress:number,goal:number,xp:number):StudyBadge{
-  return {id,icon,title,description,progress:Math.min(progress,goal),goal,xp,unlocked:progress>=goal};
+export function levelForXp(xp:number):{level:number;progress:number;goal:number}{
+  let level=1,progress=Math.max(0,Math.floor(xp));
+  // 1→2 = 200 XP, her sonraki geçiş +50 XP.
+  while(progress>=200+(level-1)*50&&level<100000){
+    progress-=200+(level-1)*50;
+    level++;
+  }
+  return {level,progress,goal:200+(level-1)*50};
 }
-
-/** Tarih hesapları cihazın yerel takvim gününe göre yapılır. Gece yarısında
- * bugünkü çalışma başlamadıysa dünkü seri hâlâ görünür. */
+type BadgeDefinition={id:string;icon:string;title:string;description:string;rarity:BadgeRarity;goal:number;value:number;pending?:boolean};
+function definitions(s:{minutes:number;questions:number;successfulDays:number;longest:number;exams:number}):BadgeDefinition[]{
+  return [
+    {id:"first-focus",icon:"🌱",title:"İlk Adım",description:"30 dakika odaklan",rarity:"Bronz",goal:30,value:s.minutes},
+    {id:"first-streak",icon:"🔥",title:"İlk Kıvılcım",description:"İlk günlük hedefi tamamla",rarity:"Bronz",goal:1,value:s.successfulDays},
+    {id:"first-25q",icon:"🎯",title:"Soruya Giriş",description:"25 soru çöz",rarity:"Bronz",goal:25,value:s.questions},
+    {id:"first-exam",icon:"📝",title:"İlk Denemem",description:"Yeni bir deneme analizi kaydet",rarity:"Bronz",goal:1,value:s.exams},
+    {id:"streak-7",icon:"🔥",title:"Alev Aldı",description:"7 başarılı seri günü",rarity:"Gümüş",goal:7,value:s.longest},
+    {id:"questions-250",icon:"🧠",title:"Soru Avcısı",description:"250 soru çöz",rarity:"Gümüş",goal:250,value:s.questions},
+    {id:"hours-10",icon:"⏱️",title:"Odak Ustası",description:"10 saat çalış",rarity:"Gümüş",goal:600,value:s.minutes},
+    {id:"reviews-10",icon:"📚",title:"Tekrarcı",description:"10 doğrulanmış konu tekrarı",rarity:"Gümüş",goal:10,value:0,pending:true},
+    {id:"streak-30",icon:"🏆",title:"Disiplin Ustası",description:"30 başarılı seri günü",rarity:"Altın",goal:30,value:s.longest},
+    {id:"questions-1000",icon:"🎯",title:"Binlik Kulüp",description:"1.000 soru çöz",rarity:"Altın",goal:1000,value:s.questions},
+    {id:"hours-50",icon:"📖",title:"Çalışkan",description:"50 saat çalış",rarity:"Altın",goal:3000,value:s.minutes},
+    {id:"net-5",icon:"📈",title:"Net Avcısı",description:"Aynı deneme türünde +5 net",rarity:"Altın",goal:5,value:0,pending:true},
+    {id:"streak-60",icon:"💎",title:"Sarsılmaz",description:"60 başarılı seri günü",rarity:"Elmas",goal:60,value:s.longest},
+    {id:"questions-3000",icon:"🧩",title:"Soru Makinesi",description:"3.000 soru çöz",rarity:"Elmas",goal:3000,value:s.questions},
+    {id:"hours-150",icon:"⏳",title:"Zamanın Efendisi",description:"150 saat çalış",rarity:"Elmas",goal:9000,value:s.minutes},
+    {id:"subject-40h",icon:"🎓",title:"Ders Uzmanı",description:"Tek derste 40 saat çalış",rarity:"Elmas",goal:2400,value:0,pending:true},
+    {id:"streak-100",icon:"👑",title:"Yıkılmaz Seri",description:"100 başarılı seri günü",rarity:"Efsanevi",goal:100,value:s.longest},
+    {id:"questions-10000",icon:"🚀",title:"10 Bin Kulübü",description:"10.000 soru çöz",rarity:"Efsanevi",goal:10000,value:s.questions},
+    {id:"hours-300",icon:"🌟",title:"Çalışma Efsanesi",description:"300 saat çalış",rarity:"Efsanevi",goal:18000,value:s.minutes},
+    {id:"subjects-3x50h",icon:"🏅",title:"Çok Yönlü Usta",description:"3 derste 50'şer saat çalış",rarity:"Efsanevi",goal:3,value:0,pending:true}
+  ];
+}
 export function calculateStudyGamification(state:StudyGamificationState|null|undefined,now=new Date()):StudyGamificationSnapshot{
-  const todayKey=dayKey(now);
-  const focus=state?.pomoMin??{},questions=state?.solved??{};
-  const days=new Map<string,{minutes:number;questions:number}>();
-  for(const key of new Set([...Object.keys(focus),...Object.keys(questions)])){
-    if(!validKey(key)||key>todayKey)continue;
-    days.set(key,{minutes:count(focus[key],1440),questions:count(questions[key],5000)});
+  const todayKey=keyOf(now),profile=state?.gamification;
+  const activated=!!profile&&profile.version===1&&isDayKey(profile.activationDay)&&
+    Number.isFinite(profile.activatedAt)&&profile.activatedAt>0&&profile.activatedAt<=now.getTime();
+  const goals=activated?normalizedGoals(profile.goals):[];
+  const dayRecords=new Map<string,{minutes:number;questions:number;completed:boolean}>();
+  let totalMinutes=0,totalQuestions=0,workXp=0,activeDays=0;
+  if(activated){
+    const allKeys=new Set([...Object.keys(state?.pomoMin??{}),...Object.keys(state?.solved??{})]);
+    for(const key of allKeys){
+      if(!isDayKey(key)||key<profile.activationDay||key>todayKey)continue;
+      const baseline=key===profile.activationDay;
+      const minutes=Math.max(0,amount(state?.pomoMin?.[key],1440)-(baseline?profile.baselineMinutes:0));
+      const questions=Math.max(0,amount(state?.solved?.[key],5000)-(baseline?profile.baselineQuestions:0));
+      const goal=validGoals(goals,key);
+      const completed=minutes>=goal.minutes&&questions>=goal.questions;
+      dayRecords.set(key,{minutes,questions,completed});
+      totalMinutes+=minutes;totalQuestions+=questions;
+      if(completed)activeDays++;
+      // Mola değil, kaydedilmiş odak süresi. Günde 120 süre + 80 soru XP üst sınırı.
+      workXp+=Math.min(120,Math.floor(minutes/2))+Math.min(80,Math.floor(questions/2))+(completed?50:0);
+    }
   }
-  let totalMinutes=0,totalQuestions=0,xp=0;
-  const completedKeys:string[]=[];
-  for(const [key,record] of days){
-    totalMinutes+=record.minutes;
-    totalQuestions+=record.questions;
-    const completed=record.minutes>=DAILY_GOAL;
-    if(completed)completedKeys.push(key);
-    // Günlük XP üst sınırı aynı oturumu şişirerek sınırsız puan kazanmayı zorlaştırır.
-    xp+=Math.min(record.minutes,480)*2+Math.min(record.questions,200)+(completed?25:0);
-  }
-  completedKeys.sort();
-  const completed=new Set(completedKeys);
+  const successful=[...dayRecords.entries()].filter(([,d])=>d.completed).map(([key])=>key).sort();
+  const completedDays=new Set(successful);
   let longestStreak=0,run=0,previous="";
-  for(const key of completedKeys){
-    run=previous&&shiftKey(previous,1)===key?run+1:1;
+  for(const key of successful){
+    run=previous&&shiftDay(previous,1)===key?run+1:1;
     longestStreak=Math.max(longestStreak,run);
     previous=key;
   }
-  let cursor=completed.has(todayKey)?todayKey:shiftKey(todayKey,-1);
-  let currentStreak=0;
-  while(completed.has(cursor)&&currentStreak<36600){
-    currentStreak++;
-    cursor=shiftKey(cursor,-1);
+  const todayCompleted=completedDays.has(todayKey);
+  let cursor=todayCompleted?todayKey:shiftDay(todayKey,-1),currentStreak=0;
+  while(completedDays.has(cursor)&&currentStreak<36600){
+    currentStreak++;cursor=shiftDay(cursor,-1);
   }
-  const totalExams=(state?.denemeler??[]).filter(exam=>
-    typeof exam?.date==="string"&&validKey(exam.date)&&exam.date<=todayKey
-  ).length;
-  const activeDays=completedKeys.length;
-  const badges=[
-    badge("first-focus","🌱","İlk Adım","İlk 30 dakikalık çalışma",activeDays,1,50),
-    badge("streak-3","🔥","Kıvılcım","3 gün üst üste çalış",longestStreak,3,75),
-    badge("streak-7","🔥","Alev Aldı","7 günlük çalışma serisi",longestStreak,7,150),
-    badge("streak-30","🏆","Disiplin Ustası","30 günlük çalışma serisi",longestStreak,30,400),
-    badge("streak-100","👑","Sarsılmaz","100 günlük çalışma serisi",longestStreak,100,900),
-    badge("questions-100","🎯","100 Soru","Toplam 100 soru çöz",totalQuestions,100,75),
-    badge("questions-500","🧠","Soru Avcısı","Toplam 500 soru çöz",totalQuestions,500,150),
-    badge("questions-1000","💎","Binlik Kulüp","Toplam 1000 soru çöz",totalQuestions,1000,250),
-    badge("hours-10","⏱️","10 Saat","Toplam 10 saat odaklan",totalMinutes,600,100),
-    badge("hours-50","📚","Azim","Toplam 50 saat odaklan",totalMinutes,3000,250),
-    badge("hours-100","🚀","Maraton","Toplam 100 saat odaklan",totalMinutes,6000,400),
-    badge("exams-1","📝","İlk Deneme","İlk deneme analizini kaydet",totalExams,1,75),
-    badge("exams-10","🥇","Deneme Uzmanı","10 deneme analizi kaydet",totalExams,10,200)
-  ];
-  xp+=badges.reduce((sum,item)=>sum+(item.unlocked?item.xp:0),0);
-  const level=Math.floor(xp/LEVEL_STEP)+1;
-  const today=new Date(now.getFullYear(),now.getMonth(),now.getDate(),12);
-  const monday=new Date(today);
-  monday.setDate(monday.getDate()-(monday.getDay()+6)%7);
-  const week:StudyWeekDay[]=Array.from({length:7},(_,index)=>{
-    const date=new Date(monday);
-    date.setDate(date.getDate()+index);
-    const key=dayKey(date);
-    return {key,label:WEEKDAYS[date.getDay()]??"?",completed:completed.has(key),today:key===todayKey};
+  const totalExams=activated?(state?.denemeler??[]).filter(exam=>{
+    const stamp=Number(exam?.at);
+    return Number.isFinite(stamp)&&stamp>=profile.activatedAt&&stamp<=now.getTime()
+      &&typeof exam.date==="string"&&isDayKey(exam.date);
+  }).length:0;
+  const badgeDefinitions=definitions({minutes:totalMinutes,questions:totalQuestions,successfulDays:activeDays,longest:longestStreak,exams:totalExams});
+  const earned=activated?profile.earned??{}:{};
+  const newBadgeIds:string[]=[];
+  const badges:StudyBadge[]=badgeDefinitions.map(b=>{
+    const old=earned[b.id],wasEarned=!!old&&Number.isFinite(old.at)&&old.at>0;
+    const qualifies=!b.pending&&b.value>=b.goal;
+    if(qualifies&&!wasEarned)newBadgeIds.push(b.id);
+    return {id:b.id,icon:b.icon,title:b.title,description:b.description,rarity:b.rarity,
+      xp:XP_BY_RARITY[b.rarity],progress:Math.min(b.goal,b.value),goal:b.goal,
+      unlocked:wasEarned||qualifies,unlockedAt:wasEarned?old.at:null,pending:!!b.pending};
   });
-  return {
-    todayKey,todayMinutes:days.get(todayKey)?.minutes??0,dailyGoal:DAILY_GOAL,
-    todayCompleted:completed.has(todayKey),currentStreak,longestStreak,
-    activeDays,totalMinutes,totalQuestions,totalExams,
-    xp,level,rank:rankFor(level),levelProgress:xp%LEVEL_STEP,levelGoal:LEVEL_STEP,
-    earnedBadges:badges.filter(item=>item.unlocked).length,badges,week
-  };
+  const earnedXp=badges.reduce((sum,b)=>{
+    if(!b.unlocked)return sum;
+    const value=earned[b.id]?.xp;
+    return sum+(typeof value==="number"&&Number.isFinite(value)?value:b.xp);
+  },0);
+  const xp=workXp+earnedXp,levelInfo=levelForXp(xp);
+  const goal=validGoals(goals,todayKey);
+  const todayRecord=dayRecords.get(todayKey);
+  const today=new Date(now.getFullYear(),now.getMonth(),now.getDate(),12);
+  const monday=new Date(today);monday.setDate(monday.getDate()-(monday.getDay()+6)%7);
+  const week:Array<StudyWeekDay>=Array.from({length:7},(_,i)=>{
+    const day=new Date(monday);day.setDate(day.getDate()+i);
+    const key=keyOf(day);
+    return {key,label:WEEKDAYS[day.getDay()]??"?",completed:completedDays.has(key),today:key===todayKey};
+  });
+  return {activated,todayKey,todayMinutes:todayRecord?.minutes??0,todayQuestions:todayRecord?.questions??0,
+    goalMinutes:goal.minutes,goalQuestions:goal.questions,todayCompleted,
+    currentStreak,longestStreak,activeDays,totalMinutes,totalQuestions,totalExams,
+    xp,level:levelInfo.level,rank:rankFor(levelInfo.level),
+    levelProgress:levelInfo.progress,levelGoal:levelInfo.goal,
+    earnedBadges:badges.filter(b=>b.unlocked).length,badges,newBadgeIds,week};
 }
