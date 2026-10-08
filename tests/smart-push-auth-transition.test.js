@@ -55,7 +55,8 @@ function fixture({holdPermission=false,holdWrite=false}={}){
     isSecureContext:true,localStorage:{getItem:()=>null,setItem:()=>{}},
     crypto:{randomUUID:()=>String(seed++).padEnd(36,"1")},
     atob:input=>Buffer.from(input,"base64").toString("binary"),
-    Uint8Array,Intl,Date:clock,console:{warn:()=>{}},setTimeout,clearTimeout,__register:null};
+    Uint8Array,Intl,Date:clock,console:{warn:()=>{}},setTimeout,clearTimeout,
+    setInterval:()=>seed++,clearInterval:()=>{},__register:null};
   vm.runInNewContext(client,sandbox,{filename:"smart-push-client.js"});
   return{install:sandbox.__register,window,documents,calls,permission,write,sub};
 }
