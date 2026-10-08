@@ -1,3 +1,5 @@
+import {getStudyInsights} from "./study-insights.ts";
+import type {StudyInsights} from "./study-insights.ts";
 /** YKS Defterim: bağımsız, deterministik Aşama 1 oyunlaştırma hesabı.
  * İlk etkinleştirmeden önceki kayıtlar ödül üretmez. Hiçbir eski istatistik silinmez.
  */
@@ -13,19 +15,25 @@ export type GamificationProfile={
   earned:Record<string,EarnedBadge>;
   /** Dinlenme günleri yalnız önceden planlanır; haftada en fazla bir gün. */
   restDays?:string[];
+  baselineSubjectMinutes?:Record<string,number>;
+  baselineTopicQuestions?:Record<string,number>;
   tasks?:import("./study-tasks.ts").StudyTaskStore;
 };
 export type StudyGamificationState={
   pomoMin?:Record<string,unknown>;
   solved?:Record<string,unknown>;
-  denemeler?:Array<{date?:unknown;at?:unknown;type?:unknown}>;
+  denemeler?:Array<{date?:unknown;at?:unknown;type?:unknown;totalNet?:unknown;id?:unknown}>;
+  pomoSubj?:Record<string,Record<string,unknown>>;
+  solvedTopic?:Record<string,Record<string,unknown>>;
+  topics?:Record<string,{revDone?:Record<string,unknown>}>;
+  sessions?:Record<string,Array<{t?:unknown;m?:unknown;type?:unknown;done?:unknown}>>;
   gamification?:GamificationProfile;
 };
 export type BadgeRarity="Bronz"|"Gümüş"|"Altın"|"Elmas"|"Efsanevi";
 export type StudyBadge={
   id:string;icon:string;title:string;description:string;
   rarity:BadgeRarity;xp:number;progress:number;goal:number;
-  unlocked:boolean;unlockedAt:number|null;pending:boolean;
+  unlocked:boolean;unlockedAt:number|null;pending:boolean;hidden?:boolean;
 };
 export type StudyDayStatus="completed"|"rest"|"shield"|"missed"|"pending";
 export type StudyWeekDay={key:string;label:string;completed:boolean;today:boolean;status:StudyDayStatus};
@@ -37,7 +45,7 @@ export type StudyGamificationSnapshot={
   totalMinutes:number;totalQuestions:number;totalExams:number;
   xp:number;level:number;rank:string;levelProgress:number;levelGoal:number;
   earnedBadges:number;badges:StudyBadge[];newBadgeIds:string[];
-  week:StudyWeekDay[];
+  week:StudyWeekDay[];history:Record<string,StudyDayStatus>;
 };
 const WEEKDAYS=["Pz","Pt","Sa","Ça","Pe","Cu","Ct"] as const;
 const XP_BY_RARITY:Record<BadgeRarity,number>={Bronz:30,"Gümüş":75,"Altın":150,"Elmas":300,"Efsanevi":600};
@@ -77,7 +85,11 @@ export function createGamificationProfile(
   return {version:1,activatedAt:now.getTime(),activationDay:day,
     baselineMinutes:amount(state.pomoMin?.[day],1440),
     baselineQuestions:amount(state.solved?.[day],5000),
-    goals:[{from:day,minutes,questions}],earned:{},restDays:[]};
+    goals:[{from:day,minutes,questions}],earned:{},restDays:[],
+    baselineSubjectMinutes:Object.fromEntries(Object.entries(state.pomoSubj?.[day]??{})
+      .map(([k,v])=>[k,amount(v,1440)])),
+    baselineTopicQuestions:Object.fromEntries(Object.entries(state.solvedTopic?.[day]??{})
+      .map(([k,v])=>[k,amount(v,5000)]))};
 }
 export function setNextDayGoal(
   profile:GamificationProfile,now:Date,minutes:number,questions:number
@@ -118,8 +130,8 @@ export function levelForXp(xp:number):{level:number;progress:number;goal:number}
   }
   return {level,progress,goal:200+(level-1)*50};
 }
-type BadgeDefinition={id:string;icon:string;title:string;description:string;rarity:BadgeRarity;goal:number;value:number;pending?:boolean};
-function definitions(s:{minutes:number;questions:number;successfulDays:number;longest:number;exams:number}):BadgeDefinition[]{
+type BadgeDefinition={id:string;icon:string;title:string;description:string;rarity:BadgeRarity;goal:number;value:number;pending?:boolean;hidden?:boolean};
+function definitions(s:{minutes:number;questions:number;successfulDays:number;longest:number;exams:number},insights:StudyInsights):BadgeDefinition[]{
   return [
     {id:"first-focus",icon:"🌱",title:"İlk Adım",description:"30 dakika odaklan",rarity:"Bronz",goal:30,value:s.minutes},
     {id:"first-streak",icon:"🔥",title:"İlk Kıvılcım",description:"İlk günlük hedefi tamamla",rarity:"Bronz",goal:1,value:s.successfulDays},
@@ -128,19 +140,24 @@ function definitions(s:{minutes:number;questions:number;successfulDays:number;lo
     {id:"streak-7",icon:"🔥",title:"Alev Aldı",description:"7 başarılı seri günü",rarity:"Gümüş",goal:7,value:s.longest},
     {id:"questions-250",icon:"🧠",title:"Soru Avcısı",description:"250 soru çöz",rarity:"Gümüş",goal:250,value:s.questions},
     {id:"hours-10",icon:"⏱️",title:"Odak Ustası",description:"10 saat çalış",rarity:"Gümüş",goal:600,value:s.minutes},
-    {id:"reviews-10",icon:"📚",title:"Tekrarcı",description:"10 doğrulanmış konu tekrarı",rarity:"Gümüş",goal:10,value:0,pending:true},
+    {id:"reviews-10",icon:"📚",title:"Tekrarcı",description:"10 doğrulanmış konu tekrarı",rarity:"Gümüş",goal:10,value:insights.totalReviews},
     {id:"streak-30",icon:"🏆",title:"Disiplin Ustası",description:"30 başarılı seri günü",rarity:"Altın",goal:30,value:s.longest},
     {id:"questions-1000",icon:"🎯",title:"Binlik Kulüp",description:"1.000 soru çöz",rarity:"Altın",goal:1000,value:s.questions},
     {id:"hours-50",icon:"📖",title:"Çalışkan",description:"50 saat çalış",rarity:"Altın",goal:3000,value:s.minutes},
-    {id:"net-5",icon:"📈",title:"Net Avcısı",description:"Aynı deneme türünde +5 net",rarity:"Altın",goal:5,value:0,pending:true},
+    {id:"net-5",icon:"📈",title:"Net Avcısı",description:"Aynı deneme türünde +5 net",rarity:"Altın",goal:5,value:insights.maxNetGain},
     {id:"streak-60",icon:"💎",title:"Sarsılmaz",description:"60 başarılı seri günü",rarity:"Elmas",goal:60,value:s.longest},
     {id:"questions-3000",icon:"🧩",title:"Soru Makinesi",description:"3.000 soru çöz",rarity:"Elmas",goal:3000,value:s.questions},
     {id:"hours-150",icon:"⏳",title:"Zamanın Efendisi",description:"150 saat çalış",rarity:"Elmas",goal:9000,value:s.minutes},
-    {id:"subject-40h",icon:"🎓",title:"Ders Uzmanı",description:"Tek derste 40 saat çalış",rarity:"Elmas",goal:2400,value:0,pending:true},
+    {id:"subject-40h",icon:"🎓",title:"Ders Uzmanı",description:"Tek derste 40 saat çalış",rarity:"Elmas",goal:2400,value:insights.bestSubjectMinutes},
     {id:"streak-100",icon:"👑",title:"Yıkılmaz Seri",description:"100 başarılı seri günü",rarity:"Efsanevi",goal:100,value:s.longest},
     {id:"questions-10000",icon:"🚀",title:"10 Bin Kulübü",description:"10.000 soru çöz",rarity:"Efsanevi",goal:10000,value:s.questions},
     {id:"hours-300",icon:"🌟",title:"Çalışma Efsanesi",description:"300 saat çalış",rarity:"Efsanevi",goal:18000,value:s.minutes},
-    {id:"subjects-3x50h",icon:"🏅",title:"Çok Yönlü Usta",description:"3 derste 50'şer saat çalış",rarity:"Efsanevi",goal:3,value:0,pending:true}
+    {id:"subjects-3x50h",icon:"🏅",title:"Çok Yönlü Usta",description:"3 derste 50'şer saat çalış",rarity:"Efsanevi",goal:3,value:insights.subjectsAt50Hours},
+    {id:"hidden-night-owl",icon:"🌙",title:"Gece Kuşu",description:"19.00–22.00 arasında 30 dk gerçek odak",rarity:"Gümüş",goal:1,value:Number(insights.hidden.nightOwl),hidden:true},
+    {id:"hidden-early",icon:"🌅",title:"Erken Başlayan",description:"06.00–09.00 arasında 30 dk gerçek odak",rarity:"Gümüş",goal:1,value:Number(insights.hidden.earlyBird),hidden:true},
+    {id:"hidden-last-minute",icon:"🎯",title:"Son Dakika Kahramanı",description:"Haftalık meydan okumayı pazar günü bitir",rarity:"Altın",goal:1,value:Number(insights.hidden.lastMinute),hidden:true},
+    {id:"hidden-perfect",icon:"🌟",title:"Mükemmel Hafta",description:"Bir haftayı çalışma ve dinlenmeyle kusursuz tamamla",rarity:"Elmas",goal:1,value:Number(insights.hidden.perfectWeek),hidden:true},
+    {id:"hidden-surprise",icon:"✨",title:"Sürpriz Ustalık",description:"Üç derste Gümüş ustalığa ulaş",rarity:"Elmas",goal:1,value:Number(insights.hidden.surprise),hidden:true}
   ];
 }
 export function calculateStudyGamification(state:StudyGamificationState|null|undefined,now=new Date()):StudyGamificationSnapshot{
@@ -203,7 +220,13 @@ export function calculateStudyGamification(state:StudyGamificationState|null|und
     return Number.isFinite(stamp)&&stamp>=profile.activatedAt&&stamp<=now.getTime()
       &&typeof exam.date==="string"&&isDayKey(exam.date);
   }).length:0;
-  const badgeDefinitions=definitions({minutes:totalMinutes,questions:totalQuestions,successfulDays:activeDays,longest:longestStreak,exams:totalExams});
+  const history=Object.fromEntries(dayStatuses) as Record<string,StudyDayStatus>;
+  const insights=activated?getStudyInsights(state!,profile!,now,history):
+    getStudyInsights({},{
+      version:1,activatedAt:now.getTime(),activationDay:todayKey,baselineMinutes:0,
+      baselineQuestions:0,goals:[],earned:{}
+    },now,{});
+  const badgeDefinitions=definitions({minutes:totalMinutes,questions:totalQuestions,successfulDays:activeDays,longest:longestStreak,exams:totalExams},insights);
   const earned=activated?profile.earned??{}:{};
   const newBadgeIds:string[]=[];
   const badges:StudyBadge[]=badgeDefinitions.map(b=>{
@@ -212,7 +235,7 @@ export function calculateStudyGamification(state:StudyGamificationState|null|und
     if(qualifies&&!wasEarned)newBadgeIds.push(b.id);
     return {id:b.id,icon:b.icon,title:b.title,description:b.description,rarity:b.rarity,
       xp:XP_BY_RARITY[b.rarity],progress:Math.min(b.goal,b.value),goal:b.goal,
-      unlocked:wasEarned,unlockedAt:wasEarned?old.at:null,pending:!!b.pending};
+      unlocked:wasEarned,unlockedAt:wasEarned?old.at:null,pending:!!b.pending,hidden:!!b.hidden};
   });
   const earnedXp=badges.reduce((sum,b)=>{
     if(!b.unlocked)return sum;
@@ -242,5 +265,5 @@ export function calculateStudyGamification(state:StudyGamificationState|null|und
     shields,shieldsUsed,shieldLimit:2,restDays:[...plannedRest].sort(),
     xp,level:levelInfo.level,rank:rankFor(levelInfo.level),
     levelProgress:levelInfo.progress,levelGoal:levelInfo.goal,
-    earnedBadges:badges.filter(b=>b.unlocked).length,badges,newBadgeIds,week};
+    earnedBadges:badges.filter(b=>b.unlocked).length,badges,newBadgeIds,week,history};
 }
