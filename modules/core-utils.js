@@ -214,6 +214,14 @@
     const coachNotifications=[...noticeMap.values()].sort((a,b)=>b.at-a.at).slice(0,100);
     const coachSeen=Object.assign({},isObject(remote.coachSeen)?remote.coachSeen:{},
       isObject(local.coachSeen)?local.coachSeen:{});
+    const remoteReminders=isObject(remote.smartReminders)?remote.smartReminders:null;
+    const localReminders=isObject(local.smartReminders)?local.smartReminders:null;
+    const smartReminders=remoteReminders||localReminders?Object.assign({},
+      clone(remoteReminders||{}),clone(localReminders||{}),{
+        lastShown:Object.assign({},
+          clone(isObject(remoteReminders?.lastShown)?remoteReminders.lastShown:{}),
+          clone(isObject(localReminders?.lastShown)?localReminders.lastShown:{}))
+      }):null;
     const rests=new Set([...(Array.isArray(remote.restDays)?remote.restDays:[]),
                          ...(Array.isArray(local.restDays)?local.restDays:[])].filter(x=>typeof x==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(x)));
     return Object.assign({},clone(remote),clone(local),{
@@ -221,7 +229,8 @@
       baselineMinutes:remote.baselineMinutes,baselineQuestions:remote.baselineQuestions,
       goals:[...goals.values()].sort((x,y)=>x.from.localeCompare(y.from)),
       earned,restDays:[...rests].sort(),tasks:mergeGamificationTasks(remote.tasks,local.tasks),
-      coachRewards,coachSeen,coachNotifications
+      coachRewards,coachSeen,coachNotifications,
+      ...(smartReminders?{smartReminders}:{})
     });
   }
 
