@@ -116,7 +116,8 @@ try{
   await assertSucceeds(updateDoc(doc(s,subPath),{
     minutes:25,questions:20,updatedAt:serverTimestamp()
   }));
-  await assertFails(getDoc(doc(outsider,"publicConfig","push")));
+  // Public VAPID is safe for verified users to read, but not to mutate.
+  await assertSucceeds(getDoc(doc(outsider,"publicConfig","push")));
   await assertFails(setDoc(doc(s,"publicConfig","push"),{vapidPublicKey:"fake"}));
   await assertFails(setDoc(doc(s,"smartPushLogs","fake"),{status:"sent"}));
   console.log("PASS: Firestore emulator — assignment, limits, tampering, approval, receipts, queries");
