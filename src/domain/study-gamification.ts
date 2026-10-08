@@ -13,6 +13,7 @@ export type GamificationProfile={
   earned:Record<string,EarnedBadge>;
   /** Dinlenme günleri yalnız önceden planlanır; haftada en fazla bir gün. */
   restDays?:string[];
+  tasks?:import("./study-tasks.ts").StudyTaskStore;
 };
 export type StudyGamificationState={
   pomoMin?:Record<string,unknown>;
@@ -218,7 +219,13 @@ export function calculateStudyGamification(state:StudyGamificationState|null|und
     const value=earned[b.id]?.xp;
     return sum+(typeof value==="number"&&Number.isFinite(value)?value:b.xp);
   },0);
-  const xp=workXp+earnedXp,levelInfo=levelForXp(xp);
+  const taskRewardXp=Object.entries(profile?.tasks?.claims??{}).reduce((total,[id,claim])=>{
+    // Ödül yalnız günlük 15/25/35 ya da haftalık 100 XP olabilir.
+    const valid=id.startsWith("daily:")?[15,25,35].includes(claim?.xp):
+      id.startsWith("weekly:")?claim?.xp===100:false;
+    return total+(valid&&Number.isFinite(claim?.at)&&claim.at>=profile!.activatedAt?claim.xp:0);
+  },0);
+  const xp=workXp+earnedXp+taskRewardXp,levelInfo=levelForXp(xp);
   const goal=validGoals(goals,todayKey);
   const todayRecord=dayRecords.get(todayKey);
   const today=new Date(now.getFullYear(),now.getMonth(),now.getDate(),12);
