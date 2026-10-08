@@ -37,7 +37,7 @@ assert.equal(panel.difficulty,"normal");
 assert.equal(panel.nextDifficulty,"hard");
 state.pomoMin["2026-10-08"]=100;state.solved["2026-10-08"]=60;
 let awards=grantCompletedTasks(state,state.gamification,date("2026-10-08","13:00"));
-assert.equal(awards.granted.length,4,"3 günlük görev, 1 haftalık soru görevi: ilk gün hedeflerine göre");
+assert.equal(awards.granted.length,3,"3 günlük görev; haftalık hedefler henüz tamamlanmadı");
 state.gamification=awards.profile;
 const xpBefore=calculateStudyGamification(state,date("2026-10-08","13:00")).xp;
 assert.ok(xpBefore>0);
