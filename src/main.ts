@@ -198,6 +198,22 @@ void import("./ui/top-sync-indicator")
     document.documentElement.dataset.topSyncIndicator="deferred";
     console.error("Üst senkron durum göstergesi yüklenemedi",error);
   });
+/* Bağımsız başarım sistemi: yalnız öğrenciye ait XP, görev ve ilerleme ekranları.
+   Koç Firebase, Cloud Functions ve Web Push bu sürüme dahil edilmez. */
+document.documentElement.dataset.studyGamification="loading";
+void import("./ui/study-gamification")
+  .then(({installStudyGamification})=>{
+    try{
+      const value=installStudyGamification();
+      document.documentElement.dataset.studyGamification=value.installed?"ready":"deferred";
+    }catch(error){
+      document.documentElement.dataset.studyGamification="deferred";
+      console.error("Öğrenci başarımları kurulamadı",error);
+    }
+  }).catch(error=>{
+    document.documentElement.dataset.studyGamification="deferred";
+    console.error("Öğrenci başarımları yüklenemedi",error);
+  });
 const v43Runtime=installV43SafeRuntime();
 document.documentElement.dataset.v43RuntimeHost=String(v43Runtime.installed);
 
