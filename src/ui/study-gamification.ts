@@ -1,4 +1,4 @@
-import {calculateStudyGamification,createGamificationProfile,setNextDayGoal} from "../domain/study-gamification";
+import {calculateStudyGamification,createGamificationProfile,setNextDayGoal,planRestDay,shiftDay,keyOf} from "../domain/study-gamification";
 import type {StudyBadge,StudyGamificationSnapshot,StudyGamificationState} from "../domain/study-gamification";
 import "./study-gamification.css";
 
@@ -27,9 +27,9 @@ function readState():StudyGamificationState|null{
 }
 function saveState():boolean{
   try{
-    const save=runtime.YKSLegacyState?.save??runtime.save;
-    if(typeof save!=="function")return false;
-    return save()!==false;
+    if(typeof runtime.YKSLegacyState?.save==="function")return runtime.YKSLegacyState.save()!==false;
+    if(typeof runtime.save==="function")return runtime.save()!==false;
+    return false;
   }catch(error){console.error("Başarım kaydı yapılamadı",error);return false;}
 }
 function mount():HTMLElement|null{
@@ -99,6 +99,85 @@ function goalForm(snapshot:StudyGamificationSnapshot,initial:boolean):HTMLElemen
   add(form,explanation,fields,actions,status);
   return form;
 }
+/* Hafif rozet/level kutlaması; yalnız kaydedilmiş yeni ödüllerde görünür. */
+let celebrationTimer=0;
+function celebrate(title:string,description:string,icon:string,rarity=""):void{
+  const existing=document.getElementById("sgRewardNotice");
+  existing?.remove();
+  if(celebrationTimer)window.clearTimeout(celebrationTimer);
+  const notice=node("section","sg-reward-notice");
+  notice.id="sgRewardNotice";notice.setAttribute("role","status");
+  notice.setAttribute("aria-live","polite");
+  notice.dataset.rarity=rarity;
+  const symbol=node("span","sg-reward-symbol",icon);
+  symbol.setAttribute("aria-hidden","true");
+  const content=node("div","sg-reward-copy");
+  add(content,node("strong","",title),node("span","",description));
+  const close=node("button","sg-reward-close","×");
+  close.type="button";close.setAttribute("aria-label","Kutlamayı kapat");
+  close.addEventListener("click",()=>{notice.remove();if(celebrationTimer)window.clearTimeout(celebrationTimer);});
+  add(notice,symbol,content,close);
+  document.body.appendChild(notice);
+  celebrationTimer=window.setTimeout(()=>notice.remove(),5200);
+}
+function protectionPanel(snapshot:StudyGamificationSnapshot):HTMLElement{
+  const root=node("section","sg-protection");
+  const header=node("div","sg-protection-head");
+  add(header,node("strong","","🛡️ Seri koruması"),
+    node("span","",snapshot.shields+" / "+snapshot.shieldLimit+" kalkan"));
+  root.appendChild(header);
+  root.appendChild(node("p","sg-hint",
+    "7 gerçek başarılı çalışma gününde 1 kalkan kazanırsın. En fazla 2 kalkan birikir."));
+  if(snapshot.shieldsUsed){
+    root.appendChild(node("small","sg-protection-meta",snapshot.shieldsUsed+" gün kalkanla korundu."));
+  }
+  const rest=node("div","sg-rest-section");
+  const label=node("label","sg-rest-label","🌿 Esnek dinlenme gününü planla");
+  const picker=node("select","sg-rest-select");
+  picker.setAttribute("aria-label","Gelecek dinlenme gününü seç");
+  const today=keyOf(new Date());
+  const planned=new Set(snapshot.restDays);
+  const weekKey=(key:string)=>{
+    const day=new Date(key+"T12:00:00");
+    return shiftDay(key,-((day.getDay()+6)%7));
+  };
+  const occupiedWeeks=new Set(snapshot.restDays.map(weekKey));
+  for(let offset=1;offset<=14;offset++){
+    const key=shiftDay(today,offset);
+    if(planned.has(key)||occupiedWeeks.has(weekKey(key)))continue;
+    const date=new Date(key+"T12:00:00");
+    const option=node("option","",date.toLocaleDateString("tr-TR",{weekday:"long",day:"numeric",month:"long"}));
+    option.value=key;picker.appendChild(option);
+  }
+  const button=node("button","sg-rest-button","Dinlenme günü seç");
+  button.type="button";button.disabled=!picker.options.length;
+  const feedback=node("p","sg-feedback");feedback.setAttribute("role","status");
+  button.addEventListener("click",()=>{
+    const state=readState(),before=state?.gamification;
+    if(!state||!before||!picker.value)return;
+    try{
+      state.gamification=planRestDay(before,picker.value,new Date());
+      if(!saveState()){
+        state.gamification=before;
+        feedback.textContent="Dinlenme günü kaydedilemedi, lütfen tekrar dene.";
+        return;
+      }
+      runtime.toast?.("🌿 Dinlenme günün planlandı.");
+      schedule();
+    }catch(error){state.gamification=before;feedback.textContent=error instanceof Error?error.message:"Tarih seçilemedi.";}
+  });
+  const options=node("div","sg-rest-options");
+  add(options,picker,button);
+  add(rest,label,options,feedback);
+  root.appendChild(rest);
+  if(snapshot.restDays.length){
+    const days=snapshot.restDays.filter(k=>k>=today).slice(0,2)
+      .map(k=>new Date(k+"T12:00:00").toLocaleDateString("tr-TR",{day:"numeric",month:"long"}));
+    if(days.length)root.appendChild(node("p","sg-hint","Planlanan dinlenme: "+days.join(", ")));
+  }
+  return root;
+}
+
 function badgeCard(badge:StudyBadge):HTMLElement{
   const locked=!badge.unlocked;
   const card=node("article","sg-badge"+(locked?" is-locked":" is-unlocked"));
@@ -173,9 +252,12 @@ function render(snapshot:StudyGamificationSnapshot,root:HTMLElement):void{
   week.appendChild(weekHead);
   const weekGrid=node("div","sg-week-grid");
   snapshot.week.forEach(day=>{
-    const cell=node("div","sg-day"+(day.completed?" is-done":"")+(day.today?" is-today":""));
-    cell.title=day.key+(day.completed?" · tamamlandı":" · tamamlanmadı");
-    add(cell,node("span","",day.label),node("b","",day.completed?"✓":"·"));
+    const cell=node("div","sg-day is-"+day.status+(day.today?" is-today":""));
+    const labels={completed:"Tamamlandı",rest:"Dinlenme",shield:"Kalkanla korundu",missed:"Hedef kaçırıldı",pending:"Bekliyor"};
+    cell.title=day.key+" · "+labels[day.status];
+    add(cell,node("span","",day.label),node("b","",{
+      completed:"✓",rest:"🌿",shield:"🛡️",missed:"×",pending:"·"
+    }[day.status]));
     weekGrid.appendChild(cell);
   });
   week.appendChild(weekGrid);
@@ -185,7 +267,7 @@ function render(snapshot:StudyGamificationSnapshot,root:HTMLElement):void{
   const badgeGrid=node("div","sg-badges-grid");
   (expanded?snapshot.badges:featured(snapshot)).forEach(badge=>badgeGrid.appendChild(badgeCard(badge)));
   badgeArea.appendChild(badgeGrid);
-  add(root,top,daily,week,badgeArea);
+  add(root,top,daily,protectionPanel(snapshot),week,badgeArea);
 }
 function refresh():void{
   const root=mount(),state=readState();
@@ -204,11 +286,15 @@ function refresh():void{
       if(badge&&!profile.earned[id])profile.earned[id]={at:time,xp:badge.xp};
     }
     if(saveState()){
-      runtime.toast?.("🏆 "+snapshot.newBadgeIds.length+" yeni başarım kazandın!");
+      const prize=snapshot.badges.find(item=>item.id===snapshot.newBadgeIds[0]);
+      if(prize)celebrate("🏆 "+prize.title,
+        prize.rarity+" başarım · +"+prize.xp+" XP"+
+        (snapshot.newBadgeIds.length>1?" · "+(snapshot.newBadgeIds.length-1)+" rozet daha":""),
+        prize.icon,prize.rarity);
     }else profile.earned=priorEarned;
     snapshot=calculateStudyGamification(state);
   }
-  if(previousLevel>0&&snapshot.level>previousLevel)runtime.toast?.("⚡ Seviye "+snapshot.level+" oldun!");
+  if(previousLevel>0&&snapshot.level>previousLevel)celebrate("⚡ Seviye "+snapshot.level,"Yeni unvan: "+snapshot.rank,"✨");
   previousLevel=snapshot.level;
   render(snapshot,root);
 }
