@@ -26,5 +26,6 @@ export function rewardsDiffer(a,b){
 export function canUseReceiptSnapshot(snapshot){
   // A cache snapshot may omit real server receipts. Do not erase XP until
   // Firestore confirms this is a current server snapshot.
-  return Boolean(snapshot&&!snapshot.metadata?.fromCache&&!snapshot.metadata?.hasPendingWrites);
+  return Boolean(snapshot?.metadata&&snapshot.metadata.fromCache===false&&
+    snapshot.metadata.hasPendingWrites===false);
 }
