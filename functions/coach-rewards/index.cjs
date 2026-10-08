@@ -35,6 +35,8 @@ exports.issueCoachChallengeXp=onDocumentUpdated({
        latest.weekStart!==claim.weekStart||latest.slot!==claim.slot||
        latest.xp!==claim.xp||
        latest.status!==(claim.kind==="manual"?"approved":"completed"))return;
-    tx.create(receipt,{...claim,createdAt:FieldValue.serverTimestamp()});
+    const assignedAt=latest.createdAt;
+    if(!assignedAt||typeof assignedAt.toMillis!=="function")return;
+    tx.create(receipt,{...claim,assignedAt,createdAt:FieldValue.serverTimestamp()});
   });
 });
