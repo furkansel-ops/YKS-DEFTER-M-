@@ -1,4 +1,5 @@
 import{collection,query,where,onSnapshot,updateDoc,serverTimestamp}from"https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
+import{canonicalCoachRewards,rewardsDiffer,canUseReceiptSnapshot}from"./coach-receipt-ledger.mjs";
 
 /** Firebase bağlantısına bağlı öğrenci özel görevleri.
  * Telefon bildirimi değil: uygulama açıkken gelen, yerel kaydedilmiş bildirim merkezi.
@@ -8,10 +9,10 @@ const dateKey=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+
 const finite=(v,max)=>Number.isFinite(Number(v))?Math.min(max,Math.max(0,Math.floor(Number(v)))):0;
 const state=()=>{try{return window.S||window.YKSLegacyState?.readState?.()||null}catch{return window.S||null}};
 const save=()=>{try{return(window.save?.()??window.YKSLegacyState?.save?.())!==false}catch{return false}};
-const allowed={easy:20,normal:35,hard:50};
 const day=(s)=>{const d=new Date(s+"T12:00:00");return /^\d{4}-\d{2}-\d{2}$/.test(s)&&dateKey(d)===s;};
 const el=(tag,cls="",label="")=>{const x=document.createElement(tag);if(cls)x.className=cls;x.textContent=label;return x;};
 let items=[],uid="",stopEvents=[],timer=null,busy=new Set(),trustedReceipts=null;
+let sessionGeneration=0,receiptsVerified=false;
 const visibleToast=(text)=>{
   const hour=new Date().getHours();
   if(hour>=8&&hour<22)try{window.toast?.(text)}catch{}
@@ -44,25 +45,14 @@ function syncNotice(id,task,status){
 // XP is never issued from a user-editable challenge progress/status document.
 // Only read-only, server-created coachXpReceipts can supply coach reward points.
 function refreshTrustedReceipts(){
-  if(!trustedReceipts)return;
+  // Offline snapshots must never revoke earned XP. Reconcile only after the
+  // server confirms the full receipts query for this authenticated account.
+  if(!receiptsVerified||!trustedReceipts||!uid)return;
   const profile=state()?.gamification;
   if(!profile||!Number.isSafeInteger(profile.activatedAt))return;
-  const canonical={};
-  for(const [id,reward] of trustedReceipts){
-    const claimedAt=reward.createdAt?.toMillis?.();
-    const assignedAt=reward.assignedAt?.toMillis?.();
-    if(reward.studentUid!==uid||!Number.isSafeInteger(claimedAt)||
-      !Number.isSafeInteger(assignedAt)||claimedAt<profile.activatedAt||
-      assignedAt<profile.activatedAt||!["0","1","2"].includes(reward.slot)||
-      reward.xp!==allowed[reward.difficulty]||
-      id!==reward.studentUid+"_"+reward.weekStart+"_"+reward.slot)continue;
-    canonical[id]={at:claimedAt,xp:reward.xp};
-  }
-  // Rebuild from server receipts. Invalid or removed local grants are not trusted.
+  const canonical=canonicalCoachRewards(trustedReceipts,uid,profile.activatedAt);
   const current=profile.coachRewards??{};
-  const old=JSON.stringify(Object.entries(current).sort());
-  const next=JSON.stringify(Object.entries(canonical).sort());
-  if(old===next)return;
+  if(!rewardsDiffer(current,canonical))return;
   profile.coachRewards=canonical;
   if(!save())profile.coachRewards=current;
 }
@@ -125,7 +115,11 @@ function render(){
   for(const task of tasks.slice(0,35)){
     const card=el("article","scc-item");
     const head=el("div","scc-item-head");
-    head.append(el("strong","",str(task.title,120)),el("b","",task.xp?"+"+task.xp+" XP":"Ödülsüz"));
+    const recordedReward=Boolean(profile?.coachRewards?.[task.id]);
+    const rewardLabel=!task.xp?"Ödülsüz":
+      recordedReward?"✓ +"+task.xp+" XP":
+      "🎁 "+task.xp+" XP hedefi";
+    head.append(el("strong","",str(task.title,120)),el("b","",rewardLabel));
     card.append(head,el("p","",str(task.subject,100)||"Genel çalışma"));
     const label={assigned:"Atandı",in_progress:"İlerliyor",submitted:"Koç onayı bekleniyor",
       completed:"Tamamlandı",approved:"Onaylandı",cancelled:"İptal edildi"}[task.status]||"Bekliyor";
@@ -161,31 +155,54 @@ function schedule(){
 }
 export function installCoachStudentChallenges({db,user}){
   if(!db||!user?.uid)return()=>{};
+  const generation=++sessionGeneration;
   uid=user.uid;
+  items=[];busy.clear();
+  receiptsVerified=false;trustedReceipts=null;
   const q=query(collection(db,"coachChallenges"),where("studentUid","==",uid));
-  trustedReceipts=null;
   const stop=onSnapshot(q,snapshot=>{
+    if(generation!==sessionGeneration)return;
     items=snapshot.docs.map(row=>({id:row.id,ref:row.ref,...row.data()}));
     for(const item of items)syncNotice(item.id,item,item.status);
     schedule();
-  },error=>console.warn("Koç görevleri henüz okunamıyor",error));
+  },error=>{
+    if(generation===sessionGeneration)console.warn("Koç görevleri henüz okunamıyor",error);
+  });
   const stopReceipts=onSnapshot(query(collection(db,"coachXpReceipts"),
-    where("studentUid","==",uid)),snapshot=>{
+    where("studentUid","==",uid)),{includeMetadataChanges:true},snapshot=>{
+      if(generation!==sessionGeneration)return;
+      if(!canUseReceiptSnapshot(snapshot)){
+        // Keep locally stored confirmed rewards until the live server catches up.
+        schedule();return;
+      }
       trustedReceipts=new Map(snapshot.docs.map(row=>[row.id,row.data()]));
+      receiptsVerified=true;
       refreshTrustedReceipts();schedule();
-  },error=>console.warn("Koç XP makbuzları okunamadı",error));
-  const changed=()=>{refreshTrustedReceipts();schedule();};
+  },error=>{
+    if(generation===sessionGeneration)console.warn("Koç XP makbuzları okunamadı",error);
+  });
+  const changed=()=>{
+    if(generation!==sessionGeneration)return;
+    refreshTrustedReceipts();schedule();
+  };
   window.addEventListener("yks:data-changed",changed);
   window.addEventListener("pageshow",changed);
+  window.addEventListener("online",changed);
   document.addEventListener("visibilitychange",changed);
-  stopEvents=[()=>window.removeEventListener("yks:data-changed",changed),
+  const stops=[()=>window.removeEventListener("yks:data-changed",changed),
     ()=>window.removeEventListener("pageshow",changed),
+    ()=>window.removeEventListener("online",changed),
     ()=>document.removeEventListener("visibilitychange",changed)];
+  stopEvents=stops;
   schedule();
   return()=>{
-    stop();stopReceipts();for(const fn of stopEvents)fn();stopEvents=[];
-    trustedReceipts=null;
-    uid="";items=[];if(timer){clearTimeout(timer);timer=null;}
+    stop();stopReceipts();for(const fn of stops)fn();
+    if(generation!==sessionGeneration)return;
+    sessionGeneration++;
+    stopEvents=[];
+    receiptsVerified=false;trustedReceipts=null;
+    uid="";items=[];busy.clear();
+    if(timer){clearTimeout(timer);timer=null;}
     document.getElementById(rootId)?.remove();
   };
 }
