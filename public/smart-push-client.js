@@ -1,0 +1,111 @@
+import{doc,getDoc,setDoc,deleteDoc,serverTimestamp}from"https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
+/** Opt-in only; reuse the existing /sw.js controlling PWA, do not create a second SW. */
+let active=false,dbRef=null,userRef=null,deviceRef=null,taskTimer=null,stopChanges=[];
+const KEY="yks-push-device-id";
+const state=()=>{try{return window.YKSLegacyState?.readState?.()||window.S||null}catch{return window.S||null}};
+const statusChanged=()=>window.dispatchEvent(new Event("yks:smart-push-status"));
+const keyOf=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+const safeNumber=(x,max)=>Number.isFinite(Number(x))?Math.max(0,Math.min(max,Math.floor(Number(x)))):0;
+function deviceId(){
+  let id="";try{id=localStorage.getItem(KEY)||"";}catch{}
+  if(/^[A-Za-z0-9_-]{8,80}$/.test(id))return id;
+  id=globalThis.crypto?.randomUUID?.().replaceAll("-","")||"device"+Date.now().toString(36);
+  try{localStorage.setItem(KEY,id);}catch{}
+  return id;
+}
+function urlBase64ToUint8Array(value){
+  const base64=value.replace(/-/g,"+").replace(/_/g,"/");
+  const raw=atob(base64+"=".repeat((4-base64.length%4)%4));
+  return Uint8Array.from(raw,c=>c.charCodeAt(0));
+}
+function readConfig(){
+  const gs=state()?.gamification,preferences=gs?.smartReminders;
+  if(!gs||!preferences?.enabled)return null;
+  const now=new Date(),day=keyOf(now);
+  const goal=(gs.goals??[]).filter(x=>x.from<=day).sort((a,b)=>b.from.localeCompare(a.from))[0];
+  if(!goal)return null;
+  const rawMinutes=safeNumber(state()?.pomoMin?.[day],1440);
+  const rawQuestions=safeNumber(state()?.solved?.[day],5000);
+  return {
+    day,goalMinutes:Math.max(1,safeNumber(goal.minutes,1440)),
+    goalQuestions:Math.max(1,safeNumber(goal.questions,5000)),
+    minutes:Math.max(0,rawMinutes-(day===gs.activationDay?gs.baselineMinutes||0:0)),
+    questions:Math.max(0,rawQuestions-(day===gs.activationDay?gs.baselineQuestions||0:0)),
+    restDay:Array.isArray(gs.restDays)&&gs.restDays.includes(day),
+    quietStart:safeNumber(preferences.quietStart,23),
+    quietEnd:safeNumber(preferences.quietEnd,23),
+    timeZone:Intl.DateTimeFormat().resolvedOptions().timeZone||"Europe/Istanbul"
+  };
+}
+let lastSyncAt=0,previousPayload="";
+async function syncDevice(force=false){
+  if(!active||!deviceRef||!userRef)return;
+  if(!navigator.onLine)return;
+  const next=readConfig();if(!next)return;
+  const serialized=JSON.stringify(next),now=Date.now();
+  if(!force&&serialized===previousPayload&&now-lastSyncAt<180000)return;
+  if(!force&&now-lastSyncAt<60000)return;
+  const subscription=await(await navigator.serviceWorker.ready).pushManager.getSubscription();
+  if(!subscription)return;
+  const keys=subscription.toJSON().keys??{};
+  if(!keys.p256dh||!keys.auth)return;
+  await setDoc(deviceRef,{
+    deviceId:deviceId(),endpoint:subscription.endpoint,
+    p256dh:keys.p256dh,auth:keys.auth,
+    ...next,updatedAt:serverTimestamp()
+  },{merge:true});
+  previousPayload=serialized;lastSyncAt=now;
+}
+let status="Telefon bildirimleri bağlı değil.";
+export function installStudentSmartPush({db,user}){
+  if(!db||!user?.emailVerified)return()=>{};
+  dbRef=db;userRef=user;active=true;
+  const id=deviceId();
+  deviceRef=doc(db,"users",user.uid,"pushDevices",id);
+  async function enable(){
+    if(!active||userRef?.uid!==user.uid)throw Error("Öğrenci hesabıyla giriş yapman gerekiyor.");
+    if(!isSecureContext||!("serviceWorker" in navigator)||!("PushManager" in window)||
+      typeof Notification==="undefined")throw Error("Bu cihazda Web Push desteklenmiyor.");
+    const cfg=readConfig();
+    if(!cfg)throw Error("Önce akıllı hatırlatmaları etkinleştir.");
+    const setting=await getDoc(doc(db,"publicConfig","push"));
+    const vapid=setting.data()?.vapidPublicKey;
+    if(!setting.exists()||typeof vapid!=="string"||vapid.length<40)
+      throw Error("Gerçek Firebase ortamında Web Push VAPID anahtarı henüz yapılandırılmadı.");
+    const permission=await Notification.requestPermission();
+    if(permission!=="granted")throw Error("Cihaz bildirim izni verilmedi.");
+    const registration=await navigator.serviceWorker.ready;
+    let subscription=await registration.pushManager.getSubscription();
+    if(!subscription)subscription=await registration.pushManager.subscribe({
+      userVisibleOnly:true,applicationServerKey:urlBase64ToUint8Array(vapid)
+    });
+    if(!subscription?.endpoint)throw Error("Push aboneliği oluşturulamadı.");
+    const key=subscription.toJSON().keys??{};
+    if(!key.auth||!key.p256dh)throw Error("Push aboneliğinde şifreleme anahtarları eksik.");
+    await setDoc(deviceRef,{deviceId:id,endpoint:subscription.endpoint,auth:key.auth,p256dh:key.p256dh,
+      ...cfg,createdAt:serverTimestamp(),updatedAt:serverTimestamp()});
+    status="Telefon bildirimlerine abone olundu. Gerçek gönderim için sunucu gerekir.";
+    await syncDevice(true);
+    statusChanged();return status;
+  }
+  async function disable(){
+    const sub=await(await navigator.serviceWorker.ready).pushManager.getSubscription();
+    if(sub)await sub.unsubscribe();
+    try{await deleteDoc(deviceRef);}catch{}
+    status="Telefon bildirimi bağlantısı kaldırıldı.";statusChanged();return status;
+  }
+  window.YKSSmartPush={enable,disable,status:()=>status};
+  const changed=()=>{void syncDevice().catch(error=>console.warn("Bildirim cihaz profili",error));};
+  for(const event of ["yks:data-changed","yks:smart-reminders-settings","online"])
+    {window.addEventListener(event,changed);stopChanges.push(()=>window.removeEventListener(event,changed));}
+  taskTimer=window.setInterval(changed,240000);
+  statusChanged();changed();
+  return()=>{
+    active=false;userRef=null;dbRef=null;deviceRef=null;
+    for(const stop of stopChanges.splice(0))stop();
+    if(taskTimer){clearInterval(taskTimer);taskTimer=null;}
+    delete window.YKSSmartPush;
+    // Avoid delivering another student's push after logout or account switch.
+    void disable().catch(error=>console.warn("Eski push cihaz bağı kapatılamadı",error));
+  };
+}
