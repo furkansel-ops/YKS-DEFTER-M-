@@ -62,6 +62,23 @@ try{
   await assertFails(setDoc(doc(s,"coachXpReceipts",claim("0")),{xp:35,studentUid:student}));
   await assertFails(setDoc(doc(c,"coachXpReceipts",claim("0")),{xp:35,studentUid:student}));
   await assertFails(getDoc(doc(outsider,"coachXpReceipts",claim("0"))));
+  // Simulate the trusted Cloud Function receipt write (rules-disabled server context).
+  // Verify student and author-coach sync while another coach cannot read the receipt.
+  await env.withSecurityRulesDisabled(async ctx=>{
+    await setDoc(doc(ctx.firestore(),"coachXpReceipts",claim("0")),{
+      studentUid:student,coachUid:coach,weekStart:week,slot:"0",
+      challengeId:claim("0"),xp:35,difficulty:"normal",kind:"both",
+      assignedAt:new Date(),createdAt:new Date()
+    });
+  });
+  await assertSucceeds(getDoc(doc(s,"coachXpReceipts",claim("0"))));
+  await assertSucceeds(getDoc(doc(c,"coachXpReceipts",claim("0"))));
+  await assertFails(getDoc(doc(o,"coachXpReceipts",claim("0"))));
+  const earned=await assertSucceeds(getDocs(query(collection(s,"coachXpReceipts"),
+    where("studentUid","==",student))));
+  assert.equal(earned.size,1);
+  await assertFails(updateDoc(doc(s,"coachXpReceipts",claim("0")),{xp:300}));
+  await assertFails(updateDoc(doc(c,"coachXpReceipts",claim("0")),{xp:300}));
   // The trusted service account writes receipts using Admin SDK, not client SDK.
   const manual="free-12345678";
   const freeId=student+"_"+coach+"_"+week+"_"+manual;
