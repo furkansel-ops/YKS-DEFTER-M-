@@ -40,3 +40,5 @@ exports.issueCoachChallengeXp=onDocumentUpdated({
     tx.create(receipt,{...claim,assignedAt,createdAt:FieldValue.serverTimestamp()});
   });
 });
+
+Object.assign(exports,require("./smart-push.cjs"));
