@@ -471,3 +471,22 @@
 @media(max-width:550px){
  #ymsAchievementsContent .sg-collection-controls{grid-template-columns:minmax(0,1fr)}
 }
+
+
+/* Career Center 3.0: dense six-stat profile, badge clarity and keyboard-safe panels. */
+#ymsAchievementsContent .sg-career-stats{grid-template-columns:repeat(3,minmax(0,1fr))}
+#ymsAchievementsContent .sg-settings-remaining{
+  font-size:10.5px;line-height:1.35;font-weight:600;
+  color:var(--ys-muted,var(--label-2,#68788b))
+}
+#ymsAchievementsContent .sg-medal-rarity{display:inline-flex;width:max-content;
+  border:1px solid color-mix(in srgb,var(--rarity,var(--ys-accent)) 35%,transparent);
+  border-radius:8px;padding:3px 7px;background:color-mix(in srgb,var(--rarity,var(--ys-accent)) 7%,transparent)}
+.sg-dialog-method{display:grid;gap:6px;padding:11px 12px;border-radius:12px;
+  background:var(--fill,rgba(80,95,125,.05));text-align:left;line-height:1.5}
+.sg-dialog-method strong{font-size:11px;color:var(--label,#182436)}
+.sg-dialog-method span{font-size:12px;color:var(--label-2,#68788b)}
+#ymsAchievementsContent .sg-tab-content[hidden]{display:none!important}
+@media(max-width:600px){
+  #ymsAchievementsContent .sg-career-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+}

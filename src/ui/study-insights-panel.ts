@@ -1,6 +1,6 @@
 import {getStudyInsights} from "../domain/study-insights.ts";
 import {calculateStudyGamification} from "../domain/study-gamification.ts";
-import type {StudyGamificationState} from "../domain/study-gamification.ts";
+import type {StudyGamificationState,GamificationProfile} from "../domain/study-gamification.ts";
 import type {CalendarDay,SubjectMastery} from "../domain/study-insights.ts";
 import "./study-insights-panel.css";
 
@@ -65,6 +65,17 @@ function renderActivityTrend(container:HTMLElement,days:CalendarDay[],now:Date):
   const achieved=make("div","si-activity-total");
   achieved.append(make("span","","Son 7 günde hedef"),make("strong","",complete+" gün"));
   kpis.append(weekly,compared,achieved);section.append(kpis);
+  const hasPreviousWeek=previous.some(d=>d.status!=="before-start");
+  const difference=currentMinutes-previousMinutes;
+  const comparison=!hasPreviousWeek?
+    "Önceki haftaya ait karşılaştırılabilir dönem henüz oluşmadı.":
+    previousMinutes===0?
+      (currentMinutes>0?"Önceki hafta odak kaydı yoktu; bu hafta çalışma kaydı var.":
+        "Her iki haftada da kayıtlı odak süresi yok."):
+      "Önceki 7 güne göre "+
+      (difference>0?"+"+difference:difference)+" dk · "+
+      (difference>0?"+":"")+Math.round(difference/previousMinutes*100)+"%";
+  section.append(make("p","si-activity-change",comparison));
   const chart=make("div","si-activity-chart");
   const peak=Math.max(1,...timeline.map(d=>d.minutes));
   for(const item of timeline){
@@ -73,11 +84,13 @@ function renderActivityTrend(container:HTMLElement,days:CalendarDay[],now:Date):
     day.title=item.day+" · "+item.minutes+" dakika · "+item.questions+" soru";
     const barOuter=make("div","si-activity-column-track");
     const barInner=make("i","");
-    barInner.style.height=(item.minutes?Math.max(8,item.minutes/peak*100):2)+"%";
+    barInner.style.height=(item.status==="before-start"||item.minutes===0?
+      0:Math.max(8,item.minutes/peak*100))+"%";
     barOuter.append(barInner);
     const label=new Date(item.day+"T12:00:00").toLocaleDateString("tr-TR",{day:"numeric"});
     day.append(barOuter,make("span","",label));
-    day.setAttribute("aria-label",item.day+" · "+item.minutes+" dakika çalışma");
+    day.setAttribute("aria-label",item.status==="before-start"?
+      item.day+" · Başarımlar etkin değildi":item.day+" · "+item.minutes+" dakika çalışma");
     chart.append(day);
   }
   section.append(chart);
@@ -99,9 +112,16 @@ function renderMastery(container:HTMLElement,subjects:SubjectMastery[]){
       const identity=make("div","si-mastery-name");
       identity.append(make("strong","",item.label),make("span","",item.tier+" Ustalık"));
       const points=make("b","",item.up+" UP");top.append(identity,points);
-      row.append(top,bar(item.progress),
+      const progress=bar(item.progress);
+      progress.setAttribute("role","progressbar");
+      progress.setAttribute("aria-label",item.label+" ustalık ilerlemesi");
+      progress.setAttribute("aria-valuemin","0");
+      progress.setAttribute("aria-valuemax","100");
+      progress.setAttribute("aria-valuenow",String(item.progress));
+      row.append(top,progress,
         make("small","",item.minutes+" dk · "+item.questions+" soru · "+item.reviews+
-          " tekrar"+(item.nextTier?" · "+item.nextTier+" için "+Math.max(0,item.nextUp-item.up)+" UP":" · En yüksek kademe")));
+          " tekrar"+(item.nextTier?" · "+item.nextTier+" için "+Math.max(0,item.nextUp-item.up)+" UP · "+
+            item.progress+"%":" · En yüksek kademe")));
       list.appendChild(row);
     }
     section.appendChild(list);
@@ -184,6 +204,55 @@ function renderCalendar(container:HTMLElement,days:CalendarDay[],now:Date,refres
   const legend=make("p","si-legend","✓ Hedef tamamlandı · 🌿 Dinlenme · 🛡️ Kalkan · • Bekliyor");
   section.appendChild(legend);container.appendChild(section);
 }
+/** Read-only TYT/AYT progression based on genuine, post-activation exam entries. */
+function renderExamHistory(container:HTMLElement,state:StudyGamificationState,
+  profile:GamificationProfile,now:Date):void{
+  const section=make("section","si-section si-exam-history");
+  const header=make("div","si-head");
+  header.append(make("strong","","TYT / AYT deneme gelişimi"),
+    make("span","","Son 6 kayıtlı deneme · net bazında"));
+  section.append(header);
+  const grid=make("div","si-exam-history-grid");
+  const today=dateKey(now);
+  for(const type of ["TYT","AYT"] as const){
+    const rows=(state.denemeler??[]).filter(row=>
+      row?.type===type&&typeof row.date==="string"&&
+      /^\d{4}-\d{2}-\d{2}$/.test(row.date)&&
+      row.date>=profile.activationDay&&row.date<=today&&
+      Number.isFinite(Number(row.at))&&Number(row.at)>=profile.activatedAt&&
+      Number(row.at)<=now.getTime()&&row.totalNet!==null&&
+      row.totalNet!==undefined&&row.totalNet!==""&&
+      Number.isFinite(Number(row.totalNet))
+    ).sort((a,b)=>String(a.date).localeCompare(String(b.date))||Number(a.at)-Number(b.at));
+    const card=make("article","si-exam-history-card");
+    card.append(make("h3","",type+" net gelişimi"));
+    if(!rows.length){
+      card.append(make("p","si-empty","Henüz kayıtlı "+type+" denemesi yok."));
+      grid.append(card);continue;
+    }
+    card.append(make("p","si-exam-history-summary",
+      rows.length+" deneme · Son "+Number(rows.at(-1)!.totalNet).toLocaleString("tr-TR")+" net"));
+    const timeline=make("div","si-exam-history-timeline");
+    const recent=rows.slice(-6);
+    for(let i=0;i<recent.length;i++){
+      const row=recent[i]!,previous=i>0?recent[i-1]:undefined;
+      const value=Number(row.totalNet),delta=previous?value-Number(previous.totalNet):null;
+      const entry=make("div","si-exam-history-item");
+      entry.append(make("small","",new Date(String(row.date)+"T12:00:00")
+        .toLocaleDateString("tr-TR",{day:"numeric",month:"short"})),
+        make("strong","",value.toLocaleString("tr-TR")+" net"),
+        make("span","",delta===null?"Başlangıç kaydı":
+          (delta>0?"+":"")+Math.round(delta*100)/100+" net"));
+      timeline.append(entry);
+    }
+    card.append(timeline);
+    if(rows.length===1)card.append(make("small","si-exam-history-foot",
+      "Gelişim karşılaştırması ikinci denemeden sonra görünür."));
+    grid.append(card);
+  }
+  section.append(grid);container.append(section);
+}
+
 export function installStudyInsightsPanel(port:Bridge):void{
   if(mounted)return;mounted=true;
   const refresh=()=>{
@@ -211,6 +280,7 @@ export function installStudyInsightsPanel(port:Bridge):void{
       renderActivityTrend(root,model.calendar,now);
       renderCalendar(root,model.calendar,now,refresh);
       renderRecords(root,model.records,model.exams);
+      renderExamHistory(root,state,state.gamification,now);
       renderMastery(root,model.mastery);
     });
   };
