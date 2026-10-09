@@ -454,3 +454,20 @@
 @media(prefers-reduced-motion:reduce){
  #ymsAchievementsContent :is(.sg-tab,.sg-milestone,.sg-recent-item){transition:none}
 }
+
+
+/* Within Settings' badge collection, keep search and sorting easy to use. */
+#ymsAchievementsContent .sg-collection-controls{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(155px,1fr);gap:11px;min-width:0}
+#ymsAchievementsContent .sg-collection-search,#ymsAchievementsContent .sg-collection-sort{min-width:0;display:grid;gap:6px;
+ color:var(--ys-muted,var(--label-2));font-size:11px;font-weight:650}
+#ymsAchievementsContent .sg-collection-input,#ymsAchievementsContent .sg-collection-select{
+ appearance:auto;min-width:0;width:100%;height:46px;box-sizing:border-box;
+ border-radius:13px;padding:10px 12px;border:1px solid var(--ys-line,var(--sep,#e8edf4));
+ background:var(--ys-surface,var(--card,#fff));color:var(--ys-ink,var(--label));font:inherit;font-size:12px}
+#ymsAchievementsContent .sg-collection-input:focus-visible,#ymsAchievementsContent .sg-collection-select:focus-visible{
+ outline:2px solid var(--ys-accent,var(--accent,#276cdf));outline-offset:1px}
+#ymsAchievementsContent .sg-collection-count{margin:0;color:var(--ys-muted,var(--label-2));font-size:11px}
+#ymsAchievementsContent .sg-medal-collection .sg-empty{grid-column:1/-1;padding:20px;border:1px dashed var(--ys-line,var(--sep,#e8edf4));border-radius:14px}
+@media(max-width:550px){
+ #ymsAchievementsContent .sg-collection-controls{grid-template-columns:minmax(0,1fr)}
+}
