@@ -70,3 +70,28 @@
  #ymsAchievementsContent .st-overview-card>strong{font-size:13px}
  #ymsAchievementsContent .st-overview-card>small{font-size:9px}
 }
+
+
+/* Career Center 3.0: actual task requirements, without extra awards or XP writes. */
+#ymsAchievementsContent .st-task{gap:10px;background:var(--ys-surface,var(--card,#fff));
+  border-color:var(--ys-line,var(--sep,#e8edf4));border-radius:15px;padding:14px}
+#ymsAchievementsContent .st-task-copy{gap:5px}
+#ymsAchievementsContent .st-task-copy strong{font-size:12.5px;color:var(--ys-ink,var(--label))}
+#ymsAchievementsContent .st-task-meta{font-size:10px;letter-spacing:.02em;
+  font-weight:700;color:var(--ys-accent,var(--accent,#286ddd))}
+#ymsAchievementsContent .st-task-description{margin:0;font-size:11px;
+  line-height:1.5;color:var(--ys-muted,var(--label-2))}
+#ymsAchievementsContent .st-task-status{font-weight:750;font-size:10.5px}
+#ymsAchievementsContent .st-task-targets{display:flex;gap:7px;flex-wrap:wrap}
+#ymsAchievementsContent .st-task-target{flex:1 1 100px;min-width:0;display:grid;gap:5px;
+  padding:9px 10px;border-radius:10px;background:var(--ys-alt,var(--fill,#f4f7fb))}
+#ymsAchievementsContent .st-task-target small{color:var(--ys-muted,var(--label-2));font-size:10px}
+#ymsAchievementsContent .st-task-target strong{font-size:11.5px;
+  font-variant-numeric:tabular-nums;color:var(--ys-ink,var(--label));overflow-wrap:anywhere}
+#ymsAchievementsContent .st-task-foot strong{font-size:12px;
+  font-variant-numeric:tabular-nums;color:var(--ys-accent,var(--accent,#286ddd))}
+#ymsAchievementsContent .st-task.st-claimed .st-task-foot strong{color:var(--success,#168460)}
+#ymsAchievementsContent .st-reroll{min-height:44px}
+@media(max-width:560px){
+  #ymsAchievementsContent .st-task{padding:13px}
+}
