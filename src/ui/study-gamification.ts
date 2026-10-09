@@ -600,7 +600,8 @@ function render(snapshot:StudyGamificationSnapshot,root:HTMLElement):void{
     ["🏁",snapshot.longestStreak+" gün","En uzun seri"],
     ["🏅",snapshot.earnedBadges+" / "+snapshot.badges.length,"Rozetler"],
     ["🛡️",snapshot.shields+" / "+snapshot.shieldLimit,"Kalkan"],
-    ["📆",snapshot.activeDays+" gün","Başarılı gün"]
+    ["📆",snapshot.activeDays+" gün","Başarılı gün"],
+    ["⏱️",Math.floor(snapshot.totalMinutes/60)+" sa "+snapshot.totalMinutes%60+" dk","Toplam odak"]
   ]){
     const card=node("div","sg-career-stat");
     card.append(node("span","",item[0]),node("strong","",item[1]),
