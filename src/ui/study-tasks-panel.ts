@@ -6,6 +6,7 @@ import "./study-tasks-panel.css";
 
 type Port={readState:()=>StudyGamificationState|null;saveState:()=>boolean;toast?:(message:string)=>void};
 let installed=false,queued=false;
+const isActiveTab=()=>document.getElementById("studyGamification")?.dataset.activeTab==="tasks";
 const element=<K extends keyof HTMLElementTagNameMap>(tag:K,className="",text=""):HTMLElementTagNameMap[K]=>{
   const el=document.createElement(tag);if(className)el.className=className;
   if(text)el.textContent=text;return el;
@@ -17,12 +18,14 @@ function mount():HTMLElement|null{
   if(current){
     if(settingsHost&&parent?.parentElement===settingsHost&&current.parentElement!==settingsHost)
       parent.insertAdjacentElement("afterend",current);
+    current.hidden=!isActiveTab();
     return current;
   }
   if(!parent)return null;
   const root=element("section","st-panel");root.id="studyTasksPanel";
   root.setAttribute("aria-label","Günlük görevler ve haftalık meydan okumalar");
   parent.insertAdjacentElement("afterend",root);
+  root.hidden=!isActiveTab();
   return root;
 }
 function bar(value:number):HTMLElement{
@@ -67,6 +70,7 @@ function taskCard(view:StudyTaskView,port:Port,onChange:()=>void,reroll:boolean)
   return card;
 }
 function render(port:Port,root:HTMLElement,snapshot:ReturnType<typeof taskPanel>,refresh:()=>void):void{
+  root.hidden=!isActiveTab();
   root.replaceChildren();
   const header=element("div","st-header");
   const names=element("div","st-headings");

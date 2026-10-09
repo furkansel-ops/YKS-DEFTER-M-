@@ -44,6 +44,8 @@ export type StudyGamificationSnapshot={
   shields:number;shieldsUsed:number;shieldLimit:number;restDays:string[];
   totalMinutes:number;totalQuestions:number;totalExams:number;
   xp:number;level:number;rank:string;levelProgress:number;levelGoal:number;
+  /** Server-independent, deterministic XP sources: sum always equals xp. */
+  xpSources:{study:number;badges:number;tasks:number};
   earnedBadges:number;badges:StudyBadge[];newBadgeIds:string[];
   week:StudyWeekDay[];history:Record<string,StudyDayStatus>;
 };
@@ -263,7 +265,8 @@ export function calculateStudyGamification(state:StudyGamificationState|null|und
     goalMinutes:goal.minutes,goalQuestions:goal.questions,todayCompleted,
     currentStreak,longestStreak,activeDays,totalMinutes,totalQuestions,totalExams,
     shields,shieldsUsed,shieldLimit:2,restDays:[...plannedRest].sort(),
-    xp,level:levelInfo.level,rank:rankFor(levelInfo.level),
+    xp,xpSources:{study:workXp,badges:earnedXp,tasks:taskRewardXp},
+    level:levelInfo.level,rank:rankFor(levelInfo.level),
     levelProgress:levelInfo.progress,levelGoal:levelInfo.goal,
     earnedBadges:badges.filter(b=>b.unlocked).length,badges,newBadgeIds,week,history};
 }
