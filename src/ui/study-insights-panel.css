@@ -60,3 +60,39 @@
 @media(min-width:601px) and (max-width:1024px){
   :is(#home,#ymsAchievementsContent) .si-record-grid,:is(#home,#ymsAchievementsContent) .si-mastery-list{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
+
+
+/* Read-only 14-day focus report, independent from the score / XP calculation. */
+#ymsAchievementsContent .si-panel{display:grid;gap:15px;background:transparent;
+ border:0!important;padding:0!important}
+#ymsAchievementsContent .si-title{padding:6px 3px 0}
+#ymsAchievementsContent .si-section{margin:0;padding:17px;
+ background:var(--ys-surface,var(--card,#fff));border:1px solid var(--ys-line,var(--sep,#e8edf4));border-radius:18px}
+#ymsAchievementsContent .si-activity-heading{display:grid;gap:4px}
+#ymsAchievementsContent .si-activity-heading>strong{font-size:15px}
+#ymsAchievementsContent .si-activity-heading>small{font-size:11px;color:var(--ys-muted,var(--label-2))}
+#ymsAchievementsContent .si-activity-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+#ymsAchievementsContent .si-activity-total{display:grid;gap:5px;min-width:0;border-radius:13px;
+ border:1px solid var(--ys-line,var(--sep,#e8edf4));padding:12px;background:var(--ys-alt,var(--fill,#f4f7fb))}
+#ymsAchievementsContent .si-activity-total>span{font-size:10px;color:var(--ys-muted,var(--label-2))}
+#ymsAchievementsContent .si-activity-total>strong{font-size:14px;line-height:1.25;font-weight:790;color:var(--ys-ink,var(--label))}
+#ymsAchievementsContent .si-activity-chart{display:grid;grid-template-columns:repeat(14,minmax(0,1fr));gap:5px;
+ min-height:130px;padding:12px 4px 2px}
+#ymsAchievementsContent .si-activity-column{display:grid;align-items:end;min-width:0;gap:7px;text-align:center;
+ color:var(--ys-muted,var(--label-2));font-size:9px}
+#ymsAchievementsContent .si-activity-column-track{height:105px;display:flex;align-items:flex-end;
+ justify-content:center;background:var(--ys-alt,var(--fill,#edf3fa));border-radius:7px;overflow:hidden}
+#ymsAchievementsContent .si-activity-column-track>i{display:block;width:100%;min-height:2px;
+ background:linear-gradient(180deg,color-mix(in srgb,var(--ys-accent,var(--accent,#276cdf)) 55%,white),
+ var(--ys-accent,var(--accent,#276cdf)));border-radius:5px 5px 0 0}
+#ymsAchievementsContent .si-activity-column[data-status="completed"] .si-activity-column-track>i{
+ background:linear-gradient(180deg,#6ed2a1,#208968)}
+#ymsAchievementsContent .si-activity-column[data-status="before-start"] .si-activity-column-track>i{opacity:.3}
+#ymsAchievementsContent .si-activity-caption{font-size:10.5px;line-height:1.5;margin:0;
+ color:var(--ys-muted,var(--label-2))}
+@media(max-width:480px){
+ #ymsAchievementsContent .si-activity-total{padding:9px 7px}
+ #ymsAchievementsContent .si-activity-total>strong{font-size:11px}
+ #ymsAchievementsContent .si-activity-chart{gap:3px}
+ #ymsAchievementsContent .si-section{padding:13px}
+}
