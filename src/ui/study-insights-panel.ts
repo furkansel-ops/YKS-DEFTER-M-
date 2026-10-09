@@ -11,6 +11,7 @@ const make=<K extends keyof HTMLElementTagNameMap>(
   if(value)el.textContent=value;return el;
 };
 let mounted=false,queued=false,monthOffset=0,selectedDay="";
+const isActiveTab=()=>document.getElementById("studyGamification")?.dataset.activeTab==="career";
 let recordBaseline:Map<string,number>|null=null,recordAccount="";
 const labelDate=(day:string)=>new Date(day+"T12:00:00").toLocaleDateString("tr-TR",{day:"numeric",month:"long",year:"numeric"});
 const dateKey=(date:Date)=>date.getFullYear()+"-"+String(date.getMonth()+1).padStart(2,"0")+"-"+String(date.getDate()).padStart(2,"0");
@@ -26,12 +27,14 @@ function rootNode():HTMLElement|null{
   if(existing){
     if(settingsHost&&anchor?.parentElement===settingsHost&&existing.parentElement!==settingsHost)
       anchor.insertAdjacentElement("afterend",existing);
+    existing.hidden=!isActiveTab();
     return existing;
   }
   if(!anchor)return null;
   const root=make("section","si-panel");root.id="studyInsightsPanel";
   root.setAttribute("aria-label","Çalışma takvimi, kişisel rekorlar ve ders ustalığı");
-  anchor.insertAdjacentElement("afterend",root);return root;
+  anchor.insertAdjacentElement("afterend",root);
+  root.hidden=!isActiveTab();return root;
 }
 function renderMastery(container:HTMLElement,subjects:SubjectMastery[]){
   const section=make("section","si-section"),head=make("div","si-head");
@@ -150,6 +153,7 @@ export function installStudyInsightsPanel(port:Bridge):void{
           changed.value.toLocaleString("tr-TR")+" "+changed.unit);
       }
       recordBaseline=new Map(model.records.map(row=>[row.id,row.value]));
+      root.hidden=!isActiveTab();
       root.replaceChildren();
       const heading=make("div","si-title");
       heading.append(make("span","","YKS KARİYERİ"),make("h2","","Gelişimim"));
