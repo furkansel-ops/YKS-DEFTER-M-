@@ -344,16 +344,26 @@ function syncTabPanels():void{
   if(tasks)tasks.hidden=activeTab!=="tasks";
   if(insights)insights.hidden=activeTab!=="career";
 }
+function chooseCareerTab(next:CareerTab,restoreFocus=true):void{
+  if(activeTab===next)return;
+  activeTab=next;
+  schedule();
+  if(restoreFocus){
+    // The tablist is re-rendered. Restore focus to the new active tab.
+    window.requestAnimationFrame(()=>{
+      document.querySelector<HTMLButtonElement>(
+        '#studyGamification [data-career-tab="'+next+'"]')?.focus({preventScroll:true});
+    });
+  }
+}
 function makeTabButton(id:CareerTab,title:string):HTMLButtonElement{
   const button=node("button","sg-tab",title) as HTMLButtonElement;
   button.type="button";button.setAttribute("role","tab");
   button.dataset.careerTab=id;
   button.setAttribute("aria-selected",String(activeTab===id));
   button.tabIndex=activeTab===id?0:-1;
-  button.addEventListener("click",()=>{
-    if(activeTab===id)return;
-    activeTab=id;schedule();
-  });
+  button.setAttribute("aria-controls","sgCareerTabPanel");
+  button.addEventListener("click",()=>chooseCareerTab(id));
   button.addEventListener("keydown",event=>{
     const tabs:CareerTab[]=["general","badges","tasks","career"];
     const index=tabs.indexOf(id);
@@ -361,10 +371,7 @@ function makeTabButton(id:CareerTab,title:string):HTMLButtonElement{
       event.key==="ArrowLeft"?tabs[(index+tabs.length-1)%tabs.length]:
       event.key==="Home"?tabs[0]:event.key==="End"?tabs[tabs.length-1]:undefined;
     if(next){
-      event.preventDefault();activeTab=next;schedule();
-      window.requestAnimationFrame(()=>{
-        document.querySelector<HTMLButtonElement>('[data-career-tab="'+next+'"]')?.focus();
-      });
+      event.preventDefault();chooseCareerTab(next);
     }
   });
   return button;
@@ -424,6 +431,7 @@ function render(snapshot:StudyGamificationSnapshot,root:HTMLElement):void{
   ] as const)tabs.append(makeTabButton(id,label));
   root.append(tabs);
   const area=node("section","sg-tab-content");
+  area.id="sgCareerTabPanel";
   area.setAttribute("role","tabpanel");
   area.setAttribute("aria-label",(
     {general:"Genel",badges:"Rozetler",tasks:"Görevler",career:"Kariyer"} as const)[activeTab]);
@@ -450,11 +458,29 @@ function render(snapshot:StudyGamificationSnapshot,root:HTMLElement):void{
     const grid=node("div","sg-medal-grid");
     for(const badge of featured(snapshot))grid.append(badgeCard(badge));
     const all=node("button","sg-open-collection","Tüm rozetleri gör →");
-    all.type="button";all.addEventListener("click",()=>{activeTab="badges";schedule();});
+    all.type="button";all.addEventListener("click",()=>chooseCareerTab("badges"));
     near.append(nearHead,grid,all);
+    const explanation=node("section","sg-xp-breakdown");
+    explanation.setAttribute("aria-label","XP kaynakları");
+    const explanationHead=node("div","sg-xp-breakdown-head");
+    explanationHead.append(node("h3","","⚡ XP nereden geldi?"),
+      node("strong","",fmt(snapshot.xp)+" XP"));
+    explanation.append(explanationHead);
+    for(const [icon,label,value,detail] of [
+      ["⏱️","Odak, sorular ve başarılı günler",snapshot.xpSources.study,"Kayıtlı çalışmalarından"],
+      ["🏅","Açtığın rozetler",snapshot.xpSources.badges,"Bir kez kazanılan rozet ödülleri"],
+      ["🎯","Tamamlanan görevler",snapshot.xpSources.tasks,"Günlük ve haftalık görev ödülleri"]
+    ] as const){
+      const row=node("div","sg-xp-breakdown-row");
+      row.append(node("span","sg-xp-breakdown-icon",icon));
+      const copy=node("div","sg-xp-breakdown-copy");
+      copy.append(node("strong","",label),node("small","",detail));
+      row.append(copy,node("b","",fmt(value)+" XP"));
+      explanation.append(row);
+    }
     const info=node("div","sg-career-tip",
       "Rozetler XP kazandırır. Kalkan ise 7 gerçek başarılı günün sonunda kazanılır.");
-    area.append(current,near,protectionPanel(snapshot),info);
+    area.append(current,explanation,near,protectionPanel(snapshot),info);
   }else if(activeTab==="badges"){
     const collection=node("div","sg-collection-head");
     collection.append(node("h3","","Rozet koleksiyonu"),
