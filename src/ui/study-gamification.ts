@@ -12,7 +12,9 @@ type LegacyWindow=Window&{
 };
 const runtime=window as LegacyWindow;
 const ROOT_ID="studyGamification";
-let expanded=false,editing=false,renderQueued=false;
+type CareerTab="general"|"badges"|"tasks"|"career";
+type BadgeFilter="all"|"earned"|"locked"|"Bronz"|"Gümüş"|"Altın"|"Elmas"|"Efsanevi";
+let activeTab:CareerTab="general",badgeFilter:BadgeFilter="all",editing=false,renderQueued=false;
 let previousProfileKey="";
 let previousLevel=0;
 
@@ -69,7 +71,7 @@ function openAchievements():void{
   }catch(error){console.warn("Başarımlar açılamadı",error);}
 }
 
-/** Keep Today focused: only a tiny progress summary, full tools live in Settings. */
+/** Compact, real-data level bar on Today; opening it navigates to Career Center. */
 function renderTodayTeaser(snapshot:StudyGamificationSnapshot):void{
   const home=document.getElementById("home"),hub=document.getElementById("todayHub");
   if(!home||!hub)return;
@@ -77,20 +79,43 @@ function renderTodayTeaser(snapshot:StudyGamificationSnapshot):void{
   if(!link){
     link=node("button","sg-today-shortcut") as HTMLButtonElement;
     link.id="todayAchievementShortcut";link.type="button";
-    link.setAttribute("aria-label","Ayarlar içindeki Başarımlar bölümünü aç");
-    const left=node("span","sg-today-shortcut-title","🏆 Başarımlar");
-    const right=node("span","sg-today-shortcut-metrics");
-    right.dataset.sgQuickMetrics="true";
-    const arrow=node("span","sg-today-shortcut-arrow","›");
-    link.append(left,right,arrow);link.addEventListener("click",openAchievements);
-    hub.insertAdjacentElement("afterend",link);
+    link.setAttribute("aria-label","YKS Kariyeri: seviye ve başarımlar detayını aç");
+    const head=node("div","sg-today-shortcut-head");
+    head.append(node("span","sg-today-shortcut-title","⚡ YKS Kariyerim"),
+      node("strong","sg-today-level"),node("span","sg-today-shortcut-arrow","›"));
+    const rail=node("span","sg-today-level-rail");
+    rail.setAttribute("role","progressbar");rail.setAttribute("aria-label","Seviye XP ilerlemesi");
+    const fill=node("i","sg-today-level-fill");rail.append(fill);
+    const line=node("div","sg-today-shortcut-line");
+    line.append(node("span","sg-today-xp"),node("span","sg-today-shortcut-metrics"));
+    line.lastElementChild?.setAttribute("data-sg-quick-metrics","true");
+    link.append(head,rail,line);
+    link.addEventListener("click",openAchievements);
+    hub.insertAdjacentElement("beforebegin",link);
   }
+  const level=link.querySelector<HTMLElement>(".sg-today-level");
+  const xp=link.querySelector<HTMLElement>(".sg-today-xp");
   const summary=link.querySelector<HTMLElement>("[data-sg-quick-metrics]");
-  const text=snapshot.activated?
-    `🔥 ${snapshot.currentStreak} gün   ·   ⚡ ${snapshot.xp} XP   ·   🏅 ${snapshot.earnedBadges}/${snapshot.badges.length}`:
-    "Serini ve rozetlerini başlat";
-  if(summary&&summary.textContent!==text)summary.textContent=text;
+  const rail=link.querySelector<HTMLElement>(".sg-today-level-rail");
+  const fill=link.querySelector<HTMLElement>(".sg-today-level-fill");
+  const progress=snapshot.activated?Math.max(0,snapshot.levelProgress):0;
+  const goal=snapshot.activated?Math.max(1,snapshot.levelGoal):1;
+  if(level)level.textContent=snapshot.activated?
+    "Seviye "+snapshot.level+" · "+snapshot.rank:"Kariyerini başlat";
+  if(xp)xp.textContent=snapshot.activated?
+    progress+" / "+goal+" XP · Sonraki seviye için "+Math.max(0,goal-progress)+" XP":"Hedeflerini seç, XP kazanmaya başla";
+  if(summary)summary.textContent=snapshot.activated?
+    "🔥 "+snapshot.currentStreak+" gün  ·  🏅 "+snapshot.earnedBadges+"/"+snapshot.badges.length+"  ·  🛡️ "+snapshot.shields:
+    "Rozet ve görev koleksiyonun";
+  if(fill)fill.style.width=Math.min(100,progress/goal*100)+"%";
+  if(rail){
+    rail.setAttribute("aria-valuenow",String(progress));
+    rail.setAttribute("aria-valuemin","0");
+    rail.setAttribute("aria-valuemax",String(goal));
+  }
+  link.title="Ayarlar → Başarımlar";
 }
+
 function bar(percent:number,className=""):HTMLElement{
   const track=node("div","sg-rail "+className),fill=node("span","sg-rail-fill");
   fill.style.width=Math.max(0,Math.min(100,percent))+"%";
@@ -325,7 +350,7 @@ function refresh():void{
   let snapshot=calculateStudyGamification(state);
   const profile=state.gamification;
   const profileKey=profile?.activatedAt?String(profile.activatedAt):"inactive";
-  if(previousProfileKey!==profileKey){previousProfileKey=profileKey;previousLevel=0;expanded=false;editing=false;}
+  if(previousProfileKey!==profileKey){previousProfileKey=profileKey;previousLevel=0;activeTab="general";badgeFilter="all";editing=false;}
   // Tekil rozet kimliği saklanır; her yeniden çizimde aynı ödül yazılmaz.
   if(snapshot.activated&&profile&&snapshot.newBadgeIds.length){
     const time=Date.now();
