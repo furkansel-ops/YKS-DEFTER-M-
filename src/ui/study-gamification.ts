@@ -334,13 +334,6 @@ function badgeCard(badge:StudyBadge):HTMLElement{
   card.addEventListener("click",()=>openBadgeDetail(badge,card));
   return card;
 }
-function featured(snapshot:StudyGamificationSnapshot):StudyBadge[]{
-  const earned=snapshot.badges.filter(b=>b.unlocked).slice(-2).reverse();
-  const candidates=snapshot.badges.filter(b=>!b.unlocked&&!b.pending&&!b.hidden)
-    .sort((a,b)=>pct(b.progress,b.goal)-pct(a.progress,a.goal));
-  return [...earned,...candidates].slice(0,4);
-}
-
 function renderWeekReview(snapshot:StudyGamificationSnapshot):HTMLElement{
   const details=achievementOverview(snapshot),panel=node("section","sg-week-review");
   const head=node("div","sg-section-head");
@@ -492,7 +485,8 @@ function render(snapshot:StudyGamificationSnapshot,root:HTMLElement):void{
   const hero=node("header","sg-career-hero");
   const leading=node("div","sg-career-hero-text");
   leading.append(node("span","sg-eyebrow","YKS KARİYER MERKEZİ"),
-    node("h2","","Başarımlar"),node("p","","Emek verdikçe seviye atla, rozetlerini keşfet."));
+    node("h2","","Başarımlar"),
+    node("p","","Rozet yolculuğun, haftalık çalışma ritmin ve gerçek XP kazanımların tek yerde."));
   const emblem=node("span","sg-hero-emblem","🏆");emblem.setAttribute("aria-hidden","true");
   hero.append(leading,emblem);
   root.append(hero);
@@ -560,15 +554,6 @@ function render(snapshot:StudyGamificationSnapshot,root:HTMLElement):void{
       current.append(row,bar(pct(value,goal),"sg-daily-progress"));
     }
     if(editing)current.append(goalForm(snapshot,false));
-    const near=node("section","sg-career-featured");
-    const nearHead=node("div","sg-badges-head");
-    nearHead.append(node("strong","","🏅 Rozet koleksiyonun"),
-      node("span","",snapshot.earnedBadges+" / "+snapshot.badges.length+" açıldı"));
-    const grid=node("div","sg-medal-grid");
-    for(const badge of featured(snapshot))grid.append(badgeCard(badge));
-    const all=node("button","sg-open-collection","Tüm rozetleri gör →");
-    all.type="button";all.addEventListener("click",()=>chooseCareerTab("badges"));
-    near.append(nearHead,grid,all);
     const explanation=node("section","sg-xp-breakdown");
     explanation.setAttribute("aria-label","XP kaynakları");
     const explanationHead=node("div","sg-xp-breakdown-head");
@@ -585,19 +570,30 @@ function render(snapshot:StudyGamificationSnapshot,root:HTMLElement):void{
       const copy=node("div","sg-xp-breakdown-copy");
       copy.append(node("strong","",label),node("small","",detail));
       row.append(copy,node("b","",fmt(value)+" XP"));
+      const track=bar(snapshot.xp>0?value/snapshot.xp*100:0,"sg-xp-source-track");
+      track.setAttribute("role","progressbar");track.setAttribute("aria-label",label+" XP payı");
+      track.setAttribute("aria-valuemin","0");track.setAttribute("aria-valuemax","100");
+      track.setAttribute("aria-valuenow",String(snapshot.xp>0?Math.round(value/snapshot.xp*100):0));
+      row.append(track);
       explanation.append(row);
     }
     const info=node("div","sg-career-tip",
       "Rozetler XP kazandırır. Kalkan ise 7 gerçek başarılı günün sonunda kazanılır.");
-    area.append(current,explanation,near,protectionPanel(snapshot),info);
+    area.append(renderWeekReview(snapshot),current,explanation,renderNextBadges(snapshot),
+      renderRecentBadges(snapshot),protectionPanel(snapshot),info);
   }else if(activeTab==="badges"){
     const collection=node("div","sg-collection-head");
     collection.append(node("h3","","Rozet koleksiyonu"),
       node("p","",snapshot.earnedBadges+" kazanıldı · "+snapshot.badges.length+" toplam rozet"));
+    area.append(renderRarityProgress(snapshot));
     const filters=node("div","sg-medal-filters");
     filters.setAttribute("aria-label","Rozetleri filtrele");
     filterNames.forEach(item=>{
-      const filter=node("button","sg-filter",item.label);
+      const count=item.key==="all"?snapshot.badges.length:
+        item.key==="earned"?snapshot.earnedBadges:
+        item.key==="locked"?snapshot.badges.length-snapshot.earnedBadges:
+        snapshot.badges.filter(b=>b.rarity===item.key).length;
+      const filter=node("button","sg-filter",item.label+" · "+count);
       filter.type="button";
       filter.setAttribute("aria-pressed",String(badgeFilter===item.key));
       filter.addEventListener("click",()=>{badgeFilter=item.key;schedule();});
@@ -607,14 +603,20 @@ function render(snapshot:StudyGamificationSnapshot,root:HTMLElement):void{
       badgeFilter==="all"||(badgeFilter==="earned"&&b.unlocked)||
       (badgeFilter==="locked"&&!b.unlocked)||b.rarity===badgeFilter);
     const collectionGrid=node("div","sg-medal-grid sg-medal-collection");
-    filtered.forEach(b=>collectionGrid.append(badgeCard(b)));
+    const sorted=[...filtered].sort((a,b)=>{
+      if(a.unlocked!==b.unlocked)return a.unlocked?-1:1;
+      if(a.unlocked&&b.unlocked)return (b.unlockedAt??0)-(a.unlockedAt??0);
+      return Number(Boolean(a.hidden))-Number(Boolean(b.hidden))||
+        badgeProgressPercent(b)-badgeProgressPercent(a)||a.id.localeCompare(b.id);
+    });
+    sorted.forEach(b=>collectionGrid.append(badgeCard(b)));
     const note=node("p","sg-hint",
       "Bir rozete dokun: açılma koşulunu, ilerlemeni, tarihini ve XP ödülünü gör. Gizli başarımlar sürpriz kalır.");
     area.append(collection,filters,collectionGrid,note);
     if(!filtered.length)area.append(node("p","sg-empty","Bu filtrede henüz rozet bulunmuyor."));
   }else if(activeTab==="tasks"){
     area.append(node("h3","","Görev Merkezi"),
-      node("p","sg-hint","Günlük ve haftalık görevler ilerlemeni ve kazanılacak gerçek XP'yi gösterir."));
+      node("p","sg-hint","Her görevin hedefi, anlık ilerlemesi, zorluk seviyesi ve tek seferlik XP ödülü aşağıda. Odak süresi ve çözdüğün sorular kayıtlarından otomatik hesaplanır."));
   }else{
     area.append(node("h3","","Kariyer geçmişin"));
     const grid=node("div","sg-career-records");
@@ -624,7 +626,7 @@ function render(snapshot:StudyGamificationSnapshot,root:HTMLElement):void{
       ["Kaydedilen deneme",fmt(snapshot.totalExams)],
       ["En uzun seri",snapshot.longestStreak+" gün"]
     ]){const card=node("div","sg-career-record");card.append(node("span","",title),node("strong","",value));grid.append(card);}
-    area.append(grid,node("p","sg-hint",
+    area.append(grid,renderWeekReview(snapshot),node("p","sg-hint",
       "Aşağıda çalışma takvimi, kişisel rekorlar ve ders ustalığın kayıtlarından hesaplanır."));
   }
   root.append(area);
