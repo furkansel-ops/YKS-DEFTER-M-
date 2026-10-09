@@ -42,3 +42,31 @@
 @media(min-width:601px) and (max-width:1024px){
   :is(#home,#ymsAchievementsContent) .st-list{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
+
+
+/* A small mission control summary precedes the user's actual daily/weekly quests. */
+#ymsAchievementsContent .st-panel{border:0;box-shadow:none;background:transparent;
+ padding:0!important;display:grid;gap:14px}
+#ymsAchievementsContent .st-header{padding:7px 3px 0}
+#ymsAchievementsContent .st-overview{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+#ymsAchievementsContent .st-overview-card{border:1px solid var(--ys-line,var(--sep,#e8edf4));
+ border-radius:15px;padding:13px 9px;display:grid;justify-items:center;text-align:center;gap:5px;
+ color:var(--ys-ink,var(--label));background:var(--ys-surface,var(--card,#fff))}
+#ymsAchievementsContent .st-overview-card>span{font-size:23px}
+#ymsAchievementsContent .st-overview-card>strong{font-size:16px;font-weight:800;font-variant-numeric:tabular-nums}
+#ymsAchievementsContent .st-overview-card>small{font-size:10px;color:var(--ys-muted,var(--label-2))}
+#ymsAchievementsContent .st-overview-summary{margin:0;font-size:11.5px;line-height:1.5;
+ border-left:3px solid var(--ys-accent,var(--accent,#286ddd));
+ background:var(--ys-alt,var(--fill,#f5f7fa));padding:11px 13px;
+ border-radius:4px 11px 11px 4px;color:var(--ys-muted,var(--label-2))}
+#ymsAchievementsContent .st-group,#ymsAchievementsContent .st-settings{
+ background:var(--ys-surface,var(--card,#fff));border:1px solid var(--ys-line,var(--sep,#e8edf4));
+ border-radius:17px;padding:15px}
+#ymsAchievementsContent .st-settings{margin-top:0}
+#ymsAchievementsContent .st-note{font-size:11px;line-height:1.5}
+@media(max-width:480px){
+ #ymsAchievementsContent .st-overview{gap:6px}
+ #ymsAchievementsContent .st-overview-card{padding:10px 4px}
+ #ymsAchievementsContent .st-overview-card>strong{font-size:13px}
+ #ymsAchievementsContent .st-overview-card>small{font-size:9px}
+}

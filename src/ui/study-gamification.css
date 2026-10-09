@@ -339,3 +339,135 @@
   #ymsAchievementsContent .sg-xp-breakdown-row{grid-template-columns:27px minmax(0,1fr) auto;gap:5px}
   #ymsAchievementsContent .sg-xp-breakdown-row>b{font-size:11px}
 }
+
+
+/* Detailed Career Center: serious app-like hierarchy, based on existing theme tokens. */
+#ymsAchievementsContent>.sg-career-center{gap:17px;max-width:100%}
+#ymsAchievementsContent .sg-career-hero{position:relative;overflow:hidden;min-height:115px;
+ background:linear-gradient(122deg,var(--ys-surface,var(--card,#fff)) 7%,
+ color-mix(in srgb,var(--ys-accent,var(--accent,#2d72dc)) 9%,var(--ys-surface,var(--card,#fff))) 100%);
+ border-radius:23px;padding:23px 24px}
+#ymsAchievementsContent .sg-career-hero::after{content:"";position:absolute;width:180px;height:180px;
+ right:-65px;top:-106px;pointer-events:none;border-radius:50%;
+ border:34px solid color-mix(in srgb,var(--ys-accent,var(--accent,#2d72dc)) 7%,transparent)}
+#ymsAchievementsContent .sg-career-hero-text{position:relative;z-index:1}
+#ymsAchievementsContent .sg-career-hero h2{font-size:clamp(23px,4vw,31px);font-weight:850}
+#ymsAchievementsContent .sg-career-hero p{font-size:12.5px;line-height:1.5;max-width:480px}
+#ymsAchievementsContent .sg-career-profile{background:linear-gradient(152deg,
+ color-mix(in srgb,var(--ys-accent,var(--accent,#276cdf)) 5%,var(--ys-surface,var(--card,#fff))),
+ var(--ys-surface,var(--card,#fff)) 65%);padding:22px;border-radius:21px}
+#ymsAchievementsContent .sg-career-total{font-size:clamp(24px,5vw,34px);letter-spacing:-.045em}
+#ymsAchievementsContent .sg-career-stats{gap:11px}
+#ymsAchievementsContent .sg-career-stat{padding:15px 10px;border-radius:17px;gap:6px}
+#ymsAchievementsContent .sg-career-stat>strong{font-size:17px}
+#ymsAchievementsContent .sg-career-tabs{position:relative;gap:5px;padding:5px;background:var(--ys-alt,var(--fill,#f3f6fb));
+ border-radius:15px}
+#ymsAchievementsContent .sg-tab{font-size:12.5px;font-weight:730;transition:background-color .15s ease}
+#ymsAchievementsContent .sg-tab-content{gap:16px}
+#ymsAchievementsContent :is(.sg-week-review,.sg-next-badges,.sg-recent-badges,.sg-rarity-progress){
+ padding:18px 19px;min-width:0;border:1px solid var(--ys-line,var(--sep,#e8edf4));
+ border-radius:19px;background:var(--ys-surface,var(--card,#fff));display:grid;gap:15px}
+#ymsAchievementsContent .sg-section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+#ymsAchievementsContent .sg-section-head>div{min-width:0;flex:1 1 auto}
+#ymsAchievementsContent .sg-section-eyebrow{display:block;font-size:9.5px;font-weight:800;letter-spacing:.11em;
+ color:var(--ys-accent,var(--accent,#276cdf));margin-bottom:6px}
+#ymsAchievementsContent .sg-section-head h3{font-size:16px;line-height:1.3;letter-spacing:-.02em;
+ margin:0;color:var(--ys-ink,var(--label));font-weight:790}
+#ymsAchievementsContent .sg-section-head p{color:var(--ys-muted,var(--label-2));margin:5px 0 0;
+ font-size:11.5px;line-height:1.45}
+#ymsAchievementsContent .sg-week-score{font-size:23px;font-variant-numeric:tabular-nums;
+ letter-spacing:-.045em;color:var(--ys-accent,var(--accent,#286ddd))}
+#ymsAchievementsContent .sg-week-days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:7px}
+#ymsAchievementsContent .sg-week-day{display:grid;place-items:center;gap:6px;min-width:0;
+ border:1px solid var(--ys-line,var(--sep,#e8edf4));border-radius:13px;padding:10px 2px;
+ background:var(--ys-alt,var(--fill,#f5f7fa));color:var(--ys-muted,var(--label-2))}
+#ymsAchievementsContent .sg-week-day>span{font-size:10px;font-weight:700}
+#ymsAchievementsContent .sg-week-day>strong{font-size:19px;display:grid;place-items:center;width:30px;height:30px;
+ border-radius:50%;font-weight:750}
+#ymsAchievementsContent .sg-week-day>small{font-size:9.5px;font-variant-numeric:tabular-nums}
+#ymsAchievementsContent .sg-week-day[data-status="completed"]{background:color-mix(in srgb,#19a36b 9%,var(--ys-surface,var(--card,#fff)));
+ color:#168257;border-color:color-mix(in srgb,#19a36b 28%,transparent)}
+#ymsAchievementsContent .sg-week-day[data-status="rest"]{color:#388d7c}
+#ymsAchievementsContent .sg-week-day[data-status="missed"]{color:#b75156}
+#ymsAchievementsContent .sg-week-day[data-status="shield"]{color:var(--ys-accent,var(--accent,#276cdf))}
+#ymsAchievementsContent .sg-week-day[data-today="true"]{outline:2px solid var(--ys-accent,var(--accent,#276cdf));outline-offset:1px}
+#ymsAchievementsContent .sg-week-caption{margin:0;color:var(--ys-muted,var(--label-2));font-size:11px;line-height:1.5}
+#ymsAchievementsContent .sg-text-link{appearance:none;border:0;border-radius:11px;background:var(--ys-soft,var(--fill,#eaf2ff));
+ color:var(--ys-accent,var(--accent,#276cdf));font:inherit;font-size:12px;font-weight:750;
+ min-height:40px;padding:8px 12px;cursor:pointer}
+#ymsAchievementsContent .sg-milestone-grid{display:grid;gap:9px}
+#ymsAchievementsContent .sg-milestone{appearance:none;text-align:left;cursor:pointer;min-width:0;
+ display:grid;grid-template-columns:46px minmax(0,1fr) auto;align-items:center;gap:12px;
+ border:1px solid var(--ys-line,var(--sep,#e8edf4));border-radius:14px;
+ background:var(--ys-alt,var(--fill,#f5f7fa));color:var(--ys-ink,var(--label));padding:11px 12px}
+#ymsAchievementsContent .sg-milestone:hover{border-color:var(--ys-accent,var(--accent,#286ddd))}
+#ymsAchievementsContent .sg-milestone-icon{display:grid;place-items:center;width:42px;height:42px;
+ border-radius:14px;background:var(--ys-surface,var(--card,#fff));font-size:23px}
+#ymsAchievementsContent .sg-milestone-body{display:grid;gap:4px;min-width:0}
+#ymsAchievementsContent .sg-milestone-body>strong{font-size:13px;font-weight:770}
+#ymsAchievementsContent .sg-milestone-body>small{font-size:11px;line-height:1.4;color:var(--ys-muted,var(--label-2))}
+#ymsAchievementsContent .sg-milestone-info{font-size:10px;font-variant-numeric:tabular-nums;
+ color:var(--ys-accent,var(--accent,#286ddd));font-weight:700}
+#ymsAchievementsContent .sg-milestone-xp{font-size:11px;white-space:nowrap}
+#ymsAchievementsContent .sg-milestone-progress{height:6px;background:var(--ys-line,var(--sep,#e8edf4))}
+#ymsAchievementsContent .sg-recent-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+#ymsAchievementsContent .sg-recent-item{appearance:none;text-align:left;display:flex;align-items:center;
+ gap:9px;min-width:0;border:1px solid var(--ys-line,var(--sep,#e8edf4));border-radius:13px;
+ padding:11px;background:var(--ys-alt,var(--fill,#f5f7fa));color:var(--ys-ink,var(--label));cursor:pointer}
+#ymsAchievementsContent .sg-recent-item:hover{border-color:var(--ys-accent,var(--accent,#286ddd))}
+#ymsAchievementsContent .sg-recent-icon{font-size:23px}
+#ymsAchievementsContent .sg-recent-meta{display:grid;gap:3px;min-width:0;flex:1}
+#ymsAchievementsContent .sg-recent-meta strong{font-size:11.5px;line-height:1.3}
+#ymsAchievementsContent .sg-recent-meta small{color:var(--ys-muted,var(--label-2));font-size:10px}
+#ymsAchievementsContent .sg-recent-item>b{font-size:10px;white-space:nowrap;color:var(--ys-accent,var(--accent,#286ddd))}
+#ymsAchievementsContent .sg-rarity-count{color:var(--ys-accent,var(--accent,#286ddd));font-size:13px}
+#ymsAchievementsContent .sg-rarity-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 16px}
+#ymsAchievementsContent .sg-rarity-row{display:grid;gap:7px}
+#ymsAchievementsContent .sg-rarity-row-head{display:flex;justify-content:space-between;align-items:center;
+ gap:8px;font-size:12px}
+#ymsAchievementsContent .sg-rarity-row-head span{color:var(--ys-muted,var(--label-2));font-size:11px}
+#ymsAchievementsContent .sg-rarity-track{height:7px;background:var(--ys-alt,var(--fill,#e8ecf4))}
+#ymsAchievementsContent .sg-rarity-row[data-rarity="bronze"] .sg-rarity-track .sg-rail-fill{background:#b78f67}
+#ymsAchievementsContent .sg-rarity-row[data-rarity="silver"] .sg-rarity-track .sg-rail-fill{background:#8fa3c0}
+#ymsAchievementsContent .sg-rarity-row[data-rarity="gold"] .sg-rarity-track .sg-rail-fill{background:#cda43d}
+#ymsAchievementsContent .sg-rarity-row[data-rarity="diamond"] .sg-rarity-track .sg-rail-fill{background:#329bc5}
+#ymsAchievementsContent .sg-rarity-row[data-rarity="legendary"] .sg-rarity-track .sg-rail-fill{background:#8b6fca}
+#ymsAchievementsContent .sg-xp-breakdown-row{grid-template-columns:36px minmax(0,1fr) auto;
+ gap:10px}
+#ymsAchievementsContent .sg-xp-source-track{grid-column:2/-1;height:5px;background:var(--ys-alt,var(--fill,#e8edf4));
+ width:100%;margin-top:-4px}
+#ymsAchievementsContent .sg-xp-source-track .sg-rail-fill{background:var(--ys-accent,var(--accent,#286ddd))}
+#ymsAchievementsContent :is(.sg-week-day,.sg-rarity-row,.sg-milestone,.sg-recent-item){box-sizing:border-box}
+#ymsAchievementsContent :is(.sg-milestone,.sg-recent-item,.sg-text-link):focus-visible{
+ outline:2px solid var(--ys-accent,var(--accent,#286ddd));outline-offset:2px}
+@media(max-width:650px){
+ #ymsAchievementsContent .sg-recent-list,#ymsAchievementsContent .sg-rarity-list{grid-template-columns:1fr}
+ #ymsAchievementsContent .sg-week-days{gap:4px}
+ #ymsAchievementsContent .sg-week-day{padding:8px 0;border-radius:10px}
+ #ymsAchievementsContent .sg-week-day>strong{font-size:16px;width:24px;height:24px}
+ #ymsAchievementsContent .sg-milestone{grid-template-columns:36px minmax(0,1fr);gap:8px}
+ #ymsAchievementsContent .sg-milestone-icon{width:34px;height:36px;font-size:20px}
+ #ymsAchievementsContent .sg-milestone-xp{grid-column:2}
+ #ymsAchievementsContent :is(.sg-week-review,.sg-next-badges,.sg-recent-badges,.sg-rarity-progress){padding:14px}
+ #ymsAchievementsContent .sg-section-head h3{font-size:15px}
+}
+@media(prefers-reduced-motion:reduce){
+ #ymsAchievementsContent :is(.sg-tab,.sg-milestone,.sg-recent-item){transition:none}
+}
+
+
+/* Within Settings' badge collection, keep search and sorting easy to use. */
+#ymsAchievementsContent .sg-collection-controls{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(155px,1fr);gap:11px;min-width:0}
+#ymsAchievementsContent .sg-collection-search,#ymsAchievementsContent .sg-collection-sort{min-width:0;display:grid;gap:6px;
+ color:var(--ys-muted,var(--label-2));font-size:11px;font-weight:650}
+#ymsAchievementsContent .sg-collection-input,#ymsAchievementsContent .sg-collection-select{
+ appearance:auto;min-width:0;width:100%;height:46px;box-sizing:border-box;
+ border-radius:13px;padding:10px 12px;border:1px solid var(--ys-line,var(--sep,#e8edf4));
+ background:var(--ys-surface,var(--card,#fff));color:var(--ys-ink,var(--label));font:inherit;font-size:12px}
+#ymsAchievementsContent .sg-collection-input:focus-visible,#ymsAchievementsContent .sg-collection-select:focus-visible{
+ outline:2px solid var(--ys-accent,var(--accent,#276cdf));outline-offset:1px}
+#ymsAchievementsContent .sg-collection-count{margin:0;color:var(--ys-muted,var(--label-2));font-size:11px}
+#ymsAchievementsContent .sg-medal-collection .sg-empty{grid-column:1/-1;padding:20px;border:1px dashed var(--ys-line,var(--sep,#e8edf4));border-radius:14px}
+@media(max-width:550px){
+ #ymsAchievementsContent .sg-collection-controls{grid-template-columns:minmax(0,1fr)}
+}
