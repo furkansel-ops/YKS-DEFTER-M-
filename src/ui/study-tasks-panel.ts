@@ -52,7 +52,19 @@ function taskCard(view:StudyTaskView,port:Port,onChange:()=>void,reroll:boolean)
   const title=element("strong","",view.task.title);
   const state=element("span","st-task-status",view.claimed?"✓ Tamamlandı":view.expired?"Süresi doldu":
     view.complete?"Ödül kaydı bekleniyor":"Devam ediyor");
-  details.append(title,state);
+  const difficulties={easy:"Kolay",normal:"Orta",hard:"Zor"};
+  const methods={
+    focus:"Kayıtlı odak sürenle ilerler.",
+    questions:"Çözdüğün kayıtlı sorularla ilerler.",
+    balanced:"Odak ve soru hedeflerinin ikisi de tamamlanmalı.",
+    "extra-focus":"Ek odak süresi hedefini tamamla.",
+    "extra-questions":"Ek soru hedefini tamamla."
+  };
+  const meta=element("span","st-task-meta",
+    (view.task.scope==="daily"?"Günlük görev":"Haftalık meydan okuma")+
+    " · "+difficulties[view.task.difficulty]);
+  const description=element("p","st-task-description",methods[view.task.metric]);
+  details.append(title,meta,description,state);
   const reward=element("span","st-reward","+"+view.task.xp+" XP");
   top.append(details,reward);
   const progress=bar(view.progress);
@@ -60,9 +72,18 @@ function taskCard(view:StudyTaskView,port:Port,onChange:()=>void,reroll:boolean)
   progress.setAttribute("aria-label",view.task.title+" ilerlemesi");
   progress.setAttribute("aria-valuemin","0");progress.setAttribute("aria-valuemax","100");
   progress.setAttribute("aria-valuenow",String(view.progress));
-  card.append(top,progress);
+  progress.setAttribute("aria-valuetext",view.progress+"% · "+view.label);
+  const targets=element("div","st-task-targets");
+  for(const metric of view.label.split(" · ").filter(Boolean)){
+    const target=element("div","st-task-target");
+    target.append(element("small","",metric.endsWith("dk")?"Odak hedefi":"Soru hedefi"),
+      element("strong","",metric));
+    targets.append(target);
+  }
+  card.append(top,targets,progress);
   const foot=element("div","st-task-foot");
-  foot.append(element("small","",view.label),element("small","",view.progress+"%"));
+  foot.append(element("small","","Tamamlanma"),
+    element("strong","",view.progress+"%"));
   card.appendChild(foot);
   if(reroll&&!view.claimed&&view.progress===0){
     const button=element("button","st-reroll","Görevi değiştir");
