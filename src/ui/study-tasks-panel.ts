@@ -50,11 +50,17 @@ function taskCard(view:StudyTaskView,port:Port,onChange:()=>void,reroll:boolean)
   const card=element("article","st-task"+(view.claimed?" st-claimed":""));
   const top=element("div","st-task-top"),details=element("div","st-task-copy");
   const title=element("strong","",view.task.title);
-  const state=element("span","st-task-status",view.claimed?"✓ Tamamlandı":view.complete?"Ödül kaydı bekleniyor":"İlerliyor");
+  const state=element("span","st-task-status",view.claimed?"✓ Tamamlandı":view.expired?"Süresi doldu":
+    view.complete?"Ödül kaydı bekleniyor":"Devam ediyor");
   details.append(title,state);
   const reward=element("span","st-reward","+"+view.task.xp+" XP");
   top.append(details,reward);
-  card.append(top,bar(view.progress));
+  const progress=bar(view.progress);
+  progress.setAttribute("role","progressbar");
+  progress.setAttribute("aria-label",view.task.title+" ilerlemesi");
+  progress.setAttribute("aria-valuemin","0");progress.setAttribute("aria-valuemax","100");
+  progress.setAttribute("aria-valuenow",String(view.progress));
+  card.append(top,progress);
   const foot=element("div","st-task-foot");
   foot.append(element("small","",view.label),element("small","",view.progress+"%"));
   card.appendChild(foot);
@@ -77,6 +83,24 @@ function render(port:Port,root:HTMLElement,snapshot:ReturnType<typeof taskPanel>
   names.append(element("span","st-eyebrow","YKS KARİYERİ"),
     element("h2","","Görev Merkezi"));
   header.appendChild(names);root.appendChild(header);
+  const stats=element("div","st-overview");
+  const completed=snapshot.daily.filter(t=>t.claimed).length+snapshot.weekly.filter(t=>t.claimed).length;
+  const all=snapshot.daily.length+snapshot.weekly.length;
+  for(const [symbol,value,title] of [
+    ["🎯",snapshot.daily.filter(t=>t.claimed).length+" / "+snapshot.daily.length,"Bugünkü görevler"],
+    ["⚔️",snapshot.weekly.filter(t=>t.claimed).length+" / "+snapshot.weekly.length,"Haftalık görevler"],
+    ["⚡",String(snapshot.dailyEarned+snapshot.weeklyEarned)+" XP","Bu dönem kazanılan"]
+  ]){
+    const card=element("div","st-overview-card");
+    card.append(element("span","",symbol),element("strong","",value),element("small","",title));
+    stats.append(card);
+  }
+  root.append(stats);
+  const summary=element("p","st-overview-summary",
+    completed===all&&all>0?"Tebrikler! Mevcut görevlerinin tüm ödülleri kaydedildi.":
+    snapshot.restToday?"Bugün dinlenme günü. Haftalık meydan okumalar devam ediyor.":
+    "Kaydedilmiş odak süresi ve sorularla görevlerini ilerletebilirsin. Tamamlanan ödüller bir kez verilir.");
+  root.append(summary);
   const settings=element("div","st-settings");
   const caption=element("label","st-settings-label","Görev zorluğu (yarından itibaren)");
   const select=element("select","st-difficulty");
