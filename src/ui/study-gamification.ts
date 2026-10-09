@@ -125,6 +125,12 @@ function renderSettingsOverview(snapshot:StudyGamificationSnapshot):void{
   const label=holder.querySelector<HTMLElement>("[data-yms-career-summary]");
   const bar=holder.querySelector<HTMLElement>(".yms-career-overview-rail");
   const fill=holder.querySelector<HTMLElement>("[data-yms-career-progress]");
+  let remaining=holder.querySelector<HTMLElement>("[data-yms-career-remaining]");
+  if(!remaining){
+    remaining=node("span","sg-settings-remaining");
+    remaining.dataset.ymsCareerRemaining="true";
+    holder.appendChild(remaining);
+  }
   const progress=snapshot.activated?Math.min(100,Math.max(0,
     snapshot.levelProgress/Math.max(1,snapshot.levelGoal)*100)):0;
   if(label)label.textContent=snapshot.activated?
@@ -132,6 +138,9 @@ function renderSettingsOverview(snapshot:StudyGamificationSnapshot):void{
     snapshot.earnedBadges+"/"+snapshot.badges.length+" rozet":
     "Hedeflerini belirle, kariyerini başlat";
   if(fill)fill.style.width=progress+"%";
+  if(remaining)remaining.textContent=snapshot.activated?
+    "Sonraki seviyeye "+Math.max(0,snapshot.levelGoal-snapshot.levelProgress)+" XP kaldı":
+    "İlk başarımların için günlük hedef belirle";
   if(bar){
     bar.setAttribute("aria-valuenow",String(Math.round(progress)));
     bar.setAttribute("aria-valuetext",snapshot.activated?
@@ -303,7 +312,8 @@ function openBadgeDetail(badge:StudyBadge,opener:HTMLElement):void{
   const title=node("h3","",hidden?"Gizli Başarım":badge.title);
   title.id="sgBadgeDetailTitle";
   const description=node("p","sg-dialog-description",
-    hidden?"Bu gizli başarımın koşulu keşfedilene kadar sürpriz kalacak.":badge.description);
+    hidden?"Bu gizli başarımın koşulu keşfedilene kadar sürpriz kalacak.":
+      "İlerlemen kayıtlı çalışmalardan ölçülür; koşulu tamamladığında rozet bir kez kazanılır.");
   const reward=node("div","sg-dialog-reward");
   reward.append(node("span","","Rozet ödülü"),node("strong","",
     hidden?"Sürpriz ödül":"+"+fmt(badge.xp)+" XP"));
@@ -315,7 +325,7 @@ function openBadgeDetail(badge:StudyBadge,opener:HTMLElement):void{
     const progress=node("div","sg-dialog-progress");
     const line=node("div","sg-dialog-progress-line");
     line.append(node("span","",badge.unlocked?"Başarım tamamlandı":"İlerleme"),
-      node("strong","",fmt(badge.progress)+" / "+fmt(badge.goal)));
+      node("strong","",fmt(badge.progress)+" / "+fmt(badge.goal)+" · "+badgeProgressPercent(badge)+"%"));
     progress.append(line,bar(pct(badge.progress,badge.goal),"sg-dialog-rail"));
     if(badge.unlockedAt){
       progress.append(node("small","sg-dialog-date",
@@ -325,6 +335,9 @@ function openBadgeDetail(badge:StudyBadge,opener:HTMLElement):void{
         badge.pending?"Bu ödül henüz aktif değil.":"Kalan: "+fmt(Math.max(0,badge.goal-badge.progress))));
     }
     body.insertBefore(progress,reward);
+    const how=node("div","sg-dialog-method");
+    how.append(node("strong","","Nasıl kazanılır?"),node("span","",badge.description));
+    body.insertBefore(how,progress);
   }
   dialog.append(body);
   dialog.addEventListener("click",event=>{if(event.target===dialog)close();});
@@ -349,7 +362,7 @@ function badgeCard(badge:StudyBadge):HTMLElement{
       secret?"Gizli ödül":fmt(badge.progress)+" / "+fmt(badge.goal)+" · "+badgeProgressPercent(badge)+"%");
   const reward=node("span","sg-medal-reward",
     secret?"Sürpriz":"+"+fmt(badge.xp)+" XP");
-  copy.append(title,description,status);
+  copy.append(title,description,node("small","sg-medal-rarity",badge.rarity),status);
   card.append(crest,copy,reward);
   if(locked&&!secret)card.append(bar(pct(badge.progress,badge.goal),"sg-badge-progress"));
   card.setAttribute("aria-label",(secret?"Gizli başarım":badge.title)+
@@ -458,7 +471,9 @@ function renderRarityProgress(snapshot:StudyGamificationSnapshot):HTMLElement{
     const row=node("div","sg-rarity-row");
     row.dataset.rarity=rarityKey(tier.rarity);
     const details=node("div","sg-rarity-row-head");
-    details.append(node("strong","",tier.rarity),node("span","",tier.unlocked+" / "+tier.total));
+    details.append(node("strong","",tier.rarity),
+      node("span","",tier.unlocked+" / "+tier.total+" · "+
+        (tier.total?Math.round(tier.unlocked/tier.total*100):0)+"%"));
     row.append(details,bar(tier.total?tier.unlocked/tier.total*100:0,"sg-rarity-track"));list.append(row);
   }
   panel.append(list);return panel;
@@ -503,6 +518,13 @@ function syncTabPanels():void{
 function chooseCareerTab(next:CareerTab,restoreFocus=true):void{
   if(activeTab===next)return;
   activeTab=next;
+  const root=document.getElementById(ROOT_ID);
+  if(root){
+    root.dataset.activeTab=next;
+    root.querySelector(".sg-tab-content")?.setAttribute("hidden","");
+  }
+  // Sibling task/insight panels must be hidden before the next animation frame.
+  syncTabPanels();
   schedule();
   if(restoreFocus){
     // The tablist is re-rendered. Restore focus to the new active tab.
@@ -533,6 +555,10 @@ function makeTabButton(id:CareerTab,title:string):HTMLButtonElement{
   return button;
 }
 function render(snapshot:StudyGamificationSnapshot,root:HTMLElement):void{
+  // External sync updates can arrive while the student is typing a badge query.
+  const oldSearch=root.querySelector<HTMLInputElement>(".sg-collection-input");
+  const restoreSearchFocus=Boolean(oldSearch&&document.activeElement===oldSearch);
+  const searchCaret=restoreSearchFocus?oldSearch?.selectionStart:null;
   root.replaceChildren();
   root.classList.add("sg-career-center");
   root.dataset.activeTab=activeTab;
@@ -571,6 +597,7 @@ function render(snapshot:StudyGamificationSnapshot,root:HTMLElement):void{
   const stats=node("div","sg-career-stats");
   for(const item of [
     ["🔥",snapshot.currentStreak+" gün","Güncel seri"],
+    ["🏁",snapshot.longestStreak+" gün","En uzun seri"],
     ["🏅",snapshot.earnedBadges+" / "+snapshot.badges.length,"Rozetler"],
     ["🛡️",snapshot.shields+" / "+snapshot.shieldLimit,"Kalkan"],
     ["📆",snapshot.activeDays+" gün","Başarılı gün"]
@@ -700,6 +727,14 @@ function render(snapshot:StudyGamificationSnapshot,root:HTMLElement):void{
   }
   root.append(area);
   syncTabPanels();
+  if(restoreSearchFocus){
+    const nextSearch=root.querySelector<HTMLInputElement>(".sg-collection-input");
+    if(nextSearch){
+      nextSearch.focus({preventScroll:true});
+      if(searchCaret!==null&&searchCaret!==undefined)
+        nextSearch.setSelectionRange(searchCaret,searchCaret);
+    }
+  }
 }
 
 function refresh():void{
