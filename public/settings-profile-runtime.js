@@ -45,6 +45,33 @@ function styles(){
 .yms-achievements [data-yms-achievements-loading]:has(~ .sg-panel){display:none!important}
 @media(max-width:560px){.yms-achievements{gap:12px}.yms-achievements>.sg-panel,.yms-achievements>.st-panel,.yms-achievements>.si-panel{padding:13px!important}}
 
+/* Settings achievement entry and native FAQ: accessible, not a second XP engine. */
+.yms-achievement-entry{background:linear-gradient(110deg,
+ color-mix(in srgb,var(--ys-accent,var(--accent,#276cdf)) 5%,var(--ys-surface,var(--card,#fff))),
+ var(--ys-surface,var(--card,#fff)));border-radius:13px!important;padding:17px 12px!important;margin:3px 0;
+ border:1px solid color-mix(in srgb,var(--ys-accent,var(--accent,#276cdf)) 13%,var(--ys-line,var(--sep,#e8edf4)))!important}
+.yms-achievement-entry .yms-category-icon{color:var(--ys-accent,var(--accent,#276cdf))}
+.yms-achievement-meta{display:grid;gap:8px;margin-top:6px;width:min(100%,360px)}
+.yms-achievement-meta>[data-yms-career-summary]{color:var(--ys-accent,var(--accent,#276cdf));
+ font-size:11px;font-weight:740}
+.yms-career-overview-rail{display:block;width:100%;height:6px;border-radius:99px;overflow:hidden;
+ background:var(--ys-alt,var(--fill,#edf3fa))}
+.yms-career-overview-rail i{display:block;height:100%;width:0;background:var(--ys-accent,var(--accent,#276cdf));border-radius:99px}
+.yms-career-page{display:grid;gap:14px;min-width:0}
+.yms-career-page-heading{padding:0 2px;display:grid;gap:5px}
+.yms-career-kicker{letter-spacing:.13em;font-weight:850;font-size:10px;color:var(--ys-accent,var(--accent,#276cdf))}
+.yms-career-page-heading p{margin:0;font-size:12px;line-height:1.55;color:var(--ys-muted,var(--label-2))}
+.yms-career-help{border:1px solid var(--ys-line,var(--sep,#e8edf4));border-radius:17px;
+ background:var(--ys-surface,var(--card,#fff));padding:0 14px}
+.yms-career-help>summary{cursor:pointer;min-height:50px;display:flex;align-items:center;
+ font-size:13px;font-weight:750;list-style:none}
+.yms-career-help>summary::-webkit-details-marker{display:none}
+.yms-career-help>summary:after{content:"⌄";margin-left:auto;font-size:18px;color:var(--ys-muted,var(--label-2))}
+.yms-career-help[open]>summary:after{transform:rotate(180deg)}
+.yms-career-help-body{padding:0 0 14px;display:grid;gap:8px}
+.yms-career-help-body p{font-size:11.5px;color:var(--ys-muted,var(--label-2));line-height:1.55;margin:0}
+.yms-career-help-body b{color:var(--ys-ink,var(--label))}
+@media(max-width:500px){.yms-achievement-entry{padding:13px 8px!important}.yms-career-page-heading{padding:0}}
 .yms-wrap,.yms-modal{--ys-surface:var(--rb-surface,var(--card,#fff));--ys-alt:var(--rb-surface-alt,var(--card-2,#f0f5fc));--ys-ink:var(--rb-ink,var(--label,#10203f));--ys-muted:var(--rb-muted,var(--label-2,#62718b));--ys-line:var(--rb-line,var(--line,#e4eaf3));--ys-accent:var(--rb-accent,var(--accent,#1266ee));--ys-soft:var(--rb-accent-soft,var(--accent-soft,#eaf2ff));color:var(--ys-ink)}
 .yms-wrap{max-width:840px;margin:16px auto 28px}.yms-wrap [hidden],.yms-modal [hidden],[data-yms-hidden="true"]{display:none!important}
 #mrp_ayar:has(.yms-wrap)>.v30-subhead{display:grid!important;gap:11px;margin:0 auto 18px!important;padding:0!important;max-width:840px;background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important}#mrp_ayar:has(.yms-wrap)>.v30-subhead .v30-back{justify-self:start;padding:5px 0!important;background:transparent!important;border:0!important;color:var(--rb-accent,var(--accent))!important;font-size:14px!important;font-weight:500!important;min-height:32px!important}#mrp_ayar:has(.yms-wrap)>.v30-subhead h1{font-size:32px!important;line-height:1.15;font-weight:700;letter-spacing:-.04em}#mrp_ayar:has(.yms-wrap:not([data-category="overview"]))>.v30-subhead{display:none!important}
@@ -112,7 +139,17 @@ const binding=(key)=>`<b data-yms-value="${key}"></b>`;
 const row=(label,key)=>`<div class="yms-row"><span>${label}</span>${binding(key)}</div>`;
 const action=(key,title,detail)=>`<button class="yms-action-tile" type="button" data-yms-${key}><span><b>${title}</b><small>${detail}</small></span><span class="yms-chevron">${icon("chevron")}</span></button>`;
 const section=(id,body)=>`<section class="yms-section" id="yms${id[0].toUpperCase()+id.slice(1)}" data-yms-section="${id}" hidden>${body}</section>`;
-function categoryButton(item){return `<button class="yms-category" type="button" data-yms-category="${item.id}"><span class="yms-category-icon">${icon(item.icon)}</span><span class="yms-category-copy"><b>${item.title}</b><small>${item.description}</small></span><span class="yms-chevron">${icon("chevron")}</span></button>`}
+function categoryButton(item){
+  const career=item.id==="achievements"?
+    `<span class="yms-achievement-meta" data-yms-achievements-overview>
+      <span data-yms-career-summary>Seviye ve rozetlerin yükleniyor…</span>
+      <span class="yms-career-overview-rail" role="progressbar"
+        aria-label="Başarımlar seviye ilerlemesi" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+        <i data-yms-career-progress></i>
+      </span>
+    </span>`:"";
+  return `<button class="yms-category${career?" yms-achievement-entry":""}" type="button" data-yms-category="${item.id}"><span class="yms-category-icon">${icon(item.icon)}</span><span class="yms-category-copy"><b>${item.title}</b><small>${item.description}</small>${career}</span><span class="yms-chevron">${icon("chevron")}</span></button>`;
+}
 function markup(){return `
 <div data-yms-overview>
   <label class="yms-search">${icon("search")}<input id="ymsSearch" type="search" placeholder="Ayarlarda ara" aria-label="Ayarlarda ara" autocomplete="off"></label>
@@ -128,7 +165,19 @@ function markup(){return `
   ${section("account",`<div class="yms-account-host" data-yms-account-slot></div><div class="yms-empty" data-yms-account-empty>Hesap bağlantısı hazırlanıyor. İnternet bağlantını kontrol ederek tekrar deneyebilirsin.<div class="yms-actions"><button type="button" data-yms-account-refresh>Durumu yenile</button></div></div>`)}
   ${section("appearance",'<div class="yms-appearance-host" data-yms-appearance-slot></div><section class="yms-card"><h3 class="yms-title">Çalışma arkadaşın</h3><div class="yms-notif-item"><span><b>Maskot bana eşlik etsin</b><small>10 karakterden birini seç. Odaklanırken sessizce bekler.</small></span><button class="yms-toggle" type="button" role="switch" aria-checked="true" aria-label="Maskot bana eşlik etsin" data-yms-mascot-toggle></button></div><p class="yms-note" data-yms-mascot-status></p><div class="yms-actions"><button type="button" data-yms-mascot-choose>Maskotunu seç</button></div></section>')}
   ${section("study",`<section class="yms-card"><h3 class="yms-title">Günlük çalışma hedefi</h3><label class="yms-field" for="ymsQuestionTarget"><span>Günlük soru sayısı</span><input id="ymsQuestionTarget" type="number" min="0" max="10000" step="1" inputmode="numeric"></label><div class="yms-actions"><button class="primary" type="button" data-yms-target-save>Hedefi kaydet</button><button type="button" data-yms-program>Programıma git</button></div><p class="yms-note" role="status" data-yms-target-status></p></section><div class="yms-personal-host" data-yms-personal-slot><div class="yms-empty">Ekran tercihlerin hazırlanıyor…</div></div><section class="yms-card yms-weekly-goals"><h3 class="yms-title">Haftalık hedefim</h3><p class="yms-note">Eski haftalık hedeflerini buradan düzenleyebilir ve takip edebilirsin.</p><div id="ymsWeeklyGoalsSlot" aria-label="Haftalık hedef düzenleyicisi"></div></section>`)}
-  ${section("achievements",`<div class="yms-achievements" id="ymsAchievementsContent" aria-label="Seri, XP, rozetler ve görevler"><div class="yms-empty" data-yms-achievements-loading>Başarımlar hazırlanıyor…</div></div>`)}
+  ${section("achievements",`<div class="yms-career-page">
+  <div class="yms-career-page-heading"><span class="yms-career-kicker">ÇALIŞMA KARİYERİ</span><p>Günlük emeğini gerçek kayıtlarından takip et. İlerleme, rozetler, görevler ve çalışma geçmişin bu bölümde.</p></div>
+  <div class="yms-achievements" id="ymsAchievementsContent" aria-label="Seri, XP, rozetler ve görevler"><div class="yms-empty" data-yms-achievements-loading>Başarımlar hazırlanıyor…</div></div>
+  <details class="yms-career-help">
+    <summary>Başarımlar hakkında sık sorulanlar</summary>
+    <div class="yms-career-help-body">
+      <p><b>XP nasıl kazanılır?</b> Başarımlar etkinleştirildikten sonra kaydedilen odak süresi, sorular, iki hedefin birlikte tamamlanması ve bir kez verilen rozet/görev ödülleriyle.</p>
+      <p><b>Seri nasıl korunur?</b> Günlük odak ve soru hedeflerinin ikisi de karşılanmalıdır. Planlı dinlenme günü ve kazanılmış kalkanlar ayrı kurallara tabidir.</p>
+      <p><b>Başarımlar neden kilitli?</b> Rozete dokununca ilerlemen ve gereken hedef görüntülenir. Gizli rozetlerin koşulları açılana kadar gösterilmez.</p>
+      <p><b>Önceki çalışmalarım nerede?</b> Eski çalışmaların silinmez ancak başarımlar etkinleştirilmeden önceki kayıtlar yeni XP üretmez.</p>
+    </div>
+  </details>
+</div>`)}
   ${section("notifications",`<div><span class="yms-status-pill" role="status" data-yms-notif-status></span><p class="yms-note">Destekleyen cihazlarda odak süreni bildirimden duraklatıp devam ettirebilirsin. Uygulama tamamen kapatılır veya cihaz tarafından uyutulursa süre sonu uyarısı gelmeyebilir.</p></div><div class="yms-card"><div class="yms-notif-list">${notifButton("pomo","Odak bildirimleri","Süreyi bildirimden yönet; odak ve mola bitişinde haber al","notifPomo")}${notifButton("review","Tekrar zamanı","Planlı konu tekrarlarını hatırlat","notifReview")}${notifButton("evening","Gün sonu hatırlatması","Günün kaydını tamamlamayı hatırlat","notifEvening")}</div><label class="yms-note" for="ymsNotifTime">Akşam hatırlatma saati</label><div class="yms-time-row"><input id="ymsNotifTime" type="time" aria-label="Akşam hatırlatma saati"><button class="yms-edit" type="button" data-yms-notif-time>Kaydet</button></div><p class="yms-note" role="status" data-yms-time-status></p><div class="yms-actions"><button type="button" data-yms-notif-permission>Bildirim izni ver</button><button type="button" data-yms-notif-test>Deneme bildirimi</button><button type="button" data-yms-notif-refresh>Durumu yenile</button></div><p class="yms-note" role="status" data-yms-notif-result></p></div><details class="yms-advanced" data-yms-notif-help><summary>Bildirim görünmüyorsa</summary><p class="yms-note">Chrome'da Ayarlar → Site ayarları → Bildirimler bölümünden YKS Defterim'e izin ver. Tablet veya telefonunun Ayarlar → Bildirimler bölümünde Chrome ve YKS Defterim izinlerini de kontrol et.</p><p class="yms-note">Rahatsız Etmeyin ve pil tasarrufu bildirimleri sessize alabilir ya da geciktirebilir. Ana ekrana eklenmiş olması bu izinlerin açık olduğu anlamına gelmez.</p><p class="yms-note">Deneme bildirimini görüyorsan cihaz iznin çalışıyor. Bildirim düğmeleri görünmüyorsa bildirimi genişlet. iPhone ve iPad'de uygulamayı ana ekrandan açman gerekir.</p></details>`)}
   ${section("coach",'<div class="yms-coach-host" data-yms-coach-slot></div><div class="yms-empty" data-yms-coach-empty>Koç kodunu oluşturmak ve çalışma bilgilerini paylaşmak için öğrenci hesabınla giriş yap.<div class="yms-actions"><button class="primary" type="button" data-yms-open-account>Hesabıma git</button></div></div>')}
   ${section("data",`<div class="yms-card"><h3 class="yms-title">Çalışmaların sende kalsın</h3><p class="yms-note">Veri merkezinde yedek oluşturabilir, dosyadan geri yükleyebilir ve cihazdaki kayıtlarını yönetebilirsin.</p><div class="yms-actions"><button class="primary" type="button" data-yms-data>Veri ve yedek merkezini aç</button></div></div>`)}
