@@ -15,7 +15,9 @@ const runtime=window as LegacyWindow;
 const ROOT_ID="studyGamification";
 type CareerTab="general"|"badges"|"tasks"|"career";
 type BadgeFilter="all"|"earned"|"locked"|"Bronz"|"Gümüş"|"Altın"|"Elmas"|"Efsanevi";
-let activeTab:CareerTab="general",badgeFilter:BadgeFilter="all",editing=false,renderQueued=false;
+type BadgeSort="nearest"|"recent"|"reward"|"name";
+let activeTab:CareerTab="general",badgeFilter:BadgeFilter="all",badgeSort:BadgeSort="nearest",
+  badgeQuery="",editing=false,renderQueued=false;
 let previousProfileKey="";
 let previousLevel=0;
 
@@ -115,6 +117,27 @@ function renderTodayTeaser(snapshot:StudyGamificationSnapshot):void{
     rail.setAttribute("aria-valuemax",String(goal));
   }
   link.title="Ayarlar → Başarımlar";
+}
+
+function renderSettingsOverview(snapshot:StudyGamificationSnapshot):void{
+  const holder=document.querySelector<HTMLElement>("[data-yms-achievements-overview]");
+  if(!holder)return;
+  const label=holder.querySelector<HTMLElement>("[data-yms-career-summary]");
+  const bar=holder.querySelector<HTMLElement>(".yms-career-overview-rail");
+  const fill=holder.querySelector<HTMLElement>("[data-yms-career-progress]");
+  const progress=snapshot.activated?Math.min(100,Math.max(0,
+    snapshot.levelProgress/Math.max(1,snapshot.levelGoal)*100)):0;
+  if(label)label.textContent=snapshot.activated?
+    "Seviye "+snapshot.level+" · "+snapshot.xp.toLocaleString("tr-TR")+" XP · "+
+    snapshot.earnedBadges+"/"+snapshot.badges.length+" rozet":
+    "Hedeflerini belirle, kariyerini başlat";
+  if(fill)fill.style.width=progress+"%";
+  if(bar){
+    bar.setAttribute("aria-valuenow",String(Math.round(progress)));
+    bar.setAttribute("aria-valuetext",snapshot.activated?
+      "Sonraki seviyeye "+Math.max(0,snapshot.levelGoal-snapshot.levelProgress)+" XP kaldı":
+      "Kariyer henüz başlatılmadı");
+  }
 }
 
 function bar(percent:number,className=""):HTMLElement{
@@ -440,6 +463,37 @@ function renderRarityProgress(snapshot:StudyGamificationSnapshot):HTMLElement{
   }
   panel.append(list);return panel;
 }
+function filteredBadges(snapshot:StudyGamificationSnapshot):StudyBadge[]{
+  const q=badgeQuery.trim().toLocaleLowerCase("tr-TR");
+  return snapshot.badges.filter(b=>{
+    if(!(badgeFilter==="all"||(badgeFilter==="earned"&&b.unlocked)||
+      (badgeFilter==="locked"&&!b.unlocked)||b.rarity===badgeFilter))return false;
+    if(!q)return true;
+    const secret=Boolean(b.hidden&&!b.unlocked);
+    const safeText=secret?"Gizli Başarım Gizli rozet kilitli":
+      b.title+" "+b.description+" "+b.rarity+" "+(b.unlocked?"Kazanıldı":"Kilitli");
+    return safeText.toLocaleLowerCase("tr-TR").includes(q);
+  }).sort((a,b)=>{
+    if(badgeSort==="name")return (a.hidden&&!a.unlocked?"Gizli Başarım":a.title)
+      .localeCompare(b.hidden&&!b.unlocked?"Gizli Başarım":b.title,"tr");
+    if(badgeSort==="reward")return b.xp-a.xp||
+      Number(b.unlocked)-Number(a.unlocked)||a.id.localeCompare(b.id);
+    if(badgeSort==="recent")return Number(b.unlocked)-Number(a.unlocked)||
+      (b.unlockedAt??0)-(a.unlockedAt??0)||a.id.localeCompare(b.id);
+    if(a.unlocked!==b.unlocked)return a.unlocked?-1:1;
+    if(a.unlocked&&b.unlocked)return (b.unlockedAt??0)-(a.unlockedAt??0);
+    return Number(Boolean(a.hidden))-Number(Boolean(b.hidden))||
+      badgeProgressPercent(b)-badgeProgressPercent(a)||a.id.localeCompare(b.id);
+  });
+}
+function updateBadgeCollection(snapshot:StudyGamificationSnapshot,
+  grid:HTMLElement,count:HTMLElement):void{
+  const items=filteredBadges(snapshot);
+  grid.replaceChildren(...items.map(badgeCard));
+  if(!items.length)grid.append(node("p","sg-empty",
+    "Bu arama ve filtreyle eşleşen rozet bulunamadı."));
+  count.textContent=items.length+" rozet gösteriliyor";
+}
 function syncTabPanels():void{
   const tasks=document.getElementById("studyTasksPanel");
   const insights=document.getElementById("studyInsightsPanel");
@@ -599,21 +653,36 @@ function render(snapshot:StudyGamificationSnapshot,root:HTMLElement):void{
       filter.addEventListener("click",()=>{badgeFilter=item.key;schedule();});
       filters.append(filter);
     });
-    const filtered=snapshot.badges.filter(b=>
-      badgeFilter==="all"||(badgeFilter==="earned"&&b.unlocked)||
-      (badgeFilter==="locked"&&!b.unlocked)||b.rarity===badgeFilter);
+    const controls=node("div","sg-collection-controls");
+    const searchLabel=node("label","sg-collection-search");
+    const searchName=node("span","","Rozet ara");
+    const search=node("input","sg-collection-input") as HTMLInputElement;
+    search.type="search";search.placeholder="Rozet adı veya hedefi…";
+    search.autocomplete="off";search.maxLength=90;search.value=badgeQuery;
+    search.setAttribute("aria-label","Rozetlerde ara");
+    searchLabel.append(searchName,search);
+    const sortLabel=node("label","sg-collection-sort");
+    sortLabel.append(node("span","","Sıralama"));
+    const sort=node("select","sg-collection-select") as HTMLSelectElement;
+    for(const [value,label] of [
+      ["nearest","İlerlemeye göre"],["recent","Son kazanılan"],
+      ["reward","XP ödülüne göre"],["name","Alfabetik"]
+    ] as const){
+      const option=node("option","",label);option.value=value;sort.append(option);
+    }
+    sort.value=badgeSort;sort.setAttribute("aria-label","Rozet sıralaması");
+    sortLabel.append(sort);controls.append(searchLabel,sortLabel);
+    const visible=node("p","sg-collection-count");visible.setAttribute("role","status");
+    visible.setAttribute("aria-live","polite");
     const collectionGrid=node("div","sg-medal-grid sg-medal-collection");
-    const sorted=[...filtered].sort((a,b)=>{
-      if(a.unlocked!==b.unlocked)return a.unlocked?-1:1;
-      if(a.unlocked&&b.unlocked)return (b.unlockedAt??0)-(a.unlockedAt??0);
-      return Number(Boolean(a.hidden))-Number(Boolean(b.hidden))||
-        badgeProgressPercent(b)-badgeProgressPercent(a)||a.id.localeCompare(b.id);
-    });
-    sorted.forEach(b=>collectionGrid.append(badgeCard(b)));
+    const update=()=>updateBadgeCollection(snapshot,collectionGrid,visible);
+    // Only the result grid is updated while typing: preserve input focus and caret.
+    search.addEventListener("input",()=>{badgeQuery=search.value;update();});
+    sort.addEventListener("change",()=>{badgeSort=sort.value as BadgeSort;update();});
+    update();
     const note=node("p","sg-hint",
-      "Bir rozete dokun: açılma koşulunu, ilerlemeni, tarihini ve XP ödülünü gör. Gizli başarımlar sürpriz kalır.");
-    area.append(collection,filters,collectionGrid,note);
-    if(!filtered.length)area.append(node("p","sg-empty","Bu filtrede henüz rozet bulunmuyor."));
+      "Rozete dokun: koşul, gerçek ilerleme, kazanım tarihi ve XP ödülünü gör. Gizli başarımlar sürpriz kalır.");
+    area.append(collection,controls,filters,visible,collectionGrid,note);
   }else if(activeTab==="tasks"){
     area.append(node("h3","","Görev Merkezi"),
       node("p","sg-hint","Her görevin hedefi, anlık ilerlemesi, zorluk seviyesi ve tek seferlik XP ödülü aşağıda. Odak süresi ve çözdüğün sorular kayıtlarından otomatik hesaplanır."));
@@ -639,7 +708,8 @@ function refresh():void{
   let snapshot=calculateStudyGamification(state);
   const profile=state.gamification;
   const profileKey=profile?.activatedAt?String(profile.activatedAt):"inactive";
-  if(previousProfileKey!==profileKey){previousProfileKey=profileKey;previousLevel=0;activeTab="general";badgeFilter="all";editing=false;}
+  if(previousProfileKey!==profileKey){previousProfileKey=profileKey;previousLevel=0;activeTab="general";
+    badgeFilter="all";badgeSort="nearest";badgeQuery="";editing=false;}
   // Tekil rozet kimliği saklanır; her yeniden çizimde aynı ödül yazılmaz.
   if(snapshot.activated&&profile&&snapshot.newBadgeIds.length){
     const time=Date.now();
@@ -662,6 +732,7 @@ function refresh():void{
   previousLevel=snapshot.level;
   render(snapshot,root);
   renderTodayTeaser(snapshot);
+  renderSettingsOverview(snapshot);
 }
 function schedule():void{
   if(renderQueued)return;
