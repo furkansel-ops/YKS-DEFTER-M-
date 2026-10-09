@@ -217,7 +217,7 @@ function renderExamHistory(container:HTMLElement,state:StudyGamificationState,
   for(const type of ["TYT","AYT"] as const){
     const rows=(state.denemeler??[]).filter(row=>
       row?.type===type&&typeof row.date==="string"&&
-      /^\\d{4}-\\d{2}-\\d{2}$/.test(row.date)&&
+      /^\d{4}-\d{2}-\d{2}$/.test(row.date)&&
       row.date>=profile.activationDay&&row.date<=today&&
       Number.isFinite(Number(row.at))&&Number(row.at)>=profile.activatedAt&&
       Number(row.at)<=now.getTime()&&row.totalNet!==null&&
