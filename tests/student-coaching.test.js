@@ -193,8 +193,8 @@ test("manuel koç paylaşımı devam eden otomatik yazımı bekler ve gerçek Fi
 test("Program paylaşımı Firestore için iç içe array üretmez",()=>{
   const main=read("public/student-coaching-runtime.js");
   const program=read("public/student-program-share-v2.js");
-  assert.match(main,/out\[String\(r\)\]=Array\.from\(\{length:7\}/);
-  assert.match(program,/out\[String\(r\)\]=Array\.from\(\{length:7\}/);
+  assert.match(main,/out\[String\(r\)\]=cells/);
+  assert.match(program,/out\[String\(r\)\]=cells/);
   assert.doesNotMatch(main,/return Array\.from\(\{length:rowCount\}/);
   assert.doesNotMatch(program,/return Array\.from\(\{length:rowCount\}/);
 });
