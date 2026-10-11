@@ -183,7 +183,8 @@ export function refinedProgramDailyGroupKey(task:Pick<RefinedProgramTask,"text"|
     .replace(/^Koç\s*·\s*(?:Deneme sonrası\s*·\s*)?/i,"").trim();
   const candidate=work.split(/\s+·\s+|\n/)[0]?.replace(/^(?:TYT|AYT|YDT)\s+/i,"").trim()||"";
   const label=String(task.label||"").replace(/^(?:TYT|AYT|YDT)\s+/i,"").trim();
-  for(const token of [candidate,label]){
+  for(const rawToken of [candidate,label]){
+    const token=rawToken.toLocaleLowerCase("tr-TR");
     // This specific title contains both Türk dili and edebiyat; keep it under Edebiyat.
     if(/^türk dili ve edebiyatı(?:\b|\s|$)/i.test(token))return "literature";
     for(const entry of DAILY_GROUP_DEFINITIONS){
