@@ -197,5 +197,5 @@ if(auth&&!auth.__programShareV2){
   auth.onSignedOut=(...args)=>{stop();return previousSignOut?.(...args)};
   auth.__programShareV2=true;
 }
-window.YKSStudentProgramShareV2={version:"3.6.2",publish:force=>publishProgram(Boolean(force)),build:programPayload};
+window.YKSStudentProgramShareV2={version:"3.6.3",publish:force=>publishProgram(Boolean(force)),build:programPayload};
 document.documentElement.dataset.studentProgramSync="v3";
