@@ -164,3 +164,48 @@
   #program .rb-v4-subject-heading .rb-v4-subject-icon{width:33px;height:33px;flex-basis:33px;}
   #program .rb-v4-subject-icon svg{width:19px;height:19px;}
 }
+
+
+/* Daily subject progress and keyboard-accessible fold controls. */
+#program .rb-v4-subject-section .rb-v4-subject-heading{
+  display:flex;align-items:center;gap:10px;
+  width:100%;min-width:0;min-height:44px;
+  padding:4px 3px;background:transparent;border:0;border-radius:10px;
+  color:inherit;text-align:left;cursor:pointer;box-shadow:none;
+}
+#program .rb-v4-subject-section .rb-v4-subject-heading:hover{
+  background:color-mix(in srgb,var(--rb-v4-group-color) 5%,transparent);
+}
+#program .rb-v4-subject-section .rb-v4-subject-heading:focus-visible{
+  outline:2px solid var(--rb-v4-group-color);outline-offset:2px;
+}
+#program .rb-v4-subject-progress{
+  flex:0 0 clamp(42px,12vw,82px);height:6px;overflow:hidden;
+  border-radius:999px;
+  background:color-mix(in srgb,var(--rb-v4-group-color) 15%,var(--rp-v4-surface));
+  margin-left:auto;
+}
+#program .rb-v4-subject-progress i{
+  display:block;width:0;height:100%;border-radius:inherit;
+  background:var(--rb-v4-group-color);transition:width .18s ease;
+}
+#program .rb-v4-subject-expand{
+  flex:none;display:grid;place-items:center;width:27px;height:27px;
+  border:1px solid var(--rp-v4-line);border-radius:8px;
+  color:var(--rp-v4-muted);font-size:18px;line-height:1;
+  transition:transform .18s ease;
+}
+#program .rb-v4-subject-heading[aria-expanded="false"] .rb-v4-subject-expand{transform:rotate(-90deg)}
+#program .rb-v4-subject-cards[hidden]{display:none!important}
+#program .rb-v4-subject-section[data-complete] .rb-v4-subject-heading-title small{
+  color:var(--rb-v4-group-color);font-weight:730;
+}
+@media(max-width:390px){
+  #program .rb-v4-subject-section .rb-v4-subject-heading{gap:7px;}
+  #program .rb-v4-subject-heading-title{flex:1;align-items:center;gap:2px 7px;}
+  #program .rb-v4-subject-progress{flex-basis:40px;}
+  #program .rb-v4-subject-expand{width:24px;height:24px;}
+}
+@media(prefers-reduced-motion:reduce){
+  #program .rb-v4-subject-progress i,#program .rb-v4-subject-expand{transition:none}
+}
