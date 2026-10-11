@@ -169,7 +169,8 @@ test("program opens in the approved daily view and keeps weekly subject grouping
   assert.equal(api.refinedProgramSubjectLabel("X".repeat(60),"Rutin"),"Rutin");
   assert.match(source,/rb-program-calendar-row/);
   assert.match(source,/rb-program-subject-row/);
-  assert.match(source,/Dersler satırlarda, günler sütunlarda/);
+  assert.match(source,/Derslere göre haftalık takvim/);
+  assert.match(source,/refinedProgramWeeklyGroups\(weekTasks\)/);
 });
 
 
@@ -179,7 +180,7 @@ test("linked studies keep the weekly calendar clean and use the shared detail sh
   assert.doesNotMatch(source,/rb-program-calendar-resource/);
   assert.doesNotMatch(source,/rb-program-calendar-task-shell/);
   assert.doesNotMatch(source,/rb-program-resource"/);
-  assert.match(source,/Düzenlemek için yalnız çalışma yazısına dokun/);
+  assert.match(source,/Çalışma metnine dokunarak düzenleyebilirsin/);
 });
 
 
@@ -221,8 +222,8 @@ test("Programım günlükte ders detay aksiyonlarını, haftalıkta yalnız yaz�
   assert.match(source,/cellOpenLink/);
   assert.match(source,/cellVideo/);
   assert.match(source,/detailDone\.addEventListener\("click"/);
-  assert.match(source,/const textButton=button\(detail\|\|subjectName,"rb-program-calendar-task-text"\)/);
-  assert.match(source,/textButton\.addEventListener\("click",\(\)=>\{controller\.selectDay\(task\.day\);openEditor\(task,state\.week\);\}\)/);
+  assert.match(source,/const action=button\(workName\|\|group\.title,"rb-program-calendar-task-text"\)/);
+  assert.match(source,/action\.addEventListener\("click",\(\)=>\{controller\.selectDay\(index\);openEditor\(task,state\.week\);\}\)/);
   assert.match(css,/\.rb-program-detail-card/);
   assert.match(css,/\.rb-program-detail-actions/);
 });
