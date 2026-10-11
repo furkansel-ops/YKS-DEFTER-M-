@@ -127,10 +127,13 @@ jobs:
         shell: bash
         env:
           ANDROID_SERIAL: emulator-5554
+          ANDROID_AVD_HOME: ${{ runner.temp }}/android-runtime/avd
+          ANDROID_USER_HOME: ${{ runner.temp }}/android-runtime/user
+          ANDROID_EMULATOR_HOME: ${{ runner.temp }}/android-runtime/user
         run: |
           set -euo pipefail
           runtime_dir="$RUNNER_TEMP/android-runtime"
-          mkdir -p "$runtime_dir"
+          mkdir -p "$runtime_dir" "$ANDROID_AVD_HOME" "$ANDROID_USER_HOME"
           test -c /dev/kvm
           sudo chmod a+rw /dev/kvm
           "$ANDROID_HOME/emulator/emulator" -accel-check
@@ -138,7 +141,12 @@ jobs:
           printf 'no\n' | avdmanager create avd \
             --name yks-api36-review \
             --package "system-images;android-36;google_apis;x86_64" \
-            --device pixel_6
+            --device pixel_6 \
+            --path "$ANDROID_AVD_HOME/yks-api36-review.avd"
+          test -s "$ANDROID_AVD_HOME/yks-api36-review.avd/config.ini"
+          printf 'avd.ini.encoding=UTF-8\npath=%s\ntarget=android-36\n' \
+            "$ANDROID_AVD_HOME/yks-api36-review.avd" \
+            > "$ANDROID_AVD_HOME/yks-api36-review.ini"
           "$ANDROID_HOME/emulator/emulator" -avd yks-api36-review \
             -port 5554 -no-window -no-audio -no-snapshot -no-boot-anim \
             -no-metrics -gpu swiftshader -memory 2048 -cores 2 \
@@ -157,6 +165,7 @@ jobs:
           while [ "$SECONDS" -lt "$deadline" ]; do
             if ! kill -0 "$emulator_pid" 2>/dev/null; then
               echo "::error::Android emülatörü açılış sırasında kapandı."
+              tail -n 60 "$runtime_dir/emulator.log"
               exit 1
             fi
             boot_state="$(timeout 10s adb -s "$ANDROID_SERIAL" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r' || true)"
@@ -168,6 +177,7 @@ jobs:
           done
           if [ "$booted" != true ]; then
             echo "::error::Android 16 emülatörü 240 saniyede hazır olmadı."
+            tail -n 60 "$runtime_dir/emulator.log"
             exit 1
           fi
           adb -s "$ANDROID_SERIAL" shell input keyevent 82
@@ -186,7 +196,8 @@ jobs:
           path: |
             android/app/build/reports/androidTests/connected/**
             android/app/build/outputs/androidTest-results/connected/**
-            ${{ runner.temp }}/android-runtime/*
+            ${{ runner.temp }}/android-runtime/*.log
+            ${{ runner.temp }}/android-runtime/*.txt
           if-no-files-found: warn
           retention-days: 14
 
