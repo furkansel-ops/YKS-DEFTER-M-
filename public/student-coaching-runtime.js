@@ -45,16 +45,18 @@ function topicParts(k){const p=String(k||"").split("|");return{exam:p[0]||"YKS",
 function cleanProgramMatrix(value,rowCount){
   const src=Array.isArray(value)?value:[];
   const out={};
-  for(let r=0;r<rowCount;r++){
+  for(let r=0;r<src.length;r++){
     const row=Array.isArray(src[r])?src[r]:[];
-    out[String(r)]=Array.from({length:7},(_,d)=>text(row[d],220));
+    const cells=Array.from({length:7},(_,d)=>text(row[d],220));
+    // Sparse Firestore rows keep large programs compact and retain real cell IDs.
+    if(cells.some(Boolean))out[String(r)]=cells;
   }
   return out;
 }
 function cleanProgramMap(value){
   if(!value||typeof value!=="object"||Array.isArray(value))return{};
   const out={};
-  Object.entries(value).slice(0,600).forEach(([key,val])=>{
+  Object.entries(value).forEach(([key,val])=>{
     const k=text(key,80);if(!k)return;
     if(val&&typeof val==="object")out[k]=JSON.parse(JSON.stringify(val));
     else if(typeof val==="boolean")out[k]=val;
@@ -72,12 +74,13 @@ function programWeekHasData(week){
     ||Object.keys(week.mv||{}).length>0;
 }
 function buildProgramShare(s){
-  const rr=Math.max(1,Math.min(24,Number(s?.rows?.r)||2));
-  const sr=Math.max(1,Math.min(24,Number(s?.rows?.s)||4));
-  const weeks=Object.keys(s?.weeks||{})
+  const weekKeys=Object.keys(s?.weeks||{})
     .filter(k=>/^\d{4}-\d{2}-\d{2}$/.test(k)&&programWeekHasData(s.weeks[k]))
-    .sort().slice(-80)
-    .map(week=>{
+    .sort().slice(-80);
+  const actual=blk=>Math.max(0,...weekKeys.map(k=>Array.isArray(s.weeks[k]?.[blk])?s.weeks[k][blk].length:0));
+  const rr=Math.max(1,Math.floor(Number(s?.rows?.r)||2),actual("r"));
+  const sr=Math.max(1,Math.floor(Number(s?.rows?.s)||4),actual("s"));
+  const weeks=weekKeys.map(week=>{
       const raw=s.weeks[week]||{};
       return{week,data:{
         r:cleanProgramMatrix(raw.r,rr),
@@ -193,7 +196,7 @@ function applyAction(a){
     const di=dateInfo(text(p.date,10)||today());
     if(a.type==="program_task"&&p.operation==="order"){
       const order=Array.isArray(p.order)?p.order.map(id=>text(id,40)).filter(Boolean):[];
-      if(!order.length||order.length>48||order.some(id=>!/^[rs]-\d+-[0-6]$/.test(id)))throw new Error("Program sırası geçersiz");
+      if(!order.length||order.some(id=>!/^[rs]-\d+-[0-6]$/.test(id)))throw new Error("Program sırası geçersiz");
       const target=new Date(text(p.date,10)+"T12:00:00");target.setDate(target.getDate()-di.day);const week=dateKey(target);
       if(typeof window.programSetDayOrder!=="function")throw new Error("Program sıralama işlevi hazır değil");
       if(window.programSetDayOrder(week,di.day,order)===false)throw new Error("Program sırası kaydedilemedi");
