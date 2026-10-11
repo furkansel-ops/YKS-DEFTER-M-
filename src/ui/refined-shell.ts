@@ -1,7 +1,6 @@
 import {installRefinedProgram} from "./refined-program";
 import {installRefinedSecondary} from "./refined-secondary";
 import {installRefinedStudyScreens} from "./refined-study-screens";
-import {installMascotCompanion} from "./mascot-companion";
 
 type ShellWindow=Window&{go?:(screen:string)=>void;v30Action?:(action:string)=>void;setMoreTab?:(panel:string)=>void};
 const legacy=()=>window as ShellWindow;
@@ -47,7 +46,5 @@ export function installRefinedShell(){
   media.addEventListener("change",sync);window.addEventListener("yks:navigation-after",sync);sync();
   installRefinedSecondary();
   installRefinedStudyScreens();
-  // A cosmetic companion failure must not prevent the completed application shell opening.
-  try{installMascotCompanion();}catch(error){document.documentElement.dataset.mascotRuntime="deferred";console.error("Maskot başlatılamadı",error);}
   return {installed:true,validate(){return [!program.installed?"program":"",!document.getElementById("refinedBrand")?"brand":""].filter(Boolean);}};
 }
