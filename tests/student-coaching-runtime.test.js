@@ -270,3 +270,21 @@ test("yerel veriyi bekleyen eski giriş yeni oturumda dinleyici ve zamanlayıcı
   assert.equal(h.docs.get("coachingShares/student-2").studentUid,"student-2");
   assert.equal(h.docs.has("coachingShares/student-1"),false);
 });
+
+test("student sharing preserves rows above 24 and never sends nested row arrays",async()=>{
+  const h=harness({now:"2026-10-06T12:00:00Z"});
+  const matrix=Array.from({length:36},()=>Array(7).fill(""));
+  matrix[0][0]="İlk görev";
+  matrix[35][0]="36. görev";
+  h.state.rows.s=36;
+  h.state.rowLabels.s=Array.from({length:36},(_,i)=>"Ders "+(i+1));
+  h.state.weeks["2026-10-05"].s=matrix;
+  await h.signIn();
+  await h.window.YKSAccountAuth.publishShare();
+  const program=h.docs.get("coachingShares/student-1").program;
+  assert.equal(program.rows.s,36);
+  assert.equal(program.weeks[0].data.s["0"][0],"İlk görev");
+  assert.equal(program.weeks[0].data.s["35"][0],"36. görev");
+  assert.equal(Object.keys(program.weeks[0].data.s).length,2,"empty rows stay sparse");
+  assert.equal(program.rowLabels.s[35],"Ders 36");
+});
