@@ -1,4 +1,5 @@
 import "./refined-program.css";
+import "./refined-program-v4.css";
 import {renderSmartProgram} from "./smart-program";
 
 type ProgramBlock="r"|"s";
@@ -88,10 +89,26 @@ export function refinedProgramResourceUrl(value:string):string|null{
 }
 
 export type RefinedProgramTaskDetail={display:string;title:string;meta:string;url:string;hasVideo:boolean};
+export type RefinedProgramExtras={work:string;note:string;material:string};
+/** Optional task annotations live inside the existing 600-char cell text.
+    This preserves old backups, completion keys and the coach sync contract. */
+export function refinedProgramSplitExtras(raw:string):RefinedProgramExtras{
+  const text=String(raw||"");
+  const note=text.match(/(?:^|\n)\[Not\] ([^\n]*)/)?.[1]||"";
+  const material=text.match(/(?:^|\n)\[Materyal\] ([^\n]*)/)?.[1]||"";
+  const work=text.replace(/(?:^|\n)\[(?:Not|Materyal)\] [^\n]*/g,"").trim();
+  return {work,note:note.trim(),material:material.trim()};
+}
+export function refinedProgramJoinExtras(work:string,note:string,material:string):string|null{
+  const clean=work.trim(),n=note.replace(/[\r\n]+/g," ").trim(),m=material.trim();
+  if(!clean||n.length>180||m.length>280||refinedProgramResourceUrl(m)===null)return null;
+  const combined=clean+(n?"\n[Not] "+n:"")+(m?"\n[Materyal] "+m:"");
+  return combined.length<=600?combined:null;
+}
 
 /** Daily detail presentation without changing the legacy task storage format. */
 export function refinedProgramTaskDetail(text:string,label="Çalışma"):RefinedProgramTaskDetail{
-  const raw=String(text||"").trim(),match=raw.match(/https?:\/\/[^\s]+/);
+  const raw=refinedProgramSplitExtras(text).work,match=raw.match(/https?:\/\/[^\s]+/);
   const url=match?match[0].replace(/[.,;)]+$/,""):"";
   const display=(url?raw.replace(url,""):raw).replace(/^[▶☰]\s*/,"").replace(/[\s—–-]+$/,"").trim()||label;
   const parts=display.split(/\s+·\s+/).map(part=>part.trim()).filter(Boolean);
@@ -129,13 +146,25 @@ export function refinedProgramSubjectLabel(text:string,label="Çalışma"):strin
   if(exam)return `${(exam[1]||"").toUpperCase()} ${(exam[2]||"").trim()}`.trim().slice(0,42);
   return first.length<=42?first:fallback;
 }
+function refinedProgramVisualTone(subject:string):string{
+  const label=subject.toLocaleLowerCase("tr-TR");
+  if(/matematik|geometri/.test(label))return "math";
+  if(/biyoloji/.test(label))return "biology";
+  if(/kimya/.test(label))return "chemistry";
+  if(/türkçe|paragraf|edebiyat|okuma/.test(label))return "reading";
+  if(/fizik/.test(label))return "physics";
+  return "other";
+}
+function refinedProgramVisualIcon(tone:string):string{
+  return ({math:"√x",biology:"❧",chemistry:"⚗",reading:"▣",physics:"⚡",other:"✦"} as Record<string,string>)[tone]||"✦";
+}
 function refinedProgramSubjectTone(label:string):number{
   let hash=0;for(const char of label)hash=(hash*31+char.charCodeAt(0))>>>0;
   return hash%6;
 }
 
 export function createRefinedProgramController(bridge:RefinedProgramBridge,now=()=>new Date()){
-  let day=(now().getDay()+6)%7,view:ProgramView="week";
+  let day=(now().getDay()+6)%7,view:ProgramView="day";
   const snapshot=()=>{
     const week=bridge.visibleWeek(),state=bridge.readState(),tasks=refinedProgramTasks(state,week,day);
     return {week,day,view,tasks,date:offsetDate(week,day),days:SHORT_DAYS.map((label,index)=>{
@@ -207,41 +236,63 @@ export function installRefinedProgram():ProgramApi{
     updateTask:(week,id,text)=>call("programUpdateTask",week,id,text),
     deleteTask:(week,id)=>call("programDeleteTask",week,id)
   });
-  const heading=element("header","rb-program-heading"),weekSummary=element("div","rb-program-week-summary");heading.append(element("h1","","Programım"),element("p","","Haftanı takvim görünümünde gör; derslerini gün gün takip et."),weekSummary);
+  const heading=element("header","rb-program-heading"),weekSummary=element("div","rb-program-week-summary");heading.append(element("h1","","Programım"),element("span","rb-v4-heading-badge","✦ 4.0"),element("p","","Planla, çalış, takip et. Hedefine adım adım ilerle."),weekSummary);
   const tabs=element("div","rb-program-tabs");tabs.setAttribute("role","group");tabs.setAttribute("aria-label","Program görünümü");
-  const daily=button("Günlük"),weekly=button("Haftalık"),smart=button("Akıllı Plan");tabs.append(daily,weekly,smart);
+  const daily=button("Günlük Plan"),weekly=button("Haftalık Bakış"),smart=button("Akıllı Plan");tabs.append(daily,weekly,smart);
   const weekNav=element("div","rb-program-weeknav"),previous=button("‹"),next=button("›"),weekLabel=element("span"),today=button("Bugün","rb-program-today");
   previous.setAttribute("aria-label","Önceki hafta");next.setAttribute("aria-label","Sonraki hafta");weekNav.append(previous,weekLabel,today,next);
   const strip=element("div","rb-program-weekstrip");strip.setAttribute("role","group");strip.setAttribute("aria-label","Program günü");
   const dayButtons=SHORT_DAYS.map((label,index)=>{
     const node=button(""),name=element("span","",label),number=element("b"),marker=element("i");marker.setAttribute("aria-hidden","true");
-    node.append(name,number,marker);node.addEventListener("click",()=>{controller.selectDay(index);if(controller.snapshot().view==="week")controller.setView("day");refresh();});strip.append(node);return {node,number,marker};
+    node.append(name,number,marker);node.addEventListener("click",()=>{controller.selectDay(index);if(controller.snapshot().view!=="day")controller.setView("day");refresh();});strip.append(node);return {node,number,marker};
   });
   const dailyPanel=element("section","rb-program-day");dailyPanel.id="refinedProgramDay";dailyPanel.setAttribute("aria-label","Günlük çalışmalar");
   const editor=element("div","rb-program-editor");editor.hidden=true;editor.setAttribute("role","dialog");editor.setAttribute("aria-modal","true");editor.setAttribute("aria-labelledby","rbProgramEditorTitle");
   const editorForm=element("form","rb-program-editor-card"),editorHead=element("div","rb-program-editor-head"),editorTitle=element("h2","","Çalışmayı düzenle"),editorClose=button("×","rb-program-editor-close"),editorLabel=element("label","rb-program-editor-label","Çalışma"),editorInput=element("textarea","rb-program-editor-input"),editorHint=element("p","rb-program-editor-hint"),editorActions=element("div","rb-program-editor-actions"),editorDelete=button("Sil","rb-program-editor-delete"),editorCancel=button("Vazgeç"),editorSave=button("Kaydet","rb-program-editor-save");
-  editorTitle.id="rbProgramEditorTitle";editorInput.rows=4;editorInput.maxLength=600;editorInput.id="rbProgramEditorInput";editorLabel.htmlFor=editorInput.id;editorClose.setAttribute("aria-label","Düzenlemeyi kapat");editorHint.textContent="En fazla 600 karakter. Değişiklik mevcut çalışmanın üzerine kaydedilir.";editorSave.type="submit";editorDelete.setAttribute("aria-label","Bu çalışmayı sil");editorHead.append(editorTitle,editorClose);editorActions.append(editorDelete,editorCancel,editorSave);editorForm.append(editorHead,editorLabel,editorInput,editorHint,editorActions);editor.append(editorForm);
+  const editorExtras=element("div","rb-v4-editor-extra"),noteLabel=element("label"),noteInput=element("textarea"),materialLabel=element("label"),materialInput=element("input");
+  noteInput.rows=2;noteInput.maxLength=180;noteInput.placeholder="Bu çalışmaya dair kısa notun";materialInput.type="url";materialInput.maxLength=280;materialInput.placeholder="https://...";materialInput.inputMode="url";
+  noteLabel.append(element("span","","Not · isteğe bağlı"),noteInput);materialLabel.append(element("span","","Materyal bağlantısı · isteğe bağlı"),materialInput);editorExtras.append(noteLabel,materialLabel);
+  editorTitle.id="rbProgramEditorTitle";editorInput.rows=4;editorInput.maxLength=600;editorInput.id="rbProgramEditorInput";editorLabel.htmlFor=editorInput.id;editorClose.setAttribute("aria-label","Düzenlemeyi kapat");editorHint.textContent="En fazla 600 karakter. Değişiklik mevcut çalışmanın üzerine kaydedilir.";editorSave.type="submit";editorDelete.setAttribute("aria-label","Bu çalışmayı sil");editorHead.append(editorTitle,editorClose);editorActions.append(editorDelete,editorCancel,editorSave);editorForm.append(editorHead,editorLabel,editorInput,editorExtras,editorHint,editorActions);editor.append(editorForm);
   const detailDialog=element("div","rb-program-detail");detailDialog.hidden=true;detailDialog.setAttribute("role","dialog");detailDialog.setAttribute("aria-modal","true");detailDialog.setAttribute("aria-labelledby","rbProgramDetailTitle");
   const detailCard=element("div","rb-program-detail-card"),detailHead=element("div","rb-program-detail-head"),detailHeading=element("div","rb-program-detail-heading"),detailEyebrow=element("span","rb-program-detail-eyebrow","Günlük çalışma"),detailTitle=element("h2"),detailClose=button("×","rb-program-detail-close"),detailMeta=element("p","rb-program-detail-meta"),detailResource=element("div","rb-program-detail-resource"),detailActions=element("div","rb-program-detail-actions"),detailVideo=button("▶ YouTube videosuna git","rb-program-detail-video"),detailDone=button("✓ Tamamladım","rb-program-detail-done");
-  detailTitle.id="rbProgramDetailTitle";detailClose.setAttribute("aria-label","Çalışma detayını kapat");detailHeading.append(detailEyebrow,detailTitle);detailHead.append(detailHeading,detailClose);detailActions.append(detailVideo,detailDone);detailCard.append(detailHead,detailMeta,detailResource,detailActions);detailDialog.append(detailCard);
+  const detailExtras=element("div","rb-v4-detail-extra"),detailEdit=button("✎ Not veya materyal düzenle","rb-v4-detail-edit");
+  detailTitle.id="rbProgramDetailTitle";detailClose.setAttribute("aria-label","Çalışma detayını kapat");detailHeading.append(detailEyebrow,detailTitle);detailHead.append(detailHeading,detailClose);detailActions.append(detailVideo,detailDone);detailCard.append(detailHead,detailMeta,detailResource,detailExtras,detailEdit,detailActions);detailDialog.append(detailCard);
   let detailTaskId="",detailWeek="",detailTaskText="";
   const closeDetail=()=>{detailTaskId="";detailWeek="";detailTaskText="";detailDialog.hidden=true;};
   const openDetail=(task:RefinedProgramTask,week=controller.snapshot().week)=>{
-    const info=refinedProgramTaskDetail(task.text,task.label),resource=object(call("cellLink",task.text));
-    detailTaskId=task.id;detailWeek=week;detailTaskText=task.text;detailTitle.textContent=info.title;detailMeta.textContent=info.meta||task.label;
+    const extras=refinedProgramSplitExtras(task.text),info=refinedProgramTaskDetail(extras.work,task.label),resource=object(call("cellLink",extras.work));
+    detailTaskId=task.id;detailWeek=week;detailTaskText=extras.work;detailTitle.textContent=info.title;detailMeta.textContent=info.meta||task.label;
     const linked=typeof resource.url==="string"&&Boolean(resource.url);detailResource.replaceChildren();
     if(linked){const badge=element("span","rb-program-detail-resource-badge",info.hasVideo?"YouTube bağlantısı":"Kaynak bağlantısı"),copy=element("small","",String(resource.url));copy.title=String(resource.url);detailResource.append(badge,copy);detailVideo.textContent=info.hasVideo?"▶ YouTube videosuna git":"↗ Kaynağı aç";}
     else{detailResource.append(element("span","rb-program-detail-resource-badge","Konu içeriği"),element("small","","Bu çalışmaya kayıtlı video yok; varsa konu videosunu açabilirsin."));detailVideo.textContent="▶ Konu videosunu aç";}
+    detailExtras.replaceChildren();
+    const noteBox=element("section"),materialBox=element("section");
+    noteBox.append(element("b","","Not"),element("p","",extras.note||"Henüz not eklenmedi."));
+    materialBox.append(element("b","","Materyal"));
+    if(extras.material&&refinedProgramResourceUrl(extras.material)!==null){
+      const anchor=element("a","","↗ Materyali aç");anchor.href=extras.material;anchor.target="_blank";anchor.rel="noopener noreferrer";materialBox.append(anchor);
+    }else materialBox.append(element("p","","Henüz materyal eklenmedi."));
+    detailExtras.append(noteBox,materialBox);
     detailVideo.dataset.hasLink=String(linked);detailDone.textContent=task.done?"↶ Tamamlanmadı olarak işaretle":"✓ Tamamladım";detailDone.toggleAttribute("data-done",task.done);detailDialog.hidden=false;requestAnimationFrame(()=>detailVideo.focus());
   };
   let editingTaskId="",editingWeek="";
-  const closeEditor=()=>{editingTaskId="";editingWeek="";editor.hidden=true;editorInput.value="";};
-  const openEditor=(task:RefinedProgramTask,week=controller.snapshot().week)=>{editingTaskId=task.id;editingWeek=week;editorInput.value=task.text;editorHint.textContent="En fazla 600 karakter. Değişiklik mevcut çalışmanın üzerine kaydedilir.";editor.hidden=false;requestAnimationFrame(()=>{editorInput.focus();editorInput.setSelectionRange(editorInput.value.length,editorInput.value.length);});};
+  const closeEditor=()=>{editingTaskId="";editingWeek="";editor.hidden=true;editorInput.value="";noteInput.value="";materialInput.value="";};
+  const openEditor=(task:RefinedProgramTask,week=controller.snapshot().week,focus:"work"|"note"|"material"="work")=>{
+    const parts=refinedProgramSplitExtras(task.text);editingTaskId=task.id;editingWeek=week;editorInput.value=parts.work;noteInput.value=parts.note;materialInput.value=parts.material;
+    editorHint.textContent="Not ve materyal mevcut çalışmaya eklenir; koç senkronizasyonu değiştirilmez.";
+    editor.hidden=false;requestAnimationFrame(()=>{const target=focus==="note"?noteInput:focus==="material"?materialInput:editorInput;target.focus();if(target===editorInput)editorInput.setSelectionRange(editorInput.value.length,editorInput.value.length);});
+  };
 
   const weeklyPanel=element("section","rb-program-week-grid");weeklyPanel.id="refinedProgramWeek";weeklyPanel.setAttribute("aria-label","Haftalık ders takvimi");
   const smartPanel=element("section","rb-program-smart");smartPanel.id="refinedProgramSmart";smartPanel.setAttribute("aria-label","Akıllı program önerileri ve haftalık analiz");
-  const summary=element("div","rb-program-summary"),dayLabel=element("h2"),completion=element("div","rb-program-completion"),count=element("span"),progress=element("progress");progress.max=100;progress.setAttribute("aria-label","Günlük görev tamamlama");completion.append(count,progress);summary.append(dayLabel,completion);
-  const list=element("div","rb-program-tasks");dailyPanel.append(summary,list);
+  const summary=element("div","rb-program-summary"),dayLabel=element("h2"),completion=element("div","rb-program-completion"),count=element("span"),progress=element("progress");
+  const dailyHero=element("div","rb-v4-day-progress"),dailyRing=element("div","rb-v4-ring"),dailyPercent=element("strong","", "0%");
+  const dailyHeroCopy=element("div","rb-v4-progress-copy"),dailyHeroCount=element("span"),dailyHeroBar=element("div","rb-v4-progress-bar"),dailyHeroBarFill=element("i");
+  dailyRing.append(dailyPercent);dailyHeroBar.append(dailyHeroBarFill);
+  dailyHeroCopy.append(element("strong","","Bugünün İlerlemesi"),dailyHeroCount,dailyHeroBar);
+  dailyHero.append(dailyRing,dailyHeroCopy,element("div","rb-v4-progress-caption","Her tamamlanan çalışma hedefe bir adım daha. ✦"));
+  const dailyTasksHeading=element("div","rb-v4-day-heading");dailyTasksHeading.append(element("span","","☀"),element("h3","","Bugünün Planı"));progress.max=100;progress.setAttribute("aria-label","Günlük görev tamamlama");completion.append(count,progress);summary.append(dayLabel,completion);
+  const list=element("div","rb-program-tasks");dailyPanel.append(summary,dailyHero,dailyTasksHeading,list);
   const actions=element("div","rb-program-actions"),toolbar=element("div","rb-program-toolbar"),add=button("","rb-program-add"),share=button("","rb-program-share"),shareStatus=element("p","rb-program-share-status");
   add.append(icon("plus"),document.createTextNode("Çalışma ekle"));add.setAttribute("aria-controls","refinedProgramAdd");add.setAttribute("aria-expanded","false");
   share.append(icon("share"),document.createTextNode("Koçla paylaş"));share.dataset.coachShareNow="";shareStatus.dataset.coachShareStatus="";shareStatus.setAttribute("role","status");
@@ -302,21 +353,42 @@ export function installRefinedProgram():ProgramApi{
     });
     dayLabel.textContent=selected?selected.toLocaleDateString("tr-TR",{weekday:"long",day:"numeric",month:"long"}):"Benim programım";
     const done=state.tasks.filter(task=>task.done).length;count.textContent=`${done}/${state.tasks.length} tamamlandı`;progress.value=state.tasks.length?done/state.tasks.length*100:0;
+    dailyPercent.textContent=Math.round(Number(progress.value))+"%";dailyRing.style.setProperty("--rb-v4-percent",String(progress.value));
+    dailyHeroCount.textContent=`${done} / ${state.tasks.length} görev tamamlandı`;dailyHeroBarFill.style.width=String(progress.value)+"%";
     const focused=document.activeElement instanceof HTMLElement?document.activeElement.dataset.rbProgramFocus:undefined;
     list.replaceChildren();
     if(!state.tasks.length){const empty=element("div","rb-program-empty");empty.append(element("strong","","Bu günün planı henüz boş"),element("p","","Çalışma ekle’ye dokun; dersini ve konunu seç. Aynı çalışmayı birden fazla güne de ekleyebilirsin."));list.append(empty);}
     for(const task of state.tasks){
       const card=element("article","rb-program-task");card.toggleAttribute("data-done",task.done);card.dataset.taskId=task.id;
+      const label=refinedProgramSubjectLabel(task.text,task.label),v4Tone=refinedProgramVisualTone(label);
+      card.dataset.v4Tone=v4Tone;
       const check=button("","rb-program-check"),details=button("","rb-program-task-details"),copy=element("span","rb-program-task-copy"),openMark=element("span","rb-program-task-open","›");
+      const subjectIcon=element("span","rb-v4-subject-icon",refinedProgramVisualIcon(v4Tone));
+      subjectIcon.setAttribute("aria-hidden","true");
       check.setAttribute("aria-pressed",String(task.done));check.setAttribute("aria-label",`${task.text}: ${task.done?"tamamlanmadı olarak işaretle":"tamamla"}`);if(task.done)check.append(icon("check"));
-      const resource=object(call("cellLink",task.text)),displayText=typeof resource.ad==="string"&&resource.ad?resource.ad:task.text;
-      const parts=displayText.split(/\s+·\s+/),title=parts.length>1?parts.shift()!:displayText;
-      copy.append(element("strong","",title),element("small","",parts.length>1||title!==displayText?parts.join(" · "):task.label));
-      const resourceBadge=element("span","rb-program-task-resource",typeof resource.url==="string"&&resource.url?"▶ Video / kaynak":"Detayı aç");
-      details.setAttribute("aria-label",`${displayText} çalışma detayını aç`);details.append(copy,resourceBadge,openMark);
+      const extras=refinedProgramSplitExtras(task.text),info=refinedProgramTaskDetail(extras.work,task.label);
+      const meta=info.meta===task.label?"":info.meta;
+      copy.append(element("strong","",label),element("small","",meta||"Çalışma detaylarını görüntüle"));
+      const resourceBadge=element("span","rb-program-task-resource",info.url?"▶ Video / kaynak":"Detayı aç");
+      details.setAttribute("aria-label",`${label} çalışma detayını aç`);details.append(copy,resourceBadge,openMark);
       check.addEventListener("click",()=>{controller.toggleTask(task.id);refresh();});
       details.addEventListener("click",()=>openDetail(task,state.week));
-      card.append(check,details);list.append(card);
+      const chips=element("div","rb-v4-task-chips");
+      const videoChip=button("▶ Video","rb-v4-chip rb-v4-chip-video"),
+        noteChip=button("▤ Not","rb-v4-chip rb-v4-chip-note"),
+        materialChip=button("▣ Materyal","rb-v4-chip rb-v4-chip-material");
+      videoChip.setAttribute("aria-label",`${label} video veya kaynak seçenekleri`);
+      noteChip.setAttribute("aria-label",`${label} notunu düzenle`);
+      materialChip.setAttribute("aria-label",`${label} materyalini aç veya ekle`);
+      videoChip.addEventListener("click",()=>openDetail(task,state.week));
+      noteChip.addEventListener("click",()=>openEditor(task,state.week,"note"));
+      materialChip.addEventListener("click",()=>{
+        if(extras.material&&refinedProgramResourceUrl(extras.material)!==null){
+          const anchor=document.createElement("a");anchor.href=extras.material;anchor.target="_blank";anchor.rel="noopener noreferrer";anchor.click();
+        }else openEditor(task,state.week,"material");
+      });
+      chips.append(videoChip,noteChip,materialChip);
+      card.append(check,subjectIcon,details,chips);list.append(card);
     }
     const weekFocus=document.activeElement instanceof HTMLElement?document.activeElement.dataset.rbWeekTask:undefined;
     weeklyPanel.replaceChildren();
@@ -420,9 +492,10 @@ export function installRefinedProgram():ProgramApi{
     const current=controller.snapshot().tasks.find(item=>item.id===detailTaskId),wasDone=Boolean(current?.done);
     if(controller.toggleTask(detailTaskId)){closeDetail();refresh();call("toast",wasDone?"Çalışma tekrar açıldı.":"Çalışma tamamlandı ✓");}
   });
+  detailEdit.addEventListener("click",()=>{const current=controller.snapshot().tasks.find(item=>item.id===detailTaskId);if(!current)return;closeDetail();openEditor(current,controller.snapshot().week,"note");});
   editorClose.addEventListener("click",closeEditor);editorCancel.addEventListener("click",closeEditor);editor.addEventListener("click",event=>{if(event.target===editor)closeEditor();});
   editorDelete.addEventListener("click",()=>{if(!editingTaskId||!editingWeek)return;if(!confirm("Bu çalışma programdan silinsin mi?"))return;editorDelete.disabled=true;try{if(!controller.deleteTask(editingTaskId,editingWeek)){editorHint.textContent="Çalışma silinemedi. Tekrar dene.";return;}closeEditor();feedback.textContent="Çalışma silindi.";refresh();call("toast","Çalışma silindi");}finally{editorDelete.disabled=false;}});
-  editorForm.addEventListener("submit",event=>{event.preventDefault();const value=editorInput.value.trim();if(!editingTaskId||!editingWeek||!value){editorHint.textContent="Çalışma boş bırakılamaz.";editorInput.focus();return;}editorSave.disabled=true;try{if(!controller.updateTask(editingTaskId,value,editingWeek)){editorHint.textContent="Değişiklik kaydedilemedi. Tekrar dene.";return;}closeEditor();feedback.textContent="Çalışma güncellendi.";refresh();}finally{editorSave.disabled=false;}});
+  editorForm.addEventListener("submit",event=>{event.preventDefault();const value=refinedProgramJoinExtras(editorInput.value,noteInput.value,materialInput.value);if(!editingTaskId||!editingWeek||!value){editorHint.textContent="Çalışma veya ek alanları geçersiz. Toplam sınır 600 karakter, materyal bağlantısı http(s) olmalı.";editorInput.focus();return;}editorSave.disabled=true;try{if(!controller.updateTask(editingTaskId,value,editingWeek)){editorHint.textContent="Değişiklik kaydedilemedi. Tekrar dene.";return;}closeEditor();feedback.textContent="Çalışma güncellendi.";refresh();}finally{editorSave.disabled=false;}});
   share.addEventListener("click",()=>originalShare()?.click());
   const wrappers=new Map<string,{original:LegacyFunction;wrapped:LegacyFunction}>();
   const wrap=(name:string,before?:()=>void)=>{
