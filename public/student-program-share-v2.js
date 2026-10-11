@@ -14,16 +14,17 @@ function cloneValue(value,fallback){
 function cleanMatrix(value,rowCount){
   const src=Array.isArray(value)?value:[];
   const out={};
-  for(let r=0;r<rowCount;r++){
+  for(let r=0;r<src.length;r++){
     const row=Array.isArray(src[r])?src[r]:[];
-    out[String(r)]=Array.from({length:7},(_,d)=>txt(row[d],220));
+    const cells=Array.from({length:7},(_,d)=>txt(row[d],220));
+    if(cells.some(Boolean))out[String(r)]=cells;
   }
   return out;
 }
 function cleanMap(value){
   if(!value||typeof value!=="object"||Array.isArray(value))return{};
   const out={};
-  Object.entries(value).slice(0,600).forEach(([key,val])=>{
+  Object.entries(value).forEach(([key,val])=>{
     const k=txt(key,80);if(!k)return;
     if(val&&typeof val==="object")out[k]=cloneValue(val,{});
     else if(typeof val==="boolean")out[k]=val;
@@ -41,12 +42,13 @@ function weekHasData(week){
     ||Object.keys(week.mv||{}).length>0;
 }
 function programPayload(s){
-  const rows={r:Math.min(24,int(s?.rows?.r,2)),s:Math.min(24,int(s?.rows?.s,4))};
+  const keys=Object.keys(s?.weeks||{}).filter(k=>DATE_RE.test(k)&&weekHasData(s.weeks[k])).sort().slice(-MAX_PROGRAM_WEEKS);
+  const actual=blk=>Math.max(0,...keys.map(k=>Array.isArray(s.weeks[k]?.[blk])?s.weeks[k][blk].length:0));
+  const rows={r:Math.max(int(s?.rows?.r,2),actual("r")),s:Math.max(int(s?.rows?.s,4),actual("s"))};
   const labels={
     r:Array.from({length:rows.r},(_,i)=>txt(s?.rowLabels?.r?.[i],80)),
     s:Array.from({length:rows.s},(_,i)=>txt(s?.rowLabels?.s?.[i],80))
   };
-  const keys=Object.keys(s?.weeks||{}).filter(k=>DATE_RE.test(k)&&weekHasData(s.weeks[k])).sort().slice(-MAX_PROGRAM_WEEKS);
   const weeks=keys.map(week=>{
     const raw=s.weeks[week]||{};
     return{week,data:{
@@ -195,5 +197,5 @@ if(auth&&!auth.__programShareV2){
   auth.onSignedOut=(...args)=>{stop();return previousSignOut?.(...args)};
   auth.__programShareV2=true;
 }
-window.YKSStudentProgramShareV2={version:"3.6.2",publish:force=>publishProgram(Boolean(force)),build:programPayload};
+window.YKSStudentProgramShareV2={version:"3.6.3",publish:force=>publishProgram(Boolean(force)),build:programPayload};
 document.documentElement.dataset.studentProgramSync="v3";

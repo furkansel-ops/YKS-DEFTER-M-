@@ -35,7 +35,7 @@ const SUBJ_NAMES=[...new Set(ALL_SUBJECTS.map(s=>s.name))];
 const DAYS=["Pzt","Sal","Çar","Per","Cum","Cmt","Paz"];
 const DAYS_FULL=["Pazartesi","Salı","Çarşamba","Perşembe","Cuma","Cumartesi","Pazar"];
 const MONTHS=["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"];
-const DEF_R=2, DEF_S=4, MAX_ROWS=20;
+const DEF_R=2, DEF_S=4;
 const ST_LABEL=["Başlanmadı","İşledim","Soru çözdüm","Pekiştirdim"];
 const REVIEW_GAPS=[3,7,21];
 const DENEME_SUBJECTS={
@@ -597,8 +597,11 @@ function normalize(o){
     if(typeof t.res!=="string"||!t.res)delete t.res; else t.res=t.res.slice(0,200);
   });
   if(!o.rows)o.rows={r:DEF_R,s:DEF_S};
-  o.rows.r=Math.max(1,Math.min(MAX_ROWS,o.rows.r|0||DEF_R));
-  o.rows.s=Math.max(1,Math.min(MAX_ROWS,o.rows.s|0||DEF_S));
+  // A full day can grow the matrix. Preserve all real rows after reload and cloud restore.
+  const allWeeks=Object.values(o.weeks||{});
+  const actualRows=blk=>Math.max(0,...allWeeks.map(w=>Array.isArray(w?.[blk])?w[blk].length:0));
+  o.rows.r=Math.max(1,Math.floor(Number(o.rows.r)||DEF_R),o.rowLabels.r.length,actualRows("r"));
+  o.rows.s=Math.max(1,Math.floor(Number(o.rows.s)||DEF_S),o.rowLabels.s.length,actualRows("s"));
   while(o.rowLabels.r.length<o.rows.r)o.rowLabels.r.push("");
   while(o.rowLabels.s.length<o.rows.s)o.rowLabels.s.push("");
   return o;
@@ -1378,7 +1381,8 @@ function programMoveTaskToDate(wk,taskId,targetDate){
   const backup=planWeekBackup([...new Set([c.wk,targetWk])]),tw=getWeek(targetWk,true);
   let targetRow=c.i;
   if(!tw[c.blk]||!tw[c.blk][targetRow]||String(tw[c.blk][targetRow][targetDay]||"").trim())targetRow=planFindEmpty(tw,c.blk,targetDay,-1);
-  if(targetRow<0){restorePlanWeekBackup(backup);return false;}
+  if(targetRow<0)targetRow=planAppendRow(tw,c.blk);
+  tw[c.blk][targetRow]??=new Array(7).fill("");
   const targetCid=c.blk+"-"+targetRow+"-"+targetDay,sourceOrderKey="order-"+c.d,targetOrderKey="order-"+targetDay;
   tw[c.blk][targetRow][targetDay]=c.txt;delete tw.dn[targetCid];
   if(!tw.mv||typeof tw.mv!=="object")tw.mv={};
@@ -1541,7 +1545,6 @@ function toggleWeekDone(d){
   save(); renderPlan(); renderTodayPlan();
 }
 function addRow(blk){
-  if(S.rows[blk]>=MAX_ROWS){ toast("Daha fazla satır eklenemez"); return; }
   S.rows[blk]++; S.rowLabels[blk].push("");
   Object.keys(S.weeks).forEach(k=>{ const w=S.weeks[k]; if(w&&Array.isArray(w[blk]))w[blk].push(new Array(7).fill("")); });
   save(); renderPlan();
@@ -5099,7 +5102,7 @@ function renderCurriculum(){
 function addToDays(text,days,haftaOfs){
   const value=typeof text==="string"?text.trim():"";
   if(!value||value.length>600||!Array.isArray(days)||!days.length||Array.from(days).some(d=>!Number.isInteger(d)||d<0||d>6)||!Number.isInteger(haftaOfs)||Math.abs(haftaOfs)>520)return {ok:false,reason:"invalid"};
-  const selected=[...new Set(days)],wk=addDaysKey(keyOf(mondayOf(new Date())),haftaOfs*7),maxRows=24;
+  const selected=[...new Set(days)],wk=addDaysKey(keyOf(mondayOf(new Date())),haftaOfs*7);
   const hadWeek=Object.prototype.hasOwnProperty.call(S.weeks,wk),previous=S.weeks[wk],previousRows=S.rows.s,previousLabels=S.rowLabels.s;
   let candidate;
   try{candidate=normWeek(hadWeek?clone(previous):blankWeek());}
@@ -5110,7 +5113,6 @@ function addToDays(text,days,haftaOfs){
       if(!String(candidate.s[i][day]||"").trim()){row=i;break;}
     }
     if(row<0){
-      if(candidate.s.length>=maxRows)return {ok:false,reason:"full"};
       row=candidate.s.length;candidate.s.push(new Array(7).fill(""));
     }
     const cid="s-"+row+"-"+day;
@@ -5134,23 +5136,9 @@ function addToDays(text,days,haftaOfs){
   return {ok:true,days:selected};
 }
 function addToDay(text,gunIdx,haftaOfs){
-  const now=new Date();
-  const dw=(gunIdx===undefined||gunIdx===null)?dowOf(now):Math.max(0,Math.min(6,gunIdx|0));
-  const wk=addDaysKey(keyOf(mondayOf(now)),(haftaOfs|0)*7);
-  const w=getWeek(wk,true);
-  const gunAd=["Pazartesi","Salı","Çarşamba","Perşembe","Cuma","Cumartesi","Pazar"];
-  for(let i=0;i<S.rows.s;i++){
-    if(!w.s[i])w.s[i]=new Array(7).fill("");
-    if(!w.s[i][dw]||!w.s[i][dw].trim()){
-      w.s[i][dw]=text;
-      save(); renderTodayPlan(); renderSuggest();
-      if(el("program").classList.contains("active"))renderPlan();
-      toast(gunAd[dw]+((haftaOfs|0)?" (gelecek hafta)":"")+" planına eklendi ✓");
-      return true;
-    }
-  }
-  toast(gunAd[dw]+" satırları dolu — Program'dan satır ekleyebilirsin");
-  return false;
+  const dw=(gunIdx===undefined||gunIdx===null)?dowOf(new Date()):Math.max(0,Math.min(6,gunIdx|0));
+  // Reuse atomic multi-day writer so even the legacy single-day path grows when full.
+  return addToDays(text,[dw],haftaOfs|0).ok===true;
 }
 
 /* ---------- gün seçici ----------
@@ -10353,10 +10341,11 @@ function planRefreshViews(){
   if(typeof renderCalendar==="function"&&el("progCal")&&el("progCal").style.display!=="none")renderCalendar();
 }
 function planWeekBackup(keys){
-  const out={weeks:{},labels:clone(S.rowLabels)}; (keys||[]).forEach(k=>{out.weeks[k]=clone(S.weeks[k]);}); return out;
+  const out={weeks:{},labels:clone(S.rowLabels),rows:clone(S.rows)}; (keys||[]).forEach(k=>{out.weeks[k]=clone(S.weeks[k]);}); return out;
 }
 function restorePlanWeekBackup(b){
   if(b&&b.labels)S.rowLabels=clone(b.labels);
+  if(b&&b.rows)S.rows=clone(b.rows);
   Object.keys((b&&b.weeks)||{}).forEach(k=>{if(b.weeks[k]===null)delete S.weeks[k];else S.weeks[k]=clone(b.weeks[k]);});
   save(); planRefreshViews();
 }
@@ -10420,12 +10409,26 @@ function planDeleteSelected(){
   pushUndo("Plan görevi silindi",()=>restorePlanWeekBackup(bk)); save(); closePlanCellMenu();planRefreshViews();toast("Görev silindi");
 }
 function planFindEmpty(w,blk,d,skip){
-  for(let i=0;i<S.rows[blk];i++){if(i===skip)continue;if(w[blk]&&w[blk][i]&&!String(w[blk][i][d]||"").trim())return i;}return -1;
+  for(let i=0;i<Math.max(S.rows[blk],w[blk]?.length||0);i++){
+    if(i===skip)continue;
+    if(!String(w[blk]?.[i]?.[d]||"").trim())return i;
+  }
+  return -1;
+}
+function planAppendRow(w,blk){
+  const index=Math.max(S.rows[blk],w[blk]?.length||0);
+  S.rows[blk]=index+1;
+  S.rowLabels[blk]??=[];
+  while(S.rowLabels[blk].length<S.rows[blk])S.rowLabels[blk].push("");
+  w[blk]??=[];
+  w[blk][index]=new Array(7).fill("");
+  return index;
 }
 function planCopySelected(){
   const c=planMenuCtx&&planCellData(planMenuCtx.wk,planMenuCtx.blk,planMenuCtx.i,planMenuCtx.d);if(!c)return;
-  const ti=planFindEmpty(c.w,c.blk,c.d,c.i);if(ti<0){toast("Bu günün boş satırı yok");return;}
-  const bk=planWeekBackup([c.wk]);c.w[c.blk][ti][c.d]=c.txt;delete c.w.dn[c.blk+"-"+ti+"-"+c.d];if(c.w.mv)delete c.w.mv[c.blk+"-"+ti+"-"+c.d];
+  let ti=planFindEmpty(c.w,c.blk,c.d,c.i);
+  const bk=planWeekBackup([c.wk]);if(ti<0)ti=planAppendRow(c.w,c.blk);
+  c.w[c.blk][ti]??=new Array(7).fill("");c.w[c.blk][ti][c.d]=c.txt;delete c.w.dn[c.blk+"-"+ti+"-"+c.d];if(c.w.mv)delete c.w.mv[c.blk+"-"+ti+"-"+c.d];
   if(c.blk==="s"&&!String(S.rowLabels.s[ti]||"").trim())S.rowLabels.s[ti]=S.rowLabels.s[c.i]||"";
   pushUndo("Plan görevi kopyalandı",()=>restorePlanWeekBackup(bk));save();closePlanCellMenu();planRefreshViews();toast("Görev kopyalandı ✓");
 }
@@ -10439,7 +10442,8 @@ function movePlanCellTomorrow(wk,blk,i,d){
   const bk=planWeekBackup([c.wk,targetWk]),tw=getWeek(targetWk,true);
   let ti=c.i;
   if(!tw[c.blk]||!tw[c.blk][ti]||String(tw[c.blk][ti][targetD]||"").trim())ti=planFindEmpty(tw,c.blk,targetD,-1);
-  if(ti<0){restorePlanWeekBackup(bk);toast("Yarının boş satırı yok — önce Program'dan satır aç");return false;}
+  if(ti<0)ti=planAppendRow(tw,c.blk);
+  tw[c.blk][ti]??=new Array(7).fill("");
   const targetCid=c.blk+"-"+ti+"-"+targetD;
   tw[c.blk][ti][targetD]=c.txt;delete tw.dn[targetCid];
   if(!tw.mv||typeof tw.mv!=="object")tw.mv={};tw.mv[targetCid]={from:addDaysKey(c.wk,c.d),at:Date.now()};

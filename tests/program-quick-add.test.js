@@ -92,3 +92,18 @@ test("optional program goals retain user input while legacy numeric controls sti
   for(const [value,expected] of [["","1"],["0","1"],["1.5","2"],["1001","1000"],["30","30"]]){const target=new Input(value);guard({target});assert.equal(target.value,expected,"Existing numeric controls retain their clamping behavior");}
   const text=new Input("0",false,"text");guard({target:text});assert.equal(text.value,"0");assert.doesNotThrow(()=>guard({target:{}}));
 });
+
+test("busy days can grow beyond the old 20/24 row caps without overwriting a single lesson",()=>{
+  const h=harness(),start="2026-09-21";
+  for(let i=0;i<38;i++){
+    const result=h.add("Matematik çalışma "+(i+1),[2],0);
+    assert.equal(result.ok,true,"lesson "+(i+1)+" must be accepted");
+  }
+  const week=h.state.weeks[start];
+  assert.equal(h.state.rows.s,38);
+  assert.equal(h.state.rowLabels.s.length,38);
+  assert.equal(week.s.length,38);
+  for(let i=0;i<38;i++)assert.equal(week.s[i][2],"Matematik çalışma "+(i+1));
+  assert.equal(h.calls.filter(x=>x==="save").length,38);
+  assert.equal(h.persisted.at(-1).weeks[start].s[37][2],"Matematik çalışma 38");
+});
