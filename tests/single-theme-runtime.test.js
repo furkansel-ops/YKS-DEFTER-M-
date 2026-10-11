@@ -29,14 +29,14 @@ test("eski kayıt ve tema çağrıları sabit görünümü değiştiremez, çal�
   assert.doesNotMatch(appearance,/matchMedia|prefers-color-scheme|THEME_NAMES|THEME_HINTS/);
 });
 
-test("ayarlar yazı boyutunu ve maskotları korur, eski palet seçimini kaldırır",()=>{
+test("ayarlar yalnız yazı boyutunu korur, eski tema ve maskot yüzeyi bulunmaz",()=>{
   const index=read("index.html"),settings=read("public/settings-profile-runtime.js");
   assert.doesNotMatch(index,/id="(?:themeBtn|themeGrid|thAuto|thPaper|thNight|thForest|thOcean|thLavender|thSunset|thGraphite)"|onclick="setTheme/);
   assert.match(index,/id="appearancePreferences"/);
   for(const scale of ["0.9","1","1.15","1.3"])assert.ok(index.includes(`setFontScale(${scale})`));
   assert.match(settings,/data-yms-appearance-slot/);
-  assert.match(settings,/data-yms-mascot-choose/);
-  assert.match(settings,/data-yms-mascot-toggle/);
+  assert.doesNotMatch(settings,/data-yms-mascot-|__YKS_MASCOT__|yks:mascot-change/);
+  assert.match(settings,/title:"Görünüm"/);
   assert.doesNotMatch(settings,/s\.theme|themeGrid|theme-card/);
 });
 

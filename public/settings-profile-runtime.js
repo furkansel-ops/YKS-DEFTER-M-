@@ -11,7 +11,7 @@ const view={category:"",query:"",returnTo:"profile",overviewScroll:0,timeDirty:f
 const categories=[
   {id:"profile",title:"Profil ve hedefler",description:"Kişisel bilgilerin ve YKS hedeflerin",keywords:"ad soyad üniversite bölüm alan puan türü OBP net",icon:"user"},
   {id:"account",title:"Hesap ve senkron",description:"Hesabın ve cihazlar arası eşitleme",keywords:"giriş çıkış google bulut oturum güvenlik",icon:"user"},
-  {id:"appearance",title:"Görünüm ve maskot",description:"Yazı boyutu ve çalışma arkadaşın",keywords:"tema yazı boyutu font görünüm maskot arkadaş animasyon karakter",icon:"palette"},
+  {id:"appearance",title:"Görünüm",description:"Yazı boyutu ve görünüm tercihleri",keywords:"tema yazı boyutu font görünüm",icon:"palette"},
   {id:"study",title:"Çalışma ve program",description:"Günlük hedefin ve ekran tercihlerin",keywords:"kişiselleştir sınav kapsamı tyt ayt ydt bugün kart soru hedef program",icon:"calendar"},
   {id:"achievements",title:"Başarımlar",description:"Seri, XP, rozetler, görevler ve gelişim",keywords:"başarım rozet xp seviye seri kalkan dinlenme meydan okuma ustalık takvim rekor kariyer",icon:"award"},
   {id:"notifications",title:"Bildirimler",description:"Odak, tekrar ve gün sonu hatırlatmaları",keywords:"izin pomodoro akşam saat hatırlatıcı bildirim",icon:"bell"},
@@ -163,7 +163,7 @@ function markup(){return `
   <div class="yms-detail-heading"><h2 id="ymsDetailTitle" tabindex="-1"></h2><p id="ymsDetailDescription"></p></div>
   ${section("profile",`<div class="yms-grid"><section class="yms-card"><h3 class="yms-title">Kişisel bilgiler</h3>${row("Ad Soyad","name")}${row("E-posta","email")}${row("Alan / puan türü","track")}${row("OBP","obp")}${row("Haftalık çalışma","days")}</section><section class="yms-card"><h3 class="yms-title">YKS hedeflerim</h3>${row("TYT hedef net","tyt")}${row("AYT hedef net","ayt")}${row("Hedef üniversite","university")}${row("Hedef bölüm","department")}</section></div><div class="yms-actions"><button class="primary" type="button" data-yms-edit>Profil ve hedefleri düzenle</button></div><div class="yms-card"><h3 class="yms-title">2027 YKS tarihleri</h3><div class="yms-exam"><div><b>TYT</b>19 Haziran 2027 · 10:15</div><div><b>AYT</b>20 Haziran 2027 · 10:15</div><div><b>YDT</b>20 Haziran 2027 · 15:45</div></div><p class="yms-note">Sınav tarihleri bilgi amaçlı sabittir; profil ayarından değiştirilmez.</p></div>`)}
   ${section("account",`<div class="yms-account-host" data-yms-account-slot></div><div class="yms-empty" data-yms-account-empty>Hesap bağlantısı hazırlanıyor. İnternet bağlantını kontrol ederek tekrar deneyebilirsin.<div class="yms-actions"><button type="button" data-yms-account-refresh>Durumu yenile</button></div></div>`)}
-  ${section("appearance",'<div class="yms-appearance-host" data-yms-appearance-slot></div><section class="yms-card"><h3 class="yms-title">Çalışma arkadaşın</h3><div class="yms-notif-item"><span><b>Maskot bana eşlik etsin</b><small>10 karakterden birini seç. Odaklanırken sessizce bekler.</small></span><button class="yms-toggle" type="button" role="switch" aria-checked="true" aria-label="Maskot bana eşlik etsin" data-yms-mascot-toggle></button></div><p class="yms-note" data-yms-mascot-status></p><div class="yms-actions"><button type="button" data-yms-mascot-choose>Maskotunu seç</button></div></section>')}
+  ${section("appearance",'<div class="yms-appearance-host" data-yms-appearance-slot></div>')}
   ${section("study",`<section class="yms-card"><h3 class="yms-title">Günlük çalışma hedefi</h3><label class="yms-field" for="ymsQuestionTarget"><span>Günlük soru sayısı</span><input id="ymsQuestionTarget" type="number" min="0" max="10000" step="1" inputmode="numeric"></label><div class="yms-actions"><button class="primary" type="button" data-yms-target-save>Hedefi kaydet</button><button type="button" data-yms-program>Programıma git</button></div><p class="yms-note" role="status" data-yms-target-status></p></section><div class="yms-personal-host" data-yms-personal-slot><div class="yms-empty">Ekran tercihlerin hazırlanıyor…</div></div><section class="yms-card yms-weekly-goals"><h3 class="yms-title">Haftalık hedefim</h3><p class="yms-note">Eski haftalık hedeflerini buradan düzenleyebilir ve takip edebilirsin.</p><div id="ymsWeeklyGoalsSlot" aria-label="Haftalık hedef düzenleyicisi"></div></section>`)}
   ${section("achievements",`<div class="yms-career-page">
   <div class="yms-career-page-heading"><span class="yms-career-kicker">ÇALIŞMA KARİYERİ</span><p>Günlük emeğini gerçek kayıtlarından takip et. İlerleme, rozetler, görevler ve çalışma geçmişin bu bölümde.</p></div>
@@ -213,10 +213,6 @@ function showCategory(category="",focus=true){
 }
 function setText(node,value){const next=String(value??"");if(node&&node.textContent!==next)node.textContent=next}
 function refresh(root){
-  const companion=window.__YKS_MASCOT__?.read(),companionToggle=root.querySelector("[data-yms-mascot-toggle]");
-  if(companionToggle){companionToggle.disabled=!companion;companionToggle.setAttribute("aria-checked",String(companion?.enabled!==false));companionToggle.classList.toggle("is-on",companion?.enabled!==false)}
-  const companionChoose=root.querySelector("[data-yms-mascot-choose]");if(companionChoose)companionChoose.disabled=!companion;
-  setText(root.querySelector("[data-yms-mascot-status]"),companion?(companion.enabled?`${companion.name} sana eşlik ediyor.`:"Maskot kapalı."):"Maskotlar hazırlanıyor…");
   const s=st(),a=account(),name=val(s.name||(a.signedIn?a.title:""),"YKS öğrencisi");
   const values={name,initials:initials(name),email:a.email||"—",track:val(s.puanTuru),obp:Number(s.obp)>0?s.obp:"—",days:`${s.workdays||6} gün`,tyt:net(s.targetNetTYT??s.targetNet),ayt:net(s.targetNetAYT),university:val(s.targetUniversity),department:val(s.targetDepartment),version:appVersion()};
   root.querySelectorAll("[data-yms-value]").forEach(node=>setText(node,values[node.dataset.ymsValue]));
@@ -228,8 +224,6 @@ function refresh(root){
 }
 function bind(root){
   const on=(selector,callback)=>root.querySelectorAll(selector).forEach(button=>button.addEventListener("click",callback));
-  on("[data-yms-mascot-choose]",()=>window.__YKS_MASCOT__?.open());
-  on("[data-yms-mascot-toggle]",()=>{const mascot=window.__YKS_MASCOT__;if(mascot)mascot.setEnabled(!mascot.read().enabled)});
   on("[data-yms-category]",event=>showCategory(event.currentTarget.dataset.ymsCategory));
   on("[data-yms-back]",()=>showCategory(""));
   root.querySelector("#ymsSearch").addEventListener("input",event=>{view.query=event.target.value;filterCategories(root)});
@@ -310,6 +304,6 @@ function openEditor(){
 
 function install(){if(render())return;let n=0;const timer=setInterval(()=>{if(render()||++n>40)clearInterval(timer)},250)}
 window.__YKS_SETTINGS__={version:"3.0.0",open:category=>{render();return showCategory(category)},back:()=>showCategory(""),refresh:render};
-for(const name of ["yks:v4-bootstrap","yks:auth-state","yks:v43-personalization","yks:data-changed","yks:mascot-change","yks:notification-settings"])window.addEventListener(name,queueRefresh);
+for(const name of ["yks:v4-bootstrap","yks:auth-state","yks:v43-personalization","yks:data-changed","yks:notification-settings"])window.addEventListener(name,queueRefresh);
 window.addEventListener("yks:open-settings",event=>{render();showCategory(event.detail?.category||"")});
 enforceSingleAppearance();install();document.documentElement.dataset.modernSettings="ready";
