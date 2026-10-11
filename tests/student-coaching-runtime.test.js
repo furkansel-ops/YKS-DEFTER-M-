@@ -35,7 +35,14 @@ function harness({share=null,now="2026-09-18T12:00:00Z"}={}){
   const blockNextWrite=(kind="write")=>{let started,release,reject;const blocked=new Promise(resolve=>started=resolve),ready=new Promise((resolve,fail)=>{release=resolve;reject=fail});if(kind==="profile")profileGate={started,ready};else writeGate={started,ready};return{started:blocked,release,reject}};
   const installLegacyAddToDay=()=>{
     Object.assign(context,{S:state,dowOf:d=>(d.getDay()+6)%7,keyOf:d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`,mondayOf:d=>{const result=new Clock(d);result.setDate(result.getDate()-(result.getDay()+6)%7);return result},addDaysKey:(key,days)=>{const date=new Clock(key+"T12:00:00");date.setDate(date.getDate()+days);return context.keyOf(date)},getWeek:key=>state.weeks[key]??={s:Array.from({length:state.rows.s},()=>Array(7).fill(""))},save:()=>true,renderTodayPlan:()=>{},renderSuggest:()=>{},renderPlan:()=>{},el:()=>({classList:{contains:()=>false}}),toast:()=>{}});
-    vm.runInContext(read("app.js").match(/function addToDay\([\s\S]*?\r?\n}\r?\n/)[0]+"\nwindow.addToDay=addToDay;",context);
+    Object.assign(context,{clone:value=>JSON.parse(JSON.stringify(value)),perfInvalidateState:()=>{}});
+    const source=read("app.js");
+    for(const name of ["blankWeek","normWeek","addToDays","addToDay"]){
+      const snippet=source.match(new RegExp("function "+name+"\\([\\s\\S]*?\\r?\\n}\\r?\\n"));
+      assert.ok(snippet,name);
+      vm.runInContext(snippet[0],context);
+    }
+    vm.runInContext("window.addToDay=addToDay;window.addToDays=addToDays;",context);
   };
   const runTimer=ms=>{const entry=[...timers].find(([,timer])=>timer.ms===ms);assert.ok(entry,`${ms} ms timer should exist`);timers.delete(entry[0]);entry[1].fn()};
   return{window,state,docs,writes,tasks,timers,intervals,events,dataset,writeErrors,blockNextWrite,installLegacyAddToDay,runTimer,signIn:(uid=user.uid)=>{docs.set(`accountProfiles/${uid}`,{uid,role:"student"});return window.YKSAccountAuth.onSignedIn({user:{...user,uid},db:{},auth:{}})}};
