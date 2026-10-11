@@ -133,8 +133,8 @@ test("Koç eşitleme runtime web ve native açılışta garanti edilir ve save s
   assert.match(shell,/import\("\.\/student-account-loader"\)/);
   assert.match(shell,/installStudentAccountLoader\(\)/);
   assert.match(shell,/const native=isNativeApp\(\)/);
-  assert.match(loader,/student-coaching-runtime\.js\?v=1\.2\.20/);
-  assert.match(runtime,/version:\"1\.2\.20\"/);
+  assert.match(loader,/student-coaching-runtime\.js\?v=1\.2\.21/);
+  assert.match(runtime,/version:\"1\.2\.21\"/);
   assert.match(app,/CustomEvent\(\"yks:data-changed\"/);
   assert.match(app,/source:\"save\"/);
 });
@@ -173,7 +173,7 @@ test("öğrenci koça bilgileri manuel paylaşabilir ve program paylaşımı zor
   assert.match(link,/studentCoachProgramShare/);
   assert.match(program,/async function publishProgram\(force=false\)/);
   assert.match(program,/if\(!manual&&hash&&hash===rt\.lastHash\)return true/);
-  assert.match(program,/version:"3\.6\.2"/);
+  assert.match(program,/version:"3\.6\.3"/);
 });
 
 
@@ -186,7 +186,7 @@ test("manuel koç paylaşımı devam eden otomatik yazımı bekler ve gerçek Fi
   assert.match(runtime,/dataset\.coachShareError/);
   assert.match(program,/if\(manual&&rt\.inFlight\)await rt\.inFlight/);
   assert.match(program,/dataset\.studentProgramShareError/);
-  assert.match(program,/version:"3\.6\.2"/);
+  assert.match(program,/version:"3\.6\.3"/);
 });
 
 
@@ -203,7 +203,7 @@ test("Program paylaşımı Firestore için iç içe array üretmez",()=>{
 test("koç program görevleri video bağlantısı ve ayrıntılar için 600 karaktere kadar korunur",()=>{
   const runtime=read("public/student-coaching-runtime.js");
   assert.match(runtime,/text\(p\.text,600\)/);
-  assert.match(runtime,/version:"1\.2\.20"/);
+  assert.match(runtime,/version:"1\.2\.21"/);
 });
 
 
