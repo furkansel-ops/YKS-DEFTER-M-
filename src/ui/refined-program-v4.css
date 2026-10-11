@@ -124,3 +124,43 @@
   #program .rb-program .rb-v4-chip{font-size:10px;padding:5px 7px;}
 }
 @media(prefers-reduced-motion:reduce){#program .rb-v4-progress-bar>i{transition:none}}
+
+
+/* Programım 4.0 · subject groups (render order only, never changes S.weeks). */
+#program .rb-program-day .rb-program-tasks{display:grid;grid-template-columns:minmax(0,1fr)!important;gap:18px;}
+#program .rb-v4-subject-section{
+  --rb-v4-group-color:#58849b;--rb-v4-group-soft:color-mix(in srgb,var(--rb-v4-group-color) 10%,var(--rp-v4-surface));
+  min-width:0;display:grid;gap:9px;
+}
+#program .rb-v4-subject-section[data-v4-group="reading"]{--rb-v4-group-color:#de8a27;--rb-v4-group-soft:#fff3e4}
+#program .rb-v4-subject-section[data-v4-group="math"]{--rb-v4-group-color:#df536d;--rb-v4-group-soft:#fff0f2}
+#program .rb-v4-subject-section[data-v4-group="physics"]{--rb-v4-group-color:#367fe0;--rb-v4-group-soft:#eaf2ff}
+#program .rb-v4-subject-section[data-v4-group="chemistry"]{--rb-v4-group-color:#8555d9;--rb-v4-group-soft:#f2ebff}
+#program .rb-v4-subject-section[data-v4-group="biology"]{--rb-v4-group-color:#23956f;--rb-v4-group-soft:#e6f7ef}
+#program .rb-v4-subject-section[data-v4-group="geometry"]{--rb-v4-group-color:#516dde;--rb-v4-group-soft:#edf0ff}
+#program .rb-v4-subject-section[data-v4-group="literature"]{--rb-v4-group-color:#ba639f;--rb-v4-group-soft:#faedf5}
+#program .rb-v4-subject-section[data-v4-group="history"]{--rb-v4-group-color:#ac783d;--rb-v4-group-soft:#f8f0e6}
+#program .rb-v4-subject-section[data-v4-group="geography"]{--rb-v4-group-color:#28928f;--rb-v4-group-soft:#e6f6f5}
+#program .rb-v4-subject-section[data-v4-group="philosophy"]{--rb-v4-group-color:#8a63c0;--rb-v4-group-soft:#f3edfa}
+#program .rb-v4-subject-section[data-v4-group="religion"]{--rb-v4-group-color:#668b5b;--rb-v4-group-soft:#f0f7eb}
+#program .rb-v4-subject-section[data-v4-group="english"]{--rb-v4-group-color:#3785b6;--rb-v4-group-soft:#eaf6fc}
+#program .rb-v4-subject-heading{display:flex;align-items:center;gap:10px;min-height:39px;padding:0 2px;}
+#program .rb-v4-subject-heading .rb-v4-subject-icon{flex:0 0 36px;width:36px;height:36px;border-radius:10px;background:var(--rb-v4-group-soft);color:var(--rb-v4-group-color);}
+#program .rb-v4-subject-heading-title{display:flex;align-items:baseline;flex-wrap:wrap;gap:5px 9px;min-width:0;}
+#program .rb-v4-subject-heading-title strong{color:var(--rp-v4-ink);font-size:15px;line-height:1.35;font-weight:780;letter-spacing:-.015em;}
+#program .rb-v4-subject-heading-title small{font-size:11px;line-height:1.3;color:var(--rp-v4-muted);}
+#program .rb-v4-subject-cards{display:grid;gap:8px;min-width:0;}
+#program .rb-v4-subject-section .rb-program-task{--rb-v4-tone:var(--rb-v4-group-color);--rb-v4-tone-light:var(--rb-v4-group-soft);}
+#program .rb-v4-subject-section .rb-program-task[data-done]{border-color:color-mix(in srgb,var(--rb-v4-group-color) 17%,var(--rp-v4-line));}
+#program .rb-v4-subject-icon svg{width:22px;height:22px;display:block;overflow:visible;}
+#program .rb-v4-subject-section>.rb-v4-subject-heading .rb-v4-subject-icon svg{width:19px;height:19px;}
+#program .rb-v4-subject-section .rb-program-task .rb-v4-subject-icon{
+  display:grid;place-items:center;grid-column:2;grid-row:1/3;flex:none;
+  background:var(--rb-v4-group-soft);color:var(--rb-v4-group-color);
+}
+@media(max-width:390px){
+  #program .rb-program-day .rb-program-tasks{gap:15px;}
+  #program .rb-v4-subject-heading-title strong{font-size:14px;}
+  #program .rb-v4-subject-heading .rb-v4-subject-icon{width:33px;height:33px;flex-basis:33px;}
+  #program .rb-v4-subject-icon svg{width:19px;height:19px;}
+}
