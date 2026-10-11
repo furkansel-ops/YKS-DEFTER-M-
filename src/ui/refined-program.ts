@@ -1,7 +1,8 @@
 import "./refined-program.css";
+import {renderSmartProgram} from "./smart-program";
 
 type ProgramBlock="r"|"s";
-type ProgramView="day"|"week";
+type ProgramView="day"|"week"|"smart";
 export type RefinedProgramTask={id:string;block:ProgramBlock;row:number;day:number;text:string;label:string;done:boolean};
 export type ProgramAddResult={ok:boolean;reason?:"invalid"|"full"|"save";days?:number[]};
 export interface RefinedProgramBridge{
@@ -208,7 +209,7 @@ export function installRefinedProgram():ProgramApi{
   });
   const heading=element("header","rb-program-heading"),weekSummary=element("div","rb-program-week-summary");heading.append(element("h1","","Programım"),element("p","","Haftanı takvim görünümünde gör; derslerini gün gün takip et."),weekSummary);
   const tabs=element("div","rb-program-tabs");tabs.setAttribute("role","group");tabs.setAttribute("aria-label","Program görünümü");
-  const daily=button("Günlük"),weekly=button("Haftalık");tabs.append(daily,weekly);
+  const daily=button("Günlük"),weekly=button("Haftalık"),smart=button("Akıllı Plan");tabs.append(daily,weekly,smart);
   const weekNav=element("div","rb-program-weeknav"),previous=button("‹"),next=button("›"),weekLabel=element("span"),today=button("Bugün","rb-program-today");
   previous.setAttribute("aria-label","Önceki hafta");next.setAttribute("aria-label","Sonraki hafta");weekNav.append(previous,weekLabel,today,next);
   const strip=element("div","rb-program-weekstrip");strip.setAttribute("role","group");strip.setAttribute("aria-label","Program günü");
@@ -238,6 +239,7 @@ export function installRefinedProgram():ProgramApi{
   const openEditor=(task:RefinedProgramTask,week=controller.snapshot().week)=>{editingTaskId=task.id;editingWeek=week;editorInput.value=task.text;editorHint.textContent="En fazla 600 karakter. Değişiklik mevcut çalışmanın üzerine kaydedilir.";editor.hidden=false;requestAnimationFrame(()=>{editorInput.focus();editorInput.setSelectionRange(editorInput.value.length,editorInput.value.length);});};
 
   const weeklyPanel=element("section","rb-program-week-grid");weeklyPanel.id="refinedProgramWeek";weeklyPanel.setAttribute("aria-label","Haftalık ders takvimi");
+  const smartPanel=element("section","rb-program-smart");smartPanel.id="refinedProgramSmart";smartPanel.setAttribute("aria-label","Akıllı program önerileri ve haftalık analiz");
   const summary=element("div","rb-program-summary"),dayLabel=element("h2"),completion=element("div","rb-program-completion"),count=element("span"),progress=element("progress");progress.max=100;progress.setAttribute("aria-label","Günlük görev tamamlama");completion.append(count,progress);summary.append(dayLabel,completion);
   const list=element("div","rb-program-tasks");dailyPanel.append(summary,list);
   const actions=element("div","rb-program-actions"),toolbar=element("div","rb-program-toolbar"),add=button("","rb-program-add"),share=button("","rb-program-share"),shareStatus=element("p","rb-program-share-status");
@@ -270,7 +272,7 @@ export function installRefinedProgram():ProgramApi{
   const draftButtons=SHORT_DAYS.map((label,index)=>{const node=button(label);node.setAttribute("aria-label",FULL_DAYS[index]!);node.addEventListener("click",()=>{if(draftDays.has(index))draftDays.delete(index);else draftDays.add(index);updatePreview();});dayOptions.append(node);return node;});
   for(const [label,days] of [["Seçili gün",null],["Hafta içi",[0,1,2,3,4]],["Her gün",[0,1,2,3,4,5,6]]] as const){const node=button(label);node.addEventListener("click",()=>{draftDays=new Set(days??[controller.snapshot().day]);updatePreview();});dayShortcuts.append(node);}
   daysField.append(element("legend","","Hangi günlere eklensin?"),dayOptions,dayShortcuts);preview.append(previewText,previewDays);form.append(formTabs,builder,custom,resourceField,daysField,preview,hint,formActions);
-  toolbar.append(tabs,add);actions.append(share,shareStatus);root.append(heading,toolbar,weekNav,strip,form,feedback,dailyPanel,weeklyPanel,actions,detailDialog,editor);
+  toolbar.append(tabs,add);actions.append(share,shareStatus);root.append(heading,toolbar,weekNav,strip,form,feedback,dailyPanel,weeklyPanel,smartPanel,actions,detailDialog,editor);
   let destroyed=false,queued=false;
   const quickText=()=>{const item=subject.value===""?undefined:subjects[Number(subject.value)];return item?refinedProgramQuickText(`${item.exam} ${item.name.replace(/\s*\(AYT\)$/,"")}`,topic.value,questions.value,minutes.value):null;};
   function syncTopics(){topic.replaceChildren(new Option("Genel çalışma",""));const item=subject.value===""?undefined:subjects[Number(subject.value)];item?.topics.forEach(name=>topic.append(new Option(name,name)));topic.disabled=!item;updatePreview();}
@@ -288,8 +290,8 @@ export function installRefinedProgram():ProgramApi{
   const originalShare=()=>legacyPanel.querySelector<HTMLButtonElement>("#studentCoachProgramShare [data-coach-share-now]");
   function refresh():void{
     const state=controller.snapshot(),isDaily=state.view==="day",selected=parseDate(state.date),start=parseDate(state.week),end=parseDate(offsetDate(state.week,6));
-    screen.dataset.refinedProgram=state.view;daily.setAttribute("aria-pressed",String(isDaily));weekly.setAttribute("aria-pressed",String(!isDaily));
-    daily.setAttribute("aria-controls",dailyPanel.id);weekly.setAttribute("aria-controls",weeklyPanel.id);dailyPanel.hidden=!isDaily;weeklyPanel.hidden=isDaily;legacyPanel.hidden=true;
+    screen.dataset.refinedProgram=state.view;daily.setAttribute("aria-pressed",String(isDaily));weekly.setAttribute("aria-pressed",String(state.view==="week"));smart.setAttribute("aria-pressed",String(state.view==="smart"));
+    daily.setAttribute("aria-controls",dailyPanel.id);weekly.setAttribute("aria-controls",weeklyPanel.id);smart.setAttribute("aria-controls",smartPanel.id);dailyPanel.hidden=!isDaily;weeklyPanel.hidden=state.view!=="week";smartPanel.hidden=state.view!=="smart";legacyPanel.hidden=true;
     const total=state.days.reduce((sum,item)=>sum+item.count,0),completed=state.days.reduce((sum,item)=>sum+item.done,0);
     weekSummary.textContent=`Haftalık plan · ${total} çalışma · ${completed} tamamlandı`;
     weekLabel.textContent=start&&end?`${start.toLocaleDateString("tr-TR",{day:"numeric",month:"short"})} – ${end.toLocaleDateString("tr-TR",{day:"numeric",month:"short",year:"numeric"})}`:"";
@@ -367,11 +369,26 @@ export function installRefinedProgram():ProgramApi{
       }
       weeklyPanel.append(calendarMeta,calendar);
     }
+    if(state.view==="smart"){
+      const rawState=object((window as unknown as ProgramWindow).S||window.YKSLegacyState?.readState?.());
+      const items=state.days.flatMap((_,index)=>controller.tasksForDay(index).map(task=>({
+        id:task.id,day:index,text:task.text,subject:refinedProgramSubjectLabel(task.text,task.label),done:task.done
+      })));
+      renderSmartProgram(smartPanel,{week:state.week,today:todayKey,tasks:items,focusMinutes:rawState.pomoMin},{
+        onDraft:(text,day)=>{
+          draftWeek=state.week;draftDays=new Set([day]);form.hidden=false;add.setAttribute("aria-expanded","true");
+          setMode(false);input.value=text;updatePreview();hint.textContent="Öneri taslağa alındı. Kaydetmeden önce günü ve çalışmayı kontrol et.";
+          form.scrollIntoView({block:"start",behavior:"smooth"});input.focus();
+        },
+        onWeekly:()=>showView("week"),
+        onAdd:()=>{add.click();}
+      });
+    }
     const realShare=originalShare();share.hidden=!realShare;shareStatus.hidden=!realShare;
     if(realShare){share.disabled=realShare.disabled;const status=legacyPanel.querySelector("#studentCoachProgramShare [data-coach-share-status]")?.textContent;if(status)shareStatus.textContent=status;}
   }
   const showView=(view:ProgramView)=>{controller.setView(view);refresh();};
-  daily.addEventListener("click",()=>showView("day"));weekly.addEventListener("click",()=>showView("week"));
+  daily.addEventListener("click",()=>showView("day"));weekly.addEventListener("click",()=>showView("week"));smart.addEventListener("click",()=>showView("smart"));
   previous.addEventListener("click",()=>{controller.moveWeek(-1);refresh();});next.addEventListener("click",()=>{controller.moveWeek(1);refresh();});today.addEventListener("click",()=>{controller.today();refresh();});
   add.addEventListener("click",()=>{form.hidden=!form.hidden;add.setAttribute("aria-expanded",String(!form.hidden));hint.textContent="";feedback.textContent="";if(!form.hidden){const state=controller.snapshot();draftWeek=state.week;draftDays=new Set([state.day]);updatePreview();(quickMode?subject:input).focus();}});
   cancel.addEventListener("click",()=>{form.hidden=true;add.setAttribute("aria-expanded","false");add.focus();});
