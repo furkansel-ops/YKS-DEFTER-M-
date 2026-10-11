@@ -64,7 +64,7 @@ jobs:
     name: API 36 · Android lint ve unit test
     needs: web-check
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 40
     steps:
       - name: Kaynak kodu al
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -92,7 +92,7 @@ jobs:
       - name: Android SDK 36 ortamını hazırla
         uses: android-actions/setup-android@40fd30fb8d7440372e1316f5d1809ec01dcd3699 # v4
         with:
-          packages: "platform-tools platforms;android-36 build-tools;36.0.0"
+          packages: "platform-tools platforms;android-36 build-tools;36.0.0 emulator system-images;android-36;google_apis;x86_64"
 
       - name: Bağımlılıkları kilit dosyasından kur
         run: npm ci --no-audit --no-fund
@@ -114,12 +114,136 @@ jobs:
           npm run build:assets
           npx cap sync android
 
-      - name: Gradle wrapper, Android lint ve unit testlerini çalıştır
+      - name: Gradle wrapper, Android lint, unit testleri ve deneme APK'sını üret
         working-directory: android
         run: |
           chmod +x ./gradlew
           ./gradlew --no-daemon --warning-mode all --version
-          ./gradlew --no-daemon --warning-mode all lintRelease testReleaseUnitTest
+          ./gradlew --no-daemon --warning-mode all lintRelease testReleaseUnitTest assembleDebug :app:assembleDebugAndroidTest
+
+      - name: Android 16 üzerinde gerçek bildirim ve WebView testlerini çalıştır
+        timeout-minutes: 15
+        working-directory: android
+        shell: bash
+        env:
+          ANDROID_SERIAL: emulator-5554
+        run: |
+          set -euo pipefail
+          runtime_dir="$RUNNER_TEMP/android-runtime"
+          mkdir -p "$runtime_dir"
+          test -c /dev/kvm
+          sudo chmod a+rw /dev/kvm
+          "$ANDROID_HOME/emulator/emulator" -accel-check
+          adb start-server
+          printf 'no\n' | avdmanager create avd \
+            --name yks-api36-review \
+            --package "system-images;android-36;google_apis;x86_64" \
+            --device pixel_6
+          "$ANDROID_HOME/emulator/emulator" -avd yks-api36-review \
+            -port 5554 -no-window -no-audio -no-snapshot -no-boot-anim \
+            -no-metrics -gpu swiftshader -memory 2048 -cores 2 \
+            -camera-back none -camera-front none \
+            > "$runtime_dir/emulator.log" 2>&1 &
+          emulator_pid=$!
+          cleanup() {
+            timeout 20s adb -s "$ANDROID_SERIAL" logcat -d -v threadtime \
+              > "$runtime_dir/logcat.txt" 2>&1 || true
+            timeout 10s adb -s "$ANDROID_SERIAL" emu kill >/dev/null 2>&1 || true
+            kill "$emulator_pid" 2>/dev/null || true
+          }
+          trap cleanup EXIT
+          booted=false
+          deadline=$((SECONDS + 240))
+          while [ "$SECONDS" -lt "$deadline" ]; do
+            if ! kill -0 "$emulator_pid" 2>/dev/null; then
+              echo "::error::Android emülatörü açılış sırasında kapandı."
+              exit 1
+            fi
+            boot_state="$(timeout 10s adb -s "$ANDROID_SERIAL" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r' || true)"
+            if [ "$boot_state" = "1" ]; then
+              booted=true
+              break
+            fi
+            sleep 3
+          done
+          if [ "$booted" != true ]; then
+            echo "::error::Android 16 emülatörü 240 saniyede hazır olmadı."
+            exit 1
+          fi
+          adb -s "$ANDROID_SERIAL" shell input keyevent 82
+          adb -s "$ANDROID_SERIAL" shell settings put global window_animation_scale 0
+          adb -s "$ANDROID_SERIAL" shell settings put global transition_animation_scale 0
+          adb -s "$ANDROID_SERIAL" shell settings put global animator_duration_scale 0
+          timeout --signal=TERM 10m ./gradlew --no-daemon --warning-mode all \
+            :app:connectedDebugAndroidTest \
+            -Pandroid.testInstrumentationRunnerArguments.class=com.furkansel.yksdefterim.FocusNotificationsInstrumentedTest
+
+      - name: Android çalışma zamanı test raporlarını yükle
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: yks-android-runtime-${{ github.event.pull_request.number || github.run_number }}
+          path: |
+            android/app/build/reports/androidTests/connected/**
+            android/app/build/outputs/androidTest-results/connected/**
+            ${{ runner.temp }}/android-runtime/*
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Deneme APK'sını ve kaynak kimliğini doğrula
+        shell: bash
+        env:
+          REVIEW_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          REVIEW_BUILD_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          apk="android/app/build/outputs/apk/debug/app-debug.apk"
+          artifact_dir="$RUNNER_TEMP/native-review-artifact"
+          build_tools="$ANDROID_HOME/build-tools/36.0.0"
+          test -s "$apk"
+          unzip -t "$apk" >/dev/null
+          mkdir -p "$artifact_dir"
+          "$build_tools/apksigner" verify --verbose --print-certs "$apk" \
+            > "$artifact_dir/apk-signature.txt"
+          "$build_tools/aapt" dump badging "$apk" > "$artifact_dir/apk-badging.txt"
+          node -e '
+            const fs = require("node:fs");
+            const path = require("node:path");
+            const dir = process.argv[1];
+            const metadata = JSON.parse(fs.readFileSync("android/app/build/outputs/apk/debug/output-metadata.json", "utf8"));
+            const release = JSON.parse(fs.readFileSync("version.json", "utf8"));
+            const badging = fs.readFileSync(path.join(dir, "apk-badging.txt"), "utf8");
+            const apk = metadata.elements?.find(item => item.outputFile === "app-debug.apk");
+            if (metadata.applicationId !== "com.furkansel.yksdefterim" || metadata.variantName !== "debug" || !apk) {
+              throw new Error("Beklenen debug APK kimliği doğrulanamadı");
+            }
+            if (!badging.includes("application-debuggable")) throw new Error("Deneme APK debug olarak işaretlenmemiş");
+            if (!badging.includes("targetSdkVersion:\u002736\u0027")) throw new Error("APK target SDK 36 değil");
+            if (!badging.includes("sdkVersion:\u002724\u0027")) throw new Error("APK min SDK 24 değil");
+            fs.writeFileSync(path.join(dir, "review-metadata.json"), JSON.stringify({
+              purpose: "Physical-device review only; not a Play release",
+              applicationId: metadata.applicationId,
+              variant: metadata.variantName,
+              versionCode: apk.versionCode,
+              versionName: apk.versionName,
+              webBuild: release.build,
+              sourceCommit: process.env.REVIEW_SOURCE_SHA,
+              testedCheckout: process.env.REVIEW_BUILD_SHA,
+              signing: "Android debug key; no release signing secrets used"
+            }, null, 2) + "\n");
+          ' "$artifact_dir"
+          cp "$apk" "$artifact_dir/YKS-Defterim-native-review.apk"
+          cp docs/native-focus-notifications.md "$artifact_dir/TEST-ADIMLARI.md"
+          (cd "$artifact_dir" && sha256sum YKS-Defterim-native-review.apk > YKS-Defterim-native-review.apk.sha256)
+
+      - name: Fiziksel cihaz denemesi için APK artefaktını yükle
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: yks-defterim-native-review-${{ github.event.pull_request.number || github.run_number }}
+          path: ${{ runner.temp }}/native-review-artifact/*
+          if-no-files-found: error
+          retention-days: 14
+          compression-level: 0
 
   signed-aab:
     name: API 36 · imzalı release AAB

@@ -156,3 +156,27 @@ test("diagnostics explain tablet permissions and suspended timer limits",()=>{
   assert.match(text,/Chrome.*Site ayarları/);assert.match(text,/tablet\/telefon/);
   assert.match(text,/askıya alınır/);assert.match(text,/garanti edilemez/);
 });
+
+test("Android settings permission uses the native focus controller and cannot post duplicate web notifications", async()=>{
+  const h=harness();
+  h.run('window.YKSFocusNotifications={native:true,enable:async()=>"granted",statusText:()=>"Android odak bildirimi etkin."}');
+  assert.equal(await h.run("askNotif()"),"granted");assert.equal(h.requests,0);
+  assert.equal(await h.run('notify("Odak","Bitti","pomo")'),false);
+  assert.equal(h.sent.length,0);assert.equal(h.desktop.length,0);
+  h.nodes.set("notifStatus",{textContent:"",style:{}});h.nodes.set("notifDiag",{textContent:""});
+  h.run("renderNotifSettings()");
+  assert.match(h.nodes.get("notifStatus").textContent,/Android odak bildirimi etkin/);
+  assert.match(h.nodes.get("notifStatus").textContent,/Genel hatırlatmalar web sürümünde/);
+  assert.doesNotMatch(h.run("notifDiag()"),/Chrome|tarayıcı|iPhone/);
+  assert.equal(await h.run("testNotif()"),false);assert.equal(h.sent.length,0);
+  assert.match(h.toasts.at(-1),/Odak bölümünde süre başlat/);
+});
+
+test("Android startup cannot send web notices before the focus adapter loads", async()=>{
+  const h=harness();
+  h.run('window.Capacitor={isNativePlatform:()=>true}');
+  assert.equal(await h.run('notify("Odak","Bitti","pomo")'),false);
+  assert.equal(await h.run("fireReview()"),false);
+  assert.equal(h.sent.length,0);assert.equal(h.desktop.length,0);
+  assert.equal(h.S.notif.lastReview,"", "suppressed reminders are not marked delivered");
+});

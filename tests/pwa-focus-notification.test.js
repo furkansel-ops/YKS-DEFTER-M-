@@ -27,15 +27,18 @@ test("Odak bildirimi açık sayfayı yeniden yüklemeden Odak ekranına yönlend
   assert.match(worker,/client\.postMessage\(\{ type: "YKS_FOCUS_OPEN" \}\)/);
   assert.match(worker,/await client\.focus\(\)/);
   assert.doesNotMatch(worker,/\.navigate\(/);
-  assert.match(bridge,/event\.data\?\.type==="YKS_FOCUS_OPEN"/);
+  assert.match(bridge,/message\?\.type==="YKS_FOCUS_OPEN"/);
   assert.match(bridge,/window\.go\?\.\("pomo"\)/);
 });
 
-test("Android kapsül ve native FocusTimer kodu paketten tamamen kaldırılmıştır",()=>{
+test("Android odak kontrolü ayrı plugin kullanır; eski servis ve web köprüsü geri gelmez",()=>{
   const manifest=read("android/app/src/main/AndroidManifest.xml");
   const activity=read("android/app/src/main/java/com/furkansel/yksdefterim/MainActivity.java");
-  assert.doesNotMatch(manifest,/POST_PROMOTED_NOTIFICATIONS|FOREGROUND_SERVICE_SPECIAL_USE|FocusTimerService/);
-  assert.doesNotMatch(activity,/FocusTimerPlugin|registerPlugin/);
+  assert.match(manifest,/POST_PROMOTED_NOTIFICATIONS/);
+  assert.match(manifest,/POST_NOTIFICATIONS/);
+  assert.doesNotMatch(manifest,/FOREGROUND_SERVICE_SPECIAL_USE|USE_EXACT_ALARM|SCHEDULE_EXACT_ALARM|FocusTimerService/);
+  assert.match(activity,/registerPlugin\(FocusNotificationsPlugin\.class\)/);
+  assert.doesNotMatch(activity,/FocusTimerPlugin/);
   assert.equal(fs.existsSync(path.join(root,"android/app/src/main/java/com/furkansel/yksdefterim/FocusTimerService.java")),false);
   assert.equal(fs.existsSync(path.join(root,"android/app/src/main/java/com/furkansel/yksdefterim/FocusTimerPlugin.java")),false);
   const app=read("app.js");
