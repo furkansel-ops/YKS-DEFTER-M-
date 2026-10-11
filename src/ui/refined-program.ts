@@ -158,6 +158,75 @@ function refinedProgramVisualTone(subject:string):string{
 function refinedProgramVisualIcon(tone:string):string{
   return ({math:"√x",biology:"❧",chemistry:"⚗",reading:"▣",physics:"⚡",other:"✦"} as Record<string,string>)[tone]||"✦";
 }
+
+export type RefinedProgramGroupKey="reading"|"math"|"physics"|"chemistry"|"biology"|"geometry"|"literature"|"history"|"geography"|"philosophy"|"religion"|"english"|"other";
+export type RefinedProgramDailyGroup={key:RefinedProgramGroupKey;title:string;tasks:RefinedProgramTask[]};
+const DAILY_GROUP_DEFINITIONS:ReadonlyArray<{key:RefinedProgramGroupKey;title:string;pattern:RegExp}>=[
+  {key:"reading",title:"Paragraf / Türkçe",pattern:/^(?:paragraf|türkçe|turkce|türk dili)(?:\b|\s|$)/i},
+  {key:"math",title:"Matematik",pattern:/^(?:matematik|matematiksel|math)(?:\b|\s|$)/i},
+  {key:"physics",title:"Fizik",pattern:/^(?:fizik|physics)(?:\b|\s|$)/i},
+  {key:"chemistry",title:"Kimya",pattern:/^(?:kimya|chemistry)(?:\b|\s|$)/i},
+  {key:"biology",title:"Biyoloji",pattern:/^(?:biyoloji|biology)(?:\b|\s|$)/i},
+  {key:"geometry",title:"Geometri",pattern:/^(?:geometri|geometry)(?:\b|\s|$)/i},
+  {key:"literature",title:"Edebiyat",pattern:/^(?:edebiyat|türk dili ve edebiyatı)(?:\b|\s|$)/i},
+  {key:"history",title:"Tarih",pattern:/^(?:tarih|history)(?:\b|\s|$)/i},
+  {key:"geography",title:"Coğrafya",pattern:/^(?:coğrafya|cografya|geography)(?:\b|\s|$)/i},
+  {key:"philosophy",title:"Felsefe",pattern:/^(?:felsefe|philosophy)(?:\b|\s|$)/i},
+  {key:"religion",title:"Din",pattern:/^(?:din kültürü|din\b|religion)(?:\s|$)/i},
+  {key:"english",title:"İngilizce / YDT",pattern:/^(?:ingilizce|i̇ngilizce|english|ydt)(?:\b|\s|$)/i},
+  {key:"other",title:"Diğer",pattern:/^$/}
+] as const;
+/** Classify by subject prefix, not a random word in the topic or note.
+ * Existing storage order and cell ids never change, only the rendered groups. */
+export function refinedProgramDailyGroupKey(task:Pick<RefinedProgramTask,"text"|"label">):RefinedProgramGroupKey{
+  const work=refinedProgramSplitExtras(task.text).work
+    .replace(/^Koç\s*·\s*(?:Deneme sonrası\s*·\s*)?/i,"").trim();
+  const candidate=work.split(/\s+·\s+|\n/)[0]?.replace(/^(?:TYT|AYT|YDT)\s+/i,"").trim()||"";
+  const label=String(task.label||"").replace(/^(?:TYT|AYT|YDT)\s+/i,"").trim();
+  for(const rawToken of [candidate,label]){
+    const token=rawToken.toLocaleLowerCase("tr-TR");
+    // This specific title contains both Türk dili and edebiyat; keep it under Edebiyat.
+    if(/^türk dili ve edebiyatı(?:\b|\s|$)/i.test(token))return "literature";
+    for(const entry of DAILY_GROUP_DEFINITIONS){
+      if(entry.key!=="other"&&entry.pattern.test(token))return entry.key;
+    }
+  }
+  return "other";
+}
+export function refinedProgramDailyGroups(tasks:readonly RefinedProgramTask[]):RefinedProgramDailyGroup[]{
+  const groups=new Map<RefinedProgramGroupKey,RefinedProgramTask[]>();
+  for(const task of tasks){
+    const key=refinedProgramDailyGroupKey(task),existing=groups.get(key);
+    if(existing)existing.push(task);else groups.set(key,[task]);
+  }
+  return DAILY_GROUP_DEFINITIONS.flatMap(({key,title})=>{
+    const matching=groups.get(key);
+    return matching?.length?[{key,title,tasks:matching}]:[];
+  });
+}
+/** Static Lucide-style outline vectors shared by headings and individual lesson cards. */
+function refinedProgramSubjectIcon(key:RefinedProgramGroupKey):HTMLElement{
+  const paths:Record<RefinedProgramGroupKey,string>={
+    reading:'<path d="M12 7v14"/><path d="M3 18V5.5A2.5 2.5 0 0 1 5.5 3H9a3 3 0 0 1 3 3 3 3 0 0 1 3-3h3.5A2.5 2.5 0 0 1 21 5.5V18h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3H3Z"/>',
+    math:'<rect x="5" y="2.5" width="14" height="19" rx="2"/><path d="M8 7h8M8.5 11h1m5 0h1m-7 4h1m5 0h1m-7 3h1m5 0h1"/>',
+    physics:'<circle cx="12" cy="12" r="1.7"/><ellipse cx="12" cy="12" rx="9" ry="3.6"/><ellipse cx="12" cy="12" rx="9" ry="3.6" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="9" ry="3.6" transform="rotate(120 12 12)"/>',
+    chemistry:'<path d="M9 3h6M10 3v7l-5.8 9a2 2 0 0 0 1.7 3h12.2a2 2 0 0 0 1.7-3L14 10V3M7.6 16h8.8"/>',
+    biology:'<path d="M20 4C10 3 4 8 4 15a5 5 0 0 0 5 5c7 0 12-8 11-16Z"/><path d="M6 18c3-4 6-7 12-10"/>',
+    geometry:'<path d="m12 3 10 18H2L12 3Z"/><path d="M12 10v5m0 3h.01"/>',
+    literature:'<path d="m15.5 4.5 4 4L9 19l-5 1 1-5L15.5 4.5ZM13 7l4 4"/>',
+    history:'<path d="M3 10h18M5 10v9m5-9v9m4-9v9m5-9v9M2 21h20M3 7l9-5 9 5v3H3V7Z"/>',
+    geography:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c-3 3-3 15 0 18M12 3c3 3 3 15 0 18"/>',
+    philosophy:'<path d="M12 18v3m-4 0h8M9 17a7 7 0 1 1 6 0c-1.5 1-1.5 2-3 2s-1.5-1-3-2Z"/>',
+    religion:'<path d="m12 2 2.8 6.4L22 9l-5.4 4.7 1.6 7.3L12 17.2 5.8 21l1.6-7.3L2 9l7.2-.6L12 2Z"/>',
+    english:'<path d="M4 6h13M10 4v2m-4 0c0 6 3 9 8 11m1-11c0 6-3 9-9 11M14 21l4-10 4 10m-7-3h6"/>',
+    other:'<rect x="5" y="3" width="14" height="19" rx="2"/><path d="M9 3.5h6M9 11h6m-6 4h6m-6 4h3"/>'
+  };
+  const icon=element("span","rb-v4-subject-icon");
+  icon.setAttribute("aria-hidden","true");
+  icon.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+paths[key]+"</svg>";
+  return icon;
+}
+
 function refinedProgramSubjectTone(label:string):number{
   let hash=0;for(const char of label)hash=(hash*31+char.charCodeAt(0))>>>0;
   return hash%6;
@@ -358,13 +427,21 @@ export function installRefinedProgram():ProgramApi{
     const focused=document.activeElement instanceof HTMLElement?document.activeElement.dataset.rbProgramFocus:undefined;
     list.replaceChildren();
     if(!state.tasks.length){const empty=element("div","rb-program-empty");empty.append(element("strong","","Bu günün planı henüz boş"),element("p","","Çalışma ekle’ye dokun; dersini ve konunu seç. Aynı çalışmayı birden fazla güne de ekleyebilirsin."));list.append(empty);}
-    for(const task of state.tasks){
+    for(const group of refinedProgramDailyGroups(state.tasks)){
+      const section=element("section","rb-v4-subject-section");
+      section.dataset.v4Group=group.key;
+      const groupHeading=element("div","rb-v4-subject-heading");
+      const groupName=element("div","rb-v4-subject-heading-title");
+      groupName.append(element("strong","",group.title),element("small","",group.tasks.length+" görev"));
+      groupHeading.append(refinedProgramSubjectIcon(group.key),groupName);
+      const cards=element("div","rb-v4-subject-cards");
+      section.append(groupHeading,cards);list.append(section);
+      for(const task of group.tasks){
       const card=element("article","rb-program-task");card.toggleAttribute("data-done",task.done);card.dataset.taskId=task.id;
-      const label=refinedProgramSubjectLabel(task.text,task.label),v4Tone=refinedProgramVisualTone(label);
-      card.dataset.v4Tone=v4Tone;
+      const label=refinedProgramSubjectLabel(task.text,task.label);
+      card.dataset.v4Tone=group.key;
       const check=button("","rb-program-check"),details=button("","rb-program-task-details"),copy=element("span","rb-program-task-copy"),openMark=element("span","rb-program-task-open","›");
-      const subjectIcon=element("span","rb-v4-subject-icon",refinedProgramVisualIcon(v4Tone));
-      subjectIcon.setAttribute("aria-hidden","true");
+      const subjectIcon=refinedProgramSubjectIcon(group.key);
       check.setAttribute("aria-pressed",String(task.done));check.setAttribute("aria-label",`${task.text}: ${task.done?"tamamlanmadı olarak işaretle":"tamamla"}`);if(task.done)check.append(icon("check"));
       const extras=refinedProgramSplitExtras(task.text),info=refinedProgramTaskDetail(extras.work,task.label);
       const meta=info.meta===task.label?"":info.meta;
@@ -388,7 +465,8 @@ export function installRefinedProgram():ProgramApi{
         }else openEditor(task,state.week,"material");
       });
       chips.append(videoChip,noteChip,materialChip);
-      card.append(check,subjectIcon,details,chips);list.append(card);
+      card.append(check,subjectIcon,details,chips);cards.append(card);
+      }
     }
     const weekFocus=document.activeElement instanceof HTMLElement?document.activeElement.dataset.rbWeekTask:undefined;
     weeklyPanel.replaceChildren();
