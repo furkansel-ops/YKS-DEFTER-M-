@@ -13,7 +13,7 @@ const runtime=stripTypeScriptTypes(source
   .replace(/^import "\.\/refined-program-v4\.css";\r?\n/,"")
   .replace(/^import \{renderSmartProgram\} from "\.\/smart-program";\r?\n/,""),{mode:"strip"}).replace(/^export /gm,"");
 const api=vm.runInNewContext(runtime+
-  "\n({refinedProgramDailyGroupKey,refinedProgramDailyGroups,refinedProgramTasks})",{Date,URL});
+  "\n({refinedProgramDailyGroupKey,refinedProgramDailyGroups,refinedProgramDailyGroupProgress,refinedProgramTasks})",{Date,URL});
 const plain=val=>JSON.parse(JSON.stringify(val));
 const task=(id,text,label="Çalışma",done=false)=>({id,block:"s",row:Number(id.slice(1))||0,day:2,text,label,done});
 
@@ -97,4 +97,50 @@ test("grouped cards still use the existing task actions with no false changes to
   assert.match(css,/\.rb-v4-subject-icon svg/);
   assert.match(css,/@media\(max-width:390px\)/);
   assert.doesNotMatch(source,/setDoc\(/);
+});
+
+
+test("group progress reflects completion without altering source data",()=>{
+  const tasks=[
+    task("t0","Matematik · 20 soru","Matematik",true),
+    task("t1","AYT Matematik · 20 soru","Matematik",false),
+    task("t2","Mat · Temel Kavramlar","Matematik",true)
+  ];
+  const group=plain(api.refinedProgramDailyGroups(tasks)).find(item=>item.key==="math");
+  const before=JSON.stringify(group);
+  assert.deepEqual(plain(api.refinedProgramDailyGroupProgress(group)),{done:2,total:3,percent:67});
+  assert.equal(JSON.stringify(group),before);
+  assert.deepEqual(plain(api.refinedProgramDailyGroupProgress({key:"other",title:"Diğer",tasks:[]})),{done:0,total:0,percent:0});
+  assert.deepEqual(plain(api.refinedProgramDailyGroupProgress({key:"biology",title:"Biyoloji",tasks:[task("t9","Biyoloji", "Biyoloji",true)]})),{done:1,total:1,percent:100});
+});
+
+test("abbreviated subjects are grouped without reading an incidental topic keyword",()=>{
+  for(const [work,expected] of [
+    ["TYT Mat · Problemler","math"],
+    ["AYT Geo · Üçgenler","geometry"],
+    ["TYT Fiz · Hareket","physics"],
+    ["TYT Kim · Asitler","chemistry"],
+    ["Biyo · DNA","biology"],
+    ["Problemler · 20 soru","math"],
+    ["Paragraf · 25 soru","reading"],
+    ["TYT Matematik · Biyoloji problemleri","math"],
+    ["Deneme · Paragraf yanlışları","other"]
+  ])assert.equal(api.refinedProgramDailyGroupKey(task("t1",work)),expected,work);
+});
+
+test("subject fold state is UI only, date scoped, keyboard accessible and survives task refresh",()=>{
+  assert.match(source,/collapsedDailyGroups=new Set<string>\(\)/);
+  assert.match(source,/groupId=state\.date\+"\|"\+group\.key/);
+  assert.match(source,/groupHeading=button\("","rb-v4-subject-heading"\)/);
+  assert.match(source,/groupHeading\.setAttribute\("aria-expanded",String\(!folded\)\)/);
+  assert.match(source,/cards\.hidden=folded/);
+  assert.match(source,/collapsedDailyGroups\.delete\(groupId\)/);
+  assert.match(source,/collapsedDailyGroups\.add\(groupId\)/);
+  assert.match(source,/groupProgress\.append\(progressFill\)/);
+  assert.match(source,/groupName\.append\(element\("strong","",group\.title\),element\("small","",status\.done\+"\/"\+status\.total\+" tamamlandı"\)\)/);
+  assert.match(source,/check\.dataset\.rbProgramFocus=task\.id/);
+  assert.match(source,/replacement\?\.focus\(\{preventScroll:true\}\)/);
+  assert.match(css,/\.rb-v4-subject-cards\[hidden\]\{display:none!important\}/);
+  assert.match(css,/\.rb-v4-subject-heading:focus-visible/);
+  assert.match(css,/prefers-reduced-motion:reduce/);
 });
