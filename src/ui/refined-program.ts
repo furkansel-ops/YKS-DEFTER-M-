@@ -163,11 +163,11 @@ export type RefinedProgramGroupKey="reading"|"math"|"physics"|"chemistry"|"biolo
 export type RefinedProgramDailyGroup={key:RefinedProgramGroupKey;title:string;tasks:RefinedProgramTask[]};
 const DAILY_GROUP_DEFINITIONS:ReadonlyArray<{key:RefinedProgramGroupKey;title:string;pattern:RegExp}>=[
   {key:"reading",title:"Paragraf / Türkçe",pattern:/^(?:paragraf|türkçe|turkce|türk dili)(?:\b|\s|$)/i},
-  {key:"math",title:"Matematik",pattern:/^(?:matematik|matematiksel|math)(?:\b|\s|$)/i},
-  {key:"physics",title:"Fizik",pattern:/^(?:fizik|physics)(?:\b|\s|$)/i},
-  {key:"chemistry",title:"Kimya",pattern:/^(?:kimya|chemistry)(?:\b|\s|$)/i},
-  {key:"biology",title:"Biyoloji",pattern:/^(?:biyoloji|biology)(?:\b|\s|$)/i},
-  {key:"geometry",title:"Geometri",pattern:/^(?:geometri|geometry)(?:\b|\s|$)/i},
+  {key:"math",title:"Matematik",pattern:/^(?:matematik|matematiksel|math|mat|problem|problemler)(?:\b|\s|$)/i},
+  {key:"physics",title:"Fizik",pattern:/^(?:fizik|physics|fiz)(?:\b|\s|$)/i},
+  {key:"chemistry",title:"Kimya",pattern:/^(?:kimya|chemistry|kim)(?:\b|\s|$)/i},
+  {key:"biology",title:"Biyoloji",pattern:/^(?:biyoloji|biology|biyo|bio)(?:\b|\s|$)/i},
+  {key:"geometry",title:"Geometri",pattern:/^(?:geometri|geometry|geo)(?:\b|\s|$)/i},
   {key:"literature",title:"Edebiyat",pattern:/^(?:edebiyat|türk dili ve edebiyatı)(?:\b|\s|$)/i},
   {key:"history",title:"Tarih",pattern:/^(?:tarih|history)(?:\b|\s|$)/i},
   {key:"geography",title:"Coğrafya",pattern:/^(?:coğrafya|cografya|geography)(?:\b|\s|$)/i},
@@ -192,6 +192,11 @@ export function refinedProgramDailyGroupKey(task:Pick<RefinedProgramTask,"text"|
     }
   }
   return "other";
+}
+/** Keep completion progress derived from the displayed tasks, never persisted or synced. */
+export function refinedProgramDailyGroupProgress(group:RefinedProgramDailyGroup):{done:number;total:number;percent:number}{
+  const total=group.tasks.length,done=group.tasks.filter(task=>task.done).length;
+  return {done,total,percent:total?Math.round(done/total*100):0};
 }
 export function refinedProgramDailyGroups(tasks:readonly RefinedProgramTask[]):RefinedProgramDailyGroup[]{
   const groups=new Map<RefinedProgramGroupKey,RefinedProgramTask[]>();
@@ -394,6 +399,8 @@ export function installRefinedProgram():ProgramApi{
   daysField.append(element("legend","","Hangi günlere eklensin?"),dayOptions,dayShortcuts);preview.append(previewText,previewDays);form.append(formTabs,builder,custom,resourceField,daysField,preview,hint,formActions);
   toolbar.append(tabs,add);actions.append(share,shareStatus);root.append(heading,toolbar,weekNav,strip,form,feedback,dailyPanel,weeklyPanel,smartPanel,actions,detailDialog,editor);
   let destroyed=false,queued=false;
+  // UI-only fold state, scoped by exact date and subject; never touches S.weeks or Firestore.
+  const collapsedDailyGroups=new Set<string>();
   const quickText=()=>{const item=subject.value===""?undefined:subjects[Number(subject.value)];return item?refinedProgramQuickText(`${item.exam} ${item.name.replace(/\s*\(AYT\)$/,"")}`,topic.value,questions.value,minutes.value):null;};
   function syncTopics(){topic.replaceChildren(new Option("Genel çalışma",""));const item=subject.value===""?undefined:subjects[Number(subject.value)];item?.topics.forEach(name=>topic.append(new Option(name,name)));topic.disabled=!item;updatePreview();}
   function updatePreview(){
@@ -430,17 +437,40 @@ export function installRefinedProgram():ProgramApi{
     for(const group of refinedProgramDailyGroups(state.tasks)){
       const section=element("section","rb-v4-subject-section");
       section.dataset.v4Group=group.key;
-      const groupHeading=element("div","rb-v4-subject-heading");
+      const status=refinedProgramDailyGroupProgress(group),groupId=state.date+"|"+group.key;
+      const folded=collapsedDailyGroups.has(groupId);
+      section.toggleAttribute("data-complete",status.total>0&&status.done===status.total);
+      const groupHeading=button("","rb-v4-subject-heading");
+      groupHeading.setAttribute("aria-label",group.title+": "+status.done+"/"+status.total+" tamamlandı, "+(folded?"genişlet":"daralt"));
+      groupHeading.setAttribute("aria-expanded",String(!folded));
       const groupName=element("div","rb-v4-subject-heading-title");
-      groupName.append(element("strong","",group.title),element("small","",group.tasks.length+" görev"));
-      groupHeading.append(refinedProgramSubjectIcon(group.key),groupName);
+      groupName.append(element("strong","",group.title),element("small","",status.done+"/"+status.total+" tamamlandı"));
+      const groupProgress=element("div","rb-v4-subject-progress"),progressFill=element("i");
+      progressFill.style.width=status.percent+"%";
+      groupProgress.setAttribute("aria-hidden","true");
+      groupProgress.append(progressFill);
+      const groupIndicator=element("span","rb-v4-subject-expand");
+      groupIndicator.setAttribute("aria-hidden","true");
+      groupIndicator.textContent="⌄";
       const cards=element("div","rb-v4-subject-cards");
+      cards.id="rb-v4-tasks-"+state.week+"-"+state.day+"-"+group.key;
+      cards.hidden=folded;
+      groupHeading.setAttribute("aria-controls",cards.id);
+      groupHeading.append(refinedProgramSubjectIcon(group.key),groupName,groupProgress,groupIndicator);
+      groupHeading.addEventListener("click",()=>{
+        const next=groupHeading.getAttribute("aria-expanded")!=="true";
+        cards.hidden=!next;
+        groupHeading.setAttribute("aria-expanded",String(next));
+        groupHeading.setAttribute("aria-label",group.title+": "+status.done+"/"+status.total+" tamamlandı, "+(next?"daralt":"genişlet"));
+        if(next)collapsedDailyGroups.delete(groupId);else collapsedDailyGroups.add(groupId);
+      });
       section.append(groupHeading,cards);list.append(section);
       for(const task of group.tasks){
       const card=element("article","rb-program-task");card.toggleAttribute("data-done",task.done);card.dataset.taskId=task.id;
       const label=refinedProgramSubjectLabel(task.text,task.label);
       card.dataset.v4Tone=group.key;
       const check=button("","rb-program-check"),details=button("","rb-program-task-details"),copy=element("span","rb-program-task-copy"),openMark=element("span","rb-program-task-open","›");
+      check.dataset.rbProgramFocus=task.id;
       const subjectIcon=refinedProgramSubjectIcon(group.key);
       check.setAttribute("aria-pressed",String(task.done));check.setAttribute("aria-label",`${task.text}: ${task.done?"tamamlanmadı olarak işaretle":"tamamla"}`);if(task.done)check.append(icon("check"));
       const extras=refinedProgramSplitExtras(task.text),info=refinedProgramTaskDetail(extras.work,task.label);
@@ -467,6 +497,11 @@ export function installRefinedProgram():ProgramApi{
       chips.append(videoChip,noteChip,materialChip);
       card.append(check,subjectIcon,details,chips);cards.append(card);
       }
+    }
+    // Checkbox remains keyboard-focusable after the legacy save triggers a full refresh.
+    if(focused){
+      const replacement=[...list.querySelectorAll<HTMLButtonElement>("[data-rb-program-focus]")].find(node=>node.dataset.rbProgramFocus===focused);
+      replacement?.focus({preventScroll:true});
     }
     const weekFocus=document.activeElement instanceof HTMLElement?document.activeElement.dataset.rbWeekTask:undefined;
     weeklyPanel.replaceChildren();
