@@ -59,8 +59,12 @@ test("adding work delegates to actual addToDay for the chosen future or past day
 
 test("full days and blank submissions cannot overwrite existing plan cells",()=>{
   const h=harness();h.state.weeks["2026-09-21"].s[0][4]="Matematik";h.state.weeks["2026-09-21"].s[1][4]="Biyoloji";
-  const before=JSON.stringify(h.state);assert.equal(h.controller.add("   "),false);assert.equal(h.controller.add("Kimya"),false);
+  const before=JSON.stringify(h.state);assert.equal(h.controller.add("   "),false);
   assert.equal(JSON.stringify(h.state),before);assert.equal(h.calls.filter(call=>call[0]==="save").length,0);
+  assert.equal(h.controller.add("Kimya"),true);
+  assert.equal(h.state.weeks["2026-09-21"].s[0][4],"Matematik");
+  assert.equal(h.state.weeks["2026-09-21"].s[1][4],"Biyoloji");
+  assert.equal(h.state.weeks["2026-09-21"].s[2][4],"Kimya");
 });
 
 test("completion and weekly editing keep the same program cell identity",()=>{
