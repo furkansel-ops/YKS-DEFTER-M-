@@ -7,7 +7,7 @@ const root=path.resolve(__dirname,"..");
 const source=fs.readFileSync(path.join(root,"scripts/patch-teachers-v2-known-custom.mjs"),"utf8");
 const archive=fs.readFileSync(path.join(root,"scripts/build-teachers-v2-archives.mjs"),"utf8");
 const ui=fs.readFileSync(path.join(root,"src/ui/teachers-v2-media.ts"),"utf8");
-const norm=value=>String(value||"").toLocaleLowerCase("tr-TR").normalize("NFKD").replace(/[\\u0300-\\u036f]/g,"").replace(/[^a-z0-9ığüşöç]+/gi," ").trim();
+const norm=value=>String(value||"").toLocaleLowerCase("tr-TR").normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9ığüşöç]+/gi," ").trim();
 function extraction(from,to){
   const a=source.indexOf(from),b=source.indexOf(to,a);
   assert.ok(a>=0&&b>a,from+" source section");
