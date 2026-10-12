@@ -20,6 +20,8 @@ export const VERIFIED_CHANNELS={
 
   "Rüştü Hoca":{channelId:"UCyohoF5P2JFvc3KLLZRwDug",channelName:"Rüştü Hoca ile Türkçe",channelHandle:"@rustuhocaileturkce"},
   "Türkçenin Matematiği":{channelId:"UCCAmWzulVvB1DjnR5IQCTUQ",channelName:"Türkçenin Matematiği"},
+  "Kadir Gümüş":{channelHandle:"@BenimHocam",channelName:"Benim Hocam",searchOnly:true,queryHint:"Kadir Gümüş YKS TYT Türkçe AYT Edebiyat",focusTerms:["kadir gümüş","kadir gümus"]},
+  "Aker Kartal":{channelId:"UCWbEUy429vt1bWl7OgjTcDQ",channelHandle:"@akerkartal",channelName:"Aker Kartal"},
   "Deniz Hoca":{channelId:"UC_ke4VQZo9TewOf-p-LSx_Q",channelName:"Deniz Hoca"},
 
   "Özcan Aykın":{channelId:"UC_IRxSYYyDa4Li9lxAM4xbQ",channelName:"Özcan Aykın FİZİK"},
@@ -90,9 +92,39 @@ export const CURATED_VIDEOS={
     {id:"M9cgj6B6wJs",title:"AYT Kimya Genel Tekrar Kampı - Görkem Şahin - 2026"},
     {id:"Sxi_dmFEF2o",title:"AYT Kimya - Karbon Kimyasına Giriş - Görkem Şahin - 2026"}
   ],
+  "Kadir Gümüş":[
+    {id:"fEBFK8h7aZM",title:"TYT Türkçe · Fiiller · Kadir Gümüş · 2026"},
+    {id:"eWk7Y_QzrpE",title:"TYT Türkçe · Yeni Nesil Yorum · Kadir Gümüş · 2026"},
+    {id:"fdNysxbXZQU",title:"AYT Edebiyat · Genel Tekrar · Kadir Gümüş · 2026"}
+  ],
   "Senin Biyolojin":[
     {id:"zcY_LKermpU",title:"2026 TYT Biyoloji Müfredatı ve Çalışma Rotası"},
     {id:"KsbNxWm-No8",title:"2026 TYT Biyoloji Soru / Tekrar İçeriği"}
+  ]
+};
+
+/* Kanalı veya eğitmeni doğrulanmış gerçek YouTube oynatma listeleri.
+   Çok hocalı Benim Hocam kanalında Kadir Gümüş yalnız bu listelerle sabitlenir.
+   Playlist verisi eksikse uydurma video/süre sayısı gösterilmez. */
+export const CURATED_PLAYLISTS={
+  "Özcan Aykın":[
+    {id:"PLhhV4F6NB0-uEPdZncMf_qb0tSKyBM-Lf",title:"2027 · 55 Günde TYT Fizik Kampı"},
+    {id:"PLhhV4F6NB0-tU__PwCFhnaK-Gg_I3JG_4",title:"2027 · 88 Günde AYT Fizik Kampı"}
+  ],
+  "Biosem":[
+    {id:"PLqLwBmByktJWbDXnjbl5CMRrm5nEwMFOg",title:"2027 · 39 Günde TYT Biyoloji Kampı"}
+  ],
+  "Kadir Gümüş":[
+    {id:"PL5kIOunpmSBOJBHFmxRmCCG1BFofMPx2n",title:"Kadir Gümüş · TYT Dil Bilgisi Kampı (43 video)"},
+    {id:"PL5kIOunpmSBPFrbXu7HKrE56gF8gXCw6j",title:"Kadir Gümüş · TYT Dil Bilgisi Hızlı Kamp (18 video)"},
+    {id:"PL5kIOunpmSBNemRDf7vOikjWeKWS3kVux",title:"Kadir Gümüş · AYT Edebiyat Konu Anlatımı (2022)"}
+  ],
+  "Aker Kartal":[
+    {id:"PL5w_hbb3voMkxc2sU0JxNY88-kZ8bVmxq",title:"Aker Kartal · TYT Türkçe"},
+    {id:"PL5w_hbb3voMmqux0of19HHOOcQT4j_Wzg",title:"Aker Kartal · AYT Edebiyat"}
+  ],
+  "Deniz Hoca":[
+    {id:"PL8_9wYRykg9LuJI1Dop6Tll0s8ifm5EEI",title:"Deniz Hoca · TYT Türkçe Kampı 2025"}
   ]
 };
 
