@@ -72,7 +72,7 @@ type LegacyWindow=Window&{
 type FilterKind="all"|"tyt"|"ayt"|"soru"|"deneme"|"kamp"|"watched"|"partial"|"later"|"unwatched";
 
 const legacy=window as LegacyWindow;
-const CACHE_KEY="yks_teachers_v2_media_cache";
+const CACHE_KEY="yks_teachers_v2_media_cache_teacher_verified_v2";
 const PLAYER_ID="teachersV2MediaPlayer";
 const FEED_FILE="teachers-v2-feed.json";
 const PAGE_SIZE=24;
