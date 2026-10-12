@@ -391,8 +391,9 @@ export function installRefinedProgram():ProgramApi{
   const dailyHero=element("div","rb-v4-day-progress"),dailyRing=element("div","rb-v4-ring"),dailyPercent=element("strong","", "0%");
   const dailyHeroCopy=element("div","rb-v4-progress-copy"),dailyHeroCount=element("span"),dailyHeroBar=element("div","rb-v4-progress-bar"),dailyHeroBarFill=element("i");
   dailyRing.append(dailyPercent);dailyHeroBar.append(dailyHeroBarFill);
-  dailyHeroCopy.append(element("strong","","Bugünün İlerlemesi"),dailyHeroCount,dailyHeroBar);
-  dailyHero.append(dailyRing,dailyHeroCopy,element("div","rb-v4-progress-caption","Her tamamlanan çalışma hedefe bir adım daha. ✦"));
+  dailyHeroCopy.append(element("strong","","Seçili Günün İlerlemesi"),dailyHeroCount,dailyHeroBar);
+  const dailyHeroCaption=element("div","rb-v4-progress-caption");
+  dailyHero.append(dailyRing,dailyHeroCopy,dailyHeroCaption);
   const dailyTasksHeading=element("div","rb-v4-day-heading");dailyTasksHeading.append(element("span","","☀"),element("h3","","Bugünün Planı"));progress.max=100;progress.setAttribute("aria-label","Günlük görev tamamlama");completion.append(count,progress);summary.append(dayLabel,completion);
   const list=element("div","rb-program-tasks");dailyPanel.append(summary,dailyHero,dailyTasksHeading,list);
   const actions=element("div","rb-program-actions"),toolbar=element("div","rb-program-toolbar"),add=button("","rb-program-add"),share=button("","rb-program-share"),shareStatus=element("p","rb-program-share-status");
@@ -459,6 +460,9 @@ export function installRefinedProgram():ProgramApi{
     const done=state.tasks.filter(task=>task.done).length;count.textContent=`${done}/${state.tasks.length} tamamlandı`;progress.value=state.tasks.length?done/state.tasks.length*100:0;
     dailyPercent.textContent=Math.round(Number(progress.value))+"%";dailyRing.style.setProperty("--rb-v4-percent",String(progress.value));
     dailyHeroCount.textContent=`${done} / ${state.tasks.length} görev tamamlandı`;dailyHeroBarFill.style.width=String(progress.value)+"%";
+    const remaining=state.tasks.length-done;
+    dailyHero.toggleAttribute("data-complete",state.tasks.length>0&&remaining===0);
+    dailyHeroCaption.textContent=!state.tasks.length?"Seçili gün için henüz bir görev yok.":remaining===0?"✓ Seçili günün bütün görevleri tamamlandı.":`${remaining} görev kaldı. Tamamladıkça ilerlemen güncellenir.`;
     const focused=document.activeElement instanceof HTMLElement?document.activeElement.dataset.rbProgramFocus:undefined;
     list.replaceChildren();
     if(!state.tasks.length){const empty=element("div","rb-program-empty");empty.append(element("strong","","Bu günün planı henüz boş"),element("p","","Çalışma ekle’ye dokun; dersini ve konunu seç. Aynı çalışmayı birden fazla güne de ekleyebilirsin."));list.append(empty);}
@@ -504,6 +508,7 @@ export function installRefinedProgram():ProgramApi{
       const extras=refinedProgramSplitExtras(task.text),info=refinedProgramTaskDetail(extras.work,task.label);
       const meta=info.meta===task.label?"":info.meta;
       copy.append(element("strong","",label),element("small","",meta||"Çalışma detaylarını görüntüle"));
+      if(task.done)copy.append(element("span","rb-v4-task-done","✓ Tamamlandı"));
       const resourceBadge=element("span","rb-program-task-resource",info.url?"▶ Video / kaynak":"Detayı aç");
       details.setAttribute("aria-label",`${label} çalışma detayını aç`);details.append(copy,resourceBadge,openMark);
       check.addEventListener("click",()=>{controller.toggleTask(task.id);refresh();});
