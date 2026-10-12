@@ -20,6 +20,8 @@ export const VERIFIED_CHANNELS={
 
   "Rüştü Hoca":{channelId:"UCyohoF5P2JFvc3KLLZRwDug",channelName:"Rüştü Hoca ile Türkçe",channelHandle:"@rustuhocaileturkce"},
   "Türkçenin Matematiği":{channelId:"UCCAmWzulVvB1DjnR5IQCTUQ",channelName:"Türkçenin Matematiği"},
+  "Kadir Gümüş":{channelId:"UC95Nw3fDHR581Hj31oE7l_w",channelName:"Kadir Gümüş"},
+  "Aker Kartal":{channelId:"UCWbEUy429vt1bWl7OgjTcDQ",channelName:"Aker Kartal"},
   "Deniz Hoca":{channelId:"UC_ke4VQZo9TewOf-p-LSx_Q",channelName:"Deniz Hoca"},
 
   "Özcan Aykın":{channelId:"UC_IRxSYYyDa4Li9lxAM4xbQ",channelName:"Özcan Aykın FİZİK"},
@@ -40,7 +42,7 @@ export const VERIFIED_CHANNELS={
   "Levent Özdede ile Kimya":{channelHandle:"@leventozdede",channelName:"Levent Özdede ile Kimya"},
   "Görkem Şahin · Benim Hocam":{channelHandle:"@benimhocam",channelName:"Benim Hocam",searchOnly:true,queryHint:"Görkem Şahin Kimya",focusTerms:["kimya","görkem","gorkem"]},
 
-  "Biosem":{channelHandle:"@biosem",channelName:"Biosem Biyoloji"},
+  "Biosem":{channelId:"UCsuxWHwp0tNqPBCl_bLhanA",channelHandle:"@biosem",channelName:"Biosem Biyoloji"},
   "Dr. Biyoloji":{channelId:"UCY7Nh-CV3qqaWTxldlG4RCA",channelHandle:"@barishocabiyoloji",channelName:"Dr. Biyoloji"},
   "Selin Hoca":{channelId:"UCl50Dhk1O-5YZYwHrWmuLtw",channelHandle:"@selinhoca",channelName:"Selin Hoca Biyoloji"},
   "Senin Biyolojin":{channelHandle:"@seninbiyolojin",channelName:"Senin Biyolojin"},
