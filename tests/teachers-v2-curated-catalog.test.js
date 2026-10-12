@@ -90,8 +90,8 @@ test("klasik çekirdek zinciri HTML yazmadan kataloğu ve kararlılık servisini
     vm.runInContext(fs.readFileSync(path.join(root,"modules",file),"utf8"),context,{filename:file});
   }
   assert.equal(writes.length,0);
-  assert.equal(context.TEACHERS.length,43);
-  assert.equal(window.__YKS_CURATED_TEACHERS__.length,43);
+  assert.equal(context.TEACHERS.length,45);
+  assert.equal(window.__YKS_CURATED_TEACHERS__.length,45);
   assert.equal(document.documentElement.dataset.teachersCatalog,"curated-v3");
   assert.equal(typeof window.YKSCore.mergeStates,"function");
   assert.equal(typeof window.YKSStability.restoreRuntime,"function");
