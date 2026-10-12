@@ -198,7 +198,7 @@ const rows=await runPool(entries,async([name,known])=>{
   // Never let a previous search result for someone else masquerade as this teacher.
   const trustedOldVideos=(Array.isArray(old.videos)?old.videos:[]).filter(video=>{
     if(!video?.id)return false;
-    if(teacher.searchOnly)return norm(video.title).includes(norm("Kadir Gümüş"));
+    if(teacher.searchOnly)return norm(video.title).includes(norm(teacher.name.split(" · ")[0]));
     return Boolean(teacher.channelId&&video.channelId===teacher.channelId);
   });
   const videos=mergeVideos(seed,rss,trustedOldVideos);
