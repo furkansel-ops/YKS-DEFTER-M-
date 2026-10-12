@@ -17,13 +17,14 @@ function catalog(){
 
 test("küratörlü Hocalar kataloğu TYT ve AYT derslerini ayrı filtreler",()=>{
   const rows=catalog();
-  assert.equal(rows.length,43);
+  assert.equal(rows.length,45);
   assert.ok(rows.filter(row=>row.subjects.includes("Kimya")).length>=10);
   assert.ok(rows.filter(row=>row.subjects.includes("Kimya (AYT)")).length>=10);
   assert.ok(rows.filter(row=>row.subjects.includes("Fizik")).length>=8);
   assert.ok(rows.filter(row=>row.subjects.includes("Biyoloji")).length>=7);
   assert.ok(rows.some(row=>row.name==="Ferrum"&&row.subjects.includes("Kimya")&&row.subjects.includes("Kimya (AYT)")));
   assert.ok(rows.some(row=>row.name==="Kenan Kara"&&row.subjects.includes("Geometri (AYT)")));
+  for(const name of ["Kadir Gümüş","Aker Kartal","Deniz Hoca"]){assert.ok(rows.some(row=>row.name===name&&row.subjects.includes("Türkçe")),name+" TYT Türkçe filtrelerinde bulunmalı");}
 });
 
 test("yerleşik hocaların tamamı doğrulanmış YouTube kanal kaynağına bağlanır",()=>{
@@ -156,4 +157,15 @@ test("Hocalar özelliği geçici olarak uygulama yüzeyinden kaldırılır ama k
   assert.doesNotMatch(nav,/Kitaplar, hocalar, listeler ve izleme geçmişi/);
   assert.match(legacyApp,/function ytTeacher\(name,kind,subject\)/);
   assert.match(legacyApp,/function loadPlaylists\(\)/);
+});
+
+test("known YouTube channel IDs are pinned and mixed-channel fallback is disabled",()=>{
+  const map=sources();
+  assert.match(map,/"Biosem":\{channelId:"UCsuxWHwp0tNqPBCl_bLhanA"/);
+  assert.match(map,/"Kadir Gümüş":\{channelId:"UC95Nw3fDHR581Hj31oE7l_w"/);
+  assert.match(map,/"Aker Kartal":\{channelId:"UCWbEUy429vt1bWl7OgjTcDQ"/);
+  const fast=fs.readFileSync(path.join(root,"scripts/refresh-teachers-v2-feed.mjs"),"utf8");
+  const archive=fs.readFileSync(path.join(root,"scripts/build-teachers-v2-archives.mjs"),"utf8");
+  assert.doesNotMatch(fast,/if\(selected\.length<MAX_VIDEOS\)selected=rows/);
+  assert.doesNotMatch(archive,/selected=exact\.length\?exact:rows/);
 });
