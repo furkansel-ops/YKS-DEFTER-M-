@@ -22,7 +22,9 @@
   /* Türkçe / Edebiyat */
   {a:"Rüştü Hoca",d:["Türkçe","Edebiyat"],l:"orta",n:"TYT Türkçe, paragraf ve dil bilgisi; ayrıca YKS tekrar içerikleri için güçlü seçenek.",t:["konu","kamp","soru"]},
   {a:"Türkçenin Matematiği",d:["Türkçe"],l:"orta",n:"Paragraf ve dil bilgisinde teknik, kısa ve uygulanabilir anlatım isteyenler için.",t:["konu","soru","kamp"]},
-  {a:"Deniz Hoca",d:["Edebiyat"],l:"orta",n:"AYT edebiyat konu anlatımı, tekrar ve soru çözümü için düzenli arşiv.",t:["konu","soru","kamp"]},
+  {a:"Kadir Gümüş",d:["Türkçe","Edebiyat"],l:"hepsi",n:"TYT Türkçe dil bilgisi, paragraf ve AYT edebiyat kampları.",t:["konu","kamp","soru"]},
+  {a:"Aker Kartal",d:["Türkçe"],l:"hepsi",n:"Türkçe dil bilgisi, soru çözümü ve sınav tekrarları.",t:["konu","soru","kamp"]},
+  {a:"Deniz Hoca",d:["Türkçe","Edebiyat"],l:"orta",n:"TYT Türkçe ve AYT edebiyat konu anlatımı, tekrar ve soru çözümleri.",t:["konu","soru","kamp"]},
 
   /* Fizik · TYT / AYT */
   {a:"Özcan Aykın",d:["Fizik","Fizik (AYT)"],l:"hepsi",n:"TYT ve AYT fizik kampları; deney, görsel ve mantık üzerinden kapsamlı anlatım.",t:["konu","kamp","soru"]},
