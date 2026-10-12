@@ -48,11 +48,13 @@ test("Doğrulanmış hocaların hızlı önizlemesi yt-dlp yerine YouTube RSS ku
   assert.doesNotMatch(source,/spawn\(/);
   assert.doesNotMatch(source,/yt_dlp/);
   assert.match(source,/teacher\.searchOnly/);
-  assert.match(source,/mergeVideos\(seed,Array\.isArray\(old\.videos\)\?old\.videos:\[\],rss\)/);
-  assert.match(source,/tam yenilemede bulunan seri listesi korunuyor/);
+  assert.match(source,/const trustedOldVideos=/);
+  assert.match(source,/video\.channelId===teacher\.channelId/);
+  assert.match(source,/mergeVideos\(seed,rss,trustedOldVideos\)/);
+  assert.match(source,/yalnız doğrulanmış listeler korunuyor/);
   assert.match(source,/function mergePlaylists/);
-  assert.match(source,/videos:Array\.isArray\(old\.videos\)\?old\.videos:undefined/);
-  assert.match(source,/playlists=mergePlaylists\(playlists,freshPlaylists\)/);
+  assert.match(source,/function seededPlaylists/);
+  assert.match(source,/mergePlaylists\(old\.playlists,freshPlaylists,teacher,pinned\)/);
 });
 
 test("Ortak kanal hocası odaklı aramayla 24 videoya tamamlanır",()=>{
