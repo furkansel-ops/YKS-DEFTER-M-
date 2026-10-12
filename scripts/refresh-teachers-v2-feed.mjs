@@ -49,7 +49,7 @@ async function searchTeacher(teacher){
 }
 function normalizeVideos(entries,teacher){
   const rows=(Array.isArray(entries)?entries:[]).filter(Boolean).map((entry,index)=>({entry,index,score:scoreEntry(entry,teacher)}));const pinned=Boolean((teacher.channelId||teacher.channelHandle)&&!teacher.searchOnly);let selected;
-  if(pinned){selected=rows.filter(row=>!teacher.channelId||String(row.entry.channel_id||row.entry.uploader_id||"")===teacher.channelId);if(selected.length<MAX_VIDEOS)selected=rows;}
+  if(pinned){selected=rows.filter(({entry})=>{const id=String(entry.channel_id||entry.uploader_id||"");return !teacher.channelId||!id||id===teacher.channelId;});}
   else{selected=rows.filter(row=>row.score>=4);if(selected.length<MAX_VIDEOS)selected=rows.filter(row=>row.score>0);selected.sort((a,b)=>b.score-a.score||a.index-b.index);}
   const seen=new Set();return selected.map(({entry})=>{const id=String(entry.id||"");if(!id||seen.has(id))return null;seen.add(id);const rawChannel=String(entry.channel||entry.uploader||"");const resolvedId=teacher.channelId||String(entry.channel_id||entry.uploader_id||"");const channelUrl=resolvedId?`https://www.youtube.com/channel/${resolvedId}`:(teacher.channelHandle?`https://www.youtube.com/${teacher.channelHandle}`:String(entry.channel_url||entry.uploader_url||""));return {id,title:String(entry.title||"YouTube videosu"),url:videoUrl(id,entry.webpage_url||entry.url),thumbnail:thumbFor(id,entry),channel:pinned?(teacher.channelName||rawChannel||teacher.name):(rawChannel||teacher.channelName||teacher.name),channelId:resolvedId,channelUrl,duration:Number.isFinite(entry.duration)?Number(entry.duration):null,timestamp:Number.isFinite(entry.timestamp)?Number(entry.timestamp):null};}).filter(Boolean).slice(0,MAX_VIDEOS);
 }
