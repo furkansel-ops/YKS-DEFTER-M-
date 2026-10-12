@@ -67,3 +67,12 @@ test("subject cards use stable subject-specific accents and actions are not deco
   assert.match(source,/controller\.toggleTask\(task\.id\)/);
   assert.match(source,/controller\.setView\("day"\)/);
 });
+
+test("completed task states are visible in daily cards and progress only celebrates nonempty fully completed days",()=>{
+  assert.match(source,/if\(task\.done\)copy\.append\(element\("span","rb-v4-task-done","✓ Tamamlandı"\)\)/);
+  assert.match(source,/dailyHero\.toggleAttribute\("data-complete",state\.tasks\.length>0&&remaining===0\)/);
+  assert.match(source,/remaining===0\?"✓ Seçili günün bütün görevleri tamamlandı\."/);
+  assert.match(css,/\.rb-v4-task-done\{/);
+  assert.match(css,/\.rb-program-task\[data-done\]/);
+  assert.match(css,/\.rb-v4-day-progress\[data-complete\]/);
+});
