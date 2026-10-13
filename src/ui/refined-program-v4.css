@@ -440,3 +440,24 @@
     transition:none;
   }
 }
+
+/* Completed program work is immediately recognizable without hiding task details. */
+#program .rb-v4-subject-section .rb-program-task[data-done]{
+  background:color-mix(in srgb,#d7f7e9 32%,var(--rp-v4-surface));
+  border-color:color-mix(in srgb,#29956e 28%,var(--rp-v4-line));
+  box-shadow:inset 3px 0 0 #29956e,0 5px 18px rgba(16,41,86,.035);
+}
+#program .rb-v4-task-done{
+  display:inline-flex;align-items:center;justify-self:start;
+  width:max-content;max-width:100%;margin-top:3px;padding:3px 9px;
+  border-radius:999px;background:color-mix(in srgb,#29956e 13%,var(--rp-v4-surface));
+  color:#1e7958;font-size:11px;font-weight:780;line-height:1.35;
+}
+#program .rb-v4-day-progress[data-complete]{
+  border-color:color-mix(in srgb,#29956e 35%,var(--rp-v4-line));
+}
+#program .rb-v4-day-progress[data-complete] .rb-v4-ring{
+  background:conic-gradient(#29956e 100%,#29956e 0);
+}
+#program .rb-v4-day-progress[data-complete] .rb-v4-progress-bar>i{background:#29956e;}
+#program .rb-v4-day-progress[data-complete] .rb-v4-progress-caption{color:#1e7958;}
