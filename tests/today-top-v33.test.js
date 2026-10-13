@@ -15,7 +15,9 @@ const executable=source
   .replace("export function installTodayTopV33():{installed:boolean}{",
     "function installTodayTopV33(){")
   .replace("document.querySelector<HTMLElement>","document.querySelector")
-  .replace("(node:HTMLElement,text:string)=>","(node,text)=>");
+  .replace("(node:HTMLElement,text:string)=>","(node,text)=>")
+  .replace("(node:HTMLElement|null|undefined,text:string)=>","(node,text)=>")
+  .replace("(node:HTMLElement|null|undefined)=>","(node)=>");
 function moduleUnderTest(env={}){
   const exports={},context=vm.createContext({exports,Intl,Date,...env});
   vm.runInContext(executable+
@@ -171,4 +173,99 @@ test("v36 renders only greeting and countdown inside the otherwise blank approve
   assert.match(html,/@media\(max-width:600px\)/);
   assert.match(html,/id="yksBootGuard"/);
   assert.match(main,/void import\("\.\/ui\/today-top-v33"\)/);
+});
+
+test("v37 daily quote and progress mirror actual values and update after existing renderer mutations",()=>{
+  class Node {
+    constructor(id,textContent=""){
+      this.id=id;this.textContent=textContent;this.dataset={};this.style={display:"",setProperty:(k,v)=>this.styles[k]=v};
+      this.styles={};this.attributes={};this.listeners={};this.disabled=false;this.children={};
+    }
+    querySelector(s){return this.children[s]||null}
+    toggleAttribute(k,v){if(k==="disabled")this.disabled=Boolean(v)}
+    setAttribute(k,v){this.attributes[k]=v}
+    addEventListener(type,fn){(this.listeners[type]??=[]).push(fn)}
+    click(){for(const fn of this.listeners.click||[])fn()}
+  }
+  const nodes=new Map(),observed=[],listeners={};
+  const add=(id,txt="")=>{const n=new Node(id,txt);nodes.set(id,n);return n};
+  const fresh=add("todayFreshStart"),quote=add("sozBox"),button=add("todayFreshNewQuote");
+  for(const id of ["todayFreshQuoteCard","todayFreshQuoteText","todayFreshQuoteAuthor",
+    "todayFreshProgress","todayFreshRatio","todayFreshPercent","todayFreshProgressStatus","todayFreshProgressBar"]){
+    add(id);
+  }
+  const metricMap=[
+    ["todayHubQ","todayHubQSub","todayFreshQuestions","todayFreshQuestionsSub","42","bugünkü soru"],
+    ["todayHubMin","todayHubMinSub","todayFreshMinutes","todayFreshMinutesSub","90 dk","çalışma"],
+    ["todayHubPlan","todayHubPlanSub","todayFreshPlan","todayFreshPlanSub","50%","2 / 4 görev"],
+    ["todayHubReview","todayHubReviewSub","todayFreshReviews","todayFreshReviewsSub","3","bekleyen"]
+  ];
+  for(const [value,sub,visible,visibleSub,actual,detail] of metricMap){
+    add(value,actual);add(sub,detail);add(visible);add(visibleSub);
+  }
+  quote.children[".sz"]=new Node("quote-value","“Azimli adımlar sonuç getirir.”");
+  quote.children[".sza"]=new Node("quote-author","— Bir futbolcu");
+  let clicks=0;
+  quote.children[".szr"]=new Node("quote-action");
+  quote.children[".szr"].addEventListener("click",()=>clicks++);
+  const doc={
+    getElementById:id=>nodes.get(id)||null,
+    querySelector:()=>null,
+    addEventListener:(type,fn)=>{listeners[type]=fn},
+    visibilityState:"visible"
+  };
+  class Observer{constructor(fn){this.fn=fn;observed.push(this)}observe(){}}
+  const {installTodayTopV33}=moduleUnderTest({document:doc,HTMLElement:Node,MutationObserver:Observer});
+  assert.equal(installTodayTopV33().installed,true);
+  assert.equal(fresh.dataset.todayOverview,"ready");
+  assert.equal(nodes.get("todayFreshQuoteText").textContent,"“Azimli adımlar sonuç getirir.”");
+  assert.equal(nodes.get("todayFreshQuoteAuthor").textContent,"— Bir futbolcu");
+  assert.equal(button.disabled,false);
+  button.click();assert.equal(clicks,1);
+  assert.equal(nodes.get("todayFreshQuestions").textContent,"42");
+  assert.equal(nodes.get("todayFreshMinutes").textContent,"90 dk");
+  assert.equal(nodes.get("todayFreshPlan").textContent,"50%");
+  assert.equal(nodes.get("todayFreshReviews").textContent,"3");
+  assert.equal(nodes.get("todayFreshRatio").textContent,"2/4");
+  assert.equal(nodes.get("todayFreshPercent").textContent,"%50");
+  assert.equal(nodes.get("todayFreshProgress").styles["--today-fresh-percent"],"50");
+  assert.equal(nodes.get("todayFreshProgressBar").attributes["aria-valuenow"],"50");
+  assert.equal(nodes.get("todayFreshProgressBar").attributes["aria-valuetext"],"2 / 4 görev, yüzde 50");
+  assert.equal(observed.length,1,"one observer for original data sources");
+
+  nodes.get("todayHubPlan").textContent="100%";
+  nodes.get("todayHubPlanSub").textContent="4 / 4 görev";
+  nodes.get("todayHubQ").textContent="60";
+  quote.children[".sz"].textContent="“Yeni söz.”";
+  observed[0].fn();
+  assert.equal(nodes.get("todayFreshRatio").textContent,"4/4");
+  assert.equal(nodes.get("todayFreshPercent").textContent,"%100");
+  assert.equal(nodes.get("todayFreshProgressStatus").textContent,"Bugünkü program görevleri tamamlandı.");
+  assert.equal(nodes.get("todayFreshQuestions").textContent,"60");
+  assert.equal(nodes.get("todayFreshQuoteText").textContent,"“Yeni söz.”");
+  quote.style.display="none";
+  observed[0].fn();
+  assert.equal(nodes.get("todayFreshQuoteCard").hidden,true,"legacy disabled quote remains disabled");
+  assert.equal(installTodayTopV33().installed,true);
+  assert.equal(observed.length,1,"repeated init must not duplicate observers");
+});
+
+test("v37 renders just the approved grouped daily overview and preserves existing source IDs",()=>{
+  const html=read("index.html"),mod=read("src/ui/today-top-v33.ts");
+  const home=html.slice(html.indexOf('<section id="home"'),html.indexOf('<!-- ============================== PROGRAM'));
+  const visible=home.slice(home.indexOf('id="todayFreshStart"'),home.indexOf('<!-- Bugün v33'));
+  for(const id of ["todayFreshQuoteCard","todayFreshQuoteText","todayFreshNewQuote",
+    "todayFreshProgress","todayFreshRatio","todayFreshPercent","todayFreshProgressBar",
+    "todayFreshQuestions","todayFreshMinutes","todayFreshPlan","todayFreshReviews"]){
+    assert.equal((html.match(new RegExp('id="'+id+'"',"g"))||[]).length,1,id);
+    assert.ok(visible.includes('id="'+id+'"'),id+" is visible");
+  }
+  assert.ok(visible.indexOf('today-fresh-welcome')<visible.indexOf('today-fresh-daily'));
+  assert.ok(visible.indexOf('today-fresh-quote')<visible.indexOf('today-fresh-progress'));
+  assert.doesNotMatch(visible,/id="todayNext"|id="todayClose"|class="v33-home-progress"/);
+  assert.match(html,/#home > :not\(#todayFreshStart\)\{display:none!important\}/);
+  assert.match(html,/@media\(max-width:600px\)/);
+  assert.match(html,/#home #todayFreshStart \.today-fresh-stats\{grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+  assert.match(mod,/function installTodayOverviewV37/);
+  assert.doesNotMatch(mod,/localStorage\.setItem|setDoc\(|updateDoc\(/);
 });
