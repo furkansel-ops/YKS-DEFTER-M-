@@ -164,5 +164,5 @@ test("v35 hides only the old Today visuals, not student data or other tabs",()=>
     assert.equal((html.match(new RegExp('id="'+id+'"','g'))||[]).length,1,id);
   }
   assert.match(html,/<section id="program" class="screen">/);
-  assert.match(html,/<section id="focus" class="screen">/);
+  assert.match(html,/<section id="pomo" class="screen">/);
 });
