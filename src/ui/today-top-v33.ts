@@ -95,7 +95,8 @@ function installTodayOverviewV37(){
       update(valueTarget,read(valueSource)||"—");
       update(subTarget,read(subSource)||"—");
     }
-    const p=parseTodayProgramProgress(read(stats[2][0]),read(stats[2][1]));
+    const planRow=stats[2]||[];
+    const p=parseTodayProgramProgress(read(planRow[0]),read(planRow[1]));
     update(ratio,p.hasPlan?(p.completed+"/"+p.total):"—");
     update(percent,p.hasPlan?("%"+p.percent):"—");
     update(status,!p.hasPlan?"Bugün için henüz program görevi yok."
@@ -120,7 +121,7 @@ function installTodayOverviewV37(){
     });
     for(const [valueSource,subSource] of stats){
       for(const node of [valueSource,subSource])
-        observer.observe(node,{childList:true,subtree:true,characterData:true});
+        if(node)observer.observe(node,{childList:true,subtree:true,characterData:true});
     }
   }
   document.addEventListener("visibilitychange",()=>{
