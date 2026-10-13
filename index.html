@@ -336,6 +336,44 @@
     #home #todayFreshStart .today-fresh-work-pair{grid-template-columns:1fr}
     #home #todayFreshStart .today-fresh-work-card{min-height:120px}
   }
+
+  /* v39 / kompakt, açılır gün sonu değerlendirmesi — küçük ekranda tek kart */
+  #home #todayFreshStart .today-fresh-review{min-width:0;overflow:hidden;border:1px solid #dbe6f7;border-radius:17px;background:#fff;box-shadow:0 8px 24px -22px #224d8f}
+  #home #todayFreshStart .today-fresh-review-summary{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:76px;padding:14px 16px;cursor:pointer;list-style:none;box-sizing:border-box}
+  #home #todayFreshStart .today-fresh-review-summary::-webkit-details-marker{display:none}
+  #home #todayFreshStart .today-fresh-review-summary:focus-visible{outline:3px solid #7baffc;outline-offset:-4px;border-radius:14px}
+  #home #todayFreshStart .today-fresh-review-title{display:flex;flex-direction:column;min-width:0;gap:3px}
+  #home #todayFreshStart .today-fresh-review-eyebrow{color:#5980bd;font-size:10px;line-height:1.3;font-weight:820;letter-spacing:.08em}
+  #home #todayFreshStart .today-fresh-review-title strong{font-size:16px;line-height:1.3;color:#1b3559;font-weight:790}
+  #home #todayFreshStart .today-fresh-review-title small{font-size:11px;line-height:1.4;color:#69819e;overflow-wrap:anywhere}
+  #home #todayFreshStart .today-fresh-review-side{display:flex;align-items:center;gap:9px;flex-shrink:0}
+  #home #todayFreshStart .today-fresh-review-status{max-width:140px;text-align:right;font-size:11px;font-weight:740;line-height:1.4;color:#3564ae}
+  #home #todayFreshStart .today-fresh-review-chevron{font-size:20px;font-weight:700;line-height:1;color:#6d88ae;transition:transform .2s}
+  #home #todayFreshStart .today-fresh-review[open] .today-fresh-review-chevron{transform:rotate(180deg)}
+  #home #todayFreshStart .today-fresh-review-body{display:flex;flex-direction:column;gap:10px;padding:12px 16px 15px;border-top:1px solid #e8eff9;min-width:0}
+  #home #todayFreshStart .today-fresh-review-label{font-size:12px;font-weight:770;color:#294263}
+  #home #todayFreshStart .today-fresh-review-moods{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+  #home #todayFreshStart .today-fresh-review-moods button{min-width:0;min-height:38px;padding:7px;border:1px solid #dfe8f5;border-radius:11px;background:#f7faff;color:#506686;font-family:inherit;font-size:12px;font-weight:710;cursor:pointer}
+  #home #todayFreshStart .today-fresh-review-moods button.is-selected{border-color:#72a4f1;background:#eaf3ff;color:#1d5cb0;box-shadow:inset 0 0 0 1px #b8d3ff}
+  #home #todayFreshStart .today-fresh-review-moods button:focus-visible,#home #todayFreshStart #todayFreshReflectionSave:focus-visible{outline:3px solid #7baffc;outline-offset:2px}
+  #home #todayFreshStart #todayFreshReflectionInput{display:block;width:100%;min-width:0;box-sizing:border-box;resize:vertical;min-height:88px;padding:11px 12px;border:1px solid #d9e5f5;border-radius:11px;background:#fbfdff;color:#203b62;font-family:inherit;font-size:13px;line-height:1.5}
+  #home #todayFreshStart #todayFreshReflectionInput:focus{outline:2px solid #7baffc;outline-offset:0}
+  #home #todayFreshStart .today-fresh-review-footer{display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0}
+  #home #todayFreshStart #todayFreshReflectionCounter{color:#7286a0;font-size:11px}
+  #home #todayFreshStart #todayFreshReflectionSave{min-height:39px;max-width:100%;padding:9px 14px;border:0;border-radius:11px;background:#276be7;color:#fff;font-family:inherit;font-size:12px;font-weight:760;cursor:pointer}
+  #home #todayFreshStart .today-fresh-review-disclaimer{margin:0;color:#75849a;font-size:10px;line-height:1.5}
+  @media(max-width:600px){
+    #home #todayFreshStart .today-fresh-review-summary{padding:12px;min-height:72px}
+    #home #todayFreshStart .today-fresh-review-title strong{font-size:15px}
+    #home #todayFreshStart .today-fresh-review-title small{font-size:10px}
+    #home #todayFreshStart .today-fresh-review-status{max-width:95px;font-size:10px}
+    #home #todayFreshStart .today-fresh-review-body{padding:11px 12px 13px}
+    #home #todayFreshStart .today-fresh-review-moods{gap:6px}
+    #home #todayFreshStart .today-fresh-review-moods button{font-size:11px}
+  }
+  @media(prefers-reduced-motion:reduce){
+    #home #todayFreshStart .today-fresh-review-chevron{transition:none}
+  }
 </style>
 <link rel="stylesheet" href="./app.css" id="themes20260821">
 
@@ -500,6 +538,35 @@
         <div id="todayFreshTaskList" class="today-fresh-task-list" aria-live="polite"><p class="today-fresh-task-empty">Görevler hazırlanıyor…</p></div>
       </section>
     </section>
+    <!-- Aşama 4: Gün sonu raporu eski kayıt ve koç paylaşım sistemine bağlıdır. -->
+    <details id="todayFreshReview" class="today-fresh-review">
+      <summary class="today-fresh-review-summary">
+        <span class="today-fresh-review-title">
+          <span class="today-fresh-review-eyebrow">GÜN SONU</span>
+          <strong>Bugünü değerlendir</strong>
+          <small>Neler yaptın, yarın neye odaklanacaksın?</small>
+        </span>
+        <span class="today-fresh-review-side">
+          <span id="todayFreshReviewStatus" class="today-fresh-review-status" role="status">Henüz kaydedilmedi</span>
+          <span class="today-fresh-review-chevron" aria-hidden="true">⌄</span>
+        </span>
+      </summary>
+      <div class="today-fresh-review-body">
+        <span class="today-fresh-review-label">Bugün nasıldı?</span>
+        <div class="today-fresh-review-moods" role="group" aria-label="Bugünün ruh hâli">
+          <button type="button" data-review-mood="good" aria-pressed="false">🙂 İyi</button>
+          <button type="button" data-review-mood="mid" aria-pressed="false">😐 Orta</button>
+          <button type="button" data-review-mood="hard" aria-pressed="false">😮‍💨 Zor</button>
+        </div>
+        <label for="todayFreshReflectionInput" class="today-fresh-review-label">Günlük raporun</label>
+        <textarea id="todayFreshReflectionInput" maxlength="3000" rows="3" placeholder="Bugün neler çalıştın? Nerede zorlandın? Yarın neye odaklanacaksın?"></textarea>
+        <div class="today-fresh-review-footer">
+          <span id="todayFreshReflectionCounter">0 / 3000 karakter</span>
+          <button type="button" id="todayFreshReflectionSave">Kaydet ve paylaş <span aria-hidden="true">↗</span></button>
+        </div>
+        <p class="today-fresh-review-disclaimer">Seçimlerin ve yazdıkların yalnızca Kaydet'e basınca kaydedilir. Koç bağlantın varsa raporun koç panelinde de görünür.</p>
+      </div>
+    </details>
   </div>
 
   <!-- Bugün v33 · Aşama 1: tek, görünür üst görünüm. -->
