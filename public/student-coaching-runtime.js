@@ -40,7 +40,16 @@ function cleanup(){
   rt.stops.splice(0).forEach(fn=>{try{fn()}catch{}});
   clearTimeout(rt.shareTimer);rt.shareTimer=null;clearInterval(rt.shareInterval);rt.shareInterval=null;rt.sharing=false;rt.pending=false;rt.inFlight=null;rt.actionQueue=Promise.resolve();
 }
-function sum(map,days){let n=0;for(let i=0;i<days;i++)n+=Number(map?.[new Date(Date.now()-i*DAY).toISOString().slice(0,10)]||0)||0;return n}
+// Study dates belong to the student's local calendar, not the UTC day.
+function localDayOffset(offset){
+  const d=new Date();d.setHours(12,0,0,0);d.setDate(d.getDate()+offset);
+  return dateKey(d);
+}
+function sum(map,days){
+  let n=0;
+  for(let i=0;i<days;i++)n+=Number(map?.[localDayOffset(-i)]||0)||0;
+  return n;
+}
 function topicParts(k){const p=String(k||"").split("|");return{exam:p[0]||"YKS",subject:p[1]||"Ders",topic:p.slice(2).join("|")||p[1]||k}}
 function cleanProgramMatrix(value,rowCount){
   const src=Array.isArray(value)?value:[];
@@ -104,7 +113,7 @@ function buildProgramShare(s){
 
 function progressDaily(s,days=7){
   return Array.from({length:days},(_,index)=>{
-    const date=new Date(Date.now()-(days-1-index)*DAY).toISOString().slice(0,10);
+    const date=localDayOffset(-(days-1-index));
     return{date,minutes:Math.max(0,Math.round(finite(s?.pomoMin?.[date]))),questions:Math.max(0,Math.round(finite(s?.solved?.[date])))};
   });
 }
