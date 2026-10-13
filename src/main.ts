@@ -18,11 +18,13 @@ import {installRecoveryCenter} from "./ui/recovery-center";
 import {installV43SafeRuntime} from "./ui/v43-safe-runtime";
 import {installPlayStoreShell} from "./ui/play-store-shell";
 import {installParagraphProblemTracker} from "./ui/paragraph-problem-tracker";
+import {installTodayTopV33} from "./ui/today-top-v33";
 import {installTeachersV2} from "./ui/teachers-v2";
 import "./ui/visual-stability-hotfix.css";
 import "./ui/recent-feature-stability.css";
 import "./ui/topics-toolbar-hotfix.css";
 import "./ui/refined-blue.css";
+import "./ui/today-top-v33.css";
 
 type BootstrapState={
   version:typeof RELEASE_VERSION;
@@ -150,6 +152,8 @@ const paragraphProblem=installOptional(
 );
 const screens=installScreenRuntime();
 const ui=installLegacyUiBridge(screens);
+const todayTopV33=installOptional("today-top-v33",()=>installTodayTopV33(),{installed:false});
+document.documentElement.dataset.todayTopV33=todayTopV33.installed?"ready":"deferred";
 const teachersV2=lt
   ? {installed:false,version:"old",refresh:()=>{},destroy:()=>{}}
   : installOptional(
