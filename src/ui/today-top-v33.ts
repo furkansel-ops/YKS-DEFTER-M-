@@ -80,7 +80,7 @@ function installTodayOverviewV37(){
   const update=(node:HTMLElement|null|undefined,text:string)=>{
     if(node&&node.textContent!==text)node.textContent=text;
   };
-  const read=(node:HTMLElement|null|undefined)=>String(node?.textContent||"").trim();
+  const read=(node:Element|null|undefined)=>String(node?.textContent||"").trim();
   const sync=()=>{
     const quote=quoteSource.querySelector(".sz");
     const author=quoteSource.querySelector(".sza");
