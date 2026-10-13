@@ -49,7 +49,8 @@ test("v38 focus/next/task cards mirror legacy state and dispatch existing handle
     getAttribute(name){return this.attributes[name]||null}
     addEventListener(name,fn){(this.listeners[name]??=[]).push(fn)}
     click(){this.clicks++;for(const fn of this.listeners.click||[])fn()}
-    contains(node){return this===node}\n    append(...args){this.children.push(...args)}
+    contains(node){return this===node}
+    append(...args){this.children.push(...args)}
     replaceChildren(...args){this.children=[...args]}
     querySelector(selector){
       if(this.id==="todayNext")return this.special?.[selector]||null;
