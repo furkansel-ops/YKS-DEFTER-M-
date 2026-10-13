@@ -135,7 +135,7 @@ export function installTodayTopV33():{installed:boolean}{
   const welcomeV36=installTodayWelcomeV36();
   const overviewV37=installTodayOverviewV37();
   // v38 is a separately cached optional chunk. A failure must never block boot.
-  void import("./today-workspace-v38")
+  if(document.documentElement)void import("./today-workspace-v38")
     .then(({installTodayWorkspaceV38})=>{
       try{
         const work=installTodayWorkspaceV38();
