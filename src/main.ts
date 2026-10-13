@@ -18,7 +18,7 @@ import {installRecoveryCenter} from "./ui/recovery-center";
 import {installV43SafeRuntime} from "./ui/v43-safe-runtime";
 import {installPlayStoreShell} from "./ui/play-store-shell";
 import {installParagraphProblemTracker} from "./ui/paragraph-problem-tracker";
-import {installTodayTopV33} from "./ui/today-top-v33";
+
 import {installTeachersV2} from "./ui/teachers-v2";
 import "./ui/visual-stability-hotfix.css";
 import "./ui/recent-feature-stability.css";
@@ -152,8 +152,17 @@ const paragraphProblem=installOptional(
 );
 const screens=installScreenRuntime();
 const ui=installLegacyUiBridge(screens);
-const todayTopV33=installOptional("today-top-v33",()=>installTodayTopV33(),{installed:false});
-document.documentElement.dataset.todayTopV33=todayTopV33.installed?"ready":"deferred";
+// Bu isteğe bağlı görünüm adaptörü ayrı chunk'ta kalır: ana JS bütçesini ve
+// eski ekranı gizleyen kritik boot zincirini ağırlaştırmaz.
+void import("./ui/today-top-v33")
+  .then(({installTodayTopV33})=>{
+    const todayTopV33=installOptional("today-top-v33",()=>installTodayTopV33(),{installed:false});
+    document.documentElement.dataset.todayTopV33=todayTopV33.installed?"ready":"deferred";
+  })
+  .catch(error=>{
+    document.documentElement.dataset.todayTopV33="deferred";
+    console.error("Bugün üst kartı yüklenemedi",error);
+  });
 const teachersV2=lt
   ? {installed:false,version:"old",refresh:()=>{},destroy:()=>{}}
   : installOptional(
