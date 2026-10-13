@@ -17,7 +17,8 @@ const executable=source
   .replace("document.querySelector<HTMLElement>","document.querySelector")
   .replace("(node:HTMLElement,text:string)=>","(node,text)=>")
   .replace("(node:HTMLElement|null|undefined,text:string)=>","(node,text)=>")
-  .replace("(node:HTMLElement|null|undefined)=>","(node)=>");
+  .replace("(node:HTMLElement|null|undefined)=>","(node)=>")
+  .replace("(node:Element|null|undefined)=>","(node)=>");
 function moduleUnderTest(env={}){
   const exports={},context=vm.createContext({exports,Intl,Date,...env});
   vm.runInContext(executable+
