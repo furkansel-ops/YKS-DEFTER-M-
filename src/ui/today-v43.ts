@@ -260,13 +260,6 @@ export function installTodayV43():{installed:boolean;validate:()=>string[]}{
   const todayHub=getElement<HTMLElement>("todayHub");
   const validate=()=>{
     const errors:string[]=[];
-    if(home.dataset.todayClean==="ready"){
-      const clean=home.querySelector<HTMLElement>(".today-clean-shell");
-      const legacy=home.querySelector<HTMLElement>("#todayLegacyRuntime");
-      if(!clean||!clean.contains(getElement("countdown"))||!clean.contains(getElement("todayHubPlan"))||!clean.contains(getElement("sozBox")))errors.push("clean today card sources missing");
-      if(!legacy||!legacy.hidden||!legacy.contains(getElement("todayPlan"))||!legacy.contains(getElement("todayClose")))errors.push("legacy data compatibility host missing");
-      return errors;
-    }
     if(home.dataset.v43Today!=="ready")errors.push("today v4.3 marker missing");
     if(!home.querySelector("[data-v43-secondary]"))errors.push("today secondary area missing");
     if(todayHub&&!todayHub.querySelector("[data-v43-today-details]"))errors.push("today detail disclosure missing");
@@ -274,18 +267,6 @@ export function installTodayV43():{installed:boolean;validate:()=>string[]}{
     return errors;
   };
   if(home.dataset.rbToday==="ready")return {installed:true,validate};
-  // v34 is a new visual surface, not another layer on the legacy Today UI.
-  // Keep the original DOM IDs in a hidden compatibility host so old data
-  // renderers, timers, backups and coach sync keep working while each new
-  // interactive feature is migrated in later stages.
-  const clean=home.querySelector<HTMLElement>(".today-clean-shell");
-  const legacy=home.querySelector<HTMLElement>("#todayLegacyRuntime");
-  if(clean&&legacy){
-    home.classList.add("v43-today","v33-today-stage1","today-clean-v34");
-    home.dataset.v43Today="ready";home.dataset.rbToday="ready";home.dataset.todayClean="ready";
-    legacy.hidden=true;
-    return {installed:true,validate};
-  }
   home.classList.add("v43-today");home.dataset.v43Today="ready";home.dataset.rbToday="ready";
   // The old runtime used to detach the newly authored header and progress
   // card into its permanently hidden archive. Keep v33 as the single visible
