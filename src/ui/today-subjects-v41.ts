@@ -69,7 +69,7 @@ export function installTodaySubjectsV41():{installed:boolean}{
       ?"%"+percent(solved,questionGoal)+" soru hedefi"
       :"Soru hedefi yok");
     set(metricCountSub,subjects.length
-      ?"En çok: "+subjects[0].name
+      ?"En çok: "+(subjects[0]?.name||"Ders")
       :"Henüz ders etiketi yok");
     set(summary,subjects.length?subjects.length+" ders · "+fmt(labeled)+" etiketli":
       focus>0?"Ders belirtilmemiş":"Henüz çalışma kaydı yok");
