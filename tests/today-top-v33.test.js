@@ -98,7 +98,8 @@ test("first-stage HTML preserves every legacy live data node exactly once",()=>{
   assert.match(css,/@media\(max-width:759px\)/);
   assert.match(css,/@media\(max-width:370px\)/);
   assert.match(css,/#home\.today-clean-v34 \.v33-home-progress/);
-  assert.doesNotMatch(css,/display:none\s*!important/);
+  assert.match(css,/#home \.today-legacy-runtime\[hidden\]\{display:none!important\}/);
+  assert.doesNotMatch(css,/#home\.today-clean-v34 \.v33-home-progress\{display:none/);
 });
 
 test("scope is home only and initial render keeps optional boot safety",()=>{
