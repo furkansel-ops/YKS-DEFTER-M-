@@ -53,6 +53,7 @@ function fixture(){
       }
       return this.tagName===sel.toUpperCase();
     }
+    contains(node){return node===this||!!this.find(child=>child===node)}
     querySelector(sel){return this.find(n=>n.matches(sel))}
     querySelectorAll(sel){return this.findAll(n=>n.matches(sel))}
     addEventListener(name,fn){(this.handlers[name]??=[]).push(fn)}
@@ -94,7 +95,7 @@ function fixture(){
 test("v43 startup keeps new Bugün heading, countdown, quote and live progress visible",()=>{
   const h=fixture(),result=h.window.__installTodayV43();
   assert.equal(result.installed,true);
-  assert.deepEqual(result.validate(),[]);
+  assert.equal(Array.from(result.validate()).length,0);
   assert.equal(h.root.firstElementChild.classList.contains("v33-screen-heading"),true);
   assert.equal(h.intro.parentElement,h.root);
   assert.equal(h.head.parentElement,h.intro,"welcome header must not be moved to the old shell");
