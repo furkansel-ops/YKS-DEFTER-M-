@@ -1,4 +1,4 @@
-import{doc,onSnapshot,setDoc,serverTimestamp}from"https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
+import{doc,getDoc,onSnapshot,setDoc,serverTimestamp}from"https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
 
 const PROGRAM_VERSION=3;
 const MAX_PROGRAM_WEEKS=80;
@@ -96,10 +96,30 @@ function bootstrapSharePayload(program){
 }
 async function writeProgramShare(program){
   const ref=doc(rt.db,"coachingShares",rt.user.uid);
+  const patch=()=>setDoc(ref,{program,updatedAt:serverTimestamp()},{merge:true});
   try{
-    await setDoc(ref,{program,updatedAt:serverTimestamp()},{merge:true});
+    await patch();
+    return;
   }catch(firstError){
-    console.warn("Program paylaşımı mevcut belgeye yazılamadı; güvenli belge yeniden kuruluyor.",firstError);
+    // Firestore rules require a complete coachingShares document at creation.
+    // A rejected patch does NOT prove the document is missing: never overwrite
+    // an existing student's exam, topic, wrong-log or progress data with blanks.
+    const snap=await getDoc(ref); // permission/network failures must be retried, not "repaired".
+    if(snap.exists()){
+      // An older incompatible document can be repaired from the student's real
+      // state, but never from a fabricated empty share.
+      if(typeof auth?.publishShare==="function")await auth.publishShare({manual:true});
+      await patch();
+      return;
+    }
+    // Prefer the complete real snapshot when first creating a document.
+    if(typeof auth?.publishShare==="function"){
+      await auth.publishShare({manual:true});
+      await patch();
+      return;
+    }
+    // Legacy fallback only when getDoc explicitly confirms no document exists.
+    // A transient write rejection against an existing document cannot reach here.
     await setDoc(ref,bootstrapSharePayload(program));
   }
 }
