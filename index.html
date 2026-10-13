@@ -472,6 +472,45 @@
     #home #todayFreshStart .today-fresh-subject-metric>strong{font-size:14px}
     #home #todayFreshStart .today-fresh-subject-metric{padding:8px 6px}
   }
+
+  /* v42 / gerekçesi görünür, iki sütunlu kompakt tekrar ve eksik analiz kartları */
+  #home #todayFreshStart .today-fresh-insights{min-width:0;padding:14px 15px;border:1px solid #dfe8f7;border-radius:17px;background:#fff;box-shadow:0 8px 24px -22px #224d8f}
+  #home #todayFreshStart .today-fresh-insights-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+  #home #todayFreshStart .today-fresh-insights-heading>div{min-width:0}
+  #home #todayFreshStart .today-fresh-insights-heading span{display:block;color:#5480b7;font-size:10px;font-weight:800;letter-spacing:.06em}
+  #home #todayFreshStart .today-fresh-insights-heading h2{margin:3px 0 0;color:#1b3559;font-size:17px;font-weight:790;line-height:1.3;letter-spacing:-.025em}
+  #home #todayFreshStart #todayFreshInsightsAll{flex:none;min-height:34px;padding:6px 9px;border:1px solid #dce8fa;border-radius:9px;background:#f6faff;color:#2d64b4;font:750 11px inherit;cursor:pointer}
+  #home #todayFreshStart #todayFreshInsightsAll:focus-visible,#home #todayFreshStart .today-fresh-insight-actions button:focus-visible{outline:3px solid #8fb8f6;outline-offset:2px}
+  #home #todayFreshStart .today-fresh-insights-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;min-width:0}
+  #home #todayFreshStart .today-fresh-insight-panel{min-width:0;padding:11px 12px;border:1px solid #e6eef8;border-radius:13px;background:#f9fbff}
+  #home #todayFreshStart .today-fresh-insight-header{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:4px 8px;margin-bottom:4px}
+  #home #todayFreshStart .today-fresh-insight-header h3{margin:0;color:#284362;font-size:13px;font-weight:780;line-height:1.3}
+  #home #todayFreshStart .today-fresh-insight-header small{font-size:10px;font-weight:720;color:#607da7}
+  #home #todayFreshStart .today-fresh-insight-list{display:flex;flex-direction:column;min-width:0}
+  #home #todayFreshStart .today-fresh-insight-row{display:flex;align-items:center;justify-content:space-between;gap:9px;min-width:0;padding:10px 0;border-bottom:1px solid #e9f0fa}
+  #home #todayFreshStart .today-fresh-insight-row:last-child{border-bottom:0}
+  #home #todayFreshStart .today-fresh-insight-copy{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1}
+  #home #todayFreshStart .today-fresh-insight-title{color:#20395c;font-size:12px;line-height:1.35;font-weight:770;overflow-wrap:anywhere}
+  #home #todayFreshStart .today-fresh-insight-sub{color:#6e83a0;font-size:10px;line-height:1.4;overflow-wrap:anywhere}
+  #home #todayFreshStart .today-fresh-insight-reason{color:#617da1;font-size:10px;line-height:1.45;overflow-wrap:anywhere}
+  #home #todayFreshStart .today-fresh-insight-actions{flex:none;display:flex;align-items:center}
+  #home #todayFreshStart .today-fresh-insight-actions button{min-width:56px;min-height:33px;padding:6px 8px;border-radius:9px;font-family:inherit;font-size:11px;font-weight:760;cursor:pointer}
+  #home #todayFreshStart .today-fresh-insight-done{background:#eaf7f2;color:#117a60;border:1px solid #b7e5d3}
+  #home #todayFreshStart .today-fresh-insight-detail{background:#ecf3ff;color:#2f62b4;border:1px solid #d5e4fc}
+  #home #todayFreshStart .today-fresh-insight-empty,#home #todayFreshStart .today-fresh-insight-more{margin:6px 0 0;padding:10px 5px;color:#7387a1;font-size:11px;line-height:1.5}
+  #home #todayFreshStart .today-fresh-insight-more{padding-top:7px;font-weight:720;color:#326bbf}
+  #home #todayFreshStart .today-fresh-insight-footnote{margin:10px 0 0;color:#788ba5;font-size:10px;line-height:1.45}
+  @media(max-width:600px){
+    #home #todayFreshStart .today-fresh-insights{padding:12px}
+    #home #todayFreshStart .today-fresh-insights-grid{grid-template-columns:minmax(0,1fr);gap:8px}
+    #home #todayFreshStart .today-fresh-insight-panel{padding:10px 11px}
+    #home #todayFreshStart .today-fresh-insight-row{padding:8px 0}
+    #home #todayFreshStart .today-fresh-insights-heading h2{font-size:15px}
+  }
+  @media(max-width:360px){
+    #home #todayFreshStart #todayFreshInsightsAll{font-size:10px;padding:5px 7px}
+    #home #todayFreshStart .today-fresh-insight-actions button{min-width:52px}
+  }
 </style>
 <link rel="stylesheet" href="./app.css" id="themes20260821">
 
@@ -665,6 +704,28 @@
         </div>
       </div>
       <p id="todayFreshSubjectsNote" class="today-fresh-subject-note">Odak süreleri mevcut kayıtlardan hesaplanıyor.</p>
+    </section>
+    <!-- Aşama 7: gerçek tekrar ve kaydedilmiş eksik konu sinyalleri. -->
+    <section id="todayFreshInsights" class="today-fresh-insights" aria-label="Bekleyen tekrarlar ve eksik konular">
+      <div class="today-fresh-insights-heading">
+        <div><span>KONU TAKİBİ</span><h2>Tekrarlar ve eksikler</h2></div>
+        <button id="todayFreshInsightsAll" type="button">Konuları aç <span aria-hidden="true">↗</span></button>
+      </div>
+      <div class="today-fresh-insights-grid">
+        <section class="today-fresh-insight-panel" aria-label="Bekleyen tekrarlar">
+          <div class="today-fresh-insight-header"><h3>Bekleyen tekrarlar</h3><small id="todayFreshDueCount">Yükleniyor…</small></div>
+          <div id="todayFreshDueList" class="today-fresh-insight-list" aria-live="polite">
+            <p class="today-fresh-insight-empty">Tekrar kayıtları hazırlanıyor…</p>
+          </div>
+        </section>
+        <section class="today-fresh-insight-panel" aria-label="Kayıtlara dayalı eksik konular">
+          <div class="today-fresh-insight-header"><h3>Eksik analizi</h3><small id="todayFreshGapCount">Yükleniyor…</small></div>
+          <div id="todayFreshGapsList" class="today-fresh-insight-list" aria-live="polite">
+            <p class="today-fresh-insight-empty">Konu ve yanlış kayıtları hazırlanıyor…</p>
+          </div>
+        </section>
+      </div>
+      <p class="today-fresh-insight-footnote">Eksikler yalnızca son 90 günün yanlışları veya kaydettiğin konu durumu ve güven düzeyine göre gösterilir.</p>
     </section>
     <!-- Aşama 5: gerçek haftalık odak ritmi ve son kaydedilen oturumlar. -->
     <section id="todayFreshActivity" class="today-fresh-activity" aria-label="Çalışma ritmi ve son çalışmalar">
