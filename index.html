@@ -87,8 +87,77 @@
     font-weight:780;letter-spacing:-.04em;line-height:1.2;
     color:var(--ink,#17294a);
   }
+  /* Stage 1: compact, mobile-first, independent of the archived v33/v43 cards. */
+  #home #todayFreshStart .today-fresh-title{
+    display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;
+    gap:4px 14px;margin:0 0 2px;padding:0 2px;
+  }
+  #home #todayFreshStart .today-fresh-title time{
+    color:#667895;font:600 12px/1.4 inherit;text-transform:capitalize;
+  }
+  #home #todayFreshStart .today-fresh-welcome{
+    display:grid;grid-template-columns:minmax(0,1.22fr) minmax(160px,.76fr);
+    align-items:stretch;gap:12px;min-width:0;
+    padding:15px;border:1px solid #dce8f8;border-radius:20px;
+    background:linear-gradient(120deg,#ffffff 0%,#f5f9ff 54%,#e6efff 100%);
+    box-shadow:0 8px 28px -21px rgba(26,71,143,.45);
+  }
+  #home #todayFreshStart .today-fresh-hello{
+    min-width:0;padding:4px 1px;
+  }
+  #home #todayFreshStart .today-fresh-eyebrow{
+    display:block;margin-bottom:10px;color:#627fad;
+    font-size:10px;line-height:1.3;font-weight:800;letter-spacing:.06em;
+  }
+  #home #todayFreshStart .today-fresh-hello h2{
+    margin:0 0 8px;font:780 clamp(20px,3.25vw,30px)/1.16 inherit;
+    letter-spacing:-.04em;color:#183a70;overflow-wrap:anywhere;
+  }
+  #home #todayFreshStart .today-fresh-hello p{
+    margin:0;max-width:28ch;font-size:12px;line-height:1.5;color:#607798;
+  }
+  #home #todayFreshStart .today-fresh-exam{
+    min-width:0;padding:12px 13px;border:1px solid #d4e4fb;border-radius:15px;
+    background:rgba(235,244,255,.87);
+  }
+  #home #todayFreshStart .today-fresh-exam-label{
+    display:block;color:#476da8;font-size:11px;line-height:1.35;font-weight:750;
+  }
+  #home #todayFreshStart .today-fresh-days{
+    display:flex;align-items:baseline;gap:5px;margin-top:9px;min-width:0;
+    color:#245ece;font-variant-numeric:tabular-nums;
+  }
+  #home #todayFreshStart .today-fresh-days strong{
+    font-size:clamp(34px,4.7vw,52px);line-height:1;font-weight:850;
+    letter-spacing:-.055em;color:inherit;overflow-wrap:anywhere;
+  }
+  #home #todayFreshStart .today-fresh-days span{
+    font-size:12px;line-height:1.3;font-weight:650;color:#5979ae;
+  }
+  #home #todayFreshStart #todayFreshExamDate{
+    display:block;min-height:14px;margin-top:9px;font-size:10px;
+    font-weight:550;line-height:1.4;color:#607da5;
+  }
   @media(max-width:600px){
     #home > #todayFreshStart{padding:10px 2px 20px}
+    #home #todayFreshStart .today-fresh-title time{font-size:11px}
+    #home #todayFreshStart .today-fresh-welcome{
+      grid-template-columns:minmax(0,1fr) minmax(116px,.75fr);
+      gap:8px;padding:11px;border-radius:17px;
+    }
+    #home #todayFreshStart .today-fresh-hello h2{font-size:clamp(18px,5.4vw,24px)}
+    #home #todayFreshStart .today-fresh-hello p{font-size:11px}
+    #home #todayFreshStart .today-fresh-exam{padding:10px}
+    #home #todayFreshStart .today-fresh-days strong{font-size:clamp(31px,9vw,43px)}
+  }
+  @media(max-width:350px){
+    #home #todayFreshStart .today-fresh-welcome{
+      grid-template-columns:minmax(0,1fr) minmax(105px,.7fr);gap:7px;padding:9px;
+    }
+    #home #todayFreshStart .today-fresh-hello h2{font-size:18px}
+    #home #todayFreshStart .today-fresh-eyebrow{font-size:9px}
+    #home #todayFreshStart .today-fresh-days strong{font-size:30px}
+    #home #todayFreshStart .today-fresh-exam-label{font-size:10px}
   }
 </style>
 <link rel="stylesheet" href="./app.css" id="themes20260821">
@@ -169,7 +238,23 @@
 <section id="home" class="screen active">
   <!-- Bugün v35: tek görünür temiz yüzey. Gelecek kartları buraya eklenecek. -->
   <div id="todayFreshStart" class="today-fresh-start" aria-label="Yeni Bugün ekranı">
-    <h1>Bugün</h1>
+    <header class="today-fresh-title">
+      <h1>Bugün</h1>
+      <time id="todayFreshDate"></time>
+    </header>
+    <!-- Yalnızca gerçek mevcut verilerin okunur kopyaları; orijinal düğümler taşınmaz. -->
+    <section class="today-fresh-welcome" aria-label="Günlük karşılama ve YKS geri sayımı">
+      <div class="today-fresh-hello">
+        <span class="today-fresh-eyebrow">GÜNÜN BAŞLANGICI</span>
+        <h2 id="todayFreshGreeting">Merhaba</h2>
+        <p>Bugünkü odağın net olsun; gerisi sırayla gelir.</p>
+      </div>
+      <div class="today-fresh-exam" aria-label="YKS geri sayımı">
+        <span class="today-fresh-exam-label">YKS'ye kalan</span>
+        <div class="today-fresh-days"><strong id="todayFreshDays">—</strong><span>gün</span></div>
+        <small id="todayFreshExamDate"></small>
+      </div>
+    </section>
   </div>
 
   <!-- Bugün v33 · Aşama 1: tek, görünür üst görünüm. -->
