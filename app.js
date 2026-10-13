@@ -10656,6 +10656,40 @@ function v25FocusEvents(){
   return out.filter(x=>x.at>0).sort((a,b)=>a.at-b.at);
 }
 function v25LatestFocus(){const a=v25FocusEvents();return a.length?a[a.length-1]:null;}
+/* v40 / Salt-okunur Bugün etkinlik özeti.
+   S.pomoMin günlük odak toplamının tek kaynağıdır. sessions ve swHistory
+   yalnızca son çalışma açıklamalarında kullanılır; süreye tekrar eklenmez. */
+window.yksTodayActivitySnapshot=function(){
+  const now=new Date(),today=todayKey(),monday=keyOf(mondayOf(now));
+  const days=Array.from({length:7},(_,i)=>{
+    const date=addDaysKey(monday,i),raw=Number((S.pomoMin||{})[date]);
+    return {date,min:Number.isFinite(raw)?Math.max(0,Math.round(raw)):0};
+  });
+  const sessions=[];
+  const push=(item,kind)=>{
+    if(!item)return;
+    const at=Number(item.at),min=Number(item.min);
+    if(!Number.isFinite(at)||at<=0||at>Date.now()||!Number.isFinite(min)||min<=0)return;
+    const subj=String(item.subj||"Ders").trim().slice(0,70)||"Ders";
+    const topic=String(item.topic||"").trim().slice(0,100);
+    if(kind==="sw"&&sessions.some(x=>x.date===item.date&&x.kind==="session"&&x.subj===subj
+      &&Math.abs(x.at-at)<120000&&Math.abs(x.min-min)<2))return;
+    sessions.push({date:item.date,at,min:Math.max(1,Math.round(min)),subj,topic,kind});
+  };
+  for(let i=0;i<14;i++){
+    const date=addDaysKey(today,-i),saved=(S.sessions||{})[date],stopwatch=(S.swHistory||{})[date];
+    if(Array.isArray(saved))saved.slice(-200).forEach(x=>{
+      if(x&&x.type==="work")push({date,at:x.t,min:x.m,subj:x.subj,topic:x.topic},"session");
+    });
+    if(Array.isArray(stopwatch))stopwatch.slice(-200).forEach(x=>{
+      if(!x)return;
+      const ms=Number(x.ms),at=Number(x.at)||((Number(x.end)||0)-ms);
+      if(ms>0)push({date,at,min:ms/60000,subj:x.subj,topic:x.topic},"sw");
+    });
+  }
+  sessions.sort((a,b)=>b.at-a.at);
+  return {days,sessions:sessions.slice(0,3),today};
+};
 function v25StartTask(){
   const p=v25PlanToday(),item=p.next;if(!item){toast(p.filled?"Bugünkü program tamamlandı ✓":"Bugün için program görevi yok");return false;}
   if(sw().run){go("pomo");setFocusMode("sw");toast("Kronometre zaten çalışıyor");return true;}
