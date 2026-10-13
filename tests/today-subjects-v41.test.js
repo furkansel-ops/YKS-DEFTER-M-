@@ -23,9 +23,11 @@ test("v41 uses one responsive optional section inside clean Today",()=>{
   assert.ok(visible.indexOf('id="todayFreshWorkCenter"')<visible.indexOf('id="todayFreshSubjects"'));
   assert.ok(visible.indexOf('id="todayFreshSubjects"')<visible.indexOf('id="todayFreshActivity"'));
   assert.ok(visible.indexOf('id="todayFreshActivity"')<visible.indexOf('id="todayFreshReview"'));
-  assert.match(html,/#home #todayFreshStart \.today-fresh-subjects-layout/);
-  assert.match(html,/@media\(max-width:600px\)/);
-  assert.match(html,/\.today-fresh-subject-metrics\{grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/);
+  const css=read("src/ui/today-detail-cards-v42.css");
+  assert.match(read("src/main.ts"),/import "\.\/ui\/today-detail-cards-v42\.css"/);
+  assert.match(css,/#home #todayFreshStart \.today-fresh-subjects-layout/);
+  assert.match(css,/@media\(max-width:600px\)/);
+  assert.match(css,/\.today-fresh-subject-metrics\{grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/);
 });
 
 test("v41 snapshot uses existing S and never changes records",()=>{
