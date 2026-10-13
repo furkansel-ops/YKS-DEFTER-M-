@@ -590,11 +590,11 @@
       </section>
     </section>
     <!-- Aşama 6: odak verilerinden gerçek ders dağılımı ve günlük istatistikler. -->
-    <section id="todayFreshSubjects" class="today-fresh-subjects" aria-label="Bugünkü ders dağılımı ve çalışma istatistikleri">
-      <div class="today-fresh-subjects-heading">
+    <details id="todayFreshSubjects" class="today-fresh-subjects today-fresh-fold" aria-label="Bugünkü ders dağılımı ve çalışma istatistikleri">
+      <summary class="today-fresh-subjects-heading">
         <div><span>BUGÜNKÜ ÇALIŞMAN</span><h2>Ders dağılımın</h2></div>
         <small id="todayFreshSubjectsSummary">Çalışma verileri hazırlanıyor…</small>
-      </div>
+      </summary>
       <div class="today-fresh-subjects-layout">
         <div class="today-fresh-subjects-main">
           <div id="todayFreshSubjectsBar" class="today-fresh-subject-bar" role="img" aria-label="Ders dağılımı henüz yüklenmedi"></div>
@@ -618,38 +618,46 @@
         </div>
       </div>
       <p id="todayFreshSubjectsNote" class="today-fresh-subject-note">Odak süreleri mevcut kayıtlardan hesaplanıyor.</p>
-    </section>
+    </details>
     <!-- Aşama 7: gerçek tekrar ve kaydedilmiş eksik konu sinyalleri. -->
-    <section id="todayFreshInsights" class="today-fresh-insights" aria-label="Bekleyen tekrarlar ve eksik konular">
-      <div class="today-fresh-insights-heading">
+    <details id="todayFreshInsights" class="today-fresh-insights today-fresh-fold" aria-label="Bekleyen tekrarlar ve eksik konular">
+      <summary class="today-fresh-insights-heading">
         <div><span>KONU TAKİBİ</span><h2>Tekrarlar ve eksikler</h2></div>
-        <button id="todayFreshInsightsAll" type="button">Konuları aç <span aria-hidden="true">↗</span></button>
-      </div>
-      <div class="today-fresh-insights-grid">
+        <span class="today-fresh-insights-preview">
+          <small id="todayFreshDueCount">Yükleniyor…</small>
+          <small id="todayFreshGapCount">Yükleniyor…</small>
+        </span>
+      </summary>
+      <div class="today-fresh-insights-body">
+        <div class="today-fresh-insights-actions">
+          <button id="todayFreshInsightsAll" type="button">Konuları aç <span aria-hidden="true">↗</span></button>
+        </div>
+        <div class="today-fresh-insights-grid">
         <section class="today-fresh-insight-panel" aria-label="Bekleyen tekrarlar">
-          <div class="today-fresh-insight-header"><h3>Bekleyen tekrarlar</h3><small id="todayFreshDueCount">Yükleniyor…</small></div>
+          <div class="today-fresh-insight-header"><h3>Bekleyen tekrarlar</h3></div>
           <div id="todayFreshDueList" class="today-fresh-insight-list" aria-live="polite">
             <p class="today-fresh-insight-empty">Tekrar kayıtları hazırlanıyor…</p>
           </div>
         </section>
         <section class="today-fresh-insight-panel" aria-label="Kayıtlara dayalı eksik konular">
-          <div class="today-fresh-insight-header"><h3>Eksik analizi</h3><small id="todayFreshGapCount">Yükleniyor…</small></div>
+          <div class="today-fresh-insight-header"><h3>Eksik analizi</h3></div>
           <div id="todayFreshGapsList" class="today-fresh-insight-list" aria-live="polite">
             <p class="today-fresh-insight-empty">Konu ve yanlış kayıtları hazırlanıyor…</p>
           </div>
         </section>
       </div>
       <p class="today-fresh-insight-footnote">Eksikler yalnızca son 90 günün yanlışları veya kaydettiğin konu durumu ve güven düzeyine göre gösterilir.</p>
-    </section>
+      </div>
+    </details>
     <!-- Aşama 5: gerçek haftalık odak ritmi ve son kaydedilen oturumlar. -->
-    <section id="todayFreshActivity" class="today-fresh-activity" aria-label="Çalışma ritmi ve son çalışmalar">
-      <div class="today-fresh-activity-heading">
+    <details id="todayFreshActivity" class="today-fresh-activity today-fresh-fold" aria-label="Çalışma ritmi ve son çalışmalar">
+      <summary class="today-fresh-activity-heading">
         <div><span>ÇALIŞMA GEÇMİŞİ</span><h2>Haftalık ritmin</h2></div>
         <div class="today-fresh-activity-totals">
           <strong id="todayFreshWeekTotal">—</strong>
           <small id="todayFreshWeekDays">— / 7 aktif gün</small>
         </div>
-      </div>
+      </summary>
       <div class="today-fresh-activity-grid">
         <section class="today-fresh-week-panel" aria-label="Pazartesiden pazara odak süreleri">
           <div id="todayFreshWeekBars" class="today-fresh-week-bars" aria-live="polite"></div>
@@ -665,7 +673,7 @@
           </div>
         </section>
       </div>
-    </section>
+    </details>
     <!-- Aşama 4: Gün sonu raporu eski kayıt ve koç paylaşım sistemine bağlıdır. -->
     <details id="todayFreshReview" class="today-fresh-review">
       <summary class="today-fresh-review-summary">
