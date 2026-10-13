@@ -126,7 +126,7 @@ test("v33 styles remain readable and are not hidden by legacy white-metric v43 s
   assert.doesNotMatch(v43,/#home\.v43-today \.today-summary-grid/);
   assert.doesNotMatch(v43,/#home\[data-rb-today="ready"\] \.today-summary-grid/);
   assert.match(v43,/#home\.v43-today:not\(\.v33-today-stage1\) \.today-summary-grid/);
-  assert.match(v33,/#home\.v33-today-stage1 \.v33-home-progress \.today-summary-grid/);
+  assert.match(v33,/#home\.today-clean-v34 \.today-summary-grid/);
   assert.match(v33,/grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
   assert.match(html,/class="v33-screen-heading"/);
   assert.equal((html.match(/id="v33HomeDate"/g)||[]).length,1);
