@@ -191,3 +191,133 @@
 @media(prefers-reduced-motion:reduce){
   :root[data-visual-system="refined-blue"] #home .v33-progress-track i{transition:none}
 }
+
+
+/* v33.1 – Match the approved phone mockup after the v43 runtime has installed.
+   The runtime now preserves these cards; all new geometry is confined to #home. */
+:root[data-visual-system="refined-blue"] #home .v33-screen-heading{
+  display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;
+  gap:4px 14px;padding:0 3px;margin-bottom:1px;min-width:0;
+}
+:root[data-visual-system="refined-blue"] #home .v33-screen-heading h2{
+  margin:0;color:#14264b;font-size:clamp(25px,3vw,32px);
+  font-weight:820;letter-spacing:-.045em;line-height:1.12;
+}
+:root[data-visual-system="refined-blue"] #home .v33-screen-heading .v33-home-date{
+  margin:0;color:#5c7193;font-size:12px;font-weight:600;
+  text-transform:capitalize;
+}
+:root[data-visual-system="refined-blue"] #home.v33-today-stage1 .v33-home-intro{
+  position:relative;isolation:isolate;overflow:hidden;min-height:110px;
+}
+:root[data-visual-system="refined-blue"] #home.v33-today-stage1 .v33-home-intro::before,
+:root[data-visual-system="refined-blue"] #home.v33-today-stage1 .v33-home-intro::after{
+  content:"";position:absolute;pointer-events:none;z-index:-1;
+  left:0;right:0;bottom:0;height:54px;
+}
+:root[data-visual-system="refined-blue"] #home.v33-today-stage1 .v33-home-intro::before{
+  background:#dceaff;opacity:.65;
+  clip-path:polygon(0 69%,8% 50%,15% 76%,28% 32%,38% 80%,52% 44%,65% 78%,76% 21%,88% 62%,100% 35%,100% 100%,0 100%);
+}
+:root[data-visual-system="refined-blue"] #home.v33-today-stage1 .v33-home-intro::after{
+  background:#c2d8ff;opacity:.65;
+  clip-path:polygon(0 94%,16% 72%,27% 95%,43% 65%,57% 96%,70% 58%,82% 90%,93% 45%,100% 71%,100% 100%,0 100%);
+}
+:root[data-visual-system="refined-blue"] #home.v33-today-stage1 .v33-home-intro .home-head{
+  position:relative;z-index:1;
+}
+:root[data-visual-system="refined-blue"] #home.v33-today-stage1 .v33-home-intro .home-kicker{
+  display:block;max-width:28rem;
+}
+:root[data-visual-system="refined-blue"] #home.v33-today-stage1 .v33-home-countdown{
+  position:relative;z-index:1;
+}
+:root[data-visual-system="refined-blue"] #home.v33-today-stage1 .v33-home-countdown .eyebrow::before{
+  content:"🏆";font-size:16px;margin-right:5px;vertical-align:middle;
+}
+:root[data-visual-system="refined-blue"] #home.v33-today-stage1 #sozBox{
+  display:flex;align-items:center;gap:10px;
+  background:#fff;border:1px solid #dfe9f7;
+  box-shadow:0 5px 18px -15px #1a4386;
+}
+:root[data-visual-system="refined-blue"] #home.v33-today-stage1 #sozBox:not(:has(.szlabel)) .szwrap::before{
+  content:"Günün Sözü";display:block;margin-bottom:3px;
+  color:#182b51;font-size:12px;font-weight:770;font-style:normal;
+}
+:root[data-visual-system="refined-blue"] #home.v33-today-stage1 #sozBox .sz{
+  color:#425777;font-size:13px;font-style:normal;line-height:1.45;
+}
+:root[data-visual-system="refined-blue"] #home.v33-today-stage1 .v33-home-progress{
+  border-radius:20px;box-shadow:0 12px 27px -21px #173e9f;
+}
+:root[data-visual-system="refined-blue"] #home.v33-today-stage1 .v33-progress-heading strong{
+  font-size:17px;
+}
+:root[data-visual-system="refined-blue"] #home.v33-today-stage1 .v33-progress-copy p{
+  font-size:12px;color:#e1ebff;
+}
+:root[data-visual-system="refined-blue"] #home.v33-today-stage1 .v33-home-progress .today-summary{
+  border:1px solid rgba(255,255,255,.13);
+  background:rgba(255,255,255,.1);
+}
+:root[data-visual-system="refined-blue"] #home.v33-today-stage1 .v33-home-progress .today-summary>span{
+  display:block;color:#d7e7ff;
+}
+:root[data-visual-system="refined-blue"] #home.v33-today-stage1 .v33-home-progress .today-summary>b{
+  display:block;color:#fff;
+}
+:root[data-visual-system="refined-blue"] #home.v33-today-stage1 .v33-home-progress .today-summary>small{
+  display:block;color:#d2e0ff;
+}
+@media(max-width:759px){
+  :root[data-visual-system="refined-blue"] #home .v33-screen-heading{
+    display:block;padding:0 2px;margin-bottom:0;
+  }
+  :root[data-visual-system="refined-blue"] #home .v33-screen-heading h2{
+    font-size:27px;line-height:1.15;
+  }
+  :root[data-visual-system="refined-blue"] #home .v33-screen-heading .v33-home-date{
+    font-size:12px;margin-top:2px;
+  }
+  :root[data-visual-system="refined-blue"] #home.v33-today-stage1 .v33-home-intro{
+    grid-template-columns:minmax(0,1fr) minmax(115px,.72fr);min-height:112px;
+  }
+  :root[data-visual-system="refined-blue"] #home.v33-today-stage1 .v33-home-intro .home-head h1{
+    font-size:clamp(18px,5.2vw,24px);margin-bottom:8px;
+  }
+  :root[data-visual-system="refined-blue"] #home.v33-today-stage1 .v33-home-intro .home-kicker{
+    display:block;font-size:11.5px;line-height:1.45;
+  }
+  :root[data-visual-system="refined-blue"] #home.v33-today-stage1 .v33-home-countdown .timeline,
+  :root[data-visual-system="refined-blue"] #home.v33-today-stage1 .v33-home-countdown .phase,
+  :root[data-visual-system="refined-blue"] #home.v33-today-stage1 .v33-home-countdown #effDays{
+    display:none;
+  }
+  :root[data-visual-system="refined-blue"] #home.v33-today-stage1 .v33-home-countdown .hero .count{
+    font-size:clamp(36px,9vw,47px)!important;
+  }
+  :root[data-visual-system="refined-blue"] #home.v33-today-stage1 #sozBox .sz{font-size:12.5px}
+  :root[data-visual-system="refined-blue"] #home.v33-today-stage1 .v33-progress-primary{
+    grid-template-columns:72px minmax(0,1fr);gap:11px;
+  }
+  :root[data-visual-system="refined-blue"] #home.v33-today-stage1 .v33-home-progress .today-summary-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:13px;
+  }
+  :root[data-visual-system="refined-blue"] #home.v33-today-stage1 .v33-home-progress .today-summary{
+    padding:10px 11px;min-height:59px;
+  }
+  :root[data-visual-system="refined-blue"] #home.v33-today-stage1 .v33-home-progress .today-summary>span{font-size:11px}
+  :root[data-visual-system="refined-blue"] #home.v33-today-stage1 .v33-home-progress .today-summary>b{font-size:17px}
+  :root[data-visual-system="refined-blue"] #home.v33-today-stage1 .v33-home-progress .today-summary>small{font-size:10px}
+}
+@media(max-width:370px){
+  :root[data-visual-system="refined-blue"] #home.v33-today-stage1 .v33-home-intro{
+    grid-template-columns:minmax(0,1fr) minmax(103px,.66fr);gap:7px;
+  }
+  :root[data-visual-system="refined-blue"] #home.v33-today-stage1 .v33-home-countdown .eyebrow{
+    font-size:9px;
+  }
+  :root[data-visual-system="refined-blue"] #home.v33-today-stage1 .v33-home-progress .today-summary-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+}
