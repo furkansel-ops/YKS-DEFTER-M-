@@ -24,6 +24,10 @@ export function installTodayActivityV40():{installed:boolean}{
     const min=Math.max(0,Math.round(Number(raw)||0)),h=Math.floor(min/60),m=min%60;
     return h?(m?h+" sa "+m+" dk":h+" sa"):min+" dk";
   };
+  const shortMinutes=(raw:number)=>{
+    const m=Math.max(0,Math.round(Number(raw)||0)),h=Math.floor(m/60);
+    return h?h+"s"+(m%60?String(m%60).padStart(2,"0"):""):m+"dk";
+  };
   const node=(tag:string,className:string,content?:string)=>{
     const element=document.createElement(tag);
     element.className=className;
@@ -78,7 +82,7 @@ export function installTodayActivityV40():{installed:boolean}{
         fill.style.height=min>0?Math.max(7,Math.round(min/max*100))+"%":"0%";
         track.append(fill);
         const title=node("span","today-fresh-week-label",DAY_NAMES_V40[i]||"—");
-        const value=node("small","today-fresh-week-value",isFuture?"—":min>0?labelMinutes(min):"0");
+        const value=node("small","today-fresh-week-value",isFuture?"—":min>0?shortMinutes(min):"0");
         cell.append(track,title,value);
         return cell;
       });
