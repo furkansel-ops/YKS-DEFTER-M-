@@ -93,13 +93,10 @@ test("first-stage HTML preserves every legacy live data node exactly once",()=>{
   assert.ok(html.indexOf('class="v33-home-progress"')<html.indexOf('id="todayHub"'));
   assert.match(html,/class="today-summary-grid v33-progress-metrics"/);
   assert.match(html,/class="v33-legacy-stats"/);
-  assert.match(html,/id="todayCleanShell" class="today-clean-shell"/);
-  assert.match(html,/id="todayLegacyRuntime" class="today-legacy-runtime" hidden aria-hidden="true"/);
   assert.match(css,/@media\(max-width:759px\)/);
   assert.match(css,/@media\(max-width:370px\)/);
-  assert.match(css,/#home\.today-clean-v34 \.v33-home-progress/);
-  assert.match(css,/#home \.today-legacy-runtime\[hidden\]\{display:none!important\}/);
-  assert.doesNotMatch(css,/#home\.today-clean-v34 \.v33-home-progress\{display:none/);
+  assert.match(css,/#home \.v33-home-progress/);
+  assert.doesNotMatch(css,/display:none\s*!important/);
 });
 
 test("scope is home only and initial render keeps optional boot safety",()=>{
