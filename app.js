@@ -10683,7 +10683,7 @@ window.yksTodayInsightsSnapshot=function(){
       if(!w&&!stageEvidence&&!lowConfidence)continue;
       const reasons=[];
       if(w)reasons.push("Son 90 günde "+w.count+" kayıtlı yanlış");
-      if(stageEvidence)reasons.push(stage===1?"Konu öğreniliyor":"Konu çalışılıyor");
+      if(stageEvidence)reasons.push("Konu durumu: "+ST_LABEL[stage]);
       if(lowConfidence)reasons.push("Güven düzeyi düşük ("+confidence+"/5)");
       gaps.push({
         key,exam:String(sb.exam),subj:String(sb.name),topic:String(topic),
