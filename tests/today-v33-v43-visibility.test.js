@@ -17,7 +17,7 @@ function fixture(clean=false){
     get classList(){
       return{
         contains:name=>this.className.split(/\s+/).includes(name),
-        add:name=>{if(!this.className.split(/\s+/).includes(name))this.className+=" "+name}
+        add:(...names)=>{for(const name of names)if(!this.className.split(/\s+/).includes(name))this.className+=" "+name}
       };
     }
     get firstElementChild(){return this.children[0]||null}
