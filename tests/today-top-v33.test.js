@@ -99,6 +99,6 @@ test("scope is home only and initial render keeps optional boot safety",()=>{
   assert.match(html,/id="yksBootGuard"/);
   assert.match(html,/id="yksBootShell"/);
   assert.match(js,/function v25RenderSummary/);
-  assert.match(js,/id="todayHubPlan"/);
+  assert.match(js,/el\("todayHubPlan"\)/);
   assert.doesNotMatch(source,/setDoc|updateDoc|localStorage\.setItem|fetch\(/);
 });
