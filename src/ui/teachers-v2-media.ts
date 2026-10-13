@@ -9,7 +9,7 @@ type MediaVideo={
   channelId?:string;
   channelUrl?:string;
 };
-type MediaPlaylist={id:string;title:string;url:string;videos?:MediaVideo[];videoCount?:number;previewSource?:string};
+type MediaPlaylist={id:string;title:string;url:string;channelId?:string;source?:string;videos?:MediaVideo[];videoCount?:number;previewSource?:string};
 type TeacherMedia={
   version?:number;
   name:string;
@@ -19,6 +19,7 @@ type TeacherMedia={
   channelId?:string;
   channelUrl?:string;
   channelSource?:string;
+  searchOnly?:boolean;
   refreshedAt?:string|null;
   archiveIndex?:string;
   archiveComplete?:boolean;
@@ -72,7 +73,7 @@ type LegacyWindow=Window&{
 type FilterKind="all"|"tyt"|"ayt"|"soru"|"deneme"|"kamp"|"watched"|"partial"|"later"|"unwatched";
 
 const legacy=window as LegacyWindow;
-const CACHE_KEY="yks_teachers_v2_media_cache";
+const CACHE_KEY="yks_teachers_v2_media_cache_teacher_verified_v2";
 const PLAYER_ID="teachersV2MediaPlayer";
 const FEED_FILE="teachers-v2-feed.json";
 const PAGE_SIZE=24;
@@ -141,19 +142,33 @@ function manifestMediaFor(name:string):TeacherMedia|null{
   return null;
 }
 function stateFor(name:string):ArchiveState|null{return archiveStates.get(keyFor(name))||null;}
+/** Reject unproven archived playlist rows; old global-search results were mislabeled as teacher playlists. */
+function verifiedPlaylistsFor(manifest:TeacherMedia,...groups:MediaPlaylist[][]):MediaPlaylist[]{
+  const out:MediaPlaylist[]=[],seen=new Set<string>();
+  for(const group of groups)for(const row of group||[]){
+    if(!row?.id||seen.has(row.id))continue;
+    const trusted=row.source==="curated"||(row.source==="verified-channel"&&!manifest.searchOnly&&Boolean(manifest.channelId)&&row.channelId===manifest.channelId);
+    if(!trusted)continue;
+    seen.add(row.id);out.push(row);
+  }
+  return out;
+}
 function mediaFor(name:string):TeacherMedia|null{
   const manifest=manifestMediaFor(name);if(!manifest)return null;
-  const state=stateFor(name);if(!state)return manifest;
+  const state=stateFor(name);
+  const playlists=verifiedPlaylistsFor(manifest,state?.meta.playlists||[],manifest.playlists||[]);
+  if(!state)return {...manifest,playlists,playlistCount:playlists.length};
   return {
     ...manifest,
     ...state.meta,
     archiveIndex:manifest.archiveIndex,
     videos:uniqueVideos(manifest.videos||[],state.videos),
-    playlists:Array.isArray(state.meta.playlists)?state.meta.playlists:(manifest.playlists||[]),
+    playlists,
     videoCount:Number(state.meta.videoCount||manifest.videoCount||state.videos.length),
-    playlistCount:Number(state.meta.playlistCount||manifest.playlistCount||0)
+    playlistCount:playlists.length
   };
 }
+
 async function fetchJson<T>(path:string,force=false):Promise<T>{
   const url=new URL(path,document.baseURI);if(force)url.searchParams.set("refresh",String(Date.now()));
   const response=await fetch(url.href,{cache:"no-store",credentials:"same-origin",signal:AbortSignal.timeout(10000)});
@@ -182,7 +197,7 @@ async function loadArchiveIndex(name:string,force=false):Promise<ArchiveState|nu
   const promise=(async()=>{
     try{
       const meta=await fetchJson<ArchiveIndex>(manifest.archiveIndex||"",force);
-      if(!meta||!Array.isArray(meta.pages)||!Array.isArray(meta.playlists))throw new Error("geçersiz hoca arşiv indeksi");
+      if(!meta||!Array.isArray(meta.pages)||!Array.isArray(meta.playlists)||keyFor(meta.name)!==keyFor(name))throw new Error("geçersiz veya yanlış hocaya ait arşiv indeksi");
       const state:ArchiveState={meta,videos:[],loaded:new Set<number>(),loading:new Set<number>()};
       archiveStates.set(key,state);
       if(meta.pages.length)await loadArchivePage(name,0,force);

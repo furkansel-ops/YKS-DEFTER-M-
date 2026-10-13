@@ -95,10 +95,10 @@ test("program actions hand the original resource link to the shared day picker a
 });
 
 test("opening a teacher archive eagerly loads the first video page like the original Hocalar flow",async()=>{
-  const requested=[],meta={name:"Hoca",pages:["teachers-v2/hoca/p1.json"],playlists:[{id:"PLabcdef1234567890",title:"Seri",url:"https://youtube.com/playlist?list=PLabcdef1234567890"}],videoCount:80};
+  const requested=[],meta={name:"Hoca",channelId:"UCTestChannelA",pages:["teachers-v2/hoca/p1.json"],playlists:[{id:"PLabcdef1234567890",title:"Seri",url:"https://youtube.com/playlist?list=PLabcdef1234567890",channelId:"UCTestChannelA",source:"verified-channel"},{id:"PLUnknownOther0001",title:"Başka hocanın listesi",url:"https://youtube.com/playlist?list=PLUnknownOther0001"}],videoCount:80};
   const page={version:2,teacher:"Hoca",page:1,pageSize:80,total:80,videos:[{id:"abc123def45",title:"İlk video"}]};
   const h=harness({fetch:async url=>{requested.push(url);return {ok:true,json:async()=>url.endsWith("/p1.json")?page:meta};}});
-  h.api.setFeed({version:2,teachers:{Hoca:{name:"Hoca",videos:[],playlists:[],archiveIndex:"teachers-v2/hoca/index.json"}}});
+  h.api.setFeed({version:2,teachers:{Hoca:{name:"Hoca",channelId:"UCTestChannelA",videos:[],playlists:[],archiveIndex:"teachers-v2/hoca/index.json"}}});
   await h.api.loadArchiveIndex("Hoca");
   assert.deepEqual(requested,["https://fixture.test/study/teachers-v2/hoca/index.json","https://fixture.test/study/teachers-v2/hoca/p1.json"]);
   assert.equal(h.api.mediaFor("Hoca").playlists.length,1);assert.equal(h.api.mediaFor("Hoca").videos.length,1);

@@ -6,7 +6,7 @@ const vm=require("node:vm");
 const {stripTypeScriptTypes}=require("node:module");
 const root=path.resolve(__dirname,"..");
 const source=fs.readFileSync(path.join(root,"src/ui/refined-program.ts"),"utf8");
-const runtime=stripTypeScriptTypes(source.replace(/^import "\.\/refined-program\.css";\r?\n/,""),{mode:"strip"}).replace(/^export /gm,"");
+const runtime=stripTypeScriptTypes(source.replace(/^import "\.\/refined-program\.css";\r?\n/,"").replace(/^import "\.\/refined-program-v4\.css";\r?\n/,"").replace(/^import \{renderSmartProgram\} from "\.\/smart-program";\r?\n/,""),{mode:"strip"}).replace(/^export /gm,"");
 const api=vm.runInNewContext(runtime+"\n({refinedProgramTasks,refinedProgramWeekOffset,refinedProgramQuickText,refinedProgramResourceUrl,refinedProgramTaskDetail,refinedProgramSubjectLabel,createRefinedProgramController})",{Date,URL});
 const plain=value=>JSON.parse(JSON.stringify(value));
 const rows=()=>[Array(7).fill(""),Array(7).fill("")];
@@ -59,8 +59,12 @@ test("adding work delegates to actual addToDay for the chosen future or past day
 
 test("full days and blank submissions cannot overwrite existing plan cells",()=>{
   const h=harness();h.state.weeks["2026-09-21"].s[0][4]="Matematik";h.state.weeks["2026-09-21"].s[1][4]="Biyoloji";
-  const before=JSON.stringify(h.state);assert.equal(h.controller.add("   "),false);assert.equal(h.controller.add("Kimya"),false);
+  const before=JSON.stringify(h.state);assert.equal(h.controller.add("   "),false);
   assert.equal(JSON.stringify(h.state),before);assert.equal(h.calls.filter(call=>call[0]==="save").length,0);
+  assert.equal(h.controller.add("Kimya"),true);
+  assert.equal(h.state.weeks["2026-09-21"].s[0][4],"Matematik");
+  assert.equal(h.state.weeks["2026-09-21"].s[1][4],"Biyoloji");
+  assert.equal(h.state.weeks["2026-09-21"].s[2][4],"Kimya");
 });
 
 test("completion and weekly editing keep the same program cell identity",()=>{
@@ -160,16 +164,17 @@ test("new planner keeps an optional video URL field in the add-work flow",()=>{
 });
 
 
-test("weekly program defaults to calendar view and groups tasks by subject label",()=>{
+test("program opens in the approved daily view and keeps weekly subject grouping",()=>{
   const h=harness();
-  assert.equal(h.controller.snapshot().view,"week");
+  assert.equal(h.controller.snapshot().view,"day");
   assert.equal(api.refinedProgramSubjectLabel("TYT Matematik · Problemler · 30 soru","Çalışma"),"TYT Matematik");
   assert.equal(api.refinedProgramSubjectLabel("AYT Kimya · Organik Kimya — https://youtu.be/test","Çalışma"),"AYT Kimya");
   assert.equal(api.refinedProgramSubjectLabel("Deneme analizi · yanlışların tekrarı","Çalışma"),"Deneme analizi");
   assert.equal(api.refinedProgramSubjectLabel("X".repeat(60),"Rutin"),"Rutin");
   assert.match(source,/rb-program-calendar-row/);
   assert.match(source,/rb-program-subject-row/);
-  assert.match(source,/Dersler satırlarda, günler sütunlarda/);
+  assert.match(source,/Derslere göre haftalık takvim/);
+  assert.match(source,/refinedProgramWeeklyGroups\(weekTasks\)/);
 });
 
 
@@ -179,7 +184,7 @@ test("linked studies keep the weekly calendar clean and use the shared detail sh
   assert.doesNotMatch(source,/rb-program-calendar-resource/);
   assert.doesNotMatch(source,/rb-program-calendar-task-shell/);
   assert.doesNotMatch(source,/rb-program-resource"/);
-  assert.match(source,/Düzenlemek için yalnız çalışma yazısına dokun/);
+  assert.match(source,/Çalışma metnine dokunarak düzenleyebilirsin/);
 });
 
 
@@ -221,8 +226,8 @@ test("Programım günlükte ders detay aksiyonlarını, haftalıkta yalnız yaz�
   assert.match(source,/cellOpenLink/);
   assert.match(source,/cellVideo/);
   assert.match(source,/detailDone\.addEventListener\("click"/);
-  assert.match(source,/const textButton=button\(detail\|\|subjectName,"rb-program-calendar-task-text"\)/);
-  assert.match(source,/textButton\.addEventListener\("click",\(\)=>\{controller\.selectDay\(task\.day\);openEditor\(task,state\.week\);\}\)/);
+  assert.match(source,/const action=button\(workName\|\|group\.title,"rb-program-calendar-task-text"\)/);
+  assert.match(source,/action\.addEventListener\("click",\(\)=>\{controller\.selectDay\(index\);openEditor\(task,state\.week\);\}\)/);
   assert.match(css,/\.rb-program-detail-card/);
   assert.match(css,/\.rb-program-detail-actions/);
 });

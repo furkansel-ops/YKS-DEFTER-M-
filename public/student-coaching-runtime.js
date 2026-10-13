@@ -40,21 +40,32 @@ function cleanup(){
   rt.stops.splice(0).forEach(fn=>{try{fn()}catch{}});
   clearTimeout(rt.shareTimer);rt.shareTimer=null;clearInterval(rt.shareInterval);rt.shareInterval=null;rt.sharing=false;rt.pending=false;rt.inFlight=null;rt.actionQueue=Promise.resolve();
 }
-function sum(map,days){let n=0;for(let i=0;i<days;i++)n+=Number(map?.[new Date(Date.now()-i*DAY).toISOString().slice(0,10)]||0)||0;return n}
+// Study dates belong to the student's local calendar, not the UTC day.
+function localDayOffset(offset){
+  const d=new Date();d.setHours(12,0,0,0);d.setDate(d.getDate()+offset);
+  return dateKey(d);
+}
+function sum(map,days){
+  let n=0;
+  for(let i=0;i<days;i++)n+=Number(map?.[localDayOffset(-i)]||0)||0;
+  return n;
+}
 function topicParts(k){const p=String(k||"").split("|");return{exam:p[0]||"YKS",subject:p[1]||"Ders",topic:p.slice(2).join("|")||p[1]||k}}
 function cleanProgramMatrix(value,rowCount){
   const src=Array.isArray(value)?value:[];
   const out={};
-  for(let r=0;r<rowCount;r++){
+  for(let r=0;r<src.length;r++){
     const row=Array.isArray(src[r])?src[r]:[];
-    out[String(r)]=Array.from({length:7},(_,d)=>text(row[d],220));
+    const cells=Array.from({length:7},(_,d)=>text(row[d],220));
+    // Sparse Firestore rows keep large programs compact and retain real cell IDs.
+    if(cells.some(Boolean))out[String(r)]=cells;
   }
   return out;
 }
 function cleanProgramMap(value){
   if(!value||typeof value!=="object"||Array.isArray(value))return{};
   const out={};
-  Object.entries(value).slice(0,600).forEach(([key,val])=>{
+  Object.entries(value).forEach(([key,val])=>{
     const k=text(key,80);if(!k)return;
     if(val&&typeof val==="object")out[k]=JSON.parse(JSON.stringify(val));
     else if(typeof val==="boolean")out[k]=val;
@@ -72,12 +83,13 @@ function programWeekHasData(week){
     ||Object.keys(week.mv||{}).length>0;
 }
 function buildProgramShare(s){
-  const rr=Math.max(1,Math.min(24,Number(s?.rows?.r)||2));
-  const sr=Math.max(1,Math.min(24,Number(s?.rows?.s)||4));
-  const weeks=Object.keys(s?.weeks||{})
+  const weekKeys=Object.keys(s?.weeks||{})
     .filter(k=>/^\d{4}-\d{2}-\d{2}$/.test(k)&&programWeekHasData(s.weeks[k]))
-    .sort().slice(-80)
-    .map(week=>{
+    .sort().slice(-80);
+  const actual=blk=>Math.max(0,...weekKeys.map(k=>Array.isArray(s.weeks[k]?.[blk])?s.weeks[k][blk].length:0));
+  const rr=Math.max(1,Math.floor(Number(s?.rows?.r)||2),actual("r"));
+  const sr=Math.max(1,Math.floor(Number(s?.rows?.s)||4),actual("s"));
+  const weeks=weekKeys.map(week=>{
       const raw=s.weeks[week]||{};
       return{week,data:{
         r:cleanProgramMatrix(raw.r,rr),
@@ -101,7 +113,7 @@ function buildProgramShare(s){
 
 function progressDaily(s,days=7){
   return Array.from({length:days},(_,index)=>{
-    const date=new Date(Date.now()-(days-1-index)*DAY).toISOString().slice(0,10);
+    const date=localDayOffset(-(days-1-index));
     return{date,minutes:Math.max(0,Math.round(finite(s?.pomoMin?.[date]))),questions:Math.max(0,Math.round(finite(s?.solved?.[date])))};
   });
 }
@@ -193,7 +205,7 @@ function applyAction(a){
     const di=dateInfo(text(p.date,10)||today());
     if(a.type==="program_task"&&p.operation==="order"){
       const order=Array.isArray(p.order)?p.order.map(id=>text(id,40)).filter(Boolean):[];
-      if(!order.length||order.length>48||order.some(id=>!/^[rs]-\d+-[0-6]$/.test(id)))throw new Error("Program sırası geçersiz");
+      if(!order.length||order.some(id=>!/^[rs]-\d+-[0-6]$/.test(id)))throw new Error("Program sırası geçersiz");
       const target=new Date(text(p.date,10)+"T12:00:00");target.setDate(target.getDate()-di.day);const week=dateKey(target);
       if(typeof window.programSetDayOrder!=="function")throw new Error("Program sıralama işlevi hazır değil");
       if(window.programSetDayOrder(week,di.day,order)===false)throw new Error("Program sırası kaydedilemedi");
@@ -302,7 +314,7 @@ async function onSignedIn({user,auth,db}){
 function onSignedOut(){cleanup();rt.user=rt.auth=rt.db=rt.profile=null;delete document.documentElement.dataset.accountRole}
 
 let resolveAccountReady;try{window.__YKS_ACCOUNT_READY__=new Promise(resolve=>{resolveAccountReady=resolve})}catch{}
-window.YKSAccountAuth={version:"1.2.20",beforeSignIn,onSignedIn,onSignedOut,publishShare};
+window.YKSAccountAuth={version:"1.2.21",beforeSignIn,onSignedIn,onSignedOut,publishShare};
 try{resolveAccountReady?.(window.YKSAccountAuth)}catch{}
 document.documentElement.dataset.studentCoachingBridge="ready";
-window.dispatchEvent(new CustomEvent("yks:student-coaching-ready",{detail:{version:"1.2.20"}}));
+window.dispatchEvent(new CustomEvent("yks:student-coaching-ready",{detail:{version:"1.2.21"}}));

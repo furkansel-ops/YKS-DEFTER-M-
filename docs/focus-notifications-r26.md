@@ -1,14 +1,4 @@
-# r26 — Hareketli maskotlar ve web uygulamasında odak bildirimi
-
-## Maskotlar
-
-On karakterin hareket sırası, ritmi ve ağırlığı farklıdır. Bakışlar, ayaklar,
-kulaklar, kuyruklar ve kanatlar bağımsız hareket eder. Kutlamada sıçrama öncesi
-hazırlık, havada dönüş, yumuşak iniş ve konfeti vardır. Dokunmak sessiz bir
-hareket başlatır; sohbet veya baloncuk açmaz. Sürükleme dokunma sayılmaz.
-
-WebGL sahnesi ilk JavaScript paketinin dışında kalır; 30 FPS sınırı,
-gizli sayfa/odak/modal duraklatmaları, azaltılmış hareket ve görsel yedek korunur.
+# r26 — Web uygulamasında odak bildirimleri
 
 ## Bildirimden odak kontrolü
 
@@ -45,8 +35,7 @@ fiziksel MagicPad 2 görünümü cihaz üzerinde ayrıca kontrol edilmelidir.
 
 ## Dosya sınırları
 
-`mascot-models.ts`, `mascot-motion.ts`, `mascot-scene.ts` ve maskot CSS'i görsel
-değişiklikleri içerir. `modules/focus-notifications.js` mevcut sayaçlarla sayfa
+`modules/focus-notifications.js` mevcut sayaçlarla sayfa
 bağlantısını, `modules/focus-notification-worker.js` kalıcı bildirim işlemlerini
 yönetir. `modules/stability.js` açılış kurtarmasını bu bağlantıyla sıralar.
 `app.js` bildirim teslim sonucunu bekler; `public/settings-profile-runtime.js`
@@ -68,8 +57,6 @@ fiziksel dokunma veya fiziksel HONOR cihaz testi yerine geçmez.
 
 - `npm run release:check`: 794 test, TypeScript, üretim paketi, çevrimdışı
   önbellek ve sürüm kontrolleri geçti. Ana paket 259997 bayt; mevcut bütçe korundu.
-- Maskot: 28 gerçek Edge kontrolü; on karakter, görev kutlamaları, odak ve
-  azaltılmış hareket, WebGL yedeği, 360/390/412/1440 px görünüm.
 - Bildirim: 14 gerçek Edge kontrolü; gerçek bildirim API'si, sayfa kapalıyken
   duraklat/devam et ve yeniden açılış, duraklama dakikalarının hariç tutulması,
   eski bildirim, ayar kapatma, izin reddi, 360/390/412/1024 px görünüm.

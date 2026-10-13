@@ -111,12 +111,12 @@ gelmeyebilir; bildirimin süre hesabı ile uyarının teslim zamanı farklıdır
   pil tasarrufu ve süreç kapatma sonuçları cihaz denemesi yapılmadan doğrulanmış
   sayılmaz. İlgili PR'a gerçek sonuçlar ayrıca yazılmalıdır.
 
-11 Ekim 2026 yerel doğrulamasında Android instrumentation testleri derlendi.
-Yüklü API 37.1 imajıyla izole ve görünmez emülatör denendi; Windows sanallaştırma
-desteği çalıştı ancak cihaz ADB'de çevrimiçi duruma geçmedi. Deneme emülatörü
-kapatıldı. Altı testin API 36 CI sonucu ilgili PR'dan doğrulanmalıdır; gerçek
-HONOR kontrol listesi ayrıca bekliyor. Derleme başarısı çalışma zamanı başarısı
-olarak sayılmıyor.
+11 Ekim 2026 tarihli `365087fe` kaynak sürümünde altı Android instrumentation
+testi API 36 CI emülatöründe geçti: sıfır hata, sıfır atlanan test. Gerçek
+bildirim Duraklat / Devam et eylemleri ve paketlenmiş WebView/Capacitor köprüsü
+bu çalıştırmada doğrulandı. Sonraki APK'lar için kendi kaynak commit'ine ait
+workflow ve test raporu kontrol edilmelidir. HONOR perdesi ve kapsül için
+yukarıdaki fiziksel cihaz denemesi hâlâ gereklidir.
 
 ## Platform kaynakları
 

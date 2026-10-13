@@ -9,12 +9,12 @@ Retry reloads the page without deleting study data.
 
 - `index.html`: early loading/error/retry view, fixed visual identity, appearance
   controls and the lab reading host.
-- `src/main.ts`, `src/ui/refined-shell.ts`: readiness handoff and isolation of
-  optional mascot initialization failures.
+- `src/main.ts`, `src/ui/refined-shell.ts`: readiness handoff and safe initialization
+  of the main application screens.
 - `app.js`, `app.css`, `src/ui/refined-blue.css`: retire old palettes/preferences;
   keep the existing study runtime and its data contracts.
 - `public/settings-profile-runtime.js`, `src/ui/personalization-v43.ts`: preserve
-  font sizing, mascot and study preferences with no legacy theme picker.
+  font sizing and study preferences with no legacy theme picker.
 - `modules/learning-lab-v3.js`: one tab owner for reading and existing lab tools;
   leaving reading suspends its activity.
 - `modules/speed-reading-learn-v1.js`: small compatibility loader.
@@ -52,7 +52,7 @@ existing Paragraph/Problem tracker remains available.
 
 `npm run release:check` passed 665 tests, TypeScript, infrastructure and production
 checks. The entry bundle is 259,677 bytes. Isolated Edge runs passed 44 checks:
-18 startup/reading/mobile, 5 real PWA/offline and 21 existing mascot/Program flows.
+18 startup/reading/mobile, 5 real PWA/offline and 21 legacy app flows.
 Mobile widths use browser emulation (360, 390 and 412 pixels); no physical Android
 device or signed Play Store package was used for these browser checks.
 

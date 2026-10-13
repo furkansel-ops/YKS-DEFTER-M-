@@ -165,7 +165,7 @@ function createSettingsPanel(getPrefs:()=>PersonalizationV43State,commit:(next:P
   headCopy.append(
     element("p","eyebrow","Kişiselleştirme"),
     element("h2","","Kendine göre ayarla"),
-    element("p","hint","Sınav kapsamını ve Bugün ekranındaki yardımcı alanları buradan düzenle. Yazı boyutu ve maskotun Ayarlar > Görünüm bölümünde.")
+    element("p","hint","Sınav kapsamını ve Bugün ekranındaki yardımcı alanları buradan düzenle. Yazı boyutunu Ayarlar > Görünüm bölümünden değiştirebilirsin.")
   );
   const reset=element("button","btn ghost tiny","Ayarları sıfırla");
   reset.type="button";
