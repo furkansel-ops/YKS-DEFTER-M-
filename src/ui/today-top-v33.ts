@@ -9,7 +9,7 @@ export function parseTodayProgramProgress(percentText:string,completedText:strin
   const total=ratio?Math.max(0,Number(ratio[2])):0;
   const match=String(percentText||"").match(/(\d+(?:[.,]\d+)?)\s*%/);
   const fallback=total?Math.round(completed/total*100):0;
-  const pct=match?Number(match[1].replace(",",".")):fallback;
+  const pct=match?Number(String(match[1]||"0").replace(",",".")):fallback;
   const percent=Math.min(100,Math.max(0,Number.isFinite(pct)?Math.round(pct):0));
   return{completed:Math.min(completed,total),total,percent:total?percent:0,hasPlan:total>0};
 }
