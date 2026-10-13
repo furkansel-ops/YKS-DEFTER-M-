@@ -159,6 +159,129 @@
     #home #todayFreshStart .today-fresh-days strong{font-size:30px}
     #home #todayFreshStart .today-fresh-exam-label{font-size:10px}
   }
+
+  /* v37: quote and progress are one daily overview section, mobile-first. */
+  #home #todayFreshStart .today-fresh-daily{
+    display:flex;flex-direction:column;gap:10px;min-width:0;
+  }
+  #home #todayFreshStart .today-fresh-quote{
+    display:flex;align-items:center;gap:12px;min-width:0;
+    padding:13px 14px;background:#fff;border:1px solid #e1e9f7;
+    border-radius:17px;box-shadow:0 6px 21px -19px rgba(20,62,130,.3);
+  }
+  #home #todayFreshStart .today-fresh-quote[hidden]{display:none!important}
+  #home #todayFreshStart .today-fresh-quote-symbol{
+    flex:0 0 32px;align-self:flex-start;margin-top:2px;
+    font-size:30px;font-weight:750;line-height:1;color:#8366d7;
+  }
+  #home #todayFreshStart .today-fresh-quote-body{flex:1 1 auto;min-width:0}
+  #home #todayFreshStart .today-fresh-quote-top{
+    display:flex;align-items:center;justify-content:space-between;gap:8px;
+  }
+  #home #todayFreshStart .today-fresh-quote-label{
+    font-size:12px;font-weight:800;color:#213c64;line-height:1.4;
+  }
+  #home #todayFreshStart .today-fresh-quote-new{
+    display:inline-flex;align-items:center;gap:4px;flex:0 0 auto;
+    min-height:34px;padding:5px 9px;border:1px solid #e3eafb;
+    border-radius:9px;background:#f7faff;color:#4566a5;
+    font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;
+  }
+  #home #todayFreshStart .today-fresh-quote-text{
+    margin:4px 0 0;color:#445b7b;font-size:13px;
+    font-weight:560;line-height:1.5;overflow-wrap:anywhere;
+  }
+  #home #todayFreshStart .today-fresh-quote-author{
+    display:block;margin-top:4px;color:#7789a4;font-size:11px;line-height:1.35;
+  }
+  #home #todayFreshStart .today-fresh-quote-author:empty{display:none}
+  #home #todayFreshStart .today-fresh-progress{
+    --today-fresh-percent:0;
+    display:block;min-width:0;margin:0;padding:15px 16px 12px;
+    background:linear-gradient(115deg,#1d489e,#285dc5 64%,#3449b4);
+    border:1px solid #3168ca;border-radius:19px;
+    color:#fff;box-shadow:0 14px 32px -25px rgba(26,65,147,.75);
+  }
+  #home #todayFreshStart .today-fresh-progress-head{
+    display:grid;grid-template-columns:82px minmax(0,1fr);
+    align-items:center;gap:14px;min-width:0;
+  }
+  #home #todayFreshStart .today-fresh-ring{
+    position:relative;display:grid;place-items:center;isolation:isolate;
+    width:82px;height:82px;border-radius:50%;
+    background:conic-gradient(#3ae0b1 calc(var(--today-fresh-percent)*1%),rgba(255,255,255,.24) 0);
+  }
+  #home #todayFreshStart .today-fresh-ring::before{
+    content:"";position:absolute;z-index:-1;inset:8px;border-radius:50%;background:#2251ac;
+  }
+  #home #todayFreshStart .today-fresh-ring b{
+    color:white;font-size:18px;font-weight:830;font-variant-numeric:tabular-nums;letter-spacing:-.04em;
+  }
+  #home #todayFreshStart .today-fresh-progress-summary{min-width:0}
+  #home #todayFreshStart .today-fresh-progress-heading{
+    display:flex;align-items:baseline;justify-content:space-between;gap:8px;
+  }
+  #home #todayFreshStart .today-fresh-progress-heading h2{
+    margin:0;color:#fff;font-size:17px;line-height:1.3;font-weight:800;
+  }
+  #home #todayFreshStart .today-fresh-progress-heading strong{
+    flex:none;font-size:13px;color:#d7f8ed;font-weight:800;font-variant-numeric:tabular-nums;
+  }
+  #home #todayFreshStart .today-fresh-progress-summary p{
+    margin:5px 0 10px;color:#deebff;font-size:11px;line-height:1.5;
+  }
+  #home #todayFreshStart .today-fresh-progress-track{
+    height:7px;background:rgba(255,255,255,.23);border-radius:99px;overflow:hidden;
+  }
+  #home #todayFreshStart .today-fresh-progress-track i{
+    display:block;width:calc(var(--today-fresh-percent)*1%);
+    height:100%;border-radius:99px;background:#42e0af;transition:width .18s ease;
+  }
+  #home #todayFreshStart .today-fresh-stats{
+    display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:7px;margin-top:13px;min-width:0;
+  }
+  #home #todayFreshStart .today-fresh-stat{
+    display:flex;flex-direction:column;align-items:flex-start;gap:3px;
+    min-width:0;min-height:55px;padding:9px 10px;border:1px solid rgba(255,255,255,.13);
+    border-radius:11px;background:rgba(255,255,255,.1);
+  }
+  #home #todayFreshStart .today-fresh-stat span{
+    color:#d6e5ff;font-size:10px;line-height:1.3;font-weight:720;
+  }
+  #home #todayFreshStart .today-fresh-stat strong{
+    display:block;color:#fff;font-size:17px;line-height:1.2;font-weight:820;
+    font-variant-numeric:tabular-nums;overflow-wrap:anywhere;max-width:100%;
+  }
+  #home #todayFreshStart .today-fresh-stat small{
+    display:block;color:#d9e6ff;font-size:10px;line-height:1.3;
+    max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  }
+  @media(max-width:600px){
+    #home #todayFreshStart .today-fresh-quote{gap:9px;padding:10px 12px}
+    #home #todayFreshStart .today-fresh-quote-symbol{flex-basis:23px;font-size:25px}
+    #home #todayFreshStart .today-fresh-quote-text{font-size:12px}
+    #home #todayFreshStart .today-fresh-quote-new{font-size:11px;padding:4px 8px}
+    #home #todayFreshStart .today-fresh-progress{padding:13px 12px 10px}
+    #home #todayFreshStart .today-fresh-progress-head{
+      grid-template-columns:70px minmax(0,1fr);gap:11px;
+    }
+    #home #todayFreshStart .today-fresh-ring{width:70px;height:70px}
+    #home #todayFreshStart .today-fresh-ring b{font-size:16px}
+    #home #todayFreshStart .today-fresh-progress-heading h2{font-size:15px}
+    #home #todayFreshStart .today-fresh-stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+    #home #todayFreshStart .today-fresh-stat{padding:8px 10px;min-height:50px}
+    #home #todayFreshStart .today-fresh-stat strong{font-size:16px}
+  }
+  @media(max-width:350px){
+    #home #todayFreshStart .today-fresh-quote-new span{display:none}
+    #home #todayFreshStart .today-fresh-progress-head{grid-template-columns:64px minmax(0,1fr);gap:9px}
+    #home #todayFreshStart .today-fresh-ring{width:64px;height:64px}
+    #home #todayFreshStart .today-fresh-progress-heading h2{font-size:14px}
+  }
+  @media(prefers-reduced-motion:reduce){
+    #home #todayFreshStart .today-fresh-progress-track i{transition:none}
+  }
 </style>
 <link rel="stylesheet" href="./app.css" id="themes20260821">
 
@@ -254,6 +377,40 @@
         <div class="today-fresh-days"><strong id="todayFreshDays">—</strong><span>gün</span></div>
         <small id="todayFreshExamDate"></small>
       </div>
+    </section>
+    <!-- Aşama 2: tek bölümde gerçek günün sözü ve günlük ilerleme. -->
+    <section class="today-fresh-daily" aria-label="Günün özeti">
+      <div class="today-fresh-quote" id="todayFreshQuoteCard">
+        <div class="today-fresh-quote-symbol" aria-hidden="true">❝</div>
+        <div class="today-fresh-quote-body">
+          <div class="today-fresh-quote-top">
+            <span class="today-fresh-quote-label">Günün sözü</span>
+            <button type="button" id="todayFreshNewQuote" class="today-fresh-quote-new" aria-label="Başka bir motivasyon sözü">↻ <span>Başka söz</span></button>
+          </div>
+          <p class="today-fresh-quote-text" id="todayFreshQuoteText">Günün sözü hazırlanıyor…</p>
+          <small class="today-fresh-quote-author" id="todayFreshQuoteAuthor"></small>
+        </div>
+      </div>
+      <section class="today-fresh-progress" id="todayFreshProgress" aria-label="Günlük ilerleme">
+        <div class="today-fresh-progress-head">
+          <div class="today-fresh-ring" aria-hidden="true"><b id="todayFreshRatio">—</b></div>
+          <div class="today-fresh-progress-summary">
+            <div class="today-fresh-progress-heading">
+              <h2>Günlük ilerleme</h2>
+              <strong id="todayFreshPercent">—</strong>
+            </div>
+            <p id="todayFreshProgressStatus">Bugünkü program bilgileri hazırlanıyor.</p>
+            <div class="today-fresh-progress-track" id="todayFreshProgressBar" role="progressbar"
+              aria-label="Bugünkü program ilerlemesi" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i></i></div>
+          </div>
+        </div>
+        <div class="today-fresh-stats" aria-label="Günlük çalışma istatistikleri">
+          <div class="today-fresh-stat"><span>Soru</span><strong id="todayFreshQuestions">—</strong><small id="todayFreshQuestionsSub">Bugün</small></div>
+          <div class="today-fresh-stat"><span>Odak</span><strong id="todayFreshMinutes">—</strong><small id="todayFreshMinutesSub">Çalışma süresi</small></div>
+          <div class="today-fresh-stat"><span>Program</span><strong id="todayFreshPlan">—</strong><small id="todayFreshPlanSub">Görevler</small></div>
+          <div class="today-fresh-stat"><span>Tekrar</span><strong id="todayFreshReviews">—</strong><small id="todayFreshReviewsSub">Bekleyen</small></div>
+        </div>
+      </section>
     </section>
   </div>
 
