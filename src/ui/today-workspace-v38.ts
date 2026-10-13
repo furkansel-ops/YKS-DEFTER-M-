@@ -128,7 +128,30 @@ export function installTodayWorkspaceV38():{installed:boolean}{
   const sync=()=>{refreshFocus();refreshNext();refreshTasks();};
   sync();
   if(typeof MutationObserver!=="undefined"){
-    const observer=new MutationObserver(sync);
+    let focusDirty=false,nextDirty=false,tasksDirty=false,queued=false;
+    // Focus text ticks are frequent. Never scan program rows on a timer-only tick.
+    const observer=new MutationObserver((changes:MutationRecord[])=>{
+      if(!changes||!changes.length){sync();return;} // compatible with older adapters
+      for(const change of changes){
+        const target=change.target;
+        if(target===plan||plan.contains(target))tasksDirty=true;
+        else if(target===next||next.contains(target))nextDirty=true;
+        else focusDirty=true;
+      }
+      if(queued)return;
+      queued=true;
+      const flush=()=>{
+        queued=false;
+        try{
+          if(focusDirty)refreshFocus();
+          if(nextDirty)refreshNext();
+          if(tasksDirty)refreshTasks();
+        }catch(error){console.error("Çalışma merkezi yenilenemedi",error);}
+        finally{focusDirty=false;nextDirty=false;tasksDirty=false;}
+      };
+      if(typeof requestAnimationFrame==="function")requestAnimationFrame(flush);
+      else setTimeout(flush,16);
+    });
     observer.observe(plan,{subtree:true,childList:true,characterData:true});
     observer.observe(next,{subtree:true,childList:true,characterData:true});
     observer.observe(stop,{attributes:true,attributeFilter:["data-run"]});
@@ -137,6 +160,10 @@ export function installTodayWorkspaceV38():{installed:boolean}{
     observer.observe(pomoTime,{subtree:true,childList:true,characterData:true});
     if(subject)observer.observe(subject,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:["class"]});
   }
+  // When returning from a hidden screen, refresh all mirrors only once.
+  document.addEventListener("yks:navigation-after",()=>{
+    if(document.getElementById("home")?.classList.contains("active"))sync();
+  });
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")sync()});
   root.dataset.workReady="true";
   return{installed:true};
