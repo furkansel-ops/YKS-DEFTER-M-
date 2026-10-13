@@ -14,7 +14,47 @@ export function parseTodayProgramProgress(percentText:string,completedText:strin
   return{completed:Math.min(completed,total),total,percent:total?percent:0,hasPlan:total>0};
 }
 
+/* v36: small read-only adapter. Never reparent, delete or rewrite the
+   legacy source nodes: existing app.js and v43 handlers still own their data. */
+function installTodayWelcomeV36(){
+  const fresh=document.getElementById("todayFreshStart");
+  const visibleDate=document.getElementById("todayFreshDate");
+  const visibleGreeting=document.getElementById("todayFreshGreeting");
+  const visibleDays=document.getElementById("todayFreshDays");
+  const visibleExamDate=document.getElementById("todayFreshExamDate");
+  if(!fresh||!visibleDate||!visibleGreeting||!visibleDays||!visibleExamDate)return false;
+  const oldGreeting=document.getElementById("greeting");
+  const oldCountdown=document.getElementById("countdown");
+  const oldExamDate=document.getElementById("examDateLabel");
+  if(!oldGreeting||!oldCountdown||!oldExamDate)return false;
+  if(fresh.dataset.todayWelcome==="ready")return true;
+
+  const update=(node:HTMLElement,text:string)=>{
+    if(node.textContent!==text)node.textContent=text;
+  };
+  const sync=()=>{
+    update(visibleGreeting,(oldGreeting.textContent||"").trim()||"Merhaba");
+    update(visibleDays,(oldCountdown.textContent||"").trim()||"—");
+    update(visibleExamDate,(oldExamDate.textContent||"").trim());
+    update(visibleDate,new Intl.DateTimeFormat("tr-TR",{
+      weekday:"long",day:"numeric",month:"long"
+    }).format(new Date()));
+  };
+  sync();
+  if(typeof MutationObserver!=="undefined"){
+    const observer=new MutationObserver(sync);
+    for(const node of [oldGreeting,oldCountdown,oldExamDate])
+      observer.observe(node,{subtree:true,childList:true,characterData:true});
+  }
+  document.addEventListener("visibilitychange",()=>{
+    if(document.visibilityState==="visible")sync();
+  });
+  fresh.dataset.todayWelcome="ready";
+  return true;
+}
+
 export function installTodayTopV33():{installed:boolean}{
+  const welcomeV36=installTodayWelcomeV36();
   const plan=document.getElementById("todayHubPlan");
   const planSub=document.getElementById("todayHubPlanSub");
   const root=document.querySelector<HTMLElement>("#home .v33-home-progress");
@@ -23,7 +63,7 @@ export function installTodayTopV33():{installed:boolean}{
   const status=document.getElementById("v33ProgramStatus");
   const bar=document.getElementById("v33ProgressBar");
   const date=document.getElementById("v33HomeDate");
-  if(!plan||!planSub||!root||!ratio||!percent||!status||!bar||!date)return{installed:false};
+  if(!plan||!planSub||!root||!ratio||!percent||!status||!bar||!date)return{installed:welcomeV36};
 
   const sync=()=>{
     const p=parseTodayProgramProgress(plan.textContent||"",planSub.textContent||"");
