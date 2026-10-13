@@ -147,8 +147,8 @@
 
 <!-- ============================== BUGÜN ============================== -->
 <section id="home" class="screen active">
-  <!-- Bugün: temiz ekranın tek görünür kökü. Yeni kartlar aşama aşama buraya eklenir. -->
-  <div id="todayCleanShell" class="today-clean-shell">
+
+  <!-- Bugün v33 · Aşama 1: tek, görünür üst görünüm. -->
   <div class="v33-screen-heading">
     <h2>Bugün</h2>
     <p class="v33-home-date" id="v33HomeDate"></p>
@@ -189,11 +189,6 @@
       <div class="today-summary"><span>Program</span><b id="todayHubPlan">—</b><small id="todayHubPlanSub">—</small></div>
       <div class="today-summary"><span>Tekrar</span><b id="todayHubReview">0</b><small id="todayHubReviewSub">bekleyen</small></div>
     </div>
-</section>
-  </div>
-  <!-- Eski ana ekranın yalnız veri/olay uyumluluğu: UI olarak gizlidir.
-       İşlevler yeni kartlara taşındıkça ilgili düğümler güvenle kaldırılacaktır. -->
-  <div id="todayLegacyRuntime" class="today-legacy-runtime" hidden aria-hidden="true">
     <details class="v33-legacy-stats">
       <summary>Diğer istatistikler <span>Pomodoro ve seriler</span></summary>
       <div class="v33-legacy-stats-body">
@@ -208,6 +203,7 @@
     </div>
       </div>
     </details>
+  </section>
   <div class="home-actions">
     <button class="btn ghost tiny" onclick="openBrief(true)">Günün özeti</button>
     <button class="btn green tiny" id="gunBtn" onclick="openGun()">Gün ekranını aç</button>
@@ -366,7 +362,6 @@
       <button class="btn ghost small" style="width:100%;margin-top:12px;" onclick="saveJournal()">Günlüğü kaydet</button>
       <button class="btn ghost small" style="width:100%;margin-top:12px;" onclick="shareCard()">Günün kartını indir</button>
     </div>
-  </div>
   </div>
 </section>
 
