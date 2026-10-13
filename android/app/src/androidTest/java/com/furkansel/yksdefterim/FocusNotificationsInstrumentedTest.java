@@ -122,7 +122,9 @@ public class FocusNotificationsInstrumentedTest {
         return result.get();
     }
     private void awaitJavascript(MainActivity activity, String condition, String label) throws Exception {
-        awaitJavascript(activity, condition, label, 20_000, 5_000);
+        // Use the existing phase deadline: CI renderer frames can themselves
+        // take five seconds, so an extra shorter probe limit measures jitter.
+        awaitJavascript(activity, condition, label, 20_000, 20_000);
     }
     private void awaitJavascript(MainActivity activity, String condition, String label,
             long totalTimeoutMs, long callbackTimeoutMs) throws Exception {
@@ -133,7 +135,7 @@ public class FocusNotificationsInstrumentedTest {
             // Read the condition and error together so navigation cannot split
             // a successful condition probe from its separate error probe.
             lastResult = javascript(activity, "JSON.stringify({ready:Boolean(" + condition
-                    + "),error:window.__nativeFocusBridgeError||null,url:location.href})",
+                    + "),error:window.__nativeFocusBridgeError||null,url:location.href,uiReady:document.documentElement.dataset.uiReady,bootState:document.documentElement.dataset.bootState})",
                     Math.min(callbackTimeoutMs, remaining), label);
             Object decoded = new org.json.JSONTokener(lastResult).nextValue();
             // A navigation can return null before the new document is ready.
@@ -156,14 +158,14 @@ public class FocusNotificationsInstrumentedTest {
             // Cold API 36 CI logs showed system ANRs and delayed renderer frames
             // before bridge setup. Allow startup time without weakening assertions.
             awaitJavascript(activity,
-                    "window.YKSFocusNotifications?.native && window.Capacitor?.Plugins?.FocusNotifications && typeof window.startPomo === 'function'",
+                    "document.documentElement.dataset.uiReady === 'true' && window.YKSFocusNotifications?.native && window.Capacitor?.Plugins?.FocusNotifications && typeof window.startPomo === 'function'",
                     "Packaged page did not install the real native adapter", 60_000, 15_000);
             javascript(activity, "(async()=>{try{"
                     + "await window.YKSFocusNotifications.restore(()=>{});"
                     + "if(await window.YKSFocusNotifications.enable()!=='granted')throw new Error('native notification permission unavailable');"
                     + "window.startPomo();await window.YKSFocusNotifications.refresh();window.__nativeFocusBridgeReady=true;"
                     + "}catch(error){window.__nativeFocusBridgeError=String(error?.stack||error);}})()",
-                    5_000, "Start native timer through the WebView");
+                    20_000, "Start native timer through the WebView");
             awaitJavascript(activity, "window.__nativeFocusBridgeReady === true", "Real native request did not settle");
             JSObject current = read();
             JSONObject snapshot = current.getJSONObject("snapshot");
@@ -179,7 +181,7 @@ public class FocusNotificationsInstrumentedTest {
         finally {
             try {
                 javascript(activity, "delete window.__nativeFocusBridgeError;(async()=>{try{await window.YKSFocusNotifications?.shutdown();}finally{window.__nativeFocusBridgeClosed=true;}})()",
-                        5_000, "Shut down the native adapter");
+                        20_000, "Shut down the native adapter");
                 awaitJavascript(activity, "window.__nativeFocusBridgeClosed === true", "Native adapter did not shut down");
             } catch (Throwable cleanupError) {
                 if (failure == null) failure = cleanupError; else failure.addSuppressed(cleanupError);
