@@ -282,6 +282,60 @@
   @media(prefers-reduced-motion:reduce){
     #home #todayFreshStart .today-fresh-progress-track i{transition:none}
   }
+
+  /* v38 / çalışma merkezi — eski DOM'dan salt-okunur yansıtma ve mevcut eylemleri çağırma */
+  #home #todayFreshStart .today-fresh-work-center{display:flex;flex-direction:column;gap:10px;min-width:0}
+  #home #todayFreshStart .today-fresh-section-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:2px 2px 0}
+  #home #todayFreshStart .today-fresh-section-heading h2{margin:0;font-size:17px;line-height:1.35;letter-spacing:-.025em;font-weight:790;color:#193254}
+  #home #todayFreshStart .today-fresh-section-heading>span{font-size:11px;color:#6c7d95}
+  #home #todayFreshStart .today-fresh-work-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;min-width:0}
+  #home #todayFreshStart .today-fresh-work-card{display:flex;flex-direction:column;min-width:0;min-height:170px;padding:14px;border-radius:17px;border:1px solid #e0e9f7;background:#fff;box-shadow:0 8px 24px -22px #224d8f}
+  #home #todayFreshStart .today-fresh-focus{background:#eff5ff;border-color:#d8e6fc}
+  #home #todayFreshStart .today-fresh-card-eyebrow{display:flex;align-items:center;gap:7px;min-width:0;margin:0 0 9px;font-size:11px;line-height:1.3;font-weight:780;color:#3562a5}
+  #home #todayFreshStart .today-fresh-status-dot{display:block;width:8px;height:8px;flex:none;border-radius:50%;background:#95accf}
+  #home #todayFreshStart .today-fresh-status-dot.is-running{background:#12aa85;box-shadow:0 0 0 3px #16bb9033}
+  #home #todayFreshStart .today-fresh-status-dot.is-paused{background:#eba849}
+  #home #todayFreshStart .today-fresh-next-icon{color:#507be1;font-size:16px;font-weight:800}
+  #home #todayFreshStart .today-fresh-work-card h3{margin:0;color:#1b3358;font-size:17px;line-height:1.3;font-weight:790;letter-spacing:-.025em;overflow-wrap:anywhere}
+  #home #todayFreshStart .today-fresh-work-card p{margin:6px 0 12px;color:#637997;font-size:12px;line-height:1.45;overflow-wrap:anywhere}
+  #home #todayFreshStart .today-fresh-focus-bottom{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:auto}
+  #home #todayFreshStart .today-fresh-focus-bottom strong{color:#2556bd;font-size:23px;font-weight:810;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.03em}
+  #home #todayFreshStart .today-fresh-action{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:36px;min-width:0;padding:7px 11px;border-radius:10px;border:1px solid #cdddf8;background:#fff;color:#315fb2;font:750 11px/1.3 inherit;cursor:pointer;white-space:normal;text-align:center}
+  #home #todayFreshStart .today-fresh-action:disabled{opacity:.5;cursor:not-allowed}
+  #home #todayFreshStart .today-fresh-next-actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:auto}
+  #home #todayFreshStart .today-fresh-next-actions .today-fresh-primary{background:#276be7;border-color:#276be7;color:#fff}
+  #home #todayFreshStart .today-fresh-next-actions .today-fresh-secondary{background:#f5f8ff}
+  #home #todayFreshStart .today-fresh-tasks{min-width:0;padding:15px;border:1px solid #e0e9f7;border-radius:17px;background:#fff;box-shadow:0 8px 24px -22px #224d8f}
+  #home #todayFreshStart .today-fresh-tasks-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-bottom:9px}
+  #home #todayFreshStart .today-fresh-tasks-head h3{margin:0;color:#1c345a;font-size:16px;line-height:1.3;font-weight:800}
+  #home #todayFreshStart .today-fresh-tasks-head p{margin:3px 0 0;color:#73849b;font-size:11px}
+  #home #todayFreshStart .today-fresh-view-all{flex:none;padding:8px 3px;border:0;background:transparent;color:#2464cf;font:760 12px/1.3 inherit;cursor:pointer}
+  #home #todayFreshStart .today-fresh-task-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;min-width:0}
+  #home #todayFreshStart .today-fresh-task{display:flex;align-items:center;gap:10px;min-width:0;padding:11px 12px;border-radius:11px;border:1px solid #e5edfa;background:#f8fbff}
+  #home #todayFreshStart .today-fresh-task.is-done{background:#f0faf6;border-color:#d7eee5}
+  #home #todayFreshStart .today-fresh-task-check{flex:none;display:grid;place-items:center;width:30px;height:30px;border:1px solid #cbdaf0;border-radius:9px;background:#fff;color:#4b6ca8;font-size:15px;cursor:pointer}
+  #home #todayFreshStart .today-fresh-task.is-done .today-fresh-task-check{background:#19a77c;border-color:#19a77c;color:#fff}
+  #home #todayFreshStart .today-fresh-task-copy{display:flex;flex-direction:column;min-width:0;gap:3px}
+  #home #todayFreshStart .today-fresh-task-title{color:#213959;font-size:12px;font-weight:760;line-height:1.35;overflow-wrap:anywhere}
+  #home #todayFreshStart .today-fresh-task.is-done .today-fresh-task-title{text-decoration:line-through;color:#5b8b7c}
+  #home #todayFreshStart .today-fresh-task-sub{font-size:10px;line-height:1.4;color:#6e829f;overflow-wrap:anywhere}
+  #home #todayFreshStart .today-fresh-task-empty{grid-column:1/-1;margin:0;padding:13px 10px;background:#f7faff;border-radius:10px;color:#627896;font-size:12px;line-height:1.5}
+  @media(max-width:600px){
+    #home #todayFreshStart .today-fresh-work-pair{gap:8px}
+    #home #todayFreshStart .today-fresh-work-card{padding:11px;min-height:166px}
+    #home #todayFreshStart .today-fresh-work-card h3{font-size:15px}
+    #home #todayFreshStart .today-fresh-work-card p{font-size:11px}
+    #home #todayFreshStart .today-fresh-focus-bottom{flex-wrap:wrap}
+    #home #todayFreshStart .today-fresh-focus-bottom strong{font-size:20px}
+    #home #todayFreshStart .today-fresh-action{min-height:34px;padding:7px 9px;font-size:11px}
+    #home #todayFreshStart .today-fresh-tasks{padding:12px}
+    #home #todayFreshStart .today-fresh-task-list{grid-template-columns:1fr}
+    #home #todayFreshStart .today-fresh-task{padding:10px}
+  }
+  @media(max-width:360px){
+    #home #todayFreshStart .today-fresh-work-pair{grid-template-columns:1fr}
+    #home #todayFreshStart .today-fresh-work-card{min-height:120px}
+  }
 </style>
 <link rel="stylesheet" href="./app.css" id="themes20260821">
 
@@ -410,6 +464,40 @@
           <div class="today-fresh-stat"><span>Program</span><strong id="todayFreshPlan">—</strong><small id="todayFreshPlanSub">Görevler</small></div>
           <div class="today-fresh-stat"><span>Tekrar</span><strong id="todayFreshReviews">—</strong><small id="todayFreshReviewsSub">Bekleyen</small></div>
         </div>
+      </section>
+    </section>
+    <!-- Aşama 3: gerçek kronometre ve bugünkü programa bağlı çalışma merkezi. -->
+    <section id="todayFreshWorkCenter" class="today-fresh-work-center" aria-label="Çalışma merkezi">
+      <div class="today-fresh-section-heading">
+        <h2>Çalışma Merkezi</h2>
+        <span id="todayFreshWorkBadge">Bugünkü planın</span>
+      </div>
+      <div class="today-fresh-work-pair">
+        <article class="today-fresh-work-card today-fresh-focus" aria-label="Odak durumu">
+          <div class="today-fresh-card-eyebrow"><span class="today-fresh-status-dot" id="todayFreshFocusDot"></span><span id="todayFreshFocusState">Odak hazır</span></div>
+          <h3 id="todayFreshFocusTitle">Odak zamanı</h3>
+          <p id="todayFreshFocusHint">Çalışmaya başlamak için odak ekranını aç.</p>
+          <div class="today-fresh-focus-bottom">
+            <strong id="todayFreshFocusTime">--:--</strong>
+            <button type="button" id="todayFreshFocusOpen" class="today-fresh-action">Odak ekranı <span aria-hidden="true">↗</span></button>
+          </div>
+        </article>
+        <article class="today-fresh-work-card today-fresh-next" aria-label="Sıradaki çalışma">
+          <div class="today-fresh-card-eyebrow"><span class="today-fresh-next-icon">↗</span> Sıradaki çalışma</div>
+          <h3 id="todayFreshNextTitle">Bugünkü plan yükleniyor…</h3>
+          <p id="todayFreshNextMeta">Programdaki sıradaki görevin burada görünecek.</p>
+          <div class="today-fresh-next-actions">
+            <button type="button" id="todayFreshNextStart" class="today-fresh-action today-fresh-primary" disabled>Başla</button>
+            <button type="button" id="todayFreshNextDone" class="today-fresh-action today-fresh-secondary" disabled aria-label="Sıradaki görevi tamamla">Tamamla</button>
+          </div>
+        </article>
+      </div>
+      <section class="today-fresh-tasks" aria-label="Bugünün görevleri">
+        <div class="today-fresh-tasks-head">
+          <div><h3>Bugünün Programı</h3><p id="todayFreshTaskCount">Görevler yükleniyor…</p></div>
+          <button type="button" id="todayFreshAllTasks" class="today-fresh-view-all">Tümünü gör <span aria-hidden="true">↗</span></button>
+        </div>
+        <div id="todayFreshTaskList" class="today-fresh-task-list" aria-live="polite"><p class="today-fresh-task-empty">Görevler hazırlanıyor…</p></div>
       </section>
     </section>
   </div>
