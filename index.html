@@ -147,16 +147,17 @@
 
 <!-- ============================== BUGÜN ============================== -->
 <section id="home" class="screen active">
+
+  <!-- Bugün v33 · Aşama 1: üst görünüm. Mevcut veri bağları korunur. -->
+  <div class="v33-home-intro">
   <div class="home-head">
     <div>
       <h1 id="greeting">Merhaba</h1>
+      <p class="v33-home-date" id="v33HomeDate"></p>
       <p class="home-kicker">Bugünkü odağın net olsun; gerisi sırayla gelir.</p>
     </div>
   </div>
-
-  <div class="sozbox" id="sozBox"></div>
-
-  <div class="home-overview">
+    <div class="home-overview v33-home-countdown">
     <div class="hero">
       <p class="eyebrow">YKS'ye kalan</p>
       <div><span class="count" id="countdown">–</span><span class="u">gün</span></div>
@@ -165,19 +166,41 @@
       <p class="date" id="effDays" style="margin-top:2px;color:var(--label-3);"></p>
       <div class="phase"><div class="pt" id="phaseTitle"></div><div class="ps" id="phaseSub"></div></div>
     </div>
+    </div>
+  </div>
+  <div class="sozbox" id="sozBox"></div>
 
+  <section class="v33-home-progress" aria-label="Bugünkü ilerleme">
+    <div class="v33-progress-primary">
+      <div class="v33-progress-ring" id="v33ProgressRing" aria-hidden="true"><span id="v33ProgramRatio">—</span></div>
+      <div class="v33-progress-copy">
+        <div class="v33-progress-heading"><strong>Günlük ilerleme</strong><b id="v33ProgramPercent">—</b></div>
+        <p id="v33ProgramStatus">Bugünkü programın hazırlanıyor.</p>
+        <div class="v33-progress-track" id="v33ProgressBar" role="progressbar" aria-label="Günlük program tamamlanma yüzdesi" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i></i></div>
+      </div>
+    </div>
+    <!-- renderV25Today mevcut düğümleri günceller; ikinci bir sayaç sistemi oluşturulmaz. -->
+        <div class="today-summary-grid v33-progress-metrics">
+      <div class="today-summary"><span>Soru</span><b id="todayHubQ">0</b><small id="todayHubQSub">—</small></div>
+      <div class="today-summary"><span>Odak</span><b id="todayHubMin">0 dk</b><small id="todayHubMinSub">—</small></div>
+      <div class="today-summary"><span>Program</span><b id="todayHubPlan">—</b><small id="todayHubPlanSub">—</small></div>
+      <div class="today-summary"><span>Tekrar</span><b id="todayHubReview">0</b><small id="todayHubReviewSub">bekleyen</small></div>
+    </div>
+    <details class="v33-legacy-stats">
+      <summary>Diğer istatistikler <span>Pomodoro ve seriler</span></summary>
+      <div class="v33-legacy-stats-body">
     <div class="stats">
       <div class="stat"><div class="v" id="stQ">0</div><div class="t">soru bugün</div></div>
       <div class="stat"><div class="v" id="stMin">0</div><div class="t">dakika</div></div>
       <div class="stat"><div class="v" id="stPomo">0</div><div class="t">pomodoro</div></div>
     </div>
-
     <div class="streaks">
       <div class="sk"><span class="fl">🔥</span><div><div class="sv" id="streakPlan">0</div><div class="st2">plan serisi</div></div></div>
       <div class="sk"><span class="fl">🎯</span><div><div class="sv" id="streakTarget">0</div><div class="st2">hedef serisi</div></div></div>
     </div>
-  </div>
-
+      </div>
+    </details>
+  </section>
   <div class="home-actions">
     <button class="btn ghost tiny" onclick="openBrief(true)">Günün özeti</button>
     <button class="btn green tiny" id="gunBtn" onclick="openGun()">Gün ekranını aç</button>
@@ -187,12 +210,6 @@
     <div class="today-hub-head">
       <div><div class="eyebrow" id="todayHubEyebrow">Şu ana kadar</div><h2 id="todayHubTitle">Bugün</h2></div>
       <span class="today-done-badge" id="todayDoneBadge" style="display:none;">Bugün tamamlandı ✓</span>
-    </div>
-    <div class="today-summary-grid">
-      <div class="today-summary"><span>Soru</span><b id="todayHubQ">0</b><small id="todayHubQSub">—</small></div>
-      <div class="today-summary"><span>Odak</span><b id="todayHubMin">0 dk</b><small id="todayHubMinSub">—</small></div>
-      <div class="today-summary"><span>Program</span><b id="todayHubPlan">—</b><small id="todayHubPlanSub">—</small></div>
-      <div class="today-summary"><span>Tekrar</span><b id="todayHubReview">0</b><small id="todayHubReviewSub">bekleyen</small></div>
     </div>
     <div class="today-remaining" id="todayRemaining"></div>
     <div class="today-next" id="todayNext"></div>
