@@ -6,7 +6,7 @@ const vm=require("node:vm");
 const {stripTypeScriptTypes}=require("node:module");
 const read=p=>fs.readFileSync(path.resolve(__dirname,"..",p),"utf8");
 
-function fixture(){
+function fixture(clean=false){
   class Node{
     constructor(tag="div",id="",className=""){
       this.tagName=tag.toUpperCase();this.id=id;this.className=className;
@@ -78,6 +78,16 @@ function fixture(){
   hub.append(remaining,next,reviewWrap,detail,timeline,close);root.append(hub);
   const title=node("todayPlanTitle"),plan=node("todayPlan");root.append(title,plan);
   const oldExtra=node("oldLongReport","old-report");root.append(oldExtra);
+  if(clean){
+    const shell=node("todayCleanShell","today-clean-shell");
+    const legacy=node("todayLegacyRuntime","today-legacy-runtime");
+    legacy.hidden=true;
+    root.append(shell,legacy);
+    for(const item of [screenHeading,intro,quote,progress])shell.append(item);
+    for(const item of [...root.children]){
+      if(item!==shell&&item!==legacy)legacy.append(item);
+    }
+  }
   const document={
     getElementById:id=>id==="home"?root:root.id===id?root:root.find(n=>n.id===id),
     createElement:tag=>new Node(tag),
@@ -130,4 +140,46 @@ test("v33 styles remain readable and are not hidden by legacy white-metric v43 s
   assert.match(v33,/grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
   assert.match(html,/class="v33-screen-heading"/);
   assert.equal((html.match(/id="v33HomeDate"/g)||[]).length,1);
+});
+
+test("v34 clean launch presents only approved cards while preserving old DOM data sources",()=>{
+  const h=fixture(true);
+  assert.deepEqual(h.root.children.map(x=>x.id),["todayCleanShell","todayLegacyRuntime"]);
+  const visible=h.root.children.filter(x=>!x.hidden);
+  assert.equal(visible.length,1);
+  assert.equal(visible[0].id,"todayCleanShell");
+  assert.deepEqual(visible[0].children.map(x=>x.className),[
+    "v33-screen-heading","v33-home-intro","sozbox","v33-home-progress"
+  ]);
+  const before=[h.intro.parentElement,h.quote.parentElement,h.progress.parentElement];
+  const result=h.window.__installTodayV43();
+  assert.equal(result.installed,true);
+  assert.equal(Array.from(result.validate()).length,0);
+  assert.equal(h.root.classList.contains("today-clean-v34"),true);
+  assert.equal(h.root.dataset.todayClean,"ready");
+  assert.deepEqual([h.intro.parentElement,h.quote.parentElement,h.progress.parentElement],before);
+  assert.equal(h.root.querySelector("[data-v43-secondary]"),null,"legacy v43 view not rebuilt");
+  const legacy=h.root.querySelector("#todayLegacyRuntime");
+  assert.equal(legacy.hidden,true);
+  assert.equal(legacy.contains(h.hub),true);
+  assert.equal(legacy.contains(h.plan),true);
+  assert.equal(legacy.contains(h.oldExtra),true);
+  assert.equal(h.grid.parentElement,h.progress);
+  assert.equal(h.reviewCard.parentElement,h.grid);
+  assert.equal(h.window.__installTodayV43().installed,true,"repeat init is safe");
+});
+
+test("clean Today CSS hides old compatibility UI and limits its scope to home",()=>{
+  const html=read("index.html"),css=read("src/ui/today-top-v33.css"),
+    runtime=read("src/ui/today-v43.ts");
+  assert.match(html,/id="todayCleanShell" class="today-clean-shell"/);
+  assert.match(html,/id="todayLegacyRuntime" class="today-legacy-runtime" hidden aria-hidden="true"/);
+  assert.match(css,/#home \.today-legacy-runtime\[hidden\]\{display:none!important\}/);
+  assert.match(css,/#home\.today-clean-v34\.active\{display:flex\}/);
+  assert.match(runtime,/if\(clean&&legacy\)/);
+  assert.match(runtime,/legacy\.hidden=true/);
+  assert.doesNotMatch(runtime,/legacy\.remove\(\)/);
+  for(const id of ["greeting","sozBox","countdown","todayHubQ","todayHubMin","todayHubPlan","todayHubReview","todayPlan","todayClose"]){
+    assert.equal((html.match(new RegExp('id="'+id+'"','g'))||[]).length,1,id);
+  }
 });
