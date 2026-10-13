@@ -163,6 +163,16 @@ void import("./ui/today-top-v33")
     document.documentElement.dataset.todayTopV33="deferred";
     console.error("Bugün üst kartı yüklenemedi",error);
   });
+// Independent, fail-open Today workspace: legacy timers/program still own all writes.
+void import("./ui/today-workspace-v38")
+  .then(({installTodayWorkspaceV38})=>{
+    const workCenter=installOptional("today-workspace-v38",()=>installTodayWorkspaceV38(),{installed:false});
+    document.documentElement.dataset.todayWorkspaceV38=workCenter.installed?"ready":"deferred";
+  })
+  .catch(error=>{
+    document.documentElement.dataset.todayWorkspaceV38="deferred";
+    console.error("Çalışma Merkezi arayüzü yüklenemedi",error);
+  });
 const teachersV2=lt
   ? {installed:false,version:"old",refresh:()=>{},destroy:()=>{}}
   : installOptional(
