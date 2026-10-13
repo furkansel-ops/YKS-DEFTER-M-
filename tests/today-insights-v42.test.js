@@ -64,6 +64,7 @@ test("v42 evidence: pending repeats, recent wrongs, tracked stages, and no inven
   const env={window:win,S:state,ALL_SUBJECTS:subjects,Date,
     todayKey:()=>date,addDaysKey:(_,days)=>days===-90?"2026-07-16":date,
     v25UniqueReviews:()=>due,
+    perfMemo:(_key,calculate)=>calculate(),
     reviewQueue:()=>due,
     v26ResolveKey:(subj,topic)=>{
       for(const s of subjects)if(s.name===subj&&s.topics.includes(topic))return s.exam+"|"+subj+"|"+topic;
