@@ -1,0 +1,193 @@
+/* Bugün v33 / Aşama 1 — only header, YKS countdown, quote and live progress.
+   The existing program, journal, active-focus and reporting DOM remain intact. */
+:root[data-visual-system="refined-blue"] #home .v33-home-intro{
+  display:grid;grid-template-columns:minmax(0,1.4fr) minmax(205px,.72fr);
+  align-items:stretch;gap:12px;margin:0 0 10px;padding:17px 18px;
+  border:1px solid #dce8fa;border-radius:20px;
+  background:linear-gradient(120deg,#fff 0%,#f4f8ff 62%,#e5eeff 100%);
+  box-shadow:0 7px 24px -18px #244e96;
+}
+:root[data-visual-system="refined-blue"] #home .v33-home-intro .home-head{
+  display:flex;align-items:flex-start;min-width:0;margin:0;
+}
+:root[data-visual-system="refined-blue"] #home .v33-home-intro .home-head h1{
+  font-size:clamp(22px,2.7vw,31px);line-height:1.16;margin:0 0 5px;
+  font-weight:780;letter-spacing:-.045em;color:#172c4e;overflow-wrap:anywhere;
+}
+:root[data-visual-system="refined-blue"] #home .v33-home-date{
+  font-size:11px;line-height:1.4;font-weight:650;color:#647b9c;margin:0 0 8px;
+}
+:root[data-visual-system="refined-blue"] #home .v33-home-intro .home-kicker{
+  font-size:12px;line-height:1.5;color:#526782;
+}
+:root[data-visual-system="refined-blue"] #home .v33-home-countdown{
+  margin:0!important;padding:11px 13px!important;border:1px solid #dce7f8!important;
+  border-radius:16px!important;background:rgba(229,239,255,.78)!important;
+  box-shadow:none!important;min-width:0;overflow:hidden;
+}
+:root[data-visual-system="refined-blue"] #home .v33-home-countdown::before{display:none}
+:root[data-visual-system="refined-blue"] #home .v33-home-countdown .hero{
+  margin:0;padding:0!important;min-width:0;
+  border:0!important;border-radius:0!important;background:none!important;box-shadow:none!important;
+}
+:root[data-visual-system="refined-blue"] #home .v33-home-countdown .eyebrow{
+  font-size:10px;font-weight:750;letter-spacing:.025em;margin:0 0 4px;color:#4668af;
+}
+:root[data-visual-system="refined-blue"] #home .v33-home-countdown .hero .count{
+  font-size:clamp(32px,3.7vw,48px)!important;letter-spacing:-.065em;
+  color:#2362d7;-webkit-text-fill-color:#2362d7;line-height:1;
+}
+:root[data-visual-system="refined-blue"] #home .v33-home-countdown .hero .u{
+  font-size:12px;color:#456ca9;margin-left:4px;
+}
+:root[data-visual-system="refined-blue"] #home .v33-home-countdown .timeline{
+  height:4px;margin-top:7px;border-radius:999px;overflow:hidden;background:#cbdcfb;
+}
+:root[data-visual-system="refined-blue"] #home .v33-home-countdown .timeline i{
+  background:#276af0;border-radius:999px;
+}
+:root[data-visual-system="refined-blue"] #home .v33-home-countdown .date{
+  font-size:10px;line-height:1.4;color:#526c98;margin:6px 0 0!important;
+}
+:root[data-visual-system="refined-blue"] #home .v33-home-countdown .phase{
+  margin-top:6px;padding-top:6px;border-top:1px solid #dae5fb;
+}
+:root[data-visual-system="refined-blue"] #home .v33-home-countdown .phase .pt{
+  font-size:10px;font-weight:730;color:#385b90;
+}
+:root[data-visual-system="refined-blue"] #home .v33-home-countdown .phase .ps{
+  font-size:10px;line-height:1.3;color:#6b7c98;
+}
+:root[data-visual-system="refined-blue"] #home #sozBox{
+  margin:0 0 10px!important;padding:11px 13px;border:1px solid #e3eaf6;
+  border-radius:16px;background:#fff;box-shadow:0 6px 21px -18px #244e96;
+  gap:10px;
+}
+:root[data-visual-system="refined-blue"] #home #sozBox::before{
+  content:"❝";font-size:26px;line-height:1;color:#7660eb;
+}
+:root[data-visual-system="refined-blue"] #home #sozBox .sz{
+  font-size:12px;font-weight:550;line-height:1.45;color:#3b5072;font-style:normal;
+}
+:root[data-visual-system="refined-blue"] #home #sozBox .sza{font-size:10px}
+:root[data-visual-system="refined-blue"] #home .v33-home-progress{
+  --v33-progress:0;
+  min-width:0;margin:0 0 12px;padding:16px 17px 12px;
+  background:linear-gradient(125deg,#17439c 0%,#2459c7 54%,#3346bb 100%);
+  border:1px solid #3566d5;border-radius:19px;
+  color:#fff;box-shadow:0 12px 30px -22px #123d9e;
+}
+:root[data-visual-system="refined-blue"] #home .v33-progress-primary{
+  display:grid;grid-template-columns:82px minmax(0,1fr);
+  gap:15px;align-items:center;min-width:0;
+}
+:root[data-visual-system="refined-blue"] #home .v33-progress-ring{
+  width:82px;height:82px;border-radius:50%;position:relative;
+  display:grid;place-items:center;
+  background:conic-gradient(#39dbad calc(var(--v33-progress)*1%),rgba(255,255,255,.24) 0);
+}
+:root[data-visual-system="refined-blue"] #home .v33-progress-ring::before{
+  content:"";position:absolute;inset:8px;background:#2050b1;border-radius:inherit;
+}
+:root[data-visual-system="refined-blue"] #home .v33-progress-ring>span{
+  position:relative;z-index:1;font-size:18px;font-weight:800;
+  letter-spacing:-.04em;color:#fff;font-variant-numeric:tabular-nums;
+}
+:root[data-visual-system="refined-blue"] #home .v33-progress-copy{min-width:0}
+:root[data-visual-system="refined-blue"] #home .v33-progress-heading{
+  display:flex;justify-content:space-between;align-items:center;gap:9px;min-width:0;
+}
+:root[data-visual-system="refined-blue"] #home .v33-progress-heading strong{
+  font-size:16px;font-weight:780;line-height:1.25;letter-spacing:-.025em;
+}
+:root[data-visual-system="refined-blue"] #home .v33-progress-heading b{
+  flex:none;font-size:13px;font-weight:800;font-variant-numeric:tabular-nums;
+}
+:root[data-visual-system="refined-blue"] #home .v33-progress-copy p{
+  margin:5px 0 10px;font-size:11px;line-height:1.4;color:#d8e7ff;
+}
+:root[data-visual-system="refined-blue"] #home .v33-progress-track{
+  height:8px;border-radius:999px;overflow:hidden;background:rgba(255,255,255,.25);
+}
+:root[data-visual-system="refined-blue"] #home .v33-progress-track i{
+  display:block;width:calc(var(--v33-progress)*1%);height:100%;
+  background:#41e0ad;border-radius:inherit;transition:width .2s ease;
+}
+:root[data-visual-system="refined-blue"] #home .v33-home-progress .today-summary-grid{
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:13px 0 0;
+}
+:root[data-visual-system="refined-blue"] #home .v33-home-progress .today-summary{
+  min-width:0;background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.10);
+  border-radius:11px;padding:9px 10px;
+}
+:root[data-visual-system="refined-blue"] #home .v33-home-progress .today-summary>span{
+  color:#d4e3ff;font-size:10px;font-weight:700;letter-spacing:0;
+}
+:root[data-visual-system="refined-blue"] #home .v33-home-progress .today-summary>b{
+  display:block;margin-top:4px;color:#fff;font-size:15px;line-height:1.2;
+  font-variant-numeric:tabular-nums;overflow-wrap:anywhere;white-space:normal;
+}
+:root[data-visual-system="refined-blue"] #home .v33-home-progress .today-summary>small{
+  display:block;margin-top:3px;color:#d0dfff;font-size:9px;
+  overflow:hidden;white-space:nowrap;text-overflow:ellipsis;
+}
+:root[data-visual-system="refined-blue"] #home .v33-legacy-stats{
+  margin-top:9px;border-top:1px solid rgba(255,255,255,.18);padding-top:2px;
+}
+:root[data-visual-system="refined-blue"] #home .v33-legacy-stats>summary{
+  min-height:36px;display:flex;align-items:center;justify-content:space-between;gap:8px;
+  color:#f2f7ff;font-size:11px;font-weight:650;cursor:pointer;list-style:none;
+}
+:root[data-visual-system="refined-blue"] #home .v33-legacy-stats>summary::-webkit-details-marker{display:none}
+:root[data-visual-system="refined-blue"] #home .v33-legacy-stats>summary span{color:#c6d9fa;font-size:10px}
+:root[data-visual-system="refined-blue"] #home .v33-legacy-stats-body{padding:7px 0 3px;display:grid;gap:7px}
+:root[data-visual-system="refined-blue"] #home .v33-legacy-stats .stats{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:0;
+}
+:root[data-visual-system="refined-blue"] #home .v33-legacy-stats .stat,
+:root[data-visual-system="refined-blue"] #home .v33-legacy-stats .streaks .sk{
+  min-width:0;padding:10px;border:1px solid rgba(255,255,255,.2);
+  border-radius:12px;background:rgba(255,255,255,.12);box-shadow:none;
+}
+:root[data-visual-system="refined-blue"] #home .v33-legacy-stats .stat .v,
+:root[data-visual-system="refined-blue"] #home .v33-legacy-stats .streaks .sv{color:#fff}
+:root[data-visual-system="refined-blue"] #home .v33-legacy-stats .stat .t,
+:root[data-visual-system="refined-blue"] #home .v33-legacy-stats .streaks .st2{color:#d3e0fa}
+:root[data-visual-system="refined-blue"] #home .v33-legacy-stats .streaks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin:0}
+:root[data-visual-system="refined-blue"] #home .v33-legacy-stats .streaks .sk{display:flex;gap:8px;align-items:center}
+@media(max-width:759px){
+  :root[data-visual-system="refined-blue"] #home .v33-home-intro{
+    grid-template-columns:minmax(0,1fr) minmax(118px,.75fr);gap:9px;padding:13px;
+  }
+  :root[data-visual-system="refined-blue"] #home .v33-home-intro .home-head h1{font-size:clamp(19px,5.8vw,25px)}
+  :root[data-visual-system="refined-blue"] #home .v33-home-intro .home-kicker{font-size:11px}
+  :root[data-visual-system="refined-blue"] #home .v33-home-countdown{padding:9px!important}
+  :root[data-visual-system="refined-blue"] #home .v33-home-countdown .hero .count{font-size:clamp(31px,9vw,43px)!important}
+  :root[data-visual-system="refined-blue"] #home .v33-home-countdown .hero .u{font-size:11px}
+  :root[data-visual-system="refined-blue"] #home .v33-home-countdown .phase .ps{display:none}
+  :root[data-visual-system="refined-blue"] #home .v33-home-countdown .date{font-size:9px}
+  :root[data-visual-system="refined-blue"] #home .v33-home-progress{padding:13px 12px 9px}
+  :root[data-visual-system="refined-blue"] #home .v33-progress-primary{grid-template-columns:71px minmax(0,1fr);gap:12px}
+  :root[data-visual-system="refined-blue"] #home .v33-progress-ring{width:71px;height:71px}
+  :root[data-visual-system="refined-blue"] #home .v33-progress-ring>span{font-size:16px}
+  :root[data-visual-system="refined-blue"] #home .v33-home-progress .today-summary-grid{
+    grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;
+  }
+  :root[data-visual-system="refined-blue"] #home .v33-home-progress .today-summary{padding:8px 6px}
+  :root[data-visual-system="refined-blue"] #home .v33-home-progress .today-summary>span{font-size:9px}
+  :root[data-visual-system="refined-blue"] #home .v33-home-progress .today-summary>b{font-size:12px}
+  :root[data-visual-system="refined-blue"] #home .v33-home-progress .today-summary>small{font-size:9px}
+}
+@media(max-width:370px){
+  :root[data-visual-system="refined-blue"] #home .v33-home-intro{
+    grid-template-columns:minmax(0,1fr) 115px;gap:7px;padding:10px;
+  }
+  :root[data-visual-system="refined-blue"] #home .v33-home-intro .home-kicker{font-size:10px}
+  :root[data-visual-system="refined-blue"] #home .v33-home-countdown .hero .count{font-size:29px!important}
+  :root[data-visual-system="refined-blue"] #home .v33-home-progress .today-summary-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  :root[data-visual-system="refined-blue"] #home .v33-progress-track i{transition:none}
+}
