@@ -179,6 +179,21 @@ export function installTodayTopV33():{installed:boolean}{
       document.documentElement.dataset.todayActivityV40="deferred";
       console.error("Haftalık çalışma ritmi yüklenemedi",error);
     });
+  // v41: independent read-only subject breakdown; never blocks initial boot.
+  if(document.documentElement)void import("./today-subjects-v41")
+    .then(({installTodaySubjectsV41})=>{
+      try{
+        const view=installTodaySubjectsV41();
+        document.documentElement.dataset.todaySubjectsV41=view.installed?"ready":"deferred";
+      }catch(error){
+        document.documentElement.dataset.todaySubjectsV41="deferred";
+        console.error("Günlük ders dağılımı başlatılamadı",error);
+      }
+    })
+    .catch(error=>{
+      document.documentElement.dataset.todaySubjectsV41="deferred";
+      console.error("Günlük ders dağılımı yüklenemedi",error);
+    });
   const plan=document.getElementById("todayHubPlan");
   const planSub=document.getElementById("todayHubPlanSub");
   const root=document.querySelector<HTMLElement>("#home .v33-home-progress");
