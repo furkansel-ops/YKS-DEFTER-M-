@@ -77,10 +77,10 @@ function installTodayOverviewV37(){
      !ratio||!percent||!status||!bar||!quoteSource||
      stats.some(nodes=>nodes.some(node=>!node)))return false;
   if(fresh.dataset.todayOverview==="ready")return true;
-  const update=(node,text)=>{
-    if(node.textContent!==text)node.textContent=text;
+  const update=(node:HTMLElement|null|undefined,text:string)=>{
+    if(node&&node.textContent!==text)node.textContent=text;
   };
-  const read=(node)=>String(node?.textContent||"").trim();
+  const read=(node:HTMLElement|null|undefined)=>String(node?.textContent||"").trim();
   const sync=()=>{
     const quote=quoteSource.querySelector(".sz");
     const author=quoteSource.querySelector(".sza");
@@ -89,7 +89,7 @@ function installTodayOverviewV37(){
     quoteCard.hidden=quoteSource.style.display==="none";
     update(quoteText,originalQuote||"Günün sözü hazırlanıyor…");
     update(quoteAuthor,originalAuthor);
-    quoteButton.disabled=!quoteSource.querySelector(".szr");
+    quoteButton.toggleAttribute("disabled",!quoteSource.querySelector(".szr"));
 
     for(const [valueSource,subSource,valueTarget,subTarget] of stats){
       update(valueTarget,read(valueSource)||"—");
