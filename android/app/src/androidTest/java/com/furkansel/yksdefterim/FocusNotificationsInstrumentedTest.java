@@ -7,6 +7,7 @@ import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
+import android.os.SystemClock;
 import android.service.notification.StatusBarNotification;
 import androidx.core.app.NotificationCompat;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
@@ -101,38 +102,68 @@ public class FocusNotificationsInstrumentedTest {
         fail("Focus notification was not removed");
     }
 
-    private String javascript(MainActivity activity, String script) throws Exception {
+    private String javascript(MainActivity activity, String script, long timeoutMs, String phase) throws Exception {
+        assertTrue(phase + ": JavaScript deadline expired", timeoutMs > 0);
         CountDownLatch completed = new CountDownLatch(1);
         AtomicReference<String> result = new AtomicReference<>();
-        InstrumentationRegistry.getInstrumentation().runOnMainSync(() ->
+        AtomicReference<Throwable> failure = new AtomicReference<>();
+        long deadline = SystemClock.elapsedRealtime() + timeoutMs;
+        // Posting keeps a busy UI thread inside the same bounded callback wait.
+        activity.runOnUiThread(() -> {
+            try {
                 activity.getBridge().getWebView().evaluateJavascript(script, value -> {
                     result.set(value); completed.countDown();
-                }));
-        assertTrue("WebView JavaScript callback timed out", completed.await(5, TimeUnit.SECONDS));
+                });
+            } catch (Throwable error) { failure.set(error); completed.countDown(); }
+        });
+        assertTrue(phase + ": WebView JavaScript callback timed out after " + timeoutMs + " ms",
+                completed.await(Math.max(0, deadline - SystemClock.elapsedRealtime()), TimeUnit.MILLISECONDS));
+        if (failure.get() != null) throw new AssertionError(phase + ": WebView JavaScript evaluation failed", failure.get());
         return result.get();
     }
     private void awaitJavascript(MainActivity activity, String condition, String label) throws Exception {
-        for (int attempt = 0; attempt < 200; attempt++) {
-            if ("true".equals(javascript(activity, "Boolean(" + condition + ")"))) return;
-            if (!"null".equals(javascript(activity, "window.__nativeFocusBridgeError || null"))) break;
-            Thread.sleep(100);
+        awaitJavascript(activity, condition, label, 20_000, 5_000);
+    }
+    private void awaitJavascript(MainActivity activity, String condition, String label,
+            long totalTimeoutMs, long callbackTimeoutMs) throws Exception {
+        long deadline = SystemClock.elapsedRealtime() + totalTimeoutMs;
+        String lastResult = "No WebView callback received";
+        while (SystemClock.elapsedRealtime() < deadline) {
+            long remaining = deadline - SystemClock.elapsedRealtime();
+            // Read the condition and error together so navigation cannot split
+            // a successful condition probe from its separate error probe.
+            lastResult = javascript(activity, "JSON.stringify({ready:Boolean(" + condition
+                    + "),error:window.__nativeFocusBridgeError||null,url:location.href})",
+                    Math.min(callbackTimeoutMs, remaining), label);
+            Object decoded = new org.json.JSONTokener(lastResult).nextValue();
+            // A navigation can return null before the new document is ready.
+            if (decoded instanceof String) {
+                JSONObject state = new JSONObject((String) decoded);
+                if (state.optBoolean("ready")) return;
+                if (!state.isNull("error")) fail(label + ": " + state);
+            }
+            remaining = deadline - SystemClock.elapsedRealtime();
+            if (remaining > 0) Thread.sleep(Math.min(100, remaining));
         }
-        fail(label + ": " + javascript(activity,
-                "JSON.stringify({url:location.href,bridge:!!window.Capacitor,native:window.YKSFocusNotifications?.native,error:window.__nativeFocusBridgeError||null})"));
+        fail(label + ": deadline expired after " + totalTimeoutMs + " ms; last result: " + lastResult);
     }
 
-    @Test public void realWebViewBootstrapStartsAndReceivesNativeTimerThroughCapacitor() throws Exception {
+    @Test public void realWebViewBootstrapStartsAndReceivesNativeTimerThroughCapacitor() throws Throwable {
         MainActivity activity = (MainActivity) InstrumentationRegistry.getInstrumentation().startActivitySync(
                 new Intent(context, MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+        Throwable failure = null;
         try {
+            // Cold API 36 CI logs showed system ANRs and delayed renderer frames
+            // before bridge setup. Allow startup time without weakening assertions.
             awaitJavascript(activity,
                     "window.YKSFocusNotifications?.native && window.Capacitor?.Plugins?.FocusNotifications && typeof window.startPomo === 'function'",
-                    "Packaged page did not install the real native adapter");
+                    "Packaged page did not install the real native adapter", 60_000, 15_000);
             javascript(activity, "(async()=>{try{"
                     + "await window.YKSFocusNotifications.restore(()=>{});"
                     + "if(await window.YKSFocusNotifications.enable()!=='granted')throw new Error('native notification permission unavailable');"
                     + "window.startPomo();await window.YKSFocusNotifications.refresh();window.__nativeFocusBridgeReady=true;"
-                    + "}catch(error){window.__nativeFocusBridgeError=String(error?.stack||error);}})()");
+                    + "}catch(error){window.__nativeFocusBridgeError=String(error?.stack||error);}})()",
+                    5_000, "Start native timer through the WebView");
             awaitJavascript(activity, "window.__nativeFocusBridgeReady === true", "Real native request did not settle");
             JSObject current = read();
             JSONObject snapshot = current.getJSONObject("snapshot");
@@ -144,14 +175,22 @@ public class FocusNotificationsInstrumentedTest {
             awaitState("paused", current.getLong("revision"));
             awaitJavascript(activity, "window.YKSFocusNotifications.snapshot()?.state === 'paused'",
                     "Native stateChanged event did not reach the real WebView");
-        } finally {
+        } catch (Throwable error) { failure = error; }
+        finally {
             try {
-                javascript(activity, "delete window.__nativeFocusBridgeError;(async()=>{try{await window.YKSFocusNotifications?.shutdown();}finally{window.__nativeFocusBridgeClosed=true;}})()");
+                javascript(activity, "delete window.__nativeFocusBridgeError;(async()=>{try{await window.YKSFocusNotifications?.shutdown();}finally{window.__nativeFocusBridgeClosed=true;}})()",
+                        5_000, "Shut down the native adapter");
                 awaitJavascript(activity, "window.__nativeFocusBridgeClosed === true", "Native adapter did not shut down");
-            } finally {
+            } catch (Throwable cleanupError) {
+                if (failure == null) failure = cleanupError; else failure.addSuppressed(cleanupError);
+            }
+            try {
                 InstrumentationRegistry.getInstrumentation().runOnMainSync(activity::finish);
+            } catch (Throwable finishError) {
+                if (failure == null) failure = finishError; else failure.addSuppressed(finishError);
             }
         }
+        if (failure != null) throw failure;
     }
 
     @Test public void controlsAreBroadcastsAndBodyIsTheOnlyActivityIntent() throws Exception {
