@@ -194,6 +194,21 @@ export function installTodayTopV33():{installed:boolean}{
       document.documentElement.dataset.todaySubjectsV41="deferred";
       console.error("Günlük ders dağılımı yüklenemedi",error);
     });
+  // v42 is separately cached and optional; failures must never stop boot.
+  if(document.documentElement)void import("./today-insights-v42")
+    .then(({installTodayInsightsV42})=>{
+      try{
+        const insights=installTodayInsightsV42();
+        document.documentElement.dataset.todayInsightsV42=insights.installed?"ready":"deferred";
+      }catch(error){
+        document.documentElement.dataset.todayInsightsV42="deferred";
+        console.error("Bekleyen tekrar ve eksik analizi açılamadı",error);
+      }
+    })
+    .catch(error=>{
+      document.documentElement.dataset.todayInsightsV42="deferred";
+      console.error("Bekleyen tekrar ve eksik analizi yüklenemedi",error);
+    });
   const plan=document.getElementById("todayHubPlan");
   const planSub=document.getElementById("todayHubPlanSub");
   const root=document.querySelector<HTMLElement>("#home .v33-home-progress");

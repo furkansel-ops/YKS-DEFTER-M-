@@ -10649,6 +10649,71 @@ function v25TaskMeta(item){
   return {subj,topic};
 }
 function v25UniqueReviews(){const out=[],seen=new Set();for(const r of reviewQueue()){if(seen.has(r.key))continue;seen.add(r.key);out.push(r);}return out;}
+/* Bugün v42 / Kanıta dayalı tekrar ve eksik konu özeti.
+   Tekrar ve konu kayıtlarının sahibi mevcut app.js'tir; bu yalnız okuma köprüsüdür. */
+window.yksTodayInsightsSnapshot=function(){
+  const now=todayKey(),cut=addDaysKey(now,-90);
+  const due=v25UniqueReviews().map(r=>({
+    key:String(r.key),exam:String(r.exam||""),subj:String(r.subj||""),
+    topic:String(r.topic||""),gi:Number(r.gi),gap:Number(r.gap),
+    late:Math.max(0,Number(r.late)||0)
+  }));
+  // Yanlış kayıtları yalnızca tarih aralığında ve katalogdaki geçerli konu eşleşmelerinde.
+  const wrong=new Map();
+  (S.wrongLog||[]).forEach(row=>{
+    if(!row||typeof row.date!=="string"||row.date<cut||row.date>now)return;
+    const key=v26ResolveKey(row.subject,row.topic);
+    if(!key)return;
+    const n=Number(row.n),amount=Number.isFinite(n)?Math.max(1,Math.floor(n)):1;
+    const found=wrong.get(key)||{count:0,last:"",entries:0};
+    found.count+=amount;found.entries++;
+    if(row.date>found.last)found.last=row.date;
+    wrong.set(key,found);
+  });
+  const gaps=[];
+  for(const sb of ALL_SUBJECTS){
+    for(const topic of sb.topics){
+      const key=tkey(sb.exam,sb.name,topic);
+      const progress=(S.topics||{})[key],w=wrong.get(key);
+      const stage=Number(progress&&progress.st);
+      const confidence=Number(progress&&progress.conf);
+      const stageEvidence=(stage===1||stage===2);
+      const lowConfidence=(confidence===1||confidence===2);
+      // "Başlanmamış" boş varsayılanlar eksik analizine otomatik eklenmez.
+      if(!w&&!stageEvidence&&!lowConfidence)continue;
+      const reasons=[];
+      if(w)reasons.push("Son 90 günde "+w.count+" kayıtlı yanlış");
+      if(stageEvidence)reasons.push("Konu durumu: "+ST_LABEL[stage]);
+      if(lowConfidence)reasons.push("Güven düzeyi düşük ("+confidence+"/5)");
+      gaps.push({
+        key,exam:String(sb.exam),subj:String(sb.name),topic:String(topic),
+        wrong:w?w.count:0,last:w?w.last:"",stage:stageEvidence?stage:0,
+        confidence:lowConfidence?confidence:0,reasons
+      });
+    }
+  }
+  gaps.sort((a,b)=>b.wrong-a.wrong||
+    Number(Boolean(b.confidence))-Number(Boolean(a.confidence))||
+    Number(Boolean(b.stage))-Number(Boolean(a.stage))||
+    a.subj.localeCompare(b.subj,"tr")||a.topic.localeCompare(b.topic,"tr"));
+  return {date:now,dueCount:due.length,overdueCount:due.filter(x=>x.late>0).length,
+    due:due.slice(0,3),gapCount:gaps.length,gaps:gaps.slice(0,3)};
+};
+/* Tekrar yalnızca mevcut kayıt sahibi doReview üzerinden tamamlanır. */
+window.yksTodayInsightsCompleteReview=function(key,gi){
+  const item=reviewQueue().find(r=>r.key===key&&r.gi===gi);
+  if(!item)return false;
+  doReview(key,gi);
+  return true;
+};
+/* Konu detayı mevcut Konular ekranında açılır; yeni detay/kayıt sistemi yok. */
+window.yksTodayInsightsOpenTopic=function(exam,subj,topic){
+  const available=ALL_SUBJECTS.some(s=>s.exam===exam&&s.name===subj&&s.topics.includes(topic));
+  if(!available)return false;
+  go("topics");
+  openTopicDetail(exam,subj,topic);
+  return true;
+};
 function v25FocusEvents(){
   const k=todayKey(),out=[];
   (S.sessions[k]||[]).filter(x=>x&&x.type==="work"&&(+x.m||0)>0).forEach(x=>out.push({at:+x.t||0,end:(+x.t||0)+(+x.m||0)*60000,min:+x.m||0,subj:x.subj||"Ders",topic:x.topic||"",source:"session"}));

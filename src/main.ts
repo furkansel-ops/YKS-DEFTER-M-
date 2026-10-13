@@ -25,6 +25,7 @@ import "./ui/recent-feature-stability.css";
 import "./ui/topics-toolbar-hotfix.css";
 import "./ui/refined-blue.css";
 import "./ui/today-top-v33.css";
+import "./ui/today-detail-cards-v42.css";
 
 type BootstrapState={
   version:typeof RELEASE_VERSION;
