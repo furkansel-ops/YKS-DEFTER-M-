@@ -3,15 +3,22 @@ const assert=require("node:assert/strict");
 const fs=require("node:fs");
 const path=require("node:path");
 const vm=require("node:vm");
-const ts=require("typescript");
 const root=path.resolve(__dirname,"..");
 const read=p=>fs.readFileSync(path.join(root,p),"utf8");
 const source=read("src/ui/today-top-v33.ts");
-const compiled=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
-
+// Isolate the two small presentation functions for VM behavior tests. Avoid
+// transpileModule: the project's TS 7 release uses a different transpiler API.
+const executable=source
+  .replace(/^export type TodayProgress=[^\n]+\n/m,"")
+  .replace("export function parseTodayProgramProgress(percentText:string,completedText:string):TodayProgress{",
+    "function parseTodayProgramProgress(percentText,completedText){")
+  .replace("export function installTodayTopV33():{installed:boolean}{",
+    "function installTodayTopV33(){")
+  .replace("document.querySelector<HTMLElement>","document.querySelector");
 function moduleUnderTest(env={}){
   const exports={},context=vm.createContext({exports,Intl,Date,...env});
-  vm.runInContext(compiled,context,{filename:"today-top-v33.js"});
+  vm.runInContext(executable+
+    "\nexports.parseTodayProgramProgress=parseTodayProgramProgress;exports.installTodayTopV33=installTodayTopV33;",context,{filename:"today-top-v33.js"});
   return exports;
 }
 
