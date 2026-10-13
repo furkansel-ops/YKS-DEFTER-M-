@@ -10690,6 +10690,31 @@ window.yksTodayActivitySnapshot=function(){
   sessions.sort((a,b)=>b.at-a.at);
   return {days,sessions:sessions.slice(0,3),today};
 };
+/* v41 / Günlük ders dağılımı için mevcut odak, soru ve ders etiketlerini okur.
+   S üzerinde değişiklik, yeni sayaç veya ikinci toplama kaydı oluşturmaz. */
+window.yksTodaySubjectSnapshot=function(){
+  const date=todayKey(),safe=x=>{
+    const n=Number(x);
+    return Number.isFinite(n)?Math.max(0,Math.round(n)):0;
+  };
+  const focusMin=safe((S.pomoMin||{})[date]);
+  const solved=safe((S.solved||{})[date]);
+  const focusGoal=safe(S.focus&&S.focus.goalMin);
+  const questionGoal=safe(S.target);
+  const source=(S.pomoSubj||{})[date];
+  const entries=source&&typeof source==="object"&&!Array.isArray(source)
+    ?Object.entries(source):[];
+  const subjects=entries.map(([name,value])=>({
+    name:String(name||"").trim().slice(0,70)||"Ders",min:safe(value)
+  })).filter(x=>x.min>0).sort((a,b)=>b.min-a.min||a.name.localeCompare(b.name,"tr"));
+  const labeledMin=subjects.reduce((sum,item)=>sum+item.min,0);
+  const unassignedMin=Math.max(0,focusMin-labeledMin);
+  // Eski kayıtlarda ders dakikalarının toplamı günlük odaktan farklı olabilir.
+  // Uyuşmazlığı gizlememek için payda yalnızca en yüksek kaydedilmiş toplamdır.
+  const basisMin=Math.max(focusMin,labeledMin);
+  return {date,focusMin,solved,focusGoal,questionGoal,subjects,
+    labeledMin,unassignedMin,basisMin,hasMismatch:labeledMin>focusMin};
+};
 function v25StartTask(){
   const p=v25PlanToday(),item=p.next;if(!item){toast(p.filled?"Bugünkü program tamamlandı ✓":"Bugün için program görevi yok");return false;}
   if(sw().run){go("pomo");setFocusMode("sw");toast("Kronometre zaten çalışıyor");return true;}
