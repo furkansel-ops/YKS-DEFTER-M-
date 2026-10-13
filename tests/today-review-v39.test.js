@@ -107,7 +107,7 @@ test("v39 writes only on save, mirrors mood and preserves typed drafts",()=>{
   assert.equal(oldSave.clicks,1);
   assert.deepEqual(records,["Bugün matematik çalıştım. Yarın fizik."]);
   assert.equal(state.textContent,"Kaydedildi");
-  assert.equal(counter.textContent,"37 / 3000 karakter");
+  assert.equal(counter.textContent,"38 / 3000 karakter");
   assert.equal(context.install().installed,true);
   assert.equal(observers.length,1,"idempotent");
   assert.equal(rootCard.children['[data-review-mood="mid"]'].attributes["aria-pressed"],"true");
