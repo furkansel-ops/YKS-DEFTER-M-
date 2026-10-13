@@ -10653,7 +10653,7 @@ function v25UniqueReviews(){const out=[],seen=new Set();for(const r of reviewQue
    Tekrar ve konu kayıtlarının sahibi mevcut app.js'tir; bu yalnız okuma köprüsüdür. */
 window.yksTodayInsightsSnapshot=function(){
   // Aynı kayıt sürümünde ve aynı günde pahalı analiz bir kez hesaplanır.
-  // save() -> perfInvalidateState() bütün eski sonuçları otomatik geçersizleştirir.
+  // Kayıt işlemi perfInvalidateState üzerinden tüm eski sonuçları geçersizleştirir.
   return perfMemo("today-insights-v44:"+todayKey(),()=>{
   const now=todayKey(),cut=addDaysKey(now,-90);
   const due=v25UniqueReviews().map(r=>({
