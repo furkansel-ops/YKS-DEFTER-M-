@@ -49,7 +49,7 @@ test("v38 focus/next/task cards mirror legacy state and dispatch existing handle
     getAttribute(name){return this.attributes[name]||null}
     addEventListener(name,fn){(this.listeners[name]??=[]).push(fn)}
     click(){this.clicks++;for(const fn of this.listeners.click||[])fn()}
-    append(...args){this.children.push(...args)}
+    contains(node){return this===node}\n    append(...args){this.children.push(...args)}
     replaceChildren(...args){this.children=[...args]}
     querySelector(selector){
       if(this.id==="todayNext")return this.special?.[selector]||null;
@@ -58,7 +58,7 @@ test("v38 focus/next/task cards mirror legacy state and dispatch existing handle
       return null;
     }
     querySelectorAll(selector){
-      if(this.id==="todayPlan"&&selector===".plancell")return this.rows||[];
+      if(this.id==="todayPlan"&&selector===".plancell"){this.planScans=(this.planScans||0)+1;return this.rows||[];}
       if(this.id==="todayNext"&&selector==="button")return this.buttons||[];
       return [];
     }
@@ -101,7 +101,7 @@ test("v38 focus/next/task cards mirror legacy state and dispatch existing handle
   }
   const source=stripTypeScriptTypes(read("src/ui/today-workspace-v38.ts"))
     .replace("export function installTodayWorkspaceV38","function installTodayWorkspaceV38");
-  const context=vm.createContext({document,window:{go:page=>routes.push(page)},MutationObserver:Observer,console});
+  const context=vm.createContext({document,window:{go:page=>routes.push(page)},MutationObserver:Observer,console,requestAnimationFrame:fn=>fn()});
   vm.runInContext(source+"\nthis.install=installTodayWorkspaceV38;",context);
   assert.equal(context.install().installed,true);
   assert.equal(rootCard.dataset.workReady,"true");
@@ -135,4 +135,17 @@ test("v38 focus/next/task cards mirror legacy state and dispatch existing handle
   observers[0].fn();
   assert.equal(nodes.get("todayFreshFocusState").textContent,"Odak duraklatıldı");
   assert.equal(nodes.get("todayFreshFocusTime").textContent,"13:42");
+
+  // Timer ticks update only the clock: they must not scan/render task rows.
+  const scansBefore=plan.planScans||0;
+  swTime.textContent="00:25";
+  stop.attributes["data-run"]="running";pomo.attributes["data-run"]="idle";
+  observers[0].fn([{target:swTime}]);
+  assert.equal(nodes.get("todayFreshFocusTime").textContent,"00:25");
+  assert.equal(plan.planScans,scansBefore,"clock tick does not re-scan every task");
+  // A real plan mutation still refreshes tasks.
+  row.className="plancell";
+  observers[0].fn([{target:plan}]);
+  assert.equal(nodes.get("todayFreshTaskCount").textContent,"0 / 1 tamamlandı");
+  assert.ok(plan.planScans>scansBefore);
 });
