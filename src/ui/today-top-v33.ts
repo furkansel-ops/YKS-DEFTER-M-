@@ -53,8 +53,86 @@ function installTodayWelcomeV36(){
   return true;
 }
 
+/* v37: mirrors the real quote/program summary, not a second state owner.
+   No DOM moves, storage writes, Firebase calls, or timers added to bootstrap. */
+function installTodayOverviewV37(){
+  const fresh=document.getElementById("todayFreshStart");
+  const quoteCard=document.getElementById("todayFreshQuoteCard");
+  const quoteText=document.getElementById("todayFreshQuoteText");
+  const quoteAuthor=document.getElementById("todayFreshQuoteAuthor");
+  const quoteButton=document.getElementById("todayFreshNewQuote");
+  const progress=document.getElementById("todayFreshProgress");
+  const ratio=document.getElementById("todayFreshRatio");
+  const percent=document.getElementById("todayFreshPercent");
+  const status=document.getElementById("todayFreshProgressStatus");
+  const bar=document.getElementById("todayFreshProgressBar");
+  const quoteSource=document.getElementById("sozBox");
+  const stats=[
+    ["todayHubQ","todayHubQSub","todayFreshQuestions","todayFreshQuestionsSub"],
+    ["todayHubMin","todayHubMinSub","todayFreshMinutes","todayFreshMinutesSub"],
+    ["todayHubPlan","todayHubPlanSub","todayFreshPlan","todayFreshPlanSub"],
+    ["todayHubReview","todayHubReviewSub","todayFreshReviews","todayFreshReviewsSub"]
+  ].map(ids=>ids.map(id=>document.getElementById(id)));
+  if(!fresh||!quoteCard||!quoteText||!quoteAuthor||!quoteButton||!progress||
+     !ratio||!percent||!status||!bar||!quoteSource||
+     stats.some(nodes=>nodes.some(node=>!node)))return false;
+  if(fresh.dataset.todayOverview==="ready")return true;
+  const update=(node,text)=>{
+    if(node.textContent!==text)node.textContent=text;
+  };
+  const read=(node)=>String(node?.textContent||"").trim();
+  const sync=()=>{
+    const quote=quoteSource.querySelector(".sz");
+    const author=quoteSource.querySelector(".sza");
+    const originalQuote=read(quote);
+    const originalAuthor=read(author);
+    quoteCard.hidden=quoteSource.style.display==="none";
+    update(quoteText,originalQuote||"Günün sözü hazırlanıyor…");
+    update(quoteAuthor,originalAuthor);
+    quoteButton.disabled=!quoteSource.querySelector(".szr");
+
+    for(const [valueSource,subSource,valueTarget,subTarget] of stats){
+      update(valueTarget,read(valueSource)||"—");
+      update(subTarget,read(subSource)||"—");
+    }
+    const p=parseTodayProgramProgress(read(stats[2][0]),read(stats[2][1]));
+    update(ratio,p.hasPlan?(p.completed+"/"+p.total):"—");
+    update(percent,p.hasPlan?("%"+p.percent):"—");
+    update(status,!p.hasPlan?"Bugün için henüz program görevi yok."
+      :p.completed>=p.total?"Bugünkü program görevleri tamamlandı."
+      :(p.total-p.completed)+" görev kaldı. Kendi hızında ilerle.");
+    progress.style.setProperty("--today-fresh-percent",String(p.percent));
+    bar.setAttribute("aria-valuenow",String(p.percent));
+    bar.setAttribute("aria-valuetext",p.hasPlan
+      ?p.completed+" / "+p.total+" görev, yüzde "+p.percent
+      :"Bugün için program görevi yok");
+  };
+  quoteButton.addEventListener("click",()=>{
+    const next=quoteSource.querySelector(".szr");
+    if(next instanceof HTMLElement)next.click();
+  });
+  sync();
+  if(typeof MutationObserver!=="undefined"){
+    const observer=new MutationObserver(sync);
+    observer.observe(quoteSource,{
+      childList:true,subtree:true,characterData:true,
+      attributes:true,attributeFilter:["style"]
+    });
+    for(const [valueSource,subSource] of stats){
+      for(const node of [valueSource,subSource])
+        observer.observe(node,{childList:true,subtree:true,characterData:true});
+    }
+  }
+  document.addEventListener("visibilitychange",()=>{
+    if(document.visibilityState==="visible")sync();
+  });
+  fresh.dataset.todayOverview="ready";
+  return true;
+}
+
 export function installTodayTopV33():{installed:boolean}{
   const welcomeV36=installTodayWelcomeV36();
+  const overviewV37=installTodayOverviewV37();
   const plan=document.getElementById("todayHubPlan");
   const planSub=document.getElementById("todayHubPlanSub");
   const root=document.querySelector<HTMLElement>("#home .v33-home-progress");
@@ -63,7 +141,7 @@ export function installTodayTopV33():{installed:boolean}{
   const status=document.getElementById("v33ProgramStatus");
   const bar=document.getElementById("v33ProgressBar");
   const date=document.getElementById("v33HomeDate");
-  if(!plan||!planSub||!root||!ratio||!percent||!status||!bar||!date)return{installed:welcomeV36};
+  if(!plan||!planSub||!root||!ratio||!percent||!status||!bar||!date)return{installed:welcomeV36||overviewV37};
 
   const sync=()=>{
     const p=parseTodayProgramProgress(plan.textContent||"",planSub.textContent||"");
