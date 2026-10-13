@@ -70,6 +70,7 @@ test("v42 evidence: pending repeats, recent wrongs, tracked stages, and no inven
       return null;
     },
     tkey:(exam,subj,topic)=>exam+"|"+subj+"|"+topic,
+    ST_LABEL:["Başlanmadı","İşledim","Soru çözdüm","Pekiştirdim"],
     doReview:()=>{completed++;due.shift()},
     go:page=>route=page,
     openTopicDetail:()=>{details++},
@@ -83,7 +84,7 @@ test("v42 evidence: pending repeats, recent wrongs, tracked stages, and no inven
   assert.equal(snapshot.gaps[0].topic,"Problemler");
   assert.equal(snapshot.gaps[0].wrong,5);
   assert.match(snapshot.gaps[0].reasons.join(" "),/Son 90 günde 5 kayıtlı yanlış/);
-  assert.ok(snapshot.gaps.some(x=>x.topic==="Üslü sayılar"&&x.reasons.includes("Konu çalışılıyor")));
+  assert.ok(snapshot.gaps.some(x=>x.topic==="Üslü sayılar"&&x.reasons.includes("Konu durumu: Soru çözdüm")));
   assert.ok(snapshot.gaps.some(x=>x.topic==="Hareket"&&x.reasons.some(y=>y.includes("Güven düzeyi düşük"))));
   assert.ok(!snapshot.gaps.some(x=>x.topic==="Temel Kavramlar"),"uncoded topic never invented as a deficit");
   assert.equal(win.yksTodayInsightsCompleteReview("fake",0),false);
@@ -116,7 +117,7 @@ test("v42 shows real reasons, delegates completion and refreshes from data-chang
     topic:"Problemler",gi:0,gap:3,late:1};
   const gap={key:"TYT|Matematik|Problemler",exam:"TYT",subj:"Matematik",
     topic:"Problemler",wrong:4,last:"2026-10-14",stage:2,confidence:0,
-    reasons:["Son 90 günde 4 kayıtlı yanlış","Konu çalışılıyor"]};
+    reasons:["Son 90 günde 4 kayıtlı yanlış","Konu durumu: Soru çözdüm"]};
   let data={date:"2026-10-14",dueCount:1,overdueCount:1,due:[due],gapCount:1,gaps:[gap]};
   const window={
     yksTodayInsightsSnapshot:()=>data,
@@ -140,7 +141,7 @@ test("v42 shows real reasons, delegates completion and refreshes from data-chang
   assert.equal(nodes.get("todayFreshGapCount").textContent,"1 kayıtlı eksik");
   const dueRow=nodes.get("todayFreshDueList").children[0];
   const gapRow=nodes.get("todayFreshGapsList").children[0];
-  assert.equal(gapRow.children[0].children[2].textContent,"Son 90 günde 4 kayıtlı yanlış · Konu çalışılıyor");
+  assert.equal(gapRow.children[0].children[2].textContent,"Son 90 günde 4 kayıtlı yanlış · Konu durumu: Soru çözdüm");
   gapRow.children[1].children[0].click();
   assert.equal(opened,1);
   dueRow.children[1].children[0].click();
