@@ -374,6 +374,56 @@
   @media(prefers-reduced-motion:reduce){
     #home #todayFreshStart .today-fresh-review-chevron{transition:none}
   }
+
+  /* v40: weekly rhythm + recent sessions / 2 panels, 1 compact mobile column */
+  #home #todayFreshStart .today-fresh-activity{min-width:0;padding:14px 15px;border:1px solid #dfe8f7;border-radius:17px;background:#fff;box-shadow:0 8px 24px -22px #224d8f}
+  #home #todayFreshStart .today-fresh-activity-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+  #home #todayFreshStart .today-fresh-activity-heading>div:first-child{min-width:0}
+  #home #todayFreshStart .today-fresh-activity-heading span{display:block;color:#5480b7;font-size:10px;font-weight:800;letter-spacing:.06em}
+  #home #todayFreshStart .today-fresh-activity-heading h2{margin:3px 0 0;color:#1b3559;font-size:17px;font-weight:790;letter-spacing:-.025em;line-height:1.3}
+  #home #todayFreshStart .today-fresh-activity-totals{text-align:right;flex:none}
+  #home #todayFreshStart .today-fresh-activity-totals strong{display:block;color:#265fc0;font-size:17px;line-height:1.25;font-variant-numeric:tabular-nums}
+  #home #todayFreshStart .today-fresh-activity-totals small{display:block;color:#7286a0;font-size:10px}
+  #home #todayFreshStart .today-fresh-activity-grid{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:15px;min-width:0}
+  #home #todayFreshStart .today-fresh-week-panel,#home #todayFreshStart .today-fresh-recent-panel{min-width:0}
+  #home #todayFreshStart .today-fresh-week-bars{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;min-height:115px;align-items:end}
+  #home #todayFreshStart .today-fresh-week-day{display:flex;flex-direction:column;align-items:center;gap:5px;min-width:0}
+  #home #todayFreshStart .today-fresh-week-track{position:relative;width:100%;max-width:35px;height:76px;overflow:hidden;border-radius:8px 8px 5px 5px;background:#f0f5fc}
+  #home #todayFreshStart .today-fresh-week-fill{position:absolute;inset:auto 0 0;border-radius:7px 7px 4px 4px;background:linear-gradient(180deg,#73a8fc,#3171e8)}
+  #home #todayFreshStart .today-fresh-week-day.is-today .today-fresh-week-track{outline:2px solid #aacbff;outline-offset:2px}
+  #home #todayFreshStart .today-fresh-week-day.is-future .today-fresh-week-track{background:#f8fafd}
+  #home #todayFreshStart .today-fresh-week-label{font-size:10px;line-height:1.2;font-weight:770;color:#506887}
+  #home #todayFreshStart .today-fresh-week-day.is-today .today-fresh-week-label{color:#276be7}
+  #home #todayFreshStart .today-fresh-week-value{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:9px;line-height:1.3;color:#7890a8}
+  #home #todayFreshStart .today-fresh-activity-note{margin:9px 0 0;color:#768ba4;font-size:10px;line-height:1.45}
+  #home #todayFreshStart .today-fresh-recent-panel{padding-left:14px;border-left:1px solid #e9eef8}
+  #home #todayFreshStart .today-fresh-recent-heading{display:flex;align-items:center;justify-content:space-between;gap:7px;margin:-2px 0 4px}
+  #home #todayFreshStart .today-fresh-recent-heading h3{margin:0;color:#294364;font-size:13px;font-weight:800;line-height:1.3}
+  #home #todayFreshStart #todayFreshRecentFocus{padding:7px 3px;border:0;background:transparent;color:#2968c4;font-family:inherit;font-size:11px;font-weight:780;cursor:pointer}
+  #home #todayFreshStart #todayFreshRecentFocus:focus-visible{outline:3px solid #8fb8f6;outline-offset:2px}
+  #home #todayFreshStart .today-fresh-recent-list{display:flex;flex-direction:column;min-width:0}
+  #home #todayFreshStart .today-fresh-recent-item{display:flex;align-items:center;justify-content:space-between;gap:9px;min-width:0;padding:9px 0;border-bottom:1px solid #f0f3f9}
+  #home #todayFreshStart .today-fresh-recent-item:last-child{border-bottom:0}
+  #home #todayFreshStart .today-fresh-recent-detail{display:flex;flex-direction:column;gap:3px;min-width:0}
+  #home #todayFreshStart .today-fresh-recent-subject{font-size:12px;font-weight:750;color:#263e60;line-height:1.35;overflow-wrap:anywhere}
+  #home #todayFreshStart .today-fresh-recent-topic{font-size:10px;color:#788aa1;line-height:1.3;overflow-wrap:anywhere}
+  #home #todayFreshStart .today-fresh-recent-meta{display:flex;flex-direction:column;gap:3px;flex:none;align-items:flex-end}
+  #home #todayFreshStart .today-fresh-recent-duration{font-size:12px;font-weight:780;color:#356bc6;font-variant-numeric:tabular-nums}
+  #home #todayFreshStart .today-fresh-recent-when{font-size:10px;color:#7d90a6;white-space:nowrap}
+  #home #todayFreshStart .today-fresh-recent-empty{margin:8px 0;color:#71849f;font-size:11px;line-height:1.5}
+  @media(max-width:600px){
+    #home #todayFreshStart .today-fresh-activity{padding:12px}
+    #home #todayFreshStart .today-fresh-activity-grid{grid-template-columns:minmax(0,1fr);gap:10px}
+    #home #todayFreshStart .today-fresh-week-bars{min-height:101px;gap:5px}
+    #home #todayFreshStart .today-fresh-week-track{height:66px}
+    #home #todayFreshStart .today-fresh-recent-panel{padding:9px 0 0;border-left:0;border-top:1px solid #e9eef8}
+    #home #todayFreshStart .today-fresh-recent-item{padding:8px 0}
+  }
+  @media(max-width:360px){
+    #home #todayFreshStart .today-fresh-week-bars{gap:3px}
+    #home #todayFreshStart .today-fresh-week-value{font-size:8px}
+    #home #todayFreshStart .today-fresh-activity-heading h2{font-size:15px}
+  }
 </style>
 <link rel="stylesheet" href="./app.css" id="themes20260821">
 
@@ -537,6 +587,31 @@
         </div>
         <div id="todayFreshTaskList" class="today-fresh-task-list" aria-live="polite"><p class="today-fresh-task-empty">Görevler hazırlanıyor…</p></div>
       </section>
+    </section>
+    <!-- Aşama 5: gerçek haftalık odak ritmi ve son kaydedilen oturumlar. -->
+    <section id="todayFreshActivity" class="today-fresh-activity" aria-label="Çalışma ritmi ve son çalışmalar">
+      <div class="today-fresh-activity-heading">
+        <div><span>ÇALIŞMA GEÇMİŞİ</span><h2>Haftalık ritmin</h2></div>
+        <div class="today-fresh-activity-totals">
+          <strong id="todayFreshWeekTotal">—</strong>
+          <small id="todayFreshWeekDays">— / 7 aktif gün</small>
+        </div>
+      </div>
+      <div class="today-fresh-activity-grid">
+        <section class="today-fresh-week-panel" aria-label="Pazartesiden pazara odak süreleri">
+          <div id="todayFreshWeekBars" class="today-fresh-week-bars" aria-live="polite"></div>
+          <p id="todayFreshActivityHint" class="today-fresh-activity-note">Çalışma verileri hazırlanıyor…</p>
+        </section>
+        <section class="today-fresh-recent-panel" aria-label="Son çalışma oturumları">
+          <div class="today-fresh-recent-heading">
+            <h3>Son çalışmalar</h3>
+            <button type="button" id="todayFreshRecentFocus">Odak'a git <span aria-hidden="true">↗</span></button>
+          </div>
+          <div id="todayFreshRecentList" class="today-fresh-recent-list" aria-live="polite">
+            <p class="today-fresh-recent-empty">Son oturumlar hazırlanıyor…</p>
+          </div>
+        </section>
+      </div>
     </section>
     <!-- Aşama 4: Gün sonu raporu eski kayıt ve koç paylaşım sistemine bağlıdır. -->
     <details id="todayFreshReview" class="today-fresh-review">
