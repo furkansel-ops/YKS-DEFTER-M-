@@ -1,0 +1,131 @@
+/* Bugün v43 / mobile-first polish. Presentation only: no hidden data or duplicate runtime. */
+:root #home > #todayFreshStart{
+  gap:9px;
+}
+:root #home #todayFreshStart .today-fresh-title{margin-bottom:0}
+:root #home #todayFreshStart .today-fresh-insights{order:4}
+:root #home #todayFreshStart .today-fresh-subjects{order:5}
+:root #home #todayFreshStart .today-fresh-activity{order:6}
+:root #home #todayFreshStart .today-fresh-review{order:7}
+
+/* Three secondary cards have accessible summaries, preserving all their live IDs.
+   Their content remains available on expansion. */
+:root #home #todayFreshStart .today-fresh-fold{overflow:hidden}
+:root #home #todayFreshStart .today-fresh-fold>summary{
+  position:relative;display:flex;align-items:center;justify-content:space-between;
+  gap:10px;min-height:48px;box-sizing:border-box;margin-bottom:0;
+  padding-right:32px;list-style:none;cursor:pointer;
+}
+:root #home #todayFreshStart .today-fresh-fold>summary::-webkit-details-marker{display:none}
+:root #home #todayFreshStart .today-fresh-fold>summary::after{
+  content:"⌄";position:absolute;right:1px;top:50%;
+  color:#5a7cae;font-size:22px;font-weight:700;line-height:1;
+  transform:translateY(-50%);transition:transform .16s ease;
+}
+:root #home #todayFreshStart .today-fresh-fold[open]>summary::after{
+  transform:translateY(-50%) rotate(180deg);
+}
+:root #home #todayFreshStart .today-fresh-fold>summary:focus-visible{
+  outline:3px solid #8fb8f6;outline-offset:-3px;border-radius:12px;
+}
+:root #home #todayFreshStart .today-fresh-fold>summary h2{margin-bottom:0}
+:root #home #todayFreshStart .today-fresh-subjects[open]>.today-fresh-subjects-layout{
+  margin-top:10px;
+}
+:root #home #todayFreshStart .today-fresh-insights[open]>.today-fresh-insights-body{
+  padding-top:8px;
+}
+:root #home #todayFreshStart .today-fresh-insights-preview{
+  display:flex;flex-direction:column;gap:2px;flex:0 1 auto;
+  min-width:0;max-width:48%;text-align:right;
+}
+:root #home #todayFreshStart .today-fresh-insights-preview small{
+  color:#5675a2;font-size:10px;font-weight:720;line-height:1.4;overflow-wrap:anywhere;
+}
+:root #home #todayFreshStart .today-fresh-insights-actions{
+  display:flex;justify-content:flex-end;margin-bottom:7px;
+}
+:root #home #todayFreshStart .today-fresh-insights-actions #todayFreshInsightsAll{
+  display:inline-flex;align-items:center;justify-content:center;min-height:36px;
+}
+:root #home #todayFreshStart .today-fresh-activity[open]>.today-fresh-activity-grid{
+  margin-top:10px;
+}
+:root #home #todayFreshStart .today-fresh-insights-heading,
+:root #home #todayFreshStart .today-fresh-subjects-heading,
+:root #home #todayFreshStart .today-fresh-activity-heading{
+  margin-bottom:0;
+}
+:root #home #todayFreshStart .today-fresh-activity-totals{padding-right:1px}
+:root #home #todayFreshStart #todayFreshSubjectsSummary{
+  flex:0 1 auto;max-width:45%;overflow-wrap:anywhere;
+}
+
+/* Small screens: prioritize tasks and the live clock; keep all touch targets. */
+@media(max-width:600px){
+  :root #home > #todayFreshStart{gap:8px;padding:8px 2px 16px}
+  :root #home #todayFreshStart .today-fresh-title{gap:3px;margin-bottom:0}
+  :root #home > #todayFreshStart h1{font-size:25px}
+  :root #home #todayFreshStart .today-fresh-welcome{padding:9px;gap:7px;border-radius:14px}
+  :root #home #todayFreshStart .today-fresh-hello{padding:1px 0}
+  :root #home #todayFreshStart .today-fresh-eyebrow{margin-bottom:5px}
+  :root #home #todayFreshStart .today-fresh-hello h2{margin-bottom:5px}
+  :root #home #todayFreshStart .today-fresh-hello p{line-height:1.35}
+  :root #home #todayFreshStart .today-fresh-exam{padding:8px;border-radius:12px}
+  :root #home #todayFreshStart .today-fresh-days{margin-top:5px}
+  :root #home #todayFreshStart #todayFreshExamDate{margin-top:4px}
+  :root #home #todayFreshStart .today-fresh-daily{gap:7px}
+  :root #home #todayFreshStart .today-fresh-progress{order:-1;padding:11px;border-radius:15px}
+  :root #home #todayFreshStart .today-fresh-quote{padding:8px 10px;border-radius:13px}
+  :root #home #todayFreshStart .today-fresh-quote-text{line-height:1.4}
+  :root #home #todayFreshStart .today-fresh-progress-head{grid-template-columns:60px minmax(0,1fr);gap:9px}
+  :root #home #todayFreshStart .today-fresh-ring{width:60px;height:60px}
+  :root #home #todayFreshStart .today-fresh-ring::before{inset:6px}
+  :root #home #todayFreshStart .today-fresh-progress-summary p{margin:3px 0 7px;line-height:1.35}
+  :root #home #todayFreshStart .today-fresh-stats{grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;margin-top:10px}
+  :root #home #todayFreshStart .today-fresh-stat{min-height:44px;padding:7px 6px;gap:3px;border-radius:9px}
+  :root #home #todayFreshStart .today-fresh-stat strong{font-size:clamp(12px,3vw,16px);line-height:1.25;overflow-wrap:anywhere}
+  :root #home #todayFreshStart .today-fresh-stat small{display:none}
+  :root #home #todayFreshStart .today-fresh-section-heading{padding:0 2px}
+  :root #home #todayFreshStart .today-fresh-section-heading h2{font-size:15px}
+  :root #home #todayFreshStart .today-fresh-work-center{gap:8px}
+  :root #home #todayFreshStart .today-fresh-work-pair{gap:7px}
+  :root #home #todayFreshStart .today-fresh-work-card{min-height:140px;padding:10px;border-radius:14px}
+  :root #home #todayFreshStart .today-fresh-card-eyebrow{margin-bottom:6px;font-size:10px}
+  :root #home #todayFreshStart .today-fresh-work-card h3{font-size:14px}
+  :root #home #todayFreshStart .today-fresh-work-card p{margin:4px 0 7px;line-height:1.35}
+  :root #home #todayFreshStart .today-fresh-focus-bottom strong{font-size:19px}
+  :root #home #todayFreshStart .today-fresh-action{min-height:36px;padding:6px 8px}
+  :root #home #todayFreshStart .today-fresh-tasks{padding:10px;border-radius:14px}
+  :root #home #todayFreshStart .today-fresh-tasks-head{padding-bottom:7px;gap:6px}
+  :root #home #todayFreshStart .today-fresh-tasks-head h3{font-size:14px}
+  :root #home #todayFreshStart .today-fresh-task-list{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+  :root #home #todayFreshStart .today-fresh-task{gap:7px;padding:8px;border-radius:9px}
+  :root #home #todayFreshStart .today-fresh-task-check{width:30px;height:34px}
+  :root #home #todayFreshStart .today-fresh-task-title{font-size:11px}
+  :root #home #todayFreshStart .today-fresh-review-summary{padding:9px 12px;min-height:59px}
+  :root #home #todayFreshStart .today-fresh-review-title{gap:2px}
+  :root #home #todayFreshStart .today-fresh-fold{padding:10px 12px;border-radius:14px}
+  :root #home #todayFreshStart .today-fresh-fold>summary{min-height:45px;padding-right:25px}
+  :root #home #todayFreshStart .today-fresh-fold>summary::after{right:0}
+  :root #home #todayFreshStart .today-fresh-fold>summary h2{font-size:15px}
+  :root #home #todayFreshStart .today-fresh-insights-preview{max-width:49%}
+  :root #home #todayFreshStart .today-fresh-insights-preview small{font-size:9px}
+}
+@media(max-width:380px){
+  :root #home #todayFreshStart .today-fresh-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  :root #home #todayFreshStart .today-fresh-work-pair{grid-template-columns:repeat(2,minmax(0,1fr))}
+  :root #home #todayFreshStart .today-fresh-work-card{min-height:149px;padding:9px}
+  :root #home #todayFreshStart .today-fresh-focus-bottom{align-items:stretch}
+  :root #home #todayFreshStart .today-fresh-focus-bottom strong{width:100%}
+  :root #home #todayFreshStart .today-fresh-task-list{grid-template-columns:minmax(0,1fr)}
+  :root #home #todayFreshStart .today-fresh-activity-totals strong{font-size:15px}
+  :root #home #todayFreshStart .today-fresh-insights-heading h2{font-size:14px}
+}
+@media(max-width:320px){
+  :root #home #todayFreshStart .today-fresh-work-pair{grid-template-columns:minmax(0,1fr)}
+  :root #home #todayFreshStart .today-fresh-work-card{min-height:115px}
+}
+@media(prefers-reduced-motion:reduce){
+  :root #home #todayFreshStart .today-fresh-fold>summary::after{transition:none}
+}
