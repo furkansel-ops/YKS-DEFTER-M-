@@ -10652,17 +10652,26 @@ function v25UniqueReviews(){const out=[],seen=new Set();for(const r of reviewQue
 /* Bugün v42 / Kanıta dayalı tekrar ve eksik konu özeti.
    Tekrar ve konu kayıtlarının sahibi mevcut app.js'tir; bu yalnız okuma köprüsüdür. */
 window.yksTodayInsightsSnapshot=function(){
+  // Aynı kayıt sürümünde ve aynı günde pahalı analiz bir kez hesaplanır.
+  // Kayıt işlemi perfInvalidateState üzerinden tüm eski sonuçları geçersizleştirir.
+  return perfMemo("today-insights-v44:"+todayKey(),()=>{
   const now=todayKey(),cut=addDaysKey(now,-90);
   const due=v25UniqueReviews().map(r=>({
     key:String(r.key),exam:String(r.exam||""),subj:String(r.subj||""),
     topic:String(r.topic||""),gi:Number(r.gi),gap:Number(r.gap),
     late:Math.max(0,Number(r.late)||0)
   }));
-  // Yanlış kayıtları yalnızca tarih aralığında ve katalogdaki geçerli konu eşleşmelerinde.
+  // Tekrarlanan yanlış kaydı başına müfredat taramasını önle.
+  // Takma adlar için mevcut eşleştirmeyi yalnızca ilk karşılaşmada çağır.
+  const known=new Map(),resolved=new Map();
+  for(const sb of ALL_SUBJECTS)for(const topic of sb.topics)
+    known.set(sb.name+"|"+topic,tkey(sb.exam,sb.name,topic));
   const wrong=new Map();
   (S.wrongLog||[]).forEach(row=>{
     if(!row||typeof row.date!=="string"||row.date<cut||row.date>now)return;
-    const key=v26ResolveKey(row.subject,row.topic);
+    const raw=String(row.subject||"")+"|"+String(row.topic||"");
+    if(!resolved.has(raw))resolved.set(raw,known.get(raw)||v26ResolveKey(row.subject,row.topic)||null);
+    const key=resolved.get(raw);
     if(!key)return;
     const n=Number(row.n),amount=Number.isFinite(n)?Math.max(1,Math.floor(n)):1;
     const found=wrong.get(key)||{count:0,last:"",entries:0};
@@ -10698,6 +10707,7 @@ window.yksTodayInsightsSnapshot=function(){
     a.subj.localeCompare(b.subj,"tr")||a.topic.localeCompare(b.topic,"tr"));
   return {date:now,dueCount:due.length,overdueCount:due.filter(x=>x.late>0).length,
     due:due.slice(0,3),gapCount:gaps.length,gaps:gaps.slice(0,3)};
+  });
 };
 /* Tekrar yalnızca mevcut kayıt sahibi doReview üzerinden tamamlanır. */
 window.yksTodayInsightsCompleteReview=function(key,gi){

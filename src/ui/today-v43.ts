@@ -299,8 +299,36 @@ export function installTodayV43():{installed:boolean;validate:()=>string[]}{
   refresh();
   // Legacy renders replace card contents after completion, sync, import and focus sessions.
   // Observe their output rather than replacing render/save functions or duplicating state.
-  const observer=new MutationObserver(()=>{observer.disconnect();try{refresh();}finally{observe();}});
-  const observe=()=>observer.observe(home,{childList:true,subtree:true,characterData:true});observe();
+  // Sadece eski görev/sonraki çalışma kaynaklarını dinle. Tüm #home alt ağacını
+  // gözlemek kronometrenin her saniyesinde gereksiz tam görev çizimine yol açıyordu.
+  const planSource=getElement("todayPlan"),nextSource=getElement("todayNext");
+  if(typeof MutationObserver!=="undefined"&&(planSource||nextSource)){
+    let queued=false;
+    const observer=new MutationObserver(()=>{
+      if(queued)return;
+      queued=true;
+      const run=()=>{
+        queued=false;
+        observer.disconnect();
+        try{refresh();}catch(error){console.error("Bugün görev adaptörü yenilenemedi",error);}
+        finally{observe();}
+      };
+      if(typeof requestAnimationFrame==="function")requestAnimationFrame(run);
+      else window.setTimeout(run,16);
+    });
+    const observe=()=>{
+      if(planSource)observer.observe(planSource,{childList:true,subtree:true,characterData:true});
+      if(nextSource)observer.observe(nextSource,{childList:true,subtree:true,characterData:true});
+    };
+    observe();
+    document.addEventListener("yks:navigation-after",()=>{
+      if(home.classList.contains("active")){
+        observer.disconnect();
+        try{refresh();}catch(error){console.error("Bugün ekrana dönüş yenilenemedi",error);}
+        finally{observe();}
+      }
+    });
+  }
   const settings=getElement("mrp_ayar");
   if(settings)new MutationObserver(()=>refreshCoachShortcut(home)).observe(settings,{childList:true,subtree:true});
   window.addEventListener("yks:student-coach-link-ready",()=>refreshCoachShortcut(home));

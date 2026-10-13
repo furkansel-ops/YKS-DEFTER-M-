@@ -134,10 +134,12 @@ void import("./ui/onboarding-profile-v45")
   });
 const services=installLegacyServiceBridge();
 const data=installLegacyDataBridge();
-installScienceCards();
-installBiologyAtlas();
-installChemistryVisualsBridgeV44();
-installLabInteractionsBridgeV44();
+// Görsel laboratuvarlar isteğe bağlıdır. Bunlardan birindeki hata ana uygulama
+// açılışını ya da yerel kayıtları durdurmamalı.
+installOptional<unknown>("science-cards",()=>installScienceCards(),null);
+installOptional<unknown>("biology-atlas",()=>installBiologyAtlas(),null);
+installOptional<unknown>("chemistry-visuals",()=>installChemistryVisualsBridgeV44(),null);
+installOptional<unknown>("lab-interactions",()=>installLabInteractionsBridgeV44(),null);
 const backup=installLegacyBackupBridge(data,RELEASE_VERSION);
 const recovery=installRecoveryCenter(data,backup);
 const domain=installLegacyDomainBridge();
