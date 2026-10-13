@@ -22,9 +22,11 @@ test("v42 compact UI lives only in new Today and stays optional offline",()=>{
   const visible=html.slice(html.indexOf('id="todayFreshStart"'),html.indexOf('<!-- Bugün v33'));
   assert.ok(visible.indexOf('id="todayFreshSubjects"')<visible.indexOf('id="todayFreshInsights"'));
   assert.ok(visible.indexOf('id="todayFreshInsights"')<visible.indexOf('id="todayFreshActivity"'));
-  assert.match(html,/#home #todayFreshStart \.today-fresh-insights-grid/);
-  assert.match(html,/@media\(max-width:600px\)/);
-  assert.match(html,/\.today-fresh-insights-grid\{grid-template-columns:minmax\(0,1fr\)/);
+  const css=read("src/ui/today-detail-cards-v42.css");
+  assert.match(read("src/main.ts"),/import "\.\/ui\/today-detail-cards-v42\.css"/);
+  assert.match(css,/#home #todayFreshStart \.today-fresh-insights-grid/);
+  assert.match(css,/@media\(max-width:600px\)/);
+  assert.match(css,/\.today-fresh-insights-grid\{grid-template-columns:minmax\(0,1fr\)/);
 });
 
 test("v42 evidence: pending repeats, recent wrongs, tracked stages, and no invented unknown weaknesses",()=>{
