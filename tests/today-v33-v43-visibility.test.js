@@ -131,3 +131,38 @@ test("v33 styles remain readable and are not hidden by legacy white-metric v43 s
   assert.match(html,/class="v33-screen-heading"/);
   assert.equal((html.match(/id="v33HomeDate"/g)||[]).length,1);
 });
+
+test("v35 blank Today remains visible when legacy v43 bootstrap rebuilds the home DOM",()=>{
+  const h=fixture();
+  const fresh=new h.head.constructor("div","todayFreshStart","today-fresh-start");
+  fresh.append(new h.head.constructor("h1"));
+  h.root.prepend(fresh);
+  const result=h.window.__installTodayV43();
+  assert.equal(result.installed,true);
+  assert.equal(Array.from(result.validate()).length,0,"no boot-time validation errors");
+  assert.equal(fresh.parentElement,h.root,"new visible canvas must not be archived");
+  assert.equal(h.root.querySelector("#todayFreshStart"),fresh);
+  const archive=h.root.querySelector("[data-v43-secondary]");
+  assert.ok(archive&&archive.hidden,"old secondary screens remain archived");
+  assert.equal(archive.contains(fresh),false,"new canvas must not enter hidden v43 archive");
+  assert.equal(h.root.dataset.v43Today,"ready","the legacy startup still finishes");
+  assert.equal(h.progress.parentElement,h.root,"the original data nodes remain in the DOM");
+});
+
+test("v35 hides only the old Today visuals, not student data or other tabs",()=>{
+  const html=read("index.html"),v43=read("src/ui/today-v43.ts");
+  const style=html.match(/<style id="todayFreshStartStyles">([\s\S]*?)<\/style>/)?.[1];
+  assert.ok(style,"startup-critical CSS must be embedded directly in HTML");
+  assert.match(style,/#home\s*>\s*:not\(#todayFreshStart\)\s*\{\s*display:none!important\s*\}/);
+  assert.match(style,/#home\s*>\s*#todayFreshStart\s*\{/);
+  assert.doesNotMatch(style,/#program|#focus|#topics|#exams/);
+  assert.match(v43,/node\.id==="todayFreshStart"/);
+  const home=html.slice(html.indexOf('<section id="home"'),html.indexOf('<!-- ============================== PROGRAM'));
+  assert.ok(home.indexOf('id="todayFreshStart"')<home.indexOf('id="greeting"'));
+  assert.match(home,/<div id="todayFreshStart"[^>]*>\s*<h1>Bugün<\/h1>\s*<\/div>/);
+  for(const id of ["home","greeting","todayHub","todayHubPlan","todayHubReview","todayPlan","todayClose","journalInput","countdown","sozBox"]){
+    assert.equal((html.match(new RegExp('id="'+id+'"','g'))||[]).length,1,id);
+  }
+  assert.match(html,/<section id="program" class="screen">/);
+  assert.match(html,/<section id="pomo" class="screen">/);
+});

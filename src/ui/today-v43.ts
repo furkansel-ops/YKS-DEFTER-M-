@@ -281,7 +281,8 @@ export function installTodayV43():{installed:boolean;validate:()=>string[]}{
   const preserved=new Set<HTMLElement>();
   Array.from(home.children).forEach(node=>{
     if(!(node instanceof HTMLElement))return;
-    if(node.classList.contains("home-head")||node.classList.contains("v33-home-intro")||
+    // v35's empty design canvas is the only visible direct child. Do not archive it.
+    if(node.id==="todayFreshStart"||node.classList.contains("home-head")||node.classList.contains("v33-home-intro")||
       node.classList.contains("v33-home-progress")||node.classList.contains("v33-screen-heading")||
       node.classList.contains("rb-today-tasks")||
       node.classList.contains("rb-today-actions")||node.classList.contains("rb-quick-tools")||

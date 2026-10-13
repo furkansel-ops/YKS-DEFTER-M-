@@ -71,6 +71,26 @@
   window.addEventListener("error",noteError,true);
 })();
 </script>
+<style id="todayFreshStartStyles">
+  /* v35: Bugün yalnızca boş tasarım kabuğunu gösterir.
+     Eski ID ve olay işleyicileri veri kaybını önlemek için DOM'da korunur.
+     Sadece #home'un doğrudan çocukları gizlenir; diğer ekranlara dokunulmaz. */
+  #home > :not(#todayFreshStart){display:none!important}
+  #home > #todayFreshStart{
+    box-sizing:border-box;display:flex;flex-direction:column;gap:10px;
+    width:100%;min-width:0;max-width:880px;margin:0 auto;
+    padding:clamp(12px,3vw,22px) clamp(2px,1vw,8px) 28px;
+    background:transparent;border:0;box-shadow:none;
+  }
+  #home > #todayFreshStart h1{
+    margin:0;font-family:inherit;font-size:clamp(25px,5.9vw,32px);
+    font-weight:780;letter-spacing:-.04em;line-height:1.2;
+    color:var(--ink,#17294a);
+  }
+  @media(max-width:600px){
+    #home > #todayFreshStart{padding:10px 2px 20px}
+  }
+</style>
 <link rel="stylesheet" href="./app.css" id="themes20260821">
 
 
@@ -147,6 +167,10 @@
 
 <!-- ============================== BUGÜN ============================== -->
 <section id="home" class="screen active">
+  <!-- Bugün v35: tek görünür temiz yüzey. Gelecek kartları buraya eklenecek. -->
+  <div id="todayFreshStart" class="today-fresh-start" aria-label="Yeni Bugün ekranı">
+    <h1>Bugün</h1>
+  </div>
 
   <!-- Bugün v33 · Aşama 1: tek, görünür üst görünüm. -->
   <div class="v33-screen-heading">
