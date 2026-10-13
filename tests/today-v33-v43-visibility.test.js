@@ -160,7 +160,7 @@ test("v35 hides only the old Today visuals, not student data or other tabs",()=>
   const home=html.slice(html.indexOf('<section id="home"'),html.indexOf('<!-- ============================== PROGRAM'));
   assert.ok(home.indexOf('id="todayFreshStart"')<home.indexOf('id="greeting"'));
   assert.match(home,/<div id="todayFreshStart"[^>]*>\s*<header class="today-fresh-title">/);
-  assert.match(home,/<h1>Bugün<\\/h1>/);
+  assert.match(home,/<h1>Bugün<\/h1>/);
   assert.match(home,/id="todayFreshGreeting"/);
   assert.match(home,/id="todayFreshDays"/);
   assert.match(home,/id="todayFreshExamDate"/);
