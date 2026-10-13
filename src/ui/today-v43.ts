@@ -70,7 +70,10 @@ function installTodayDetails(todayHub:HTMLElement):void{
   const review=getElement("todayHubReview")?.parentElement;
   const wrap=document.createElement("section");wrap.className="v43-today-details";wrap.dataset.v43TodayDetails="true";
   const body=document.createElement("div");body.className="v43-today-details-body";body.hidden=true;
-  if(review)body.append(review);detailNodes.forEach(node=>body.append(node));
+  // v33 puts all four summary metrics in the new visible progress card. Only
+  // move the old review tile when it actually belongs to this legacy hub.
+  if(review&&todayHub.contains(review))body.append(review);
+  detailNodes.forEach(node=>body.append(node));
   wrap.append(makeToggle("Günün detaylarını göster",body,"v43-disclosure"),body);todayHub.append(wrap);
 }
 
@@ -265,25 +268,33 @@ export function installTodayV43():{installed:boolean;validate:()=>string[]}{
   };
   if(home.dataset.rbToday==="ready")return {installed:true,validate};
   home.classList.add("v43-today");home.dataset.v43Today="ready";home.dataset.rbToday="ready";
-  installHeader(home);if(todayHub){installTodayDetails(todayHub);home.append(todayHub);}
+  // The old runtime used to detach the newly authored header and progress
+  // card into its permanently hidden archive. Keep v33 as the single visible
+  // header, while retaining all legacy task and detail enhancements.
+  const v33Top=!!home.querySelector(".v33-home-intro")&&!!home.querySelector(".v33-home-progress");
+  if(v33Top)home.classList.add("v33-today-stage1");
+  else installHeader(home);
+  if(todayHub){installTodayDetails(todayHub);home.append(todayHub);}
   installTasks(home);promoteDayActions(home);
   promoteQuickTools(home);
   const quote=getElement("sozBox");
   const preserved=new Set<HTMLElement>();
   Array.from(home.children).forEach(node=>{
     if(!(node instanceof HTMLElement))return;
-    if(node.classList.contains("home-head")||node.classList.contains("rb-today-tasks")||
+    if(node.classList.contains("home-head")||node.classList.contains("v33-home-intro")||
+      node.classList.contains("v33-home-progress")||node.classList.contains("v33-screen-heading")||
+      node.classList.contains("rb-today-tasks")||
       node.classList.contains("rb-today-actions")||node.classList.contains("rb-quick-tools")||
       ["todayHub","sozBox","dgBanner","restBanner","backupBanner"].includes(node.id))preserved.add(node);
   });
   const head=home.querySelector<HTMLElement>(".home-head");
-  if(head){home.prepend(head);installCompactQuote(home);}
-  else if(quote)home.prepend(quote);
+  if(head&&!v33Top){home.prepend(head);installCompactQuote(home);}
+  else if(!v33Top&&quote)home.prepend(quote);
   ["dgBanner","restBanner","backupBanner"].forEach(id=>{const node=getElement(id);if(node)home.append(node);});
   installSecondaryArea(home,preserved);
   relocateWeeklyGoals();
   window.addEventListener("yks:home-tools-ready",relocateWeeklyGoals);
-  const refresh=()=>{refreshMetrics();refreshTasks();const next=getElement("todayNext");if(next)enhanceTodayNext(next);refreshCoachShortcut(home);};
+  const refresh=()=>{if(!v33Top)refreshMetrics();refreshTasks();const next=getElement("todayNext");if(next)enhanceTodayNext(next);refreshCoachShortcut(home);};
   refresh();
   // Legacy renders replace card contents after completion, sync, import and focus sessions.
   // Observe their output rather than replacing render/save functions or duplicating state.
