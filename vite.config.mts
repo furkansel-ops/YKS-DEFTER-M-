@@ -103,6 +103,7 @@ const OFFLINE_STARTUP_MODULES=[
   "src/ui/today-workspace-v38.ts",
   "src/ui/today-review-v39.ts",
   "src/ui/today-activity-v40.ts",
+  "src/ui/today-subjects-v41.ts",
   "src/ui/teachers-v2-custom-fast.ts","src/ui/teachers-v2-media.ts","src/ui/teachers-v2-library.ts",
   "src/ui/top-sync-indicator.ts","src/ui/student-account-loader.ts",
   "src/ui/today-v43.ts","src/ui/analysis-center-v43.ts","src/ui/learning-cycle-v43.ts",
