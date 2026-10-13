@@ -11,7 +11,8 @@ test("v38 source is optional, offline-cached and leaves legacy data-writers alon
   const src=read("src/ui/today-workspace-v38.ts");
   const main=read("src/main.ts"),vite=read("vite.config.mts");
   const html=read("index.html");
-  assert.match(main,/void import\("\.\/ui\/today-workspace-v38"\)/);
+  assert.match(read("src/ui/today-top-v33.ts"),/import\("\.\/today-workspace-v38"\)/);
+  assert.doesNotMatch(main,/void import\("\.\/ui\/today-workspace-v38"\)/);
   assert.match(vite,/"src\/ui\/today-workspace-v38\.ts"/);
   assert.match(src,/function installTodayWorkspaceV38/);
   assert.doesNotMatch(src,/localStorage|setDoc\(|updateDoc\(|save\(|fetch\(|S\.weeks|innerHTML/);
