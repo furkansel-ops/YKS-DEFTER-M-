@@ -159,7 +159,11 @@ test("v35 hides only the old Today visuals, not student data or other tabs",()=>
   assert.match(v43,/node\.id==="todayFreshStart"/);
   const home=html.slice(html.indexOf('<section id="home"'),html.indexOf('<!-- ============================== PROGRAM'));
   assert.ok(home.indexOf('id="todayFreshStart"')<home.indexOf('id="greeting"'));
-  assert.match(home,/<div id="todayFreshStart"[^>]*>\s*<h1>Bugün<\/h1>\s*<\/div>/);
+  assert.match(home,/<div id="todayFreshStart"[^>]*>\s*<header class="today-fresh-title">/);
+  assert.match(home,/<h1>Bugün<\/h1>/);
+  assert.match(home,/id="todayFreshGreeting"/);
+  assert.match(home,/id="todayFreshDays"/);
+  assert.match(home,/id="todayFreshExamDate"/);
   for(const id of ["home","greeting","todayHub","todayHubPlan","todayHubReview","todayPlan","todayClose","journalInput","countdown","sozBox"]){
     assert.equal((html.match(new RegExp('id="'+id+'"','g'))||[]).length,1,id);
   }
