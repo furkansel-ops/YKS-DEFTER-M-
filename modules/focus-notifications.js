@@ -1,15 +1,52 @@
 (function(){
   "use strict";
   if(window.YKSFocusNotifications)return;
-  const KEY="yks-focus-notification-link-v1",RUNTIME="yks_focus_runtime_v1";
+  const native=!!(window.Capacitor?.isNativePlatform?.()||window.Capacitor?.getPlatform?.()==="android"||window.androidBridge);
+  // The native store and the PWA worker have independent revision counters.
+  // Keep their metadata separate when upgrading an older WebView installation.
+  const KEY=native?"yks-focus-native-link-v1":"yks-focus-notification-link-v1",RUNTIME="yks_focus_runtime_v1";
   let meta={},revision=0,ready=false,reconciling=true,applying=false,closed=false,serial=0,chain=Promise.resolve();
   try{meta=JSON.parse(localStorage.getItem(KEY)||"{}")||{};revision=Number(meta.revision)||0;}catch(_){}
-  const supported=()=>"serviceWorker" in navigator&&typeof MessageChannel!=="undefined";
-  const enabled=()=>typeof Notification!=="undefined"&&Notification.permission==="granted"&&typeof notifCfg==="function"&&notifCfg().pomo!==false;
+  let nativePlugin=null,nativeListeners=null,nativeHandles=[],nativeOpenPending=false,capabilities=null,lastStatus="";
+  const supported=()=>native||"serviceWorker" in navigator&&typeof MessageChannel!=="undefined";
+  const enabled=()=>!closed&&(native?capabilities?.permission==="granted":typeof Notification!=="undefined"&&Notification.permission==="granted")&&typeof notifCfg==="function"&&notifCfg().pomo!==false;
   const uuid=()=>globalThis.crypto?.randomUUID?.()||Date.now().toString(36)+Math.random().toString(36).slice(2);
   const sender=uuid()+":";let requestNumber=0;
   function saveMeta(){if(closed)return;try{localStorage.setItem(KEY,JSON.stringify(meta));}catch(_){} }
-  function status(text){const node=document.getElementById("focusNotificationStatus");if(node)node.textContent=text;}
+  function status(text){lastStatus=text;const node=document.getElementById("focusNotificationStatus");if(node)node.textContent=text;}
+  function rememberCapabilities(result){if(result?.capabilities)capabilities=result.capabilities;}
+  function nativeStatus(){
+    if(!capabilities)return "Odak bildirim bağlantısı hazırlanıyor. APK güncel değilse yeniden yükle.";
+    if(capabilities.permission!=="granted")return capabilities.permission==="denied"?"Odak bildirimi için Android Ayarları → Uygulamalar → YKS Defterim → Bildirimler iznini aç.":"Odak bildirimini açmak için bildirim izni ver.";
+    if(typeof notifCfg==="function"&&notifCfg().pomo===false)return "Odak bildirimleri kapalı. Bildirimden kontrol et düğmesiyle açabilirsin.";
+    if(capabilities.promoted)return "Canlı bildirim etkin. Süreyi bildirimden duraklatıp devam ettirebilirsin; kapsülün görünümünü cihazın sistemi belirler.";
+    if(capabilities.liveUpdatesSupported&&capabilities.promotionAllowed)return "Bildirimden duraklatıp devam ettirebilirsin. Canlı bildirim isteğini sistem değerlendirir; kapsül gösterimi cihazına bağlıdır.";
+    if(capabilities.liveUpdatesSupported)return "Bildirimden duraklatıp devam ettirebilirsin. Canlı bildirim izni kapalı; Android uygulama bildirim ayarlarını kontrol et.";
+    return "Bildirimden duraklatıp devam ettirebilirsin. Bu Android sürümü canlı bildirim kapsülünü desteklemiyor.";
+  }
+  async function prepareNative(){
+    if(!nativePlugin){
+      const cap=window.Capacitor;
+      // Android injects the plugin proxy before this classic script; core's
+      // registerPlugin is also supported when a bundled runtime provides it.
+      const plugin=cap?.Plugins?.FocusNotifications||cap?.registerPlugin?.("FocusNotifications");
+      if(!plugin?.request||!plugin?.addListener)throw new Error("Android odak bildirim bağlantısı bulunamadı. Güncel APK sürümünü yükle; süren uygulamada devam ediyor.");
+      nativePlugin=plugin;
+    }
+    if(!nativeListeners){
+      nativeListeners=(async()=>{
+        const handles=[];
+        try{
+          handles.push(await nativePlugin.addListener("stateChanged",message=>receive(message)));
+          handles.push(await nativePlugin.addListener("open",message=>receive(message)));
+          if(closed){await Promise.all(handles.map(handle=>handle.remove()));return;}
+          nativeHandles=handles;
+        }catch(error){await Promise.all(handles.map(handle=>handle.remove()));nativeListeners=null;throw error;}
+      })();
+    }
+    await timeout(nativeListeners,3500);
+    return nativePlugin;
+  }
   function stopIntervals(){clearInterval(pomoTimer);pomoTimer=null;clearInterval(swTimer);swTimer=null;}
   function pauseOther(mode){
     if(mode==="sw"&&pomoState==="running"){
@@ -46,8 +83,13 @@
     meta.credited=credited;saveMeta();
   }
   function timeout(promise,ms){return new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(new Error("Bildirim bağlantısı zaman aşımına uğradı.")),ms);Promise.resolve(promise).then(v=>{clearTimeout(timer);resolve(v);},e=>{clearTimeout(timer);reject(e);});});}
-  async function request(operation,value){
+  async function request(operation,value,reveal=false){
     if(!supported())throw new Error("Bu tarayıcı bildirimden kontrolü desteklemiyor.");
+    if(native){
+      const plugin=await prepareNative();
+      const result=await timeout(plugin.request({operation,requestId:sender+(++requestNumber),expectedRevision:revision,snapshot:value,enabled:enabled(),reveal}),3500);
+      rememberCapabilities(result);return result;
+    }
     let reg=await timeout(navigator.serviceWorker.getRegistration(new URL("./",document.baseURI).href),2500);
     if(!reg?.active)reg=await timeout(navigator.serviceWorker.ready,3500);
     const worker=reg?.active;if(!worker)throw new Error("Bildirim bağlantısı hazır değil. Sayfayı yenileyip tekrar dene.");
@@ -102,17 +144,20 @@
     if(x?.mode!=="sw"&&x?.state==="running"&&pomoLeft<=0&&!reconciling)window.pomoTick();
   }
   function delivery(result){
+    rememberCapabilities(result);
     if(result.notificationError)status("Süre korunuyor, fakat bildirim gösterilemedi. Ayarlar → Bildirimler bölümündeki izinleri kontrol et.");
+    else if(native){status(nativeStatus());if(typeof renderNotifSettings==="function")renderNotifSettings();}
     else if(enabled())status("Bildirimden duraklatabilir ve devam edebilirsin. Arka planda bitiş saati esas alınır.");
     else status("Süreyi bildirimden kontrol etmek için bildirimleri aç.");
   }
-  function publish(value=snapshot()){
+  function publish(value=snapshot(),reveal=false){
     if(closed||applying||!ready)return;
     const at=serial;
     chain=chain.catch(()=>{}).then(async()=>{
-      const result=await request(value?"sync":"clear",value);
+      const result=await request(value?"sync":"clear",value,reveal);
       if(closed)return;
       if(!result?.ok){if(result?.error==="revision_conflict"){apply(result);return;}throw new Error("Bildirimden kontrol şu an kullanılamıyor. Süren uygulamada devam ediyor.");}
+      if(result.revision<revision)return;
       revision=result.revision;if(at===serial){recordMeta(result);checkpoint();}else{meta.revision=revision;saveMeta();}delivery(result);
     }).catch(error=>status(error.message));
   }
@@ -125,13 +170,14 @@
       const result=await request("read");
       if(closed)return;
       if(!result?.ok)throw new Error("Bildirimden kontrol şu an kullanılamıyor. Süren uygulamada devam ediyor.");
+      if(result.revision<revision)return;
       if(at===serial){
         if(result.snapshot)apply(result);
         else if(!result.snapshot&&result.revision>revision&&meta.id)apply(result);
         else {revision=result.revision;restore?.();}
       }else revision=result.revision;
     }catch(error){if(!closed){if(at===serial)restore?.();status(error.message);}}
-    finally{reconciling=closed;ready=!closed;resumeIntervals();}
+    finally{reconciling=closed;ready=!closed;resumeIntervals();if(nativeOpenPending&&!closed){nativeOpenPending=false;openFocus();}}
     if(closed)return;
     if(pomoState==="running"&&pomoEndAt<=Date.now())window.pomoTick();
     publish();
@@ -167,24 +213,50 @@
   }
   for(const name of ["pomoTick","swTick"]){const original=window[name];window[name]=function(){if(closed||reconciling)return;const result=original.apply(this,arguments);checkpoint();return result;};}
   function openFocus(){window.go?.("pomo");if(typeof setFocusMode==="function")setFocusMode(meta.mode||"pomo",true);}
-  navigator.serviceWorker?.addEventListener("message",event=>{
+  function receive(message){
     if(closed)return;
+    if(typeof message?.requestId==="string"&&message.requestId.startsWith(sender))return;
+    if(message?.type==="YKS_FOCUS_STATE"&&message.revision>revision){apply(message);delivery(message);}
+    if(message?.type==="YKS_FOCUS_OPEN"){
+      if(native&&(!ready||reconciling))nativeOpenPending=true;
+      else {openFocus();void reconcile();}
+    }
+  }
+  if(!native)navigator.serviceWorker?.addEventListener("message",event=>{
     const workerUrl=event.source?.scriptURL;if(!workerUrl||new URL(workerUrl).href!==new URL("./sw.js",document.baseURI).href)return;
-    if(typeof event.data?.requestId==="string"&&event.data.requestId.startsWith(sender))return;
-    if(event.data?.type==="YKS_FOCUS_STATE"&&event.data.revision>revision){apply(event.data);delivery(event.data);}
-    if(event.data?.type==="YKS_FOCUS_OPEN"){openFocus();void reconcile();}
+    receive(event.data);
   });
-  navigator.serviceWorker?.addEventListener("controllerchange",()=>{if(ready)void reconcile();});
+  if(!native)navigator.serviceWorker?.addEventListener("controllerchange",()=>{if(ready)void reconcile();});
   document.addEventListener("visibilitychange",()=>{if(document.hidden){checkpoint();window.YKSStability?.persistRuntime(true);}else if(ready)void reconcile();},true);
   document.addEventListener("freeze",()=>{reconciling=true;stopIntervals();checkpoint();window.YKSStability?.persistRuntime(true);});
   document.addEventListener("resume",()=>{reconciling=false;void reconcile();});
   window.addEventListener("pagehide",checkpoint);
   window.addEventListener("pageshow",event=>{if(event.persisted){reconciling=false;void reconcile();}});
   window.addEventListener("yks:notification-settings",()=>publish());
+  async function enable(){
+    if(closed)return "denied";
+    try{
+      let permission;
+      if(native){
+        const plugin=await prepareNative(),result=await plugin.requestPermission();
+        if(closed)return "denied";
+        capabilities=result?.capabilities||result;permission=capabilities?.permission;
+      }else permission=await window.askNotif?.();
+      if(closed)return "denied";
+      if(permission==="granted"){notifCfg().pomo=true;save();}
+      if(native)status(nativeStatus());
+      if(typeof renderNotifSettings==="function")renderNotifSettings();
+      // Only this explicit user gesture may reveal a dismissed native notice.
+      if(!ready)await reconcile();
+      publish(snapshot(),native&&permission==="granted");
+      await chain;return permission;
+    }catch(error){status(error.message);return "denied";}
+  }
   function installUi(){
     const host=document.querySelector("#pomo .v29-session-setup");if(!host)return;
     const panel=document.createElement("div");panel.id="focusNotificationControls";panel.innerHTML='<button type="button" class="btn ghost tiny" id="focusNotificationEnable">Bildirimden kontrol et</button><p class="hint" id="focusNotificationStatus" role="status">Süreyi bildirimden duraklatıp devam ettirebilirsin. Uygulama uyutulursa bitiş alarmı gecikebilir.</p>';
-    host.appendChild(panel);panel.querySelector("button").addEventListener("click",async()=>{if(await window.askNotif?.()==="granted"){notifCfg().pomo=true;save();renderNotifSettings();}publish();});
+    host.appendChild(panel);panel.querySelector("button").addEventListener("click",()=>enable());
+    if(native)status(lastStatus||nativeStatus());
     if(new URL(location.href).searchParams.get("focus")==="1"){setTimeout(openFocus,300);const url=new URL(location.href);url.searchParams.delete("focus");history.replaceState(history.state,"",url.href);}
   }
   async function shutdown(){
@@ -193,13 +265,16 @@
     Object.assign(sw(),{run:false,start:0,acc:0,cr:0});meta={revision};
     stopNoise();releaseWake();window.YKSStability?.clearRuntime();
     await chain.catch(()=>{});
-    try{const latest=await request("read");if(latest.ok){revision=latest.revision;await request("clear");}}catch(_){}
+    let nativeClearError=null;
+    try{const latest=await request("read");if(latest.ok){revision=latest.revision;const result=await request("clear");if(native&&!result.ok)throw new Error("Odak bildirimi verileri silinemedi; uygulamayı yeniden açıp tekrar dene.");}else if(native)throw new Error("Odak bildirimi verileri okunamadı; uygulamayı yeniden açıp tekrar dene.");}catch(error){if(native)nativeClearError=error;}
+    await Promise.all(nativeHandles.map(handle=>Promise.resolve(handle.remove()).catch(()=>{})));nativeHandles=[];
+    if(nativeClearError)throw nativeClearError;
     if(typeof indexedDB!=="undefined")await new Promise((resolve,reject)=>{
       const deletion=indexedDB.deleteDatabase("yks-focus-notifications-v1");
       deletion.onsuccess=()=>resolve();deletion.onerror=deletion.onblocked=()=>reject(new Error("Odak bildirim verileri silinemedi. Diğer açık uygulama pencerelerini kapatıp tekrar dene."));
     });
   }
-  window.YKSFocusNotifications={restore:callback=>reconcile(callback),refresh:()=>reconcile(),snapshot,checkpoint,shutdown};
+  window.YKSFocusNotifications={native,enable,statusText:()=>capabilities?nativeStatus():lastStatus||nativeStatus(),restore:callback=>reconcile(callback),refresh:()=>reconcile(),snapshot,checkpoint,shutdown};
   stopIntervals();
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",installUi,{once:true});else installUi();
 })();

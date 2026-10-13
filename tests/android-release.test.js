@@ -13,7 +13,10 @@ test("Android yayın kimliği, SDK ve sürümü sabittir",()=>{
   assert.match(app,/namespace\s*=\s*"com\.furkansel\.yksdefterim"/);
   assert.match(app,/applicationId\s+"com\.furkansel\.yksdefterim"/);
   assert.match(app,/versionName\s+"4\.4\.0"/);
-  assert.match(app,/versionCode\s+4040001/);
+  const release=JSON.parse(read("version.json"));
+  const [major,minor,patch]=release.version.split(".").map(Number);
+  const revision=Number(release.build.match(/-r(\d+)$/)[1]);
+  assert.match(app,new RegExp(`versionCode\\s+${major*1_000_000+minor*10_000+patch*100+revision}\\b`));
   assert.match(vars,/minSdkVersion\s*=\s*24/);
   assert.match(vars,/compileSdkVersion\s*=\s*36/);
   assert.match(vars,/targetSdkVersion\s*=\s*36/);

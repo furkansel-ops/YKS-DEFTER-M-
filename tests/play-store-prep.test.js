@@ -61,7 +61,8 @@ test("Android CI paket ve kilit dosyasıyla aynı Capacitor sürümünden imzal�
 
 test("Android AAB doğrulaması güncel release revizyonunu kabul eder, eski/yanlış manifesti reddeder",()=>{
   const vm=require("node:vm"),workflow=read(".github/workflows/build-android.yml");
-  const script=workflow.match(/node -e '\s*\n(\s*const fs = require\("node:fs"\);[\s\S]*?)\n\s*' "\$metadata" "\$manifest"/)?.[1];
+  const step=workflow.split("- name: AAB, metadata ve imzalama sertifikasını doğrula")[1]?.split("- name:")[0];
+  const script=step?.match(/node -e '\s*\n(\s*const fs = require\("node:fs"\);[\s\S]*?)\n\s*' "\$metadata" "\$manifest"/)?.[1];
   assert.ok(script,"İmzalı AAB doğrulama kodu bulunmalı");
   const release=JSON.parse(read("version.json"));
   const [major,minor,patch]=release.version.split(".").map(Number);
@@ -76,6 +77,37 @@ test("Android AAB doğrulaması güncel release revizyonunu kabul eder, eski/yan
   assert.throws(()=>verify(manifest.replace(`versionCode="${code}"`,`versionCode="${code-1}"`)),/AAB versionCode/);
   assert.throws(()=>verify(manifest,{...metadata,versionCode:code-1}),/versionCode uyuşmuyor/);
   assert.throws(()=>verify(manifest,{...metadata,signed:false}),/imzasız/);
+});
+
+test("Cihaz denemesi APK doğrulaması yanlış paket, release çeşidi veya SDK kabul etmez",()=>{
+  const vm=require("node:vm"),workflow=read(".github/workflows/build-android.yml");
+  const step=workflow.split("- name: Deneme APK'sını ve kaynak kimliğini doğrula")[1]?.split("- name:")[0];
+  const script=step?.match(/node -e '\s*\n([\s\S]*?)\n\s*' "\$artifact_dir"/)?.[1];
+  assert.ok(script,"Deneme APK metadata doğrulama kodu bulunmalı");
+  const release=JSON.parse(read("version.json"));
+  const metadata={applicationId:"com.furkansel.yksdefterim",variantName:"debug",elements:[{outputFile:"app-debug.apk",versionCode:4040028,versionName:"4.4.0"}]};
+  const badging="application-debuggable\ntargetSdkVersion:'36'\nsdkVersion:'24'";
+  const verify=(meta=metadata,apkInfo=badging)=>{
+    let written;
+    vm.runInNewContext(script,{
+      require:name=>name==="node:path"?path:{
+        readFileSync:file=>file.endsWith("output-metadata.json")?JSON.stringify(meta):file==="version.json"?JSON.stringify(release):apkInfo,
+        writeFileSync:(file,data)=>{assert.equal(path.basename(file),"review-metadata.json");written=JSON.parse(data);}
+      },
+      process:{argv:["node","artifact"],env:{REVIEW_SOURCE_SHA:"review-source",REVIEW_BUILD_SHA:"tested-merge"}}
+    });
+    return written;
+  };
+  const reviewed=verify();
+  assert.equal(reviewed.sourceCommit,"review-source");
+  assert.equal(reviewed.testedCheckout,"tested-merge");
+  assert.equal(reviewed.webBuild,release.build);
+  assert.match(reviewed.purpose,/not a Play release/);
+  assert.throws(()=>verify({...metadata,applicationId:"wrong.package"}),/APK kimliği/);
+  assert.throws(()=>verify({...metadata,variantName:"release"}),/APK kimliği/);
+  assert.throws(()=>verify(metadata,badging.replace("application-debuggable","")),/debug olarak/);
+  assert.throws(()=>verify(metadata,badging.replace("'36'","'35'")),/target SDK/);
+  assert.throws(()=>verify(metadata,badging.replace("'24'","'23'")),/min SDK/);
 });
 
 test("Gizlilik ve gerçek cihaz veri silme akışı üretim paketine bağlıdır",()=>{

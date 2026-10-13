@@ -7070,6 +7070,7 @@ function notifSettingsChanged(){
   try{ window.dispatchEvent(new Event("yks:notification-settings")); }catch(e){}
 }
 async function askNotif(){
+  if(window.YKSFocusNotifications?.native)return window.YKSFocusNotifications.enable();
   if(!notifSupported()){ notifSettingsChanged(); toast("Bu tarayıcı bildirim desteklemiyor"); return "yok"; }
   if(notifState()==="denied"){
     toast("İzin daha önce reddedilmiş — tarayıcı ayarlarından açman gerekiyor");
@@ -7099,6 +7100,8 @@ function notifWait(promise){
   });
 }
 async function notify(title,body,tag){
+  // The Android timer owns its notification; WebView must not create a duplicate.
+  if(window.YKSFocusNotifications?.native||window.Capacitor?.isNativePlatform?.()||window.Capacitor?.getPlatform?.()==="android"||window.androidBridge)return false;
   const c=notifCfg();
   if(tag==="pomo"?!c.pomo:!c.on)return false;
   if(notifState()!=="granted")return false;
@@ -7147,7 +7150,8 @@ function renderNotifSettings(){
   const c=notifCfg();
   const st=el("notifStatus"); if(!st)return;
   const p=notifState();
-  if(p==="yok"){ st.textContent="Bu tarayıcı bildirim desteklemiyor."; st.style.color="var(--label-3)"; }
+  if(window.YKSFocusNotifications?.native){st.textContent=window.YKSFocusNotifications.statusText()+" Genel hatırlatmalar web sürümünde kullanılabilir.";st.style.color="var(--label-2)";}
+  else if(p==="yok"){ st.textContent="Bu tarayıcı bildirim desteklemiyor."; st.style.color="var(--label-3)"; }
   else if(p==="denied"){ st.textContent="Bildirim izni engellenmiş. Chrome site ayarlarından açabilirsin."; st.style.color="var(--label-3)"; }
   else if(p!=="granted"){ st.textContent="Bildirimleri açmak için izin ver."; st.style.color="var(--label-3)"; }
   else if(!c.on){ st.textContent=c.pomo?"Odak bildirimleri açık; genel hatırlatmalar kapalı.":"İzin var; odak bildirimleri ve genel hatırlatmalar kapalı."; st.style.color=c.pomo?"var(--success)":"var(--label-3)"; }
@@ -7170,6 +7174,7 @@ function renderNotifSettings(){
 /* neden çalışmıyor sorusuna cevap */
 function notifDiag(){
   const c=notifCfg(),box=el("notifDiag");
+  if(window.YKSFocusNotifications?.native){const text=window.YKSFocusNotifications.statusText()+"\nOdak bildirimi Android tarafından yönetilir. Genel hatırlatmalar web sürümünde kullanılabilir.\nPil tasarrufu süre sonu uyarısını geciktirebilir.";if(box)box.textContent=text;return text;}
   const satir=[];
   satir.push("Destek: "+(notifSupported()?"var":"yok"));
   satir.push("İzin: "+notifState());
@@ -7202,6 +7207,7 @@ function notifDiag(){
   return metin;
 }
 async function testNotif(){
+  if(window.YKSFocusNotifications?.native){toast("Odak bölümünde süre başlatıp Bildirimden kontrol et düğmesine dokun.");window.go?.("pomo");return false;}
   if(!notifSupported()){ notifDiag(); toast("Bu tarayıcı bildirim desteklemiyor"); return false; }
   const p=notifState();
   if(p==="denied"){ notifDiag(); toast("İzin reddedilmiş — tarayıcı ayarlarından açman gerekiyor"); return false; }

@@ -15,11 +15,14 @@ function timer(overrides = {}) {
     endAt: 0, startedAt: epoch - 120000, credited: 1, subject: "Matematik", topic: "", task: "", savedAt: epoch, ...overrides };
 }
 
-function harness({ meta = { id: "a", mode: "pomo", revision: 1, credited: 1 }, snapshot = timer(), revision = 2, onRequest, echo = false, initial = {} } = {}) {
-  const local = new Map(), requests = [], histories = [], listeners = {}, intervals = new Map(), timeouts = new Map();
+function harness({ meta = { id: "a", mode: "pomo", revision: 1, credited: 1 }, snapshot = timer(), revision = 2, onRequest, echo = false, native = false, initial = {} } = {}) {
+  const local = new Map(), requests = [], workerRequests = [], histories = [], listeners = {}, nativeEvents = {}, intervals = new Map(), timeouts = new Map();
+  const nativeCapabilities = { permission: "granted", liveUpdatesSupported: true, promotionAllowed: true, promoted: false, ...native };
+  const metaKey = native ? "yks-focus-native-link-v1" : key;
+  let permissionRequests = 0, removedListeners = 0;
   const record = { revision, snapshot: clone(snapshot) };
   let now = epoch, handle = 0, minutes = 0;
-  if (meta) local.set(key, JSON.stringify(meta));
+  if (meta) local.set(metaKey, JSON.stringify(meta));
   const status = { textContent: "" };
   class Clock extends Date { static now() { return now; } }
   class MessageChannel {
@@ -29,11 +32,8 @@ function harness({ meta = { id: "a", mode: "pomo", revision: 1, credited: 1 }, s
       this.port2 = { postMessage: value => { if (!closed) this.port1.onmessage?.({ data: value }); } };
     }
   }
-  const registration = { active: {
-    scriptURL: scope + "sw.js",
-    postMessage(data, ports) {
-      requests.push(clone(data));
-      Promise.resolve().then(async () => {
+  async function handleRequest(data, isNative = false) {
+        requests.push(clone(data));
         let result;
         if (onRequest) result = await onRequest(clone(data), record);
         if (!result) {
@@ -41,11 +41,30 @@ function harness({ meta = { id: "a", mode: "pomo", revision: 1, credited: 1 }, s
           else if (data.expectedRevision !== record.revision) result = { ok: false, error: "revision_conflict", ...clone(record) };
           else { record.revision++; record.snapshot = data.operation === "clear" ? null : clone(data.snapshot); result = { ok: true, ...clone(record) }; }
         }
-        if (echo && data.operation !== "read" && result.ok) workerListeners.message?.({ source: { scriptURL: scope + "sw.js" }, data: { type: "YKS_FOCUS_STATE", ...clone(result), requestId: data.requestId } });
-        ports[0].postMessage(result);
-      });
+        if (isNative) result.capabilities = clone(nativeCapabilities);
+        if (echo && data.operation !== "read" && result.ok) {
+          const message = { type: "YKS_FOCUS_STATE", ...clone(result), requestId: data.requestId };
+          if (isNative) nativeEvents.stateChanged?.(message);
+          else workerListeners.message?.({ source: { scriptURL: scope + "sw.js" }, data: message });
+        }
+        return result;
+  }
+  const registration = { active: {
+    scriptURL: scope + "sw.js",
+    postMessage(data, ports) {
+      workerRequests.push(clone(data));
+      Promise.resolve().then(async () => ports[0].postMessage(await handleRequest(data)));
     }
   } };
+  const plugin = {
+    async request(data) { return handleRequest(data, true); },
+    async requestPermission() { permissionRequests++; nativeCapabilities.permission = native.permissionResult || "granted"; return clone(nativeCapabilities); },
+    async addListener(name, callback) {
+      nativeEvents[name] = callback;
+      if (name === "open" && native.coldOpen) callback({ type: "YKS_FOCUS_OPEN" });
+      return { async remove() { removedListeners++; delete nativeEvents[name]; } };
+    }
+  };
   const workerListeners = {};
   const state = {
     URL, Date: Clock, MessageChannel, Notification: { permission: "granted" },
@@ -101,14 +120,24 @@ function harness({ meta = { id: "a", mode: "pomo", revision: 1, credited: 1 }, s
     YKSStability: { clearRuntime() { local.delete("yks_focus_runtime_v1"); }, persistRuntime() {} },
     ...initial
   };
+  if (native) {
+    state.Capacitor = { isNativePlatform: () => true, getPlatform: () => "android", Plugins: native.available === false || native.registerOnly ? {} : { FocusNotifications: plugin } };
+    if (native.registerOnly) state.Capacitor.registerPlugin = name => { assert.equal(name, "FocusNotifications"); return plugin; };
+    if (!Object.hasOwn(initial, "Notification")) state.Notification = undefined;
+    if (native.noServiceWorker) state.navigator = {};
+  }
   const context = vm.createContext(state); state.window = context;
   vm.runInContext(source, context);
   return {
-    state, local, record, requests, histories, intervals, status, listeners,
+    state, local, record, requests, workerRequests, histories, intervals, status, listeners, nativeCapabilities, metaKey,
     get minutes() { return minutes; },
+    get permissionRequests() { return permissionRequests; },
+    get removedListeners() { return removedListeners; },
+    installNative() { state.Capacitor.Plugins.FocusNotifications = plugin; },
     advance(ms) { now += ms; },
     async restore(callback = () => {}) { await state.YKSFocusNotifications.restore(callback); await settle(); },
-    async message(value, scriptURL = scope + "sw.js") { workerListeners.message({ source: { scriptURL }, data: value }); await settle(); }
+    async message(value, scriptURL = scope + "sw.js") { workerListeners.message?.({ source: { scriptURL }, data: value }); await settle(); },
+    async nativeMessage(name, value) { nativeEvents[name]?.(value); await settle(); }
   };
 }
 
@@ -316,4 +345,141 @@ test("shutdown zeroes clocks before lifecycle persistence and ignores a late res
   app.listeners.pagehide(); app.state.YKSFocusNotifications.checkpoint();
   await app.state.YKSFocusNotifications.refresh();
   assert.equal(app.local.size, 0, "late lifecycle callbacks cannot recreate deleted focus metadata");
+});
+
+test("Android restores and controls focus through the injected plugin without WebView notification or service worker support", async () => {
+  for (const registerOnly of [false, true]) {
+    const app = harness({ native: { noServiceWorker: true, registerOnly } });
+    await app.restore();
+    assert.equal(app.state.YKSFocusNotifications.native, true);
+    assert.equal(app.state.pomoState, "paused");
+    app.state.startPomo(); await settle();
+    assert.equal(app.record.snapshot.state, "running");
+    assert.equal(app.requests.at(-1).enabled, true);
+    assert.equal(app.workerRequests.length, 0);
+    assert.equal(app.permissionRequests, 0, "startup cannot show a permission prompt");
+  }
+});
+
+test("missing native plugin leaves local timer usable and never falls back to web delivery; later readiness can recover", async () => {
+  const app = harness({ native: { available: false } }); let restored = 0;
+  await app.restore(() => restored++);
+  assert.equal(restored, 1); assert.equal(app.state.pomoState, "running");
+  assert.equal(app.requests.length, 0); assert.equal(app.workerRequests.length, 0);
+  assert.match(app.status.textContent, /APK/);
+  app.installNative(); await app.state.YKSFocusNotifications.refresh(); await settle();
+  assert.equal(app.state.pomoState, "paused"); assert.equal(app.requests[0].operation, "read");
+  assert.equal(app.workerRequests.length, 0);
+});
+
+test("only explicit native enable asks for permission and reveals a dismissed notification", async () => {
+  const config = { on: false, pomo: true };
+  const app = harness({ native: { permission: "prompt" }, initial: { notifCfg: () => config, askNotif() { throw new Error("must not ask WebView permission"); } } });
+  await app.restore();
+  assert.equal(app.permissionRequests, 0); assert.equal(app.requests.at(-1).enabled, false);
+  assert.equal(app.requests.some(request => request.reveal), false);
+  assert.equal(await app.state.YKSFocusNotifications.enable(), "granted");
+  assert.equal(app.permissionRequests, 1); assert.equal(app.requests.at(-1).reveal, true);
+  assert.equal(app.requests.at(-1).enabled, true); assert.equal(config.on, false);
+  app.state.startPomo(); await settle();
+  assert.equal(app.requests.at(-1).reveal, false);
+  await app.state.YKSFocusNotifications.refresh(); await settle();
+  assert.equal(app.requests.at(-1).reveal, false);
+});
+
+test("denied Android permission preserves the timer and does not enable or reveal its notification", async () => {
+  const config = { pomo: false };
+  const app = harness({ native: { permission: "denied", permissionResult: "denied" }, initial: { notifCfg: () => config } });
+  await app.restore(); await app.state.YKSFocusNotifications.enable();
+  assert.equal(app.state.pomoState, "paused"); assert.equal(config.pomo, false);
+  assert.equal(app.requests.at(-1).enabled, false); assert.equal(app.requests.at(-1).reveal, false);
+  assert.match(app.status.textContent, /Android Ayarları/);
+  assert.equal(app.workerRequests.length, 0);
+});
+
+test("native live-update help distinguishes actual promotion from a request or unsupported system", async () => {
+  for (const [capabilities, text] of [
+    [{ promoted: true }, /Canlı bildirim etkin/],
+    [{ promoted: false }, /sistem değerlendirir/],
+    [{ promotionAllowed: false }, /izni kapalı/],
+    [{ liveUpdatesSupported: false }, /desteklemiyor/]
+  ]) {
+    const app = harness({ native: capabilities }); await app.restore();
+    assert.match(app.state.YKSFocusNotifications.statusText(), text);
+  }
+});
+
+test("retained native body-open waits for persisted mode and native controls do not navigate the app", async () => {
+  const pages = [], modes = [];
+  const app = harness({ native: { coldOpen: true }, meta: null,
+    snapshot: timer({ mode: "sw", elapsed: 60000, credited: 1 }),
+    initial: { pomoState: "idle", go: page => pages.push(page), setFocusMode: mode => modes.push(mode) } });
+  await app.restore();
+  assert.deepEqual(pages, ["pomo"]); assert.equal(modes.at(-1), "sw");
+  await app.nativeMessage("stateChanged", { type: "YKS_FOCUS_STATE", revision: app.record.revision + 1,
+    snapshot: timer({ mode: "sw", state: "running", elapsed: 60000, credited: 1 }) });
+  assert.equal(app.state.sw().run, true); assert.deepEqual(pages, ["pomo"]);
+  await app.message({ type: "YKS_FOCUS_OPEN" });
+  assert.deepEqual(pages, ["pomo"], "native shell does not listen to service-worker messages");
+});
+
+test("native own echoes and older revisions cannot undo reset and restart", async () => {
+  let release, held = false;
+  const app = harness({ native: {}, echo: true, onRequest: (data, record) => {
+    if (data.operation !== "sync" || held) return;
+    held = true;
+    return new Promise(resolve => { release = () => { record.revision++; record.snapshot = clone(data.snapshot); resolve({ ok: true, ...clone(record) }); }; });
+  } });
+  await app.restore(); app.state.resetPomo(); app.state.startPomo();
+  const id = JSON.parse(app.local.get(app.metaKey)).id;
+  release(); await settle();
+  await app.nativeMessage("stateChanged", { type: "YKS_FOCUS_STATE", revision: 1, snapshot: timer({ id: "old" }) });
+  assert.equal(app.record.snapshot.id, id); assert.equal(JSON.parse(app.local.get(app.metaKey)).id, id);
+  assert.equal(app.state.pomoState, "running"); assert.equal(app.state.pomoLeft, 1500);
+});
+
+test("native state event arriving during read wins over the older read response", async () => {
+  let hold = false, release;
+  const app = harness({ native: {}, onRequest: (data, record) => {
+    if (data.operation !== "read" || !hold) return;
+    hold = false; const old = clone(record);
+    return new Promise(resolve => { release = () => resolve({ ok: true, ...old }); });
+  } });
+  await app.restore(); hold = true;
+  const pending = app.state.YKSFocusNotifications.refresh(); await settle();
+  app.record.revision++; app.record.snapshot = timer({ left: 1111 });
+  await app.nativeMessage("stateChanged", { type: "YKS_FOCUS_STATE", ...clone(app.record) });
+  release(); await pending; await settle();
+  assert.equal(app.state.pomoLeft, 1111); assert.equal(JSON.parse(app.local.get(app.metaKey)).revision, app.record.revision);
+});
+
+test("native shutdown clears persistent timer and removes both listeners before ignoring late events", async () => {
+  const app = harness({ native: {} }); await app.restore();
+  await app.state.YKSFocusNotifications.shutdown();
+  assert.equal(app.record.snapshot, null); assert.equal(app.requests.at(-1).operation, "clear");
+  assert.equal(app.requests.at(-1).enabled, false); assert.equal(app.removedListeners, 2);
+  await app.nativeMessage("stateChanged", { type: "YKS_FOCUS_STATE", revision: 999, snapshot: timer() });
+  app.state.startPomo(); assert.equal(app.state.pomoState, "idle");
+  assert.equal(app.intervals.size, 0); assert.equal(app.workerRequests.length, 0);
+});
+
+test("native shutdown reports failed persistence cleanup instead of claiming data was deleted", async () => {
+  const app = harness({ native: {}, onRequest: data => data.operation === "clear" ? { ok: false, error: "storage_unavailable" } : undefined });
+  await app.restore();
+  await assert.rejects(app.state.YKSFocusNotifications.shutdown(), /silinemedi/);
+  assert.notEqual(app.record.snapshot, null); assert.equal(app.removedListeners, 2);
+});
+
+test("upgrading an older WebView separates web revisions and restores its existing timer into the new native store", async () => {
+  const app = harness({ native: {}, meta: null, snapshot: null, revision: 0,
+    initial: { pomoState: "idle", localStorage: {
+      getItem: name => name === key ? JSON.stringify({ id: "old-web-timer", mode: "pomo", revision: 80 }) : null,
+      setItem() {}, removeItem() {}
+    } } });
+  let fallback = 0;
+  await app.restore(() => { fallback++; app.state.pomoState = "paused"; app.state.pomoLeft = 1234; });
+  assert.equal(fallback, 1); assert.equal(app.record.snapshot.left, 1234);
+  assert.equal(app.record.snapshot.state, "paused"); assert.equal(app.record.revision, 1);
+  assert.equal(app.requests.find(request => request.operation === "sync").expectedRevision, 0);
+  assert.equal(app.workerRequests.length, 0);
 });
