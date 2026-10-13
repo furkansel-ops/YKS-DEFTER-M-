@@ -149,6 +149,21 @@ export function installTodayTopV33():{installed:boolean}{
       document.documentElement.dataset.todayWorkspaceV38="deferred";
       console.error("Çalışma Merkezi yüklenemedi",error);
     });
+  // v39 opens only as an optional chunk; legacy save/coach logic owns persistence.
+  if(document.documentElement)void import("./today-review-v39")
+    .then(({installTodayReviewV39})=>{
+      try{
+        const review=installTodayReviewV39();
+        document.documentElement.dataset.todayReviewV39=review.installed?"ready":"deferred";
+      }catch(error){
+        document.documentElement.dataset.todayReviewV39="deferred";
+        console.error("Gün sonu değerlendirmesi başlatılamadı",error);
+      }
+    })
+    .catch(error=>{
+      document.documentElement.dataset.todayReviewV39="deferred";
+      console.error("Gün sonu değerlendirmesi yüklenemedi",error);
+    });
   const plan=document.getElementById("todayHubPlan");
   const planSub=document.getElementById("todayHubPlanSub");
   const root=document.querySelector<HTMLElement>("#home .v33-home-progress");
