@@ -17,13 +17,18 @@ function catalog(){
 
 test("küratörlü Hocalar kataloğu TYT ve AYT derslerini ayrı filtreler",()=>{
   const rows=catalog();
-  assert.equal(rows.length,43);
+  assert.equal(rows.length,45);
   assert.ok(rows.filter(row=>row.subjects.includes("Kimya")).length>=10);
   assert.ok(rows.filter(row=>row.subjects.includes("Kimya (AYT)")).length>=10);
   assert.ok(rows.filter(row=>row.subjects.includes("Fizik")).length>=8);
   assert.ok(rows.filter(row=>row.subjects.includes("Biyoloji")).length>=7);
   assert.ok(rows.some(row=>row.name==="Ferrum"&&row.subjects.includes("Kimya")&&row.subjects.includes("Kimya (AYT)")));
   assert.ok(rows.some(row=>row.name==="Kenan Kara"&&row.subjects.includes("Geometri (AYT)")));
+  for(const name of ["Kadir Gümüş","Aker Kartal","Deniz Hoca"]){
+    const row=rows.find(row=>row.name===name);
+    assert.ok(row,name+" katalogda bulunamadı");
+    assert.ok(row.subjects.includes("Türkçe"),name+" TYT Türkçe filtresinde bulunamadı");
+  }
 });
 
 test("yerleşik hocaların tamamı doğrulanmış YouTube kanal kaynağına bağlanır",()=>{
@@ -61,7 +66,7 @@ test("küratörlü katalog core-utils ve stability arasında açık senkron scri
   const core=fs.readFileSync(path.join(root,"modules/core-utils.js"),"utf8");
   const sw=fs.readFileSync(path.join(root,"sw.js"),"utf8");
   const scripts=[...index.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)].map(match=>({attributes:match[1],body:match[2],src:match[1].match(/\bsrc="([^"]+)"/)?.[1]}));
-  const urls=["./app.js?v=4.1.0-r28","./modules/core-utils.js?v=4.1.0-r28","./modules/teachers-curated-v3.js?v=4.4.0-r3","./modules/stability.js?v=4.1.0-r29"];
+  const urls=["./app.js?v=4.1.0-r28","./modules/core-utils.js?v=4.1.0-r28","./modules/teachers-curated-v3.js?v=4.4.0-r4","./modules/stability.js?v=4.1.0-r29"];
   const positions=urls.map(url=>scripts.findIndex(script=>script.src===url));
   assert.ok(positions.every(position=>position>=0));
   assert.ok(positions[0]<positions[1]);
@@ -73,7 +78,7 @@ test("küratörlü katalog core-utils ve stability arasında açık senkron scri
     assert.equal(script.body.trim(),"","Sonraki script öncekinin gövdesine yutulmamalı");
   }
   assert.doesNotMatch(core,/document\.write/);
-  assert.match(sw,/teachers-curated-v3\.js\?v=4\.4\.0-r3/);
+  assert.match(sw,/teachers-curated-v3\.js\?v=4\.4\.0-r4/);
 });
 
 test("klasik çekirdek zinciri HTML yazmadan kataloğu ve kararlılık servisini hazırlar",()=>{
@@ -85,8 +90,8 @@ test("klasik çekirdek zinciri HTML yazmadan kataloğu ve kararlılık servisini
     vm.runInContext(fs.readFileSync(path.join(root,"modules",file),"utf8"),context,{filename:file});
   }
   assert.equal(writes.length,0);
-  assert.equal(context.TEACHERS.length,43);
-  assert.equal(window.__YKS_CURATED_TEACHERS__.length,43);
+  assert.equal(context.TEACHERS.length,45);
+  assert.equal(window.__YKS_CURATED_TEACHERS__.length,45);
   assert.equal(document.documentElement.dataset.teachersCatalog,"curated-v3");
   assert.equal(typeof window.YKSCore.mergeStates,"function");
   assert.equal(typeof window.YKSStability.restoreRuntime,"function");

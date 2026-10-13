@@ -1,6 +1,6 @@
 import {readFile,writeFile} from "node:fs/promises";
 import {resolve} from "node:path";
-import {CURATED_VIDEOS,VERIFIED_CHANNELS,channelUrl as sourceChannelUrl} from "./teachers-v2-sources.mjs";
+import {CURATED_VIDEOS,CURATED_PLAYLISTS,VERIFIED_CHANNELS,channelUrl as sourceChannelUrl} from "./teachers-v2-sources.mjs";
 
 const ROOT=resolve(process.cwd());
 const FEED_PATH=resolve(ROOT,"public/teachers-v2-feed.json");
@@ -102,11 +102,19 @@ async function fetchChannelPreview(teacher){
   if(!videos.length)throw new Error("RSS video içermedi");
   return videos;
 }
-function nearestPlaylistTitle(html,index){
-  const left=html.slice(Math.max(0,index-1000),index),right=html.slice(index,Math.min(html.length,index+1300));
-  const re=/"title":\{"runs":\[\{"text":"((?:\\.|[^"\\])+)"/g;
-  const after=re.exec(right)?.[1];if(after)return decodeJs(after);
-  const hits=[...left.matchAll(re)];return hits.length?decodeJs(hits[hits.length-1][1]):"";
+/* Extract a single JSON renderer from the verified channel's playlists page.
+   Scanning all playlistId strings can accidentally import recommendations from other channels. */
+function rendererObject(html,braceAt){
+  if(html[braceAt]!=="{")return null;
+  let depth=0,inString=false,escaped=false;
+  for(let i=braceAt;i<Math.min(html.length,braceAt+120000);i++){
+    const char=html[i];
+    if(inString){if(escaped)escaped=false;else if(char==="\\")escaped=true;else if(char==='"')inString=false;continue;}
+    if(char==='"'){inString=true;continue;}
+    if(char==="{")depth++;
+    else if(char==="}"&&!--depth){try{return JSON.parse(html.slice(braceAt,i+1));}catch{return null;}}
+  }
+  return null;
 }
 function playlistScore(title,teacher){
   const text=norm(title);let score=0;
@@ -118,38 +126,44 @@ function playlistScore(title,teacher){
 }
 function parsePlaylists(html,teacher){
   const out=[],seen=new Set(),text=String(html||"");
-  for(const match of text.matchAll(/"playlistId":"([A-Za-z0-9_-]{10,})"/g)){
-    const id=match[1];if(seen.has(id))continue;
-    const title=nearestPlaylistTitle(text,match.index||0);if(!title||/mix|uploads/i.test(title))continue;
-    seen.add(id);out.push({id,title,url:`https://www.youtube.com/playlist?list=${encodeURIComponent(id)}`,score:playlistScore(title,teacher)});
+  for(const match of text.matchAll(/"(?:playlistRenderer|gridPlaylistRenderer)":\{/g)){
+    const data=rendererObject(text,(match.index||0)+match[0].length-1);
+    if(!data)continue;
+    const id=String(data.playlistId||"").trim();
+    const title=String((data.title?.runs||[]).map(part=>part.text||"").join("")||data.title?.simpleText||"").trim();
+    if(!/^[A-Za-z0-9_-]{10,}$/.test(id)||!title||seen.has(id)||/mix|uploads/i.test(title))continue;
+    const score=playlistScore(title,teacher);if(score<=0)continue;
+    seen.add(id);out.push({id,title,url:`https://www.youtube.com/playlist?list=${encodeURIComponent(id)}`,channelId:teacher.channelId,source:"verified-channel",score});
   }
   out.sort((a,b)=>b.score-a.score||a.title.localeCompare(b.title,"tr"));
-  const relevant=out.filter(x=>x.score>0),fallback=out.filter(x=>x.score<=0);
-  return [...relevant,...fallback].slice(0,MAX_PLAYLISTS).map(({score,...row})=>row);
+  return out.slice(0,MAX_PLAYLISTS).map(({score,...row})=>row);
 }
 async function fetchChannelPlaylists(teacher){
   if(teacher.searchOnly)return [];
-  const base=teacher.channelHandle?`https://www.youtube.com/${teacher.channelHandle}`:`https://www.youtube.com/channel/${teacher.channelId}`;
-  if(!base)return [];
+  const base=teacher.channelHandle?`https://www.youtube.com/${teacher.channelHandle}`:teacher.channelId?`https://www.youtube.com/channel/${teacher.channelId}`:"";
+  if(!base||!teacher.channelId)return [];
   const html=await fetchText(`${base}/playlists`,PLAYLIST_TIMEOUT_MS,"text/html,application/xhtml+xml");
   return parsePlaylists(html,teacher);
 }
-function mergePlaylists(oldRows,freshRows){
-  const previous=new Map((Array.isArray(oldRows)?oldRows:[]).filter(row=>row?.id).map(row=>[String(row.id),row]));
+function seededPlaylists(name,teacher){
+  return (CURATED_PLAYLISTS[name]||[]).map(item=>({
+    id:item.id,title:item.title,url:`https://www.youtube.com/playlist?list=${encodeURIComponent(item.id)}`,
+    channelId:teacher.channelId||"",source:"curated"
+  }));
+}
+function mergePlaylists(oldRows,freshRows,teacher,seeded){
+  const confirmedId=teacher.searchOnly?"":String(teacher.channelId||"");
+  // Old archive rows with no ownership evidence are intentionally discarded.
+  const trustedOld=(Array.isArray(oldRows)?oldRows:[]).filter(row=>confirmedId&&row?.channelId===confirmedId);
+  const incoming=(Array.isArray(freshRows)?freshRows:[]).filter(row=>confirmedId&&row?.channelId===confirmedId);
+  const previous=new Map(trustedOld.map(row=>[String(row.id),row]));
   const out=[],seen=new Set();
-  for(const fresh of Array.isArray(freshRows)?freshRows:[]){
-    if(!fresh?.id||seen.has(String(fresh.id)))continue;
-    const id=String(fresh.id),old=previous.get(id)||{};
-    seen.add(id);previous.delete(id);
-    out.push({...old,...fresh,
-      videos:Array.isArray(old.videos)?old.videos:undefined,
-      videoCount:Number(old.videoCount||0)||undefined,
-      previewSource:old.previewSource||undefined
-    });
-  }
-  for(const old of previous.values()){
-    if(!old?.id||seen.has(String(old.id)))continue;
-    seen.add(String(old.id));out.push(old);
+  for(const candidate of [...seeded,...incoming,...trustedOld]){
+    const id=String(candidate?.id||"");
+    if(!/^[A-Za-z0-9_-]{10,}$/.test(id)||seen.has(id))continue;
+    const old=previous.get(id)||{};
+    seen.add(id);
+    out.push({...old,...candidate});
   }
   return out.slice(0,MAX_PLAYLISTS);
 }
@@ -181,17 +195,25 @@ const rows=await runPool(entries,async([name,known])=>{
     try{rss=await fetchChannelPreview(teacher);if(rss.length||seed.length){refreshedAt=now;freshCount++;}}
     catch(error){fallbackCount++;console.warn(`[teachers-v2-fast] ${name}: RSS alınamadı; tam yenileme/eski veri korunuyor (${error instanceof Error?error.message:String(error)})`);}
   }else if(seed.length||Array.isArray(old.videos)&&old.videos.length){freshCount++;refreshedAt=old.refreshedAt||now;}
-  const videos=mergeVideos(seed,Array.isArray(old.videos)?old.videos:[],rss);
-  let playlists=Array.isArray(old.playlists)?old.playlists:[];
+  // Never let a previous search result for someone else masquerade as this teacher.
+  const trustedOldVideos=(Array.isArray(old.videos)?old.videos:[]).filter(video=>{
+    if(!video?.id)return false;
+    if(teacher.searchOnly)return norm(video.title).includes(norm(teacher.name.split(" · ")[0]));
+    return Boolean(teacher.channelId&&video.channelId===teacher.channelId);
+  });
+  const videos=mergeVideos(seed,rss,trustedOldVideos);
+  const pinned=seededPlaylists(name,teacher);
+  let freshPlaylists=[];
   if(!teacher.searchOnly){
-    try{const freshPlaylists=await fetchChannelPlaylists(teacher);if(freshPlaylists.length){playlists=mergePlaylists(playlists,freshPlaylists);playlistCount+=freshPlaylists.length;}}
-    catch(error){console.warn(`[teachers-v2-fast] ${name}: playlist alınamadı; tam yenilemede bulunan seri listesi korunuyor (${error instanceof Error?error.message:String(error)})`);}
+    try{freshPlaylists=await fetchChannelPlaylists(teacher);playlistCount+=freshPlaylists.length;}
+    catch(error){console.warn(`[teachers-v2-fast] ${name}: playlist sayfası alınamadı; yalnız doğrulanmış listeler korunuyor (${error instanceof Error?error.message:String(error)})`);}
   }
+  const playlists=mergePlaylists(old.playlists,freshPlaylists,teacher,pinned);
   const subjects=Array.isArray(meta.subjects)?meta.subjects:(Array.isArray(old.subjects)?old.subjects:[]);
   const subject=meta.subject||old.subject||(subjects.length===1?subjects[0]:"YKS");
   const url=teacher.channelId?`https://www.youtube.com/channel/${teacher.channelId}`:sourceChannelUrl(teacher);
   console.log(`[teachers-v2-fast] ${name}: ${videos.length} ilgili video · ${playlists.length} kamp/seri${teacher.searchOnly?" · odaklı arama":""}${teacher.channelId?" · kanal doğrulandı":""}${resolveError?` · ${resolveError}`:""}`);
-  return [name,{...old,name,subject,subjects,channelName:teacher.channelName||name,channelId:teacher.channelId||old.channelId||"",channelUrl:url||old.channelUrl||"",channelHandle:teacher.channelHandle||old.channelHandle||"",channelSource:teacher.searchOnly?"verified-shared-search":(teacher.channelId?"verified":"verified-handle"),searchOnly:!!teacher.searchOnly,queryHint:teacher.queryHint||old.queryHint||"",focusTerms:Array.isArray(teacher.focusTerms)?teacher.focusTerms:(Array.isArray(old.focusTerms)?old.focusTerms:[]),refreshedAt,videoCount:Math.max(Number(old.videoCount||0),videos.length),playlistCount:Math.max(Number(old.playlistCount||0),playlists.length),videos,playlists}];
+  return [name,{...old,name,subject,subjects,channelName:teacher.channelName||name,channelId:teacher.channelId||old.channelId||"",channelUrl:url||old.channelUrl||"",channelHandle:teacher.channelHandle||old.channelHandle||"",channelSource:teacher.searchOnly?"verified-shared-search":(teacher.channelId?"verified":"verified-handle"),searchOnly:!!teacher.searchOnly,queryHint:teacher.queryHint||old.queryHint||"",focusTerms:Array.isArray(teacher.focusTerms)?teacher.focusTerms:(Array.isArray(old.focusTerms)?old.focusTerms:[]),refreshedAt,videoCount:Math.max(Number(old.videoCount||0),videos.length),playlistCount:playlists.length,videos,playlists}];
 },CONCURRENCY);
 
 const nextTeachers={};for(const [name,row] of rows)nextTeachers[name]=row;
