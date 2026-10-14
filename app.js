@@ -10756,10 +10756,30 @@ window.yksTodayInsightsSnapshot=function(){
       if(w)reasons.push("Son 90 günde "+w.count+" kayıtlı yanlış");
       if(stageEvidence)reasons.push("Konu durumu: "+ST_LABEL[stage]);
       if(lowConfidence)reasons.push("Güven düzeyi düşük ("+confidence+"/5)");
+      // Yalnız kayıtlı kanıtlarla ilerleme: konu aşaması, 3/7/21 tekrarları,
+      // son yanlış ve öğrencinin güveni. Bir günlük seçimi 'kapandı' sayma.
+      const currentStage=Number.isFinite(stage)?Math.max(0,Math.min(3,stage)):0;
+      const currentConfidence=Number.isFinite(confidence)?Math.max(0,Math.min(5,confidence)):0;
+      const reviewSet=new Set(Array.isArray(progress&&progress.rev)?progress.rev.filter(i=>i===0||i===1||i===2):[]);
+      const reviewDone=(progress&&progress.revDone)||{};
+      const completionDays=[0,1,2].filter(i=>reviewSet.has(i)).map(i=>reviewDone[i])
+        .filter(date=>typeof date==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(date)&&date<=now);
+      const lastReviewed=completionDays.slice().sort().pop()||"";
+      const lastWrong=w?w.last:"";
+      const lastPositive=lastReviewed||((progress&&typeof progress.ts==="string"&&progress.ts<=now)?progress.ts:"");
+      const afterWrong=!lastWrong||Boolean(lastReviewed&&lastReviewed>lastWrong);
+      const verified=currentStage===3&&currentConfidence>=4&&reviewSet.size===3
+        &&completionDays.length===3&&afterWrong;
+      const reopened=!verified&&currentStage===3&&Boolean(lastWrong)
+        &&(!lastPositive||lastWrong>=lastPositive);
+      const closingState=verified?"verified":reopened?"recheck"
+        :(currentStage>=2||reviewSet.size>0)?"working":"open";
       gaps.push({
         key,exam:String(sb.exam),subj:String(sb.name),topic:String(topic),
-        wrong:w?w.count:0,last:w?w.last:"",stage:stageEvidence?stage:0,
-        confidence:lowConfidence?confidence:0,reasons
+        wrong:w?w.count:0,last:lastWrong,stage:stageEvidence?stage:0,
+        confidence:lowConfidence?confidence:0,reasons,
+        closure:{state:closingState,stage:currentStage,confidence:currentConfidence,
+          reviews:reviewSet.size,reviewDate:lastReviewed,wrongDate:lastWrong}
       });
     }
   }
@@ -10767,8 +10787,16 @@ window.yksTodayInsightsSnapshot=function(){
     Number(Boolean(b.confidence))-Number(Boolean(a.confidence))||
     Number(Boolean(b.stage))-Number(Boolean(a.stage))||
     a.subj.localeCompare(b.subj,"tr")||a.topic.localeCompare(b.topic,"tr"));
+  const tracker={total:gaps.length,
+    open:gaps.filter(x=>x.closure.state==="open"||x.closure.state==="recheck").length,
+    working:gaps.filter(x=>x.closure.state==="working").length,
+    verified:gaps.filter(x=>x.closure.state==="verified").length,
+    rows:gaps.slice(0,5).map(x=>({
+      key:x.key,exam:x.exam,subj:x.subj,topic:x.topic,wrong:x.wrong,
+      reasons:x.reasons.slice(0,3),...x.closure
+    }))};
   return {date:now,dueCount:due.length,overdueCount:due.filter(x=>x.late>0).length,
-    due:due.slice(0,3),gapCount:gaps.length,gaps:gaps.slice(0,3)};
+    due:due.slice(0,3),gapCount:gaps.length,gaps:gaps.slice(0,3),tracker};
   });
 };
 /* Tekrar yalnızca mevcut kayıt sahibi doReview üzerinden tamamlanır. */
