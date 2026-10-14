@@ -17,7 +17,6 @@ type HistorySnapshotV46={
 };
 type HistoryWindowV46=Window&{yksTodayHistorySnapshot?:()=>HistorySnapshotV46};
 
-const LEVELS=[0,30,60,120,240];
 function minutesLabel(raw:number):string{
   const minutes=Math.max(0,Math.round(Number(raw)||0));
   const hours=Math.floor(minutes/60),rest=minutes%60;
@@ -26,7 +25,7 @@ function minutesLabel(raw:number):string{
 function levelOf(min:number):number{
   const safe=Math.max(0,Number(min)||0);
   if(!safe)return 0;
-  return safe<LEVELS[1]?1:safe<LEVELS[2]?2:safe<LEVELS[3]?3:4;
+  return safe<30?1:safe<60?2:safe<120?3:4;
 }
 function make<K extends keyof HTMLElementTagNameMap>(tag:K,className:string,value?:string):HTMLElementTagNameMap[K]{
   const el=document.createElement(tag);
@@ -74,7 +73,7 @@ export function installTodayHistoryV46():{installed:boolean}{
     let previousMonth=-1;
     for(let i=0;i<12;i++){
       const seven=snapshot.days.slice(i*7,(i+1)*7);
-      const first=new Date(seven[0].date+"T12:00:00");
+      const first=new Date((seven[0]?.date||snapshot.today)+"T12:00:00");
       const currentMonth=first.getMonth();
       const column=make("div","today-history-week");
       const month=make("span","today-history-month",
