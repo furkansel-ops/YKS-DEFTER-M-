@@ -142,8 +142,7 @@
 }
 :root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) #home .v33-home-progress :is(
  .v33-progress-copy p,.v33-progress-heading strong,.v33-progress-heading b,
- .v33-home-progress .today-summary>span,.v33-home-progress .today-summary>b,
- .v33-home-progress .today-summary>small
+ .today-summary>span,.today-summary>b,.today-summary>small
 ){color:var(--yks-theme-on-deep)}
 :root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) #home .v33-progress-ring::before{
   background:var(--yks-theme-deep);
