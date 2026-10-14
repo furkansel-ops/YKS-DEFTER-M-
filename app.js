@@ -10763,7 +10763,7 @@ window.yksTodayInsightsSnapshot=function(){
       const reviewSet=new Set(Array.isArray(progress&&progress.rev)?progress.rev.filter(i=>i===0||i===1||i===2):[]);
       const reviewDone=(progress&&progress.revDone)||{};
       const completionDays=[0,1,2].filter(i=>reviewSet.has(i)).map(i=>reviewDone[i])
-        .filter(date=>typeof date==="string"&&/^\\d{4}-\\d{2}-\\d{2}$/.test(date)&&date<=now);
+        .filter(date=>typeof date==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(date)&&date<=now);
       const lastReviewed=completionDays.sort().pop()||"";
       const lastWrong=w?w.last:"";
       const lastPositive=lastReviewed||((progress&&typeof progress.ts==="string"&&progress.ts<=now)?progress.ts:"");
