@@ -1,0 +1,156 @@
+/* v50 · Cross-screen contrast polish. Scoped to non-default palettes.
+   No sizes, layouts, state or persistence change; Blue remains bit-for-bit styled as before. */
+:root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]){
+  --yks-theme-border-strong:color-mix(in srgb,var(--yks-theme-ink) 20%,var(--yks-theme-line));
+  --yks-theme-tile:color-mix(in srgb,var(--yks-theme-soft) 80%,var(--yks-theme-surface));
+  --yks-theme-quiet:color-mix(in srgb,var(--yks-theme-muted) 84%,var(--yks-theme-ink));
+}
+/* Ensure the outer shell and navigation never inherit outdated fixed navy. */
+:root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) :is(.wrap,.screen,.navbar,.tabbar){
+  color:var(--yks-theme-ink);
+}
+:root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) .tabbar .tab:not(.active){
+  color:var(--yks-theme-muted);
+}
+:root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) .tabbar .tab.active{
+  background:var(--yks-theme-soft);color:var(--yks-theme-accent);
+}
+:root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) :is(.navbar .searchbtn,.rb-profile,.rb-back){
+  color:var(--yks-theme-accent);border-color:var(--yks-theme-line);
+}
+:root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) :is(input,textarea,select){
+  background:var(--yks-theme-surface);color:var(--yks-theme-ink);
+  border-color:var(--yks-theme-border-strong);
+  caret-color:var(--yks-theme-accent);
+}
+:root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) :is(input,textarea)::placeholder{
+  color:var(--yks-theme-muted);opacity:1;
+}
+/* A selected control uses a contrasting foreground, including dark Night/Graphite accents. */
+:root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) :is(
+ .seg button.on,.btn.primary,.btn.green,.yms-actions .primary
+){
+  background:var(--yks-theme-accent);
+  color:var(--yks-theme-on);
+  border-color:var(--yks-theme-accent);
+}
+:root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) :is(
+ .btn.ghost,.rb-back,.yms-detail-back,.yms-edit,.yms-actions button:not(.primary),.yms-app-row
+){
+  color:var(--yks-theme-ink);
+}
+:root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) .seg{
+  background:var(--yks-theme-soft);border-color:var(--yks-theme-line);
+}
+:root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) .seg button:not(.on){
+  color:var(--yks-theme-ink);
+}
+/* Secondary screens previously mixed hard-coded blue cards and gray text.
+   Keep semantic warning/success badges intact; repaint generic supporting panels only. */
+:root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) :is(
+ #topics .v26-topic-tools,#deneme .v315-dashboard,#deneme .v315-kpi,
+ #progress .v43-analysis-section,#progress .v43-analysis-period-card,
+ #pp .pp-entry-card,#pp .pp-kind-card,#pp .pp-kpi,#pp .pp-chart-card,
+ #pomo .focuscard,#pomo .v29-session-setup,
+ #more .v30-search-card,#more .v30-status>*
+){
+  background-color:var(--yks-theme-surface);
+  color:var(--yks-theme-ink);
+  border-color:var(--yks-theme-line);
+}
+:root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) :is(
+ #progress .v43-analysis-period-card,#pp .pp-period-card,
+ #more .yms-app-row,#more .yms-status-pill,#more .yms-field input,
+ #more .yms-field select
+){
+  background-color:var(--yks-theme-tile);
+  color:var(--yks-theme-ink);
+  border-color:var(--yks-theme-line);
+}
+:root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) :is(
+ #more .yms-card,#more .yms-profile,#more .yms-category-list,
+ #more .yms-action-grid,#more .yms-advanced,#more .yms-dialog
+){
+  background-color:var(--yks-theme-surface);
+  color:var(--yks-theme-ink);
+  border-color:var(--yks-theme-line);
+}
+:root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) :is(
+ #more .yms-category-copy small,#more .yms-profile-copy small,
+ #more .yms-detail-heading p,#more .yms-note,#more .yms-row>span,
+ #more .yms-field label,#more .yms-app-row small
+){
+  color:var(--yks-theme-muted);
+}
+/* New Today v38–48: quiet labels and inner surface contrast.
+   Do not recolor the dark/white-text daily-progress hero. */
+:root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) #home #todayFreshStart :is(
+ .today-fresh-task-list,.today-fresh-recent-list,.today-fresh-subject-rows
+){color:var(--yks-theme-ink)}
+:root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) #home #todayFreshStart :is(
+ .today-fresh-insight-header h3,.today-fresh-insight-title,.today-fresh-task-title,
+ .today-fresh-task-summary,.today-fresh-recent-row strong,.today-daily-metric-top strong,
+ .today-gap-heading strong,.today-history-heading h3,.today-history-score h3
+){color:var(--yks-theme-ink)}
+:root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) #home #todayFreshStart :is(
+ .today-fresh-subjects-heading>small,.today-fresh-insight-header small,
+ .today-fresh-insights-preview small:not(.today-fresh-highlight),
+ .today-fresh-subject-row .today-fresh-subject-ratio,
+ .today-fresh-recent-row small,.today-fresh-activity-hint,
+ .today-fresh-task-meta,.today-fresh-task-sub,
+ .today-fresh-quote-author,.today-history-month,.today-history-weekdays,
+ .today-history-heading>strong,.today-history-note,.today-history-legend,
+ .today-gap-heading small,.today-daily-metric-top span
+){color:var(--yks-theme-muted)}
+:root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) #home #todayFreshStart :is(
+ .today-fresh-subject-metric,.today-fresh-insight-panel,.today-fresh-subject-empty,
+ .today-fresh-task-empty,.today-fresh-recent-row,
+ .today-daily-metric,.today-gap-stat,.today-gap-row,
+ .today-history
+){
+  border-color:var(--yks-theme-line);
+}
+:root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) #home #todayFreshStart :is(
+ .today-fresh-insight-panel,.today-fresh-subject-empty,.today-fresh-task-empty,
+ .today-fresh-recent-row,.today-daily-metric,.today-gap-stat,.today-history
+){
+  background-color:var(--yks-theme-tile);
+}
+:root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) #home #todayFreshStart :is(
+ .today-daily-progress,.today-gap-tracker,.today-history-breakdown-item,
+ .today-fresh-subjects,.today-fresh-insights,.today-fresh-activity
+){border-color:var(--yks-theme-line);color:var(--yks-theme-ink)}
+/* Existing fallback header uses !important background paint and fixed blue labels. */
+:root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) #home .v33-home-countdown{
+  background:var(--yks-theme-tile)!important;
+  border-color:var(--yks-theme-line)!important;
+}
+:root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) #home :is(
+ .v33-home-countdown .eyebrow,.v33-home-countdown .hero .u,
+ .v33-home-countdown .date,.v33-home-countdown .phase .pt
+){color:var(--yks-theme-muted)}
+:root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) #home :is(
+ .v33-home-countdown .hero .count,.v33-home-intro .home-kicker,.v33-screen-heading h2
+){color:var(--yks-theme-ink)}
+:root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) #home .v33-home-countdown .hero .count{
+  color:var(--yks-theme-accent);
+  -webkit-text-fill-color:var(--yks-theme-accent);
+}
+:root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) #home .v33-home-progress{
+  background:var(--yks-theme-hero);border-color:var(--yks-theme-deep);
+  color:var(--yks-theme-on-deep);
+}
+:root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) #home .v33-home-progress :is(
+ .v33-progress-copy p,.v33-progress-heading strong,.v33-progress-heading b,
+ .today-summary>span,.today-summary>b,.today-summary>small
+){color:var(--yks-theme-on-deep)}
+:root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) #home .v33-progress-ring::before{
+  background:var(--yks-theme-deep);
+}
+/* Never fade away text in dark palettes or inject bright white backgrounds. */
+:root[data-theme="night"],:root[data-theme="graphite"]{
+  --yks-theme-quiet:var(--yks-theme-muted);
+}
+@media(prefers-reduced-motion:reduce){
+  :root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) .tabbar .tab{transition:none}
+}
