@@ -18,7 +18,6 @@ import {installRecoveryCenter} from "./ui/recovery-center";
 import {installV43SafeRuntime} from "./ui/v43-safe-runtime";
 import {installPlayStoreShell} from "./ui/play-store-shell";
 import {installParagraphProblemTracker} from "./ui/paragraph-problem-tracker";
-import {installThemeCardInteractionV46} from "./ui/theme-card-interaction-v46";
 
 import {installTeachersV2} from "./ui/teachers-v2";
 import "./ui/visual-stability-hotfix.css";
@@ -93,7 +92,6 @@ document.documentElement.dataset.v4OptionalErrors="0";
 
 /* Yerleşim sistemi tektir; renk paleti kullanıcı tarafından seçilebilir. */
 document.documentElement.dataset.themeControl="multiple";
-installOptional("theme-card-interaction",installThemeCardInteractionV46,{installed:false});
 
 const teachersPaused=document.documentElement.dataset.teacherFeature!=="on";
 document.documentElement.dataset.teacherFeatureState=teachersPaused?"paused":"on";
