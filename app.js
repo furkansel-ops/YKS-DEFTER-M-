@@ -11402,6 +11402,7 @@ function swLapEnsureCorrectionPanel(){
     '<p class="sw-lap-correction-note">Yalnız turdaki ders etiketi değişir. Kaydedilmiş çalışma dakikaları, geçmiş, koç verisi ve mola süresi değişmez.</p>'+
     '<div class="sw-lap-correction-actions">'+
     '<button type="button" id="swLapCorrectionSave">Düzeltmeyi kaydet</button>'+
+    '<button type="button" id="swLapCorrectionRemove">İşareti kaldır</button>'+
     '<button type="button" id="swLapCorrectionCancel">Vazgeç</button></div>';
   container.insertAdjacentElement("beforebegin",panel);
   const select=el("swLapCorrectionSubject");
@@ -11410,6 +11411,7 @@ function swLapEnsureCorrectionPanel(){
     option.textContent=subject;select.appendChild(option);
   }
   el("swLapCorrectionSave").addEventListener("click",swLapSaveCorrection);
+  el("swLapCorrectionRemove").addEventListener("click",()=>swLapRemoveMarker(Number(panel.dataset.lapIndex)));
   el("swLapCorrectionCancel").addEventListener("click",()=>{panel.hidden=true;});
   return panel;
 }
@@ -11449,6 +11451,26 @@ function swLapSaveCorrection(){
     " çalışma "+subject+" olarak etiketlendi. Dakikalar değişmedi.");
   return true;
 }
+/* v54: Kullanıcı yanlış mola işaretini güvenle silebilir.
+   Yalnız tur açıklaması kaldırılır; odak/süre/derse yazılmış dakika değişmez. */
+function swLapRemoveMarker(index){
+  const laps=Array.isArray(S.focus.swLaps)?S.focus.swLaps:[];
+  index=Number(index);
+  if(!Number.isInteger(index)||index<0||index>=laps.length)return false;
+  const marker=laps[index];
+  if(!swLapIsBreakStart(String(marker&&marker.subj||"")))return false;
+  if(!confirm("Yalnız bu yanlış mola işareti kaldırılsın mı? Kaydedilmiş çalışma saatin ve mola geçmişin değişmeyecek."))return false;
+  laps.splice(index,1);
+  if(save()===false){
+    laps.splice(index,0,marker);
+    toast("İşaret kaydedilemedi; çalışma sürelerin korunuyor");
+    return false;
+  }
+  const panel=el("swLapCorrectionPanel");if(panel)panel.hidden=true;
+  renderSw();
+  toast("Yanlış mola işareti kaldırıldı · çalışma sürelerin korunuyor");
+  return true;
+}
 function swRenderTools(){
   const s=sw(),active=el("swActiveSubject"),pick=el("swSubjectSwitch"),note=el("swSessionNote"),laps=Array.isArray(S.focus.swLaps)?S.focus.swLaps:[];
   if(active)active.textContent=pomoSubject||"Ders";
@@ -11469,16 +11491,17 @@ function swRenderTools(){
       raw=(L&&typeof L==="object")?String(L.subj||""):"",split=Math.max(0,v-prev);prev=v;
     const begins=swLapIsBreakStart(raw),ends=raw.startsWith("☕ Mola sona erdi"),
       switches=raw.startsWith("↔"),subject=(L&&typeof L==="object")?String(L.workSubject||""):"";
-    const label=begins?(subject?subject+" çalışması · Mola başlangıcı":"Mola öncesi çalışma · Mola başlangıcı")
+    const label=begins?(subject?subject+" çalışması · düzeltildi":"Mola öncesi çalışma · Mola başlangıcı")
       :ends?raw.slice(2).trim():switches?raw.slice(2).trim():((i+1)+". tur"+(raw?" · "+raw:""));
     // Cumulative work counter is never a break duration. Before a break marker,
     // the delta since the previous lap is the previous WORK segment.
     const duration=ends?"—":fmtSw(split);
     const kind=begins?" · çalışma":ends?" · mola kaydı":"";
     const fix=begins&&split>=60000
-      ?'<button class="sw-lap-correct" type="button" onclick="swLapOpenCorrection('+i+')" aria-label="Bu çalışma bölümünün dersini düzelt">Düzelt</button>':"";
-    return '<div class="dayrow sw-lap-row '+(begins?"is-work-before-break":ends?"is-break":switches?"is-switch":"")+
-      '"><span class="k">'+esc(label)+(begins?'<small>Mola başlamadan önceki çalışma süresi</small>':"")+
+      ?'<button class="sw-lap-correct" type="button" onclick="swLapOpenCorrection('+i+')" aria-label="Bu çalışma bölümünün dersini düzelt">Düzelt</button>'
+      :begins?'<button class="sw-lap-correct" type="button" onclick="swLapRemoveMarker('+i+')" aria-label="Yanlış mola işaretini kaldır">İşareti kaldır</button>':"";
+    return '<div class="dayrow sw-lap-row '+(begins?(subject?"is-corrected-work":"is-work-before-break"):ends?"is-break":switches?"is-switch":"")+
+      '"><span class="k">'+esc(label)+(begins?'<small>'+(subject?"Mola olarak sayılmayan, zaten kaydedilmiş çalışma":"Mola başlamadan önceki çalışma süresi")+'</small>':"")+
       '</span><span class="v">'+(duration==="—"?"—":duration+kind)+
       ' <em class="dl flat">'+fmtSw(v)+' toplam çalışma</em>'+fix+'</span></div>';
   });
