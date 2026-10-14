@@ -194,7 +194,7 @@ test("ayarlar sabit görsel sistemin tokenlarını ve güncel hesap yükleyicisi
 
 test("Görünüm açıldığında çoklu tema modu korunur, seçilen palet yeniden işaretlenir",()=>{
   const h=harness();let applied=0;h.window.applyTheme=()=>{applied++};
-  h.run("enforceThemeChoices()");
+  h.run("enforceSingleAppearance()");
   assert.equal(h.document.documentElement.dataset.themeControl,"multiple");
   assert.equal(h.window.__YKS_SETTINGS__.open("appearance"),true);
   assert.equal(h.root.dataset.category,"appearance");
