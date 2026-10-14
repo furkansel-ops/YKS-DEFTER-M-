@@ -181,12 +181,12 @@ export function installTodayTopV33():{installed:boolean}{
     });
   // v46 çalışma geçmişi 84 günü yalnız kullanıcı kartı açınca hesaplar.
   // Hata halinde çekirdek ekran ve mevcut haftalık ritim çalışmaya devam eder.
-  const historyDisclosure=document.getElementById("todayFreshActivity") as HTMLDetailsElement|null;
+  const historyDisclosure=document.getElementById("todayFreshActivity");
   if(historyDisclosure&&historyDisclosure.dataset.historyImportBound!=="true"){
     historyDisclosure.dataset.historyImportBound="true";
     let requested=false;
     const loadHistory=()=>{
-      if(!historyDisclosure.open||requested)return;
+      if(!historyDisclosure.hasAttribute("open")||requested)return;
       requested=true;
       void import("./today-history-v46")
         .then(({installTodayHistoryV46})=>{
@@ -205,7 +205,7 @@ export function installTodayTopV33():{installed:boolean}{
         });
     };
     historyDisclosure.addEventListener("toggle",loadHistory);
-    if(historyDisclosure.open)loadHistory();
+    if(historyDisclosure.hasAttribute("open"))loadHistory();
   }
   // v41: independent read-only subject breakdown; never blocks initial boot.
   if(document.documentElement)void import("./today-subjects-v41")
