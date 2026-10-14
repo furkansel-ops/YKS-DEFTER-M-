@@ -1,0 +1,176 @@
+/* v49 · Contrast-safe theme surfaces.
+   Applies only to alternate palettes; refined-blue default geometry and paint remain untouched.
+   Prefer existing stateful data and native controls; no runtime DOM or storage changes. */
+:root[data-theme="paper"]{
+  --yks-theme-muted:#6c574a;
+  --yks-theme-accent:#844617;
+}
+:root[data-theme="forest"]{
+  --yks-theme-muted:#435e50;
+  --yks-theme-accent:#1b694b;
+}
+:root[data-theme="ocean"]{
+  --yks-theme-muted:#3e616b;
+  --yks-theme-accent:#08617b;
+}
+:root[data-theme="lavender"]{
+  --yks-theme-muted:#625173;
+  --yks-theme-accent:#65449f;
+}
+:root[data-theme="sunset"]{
+  --yks-theme-muted:#6c4841;
+  --yks-theme-accent:#913a22;
+}
+:root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]){
+  --ys-ink:var(--yks-theme-ink);
+  --ys-muted:var(--yks-theme-muted);
+  --ys-line:var(--yks-theme-line);
+  --yks-theme-on-deep:#fff;
+  --yks-theme-overlay:color-mix(in srgb,var(--yks-theme-surface) 95%,var(--yks-theme-bg));
+  --yks-theme-inner:color-mix(in srgb,var(--yks-theme-soft) 85%,var(--yks-theme-surface));
+}
+:root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) :is(
+  .card,.hero,.focuscard,.stat,.yms-profile,.yms-category-list,
+  .yms-card,.yms-app-row,.yms-category-row,.yms-action-grid
+){
+  color:var(--yks-theme-ink);
+  border-color:var(--yks-theme-line);
+}
+:root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) :is(
+  .navbar,.tabbar,.yms-dialog,.yms-category-list,.yms-action-grid
+){background-color:var(--yks-theme-surface);color:var(--yks-theme-ink)}
+:root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) :is(
+  .navbar .nt,.yms-detail-heading p,.yms-category small,.yms-profile small,
+  .yms-app-row small,.yms-notif-item small,.yms-career-help-body p
+){color:var(--yks-theme-muted)}
+:root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) :is(
+  .yms-wrap,.yms-modal,#appearancePreferences
+){color:var(--yks-theme-ink)}
+:root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) #appearancePreferences :is(
+  .yks-theme-picker legend,.yks-theme-copy strong
+){color:var(--yks-theme-ink)}
+:root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) #appearancePreferences :is(
+  .yks-theme-picker .hint,.yks-theme-copy small,.yks-theme-current
+){color:var(--yks-theme-muted)}
+:root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) #appearancePreferences .yks-theme-choice{
+  color:var(--yks-theme-ink);
+  background:var(--yks-theme-surface);
+  border-color:var(--yks-theme-line);
+}
+:root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) #appearancePreferences .yks-theme-choice:is(.is-selected,:has(input:checked)){
+  background:var(--yks-theme-soft);
+  border-color:var(--yks-theme-accent);
+}
+/* New Today cards are written by multiple historical bundles with literal blue paints.
+   Explicitly map all text and inner surfaces to the active palette. */
+:root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) #home #todayFreshStart{
+  color:var(--yks-theme-ink);
+}
+:root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) #home #todayFreshStart :is(
+  .today-fresh-welcome,.today-fresh-quote,.today-fresh-work-card,
+  .today-fresh-tasks,.today-fresh-subjects,.today-fresh-insights,
+  .today-fresh-activity,.today-fresh-review,.today-daily-progress
+){
+  background:var(--yks-theme-surface);
+  border-color:var(--yks-theme-line);
+  color:var(--yks-theme-ink);
+}
+:root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) #home #todayFreshStart .today-fresh-welcome{
+  background:linear-gradient(120deg,var(--yks-theme-surface),var(--yks-theme-inner));
+}
+:root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) #home #todayFreshStart :is(
+  .today-fresh-exam,.today-fresh-focus,.today-fresh-next,.today-fresh-task,
+  .today-fresh-insight-panel,.today-fresh-subject-metric,.today-fresh-subject-empty,
+  .today-fresh-task-empty,.today-fresh-subject-bar,.today-fresh-week-track,
+  .today-fresh-recent-row,.today-daily-metric,.today-daily-subject,
+  .today-gap-stat,.today-gap-pill
+){
+  background:var(--yks-theme-inner);
+  border-color:var(--yks-theme-line);
+}
+:root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) #home #todayFreshStart :is(
+  h1,h2,h3,.today-fresh-task-title,.today-fresh-quote-label,.today-fresh-insight-title,
+  .today-fresh-subject-name,.today-fresh-subject-time,.today-fresh-insight-header h3,
+  .today-fresh-focus-bottom strong,.today-fresh-work-card h3,
+  .today-fresh-review-title strong,.today-fresh-recent-heading h3,
+  .today-daily-metric-value,.today-gap-title
+){color:var(--yks-theme-ink)}
+:root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) #home #todayFreshStart :is(
+  .today-fresh-title time,.today-fresh-hello p,.today-fresh-exam-label,
+  #todayFreshExamDate,.today-fresh-quote-text,.today-fresh-quote-author,
+  .today-fresh-focus-hint,.today-fresh-work-card p,.today-fresh-task-sub,
+  .today-fresh-tasks-head p,.today-fresh-insight-sub,.today-fresh-insight-reason,
+  .today-fresh-insight-empty,.today-fresh-insight-footnote,.today-fresh-insight-more,
+  .today-fresh-subject-ratio,.today-fresh-subject-note,.today-fresh-insight-header small,
+  .today-fresh-subject-metric>span,.today-fresh-subject-metric>small,
+  .today-fresh-recent-row small,.today-fresh-activity-totals small,
+  .today-fresh-activity-hint,.today-daily-metric-top span,.today-daily-metric-note,
+  .today-daily-caution,.today-daily-last,.today-gap-subject,.today-gap-reason,
+  .today-gap-note,.today-gap-explain,.today-gap-evidence
+){color:var(--yks-theme-muted)}
+:root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) #home #todayFreshStart :is(
+  .today-fresh-eyebrow,.today-fresh-card-eyebrow,.today-fresh-exam .today-fresh-days,
+  .today-fresh-exam .today-fresh-days span,.today-fresh-section-heading>span,
+  .today-fresh-activity-heading span,.today-fresh-insights-heading span,
+  .today-fresh-subjects-heading span,.today-fresh-subject-metric>strong,
+  .today-fresh-insights-preview small,.today-fresh-recent-duration
+){color:var(--yks-theme-accent)}
+:root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) #home #todayFreshStart :is(
+  #todayFreshInsightsAll,.today-fresh-insight-detail,.today-fresh-view-all,
+  .today-fresh-action,.today-fresh-quote-new,.today-daily-open,.today-gap-open
+){
+  background:var(--yks-theme-inner);
+  color:var(--yks-theme-accent);
+  border-color:var(--yks-theme-line);
+}
+:root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) #home #todayFreshStart .today-fresh-next-actions .today-fresh-primary{
+  background:var(--yks-theme-deep);
+  border-color:var(--yks-theme-deep);
+  color:var(--yks-theme-on-deep);
+}
+/* The daily progress hero MUST stay dark with white lettering.
+   Previous v46 rules painted its mini-stat cards pastel but kept their text white. */
+:root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) #home #todayFreshStart .today-fresh-progress{
+  background:var(--yks-theme-hero);
+  color:var(--yks-theme-on-deep);
+  border-color:var(--yks-theme-deep);
+}
+:root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) #home #todayFreshStart .today-fresh-progress .today-fresh-stat{
+  background:rgb(255 255 255 / 12%);
+  border-color:rgb(255 255 255 / 24%);
+}
+:root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) #home #todayFreshStart .today-fresh-progress :is(
+  h2,p,small,span,strong,.today-fresh-stat span,.today-fresh-stat strong,.today-fresh-stat small,
+  #todayFreshRatio,#todayFreshPercent,#todayFreshProgressStatus
+){color:var(--yks-theme-on-deep)}
+:root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) #home #todayFreshStart .today-fresh-progress .today-fresh-ring::before{
+  background:var(--yks-theme-deep);
+}
+:root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) #home #todayFreshStart .today-fresh-task.is-done .today-fresh-task-title{
+  color:var(--yks-theme-muted);
+}
+:root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) #home #todayFreshStart :is(
+  .today-fresh-subject-row,.today-fresh-insight-row,.today-fresh-task,.today-fresh-recent-row
+){border-color:var(--yks-theme-line)}
+/* Legacy Today fallback, left dormant when the new screen takes over. */
+:root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) #home .v33-home-intro{
+  background:linear-gradient(120deg,var(--yks-theme-surface),var(--yks-theme-inner));
+  border-color:var(--yks-theme-line);
+}
+:root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) #home :is(
+  .v33-home-intro .home-head h1,.v33-screen-heading h2,.v33-home-date,
+  .v33-home-intro .home-kicker,.v33-home-countdown .date,.v33-home-countdown .phase .ps,
+  #sozBox .sz,#sozBox .szwrap::before
+){color:var(--yks-theme-ink)}
+:root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) #home .v33-home-countdown{
+  background:var(--yks-theme-soft)!important;
+  border-color:var(--yks-theme-line)!important;
+}
+:root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) #home .v33-home-countdown .hero .count{
+  color:var(--yks-theme-accent)!important;
+  -webkit-text-fill-color:var(--yks-theme-accent)!important;
+}
+:root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) #home #sozBox{
+  background:var(--yks-theme-surface);
+  border-color:var(--yks-theme-line);
+}
