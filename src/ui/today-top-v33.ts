@@ -179,6 +179,34 @@ export function installTodayTopV33():{installed:boolean}{
       document.documentElement.dataset.todayActivityV40="deferred";
       console.error("Haftalık çalışma ritmi yüklenemedi",error);
     });
+  // v46 çalışma geçmişi 84 günü yalnız kullanıcı kartı açınca hesaplar.
+  // Hata halinde çekirdek ekran ve mevcut haftalık ritim çalışmaya devam eder.
+  const historyDisclosure=document.getElementById("todayFreshActivity");
+  if(historyDisclosure&&historyDisclosure.dataset.historyImportBound!=="true"){
+    historyDisclosure.dataset.historyImportBound="true";
+    let requested=false;
+    const loadHistory=()=>{
+      if(!historyDisclosure.hasAttribute("open")||requested)return;
+      requested=true;
+      void import("./today-history-v46")
+        .then(({installTodayHistoryV46})=>{
+          try{
+            const result=installTodayHistoryV46();
+            document.documentElement.dataset.todayHistoryV46=result.installed?"ready":"deferred";
+          }catch(error){
+            document.documentElement.dataset.todayHistoryV46="deferred";
+            console.error("Çalışma takvimi açılamadı",error);
+          }
+        })
+        .catch(error=>{
+          requested=false;
+          document.documentElement.dataset.todayHistoryV46="deferred";
+          console.error("Çalışma takvimi yüklenemedi",error);
+        });
+    };
+    historyDisclosure.addEventListener("toggle",loadHistory);
+    if(historyDisclosure.hasAttribute("open"))loadHistory();
+  }
   // v41: independent read-only subject breakdown; never blocks initial boot.
   if(document.documentElement)void import("./today-subjects-v41")
     .then(({installTodaySubjectsV41})=>{
