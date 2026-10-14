@@ -102,7 +102,7 @@ function enforceSingleAppearance(){document.getElementById("themeBtn")?.remove()
 function hideCardFor(id,reason){const card=document.getElementById(id)?.closest?.(".card");if(card){card.hidden=true;card.dataset.ymsHidden="true";card.dataset.ymsHiddenReason=reason}}
 function hideLegacySettings(){
   const panel=document.getElementById("mrp_ayar");if(!panel)return;
-  enforceThemeChoices();
+  enforceSingleAppearance();
   hideCardFor("nameInput","modern-profile");hideCardFor("sozToggle","legacy-appearance");hideCardFor("ytSrc","video-settings-private");hideCardFor("notifStatus","modern-notifications");
   const demoCard=panel.querySelector('button[onclick="loadDemo()"]')?.closest?.(".card");if(demoCard){demoCard.hidden=true;demoCard.dataset.ymsHidden="true";demoCard.dataset.ymsHiddenReason="modern-app-tools"}
   ["roleSeg","roleHint","simpleHint"].forEach(id=>{const node=document.getElementById(id);if(node){node.hidden=true;node.dataset.ymsHidden="true"}});
