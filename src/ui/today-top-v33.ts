@@ -237,6 +237,35 @@ export function installTodayTopV33():{installed:boolean}{
       document.documentElement.dataset.todayInsightsV42="deferred";
       console.error("Bekleyen tekrar ve eksik analizi yüklenemedi",error);
     });
+  // v47: eksik kapatma takibi yalnız kullanıcı tekrar ve eksikleri açınca indirilir.
+  const insightDisclosure=document.getElementById("todayFreshInsights");
+  if(insightDisclosure&&insightDisclosure.dataset.gapTrackerImportBound!=="true"){
+    insightDisclosure.dataset.gapTrackerImportBound="true";
+    let requested=false;
+    const loadGapTracker=()=>{
+      if(!insightDisclosure.hasAttribute("open")||requested)return;
+      requested=true;
+      void import("./today-gap-tracker-v47")
+        .then(({installTodayGapTrackerV47})=>{
+          try{
+            const result=installTodayGapTrackerV47();
+            document.documentElement.dataset.todayGapTrackerV47=result.installed?"ready":"deferred";
+            if(!result.installed)requested=false;
+          }catch(error){
+            requested=false;
+            document.documentElement.dataset.todayGapTrackerV47="deferred";
+            console.error("Eksik kapatma takibi başlatılamadı",error);
+          }
+        })
+        .catch(error=>{
+          requested=false;
+          document.documentElement.dataset.todayGapTrackerV47="deferred";
+          console.error("Eksik kapatma takibi yüklenemedi",error);
+        });
+    };
+    insightDisclosure.addEventListener("toggle",loadGapTracker);
+    if(insightDisclosure.hasAttribute("open"))loadGapTracker();
+  }
   const plan=document.getElementById("todayHubPlan");
   const planSub=document.getElementById("todayHubPlanSub");
   const root=document.querySelector<HTMLElement>("#home .v33-home-progress");
