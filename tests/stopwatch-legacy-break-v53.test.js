@@ -32,7 +32,7 @@ function harness(){
   };
   const messages=[],saved=[];let renderCount=0;
   const env={
-    S,Math,Number,String,Array,console,
+    S,Math,Number,String,Array,console,confirm:()=>true,
     pomoSubject:"Matematik",SUBJ_NAMES:["Kimya","Matematik","Fizik"],
     el:id=>inputs[id]||null,
     sw:()=>({run:false,acc:13555000}),
@@ -51,7 +51,7 @@ function harness(){
   };
   const code=region.replace(/function swLapEnsureCorrectionPanel\(\)\{[\s\S]*?(?=function swLapOpenCorrection\(index\)\{)/,
     "function swLapEnsureCorrectionPanel(){return el('swLapCorrectionPanel');}\n");
-  vm.runInNewContext(code+"\nthis.delta=swLapCorrectionDelta;this.open=swLapOpenCorrection;this.apply=swLapSaveCorrection;this.draw=swRenderTools;",env);
+  vm.runInNewContext(code+"\nthis.delta=swLapCorrectionDelta;this.open=swLapOpenCorrection;this.apply=swLapSaveCorrection;this.remove=swLapRemoveMarker;this.draw=swRenderTools;",env);
   return{env,S,laps,inputs,messages,saved,get renderCount(){return renderCount}};
 }
 test("v53 screenshot sequence: old break marker is preceded by 2h04m MATHEMATICS WORK",()=>{
@@ -79,7 +79,8 @@ test("v53 user can select Mathematics and restore correct study label without ch
   assert.equal(h.renderCount,1);
   assert.equal(JSON.stringify({focus:h.S.pomoMin,subject:h.S.pomoSubj,history:h.S.swHistory,sessions:h.S.sessions}),credits);
   h.env.draw();
-  assert.match(h.inputs.swLaps.innerHTML,/Matematik çalışması · Mola başlangıcı/);
+  assert.match(h.inputs.swLaps.innerHTML,/Matematik çalışması · düzeltildi/);
+  assert.doesNotMatch(h.inputs.swLaps.innerHTML,/Matematik çalışması · Mola başlangıcı/);
   assert.match(h.inputs.swLaps.innerHTML,/2:04:00 · çalışma/);
   assert.match(h.messages[0],/Dakikalar değişmedi/);
 });
@@ -99,7 +100,7 @@ test("v53 persistence schema preserves corrected subject, without altering prior
   assert.match(app,/item\.workSubject=subject;/);
   assert.match(app,/item\.workSubject=previous;/);
   assert.match(app,/if\(save\(\)===false\)/);
-  assert.match(app,/begins\?\(subject\?subject\+" çalışması · Mola başlangıcı"/);
+  assert.match(app,/begins\?\(subject\?subject\+" çalışması · düzeltildi"/);
   assert.match(app,/duration=ends\?"—":fmtSw\(split\)/);
   assert.doesNotMatch(region,/S\.pomoMin\s*=|S\.pomoSubj\s*=|S\.swHistory\s*=|S\.sessions\s*=/);
   assert.doesNotMatch(region,/swReset\(|swCreditElapsed\(|swHistoryAdd\(|delete S\./);
@@ -107,4 +108,31 @@ test("v53 persistence schema preserves corrected subject, without altering prior
   assert.match(css,/\.sw-lap-row\.is-work-before-break/);
   assert.match(css,/\.sw-lap-correction\[hidden\]/);
   assert.match(css,/@media\(max-width:480px\)/);
+});
+
+test("v54 extra 3-second fake marker can be removed; all credited focus data remains unchanged",()=>{
+  const h=harness();
+  const snapshot=JSON.stringify({focus:h.S.pomoMin,subjects:h.S.pomoSubj,
+    history:h.S.swHistory,sessions:h.S.sessions});
+  assert.equal(h.env.delta(4),3000);
+  h.env.draw();
+  assert.match(h.inputs.swLaps.innerHTML,/onclick="swLapRemoveMarker\(4\)"/);
+  assert.equal(h.env.remove(4),true);
+  assert.equal(h.S.focus.swLaps.length,4);
+  assert.equal(h.S.focus.swLaps.some(x=>x.t===13555000),false);
+  assert.equal(JSON.stringify({focus:h.S.pomoMin,subjects:h.S.pomoSubj,
+    history:h.S.swHistory,sessions:h.S.sessions}),snapshot);
+  assert.equal(h.saved.length,1);
+  assert.match(h.messages[0],/çalışma sürelerin korunuyor/);
+});
+test("v54 correcting a long wrong-break marker no longer labels it as a break",()=>{
+  const h=harness();
+  assert.equal(h.env.open(2),true);
+  assert.equal(h.env.apply(),true);
+  h.env.draw();
+  const html=h.inputs.swLaps.innerHTML;
+  assert.match(html,/Matematik çalışması · düzeltildi/);
+  assert.match(html,/2:04:00 · çalışma/);
+  assert.match(html,/is-corrected-work/);
+  assert.doesNotMatch(html,/Matematik çalışması · Mola başlangıcı/);
 });
