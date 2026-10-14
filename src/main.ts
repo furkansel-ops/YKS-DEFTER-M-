@@ -27,6 +27,7 @@ import "./ui/refined-blue.css";
 import "./ui/today-top-v33.css";
 import "./ui/today-detail-cards-v42.css";
 import "./ui/today-mobile-polish-v43.css";
+import "./ui/theme-choices-v45.css";
 
 type BootstrapState={
   version:typeof RELEASE_VERSION;
@@ -89,8 +90,8 @@ function installOptional<T>(name:string,installer:()=>T,fallback:T):T{
 }
 document.documentElement.dataset.v4OptionalErrors="0";
 
-/* Görünüm tek tasarım sisteminden gelir; eski tema tercihleri açılışa katılmaz. */
-document.documentElement.dataset.themeControl="single";
+/* Yerleşim sistemi tektir; renk paleti kullanıcı tarafından seçilebilir. */
+document.documentElement.dataset.themeControl="multiple";
 
 const teachersPaused=document.documentElement.dataset.teacherFeature!=="on";
 document.documentElement.dataset.teacherFeatureState=teachersPaused?"paused":"on";
