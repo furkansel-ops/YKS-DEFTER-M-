@@ -474,7 +474,7 @@ function normalize(o){
   if(o.focus.sw.run&&(!o.focus.sw.start||o.focus.sw.start>Date.now()+60000)){o.focus.sw.run=false;o.focus.sw.start=0;}
   if(!Array.isArray(o.focus.swLaps))o.focus.swLaps=[];
   o.focus.swLaps=o.focus.swLaps.map(v=>{
-    if(v&&typeof v==="object")return {t:bigInt(v.t),subj:typeof v.subj==="string"?v.subj:""};
+    if(v&&typeof v==="object")return {t:bigInt(v.t),subj:typeof v.subj==="string"?v.subj:"",workSubject:typeof v.workSubject==="string"?v.workSubject.slice(0,60):""};
     return {t:bigInt(v),subj:""};
   }).filter(v=>v.t>0).slice(-50);
   /* Ayrı mola sayacı: odak/ders süreleri ve swHistory aynen korunur. */
@@ -11372,6 +11372,83 @@ function swFinishBreak(resume){
   toast("Mola "+swBreakDuration(ms)+" olarak kaydedildi"+(resume?" · çalışmaya dönüldü":""));
   return true;
 }
+/* v53: "☕ Mola" is a timestamp marker at the END of work, not a break
+   duration. Show preceding work interval separately, with explicit subject
+   correction for old markers. NEVER mutate the credited study minutes. */
+function swLapIsBreakStart(raw){
+  return raw==="☕ Mola"||raw.startsWith("☕ Mola başlangıcı");
+}
+function swLapCorrectionDelta(index){
+  const laps=Array.isArray(S.focus.swLaps)?S.focus.swLaps:[];
+  if(!Number.isInteger(index)||index<0||index>=laps.length)return 0;
+  const entry=laps[index],raw=String(entry&&entry.subj||"");
+  if(!swLapIsBreakStart(raw))return 0;
+  const prev=index>0?Number(laps[index-1]&&laps[index-1].t)||0:0;
+  return Math.max(0,(Number(entry.t)||0)-prev);
+}
+function swLapEnsureCorrectionPanel(){
+  let panel=el("swLapCorrectionPanel");
+  if(panel)return panel;
+  const container=el("swLaps");
+  if(!container)return null;
+  panel=document.createElement("div");
+  panel.id="swLapCorrectionPanel";
+  panel.className="sw-lap-correction";
+  panel.hidden=true;
+  panel.innerHTML='<strong>Çalışma bölümünü düzelt</strong>'+
+    '<p id="swLapCorrectionInfo">Eski mola işaretinden önceki çalışma süresine ders atayabilirsin.</p>'+
+    '<label for="swLapCorrectionSubject">Çalışılan ders</label>'+
+    '<select id="swLapCorrectionSubject"></select>'+
+    '<p class="sw-lap-correction-note">Yalnız turdaki ders etiketi değişir. Kaydedilmiş çalışma dakikaları, geçmiş, koç verisi ve mola süresi değişmez.</p>'+
+    '<div class="sw-lap-correction-actions">'+
+    '<button type="button" id="swLapCorrectionSave">Düzeltmeyi kaydet</button>'+
+    '<button type="button" id="swLapCorrectionCancel">Vazgeç</button></div>';
+  container.insertAdjacentElement("beforebegin",panel);
+  const select=el("swLapCorrectionSubject");
+  for(const subject of SUBJ_NAMES){
+    const option=document.createElement("option");option.value=subject;
+    option.textContent=subject;select.appendChild(option);
+  }
+  el("swLapCorrectionSave").addEventListener("click",swLapSaveCorrection);
+  el("swLapCorrectionCancel").addEventListener("click",()=>{panel.hidden=true;});
+  return panel;
+}
+function swLapOpenCorrection(index){
+  const delta=swLapCorrectionDelta(index);
+  if(delta<1000){toast("Bu işarette düzeltilecek çalışma süresi bulunamadı");return false;}
+  const panel=swLapEnsureCorrectionPanel();
+  if(!panel)return false;
+  panel.dataset.lapIndex=String(index);
+  const entry=S.focus.swLaps[index];
+  const label=el("swLapCorrectionInfo");
+  if(label)label.textContent="Mola işaretinden ÖNCEKİ "+fmtSw(delta)+
+    " çalışma süresini hangi derste yaptığını seç. Mola süresi olarak sayılmayacak.";
+  const select=el("swLapCorrectionSubject");
+  const chosen=String(entry.workSubject||pomoSubject||"");
+  if(SUBJ_NAMES.includes(chosen))select.value=chosen;
+  panel.hidden=false;
+  panel.scrollIntoView?.({behavior:"smooth",block:"nearest"});
+  select.focus();
+  return true;
+}
+function swLapSaveCorrection(){
+  const panel=el("swLapCorrectionPanel"),index=Number(panel&&panel.dataset.lapIndex);
+  const subject=String(el("swLapCorrectionSubject")?.value||"");
+  if(!Number.isInteger(index)||swLapCorrectionDelta(index)<1000||
+    !SUBJ_NAMES.includes(subject)){toast("Düzeltilecek turu ve dersi seç");return false;}
+  const item=S.focus.swLaps[index],previous=String(item.workSubject||"");
+  item.workSubject=subject;
+  if(save()===false){
+    item.workSubject=previous;
+    toast("Etiket kaydedilemedi; çalışma süren değiştirilmedi");
+    return false;
+  }
+  panel.hidden=true;
+  renderSw();
+  toast("Mola öncesi "+fmtSw(swLapCorrectionDelta(index))+
+    " çalışma "+subject+" olarak etiketlendi. Dakikalar değişmedi.");
+  return true;
+}
 function swRenderTools(){
   const s=sw(),active=el("swActiveSubject"),pick=el("swSubjectSwitch"),note=el("swSessionNote"),laps=Array.isArray(S.focus.swLaps)?S.focus.swLaps:[];
   if(active)active.textContent=pomoSubject||"Ders";
@@ -11385,12 +11462,25 @@ function swRenderTools(){
   swBreakEnsureUi();swBreakUpdateUi();
   const lw=el("swLaps");
   if(!lw)return;
-  if(!laps.length){lw.innerHTML='<div class="empty">Henüz tur yok. Tur kaydet, mola işaretle veya çalışırken ders değiştir.</div>';return;}
+  if(!laps.length){lw.innerHTML='<div class="empty">Henüz tur yok. Tur kaydet, mola ver veya çalışırken ders değiştir.</div>';return;}
   let prev=0;
   const rows=laps.map((L,i)=>{
-    const v=(L&&typeof L==="object")?Math.max(0,Number(L.t)||0):Math.max(0,Number(L)||0),raw=(L&&typeof L==="object")?String(L.subj||""):"",split=Math.max(0,v-prev);prev=v;
-    const isBreak=raw.startsWith("☕"),isSwitch=raw.startsWith("↔"),label=isBreak?(raw==="☕ Mola"?"Mola başlangıcı":raw.slice(2).trim()):isSwitch?raw.slice(2).trim():((i+1)+". tur"+(raw?" · "+raw:""));
-    return '<div class="dayrow sw-lap-row '+(isBreak?"is-break":isSwitch?"is-switch":"")+'"><span class="k">'+esc(label)+'</span><span class="v">'+(isBreak?"—":fmtSw(split))+' <em class="dl flat">'+fmtSw(v)+' çalışma</em></span></div>';
+    const v=(L&&typeof L==="object")?Math.max(0,Number(L.t)||0):Math.max(0,Number(L)||0),
+      raw=(L&&typeof L==="object")?String(L.subj||""):"",split=Math.max(0,v-prev);prev=v;
+    const begins=swLapIsBreakStart(raw),ends=raw.startsWith("☕ Mola sona erdi"),
+      switches=raw.startsWith("↔"),subject=(L&&typeof L==="object")?String(L.workSubject||""):"";
+    const label=begins?(subject?subject+" çalışması · Mola başlangıcı":"Mola öncesi çalışma · Mola başlangıcı")
+      :ends?raw.slice(2).trim():switches?raw.slice(2).trim():((i+1)+". tur"+(raw?" · "+raw:""));
+    // Cumulative work counter is never a break duration. Before a break marker,
+    // the delta since the previous lap is the previous WORK segment.
+    const duration=ends?"—":fmtSw(split);
+    const kind=begins?" · çalışma":ends?" · mola kaydı":"";
+    const fix=begins&&split>=1000
+      ?'<button class="sw-lap-correct" type="button" onclick="swLapOpenCorrection('+i+')" aria-label="Bu çalışma bölümünün dersini düzelt">Düzelt</button>':"";
+    return '<div class="dayrow sw-lap-row '+(begins?"is-work-before-break":ends?"is-break":switches?"is-switch":"")+
+      '"><span class="k">'+esc(label)+(begins?'<small>Mola başlamadan önceki çalışma süresi</small>':"")+
+      '</span><span class="v">'+(duration==="—"?"—":duration+kind)+
+      ' <em class="dl flat">'+fmtSw(v)+' toplam çalışma</em>'+fix+'</span></div>';
   });
   lw.innerHTML=rows.reverse().join("");
 }
