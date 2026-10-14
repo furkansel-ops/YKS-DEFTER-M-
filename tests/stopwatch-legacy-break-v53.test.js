@@ -88,7 +88,8 @@ test("v53 new break start with only 3s is never relabeled as two-hour work",()=>
   assert.equal(h.env.delta(4),3000);
   h.env.draw();
   assert.match(h.inputs.swLaps.innerHTML,/Mola öncesi çalışma/);
-  assert.equal((h.inputs.swLaps.innerHTML.match(/swLapOpenCorrection/g)||[]).length,2);
+  assert.equal((h.inputs.swLaps.innerHTML.match(/swLapOpenCorrection/g)||[]).length,1);
+  assert.equal(h.env.open(4),false,"three-second tick is not a two-hour study interval");
   assert.equal(h.env.open(9),false);
   assert.equal(h.saved.length,0);
 });
