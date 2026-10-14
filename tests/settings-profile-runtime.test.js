@@ -187,7 +187,7 @@ test("ayarlar sabit görsel sistemin tokenlarını ve güncel hesap yükleyicisi
   assert.match(source,/var\(--rb-surface,var\(--card,#fff\)\)/);
   assert.match(source,/var\(--rb-ink,var\(--label,#10203f\)\)/);
   assert.match(css,/var\(--rb-accent,var\(--accent\)\)/);
-  assert.match(loader,/settings-profile-runtime\.js\?v=3\.0\.1-theme-restore/);
+  assert.match(loader,/settings-profile-runtime\.js\?v=3\.0\.2-theme-card-tap/);
   assert.match(loader,/const settingsReady=loadModuleScript/);
 });
 
