@@ -78,7 +78,7 @@ test("Sistem teması cihazın açık/koyu değişimini izler; tercih değişmez"
 
 test("eski açık/koyu tanımları saklanır, bilinmeyenler maviye döner",()=>{
   const source=read("app.js");
-  const normal=source.slice(source.indexOf("function normalize("),source.indexOf("function load()",source.indexOf("function normalize(")));
+  const normal=source.slice(source.indexOf("function normalize("),source.indexOf("/* ================= GÖRÜNÜM",source.indexOf("function normalize(")));
   assert.match(normal,/if\(o\.theme==="light"\)o\.theme="paper"/);
   assert.match(normal,/if\(o\.theme==="dark"\)o\.theme="night"/);
   assert.match(normal,/if\(!\["auto","refined-blue","paper","night","forest","ocean","lavender","sunset","graphite"\]\.includes\(o\.theme\)\)/);
