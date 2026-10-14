@@ -9,7 +9,18 @@ type DailySnapshot={
   tasks:number;done:number;subjects:StudySubject[];
   unassignedMin:number;hasMismatch:boolean;latest:LastStudy;
 };
-type DailyWindow=Window&{yksTodayDailyProgressSnapshot?:()=>DailySnapshot;go?:(page:string)=>void};
+type DueSummaryV52={key:string;exam:string;subj:string;topic:string;gi:number;gap:number;late:number};
+type GapSummaryV52={exam:string;subj:string;topic:string;state:"open"|"recheck"|"working"|"verified";wrong:number};
+type InsightSnapshotV52={
+  date:string;dueCount:number;overdueCount:number;due:DueSummaryV52[];
+  tracker:{total:number;open:number;working:number;verified:number;rows:GapSummaryV52[]};
+};
+type DailyWindow=Window&{
+  yksTodayDailyProgressSnapshot?:()=>DailySnapshot;
+  yksTodayInsightsSnapshot?:()=>InsightSnapshotV52;
+  yksTodayInsightsOpenTopic?:(exam:string,subj:string,topic:string)=>boolean;
+  go?:(page:string)=>void;
+};
 type Metric={value:number;goal:number|null;remaining:number|null;percent:number|null;complete:boolean};
 
 const safe=(value:number):number=>{
@@ -65,7 +76,88 @@ export function installTodayDailyProgressV48():{installed:boolean}{
     return card;
   };
   let signature="";
-  const render=(s:DailySnapshot)=>{
+  // Tekrar/eksik analizi yalnız kart açıkken okunur; hesap sahibi app.js'de kalır.
+  const readInsights=(date:string):InsightSnapshotV52|null=>{
+    const read=(window as DailyWindow).yksTodayInsightsSnapshot;
+    if(typeof read!=="function")return null;
+    try{
+      const value=read();
+      return value&&value.date===date&&Array.isArray(value.due)&&
+        value.tracker&&Array.isArray(value.tracker.rows)?value:null;
+    }catch(error){
+      console.error("Günlük özet için tekrar/eksik kaydı okunamadı",error);
+      return null;
+    }
+  };
+  const renderInsights=(snapshot:InsightSnapshotV52|null):HTMLElement=>{
+    const box=create("section","today-daily-insights");
+    box.setAttribute("aria-label","Tekrar ve eksik durumu");
+    const top=create("div","today-daily-insights-heading");
+    top.append(create("strong","","Tekrarlar ve eksikler"),create("small","","Konu kayıtlarına dayalı"));
+    box.append(top);
+    if(!snapshot){
+      box.append(create("p","today-daily-insight-note","Tekrar ve eksik verileri henüz hazır değil."));
+    }else{
+      const values=create("div","today-daily-insight-stats");
+      const tracker=snapshot.tracker,remaining=safe(tracker.open)+safe(tracker.working);
+      const lines=[
+        ["Bekleyen tekrar",safe(snapshot.dueCount),
+          safe(snapshot.overdueCount)?safe(snapshot.overdueCount)+" gecikmiş":"Zamanı gelenler"],
+        ["Aktif eksik",remaining,safe(tracker.working)?safe(tracker.working)+" üzerinde çalışılıyor":"Kayıtlara göre"],
+        ["Pekiştirilen",safe(tracker.verified),"Kayıtlı kanıtla"]
+      ];
+      for(const [label,count,detail] of lines){
+        const stat=create("div","today-daily-insight-stat");
+        stat.append(create("small","",String(label)),create("strong","",String(count)),
+          create("span","",String(detail)));
+        values.append(stat);
+      }
+      box.append(values);
+      const due=snapshot.due[0];
+      if(safe(snapshot.dueCount)>0&&due){
+        const info=create("p","today-daily-insight-note",
+          "Sıradaki tekrar: "+due.subj+" · "+due.topic+" · "+safe(due.gap)+". gün"+
+          (safe(due.late)>0?" · "+safe(due.late)+" gün gecikmiş":""));
+        box.append(info);
+      }else if(safe(snapshot.dueCount)===0){
+        box.append(create("p","today-daily-insight-note","Şu an bekleyen 3–7–21 tekrarı yok."));
+      }
+      const gap=tracker.rows.find(row=>row.state!=="verified");
+      if(gap){
+        box.append(create("p","today-daily-insight-note",
+          "Takip edilen eksik: "+gap.subj+" · "+gap.topic+
+          (safe(gap.wrong)>0?" · "+safe(gap.wrong)+" kayıtlı yanlış":"")));
+      }
+      box.append(create("p","today-daily-insight-caveat",
+        "Pekiştirilen, tekrar ve güven kayıtlarıyla desteklenen ilerlemedir; kesin ustalık anlamına gelmez."));
+    }
+    const actions=create("div","today-daily-insight-actions");
+    const open=create("button","today-daily-open","Tekrarları ve eksikleri aç") as HTMLButtonElement;
+    open.type="button";
+    open.addEventListener("click",()=>{
+      const details=document.getElementById("todayFreshInsights") as HTMLDetailsElement|null;
+      if(details){
+        details.open=true;
+        details.scrollIntoView?.({behavior:"smooth",block:"start"});
+      }else (window as DailyWindow).go?.("topics");
+    });
+    actions.append(open);
+    if(snapshot){
+      const gap=snapshot.tracker.rows.find(row=>row.state!=="verified");
+      if(gap){
+        const topic=create("button","today-daily-open","Eksik konuya git") as HTMLButtonElement;
+        topic.type="button";
+        topic.addEventListener("click",()=>{
+          const api=(window as DailyWindow).yksTodayInsightsOpenTopic;
+          if(!api?.(gap.exam,gap.subj,gap.topic)) (window as DailyWindow).go?.("topics");
+        });
+        actions.append(topic);
+      }
+    }
+    box.append(actions);
+    return box;
+  };
+  const render=(s:DailySnapshot,insights:InsightSnapshotV52|null)=>{
     const task=dailyProgressMetric(s.done,s.tasks),focus=dailyProgressMetric(s.focusMin,s.focusGoal);
     const questions=dailyProgressMetric(s.questions,s.questionGoal);
     const grid=create("div","today-daily-grid");
@@ -82,6 +174,7 @@ export function installTodayDailyProgressV48():{installed:boolean}{
       :allAssigned?"Belirlediğin üç günlük hedef tamamlandı."
       :"Kayıtlı hedefler için kalan iş yok; belirlenmeyen hedefler hesaba katılmadı.";
     footer.append(create("p","today-daily-remaining",remainingText));
+    footer.append(renderInsights(insights));
     if(Array.isArray(s.subjects)&&s.subjects.length){
       const tags=create("div","today-daily-subjects");
       tags.append(create("strong","","Çalışılan dersler"));
@@ -119,9 +212,10 @@ export function installTodayDailyProgressV48():{installed:boolean}{
       " · "+minutesText(s.focusMin)+" · "+safe(s.questions)+" soru";
     if(headline.textContent!==title)headline.textContent=title;
     if(!root.open)return; // Kapalı kart DOM'u yenilenmez; eski veriler korunur.
-    const next=JSON.stringify(s);
+    const insights=readInsights(s.date);
+    const next=JSON.stringify([s,insights]);
     if(next===signature)return;
-    signature=next;render(s);
+    signature=next;render(s,insights);
   };
   root.addEventListener("toggle",sync);
   window.addEventListener("yks:data-changed",sync);
