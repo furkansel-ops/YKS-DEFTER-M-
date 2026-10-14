@@ -207,6 +207,36 @@ export function installTodayTopV33():{installed:boolean}{
     historyDisclosure.addEventListener("toggle",loadHistory);
     if(historyDisclosure.hasAttribute("open"))loadHistory();
   }
+  // v48: günlük ilerleme hedef kartı yalnız açılınca indirilir.
+  // Başlangıç performansı, veri sahipliği ve başarısız modül izolasyonu korunur.
+  const dailyDisclosure=document.getElementById("todayFreshDailyProgress");
+  if(dailyDisclosure&&dailyDisclosure.dataset.dailyImportBound!=="true"){
+    dailyDisclosure.dataset.dailyImportBound="true";
+    let requested=false;
+    const loadDailyProgress=()=>{
+      if(!dailyDisclosure.hasAttribute("open")||requested)return;
+      requested=true;
+      void import("./today-daily-progress-v48")
+        .then(({installTodayDailyProgressV48})=>{
+          try{
+            const result=installTodayDailyProgressV48();
+            document.documentElement.dataset.todayDailyProgressV48=result.installed?"ready":"deferred";
+            if(!result.installed)requested=false;
+          }catch(error){
+            requested=false;
+            document.documentElement.dataset.todayDailyProgressV48="deferred";
+            console.error("Günlük ilerleme özeti başlatılamadı",error);
+          }
+        })
+        .catch(error=>{
+          requested=false;
+          document.documentElement.dataset.todayDailyProgressV48="deferred";
+          console.error("Günlük ilerleme özeti yüklenemedi",error);
+        });
+    };
+    dailyDisclosure.addEventListener("toggle",loadDailyProgress);
+    if(dailyDisclosure.hasAttribute("open"))loadDailyProgress();
+  }
   // v41: independent read-only subject breakdown; never blocks initial boot.
   if(document.documentElement)void import("./today-subjects-v41")
     .then(({installTodaySubjectsV41})=>{

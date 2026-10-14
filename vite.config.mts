@@ -105,6 +105,7 @@ const OFFLINE_STARTUP_MODULES=[
   "src/ui/today-activity-v40.ts",
   "src/ui/today-history-v46.ts",
   "src/ui/today-gap-tracker-v47.ts",
+  "src/ui/today-daily-progress-v48.ts",
   "src/ui/today-subjects-v41.ts",
   "src/ui/today-insights-v42.ts",
   "src/ui/teachers-v2-custom-fast.ts","src/ui/teachers-v2-media.ts","src/ui/teachers-v2-library.ts",
