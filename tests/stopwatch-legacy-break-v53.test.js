@@ -99,7 +99,7 @@ test("v53 persistence schema preserves corrected subject, without altering prior
   assert.match(app,/item\.workSubject=subject;/);
   assert.match(app,/item\.workSubject=previous;/);
   assert.match(app,/if\(save\(\)===false\)/);
-  assert.match(app,/begins\?\(subject\?subject\+" çalışması"/);
+  assert.match(app,/begins\?\(subject\?subject\+" çalışması · Mola başlangıcı"/);
   assert.match(app,/duration=ends\?"—":fmtSw\(split\)/);
   assert.doesNotMatch(region,/S\.pomoMin\s*=|S\.pomoSubj\s*=|S\.swHistory\s*=|S\.sessions\s*=/);
   assert.doesNotMatch(region,/swReset\(|swCreditElapsed\(|swHistoryAdd\(|delete S\./);
