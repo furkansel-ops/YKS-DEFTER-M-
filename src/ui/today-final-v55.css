@@ -1,0 +1,118 @@
+/* Bugün v55 — ana ekran bitiriş: tek odak, öncelikli görevler ve kısa mobil akış.
+   Salt sunum; kartların kaynakları, kayıt butonları ve koç eşitlemesi korunur. */
+:root #home > #todayFreshStart{
+  min-width:0;isolation:isolate;
+}
+:root #home #todayFreshStart > :is(header,section,details){min-width:0;max-width:100%}
+:root #home #todayFreshStart :is(.today-fresh-work-pair,.today-fresh-task-list,.today-daily-grid,
+ .today-daily-insight-stats,.today-fresh-insights-grid,.today-fresh-activity-grid){
+  min-width:0;
+}
+:root #home #todayFreshStart :is(.today-fresh-work-card,.today-fresh-task,.today-fresh-task-copy,
+ .today-fresh-focus-bottom,.today-fresh-next-actions,.today-fresh-task-list>*){
+  min-width:0;
+}
+:root #home #todayFreshStart :is(.today-fresh-focus-hint,.today-fresh-work-card p,
+ .today-fresh-task-title,.today-fresh-task-sub,.today-fresh-next-actions button,
+ .today-fresh-hello p){
+  overflow-wrap:anywhere;
+}
+/* Önce bugün yapılacaklar ve gün sonu kaydı; uzun analiz/takvim ikinci planda. */
+:root #home #todayFreshStart #todayFreshDailyProgress{order:2}
+:root #home #todayFreshStart #todayFreshReview{order:3}
+:root #home #todayFreshStart #todayFreshInsights{order:4}
+:root #home #todayFreshStart #todayFreshSubjects{order:5}
+:root #home #todayFreshStart #todayFreshActivity{order:6}
+/* Görsel olarak tamamlanan çalışma fark edilir ama okunabilir kalır. */
+:root #home #todayFreshStart .today-fresh-task.is-done .today-fresh-task-title{
+  text-decoration:line-through;text-decoration-thickness:1px;text-decoration-color:currentColor;
+  opacity:.76;
+}
+:root #home #todayFreshStart .today-fresh-task.is-done .today-fresh-task-sub{opacity:.87}
+:root #home #todayFreshStart .today-fresh-task-check,
+:root #home #todayFreshStart :is(.today-fresh-action,.today-fresh-view-all,
+ .today-daily-open,.today-fresh-quote-new,.today-fresh-recent-heading button){
+  touch-action:manipulation;
+}
+:root #home #todayFreshStart :is(.today-fresh-task-check,.today-fresh-action,
+ .today-fresh-quote-new,.today-fresh-view-all,details>summary):focus-visible{
+  outline:3px solid var(--rb-accent,var(--accent));outline-offset:2px;
+}
+/* Son güncellemelerdeki açık/koyu temalar: alt kartlar aynı kontrast sistemini kullanır. */
+:root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"])
+ #home #todayFreshStart :is(.today-fresh-section-heading>span,.today-fresh-task-sub,
+ .today-fresh-work-card p,.today-fresh-focus-bottom strong,.today-fresh-task-count,
+ .today-fresh-tasks-head p,.today-fresh-review-title small,.today-fresh-review-status){
+ color:var(--yks-theme-muted);
+}
+:root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"])
+ #home #todayFreshStart :is(.today-fresh-work-card h3,.today-fresh-task-title,
+ .today-fresh-focus-bottom strong,.today-fresh-review-title strong){
+ color:var(--yks-theme-ink);
+}
+:root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"])
+ #home #todayFreshStart :is(.today-fresh-task,.today-fresh-work-card,.today-fresh-tasks){
+ border-color:var(--yks-theme-line);
+}
+/* Mola metni kronometrede tutulan çalışma ile karıştırılmaz. */
+:root #home #todayFreshStart .today-fresh-focus-bottom strong{
+  font-variant-numeric:tabular-nums;
+}
+@media(max-width:600px){
+ :root #home > #todayFreshStart{gap:7px;padding-bottom:18px}
+ :root #home #todayFreshStart .today-fresh-welcome{gap:6px}
+ :root #home #todayFreshStart .today-fresh-work-center{gap:7px}
+ :root #home #todayFreshStart .today-fresh-work-card{min-height:126px}
+ :root #home #todayFreshStart .today-fresh-tasks{padding:10px}
+ :root #home #todayFreshStart .today-fresh-task{align-items:flex-start}
+ :root #home #todayFreshStart .today-fresh-task-check{
+   min-width:38px;min-height:40px;width:38px;height:40px;
+ }
+ :root #home #todayFreshStart .today-fresh-action{
+   min-height:42px;display:inline-flex;align-items:center;justify-content:center;
+ }
+ :root #home #todayFreshStart .today-fresh-view-all{min-height:42px}
+ :root #home #todayFreshStart .today-fresh-task-title{
+   font-size:12px;line-height:1.4;white-space:normal;
+ }
+ :root #home #todayFreshStart .today-fresh-tasks-head{align-items:center}
+ :root #home #todayFreshStart .today-fresh-work-card h3{line-height:1.32}
+}
+@media(max-width:420px){
+ :root #home #todayFreshStart .today-fresh-work-card{padding:9px;min-height:130px}
+ :root #home #todayFreshStart .today-fresh-work-pair{gap:6px}
+ :root #home #todayFreshStart .today-fresh-next-actions{
+   display:flex;flex-wrap:wrap;gap:5px;
+ }
+ :root #home #todayFreshStart .today-fresh-next-actions button{
+   min-width:0;flex:1 1 76px;padding:7px 6px;font-size:11px;
+ }
+ :root #home #todayFreshStart .today-fresh-task-list{
+   grid-template-columns:minmax(0,1fr);
+ }
+ :root #home #todayFreshStart .today-fresh-task{padding:8px 10px}
+ :root #home #todayFreshStart .today-fresh-insights-preview{
+   max-width:46%;min-width:0;
+ }
+ :root #home #todayFreshStart .today-fresh-insights-preview small{
+   white-space:normal;overflow-wrap:anywhere;
+ }
+}
+@media(max-width:350px){
+ :root #home #todayFreshStart .today-fresh-work-pair{
+  grid-template-columns:minmax(0,1fr);
+ }
+ :root #home #todayFreshStart .today-fresh-work-card{min-height:98px}
+ :root #home #todayFreshStart .today-fresh-focus-bottom{
+  flex-wrap:wrap;gap:6px;
+ }
+ :root #home #todayFreshStart .today-fresh-next-actions button{
+  flex:1 1 auto;
+ }
+ :root #home #todayFreshStart .today-fresh-task-list{
+  grid-template-columns:minmax(0,1fr);
+ }
+}
+@media(prefers-reduced-motion:reduce){
+ :root #home #todayFreshStart *{scroll-behavior:auto}
+}
