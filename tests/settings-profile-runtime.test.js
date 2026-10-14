@@ -187,7 +187,7 @@ test("ayarlar sabit görsel sistemin tokenlarını ve güncel hesap yükleyicisi
   assert.match(source,/var\(--rb-surface,var\(--card,#fff\)\)/);
   assert.match(source,/var\(--rb-ink,var\(--label,#10203f\)\)/);
   assert.match(css,/var\(--rb-accent,var\(--accent\)\)/);
-  assert.match(loader,/settings-profile-runtime\.js\?v=3\.0\.1-theme-restore/);
+  assert.match(loader,/settings-profile-runtime\.js\?v=3\.0\.2-theme-card-tap/);
   assert.match(loader,/const settingsReady=loadModuleScript/);
 });
 
@@ -220,7 +220,7 @@ test("Tema kartı zaten Görünüm yuvasındayken dahi gizli bayraklar temizleni
 test("Tema dosyası farklı URL ile indirilir ve PWA çevrimdışı önbelleğine alınır",()=>{
   const loader=read("src/ui/student-account-loader.ts"),worker=read("sw.js");
   const src=loader.match(/loadModuleScript\(SETTINGS_SCRIPT_ID,"([^"]+)"/)?.[1];
-  assert.equal(src,"./settings-profile-runtime.js?v=3.0.1-theme-restore");
+  assert.equal(src,"./settings-profile-runtime.js?v=3.0.2-theme-card-tap");
   assert.ok(worker.includes('"'+src+'"'),"service worker aynı tam sürümlü dosyayı önbelleğe alır");
   assert.doesNotMatch(worker,/settings-profile-runtime\.js\?v=3\.0\.0/);
   assert.doesNotMatch(source,/dataset\.themeControl="single"/);
