@@ -477,6 +477,21 @@ function normalize(o){
     if(v&&typeof v==="object")return {t:bigInt(v.t),subj:typeof v.subj==="string"?v.subj:""};
     return {t:bigInt(v),subj:""};
   }).filter(v=>v.t>0).slice(-50);
+  /* Ayrı mola sayacı: odak/ders süreleri ve swHistory aynen korunur. */
+  const br=o.focus.swBreak;
+  o.focus.swBreak=br&&typeof br==="object"&&!Array.isArray(br)&&bigInt(br.start)>0
+    ?{start:bigInt(br.start),targetMin:Math.max(1,Math.min(720,bigInt(br.targetMin)||15))}
+    :null;
+  if(o.focus.swBreak&&(o.focus.swBreak.start>Date.now()+60000||o.focus.sw.run))
+    o.focus.swBreak=null;
+  if(!Array.isArray(o.focus.swBreaks))o.focus.swBreaks=[];
+  o.focus.swBreaks=o.focus.swBreaks.filter(x=>x&&typeof x==="object")
+    .slice(-90).map(x=>({
+      day:/^\d{4}-\d{2}-\d{2}$/.test(x.day)?x.day:todayKey(),
+      start:bigInt(x.start),end:bigInt(x.end),
+      ms:Math.max(0,Math.min(86400000,bigInt(x.ms))),
+      plannedMin:Math.max(1,Math.min(720,bigInt(x.plannedMin)||15))
+    })).filter(x=>x.start>0&&x.end>=x.start&&x.ms>0);
   if(!o.pauses)o.pauses={}; if(!o.journal)o.journal={};
   if(!o.dayReview||typeof o.dayReview!=="object"||Array.isArray(o.dayReview))o.dayReview={};
   Object.keys(o.dayReview).forEach(k=>{
@@ -11233,15 +11248,129 @@ setPomoSubject=function(n){
   if(S.focus&&S.focus.mode==="sw")try{swRenderTools()}catch(e){}
   return result;
 };
+/* v51 — Molayı çalışma turu gibi etiketleme. Önceki odak dakikaları korunur. */
+let swBreakTimer=null;
+function swBreakActive(){
+  const v=S.focus&&S.focus.swBreak;
+  return !!(v&&typeof v==="object"&&Number(v.start)>0);
+}
+function swBreakElapsedAt(now){
+  const v=S.focus.swBreak;
+  return v?Math.max(0,Math.floor((Number(now)||Date.now())-Number(v.start)||0)):0;
+}
+function swBreakTotalToday(){
+  const day=todayKey(),list=Array.isArray(S.focus.swBreaks)?S.focus.swBreaks:[];
+  return list.reduce((sum,x)=>sum+(x.day===day?Math.max(0,Number(x.ms)||0):0),0);
+}
+function swBreakDuration(ms){
+  const mins=Math.floor(Math.max(0,Number(ms)||0)/60000),h=Math.floor(mins/60),m=mins%60;
+  return h?(h+" sa"+(m?" "+m+" dk":"")):mins+" dk";
+}
+function swBreakEnsureUi(){
+  let panel=el("swBreakPanel");
+  if(panel)return panel;
+  const card=el("swCard"),tools=el("swSessionTools");
+  if(!card||!tools)return null;
+  panel=document.createElement("section");
+  panel.id="swBreakPanel";panel.className="sw-break-panel";panel.hidden=true;
+  panel.setAttribute("aria-label","Kronometre mola ayarı");
+  panel.innerHTML='<div class="sw-break-head"><strong>Mola ver</strong><span>Çalışma süren korunur; mola ayrı sayılır.</span></div>'+
+    '<div class="sw-break-presets" role="group" aria-label="Hazır mola süreleri">'+
+    [5,10,15,30,60].map(n=>'<button type="button" data-sw-break-min="'+n+'">'+n+' dk</button>').join("")+'</div>'+
+    '<div class="sw-break-custom"><label>Saat<input id="swBreakHours" type="number" min="0" max="12" step="1" inputmode="numeric" value="0"></label>'+
+    '<label>Dakika<input id="swBreakMinutes" type="number" min="0" max="59" step="1" inputmode="numeric" value="15"></label></div>'+
+    '<p id="swBreakStatus" class="sw-break-status" role="status" aria-live="polite"></p>'+
+    '<div class="sw-break-actions"><button id="swBreakConfirm" type="button">Molayı başlat</button>'+
+    '<button id="swBreakCancel" type="button">Vazgeç</button></div>'+
+    '<div class="sw-break-active" id="swBreakActive" hidden><strong id="swBreakCountdown">—</strong>'+
+    '<span id="swBreakProgress">Mola devam ediyor</span>'+
+    '<button type="button" id="swBreakFinish">Molayı bitir · Çalışmaya dön</button></div>'+
+    '<small id="swBreakTodayTotal" class="sw-break-total"></small>';
+  tools.insertAdjacentElement("afterend",panel);
+  panel.querySelectorAll("[data-sw-break-min]").forEach(btn=>btn.addEventListener("click",()=>{
+    const min=Number(btn.dataset.swBreakMin)||15;
+    el("swBreakHours").value=String(Math.floor(min/60));
+    el("swBreakMinutes").value=String(min%60);
+    el("swBreakStatus").textContent=min+" dakikalık mola seçildi.";
+  }));
+  el("swBreakConfirm").addEventListener("click",swBeginBreak);
+  el("swBreakCancel").addEventListener("click",()=>{
+    panel.hidden=true;panel.dataset.choiceOpen="false";swBreakUpdateUi();
+  });
+  el("swBreakFinish").addEventListener("click",()=>swFinishBreak(true));
+  return panel;
+}
+function swBreakUpdateUi(){
+  const panel=el("swBreakPanel");if(!panel)return;
+  const active=swBreakActive(),bar=el("swBreakActive");
+  panel.dataset.active=active?"true":"false";
+  const btn=el("swBreakButton");
+  if(btn)btn.textContent=active?"Molayı bitir":"Mola ver";
+  if(active){
+    panel.hidden=false;panel.dataset.choiceOpen="false";
+    if(bar)bar.hidden=false;
+    const remaining=Math.max(0,S.focus.swBreak.targetMin*60000-swBreakElapsedAt(Date.now()));
+    const elapsed=swBreakElapsedAt(Date.now());
+    const count=el("swBreakCountdown"),status=el("swBreakProgress");
+    if(count)count.textContent=remaining?fmtSw(remaining):"Süre doldu";
+    if(status)status.textContent="Gerçek mola: "+swBreakDuration(elapsed)+" · çalışma süresine eklenmez";
+  }else{
+    if(bar)bar.hidden=true;
+    if(panel.dataset.choiceOpen!=="true")panel.hidden=true;
+  }
+  const total=el("swBreakTodayTotal");
+  if(total)total.textContent="Bugünkü kayıtlı mola: "+swBreakDuration(swBreakTotalToday())+
+    " · Ders ve odak toplamlarına eklenmez.";
+  if(active&&!swBreakTimer)swBreakTimer=setInterval(swBreakUpdateUi,1000);
+  else if(!active&&swBreakTimer){clearInterval(swBreakTimer);swBreakTimer=null;}
+}
 function swMarkBreak(){
+  if(swBreakActive()){swFinishBreak(true);return;}
   const s=sw();
-  if(!s.run){toast("Mola işaretlemek için kronometre çalışıyor olmalı");return;}
-  swPause();
-  swPushMarker("☕ Mola");
-  try{setPauseReason("break")}catch(e){}
+  if(!s.run&&!s.acc){toast("Önce kronometrede çalışmaya başla");return;}
+  const panel=swBreakEnsureUi();if(!panel)return;
+  panel.hidden=false;panel.dataset.choiceOpen="true";
+  const status=el("swBreakStatus");
+  if(status)status.textContent="Molayı başlatınca çalışma sayacı durur; geçmiş süre mola olmaz.";
+  swBreakUpdateUi();
+  const minutes=el("swBreakMinutes");if(minutes)minutes.focus();
+}
+function swBeginBreak(){
+  if(swBreakActive())return false;
+  const h=Number(el("swBreakHours")?.value),m=Number(el("swBreakMinutes")?.value);
+  const total=h*60+m,status=el("swBreakStatus");
+  if(!Number.isInteger(h)||!Number.isInteger(m)||h<0||h>12||m<0||m>59||total<1||total>720){
+    if(status)status.textContent="1 dakika ile 12 saat arasında geçerli mola seç.";
+    return false;
+  }
+  const s=sw();
+  if(!s.run&&!s.acc){if(status)status.textContent="Önce kronometrede çalışmaya başla.";return false;}
+  /* swPause çalışma süresini krediye işler; mola geçmişe uygulanmaz. */
+  if(s.run)swPause();
+  hidePauseReason();
+  if(sw().run)return false;
+  S.focus.swBreak={start:Date.now(),targetMin:total};
+  swPushMarker("☕ Mola başlangıcı");
+  try{setPauseReason("break")}catch(e){save();}
+  const panel=swBreakEnsureUi();if(panel)panel.dataset.choiceOpen="false";
+  swBreakUpdateUi();renderSw();
+  toast("Mola başladı · "+total+" dk · çalışma süren güvende");
+  return true;
+}
+function swFinishBreak(resume){
+  if(!swBreakActive())return false;
+  const current=S.focus.swBreak,now=Date.now(),ms=swBreakElapsedAt(now);
+  if(!Array.isArray(S.focus.swBreaks))S.focus.swBreaks=[];
+  if(ms>0)S.focus.swBreaks.push({day:keyOf(new Date(current.start)),
+    start:current.start,end:now,ms:ms,plannedMin:current.targetMin});
+  if(S.focus.swBreaks.length>90)S.focus.swBreaks=S.focus.swBreaks.slice(-90);
+  S.focus.swBreak=null;
+  swPushMarker("☕ Mola sona erdi · "+swBreakDuration(ms));
   save();
-  renderSw();
-  toast("Mola işaretlendi · kronometre duraklatıldı");
+  swBreakUpdateUi();
+  if(resume)swStart();else renderSw();
+  toast("Mola "+swBreakDuration(ms)+" olarak kaydedildi"+(resume?" · çalışmaya dönüldü":""));
+  return true;
 }
 function swRenderTools(){
   const s=sw(),active=el("swActiveSubject"),pick=el("swSubjectSwitch"),note=el("swSessionNote"),laps=Array.isArray(S.focus.swLaps)?S.focus.swLaps:[];
@@ -11250,17 +11379,18 @@ function swRenderTools(){
     pick.innerHTML=SUBJ_NAMES.map(n=>'<option value="'+esc(n)+'"'+(n===pomoSubject?' selected':'')+'>'+esc(n)+'</option>').join("");
   }
   if(note){
-    const count=laps.length,mode=s.run?"Çalışıyor":(swElapsed()?"Duraklatıldı":"Hazır");
-    note.textContent=mode+" · "+(pomoSubject||"Ders")+(count?" · "+count+" tur/işaret":"")+" · ders değişiminde kronometre sıfırlanmaz.";
+    const count=laps.length,mode=swBreakActive()?"Moladasın":s.run?"Çalışıyor":(swElapsed()?"Duraklatıldı":"Hazır");
+    note.textContent=mode+" · "+(pomoSubject||"Ders")+(count?" · "+count+" tur/işaret":"")+" · çalışma dakikaları korunur.";
   }
+  swBreakEnsureUi();swBreakUpdateUi();
   const lw=el("swLaps");
   if(!lw)return;
   if(!laps.length){lw.innerHTML='<div class="empty">Henüz tur yok. Tur kaydet, mola işaretle veya çalışırken ders değiştir.</div>';return;}
   let prev=0;
   const rows=laps.map((L,i)=>{
     const v=(L&&typeof L==="object")?Math.max(0,Number(L.t)||0):Math.max(0,Number(L)||0),raw=(L&&typeof L==="object")?String(L.subj||""):"",split=Math.max(0,v-prev);prev=v;
-    const isBreak=raw.startsWith("☕"),isSwitch=raw.startsWith("↔"),label=isBreak?"Mola":isSwitch?raw.slice(2).trim():((i+1)+". tur"+(raw?" · "+raw:""));
-    return '<div class="dayrow sw-lap-row '+(isBreak?"is-break":isSwitch?"is-switch":"")+'"><span class="k">'+esc(label)+'</span><span class="v">'+fmtSw(split)+' <em class="dl flat">'+fmtSw(v)+'</em></span></div>';
+    const isBreak=raw.startsWith("☕"),isSwitch=raw.startsWith("↔"),label=isBreak?(raw==="☕ Mola"?"Mola başlangıcı":raw.slice(2).trim()):isSwitch?raw.slice(2).trim():((i+1)+". tur"+(raw?" · "+raw:""));
+    return '<div class="dayrow sw-lap-row '+(isBreak?"is-break":isSwitch?"is-switch":"")+'"><span class="k">'+esc(label)+'</span><span class="v">'+(isBreak?"—":fmtSw(split))+' <em class="dl flat">'+fmtSw(v)+' çalışma</em></span></div>';
   });
   lw.innerHTML=rows.reverse().join("");
 }
@@ -11269,6 +11399,18 @@ renderSw=function(){
   const result=__v47RenderSw();
   swRenderTools();
   return result;
+};
+/* Her normal Devam et ve Sıfırla işlemi aktif molayı önce ayrı kaydeder.
+   swElapsed/cr, pomoMin, pomoSubj ve swHistory kayıtlarına dokunmaz. */
+const __v51SwStart=swStart;
+swStart=function(){
+  if(swBreakActive())swFinishBreak(false);
+  return __v51SwStart.apply(this,arguments);
+};
+const __v51SwReset=swReset;
+swReset=function(){
+  if(swBreakActive())swFinishBreak(false);
+  return __v51SwReset.apply(this,arguments);
 };
 
 /* ==================================================================
