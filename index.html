@@ -673,6 +673,29 @@
           </div>
         </section>
       </div>
+      <!-- v46: ikinci bir kayıt sistemi değil, yalnızca mevcut verilerin tarih görünümü. -->
+      <section id="todayFreshHistory" class="today-history" aria-label="Çalışma takvimi ve haftalık ilerleme">
+        <div class="today-history-heading">
+          <div><span>SON 12 HAFTA</span><h3>Çalışma takvimi</h3></div>
+          <strong id="todayFreshHistorySummary">Geçmiş hazırlanıyor…</strong>
+        </div>
+        <div class="today-history-scroll" tabindex="0" aria-label="12 haftalık takvimi yatay kaydır">
+          <div class="today-history-layout">
+            <div class="today-history-weekdays" aria-hidden="true"><span>P</span><span>S</span><span>Ç</span><span>P</span><span>C</span><span>C</span><span>P</span></div>
+            <div id="todayFreshHistoryWeeks" class="today-history-weeks" role="group" aria-label="Günlere göre kaydedilmiş odak süreleri"></div>
+          </div>
+        </div>
+        <p id="todayFreshHistorySelection" class="today-history-selection" role="status">Bir güne dokunarak kayıtlarını inceleyebilirsin.</p>
+        <div class="today-history-legend" aria-label="Yoğunluk renkleri">
+          <span>Az</span><i data-level="0"></i><i data-level="1"></i><i data-level="2"></i><i data-level="3"></i><i data-level="4"></i><span>Çok</span>
+        </div>
+        <div class="today-history-score">
+          <div><span>HAFTALIK YKS ÇALIŞMA SKORU</span><h3>Bu haftanın ilerlemesi</h3></div>
+          <div class="today-history-score-number"><strong id="todayFreshWeekScore">—</strong><span>/100</span></div>
+        </div>
+        <div id="todayFreshScoreBreakdown" class="today-history-breakdown" aria-label="Skorun dayanakları"></div>
+        <p id="todayFreshScoreNote" class="today-history-note">Bu gösterge YKS sınav puanı değildir. Yalnızca kaydedilmiş çalışma ve mevcut hedeflerine dayanır.</p>
+      </section>
     </details>
     <!-- Aşama 4: Gün sonu raporu eski kayıt ve koç paylaşım sistemine bağlıdır. -->
     <details id="todayFreshReview" class="today-fresh-review">
