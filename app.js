@@ -10932,6 +10932,24 @@ window.yksTodaySubjectSnapshot=function(){
   return {date,focusMin,solved,focusGoal,questionGoal,subjects,
     labeledMin,unassignedMin,basisMin,hasMismatch:labeledMin>focusMin};
 };
+/* Bugün v48: günlük ilerlemenin tekil salt-okunur özeti.
+   Günlük odak toplamı sessions / swHistory ile tekrar toplanmaz. */
+window.yksTodayDailyProgressSnapshot=function(){
+  const stats=window.yksTodaySubjectSnapshot();
+  const plan=v25PlanToday(),last=v25LatestFocus();
+  return {
+    date:stats.date,focusMin:stats.focusMin,focusGoal:stats.focusGoal,
+    questions:stats.solved,questionGoal:stats.questionGoal,
+    tasks:plan.filled,done:plan.done,
+    subjects:stats.subjects.slice(0,3),unassignedMin:stats.unassignedMin,
+    hasMismatch:stats.hasMismatch,
+    latest:last?{
+      subject:String(last.subj||"Ders").slice(0,70),
+      topic:String(last.topic||"").slice(0,100),
+      minutes:Math.max(0,Math.round(Number(last.min)||0))
+    }:null
+  };
+};
 function v25StartTask(){
   const p=v25PlanToday(),item=p.next;if(!item){toast(p.filled?"Bugünkü program tamamlandı ✓":"Bugün için program görevi yok");return false;}
   if(sw().run){go("pomo");setFocusMode("sw");toast("Kronometre zaten çalışıyor");return true;}
