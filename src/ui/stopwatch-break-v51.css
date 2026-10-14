@@ -131,3 +131,11 @@
   #pomo .sw-lap-row .v{justify-content:flex-start}
   #pomo .sw-lap-correction{padding:11px}
 }
+
+/* v54: user-corrected work is never visually mistaken for a break. */
+#pomo .sw-lap-row.is-corrected-work .k{color:var(--rb-ink,var(--label))}
+#pomo .sw-lap-row.is-corrected-work .k small{display:block;font-size:10px;color:var(--rb-muted,var(--label-2))}
+#pomo .sw-lap-correction-actions #swLapCorrectionRemove{
+  border-color:var(--rb-line,var(--line));background:var(--rb-surface,var(--card));
+  color:var(--rb-ink,var(--label));
+}
