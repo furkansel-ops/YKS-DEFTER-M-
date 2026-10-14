@@ -99,7 +99,7 @@ test("v51 double finish cannot duplicate break or session, no old marker shown a
   assert.equal(h.S.focus.swBreaks.length,1);
   assert.equal(h.S.focus.swBreaks[0].ms,5*60000);
   const app=read("app.js");
-  assert.match(app,/begins\?\(subject\?subject\+" çalışması"/,"pre-break work is labeled as study, not break");
+  assert.match(app,/begins\?\(subject\?subject\+" çalışması · Mola başlangıcı"/,"pre-break work is labeled as study, not break");
   assert.match(app,/const duration=ends\?"—":fmtSw\(split\)/,"work segment before a break is not hidden");
 });
 test("v51 UI, persistence and reset guards are wired without clearing study totals",()=>{
