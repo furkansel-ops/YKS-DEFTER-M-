@@ -10827,6 +10827,58 @@ window.yksTodayActivitySnapshot=function(){
   sessions.sort((a,b)=>b.at-a.at);
   return {days,sessions:sessions.slice(0,3),today};
 };
+/* Bugün v46 / Çalışma geçmişi ve haftalık ilerleme.
+   S.pomoMin, S.solved ve S.weeks mevcut kayıtların tek sahipleridir.
+   Bu köprü salt okunurdur; süreleri sessions / swHistory üzerinden yeniden toplamaz. */
+window.yksTodayHistorySnapshot=function(){
+  const now=new Date(),today=todayKey(),monday=keyOf(mondayOf(now));
+  const start=addDaysKey(monday,-77),todayIndex=dowOf(now);
+  const safe=value=>{
+    const n=Number(value);
+    return Number.isFinite(n)?Math.max(0,Math.round(n)):0;
+  };
+  const minutes=S.pomoMin||{},questions=S.solved||{},weeks=S.weeks||{};
+  let totalMin=0,activeDays=0,weekMin=0,weekQuestions=0,weekDone=0,weekTasks=0,trackedDays=0;
+  const days=Array.from({length:84},(_,i)=>{
+    const date=addDaysKey(start,i),future=date>today;
+    const weekKey=addDaysKey(start,Math.floor(i/7)*7),dayIndex=i%7;
+    const min=future?0:safe(minutes[date]),solved=future?0:safe(questions[date]);
+    const week=weeks[weekKey],doneMap=week&&week.dn||{};
+    let tasks=0,done=0;
+    if(!future&&week&&typeof week==="object"){
+      for(const blk of ["r","s"]){
+        const rows=Array.isArray(week[blk])?week[blk]:[];
+        rows.forEach((row,index)=>{
+          if(!Array.isArray(row)||!String(row[dayIndex]||"").trim())return;
+          tasks++;
+          if(doneMap[blk+"-"+index+"-"+dayIndex])done++;
+        });
+      }
+    }
+    const hasRecord=min>0||solved>0||tasks>0;
+    if(!future){totalMin+=min;if(min>0)activeDays++;}
+    if(!future&&date>=monday){
+      weekMin+=min;weekQuestions+=solved;weekDone+=done;weekTasks+=tasks;
+      if(hasRecord)trackedDays++;
+    }
+    return {date,min,questions:solved,tasks,done,future};
+  });
+  const goalMin=safe(S.focus&&S.focus.goalMin),goalQuestions=safe(S.target);
+  const components=[
+    {id:"program",label:"Program",value:weekTasks?Math.min(100,Math.round(100*weekDone/weekTasks)):null,
+      current:weekDone,goal:weekTasks,weight:45},
+    {id:"focus",label:"Odak",value:trackedDays&&goalMin?Math.min(100,Math.round(100*weekMin/(trackedDays*goalMin))):null,
+      current:weekMin,goal:trackedDays*goalMin,weight:35},
+    {id:"questions",label:"Soru",value:trackedDays&&goalQuestions?Math.min(100,Math.round(100*weekQuestions/(trackedDays*goalQuestions))):null,
+      current:weekQuestions,goal:trackedDays*goalQuestions,weight:20}
+  ];
+  const included=components.filter(x=>x.value!==null);
+  const weight=included.reduce((sum,x)=>sum+x.weight,0);
+  const score=weight?Math.round(included.reduce((sum,x)=>sum+x.value*x.weight,0)/weight):null;
+  return {today,start,days,totalMin,activeDays,
+    week:{monday,elapsedDays:todayIndex+1,trackedDays,minutes:weekMin,questions:weekQuestions,
+      tasks:weekTasks,done:weekDone,score,components}};
+};
 /* v41 / Günlük ders dağılımı için mevcut odak, soru ve ders etiketlerini okur.
    S üzerinde değişiklik, yeni sayaç veya ikinci toplama kaydı oluşturmaz. */
 window.yksTodaySubjectSnapshot=function(){
