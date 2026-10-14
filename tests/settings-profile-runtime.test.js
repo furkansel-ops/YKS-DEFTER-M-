@@ -187,6 +187,42 @@ test("ayarlar sabit görsel sistemin tokenlarını ve güncel hesap yükleyicisi
   assert.match(source,/var\(--rb-surface,var\(--card,#fff\)\)/);
   assert.match(source,/var\(--rb-ink,var\(--label,#10203f\)\)/);
   assert.match(css,/var\(--rb-accent,var\(--accent\)\)/);
-  assert.match(loader,/settings-profile-runtime\.js\?v=3\.0\.0/);
+  assert.match(loader,/settings-profile-runtime\.js\?v=3\.0\.1-theme-restore/);
   assert.match(loader,/const settingsReady=loadModuleScript/);
+});
+
+
+test("Görünüm açıldığında çoklu tema modu korunur, seçilen palet yeniden işaretlenir",()=>{
+  const h=harness();let applied=0;h.window.applyTheme=()=>{applied++};
+  h.run("enforceSingleAppearance()");
+  assert.equal(h.document.documentElement.dataset.themeControl,"multiple");
+  assert.equal(h.window.__YKS_SETTINGS__.open("appearance"),true);
+  assert.equal(h.root.dataset.category,"appearance");
+  assert.ok(applied>=1,"mevcut tema veri sahibinden yeniden uygulanır");
+  assert.deepEqual(h.root.querySelectorAll("[data-yms-section]").filter(node=>!node.hidden)
+    .map(node=>node.dataset.ymsSection),["appearance"]);
+});
+
+test("Tema kartı zaten Görünüm yuvasındayken dahi gizli bayraklar temizlenir",()=>{
+  const h=harness(),slot=h.root.querySelector("[data-yms-appearance-slot]");
+  const card=new h.Node();
+  card.hidden=true;card.dataset.ymsHidden="true";card.dataset.ymsHiddenReason="legacy";
+  slot.replaceChildren(card);h.ids.set("appearancePreferences",card);
+  h.run("adoptPanels(document.getElementById(ROOT_ID))");
+  assert.equal(slot.children[0],card,"radyo düğümleri taşınırken yeniden oluşturulmaz");
+  assert.equal(card.hidden,false);
+  assert.equal(card.dataset.ymsHidden,undefined);
+  assert.equal(card.dataset.ymsHiddenReason,undefined);
+  h.run("adoptPanels(document.getElementById(ROOT_ID))");
+  assert.equal(slot.children[0],card,"ikinci çizimde seçim kaybolmaz");
+});
+
+test("Tema dosyası farklı URL ile indirilir ve PWA çevrimdışı önbelleğine alınır",()=>{
+  const loader=read("src/ui/student-account-loader.ts"),worker=read("sw.js");
+  const src=loader.match(/loadModuleScript\(SETTINGS_SCRIPT_ID,"([^"]+)"/)?.[1];
+  assert.equal(src,"./settings-profile-runtime.js?v=3.0.1-theme-restore");
+  assert.ok(worker.includes('"'+src+'"'),"service worker aynı tam sürümlü dosyayı önbelleğe alır");
+  assert.doesNotMatch(worker,/settings-profile-runtime\.js\?v=3\.0\.0/);
+  assert.doesNotMatch(source,/dataset\.themeControl="single"/);
+  assert.match(source,/dataset\.themeControl="multiple"/);
 });
