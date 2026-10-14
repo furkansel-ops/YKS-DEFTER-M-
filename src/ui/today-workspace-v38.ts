@@ -44,22 +44,27 @@ export function installTodayWorkspaceV38():{installed:boolean}{
     const pomoState=pomo.getAttribute("data-run")||"idle";
     const swActive=swState==="running"||swState==="paused";
     const pomActive=pomoState==="running"||pomoState==="paused";
-    const useStop=swState==="running"||(!pomActive&&swActive);
-    const active=swActive||pomActive;
+    // Gerçek kronometre molası duraklatılmış çalışma değildir. Ayrı
+    // mola sayacını YALNIZ ekranda oku; çalışma dakikalarını değiştirme.
+    const breakPanel=document.getElementById("swBreakPanel");
+    const onBreak=breakPanel?.dataset.active==="true";
+    const useStop=onBreak||swState==="running"||(!pomActive&&swActive);
+    const active=onBreak||swActive||pomActive;
     const state=useStop?swState:pomoState;
-    const running=active&&state==="running";
-    const label=active?(running?"Odak sürüyor":"Odak duraklatıldı"):"Odak hazır";
+    const running=!onBreak&&active&&state==="running";
+    const label=onBreak?"Mola devam ediyor":active?(running?"Odak sürüyor":"Odak duraklatıldı"):"Odak hazır";
     const activeSubject=text(subject?.querySelector(".chip.on"));
     set("todayFreshFocusState",label);
     const dot=el("todayFreshFocusDot");
     dot?.classList.toggle("is-running",running);
     dot?.classList.toggle("is-paused",active&&!running);
     const phase=text(el("pomoMode"));
-    set("todayFreshFocusTitle",active?(useStop?"Kronometre":"Pomodoro"):"Odak zamanı");
-    set("todayFreshFocusHint",active
-      ?(activeSubject||phase||"Çalışma")+" · "+(running?"çalışıyorsun":"duraklatıldı")
+    set("todayFreshFocusTitle",onBreak?"Mola zamanı":active?(useStop?"Kronometre":"Pomodoro"):"Odak zamanı");
+    set("todayFreshFocusHint",onBreak?"Çalışma süren korunuyor · mola ayrı sayılıyor"
+      :active?(activeSubject||phase||"Çalışma")+" · "+(running?"çalışıyorsun":"duraklatıldı")
       :"Odak ekranından bir çalışma başlatabilirsin.");
-    set("todayFreshFocusTime",active?(text(useStop?swTime:pomoTime)||"00:00"):"--:--");
+    set("todayFreshFocusTime",onBreak?(text(document.getElementById("swBreakCountdown"))||"Mola")
+      :active?(text(useStop?swTime:pomoTime)||"00:00"):"--:--");
   };
 
   const refreshNext=()=>{
@@ -86,7 +91,9 @@ export function installTodayWorkspaceV38():{installed:boolean}{
     const rows=Array.from(plan.querySelectorAll<HTMLElement>(".plancell"));
     const done=rows.filter(node=>node.classList.contains("pd")).length;
     set("todayFreshTaskCount",rows.length?done+" / "+rows.length+" tamamlandı":"Bugün için henüz görev yok");
-    set("todayFreshWorkBadge",rows.length?rows.length+" görev":"Program ekleyebilirsin");
+    set("todayFreshWorkBadge",rows.length
+      ?(done===rows.length?"Tüm görevler tamam":(rows.length-done)+" görev kaldı")
+      :"Program ekleyebilirsin");
     const signature=rows.map(node=>[
       text(node.querySelector(".pl")),text(node.querySelector(".pt")),
       node.classList.contains("pd")?"1":"0"
@@ -100,7 +107,11 @@ export function installTodayWorkspaceV38():{installed:boolean}{
       empty.textContent="Bugüne çalışma eklenmemiş. Programdan başlayabilirsin.";
       children.push(empty);
     }
-    rows.slice(0,4).forEach(row=>{
+    // İlk dört kayıtta tamamlanan görevler kalanları gizlemesin.
+    // Kaynak program dizisi ve tamamlanma işleyicisi yerinde kalır.
+    const ordered=rows.map((row,index)=>({row,index,done:row.classList.contains("pd")}))
+      .sort((a,b)=>Number(a.done)-Number(b.done)||a.index-b.index);
+    ordered.slice(0,4).forEach(({row})=>{
       const done=row.classList.contains("pd");
       const task=document.createElement("div");task.className="today-fresh-task"+(done?" is-done":"");
       const button=document.createElement("button");button.type="button";button.className="today-fresh-task-check";
@@ -154,7 +165,10 @@ export function installTodayWorkspaceV38():{installed:boolean}{
     });
     observer.observe(plan,{subtree:true,childList:true,characterData:true});
     observer.observe(next,{subtree:true,childList:true,characterData:true});
-    observer.observe(stop,{attributes:true,attributeFilter:["data-run"]});
+    // Mola paneli sonradan oluşturulabilir. İçindeki geri sayım değişince
+    // yalnız focusDirty tetiklenir, program/görevler tekrar taranmaz.
+    observer.observe(stop,{attributes:true,attributeFilter:["data-run","data-active"],
+      childList:true,characterData:true,subtree:true});
     observer.observe(pomo,{attributes:true,attributeFilter:["data-run"]});
     observer.observe(swTime,{subtree:true,childList:true,characterData:true});
     observer.observe(pomoTime,{subtree:true,childList:true,characterData:true});
