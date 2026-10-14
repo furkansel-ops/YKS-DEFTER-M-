@@ -1,0 +1,68 @@
+/* Kronometre v51: gerçek mola, çalışma zamanından bağımsız.
+   Tasarım bütün açık/koyu temaların semantik renklerini kullanır. */
+#pomo #swCard .sw-break-panel{
+  min-width:0;display:grid;gap:12px;margin-top:12px;padding:14px;
+  color:var(--rb-ink,var(--label));background:var(--rb-surface-alt,var(--fill));
+  border:1px solid var(--rb-line,var(--line));border-radius:15px;
+}
+#pomo #swCard .sw-break-panel[hidden],
+#pomo #swCard .sw-break-active[hidden]{display:none!important}
+#pomo #swCard .sw-break-head{display:grid;gap:3px}
+#pomo #swCard .sw-break-head strong{font-size:14px;line-height:1.3;color:var(--rb-ink,var(--label))}
+#pomo #swCard .sw-break-head span,#pomo #swCard .sw-break-total{
+  font-size:11px;line-height:1.5;color:var(--rb-muted,var(--label-2))
+}
+#pomo #swCard .sw-break-presets{display:flex;flex-wrap:wrap;gap:7px}
+#pomo #swCard .sw-break-presets button{
+  min-width:58px;min-height:42px;padding:8px 11px;cursor:pointer;
+  font:inherit;font-size:12px;font-weight:750;
+  color:var(--rb-accent,var(--accent));border:1px solid var(--rb-line,var(--line));
+  background:var(--rb-surface,var(--card));border-radius:11px;
+}
+#pomo #swCard .sw-break-custom{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;
+}
+#pomo #swCard .sw-break-custom label{display:grid;gap:5px;min-width:0;font-size:12px;font-weight:700;color:var(--rb-ink,var(--label))}
+#pomo #swCard .sw-break-custom input{
+  display:block;width:100%;box-sizing:border-box;min-height:43px;margin:0;
+  padding:9px;border:1px solid var(--rb-line,var(--line));border-radius:10px;
+  background:var(--rb-surface,var(--card));color:var(--rb-ink,var(--label));font:inherit;
+}
+#pomo #swCard .sw-break-status{
+  min-height:17px;margin:0;font-size:11px;line-height:1.45;color:var(--rb-muted,var(--label-2))
+}
+#pomo #swCard .sw-break-actions{display:flex;gap:8px;flex-wrap:wrap}
+#pomo #swCard .sw-break-actions button,
+#pomo #swCard .sw-break-active button{
+  min-height:44px;border-radius:11px;padding:10px 15px;
+  font:inherit;font-size:12px;font-weight:750;cursor:pointer;
+  border:1px solid var(--rb-line,var(--line));
+}
+#pomo #swCard #swBreakConfirm,
+#pomo #swCard #swBreakFinish{
+  color:var(--rb-on-accent,#fff);background:var(--rb-accent,var(--accent));border-color:var(--rb-accent,var(--accent));
+}
+#pomo #swCard #swBreakCancel{
+  color:var(--rb-ink,var(--label));background:var(--rb-surface,var(--card));
+}
+#pomo #swCard .sw-break-active{
+  display:grid;gap:7px;padding:12px;border:1px solid var(--rb-line,var(--line));
+  border-radius:12px;background:var(--rb-surface,var(--card));
+}
+#pomo #swCard .sw-break-active strong{
+  font-size:clamp(23px,4vw,30px);font-variant-numeric:tabular-nums;
+  line-height:1.2;color:var(--rb-ink,var(--label));
+}
+#pomo #swCard .sw-break-active span{
+  font-size:11px;line-height:1.4;color:var(--rb-muted,var(--label-2))
+}
+#pomo #swCard :is(.sw-break-presets button,.sw-break-actions button,.sw-break-active button,.sw-break-custom input):focus-visible{
+  outline:3px solid var(--rb-accent,var(--accent));outline-offset:2px;
+}
+#pomo #swCard .sw-break-total{display:block}
+@media(max-width:420px){
+ #pomo #swCard .sw-break-panel{padding:11px;gap:10px}
+ #pomo #swCard .sw-break-presets button{min-width:48px;padding:8px}
+ #pomo #swCard .sw-break-actions{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+ #pomo #swCard .sw-break-actions button{padding:9px}
+}
