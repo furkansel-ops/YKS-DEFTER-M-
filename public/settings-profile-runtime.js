@@ -98,11 +98,11 @@ function account(){const title=document.querySelector("[data-account-title]")?.t
 function initials(name){return txt(name,80).split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]?.toLocaleUpperCase("tr-TR")).join("")||"YK"}
 function syncText(){return ["cloudSyncText","cloudSyncMeta"].map(id=>document.getElementById(id)?.textContent?.trim()).filter(Boolean).join(" · ")||"Bulut durumu hazırlanıyor"}
 function appVersion(){return document.documentElement.dataset.appVersion||document.getElementById("appVersionLabel")?.textContent?.trim()||"YKS Defterim"}
-function enforceSingleAppearance(){document.getElementById("themeBtn")?.remove();document.documentElement.dataset.themeControl="single"}
+function enforceThemeChoices(){document.getElementById("themeBtn")?.remove();document.documentElement.dataset.themeControl="multiple"}
 function hideCardFor(id,reason){const card=document.getElementById(id)?.closest?.(".card");if(card){card.hidden=true;card.dataset.ymsHidden="true";card.dataset.ymsHiddenReason=reason}}
 function hideLegacySettings(){
   const panel=document.getElementById("mrp_ayar");if(!panel)return;
-  enforceSingleAppearance();
+  enforceThemeChoices();
   hideCardFor("nameInput","modern-profile");hideCardFor("sozToggle","legacy-appearance");hideCardFor("ytSrc","video-settings-private");hideCardFor("notifStatus","modern-notifications");
   const demoCard=panel.querySelector('button[onclick="loadDemo()"]')?.closest?.(".card");if(demoCard){demoCard.hidden=true;demoCard.dataset.ymsHidden="true";demoCard.dataset.ymsHiddenReason="modern-app-tools"}
   ["roleSeg","roleHint","simpleHint"].forEach(id=>{const node=document.getElementById(id);if(node){node.hidden=true;node.dataset.ymsHidden="true"}});
@@ -122,7 +122,16 @@ function polishPersonalization(){
 }
 function adoptPanels(root){
   const appearanceCard=document.getElementById("appearancePreferences"),appearanceSlot=root.querySelector("[data-yms-appearance-slot]");
-  if(appearanceCard&&appearanceSlot&&!appearanceSlot.contains(appearanceCard)){appearanceCard.hidden=false;delete appearanceCard.dataset.ymsHidden;appearanceSlot.replaceChildren(appearanceCard)}
+  if(appearanceCard&&appearanceSlot){
+    // Geri dönen tema seçici başka bir modül tarafından gizlenmiş olsa bile
+    // Görünüm detayında daima görünür olmalı. Her yeniden çizimde yeniden
+    // düğüm oluşturmuyoruz: radyo olayları ve odak yerinde korunur.
+    appearanceCard.hidden=false;
+    delete appearanceCard.dataset.ymsHidden;
+    delete appearanceCard.dataset.ymsHiddenReason;
+    appearanceCard.removeAttribute?.("aria-hidden");
+    if(!appearanceSlot.contains(appearanceCard))appearanceSlot.replaceChildren(appearanceCard);
+  }
   polishPersonalization();
   for(const [id,selector] of [["studentCoachCodeSettings","[data-yms-coach-slot]"],["cloudSyncBox","[data-yms-account-slot]"],["yksAccountSettingsCard","[data-yms-account-slot]"]]){
     const node=document.getElementById(id),host=root.querySelector(selector);if(node&&host&&!host.contains(node))host.append(node);
@@ -201,6 +210,9 @@ function showCategory(category="",focus=true){
   root.querySelector("[data-yms-overview]").hidden=Boolean(category);
   root.querySelector("[data-yms-detail]").hidden=!category;
   root.querySelectorAll("[data-yms-section]").forEach(node=>{node.hidden=node.dataset.ymsSection!==category});
+  // Açılışta yüklenen mevcut tema tercihini tek veri sahibinden tekrar oku.
+  // Bu işlem kayıt yazmaz; yalnız seçili radio ve aktif renkleri eşitler.
+  if(category==="appearance")try{window.applyTheme?.();}catch(error){console.warn("Tema görünümü yenilenemedi",error);}
   if(item){
     root.querySelector("#ymsDetailTitle").textContent=item.title;
     root.querySelector("#ymsDetailDescription").textContent=item.description;
