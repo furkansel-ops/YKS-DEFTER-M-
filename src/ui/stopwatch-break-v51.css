@@ -7,6 +7,10 @@
 }
 #pomo #swCard .sw-break-panel[hidden],
 #pomo #swCard .sw-break-active[hidden]{display:none!important}
+#pomo #swCard .sw-break-panel[data-active="true"] :is(
+ .sw-break-presets,.sw-break-custom,.sw-break-actions,.sw-break-status
+){display:none}
+#pomo #swCard .sw-break-panel[data-active="true"] .sw-break-head strong{color:var(--rb-accent,var(--accent))}
 #pomo #swCard .sw-break-head{display:grid;gap:3px}
 #pomo #swCard .sw-break-head strong{font-size:14px;line-height:1.3;color:var(--rb-ink,var(--label))}
 #pomo #swCard .sw-break-head span,#pomo #swCard .sw-break-total{
