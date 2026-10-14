@@ -56,7 +56,7 @@ export function installTodayHistoryV46():{installed:boolean}{
   if(!root||!panel||!weeks||!summary||!selection||!score||!breakdown||!note)return{installed:false};
   if(panel.dataset.historyReady==="true")return{installed:true};
 
-  let prior="",selectedDate="",latest:HistorySnapshotV46|null=null;
+  let prior="",selectedDate="";
   const detail=(day:HistoryDayV46)=>{
     const parts=[minutesLabel(day.min)+" odak",day.questions+" soru"];
     if(day.tasks)parts.push(day.done+" / "+day.tasks+" görev");
