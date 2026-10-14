@@ -199,8 +199,8 @@ test("Görünüm açıldığında çoklu tema modu korunur, seçilen palet yenid
   assert.equal(h.window.__YKS_SETTINGS__.open("appearance"),true);
   assert.equal(h.root.dataset.category,"appearance");
   assert.ok(applied>=1,"mevcut tema veri sahibinden yeniden uygulanır");
-  assert.equal(h.root.querySelector("[data-yms-section]")
-    ?.dataset.ymsSection,"appearance");
+  assert.deepEqual(h.root.querySelectorAll("[data-yms-section]").filter(node=>!node.hidden)
+    .map(node=>node.dataset.ymsSection),["appearance"]);
 });
 
 test("Tema kartı zaten Görünüm yuvasındayken dahi gizli bayraklar temizlenir",()=>{
