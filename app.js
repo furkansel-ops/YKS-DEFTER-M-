@@ -11303,6 +11303,7 @@ function swBreakEnsureUi(){
 function swBreakUpdateUi(){
   const panel=el("swBreakPanel");if(!panel)return;
   const active=swBreakActive(),bar=el("swBreakActive");
+  panel.dataset.active=active?"true":"false";
   const btn=el("swBreakButton");
   if(btn)btn.textContent=active?"Molayı bitir":"Mola ver";
   if(active){
