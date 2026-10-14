@@ -146,7 +146,6 @@ export function installTodayHistoryV46():{installed:boolean}{
       const snapshot=read();
       if(!snapshot||!Array.isArray(snapshot.days)||snapshot.days.length!==84||
         !snapshot.week||!Array.isArray(snapshot.week.components))return;
-      latest=snapshot;
       put(summary,snapshot.activeDays+" aktif gün · "+minutesLabel(snapshot.totalMin));
       const signature=JSON.stringify([snapshot.today,snapshot.days,snapshot.week]);
       if(signature===prior&&weeks.dataset.rendered==="true")return;
