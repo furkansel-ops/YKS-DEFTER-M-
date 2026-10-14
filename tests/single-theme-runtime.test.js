@@ -82,7 +82,7 @@ test("eski açık/koyu tanımları saklanır, bilinmeyenler maviye döner",()=>{
   assert.match(normal,/if\(o\.theme==="light"\)o\.theme="paper"/);
   assert.match(normal,/if\(o\.theme==="dark"\)o\.theme="night"/);
   assert.match(normal,/if\(!\["auto","refined-blue","paper","night","forest","ocean","lavender","sunset","graphite"\]\.includes\(o\.theme\)\)/);
-  assert.doesNotMatch(normal,/o\.theme="refined-blue";\s*if\(\["none"/);
+  assert.match(normal,/if\(!\["auto"[^\n]+includes\(o\.theme\)\)o\.theme="refined-blue"/);
 });
 
 test("Görünüm alanında erişilebilir dokuz radyo kartı ve yazı boyutları birlikte çalışır",()=>{
