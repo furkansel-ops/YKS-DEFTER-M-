@@ -98,7 +98,7 @@ function account(){const title=document.querySelector("[data-account-title]")?.t
 function initials(name){return txt(name,80).split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]?.toLocaleUpperCase("tr-TR")).join("")||"YK"}
 function syncText(){return ["cloudSyncText","cloudSyncMeta"].map(id=>document.getElementById(id)?.textContent?.trim()).filter(Boolean).join(" · ")||"Bulut durumu hazırlanıyor"}
 function appVersion(){return document.documentElement.dataset.appVersion||document.getElementById("appVersionLabel")?.textContent?.trim()||"YKS Defterim"}
-function enforceThemeChoices(){document.getElementById("themeBtn")?.remove();document.documentElement.dataset.themeControl="multiple"}
+function enforceSingleAppearance(){document.getElementById("themeBtn")?.remove();document.documentElement.dataset.themeControl="multiple"}
 function hideCardFor(id,reason){const card=document.getElementById(id)?.closest?.(".card");if(card){card.hidden=true;card.dataset.ymsHidden="true";card.dataset.ymsHiddenReason=reason}}
 function hideLegacySettings(){
   const panel=document.getElementById("mrp_ayar");if(!panel)return;
