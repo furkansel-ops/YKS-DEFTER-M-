@@ -11415,7 +11415,7 @@ function swLapEnsureCorrectionPanel(){
 }
 function swLapOpenCorrection(index){
   const delta=swLapCorrectionDelta(index);
-  if(delta<1000){toast("Bu işarette düzeltilecek çalışma süresi bulunamadı");return false;}
+  if(delta<60000){toast("Bu işarette düzeltilecek çalışma süresi bulunamadı");return false;}
   const panel=swLapEnsureCorrectionPanel();
   if(!panel)return false;
   panel.dataset.lapIndex=String(index);
@@ -11434,7 +11434,7 @@ function swLapOpenCorrection(index){
 function swLapSaveCorrection(){
   const panel=el("swLapCorrectionPanel"),index=Number(panel&&panel.dataset.lapIndex);
   const subject=String(el("swLapCorrectionSubject")?.value||"");
-  if(!Number.isInteger(index)||swLapCorrectionDelta(index)<1000||
+  if(!Number.isInteger(index)||swLapCorrectionDelta(index)<60000||
     !SUBJ_NAMES.includes(subject)){toast("Düzeltilecek turu ve dersi seç");return false;}
   const item=S.focus.swLaps[index],previous=String(item.workSubject||"");
   item.workSubject=subject;
@@ -11475,7 +11475,7 @@ function swRenderTools(){
     // the delta since the previous lap is the previous WORK segment.
     const duration=ends?"—":fmtSw(split);
     const kind=begins?" · çalışma":ends?" · mola kaydı":"";
-    const fix=begins&&split>=1000
+    const fix=begins&&split>=60000
       ?'<button class="sw-lap-correct" type="button" onclick="swLapOpenCorrection('+i+')" aria-label="Bu çalışma bölümünün dersini düzelt">Düzelt</button>':"";
     return '<div class="dayrow sw-lap-row '+(begins?"is-work-before-break":ends?"is-break":switches?"is-switch":"")+
       '"><span class="k">'+esc(label)+(begins?'<small>Mola başlamadan önceki çalışma süresi</small>':"")+
