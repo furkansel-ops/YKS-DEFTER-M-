@@ -89,10 +89,10 @@ export function installFocusSmartPickerV58():{installed:boolean;validate():strin
     old("setPomoSubject")?.(item.subject);
     old("setPomoTopic")?.(item.topic);
     old("setPomoTask")?.(item.id);
-    topicSelect.value=item.topic;
-    taskSelect.value=item.id;
-    topicSelect.dispatchEvent(new Event("change",{bubbles:true}));
-    taskSelect.dispatchEvent(new Event("change",{bubbles:true}));
+    topicSelect!.value=item.topic;
+    taskSelect!.value=item.id;
+    topicSelect!.dispatchEvent(new Event("change",{bubbles:true}));
+    taskSelect!.dispatchEvent(new Event("change",{bubbles:true}));
     notify(item.subject+(item.topic?" · "+item.topic:"")+" · programa bağlandı. Başlatabilirsin.");
     render();
   }
@@ -133,7 +133,7 @@ export function installFocusSmartPickerV58():{installed:boolean;validate():strin
       button.type="button";button.textContent=subject;
       button.addEventListener("click",()=>{
         old("setPomoSubject")?.(subject);
-        search.value="";search.dispatchEvent(new Event("input",{bubbles:true}));
+        search!.value="";search!.dispatchEvent(new Event("input",{bubbles:true}));
         notify(subject+" seçildi. İstersen aşağıdan konu veya görev bağlayabilirsin.");
       });
       recent.append(button);
