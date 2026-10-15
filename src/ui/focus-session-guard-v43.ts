@@ -385,5 +385,6 @@ export function installFocusSessionGuardV43():FocusSessionGuardV43Api{
     }
   };
   window.__YKS_FOCUS_SESSION_GUARD_V43__=api;
+  void import("./focus-smart-picker-v58").then(mod=>mod.installFocusSmartPickerV58()).catch(console.error);
   return api;
 }
