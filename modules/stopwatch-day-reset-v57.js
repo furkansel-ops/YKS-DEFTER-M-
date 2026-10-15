@@ -72,6 +72,8 @@
         day=following;
       }
       save();
+      // Rotate yesterday's active notification snapshot, not the study history.
+      try{window.dispatchEvent(new CustomEvent("yks:stopwatch-day-changed",{detail:{day:nowKey}}));}catch(_){}
     }finally{rolling=false;}
     try{
       renderSw();renderSwHistory();renderSessions();renderTimeDist();
