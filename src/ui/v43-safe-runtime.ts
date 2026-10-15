@@ -98,10 +98,7 @@ async function loadAll(onCritical:(report:V43RuntimeReport)=>void):Promise<V43Ru
     const mod=await personalizationPromise;return mod.installPersonalizationV43();
   }));
   features.push(await loadFeature("v43FocusSessionGuard","v43FocusSessionGuardErrors",async()=>{
-    const mod=await focusPromise;
-    const focus=mod.installFocusSessionGuardV43();
-    void import("./focus-smart-picker-v58").then(m=>m.installFocusSmartPickerV58()).catch(error=>console.error("Odak hızlı seçici",error));
-    return focus;
+    const mod=await focusPromise;return mod.installFocusSessionGuardV43();
   }));
   features.push(await loadFeature("v431Resilience","v431ResilienceErrors",async()=>{
     const mod=await resiliencePromise;return mod.installRuntimeResilienceV431();
