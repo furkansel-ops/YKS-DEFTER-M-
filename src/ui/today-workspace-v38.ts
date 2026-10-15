@@ -87,6 +87,9 @@ export function installTodayWorkspaceV38():{installed:boolean}{
   };
 
   let lastTaskSignature="";
+  // A legacy program render may replace rows without changing their text.
+  // Keep references too, so buttons never point to a detached former row.
+  let lastTaskRows:HTMLElement[]=[];
   const refreshTasks=()=>{
     const rows=Array.from(plan.querySelectorAll<HTMLElement>(".plancell"));
     const done=rows.filter(node=>node.classList.contains("pd")).length;
@@ -98,8 +101,11 @@ export function installTodayWorkspaceV38():{installed:boolean}{
       text(node.querySelector(".pl")),text(node.querySelector(".pt")),
       node.classList.contains("pd")?"1":"0"
     ].join("::")).join("|");
-    if(signature===lastTaskSignature&&taskList.dataset.rendered==="true")return;
+    const sameSource=rows.length===lastTaskRows.length&&
+      rows.every((row,index)=>row===lastTaskRows[index]);
+    if(signature===lastTaskSignature&&sameSource&&taskList.dataset.rendered==="true")return;
     lastTaskSignature=signature;
+    lastTaskRows=rows;
     taskList.dataset.rendered="true";
     const children:HTMLElement[]=[];
     if(!rows.length){
@@ -163,7 +169,10 @@ export function installTodayWorkspaceV38():{installed:boolean}{
       if(typeof requestAnimationFrame==="function")requestAnimationFrame(flush);
       else setTimeout(flush,16);
     });
-    observer.observe(plan,{subtree:true,childList:true,characterData:true});
+    // Some completion paths toggle only .pd on an existing row. Track class
+    // changes as well as DOM replacement; ignore unrelated attributes.
+    observer.observe(plan,{subtree:true,childList:true,characterData:true,
+      attributes:true,attributeFilter:["class"]});
     observer.observe(next,{subtree:true,childList:true,characterData:true});
     // Mola paneli sonradan oluşturulabilir. İçindeki geri sayım değişince
     // yalnız focusDirty tetiklenir, program/görevler tekrar taranmaz.
