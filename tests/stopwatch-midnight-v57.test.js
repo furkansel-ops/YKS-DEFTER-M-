@@ -101,6 +101,7 @@ test("v57 next-day restart never carries prior day's paused hours",()=>{
 });
 test("v57 catches up after long sleep and month boundary without overwriting old dates",()=>{
  const h=harness({credited:9});
+ h.S.pomoMin["2026-10-14"]=9;h.S.pomoSubj["2026-10-14"]={Matematik:9};
  h.at(2026,11,1,1,0);
  const changed=h.env.yksStopwatchEnsureDay();
  assert.equal(changed,true);
