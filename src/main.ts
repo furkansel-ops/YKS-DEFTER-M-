@@ -210,17 +210,6 @@ document.documentElement.dataset.playStorePrivacy=playStoreShell.installed?"read
 void import("./ui/startup-extras").catch(console.error);
 const v43Runtime=installV43SafeRuntime();
 document.documentElement.dataset.v43RuntimeHost=String(v43Runtime.installed);
-/* Odak hızlı ders/görev seçici isteğe bağlı bir katmandır;
-   ana ekran veya kritik v43 başlangıcı bu katmanı beklemez. */
-void v43Runtime.ready.then(()=>import("./ui/focus-smart-picker-v58"))
-  .then(({installFocusSmartPickerV58})=>{
-    const focusPicker=installOptional("focus-smart-picker-v58",()=>installFocusSmartPickerV58(),{installed:false,validate:()=>["unavailable"]});
-    document.documentElement.dataset.focusSmartPicker=String(focusPicker.installed);
-  })
-  .catch(error=>{
-    document.documentElement.dataset.focusSmartPicker="false";
-    console.error("Odak hızlı seçici yüklenemedi",error);
-  });
 
 const release=installReleaseRuntime();
 document.documentElement.dataset.v4ReleaseVersion=release.version;
