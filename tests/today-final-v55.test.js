@@ -26,7 +26,7 @@ function harness(){
   replaceChildren(...nodes){this.children=nodes}
   querySelector(sel){return this.special?.[sel]||null}
   querySelectorAll(sel){return sel===".plancell"?this.rows||[]:sel==="button"?this.buttons||[]:[]}
-  contains(node){return this===node}
+  contains(node){return this===node||(this.rows||[]).includes(node)}
  }
  const nodes=new Map(),observers=[],routes=[];
  const add=(id,value="")=>{const e=new Fake(id,value);nodes.set(id,e);return e};
@@ -132,4 +132,36 @@ test("v55 mobile view is compact, theme compatible, preserves all native Today s
  assert.ok(Buffer.byteLength(html,"utf8")<=180000);
  assert.doesNotMatch(workspace,/localStorage|setDoc\(|updateDoc\(|save\(|fetch\(|S\.weeks|innerHTML/);
  assert.doesNotMatch(css,/(position:\s*fixed|overflow-y:\s*auto|display:\s*none\s*!important)/);
+});
+
+test("v56 re-rendered same-title tasks bind to the new saved-program rows",()=>{
+ const h=harness();
+ h.ctx.install();
+ const originalCard=h.nodes.get("todayFreshTaskList").children[0];
+ const replacements=h.rows.map(old=>{
+  const row=new old.constructor();
+  row.className=old.className;
+  row.attributes={...old.attributes};
+  row.special=old.special;
+  row.addEventListener("click",()=>row.classList.toggle("pd"));
+  return row;
+ });
+ h.plan.rows=replacements;
+ h.observers[0].fn([{target:h.plan}]);
+ const newCard=h.nodes.get("todayFreshTaskList").children[0];
+ assert.notEqual(newCard,originalCard,"same text must not preserve stale handlers");
+ newCard.children[0].click();
+ assert.equal(replacements[4].clicks,1,"new row owns completion");
+ assert.equal(h.rows[4].clicks,0,"detached row must never be clicked");
+});
+test("v56 completion class changes immediately refresh the task count",()=>{
+ const h=harness();
+ h.ctx.install();
+ const planObservation=h.observers[0].observed.find(x=>x.id==="todayPlan");
+ assert.equal(planObservation.opts.attributes,true);
+ assert.ok(planObservation.opts.attributeFilter.includes("class"));
+ h.rows[4].classList.toggle("pd");
+ h.observers[0].fn([{target:h.rows[4],type:"attributes",attributeName:"class"}]);
+ assert.equal(h.nodes.get("todayFreshTaskCount").textContent,"5 / 7 tamamlandı");
+ assert.equal(h.nodes.get("todayFreshWorkBadge").textContent,"2 görev kaldı");
 });
