@@ -5,7 +5,7 @@ const path=require("node:path");
 const root=path.resolve(__dirname,".."),read=name=>fs.readFileSync(path.join(root,name),"utf8");
 const picker=read("src/ui/focus-smart-picker-v58.ts");
 const css=read("src/ui/focus-smart-picker-v58.css");
-const host=read("src/ui/v43-safe-runtime.ts");
+const host=read("src/ui/focus-session-guard-v43.ts");
 
 test("v58 optional picker loads after v43 focus guard without blocking application startup",()=>{
   assert.match(host,/import\("\.\/focus-smart-picker-v58"\)/);
