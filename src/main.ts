@@ -214,7 +214,7 @@ document.documentElement.dataset.v43RuntimeHost=String(v43Runtime.installed);
    ana ekran veya kritik v43 başlangıcı bu katmanı beklemez. */
 void v43Runtime.ready.then(()=>import("./ui/focus-smart-picker-v58"))
   .then(({installFocusSmartPickerV58})=>{
-    const focusPicker=installOptional("focus-smart-picker-v58",()=>installFocusSmartPickerV58(),{installed:false});
+    const focusPicker=installOptional("focus-smart-picker-v58",()=>installFocusSmartPickerV58(),{installed:false,validate:()=>["unavailable"]});
     document.documentElement.dataset.focusSmartPicker=String(focusPicker.installed);
   })
   .catch(error=>{
