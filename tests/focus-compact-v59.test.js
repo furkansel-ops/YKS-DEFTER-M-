@@ -27,8 +27,8 @@ test("v59 keeps existing task, topic and goal elements and underlying save behav
 });
 test("v59 subject expansion, recent shortcut and selected plan remain accessible",()=>{
  assert.match(compact,/all\.addEventListener\("click"/);
- assert.match(compact,/search\.focus/);
- assert.match(compact,/search\.dispatchEvent\(new Event\("input",\{bubbles:true\}\)\)/);
+ assert.match(compact,/search!\.focus/);
+ assert.match(compact,/search!\.dispatchEvent\(new Event\("input",\{bubbles:true\}\)\)/);
  assert.match(compact,/#pomoSubjPick \.chip, \.v58-recent-chip/);
  assert.match(compact,/if\(task\.value&&plan\.querySelector\("\.v58-plan-item\.on"\)\)/);
  assert.match(css,/#pomo \.v59-compact:not\(\.v59-subject-open\) #pomoSubjPick\{display:flex!important/);
