@@ -81,10 +81,26 @@
       pomoSubject=x.subject||pomoSubject;pomoTask=x.task||"";if(typeof pomoTopic!=="undefined")pomoTopic=x.topic||"";
       if(x.mode==="sw"){
         const watch=sw(),now=Date.now(),elapsed=Math.min(604800000,Math.max(0,x.elapsed+(x.state==="running"?now-x.savedAt:0)));
-        const priorElapsed=historyElapsed;
-        watch.cr=Math.max(credited,same?watch.cr||0:0);watch.acc=elapsed;watch.start=x.state==="running"?now:0;watch.run=x.state==="running";
-        swCreditElapsed(elapsed);
-        if(x.state==="paused"&&elapsed>priorElapsed){swHistoryAdd(elapsed-priorElapsed,pomoSubject,x.savedAt-(elapsed-priorElapsed),x.savedAt);meta.historyElapsed=elapsed;}
+        // A worker can return a stale snapshot containing yesterday's hours.
+        // Always close the calendar day before restoring it.
+        const startOfDay=new Date(now);startOfDay.setHours(0,0,0,0);
+        const oldSnapshot=!!(x.startedAt&&x.startedAt<startOfDay.getTime()&&
+          typeof window.yksStopwatchEnsureDay==="function");
+        if(oldSnapshot)window.yksStopwatchEnsureDay(now);
+        const localElapsed=oldSnapshot?swElapsed():0;
+        const adjustedElapsed=oldSnapshot
+          ?Math.max(localElapsed,Math.min(now-startOfDay.getTime(),
+            Math.max(0,elapsed-(startOfDay.getTime()-x.startedAt))))
+          :elapsed;
+        const priorElapsed=oldSnapshot?Math.min(localElapsed,adjustedElapsed):historyElapsed;
+        watch.cr=oldSnapshot?Math.max(0,Number(watch.cr)||0):Math.max(credited,same?watch.cr||0:0);
+        watch.acc=adjustedElapsed;watch.start=x.state==="running"?now:0;watch.run=x.state==="running";
+        swCreditElapsed(adjustedElapsed);
+        if(x.state==="paused"&&adjustedElapsed>priorElapsed){
+          const end=oldSnapshot?now:x.savedAt;
+          swHistoryAdd(adjustedElapsed-priorElapsed,pomoSubject,end-(adjustedElapsed-priorElapsed),end);
+          meta.historyElapsed=adjustedElapsed;
+        }
         S.focus.mode="sw";save();renderSw();renderSwHistory();
       }else{
         let savedCredit=0;try{const saved=JSON.parse(localStorage.getItem(RUNTIME)||"null");if(same)savedCredit=saved?.credited||0;}catch(_){}
@@ -181,6 +197,11 @@
   window.addEventListener("pagehide",checkpoint);
   window.addEventListener("pageshow",event=>{if(event.persisted){reconciling=false;void reconcile();}});
   window.addEventListener("yks:notification-settings",()=>publish());
+  window.addEventListener("yks:stopwatch-day-changed",()=>{
+    serial++;
+    // Rotate notification session ID; do not reset student study totals.
+    meta={revision};saveMeta();publish(snapshot("sw"));
+  });
   function installUi(){
     const host=document.querySelector("#pomo .v29-session-setup");if(!host)return;
     const panel=document.createElement("div");panel.id="focusNotificationControls";panel.innerHTML='<button type="button" class="btn ghost tiny" id="focusNotificationEnable">Bildirimden kontrol et</button><p class="hint" id="focusNotificationStatus" role="status">Süreyi bildirimden duraklatıp devam ettirebilirsin. Uygulama uyutulursa bitiş alarmı gecikebilir.</p>';
