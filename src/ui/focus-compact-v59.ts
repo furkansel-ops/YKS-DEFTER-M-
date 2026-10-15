@@ -44,10 +44,10 @@ export function installFocusCompactV59(setup:HTMLElement,plan:HTMLElement):boole
     all.textContent=open?"Dersleri daralt":"Tüm dersler";
     all.setAttribute("aria-expanded",open?"true":"false");
     if(open){
-      search.focus({preventScroll:true});
+      search!.focus({preventScroll:true});
     }else{
-      search.value="";
-      search.dispatchEvent(new Event("input",{bubbles:true}));
+      search!.value="";
+      search!.dispatchEvent(new Event("input",{bubbles:true}));
     }
   }
   all.addEventListener("click",()=>setExpanded(!setup.classList.contains("v59-subject-open")));
