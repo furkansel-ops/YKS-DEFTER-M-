@@ -64,6 +64,7 @@ export function installFocusCompactV59(setup:HTMLElement,plan:HTMLElement):boole
     },0);
   });
 
+  setup.classList.add("v59-compact");
   setup.dataset.v59Compact="ready";
   return true;
 }
