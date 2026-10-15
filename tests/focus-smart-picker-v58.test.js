@@ -5,10 +5,10 @@ const path=require("node:path");
 const root=path.resolve(__dirname,".."),read=name=>fs.readFileSync(path.join(root,name),"utf8");
 const picker=read("src/ui/focus-smart-picker-v58.ts");
 const css=read("src/ui/focus-smart-picker-v58.css");
-const main=read("src/main.ts");
+const host=read("src/ui/v43-safe-runtime.ts");
 
 test("v58 optional picker loads after v43 focus guard without blocking application startup",()=>{
-  assert.match(main,/void v43Runtime\.ready\.then\(\(\)=>import\("\.\/ui\/focus-smart-picker-v58"\)\)/);
+  assert.match(host,/import\("\.\/focus-smart-picker-v58"\)/);
   assert.match(picker,/export function installFocusSmartPickerV58/);
   assert.match(picker,/if\(!setup\|\|!subjectStep\|\|!search\|\|!taskSelect\|\|!topicSelect\)return/);
   assert.match(picker,/if\(document\.getElementById\("v58PlanPicker"\)\)/);
