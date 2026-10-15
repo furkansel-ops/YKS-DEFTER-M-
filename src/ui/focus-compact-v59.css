@@ -1,0 +1,37 @@
+/* v59 compact focus setup: only one visible row of subjects by default. */
+#pomo .v29-session-setup.v59-compact{padding:12px 14px!important;margin:9px 0 12px;border-radius:16px!important;}
+#pomo .v59-compact .v29-setup-head{align-items:center;gap:8px;}
+#pomo .v59-compact .v29-setup-head .hint{display:none!important;}
+#pomo .v59-compact .v29-setup-head .eyebrow{color:var(--label)!important;font-weight:800!important;font-size:13px!important;letter-spacing:0!important;text-transform:none!important;}
+#pomo .v59-compact .v46-focus-prep{margin-top:9px;}
+#pomo .v59-compact .v46-focus-prep-head{display:none!important;}
+#pomo .v59-compact .v46-subject-step{padding:0!important;background:transparent!important;border:0!important;box-shadow:none!important;}
+#pomo .v59-compact .v46-step-head{margin-bottom:7px;justify-content:space-between;gap:8px;}
+#pomo .v59-compact .v46-step-head .v46-step-no,#pomo .v59-compact .v46-subject-step .v46-step-head small{display:none!important;}
+#pomo .v59-compact .v46-subject-step .v46-step-head b{font-size:12px!important;}
+#pomo .v59-all-subjects{flex:0 0 auto;min-height:32px;border:1px solid var(--sep);border-radius:9px;background:var(--glass);padding:5px 10px;color:var(--label);font:inherit;font-size:10.5px;font-weight:750;cursor:pointer;}
+#pomo .v59-compact:not(.v59-subject-open) #pomoSubjPick{display:flex!important;flex-wrap:nowrap!important;overflow-x:auto!important;overflow-y:hidden!important;max-height:none!important;gap:7px!important;overscroll-behavior-x:contain;scroll-snap-type:x:proximity;scrollbar-width:thin;padding:2px 1px 4px!important;}
+#pomo .v59-compact:not(.v59-subject-open) #pomoSubjPick .chip{width:auto!important;flex:0 0 auto!important;min-height:37px!important;max-width:185px!important;padding:8px 12px!important;border-radius:10px!important;white-space:nowrap!important;scroll-snap-align:start;font-size:11px!important;}
+#pomo .v59-compact:not(.v59-subject-open) #pomoSubjPick .chip.on{padding-right:30px!important;}
+#pomo .v59-compact:not(.v59-subject-open) .v46-subject-search{display:none!important;}
+#pomo .v59-compact:not(.v59-subject-open) .v58-recent-subjects{display:none!important;}
+#pomo .v59-compact.v59-subject-open #pomoSubjPick{max-height:185px!important;overflow-y:auto!important;}
+#pomo .v59-compact .v46-selected-subject{margin-top:5px;min-height:24px;padding:3px 0;background:transparent!important;font-size:10px;}
+#pomo .v59-compact .v46-selected-subject[data-state="ready"]{color:var(--success,#23875a);}
+#pomo .v59-fold{display:block;margin-top:7px;padding:0;border:1px solid var(--sep);border-radius:11px;background:color-mix(in srgb,var(--fill) 48%,var(--glass));overflow:hidden;}
+#pomo .v59-fold>summary{display:flex;align-items:center;justify-content:space-between;gap:9px;min-height:38px;padding:9px 12px;color:var(--label);font-size:11.5px;font-weight:740;cursor:pointer;list-style:none;}
+#pomo .v59-fold>summary::-webkit-details-marker{display:none;}
+#pomo .v59-fold>summary::after{content:"⌄";font-size:17px;color:var(--label-2);transition:transform .15s ease;}
+#pomo .v59-fold[open]>summary::after{transform:rotate(180deg);}
+#pomo .v59-fold>summary:focus-visible,#pomo .v59-all-subjects:focus-visible{outline:2px solid var(--accent,#6476f7);outline-offset:-2px;}
+#pomo .v59-fold[open]>summary{border-bottom:1px solid var(--sep);}
+#pomo .v59-plan-fold .v58-plan-picker{margin:0!important;padding:10px!important;border:0!important;border-radius:0!important;box-shadow:none!important;background:transparent!important;}
+#pomo .v59-plan-fold .v58-plan-head{margin-bottom:8px;}
+#pomo .v59-plan-fold .v58-plan-hint{display:none!important;}
+#pomo .v59-plan-fold .v58-plan-list{max-height:205px;}
+#pomo .v59-extra-fold>.v46-secondary-grid{margin:9px!important;}
+#pomo .v59-extra-fold>.v29-goal-fields{margin:0 9px 9px!important;}
+#pomo .v59-extra-fold>#v29SetupLine{margin:0 10px 9px!important;}
+#pomo .v59-compact .v43-focus-start-gate{margin-top:8px;font-size:11.5px;padding:8px 10px;}
+@media(max-width:420px){#pomo .v29-session-setup.v59-compact{padding:10px 11px!important;}#pomo .v59-fold>summary{min-height:39px;}#pomo .v59-compact .v46-step-head{display:flex!important;}}
+@media(prefers-reduced-motion:reduce){#pomo .v59-fold>summary::after{transition:none;}}
