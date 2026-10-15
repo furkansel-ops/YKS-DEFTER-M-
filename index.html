@@ -10,7 +10,6 @@
 <link rel="manifest" href="manifest.webmanifest?v=4.1.0-r20">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
-
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" id="metaTheme" content="#EFF2F8">
 <title>YKS Defterim</title>
@@ -157,7 +156,6 @@
     #home #todayFreshStart .today-fresh-days strong{font-size:30px}
     #home #todayFreshStart .today-fresh-exam-label{font-size:10px}
   }
-
   /* v37: quote and progress are one daily overview section, mobile-first. */
   #home #todayFreshStart .today-fresh-daily{
     display:flex;flex-direction:column;gap:10px;min-width:0;
@@ -280,7 +278,6 @@
   @media(prefers-reduced-motion:reduce){
     #home #todayFreshStart .today-fresh-progress-track i{transition:none}
   }
-
   /* v38 / çalışma merkezi — eski DOM'dan salt-okunur yansıtma ve mevcut eylemleri çağırma */
   #home #todayFreshStart .today-fresh-work-center{display:flex;flex-direction:column;gap:10px;min-width:0}
   #home #todayFreshStart .today-fresh-section-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:2px 2px 0}
@@ -334,7 +331,6 @@
     #home #todayFreshStart .today-fresh-work-pair{grid-template-columns:1fr}
     #home #todayFreshStart .today-fresh-work-card{min-height:120px}
   }
-
   /* v39 / kompakt, açılır gün sonu değerlendirmesi — küçük ekranda tek kart */
   #home #todayFreshStart .today-fresh-review{min-width:0;overflow:hidden;border:1px solid #dbe6f7;border-radius:17px;background:#fff;box-shadow:0 8px 24px -22px #224d8f}
   #home #todayFreshStart .today-fresh-review-summary{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:76px;padding:14px 16px;cursor:pointer;list-style:none;box-sizing:border-box}
@@ -372,7 +368,6 @@
   @media(prefers-reduced-motion:reduce){
     #home #todayFreshStart .today-fresh-review-chevron{transition:none}
   }
-
   /* v40: weekly rhythm + recent sessions / 2 panels, 1 compact mobile column */
   #home #todayFreshStart .today-fresh-activity{min-width:0;padding:14px 15px;border:1px solid #dfe8f7;border-radius:17px;background:#fff;box-shadow:0 8px 24px -22px #224d8f}
   #home #todayFreshStart .today-fresh-activity-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
@@ -422,10 +417,8 @@
     #home #todayFreshStart .today-fresh-week-value{font-size:8px}
     #home #todayFreshStart .today-fresh-activity-heading h2{font-size:15px}
   }
-
 </style>
 <link rel="stylesheet" href="./app.css" id="themes20260821">
-
   <link rel="stylesheet" href="./modules/study-intelligence-v5.css?v=4.1.0-r1">
 </head><body>
 <div id="yksBootShell" aria-label="YKS Defterim açılıyor">
@@ -452,23 +445,18 @@
     </filter>
   </defs>
 </svg>
-
 <header class="navbar">
   <span class="nt" id="navTitle">Bugün</span>
   <span class="navtools"><button class="themebtn searchbtn" type="button" onclick="openGlobalSearch()" aria-label="Uygulamada ara">⌕</button></span>
 </header>
-
 <div class="wrap" id="mainWrap">
 
-
 <section id="home" class="screen active">
-  
   <div id="todayFreshStart" class="today-fresh-start" aria-label="Yeni Bugün ekranı">
     <header class="today-fresh-title">
       <h1>Bugün</h1>
       <time id="todayFreshDate"></time>
     </header>
-    
     <section class="today-fresh-welcome" aria-label="Günlük karşılama ve YKS geri sayımı">
       <div class="today-fresh-hello">
         <span class="today-fresh-eyebrow">GÜNÜN BAŞLANGICI</span>
@@ -481,7 +469,6 @@
         <small id="todayFreshExamDate"></small>
       </div>
     </section>
-    
     <section class="today-fresh-daily" aria-label="Günün özeti">
       <div class="today-fresh-quote" id="todayFreshQuoteCard">
         <div class="today-fresh-quote-symbol" aria-hidden="true">❝</div>
@@ -515,7 +502,6 @@
         </div>
       </section>
     </section>
-    
     <section id="todayFreshWorkCenter" class="today-fresh-work-center" aria-label="Çalışma merkezi">
       <div class="today-fresh-section-heading">
         <h2>Çalışma Merkezi</h2>
@@ -549,9 +535,7 @@
         <div id="todayFreshTaskList" class="today-fresh-task-list" aria-live="polite"><p class="today-fresh-task-empty">Görevler hazırlanıyor…</p></div>
       </section>
     </section>
-    
 <details id="todayFreshDailyProgress" class="today-daily-progress"><summary class="today-daily-progress-head"><h2>Günlük ilerleme özeti</h2><small id="todayDailyProgressHeadline">—</small></summary><div id="todayDailyProgressContent"></div></details>
-
     <details id="todayFreshSubjects" class="today-fresh-subjects today-fresh-fold" aria-label="Bugünkü ders dağılımı ve çalışma istatistikleri">
       <summary class="today-fresh-subjects-heading">
         <div><span>BUGÜNKÜ ÇALIŞMAN</span><h2>Ders dağılımın</h2></div>
@@ -581,7 +565,6 @@
       </div>
       <p id="todayFreshSubjectsNote" class="today-fresh-subject-note">Odak süreleri mevcut kayıtlardan hesaplanıyor.</p>
     </details>
-    
     <details id="todayFreshInsights" class="today-fresh-insights today-fresh-fold" aria-label="Bekleyen tekrarlar ve eksik konular">
       <summary class="today-fresh-insights-heading">
         <div><span>KONU TAKİBİ</span><h2>Tekrarlar ve eksikler</h2></div>
@@ -611,7 +594,6 @@
       <p class="today-fresh-insight-footnote">Eksikler yalnızca son 90 günün yanlışları veya kaydettiğin konu durumu ve güven düzeyine göre gösterilir.</p>
       </div>
     </details>
-    
     <details id="todayFreshActivity" class="today-fresh-activity today-fresh-fold" aria-label="Çalışma ritmi ve son çalışmalar">
       <summary class="today-fresh-activity-heading">
         <div><span>ÇALIŞMA GEÇMİŞİ</span><h2>Haftalık ritmin</h2></div>
@@ -635,7 +617,6 @@
           </div>
         </section>
       </div>
-      
       <section id="todayFreshHistory" class="today-history" aria-label="Çalışma takvimi ve haftalık ilerleme">
         <div class="today-history-heading">
           <div><span>SON 12 HAFTA</span><h3>Çalışma takvimi</h3></div>
@@ -659,7 +640,6 @@
         <p id="todayFreshScoreNote" class="today-history-note">Bu gösterge YKS sınav puanı değildir. Yalnızca kaydedilmiş çalışma ve mevcut hedeflerine dayanır.</p>
       </section>
     </details>
-    
     <details id="todayFreshReview" class="today-fresh-review">
       <summary class="today-fresh-review-summary">
         <span class="today-fresh-review-title">
@@ -689,7 +669,6 @@
       </div>
     </details>
   </div>
-
   <!-- Bugün v33 · Aşama 1: tek, görünür üst görünüm. -->
   <div class="v33-screen-heading">
     <h2>Bugün</h2>
@@ -714,7 +693,6 @@
     </div>
   </div>
   <div class="sozbox" id="sozBox"></div>
-
   <section class="v33-home-progress" aria-label="Bugünkü ilerleme">
     <div class="v33-progress-primary">
       <div class="v33-progress-ring" id="v33ProgressRing" aria-hidden="true"><span id="v33ProgramRatio">—</span></div>
@@ -724,7 +702,6 @@
         <div class="v33-progress-track" id="v33ProgressBar" role="progressbar" aria-label="Günlük program tamamlanma yüzdesi" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i></i></div>
       </div>
     </div>
-    
         <div class="today-summary-grid v33-progress-metrics">
       <div class="today-summary"><span>Soru</span><b id="todayHubQ">0</b><small id="todayHubQSub">—</small></div>
       <div class="today-summary"><span>Odak</span><b id="todayHubMin">0 dk</b><small id="todayHubMinSub">—</small></div>
@@ -750,7 +727,6 @@
     <button class="btn ghost tiny" onclick="openBrief(true)">Günün özeti</button>
     <button class="btn green tiny" id="gunBtn" onclick="openGun()">Gün ekranını aç</button>
   </div>
-
   <section class="today-hub" id="todayHub" aria-label="Bugün kontrol merkezi">
     <div class="today-hub-head">
       <div><div class="eyebrow" id="todayHubEyebrow">Şu ana kadar</div><h2 id="todayHubTitle">Bugün</h2></div>
@@ -782,17 +758,13 @@
       <div class="today-note-row"><textarea id="todayReflectionInput" maxlength="3000" rows="6" placeholder="Detaylı gün sonu raporu… Bugün neler çalıştın? Nerede zorlandın? Neyi iyi yaptın? Yarın neye odaklanacaksın?"></textarea><button class="btn ghost tiny" type="button" onclick="saveTodayReflection()">Kaydet ve koçuma gönder</button></div>
     </div>
   </section>
-
   <div class="morning" id="morningBox" style="display:none;"></div>
   <div class="restcard" id="dgBanner" style="display:none;"></div>
-
   <div class="restcard" id="restBanner" style="display:none;"></div>
-
   <div class="banner" id="backupBanner">
     Uzun süredir yedek almadın. Tarayıcı verisi silinirse her şey kaybolur —
     <b onclick="v30OpenMore('veri','v30DataTop')">şimdi yedek al</b>.
   </div>
-
   <div class="home-goals" id="homeGoals">
     <div class="home-goals-head"><div class="section-label">Kişisel özet</div><button class="home-goals-edit" onclick="go('more');setMoreTab('ayar')">Hedefleri düzenle</button></div>
     <div class="home-goals-grid">
@@ -802,23 +774,17 @@
       <div class="goalmini review"><div class="gl">Tekrar</div><div class="gv" id="homeGoalRev">0</div><div class="gs" id="homeGoalRevSub">Bekleyen yok</div></div>
     </div>
   </div>
-
   <h2>Bugün ne çalışayım?</h2>
   <div class="card" id="suggestBox"></div>
-
   <h2>Akıllı analiz</h2>
   <div class="card" id="smartInsightBox"></div>
-
   <h2>Analiz özeti</h2>
   <div class="card" id="homeDeepAnalysis"></div>
 
-
   <h2>Deneme sonrası görevler</h2>
   <div class="card" id="examTasksBox"></div>
-
   <h2 id="todayPlanTitle">Bugünün programı</h2>
   <div class="card" id="todayPlan"></div>
-
   <button class="foldhead compact-fold" id="fh_soz" onclick="toggleFold('soz')">
     <span class="ft">Haftalık hedef</span>
     <span class="fi"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
@@ -838,7 +804,6 @@
     </div>
     <div class="card" id="ctBox"></div>
   </div>
-
   <div class="card quick-entry">
     <div class="section-label">Hızlı soru girişi</div>
     <label>Bugün çözdüğün toplam soru</label>
@@ -848,7 +813,6 @@
     </div>
     <p class="lead" id="targetLabel" style="margin:14px 0 0;font-size:14.5px;"></p>
   </div>
-
   <button class="foldhead" id="fh_konu" onclick="toggleFold('konu')">
     <span class="ft">Konu bazlı soru</span>
     <span class="fi"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
@@ -867,7 +831,6 @@
     </div>
     <div class="card" id="tsBox"></div>
   </div>
-
   <button class="foldhead" id="fh_ozet" onclick="toggleFold('ozet')">
     <span class="ft">Haftalık özet ve hedef</span>
     <span class="fi"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
@@ -889,7 +852,6 @@
       <p class="quote" id="quote"></p>
     </div>
   </div>
-
   <button class="foldhead" id="fh_gunluk" onclick="toggleFold('gunluk')">
     <span class="ft">Günün notu</span>
     <span class="fi"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
@@ -903,13 +865,11 @@
   </div>
 </section>
 
-
 <section id="program" class="screen">
   <div class="seg">
     <button id="pSegWeek" class="on" onclick="setProgTab('week')">Haftalık plan</button>
     <button id="pSegCal" onclick="setProgTab('cal')">Takvim</button>
   </div>
-
   <button class="foldhead" id="fh_kamp" onclick="toggleFold('kamp')">
     <span class="ft">Hazır kamp programları</span>
     <span class="fi"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
@@ -919,7 +879,6 @@
     <div class="chips" id="campChips"></div>
     <div class="card" id="campBox"></div>
   </div>
-
   <button class="foldhead" id="fh_sablon" onclick="toggleFold('sablon')">
     <span class="ft">Plan şablonları</span>
     <span class="fi"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
@@ -935,7 +894,6 @@
     </div>
   </div>
 
-
   <div id="progWeek">
     <div class="plantitle">Haftalık plan · Klasik+</div>
     <div class="weeknav">
@@ -943,23 +901,18 @@
       <div class="wk" onclick="thisWeek()"><span id="wkLabel"></span><small id="wkSub"></small></div>
       <button onclick="shiftWeek(1)">›</button>
     </div>
-
     <div class="program-week-overview" id="programWeekOverview"></div>
-
     <div class="scroller"><div class="gtable" id="gridR"></div></div>
     <div class="rowtools">
       <button class="btn ghost tiny" onclick="addRow('r')">+ Rutin satırı</button>
       <button class="btn ghost tiny" onclick="delRow('r')">− Son satırı sil</button>
     </div>
-
     <div class="scroller"><div class="gtable" id="gridS"></div></div>
     <div class="rowtools">
       <button class="btn ghost tiny" onclick="addRow('s')">+ Ders satırı</button>
       <button class="btn ghost tiny" onclick="delRow('s')">− Son satırı sil</button>
     </div>
-
     <div class="fidbar" id="weekFid"></div>
-
     <div class="rowtools">
       <button class="btn ghost tiny" onclick="copyPrevWeek()">Geçen haftayı kopyala</button>
       <button class="btn ghost tiny" onclick="copyThisWeekToNext()">Bu haftayı gelecek haftaya kopyala</button>
@@ -968,7 +921,6 @@
     </div>
     <p class="hint" style="padding:0 4px;">Hücreye doğrudan yaz — anında kaydedilir. Dolu bir hücreye <b>uzun bas</b>: Düzenle, Kopyala, Yarına taşı veya Sil. Bugünün sütunu vurgulanır; üstte günlük ve haftalık ilerlemeyi görebilirsin.</p>
   </div>
-
   <div id="progCal" style="display:none;">
     <div class="card">
       <div class="calnav">
@@ -988,7 +940,6 @@
   </div>
 </section>
 
-
 <section id="topics" class="screen">
   <div class="card flat v26-topic-tools">
     <div class="row2">
@@ -1004,20 +955,15 @@
     </div>
     <p class="hint" id="searchInfo" style="margin-bottom:0;"></p>
   </div>
-
   <h2>Konular özeti</h2>
   <div class="card" id="v26TopicOverview"></div>
-
   <h2>Konu hedefleri</h2>
   <div class="card v4-topic-goals" id="v4TopicGoals"></div>
   <div class="card" id="v26TopicAttention"></div>
-
   <h2>Müfredat projeksiyonu</h2>
   <div class="card" id="curBox"></div>
-
   <h2>Tekrar zamanı<span class="cnt" id="revCount">0</span></h2>
   <div class="card" id="reviewBox"></div>
-
   <div class="seg">
     <button id="segTYT" class="on" onclick="setExamTab('TYT')">TYT</button>
     <button id="segAYT" onclick="setExamTab('AYT')">AYT</button>
@@ -1025,13 +971,11 @@
   </div>
   <div id="subjectList"></div>
   <p class="note">Yıldızlar güven puanın (1–5). Bir konuyu 3. kademeye aldığında 3., 7. ve 21. günlerde tekrar listesine düşer. Risk etiketi; yanlış, tekrar, konu durumu, ders deneme performansı ve çalışma verisini birlikte değerlendirir.</p>
-
   <div class="v26-topic-modal" id="v26TopicModal" aria-hidden="true" onclick="if(event.target===this)closeTopicDetail()">
     <div class="v26-topic-sheet" role="dialog" aria-modal="true" aria-labelledby="v26TopicTitle">
       <div id="v26TopicDetail"></div>
     </div>
   </div>
-
   <button class="foldhead" id="fh_kaynak" onclick="toggleFold('kaynak')" data-adv>
     <span class="ft">Konu kaynakları</span>
     <span class="fi"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
@@ -1049,7 +993,6 @@
     </div>
     <div class="card" id="trBox"></div>
   </div>
-
   <button class="foldhead" id="fh_hedef" onclick="toggleFold('hedef')">
     <span class="ft">Konu bitiş hedefleri</span>
     <span class="fi"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
@@ -1069,7 +1012,6 @@
   </div>
 </section>
 
-
 <section id="deneme" class="screen">
 <section id="errorJournal" class="error-journal" aria-labelledby="errorJournalTitle">
   <div class="error-journal-head">
@@ -1086,7 +1028,6 @@
   <div class="card flat error-journal-tools"><input id="errorJournalSearch" type="search" placeholder="Ders, konu veya not ara" oninput="errorJournalRender()"><select id="errorJournalFilter" onchange="errorJournalRender()"><option value="all">Tüm hata türleri</option><option>Bilgi eksiği</option><option>Dikkat</option><option>İşlem</option><option>Yorum</option><option>Süre</option></select></div>
   <div id="errorJournalList" class="error-journal-list"></div>
 </section>
-
 
   <div class="v315-dashboard" id="v315Dashboard">
     <div class="card">
@@ -1137,7 +1078,6 @@
       </div>
     </div>
   </div>
-
   <div class="card v315-exam-form-card" id="v315ExamFormCard">
     <div class="seg">
       <button id="dSegTYT" class="on" onclick="setDenemeType('TYT')">TYT</button>
@@ -1178,7 +1118,6 @@
     </div>
     <button class="btn green" onclick="netMode?addDenemeByNet():addDeneme()">Denemeyi kaydet</button>
   </div>
-
   <div class="card" id="reflBox" style="display:none;">
     <p class="eyebrow" style="color:var(--time);">Deneme sonrası · 3 kısa soru</p>
     <label>En çok hangi derste zorlandın?</label>
@@ -1196,14 +1135,12 @@
       <button class="btn ghost small" onclick="skipRefl()">Şimdi değil</button>
     </div>
   </div>
-
   <h2>Son deneme detayı</h2>
   <div class="card">
     <div class="seg" style="margin-bottom:12px;"><button id="v27w5" class="on" onclick="setV27Window(5)">Son 5</button><button id="v27w10" onclick="setV27Window(10)">Son 10</button></div>
     <div id="v27Overview"></div>
   </div>
   <div class="card" id="v27Latest"></div>
-
   <h2>Analiz</h2>
   <div class="seg pent">
     <button id="an_trend" class="on" onclick="setAnaTab('trend')">Trend</button>
@@ -1212,7 +1149,6 @@
     <button id="an_puan" onclick="setAnaTab('puan')">Puan</button>
     <button id="an_verim" onclick="setAnaTab('verim')">Verim</button>
   </div>
-
   <div id="anp_trend">
     <div class="card"><div class="chart-wrap"><canvas id="chart"></canvas></div>
       <p class="hint">Kesikli turuncu çizgi hedef netin (Ayarlar'dan girilir).</p></div>
@@ -1227,7 +1163,6 @@
     <h2>Hedef ve veri desteği</h2><div class="v24-grid"><div class="card" id="v24TargetGap"></div><div class="card" id="v24Confidence"></div></div>
     <h2>Deneme dayanıklılığı</h2><div class="card" id="v24Endurance"></div>
   </div>
-
   <div id="anp_ders" style="display:none;">
     <div class="card">
       <p class="eyebrow" id="subjType"></p>
@@ -1237,7 +1172,6 @@
     </div>
     <h2>Ders bazlı gelişim özeti</h2><div class="card v24-table" id="v24SubjectGrowth"></div>
   </div>
-
   <div id="anp_kar" style="display:none;">
     <div class="card">
       <div class="row2">
@@ -1247,7 +1181,6 @@
       <div id="anaCmpBox" style="margin-top:14px;"></div>
     </div>
   </div>
-
   <div id="anp_puan" style="display:none;">
     <section class="v321-target-center" aria-labelledby="v321TargetTitle">
       <div class="v321-head"><div><p class="eyebrow">Hedef ve Puan Merkezi</p><h2 id="v321TargetTitle">Netten hedefe tek bakış</h2></div><button class="btn ghost tiny" type="button" onclick="v321RenderTargetCenter()">Yenile</button></div>
@@ -1271,7 +1204,6 @@
       </div>
       <div id="rankBox" style="margin-top:14px;"></div>
     </div>
-
     <h2>Hedef puandan geriye</h2>
     <div class="card">
       <div class="row2">
@@ -1301,16 +1233,13 @@
       </div>
       <div class="card" id="tgBox"></div>
     </div>
-
     <button class="foldhead" id="fh_verim" onclick="toggleFold('verim')">
       <span class="ft">Verimlilik</span>
       <span class="fi"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
     </button>
     <div class="foldbody" id="fb_verim">
     <div class="card" id="effBox"></div>
-
     </div>
-
     <button class="foldhead" id="fh_yayin" onclick="toggleFold('yayin')">
       <span class="ft">Yayınevi karşılaştırması</span>
       <span class="fi"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
@@ -1318,9 +1247,7 @@
     <div class="foldbody" id="fb_yayin">
     <div class="card" id="pubBox"></div>
   </div>
-
     </div>
-
     <button class="foldhead" id="fh_kalib" onclick="toggleFold('kalib')">
       <span class="ft">Gerçek sonuçla ayarla</span>
       <span class="fi"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
@@ -1345,7 +1272,6 @@
       </div>
       <div class="card" id="cbBox"></div>
     </div>
-
     <button class="foldhead" id="fh_kat" onclick="toggleFold('kat')">
       <span class="ft">Katsayılar</span>
       <span class="fi"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
@@ -1367,7 +1293,6 @@
         <button class="btn ghost small" style="width:100%;margin-top:16px;" onclick="saveCoef()">Katsayıları kaydet</button>
       </div>
     </div>
-
   <div id="anp_verim" style="display:none;">
     <h2>İki denemeyi karşılaştır</h2>
     <div class="card">
@@ -1377,34 +1302,27 @@
       </div>
       <div id="cmpBox" style="margin-top:14px;"></div>
     </div>
-
     <h2>Yanlışlar hangi konudan</h2>
     <div class="card">
       <div class="chips" id="wdChips"></div>
       <div id="wdBox" style="margin-top:10px;"></div>
     </div>
-
     <h2>Tekrar eden hatalar</h2>
     <div class="card" id="repBox"></div>
-
     <h2>Yanlış sağlığı</h2>
     <div class="card" id="v22WrongHealth"></div>
     <h2>Konu risk puanı</h2><div class="card" id="v24TopicRisk"></div>
     <h2>Yanlış nedenlerinin değişimi</h2><div class="card" id="v24WrongCauses"></div>
     <h2>Çalışma ↔ sonuç ilişkisi</h2><div class="card" id="v24StudyResult"></div>
     <h2>Soru verimliliği</h2><div class="card v24-table" id="v24QuestionEfficiency"></div>
-
     <h2>Zayıf konu takibi</h2>
     <div class="card" id="weakBox"></div>
-
     <h2>Isı haritası</h2>
     <div class="card" id="heatBox"></div>
-
     <h2>Nereye çalışmalıyım?</h2>
     <div class="card" id="ngBox"></div>
     <div class="card" id="mgBox"></div>
   </div>
-
   <h2>Yanlış konu defteri</h2>
   <div class="card">
     <div class="row2">
@@ -1428,7 +1346,6 @@
     <p class="eyebrow">Yanlış sebepleri (son 60 gün)</p>
     <div id="wkBox" style="margin-top:10px;"></div>
   </div>
-
   <h2>Deneme günü</h2>
   <div class="card">
     <label>Deneme günü</label>
@@ -1440,7 +1357,6 @@
     </select>
     <div id="dgBox" style="margin-top:14px;"></div>
   </div>
-
   <button class="foldhead" id="fh_arsiv" onclick="toggleFold('arsiv')">
     <span class="ft">Yanlış soru arşivi</span>
     <span class="fi"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
@@ -1483,7 +1399,6 @@
       <div class="qagrid" id="qaGrid" style="margin-top:14px;"></div>
     </div>
   </div>
-
   <button class="foldhead" id="fh_gecmis" onclick="toggleFold('gecmis')">
     <span class="ft">Geçmiş denemeler ve notlar</span>
     <span class="fi"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
@@ -1494,15 +1409,12 @@
   </div>
 </section>
 
-
 <section id="pomo" class="screen">
   <div class="seg">
     <button id="segPomo" class="on" onclick="setFocusMode('pomo')">Sayaç</button>
     <button id="segStop" onclick="setFocusMode('sw')">Kronometre</button>
   </div>
-
   <div class="v29-focus-dashboard" id="v29Dashboard"></div>
-
   <div class="card flat v29-session-setup">
     <div class="v29-setup-head"><div><p class="eyebrow" style="margin:0">Oturumu hazırla</p><p class="hint" style="margin:4px 0 0">Ders, konu ve çıktıyı seç; süre kadar ne ürettiğini de takip et.</p></div><button class="btn ghost tiny" onclick="v29ToggleMinimal()">Minimal mod</button></div>
     <p class="eyebrow" style="margin-top:14px">Ders</p>
@@ -1515,16 +1427,13 @@
     </div>
     <p class="v29-setup-line" id="v29SetupLine"></p>
   </div>
-
   <div id="focusPomo">
   <div class="focuscard" id="focusCard" data-phase="work" data-run="idle">
     <div class="fcglow"></div>
-
     <div class="fchead">
       <span class="phasepill" id="pomoMode">Çalışma</span>
       <span class="fcends" id="pomoEnds"></span>
     </div>
-
     <div class="pomo-ring">
       <svg width="228" height="228" viewBox="0 0 228 228">
         <circle class="rtrack" cx="114" cy="114" r="92" fill="none" stroke-width="13"/>
@@ -1536,10 +1445,8 @@
           letter-spacing="-3" fill="var(--ink)" font-family="-apple-system,sans-serif">25:00</text>
       </svg>
     </div>
-
     <div class="dots" id="pomoDots"></div>
     <p class="cyclenote" id="pomoCycle"></p>
-
     <div class="fcctl">
       <button class="ctlbtn" onclick="resetPomo()" aria-label="Sıfırla">
         <svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 109-9 9 9 0 00-6.4 2.6L3 8"/><path d="M3 3v5h5"/></svg>
@@ -1552,7 +1459,6 @@
         <svg viewBox="0 0 24 24"><path d="M5 5.5v13l10-6.5z"/><path d="M18 5v14"/></svg>
       </button>
     </div>
-
     <div class="askbox col" id="pauseBox" style="display:none;">
       <span>Neden ara verdin?</span>
       <div class="v29-reason-grid">
@@ -1576,7 +1482,6 @@
         <button class="btn ghost small" onclick="v29SkipSessionReview()">Geç</button>
       </div>
     </div>
-
     <div class="quickwrap" id="quickWrap">
       <div class="quickhead">
         <span id="quickLabel">Çalışma süresi</span>
@@ -1604,7 +1509,6 @@
       </div>
       <p class="focus-custom-status" id="focusCustomStatus" role="status" aria-live="polite"></p>
     </div>
-
     <div id="goalWrap" style="display:none;">
       <div class="goalrow">
         <div class="bar"><i id="goalBar" style="width:0%"></i></div>
@@ -1612,9 +1516,7 @@
       <p class="hint" id="goalTxt"></p>
     </div>
   </div>
-
   </div>
-
   <div id="focusStop" style="display:none;">
     <div class="focuscard" id="swCard" data-phase="stop" data-run="idle">
       <div class="fcglow"></div>
@@ -1652,21 +1554,16 @@
       </div>
       <p class="sw-session-note" id="swSessionNote">Ders değiştirirsen geçen süre eski derste kalır; kronometre sıfırlanmaz.</p>
     </div>
-
     <h2>Turlar</h2>
     <div class="card" id="swLaps"></div>
-
   </div>
-
 
   <div class="stats">
     <div class="stat"><div class="v" id="pomoTodayMin">0</div><div class="t">dakika bugün</div></div>
     <div class="stat"><div class="v" id="pomoPause">0</div><div class="t">bölünme</div></div>
     <div class="stat"><div class="v" id="pomoTotalAll">0</div><div class="t">saat toplam</div></div>
   </div>
-
   <p class="hint" id="pauseStat" style="text-align:center;margin:-4px 0 12px;"></p>
-
   <section class="focus-manual-entry card" aria-labelledby="manualFocusTitle">
     <div class="focus-manual-head">
       <div><span class="eyebrow">MANUEL KAYIT</span><b id="manualFocusTitle">Çalışma süresi ekle</b><span>Kronometreyi açmadığın veya YPT gibi başka bir yerde tuttuğun süreyi bugüne ekle.</span></div>
@@ -1686,13 +1583,10 @@
     <p class="focus-manual-status" id="manualFocusStatus" role="status" aria-live="polite"></p>
     <p class="hint">Başlangıç saatini boş bırakırsan eklediğin sürenin şimdi bittiği kabul edilir.</p>
   </section>
-
   <h2>Bugünün oturumları</h2>
   <div class="card" id="sessionList"></div>
-
   <h2>Gün sonu özeti</h2>
   <div class="card" id="v29DaySummary"></div>
-
   <button class="foldhead" id="fh_odak2" onclick="toggleFold('odak2')">
     <span class="ft">Odak geçmişi ve analiz</span>
     <span class="fi"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
@@ -1707,7 +1601,6 @@
     <h2>Oturum uzunluğu karşılaştırması</h2><div class="card" id="v29LengthCompare"></div>
     <h2>Odak serileri</h2><div class="card" id="v29Streaks"></div>
   </div>
-
   <h2>Nefes egzersizi</h2>
   <div class="card">
     <p class="lead" style="font-size:14.5px;margin:0 0 12px;">Deneme öncesi ya da tıkandığında iki dakika. Dörtlü ritim: al · tut · ver · tut.</p>
@@ -1717,7 +1610,6 @@
       <button class="btn ghost tiny" onclick="startBreath(300)">5 dakika</button>
     </div>
   </div>
-
   <h2>Sınav simülasyonu</h2>
   <div class="card">
     <p class="lead" style="font-size:14.5px;margin:0 0 14px;">Gerçek sınav süresiyle tam ekran geri sayım.</p>
@@ -1732,7 +1624,6 @@
     </div>
     <p class="hint">TYT, AYT ve YDT sürelerinde bölüm bölüm süre takibi yapılır: her bölümün süresi dolunca uyarı verir. Özel sürelerde tek geri sayım çalışır.</p>
   </div>
-
   <button class="foldhead" id="fh_odakayar" onclick="toggleFold('odakayar')">
     <span class="ft">Odak ayarları</span>
     <span class="fi"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
@@ -1764,7 +1655,6 @@
       <p class="hint">Sesler cihazda üretilir, internet gerekmez.</p>
     </div>
   </div>
-
   <h2>Aylık ders özeti</h2>
   <div class="card focus-month-card">
     <div class="focus-month-head">
@@ -1773,7 +1663,6 @@
     </div>
     <div id="focusMonthSummary"></div>
   </div>
-
   <h2>Derse göre zaman</h2>
   <div class="card">
     <label>Aralık</label>
@@ -1786,7 +1675,6 @@
     <div id="timeDist" style="margin-top:16px;"></div>
   </div>
 </section>
-
 <div class="v29-minimal-overlay" id="v29MinimalOverlay" aria-hidden="true">
   <div class="v29-minimal-shell">
     <div class="v29-minimal-top">
@@ -1817,13 +1705,11 @@
   </div>
 </div>
 
-
 <section id="more" class="screen v30-more-screen">
   <div class="v30-more-title">
     <div><h1>Daha</h1><p class="lead">Yardımcı araçlar, geçmiş, ayarlar ve veri yönetimi tek merkezde.</p></div>
     <button class="btn ghost tiny" type="button" onclick="v30RenderHome()">Yenile</button>
   </div>
-
   <div class="card flat v30-search-card">
     <div class="row2">
       <input type="search" id="gsInput" placeholder="Her şeyde ara — konu, deneme, plan, not" oninput="runSearch()">
@@ -1831,13 +1717,10 @@
     </div>
     <div id="gsBox" style="margin-top:12px;"></div>
   </div>
-
   <div id="v30MoreHome">
     <div class="v30-status" id="v30MoreStatus"></div>
-
     <h2>Sık kullandıkların</h2>
     <div class="v30-quick-grid" id="v30QuickGrid"></div>
-
     <h2>Kütüphane ve çalışma</h2>
     <div class="v30-menu-grid">
       <button class="v30-menu-card" type="button" onclick="v30Action('lab')"><span class="v30-menu-ico">⌁</span><span><b>Öğrenme Laboratuvarı</b><small>TYT, AYT ve YDT derslerini konu konu aç</small></span><i>›</i></button>
@@ -1845,14 +1728,12 @@
       <button class="v30-menu-card" type="button" onclick="v30Action('tactics')"><span class="v30-menu-ico">◎</span><span><b>Taktikler</b><small>Sana uyan taktikler ve tahmin hesaplayıcısı</small></span><i>›</i></button>
       <button class="v30-menu-card" type="button" onclick="v30Action('archive')"><span class="v30-menu-ico">▣</span><span><b>Yanlış soru arşivi</b><small>Fotoğraflı sorularını aç, filtrele ve tekrar et</small></span><i>›</i></button>
     </div>
-
     <h2>Geçmiş ve raporlar</h2>
     <div class="v30-menu-grid">
       <button class="v30-menu-card" type="button" onclick="v30Action('reports')"><span class="v30-menu-ico">↗</span><span><b>Raporlar & geçmiş</b><small>Ay raporu, retrospektif ve çalışma geçmişi</small></span><i>›</i></button>
       <button class="v30-menu-card" type="button" onclick="v30Action('success')"><span class="v30-menu-ico">▦</span><span><b>Çalışma özeti</b><small>Haftalık karne, çalışma düzeni ve ilerleme geçmişi</small></span><i>›</i></button>
       <button class="v30-menu-card" type="button" onclick="v30Action('log')"><span class="v30-menu-ico">≡</span><span><b>Değişiklik günlüğü</b><small>Son ekleme ve silmeleri gör, uygun olanları geri al</small></span><i>›</i></button>
     </div>
-
     <h2>Uygulama</h2>
     <div class="v30-menu-grid">
       <button class="v30-menu-card" type="button" onclick="v30Action('settings')"><span class="v30-menu-ico">⚙</span><span><b>Ayarlar</b><small>Görünüm, hedefler, bildirimler ve video seçenekleri</small></span><i>›</i></button>
@@ -1861,7 +1742,6 @@
       <button class="v30-menu-card" type="button" onclick="v30Action('about')"><span class="v30-menu-ico">i</span><span><b>Hakkında</b><small>Sürüm, geliştirici ve uygulama bilgileri</small></span><i>›</i></button>
     </div>
   </div>
-
   <div id="mrp_lab" style="display:none;">
     <div class="v30-subhead"><button class="v30-back" type="button" onclick="setMoreTab('home')">‹ Daha</button><div><h1>Öğrenme Laboratuvarı</h1><p>Bütün dersler ve konular tek düzen içinde</p></div></div>
     <section class="v320-lab" id="v320LearningLab" aria-labelledby="v320LabTitle">
@@ -1890,7 +1770,6 @@
           <div class="v320-topic-selection" id="v320TopicSelection"></div>
         </div>
       </div>
-
       <details class="v320-toolbox">
         <summary>Hızlı Okuma ve laboratuvar araçları</summary>
         <div class="seg v320-tabs" role="tablist" aria-label="Öğrenme laboratuvarı araçları">
@@ -1929,7 +1808,6 @@
       </details>
     </section>
   </div>
-
   <div id="mrp_kay" style="display:none;">
     <div class="v30-subhead"><button class="v30-back" type="button" onclick="setMoreTab('home')">‹ Daha</button><div><h1>Kaynaklar</h1><p>Kitaplar ve videolar</p></div></div>
     <div class="card">
@@ -1942,7 +1820,6 @@
       <button class="btn green small" style="width:100%;margin-top:16px;" onclick="addBook()">Kaynağı ekle</button>
     </div>
     <div class="card" id="bookList"></div>
-  
     <h2>Videolar</h2>
   <div class="card">
     <p class="eyebrow">Anahtarsız oynatma listesi</p>
@@ -1958,7 +1835,6 @@
     <p class="hint" id="directPlaylistHint">Bağlantının içinde <b>list=PL…</b> bölümü bulunmalıdır.</p>
   </div>
 
-
   <h2>Konuya göre video ara</h2>
   <div class="card">
     <div class="row2">
@@ -1972,24 +1848,18 @@
       <button class="btn ghost tiny" onclick="searchTopicVideo('ozet')">Hızlı tekrar</button>
     </div>
   </div>
-
   <h2>Şunu izlemen iyi olur</h2>
   <div class="card" id="tvSuggest"></div>
-
   <h2>İzlediklerim<span class="cnt" id="watchCount"></span></h2>
   <div class="card" id="watchList"></div>
-
   <h2>İzleme geçmişi</h2>
   <div class="card" id="wsBox"></div>
-
   <p class="note">Bağlantısını bildiğin oynatma listelerini yukarıdaki anahtarsız alanla doğrudan izleyebilir ve programına ekleyebilirsin. Konu adına göre YouTube içinde otomatik arama yapmak için Ayarlar’daki <b>Uygulama içi video</b> bölümünü kullanabilirsin.</p>
   </div>
-
   <div id="mrp_tak" style="display:none;">
     <div class="v30-subhead"><button class="v30-back" type="button" onclick="setMoreTab('home')">‹ Daha</button><div><h1>Taktikler</h1><p>Çalışma ve sınav stratejileri</p></div></div>
 <h2>Sana şu an uyanlar</h2>
   <div id="tacHot"></div>
-
   <h2>Tahmin hesaplayıcısı</h2>
   <div class="card">
     <p class="eyebrow">Kaç şık eleyebiliyorsun?</p>
@@ -1998,13 +1868,11 @@
     <input type="number" id="guessCount" min="1" value="20" oninput="renderGuess()">
     <div id="guessBox" style="margin-top:14px;"></div>
   </div>
-
   <h2>Tüm taktikler</h2>
   <div class="chips" id="tacCats"></div>
   <div id="tacList"></div>
   <p class="note">Bir taktiğe dokunarak açabilirsin. Üstteki bölüm, senin deneme ve çalışma verine göre şu an en çok işine yarayacakları öne çıkarır.</p>
   </div>
-
   <div id="mrp_roz" style="display:none;">
     <div class="v30-subhead"><button class="v30-back" type="button" onclick="setMoreTab('home')">‹ Daha</button><div><h1>Çalışma özeti</h1><p>Karne, çalışma düzeni ve ilerleme geçmişi</p></div></div>
     <h2>Haftalık karne</h2>
@@ -2016,22 +1884,16 @@
       </div>
       <div id="karneBox" style="margin-top:10px;"></div>
     </div>
-
     <h2>Haftalık ısınma</h2>
     <div class="card" id="rampBox"></div>
-
     <h2>Verim saati</h2>
     <div class="card" id="hourBox"></div>
-
     <h2>Güne başlama saati</h2>
     <div class="card" id="stBox"></div>
-
     <h2>Kilometre taşları</h2>
     <div class="card" id="msBox"></div>
-
     <h2>Geçen seneki sen</h2>
     <div class="card" id="lyBox"></div>
-
     <h2>365 günlük çalışma haritası</h2>
     <section class="card v319-year-card">
       <div class="v319-year-head"><div><b>Çalışma ısı haritası</b><small>Odak süresi + soru sayısı</small></div><div id="v319YearStats"></div></div>
@@ -2846,6 +2708,7 @@ window.addEventListener("online",()=>{if(!user)return;status("Bağlantı geldi",
 <script vite-ignore src="./modules/teachers-curated-v3.js?v=4.4.0-r4"></script>
 <script vite-ignore src="./modules/stability.js?v=4.1.0-r29"></script>
 <script vite-ignore src="./modules/focus-notifications.js?v=4.4.0-r27"></script>
+<script vite-ignore src="./modules/stopwatch-day-reset-v57.js?v=4.4.0-r57"></script>
 <script vite-ignore src="./modules/topic-guides.js?v=4.1.0-r20"></script>
 <script vite-ignore src="./modules/learning-lab.js?v=4.1.0-r26"></script>
 <script vite-ignore src="./modules/target-center.js?v=4.1.0-r20"></script>
