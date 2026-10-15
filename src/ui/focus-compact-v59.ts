@@ -96,7 +96,7 @@ export function installFocusCompactV59(setup:HTMLElement,plan:HTMLElement):boole
     menu.hidden=false;
     button.setAttribute("aria-expanded","true");
     toolbar.classList.add("v60-open");
-    if(which==="subject")search.focus({preventScroll:true});
+    if(which==="subject")search!.focus({preventScroll:true});
   }
   subjectButton.addEventListener("click",()=>open("subject"));
   topicButton.addEventListener("click",()=>open("topic"));
