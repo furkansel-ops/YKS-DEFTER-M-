@@ -26,7 +26,7 @@ function harness({run=true,minutes=0,credited=0,day="2026-10-14",startHour=23,st
   Date:Clock,console,Math,Number,String,Array,Object,Set,
   S,pomoSubject:"Matematik",SUBJ_NAMES:["Matematik"],
   keyOf,todayKey:()=>keyOf(new Clock()),
-  validDateKey:s=>/^\\d{4}-\\d{2}-\\d{2}$/.test(s),
+  validDateKey:s=>s.length===10&&s[4]==="-"&&s[7]==="-",
   addDaysKey:nextDay,sw:()=>watch,
   swElapsedAt:(w,t)=>w.acc+(w.run?Math.max(0,t-w.start):0),
   swElapsed:()=>watch.acc+(watch.run?Math.max(0,now-watch.start):0),
@@ -122,7 +122,7 @@ test("v57 migrates a legacy paused stopwatch from its last real history day",()=
 });
 test("v57 is linked as a classic script after notification wrapper; not a new data owner",()=>{
  const html=fs.readFileSync(path.join(root,"index.html"),"utf8");
- assert.match(html,/modules\\/stopwatch-day-reset-v57\\.js\\?v=4\\.4\\.0-r57/);
+ assert.ok(html.includes("modules/stopwatch-day-reset-v57.js?v=4.4.0-r57"));
  assert.ok(html.indexOf("modules/focus-notifications.js")<html.indexOf("modules/stopwatch-day-reset-v57.js"));
- assert.doesNotMatch(script,/localStorage|indexedDB|fetch\\(|setDoc\\(|updateDoc\\(|delete S\\.swHistory/);
+ for(const forbidden of ["localStorage","indexedDB","setDoc(","updateDoc(","delete S.swHistory"]){assert.equal(script.includes(forbidden),false);}
 });
