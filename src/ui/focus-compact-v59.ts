@@ -31,8 +31,8 @@ export function installFocusCompactV59(setup:HTMLElement,plan:HTMLElement):boole
   const controls=make("div","v60-controls");
   const subjectButton=make("button","v60-choice v60-subject");
   const topicButton=make("button","v60-choice v60-topic");
-  const subjectTitle=make("span","v60-choice-label","DERS");
-  const subjectValue=make("strong","v60-choice-value","Ders seç");
+  const subjectTitle=make("span","v60-choice-label","DERS · İSTEĞE BAĞLI");
+  const subjectValue=make("strong","v60-choice-value","Genel Çalışma");
   const subjectIcon=make("span","v60-choice-arrow","⌄");
   subjectIcon.setAttribute("aria-hidden","true");
   subjectButton.append(subjectTitle,subjectValue,subjectIcon);
@@ -75,7 +75,7 @@ export function installFocusCompactV59(setup:HTMLElement,plan:HTMLElement):boole
   const syncLabels=():void=>{
     const chosen=selectedSummary.dataset.state==="ready"?
       subjectPicker.querySelector<HTMLElement>(".chip.on")?.textContent?.trim():"";
-    subjectValue.textContent=chosen||"Ders seç";
+    subjectValue.textContent=chosen||"Genel Çalışma";
     subjectButton.dataset.selected=chosen?"true":"false";
     const selected=topicSelect.selectedOptions.item(0);
     const topic=topicSelect.value&&selected?selected.textContent?.trim()||"":"";
@@ -118,13 +118,6 @@ export function installFocusCompactV59(setup:HTMLElement,plan:HTMLElement):boole
     const target=subjectMenu.hidden?topicButton:subjectButton;
     close();target.focus();event.preventDefault();
   });
-  // Existing subject guard opens the real picker if someone presses Start first.
-  const gateObserver=new MutationObserver(()=>{
-    if(setup.classList.contains("v43-session-required")&&subjectMenu.hidden){
-      open("subject");
-    }
-  });
-  gateObserver.observe(setup,{attributes:true,attributeFilter:["class"]});
   const selectionObserver=new MutationObserver(syncLabels);
   selectionObserver.observe(selectedSummary,{childList:true,characterData:true,subtree:true,attributes:true,attributeFilter:["data-state"]});
   const optionsObserver=new MutationObserver(syncLabels);
