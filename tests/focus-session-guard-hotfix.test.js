@@ -5,7 +5,7 @@ const path=require("node:path");
 const root=path.resolve(__dirname,"..");
 const read=file=>fs.readFileSync(path.join(root,file),"utf8");
 
-test("Sayaç ve Kronometre yeni oturumda ders seçmeden başlamaz",()=>{
+test("Sayaç ve Kronometre ders seçmeden Genel Çalışma olarak başlar",()=>{
   const source=read("src/ui/focus-session-guard-v43.ts"),html=read("index.html");
   assert.match(html,/Oturumu hazırla/);
   assert.match(html,/id="focusCard" data-phase="work" data-run="idle"/);
@@ -13,10 +13,9 @@ test("Sayaç ve Kronometre yeni oturumda ders seçmeden başlamaz",()=>{
   assert.match(source,/togglePomo/);
   assert.match(source,/swToggle/);
   assert.match(source,/setPomoSubject/);
-  assert.match(source,/if\(!subjectConfirmed\)\{requestPreparation\(mode\);return undefined;\}/);
-  assert.match(source,/Başlamadan önce dersini seç/);
-  assert.match(source,/subjectConfirmed=true/);
-  assert.match(source,/seçildi ✓ Başlatmaya hazırsın/);
+  assert.match(source,/const GENERAL_SUBJECT="Genel Çalışma"/);
+  assert.match(source,/originalSetSubject\?\.\(GENERAL_SUBJECT\)/);
+  assert.doesNotMatch(source,/requestPreparation/);
 });
 
 test("duraklatma-devam ve Sayaç mola fazı yeniden ders seçimine zorlanmaz",()=>{
