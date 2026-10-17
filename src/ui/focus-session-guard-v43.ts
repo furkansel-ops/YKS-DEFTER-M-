@@ -1,6 +1,7 @@
 import "./focus-session-guard-v43.css";
 
 type FocusStartMode="pomo"|"sw";
+const GENERAL_SUBJECT="Genel Çalışma";
 type LegacyFn=(...args:any[])=>any;
 type ChoiceKind="topic"|"task";
 
@@ -39,32 +40,8 @@ function hasLiveFocusSession():boolean{
   });
 }
 
-function reducedMotion():boolean{
-  try{return window.matchMedia?.("(prefers-reduced-motion: reduce)").matches===true;}
-  catch{return false;}
-}
-
 function setupCard():HTMLElement|null{
   return document.querySelector<HTMLElement>(".v29-session-setup");
-}
-
-function ensureGateMessage():HTMLElement|null{
-  const setup=setupCard();
-  if(!setup)return null;
-  let message=document.getElementById("v43FocusStartGate");
-  if(!message){
-    message=document.createElement("div");
-    message.id="v43FocusStartGate";
-    message.className="v43-focus-start-gate";
-    message.setAttribute("role","status");
-    message.setAttribute("aria-live","polite");
-    setup.appendChild(message);
-  }
-  return message;
-}
-
-function selectedSubjectLabel():string{
-  return document.querySelector<HTMLElement>("#pomoSubjPick .chip.on")?.textContent?.trim()||"Ders";
 }
 
 function normalizeSubject(value:string):string{
@@ -92,23 +69,23 @@ function buildPreparationUi():boolean{
   shell.innerHTML=`
     <div class="v46-focus-prep-head">
       <div class="v46-focus-prep-copy">
-        <span class="v46-focus-kicker">Hızlı hazırlık</span>
-        <h3 id="v46FocusPrepTitle">Ne çalışacağını seç</h3>
-        <p id="v46FocusPrepHint">Dersini seç, sonra istersen konu ve çalışma türünü belirle.</p>
+        <span class="v46-focus-kicker">İsteğe bağlı hazırlık</span>
+        <h3 id="v46FocusPrepTitle">Çalışma ayrıntıları</h3>
+        <p id="v46FocusPrepHint">Ders seçmeden doğrudan başlayabilirsin; süren Genel Çalışma olarak kaydedilir.</p>
       </div>
       <span class="v46-focus-mode" id="v46FocusModeBadge">Sayaç</span>
     </div>
     <section class="v46-focus-step v46-subject-step" aria-labelledby="v46SubjectStepTitle">
       <div class="v46-step-head">
         <span class="v46-step-no" aria-hidden="true">1</span>
-        <div><b id="v46SubjectStepTitle">Ders seç</b><small>Her yeni oturumda dersini yeniden seç.</small></div>
+        <div><b id="v46SubjectStepTitle">Ders seç (isteğe bağlı)</b><small>Ders seçmeden de çalışmaya başlayabilirsin.</small></div>
       </div>
       <label class="v46-subject-search" for="v46FocusSubjectSearch">
         <span aria-hidden="true">⌕</span>
         <input id="v46FocusSubjectSearch" type="search" placeholder="Ders ara…" autocomplete="off" aria-label="Derslerde ara">
       </label>
       <div class="v46-subject-slot" data-v46-subject-slot></div>
-      <div class="v46-selected-subject" id="v46SelectedSubject" role="status" aria-live="polite">Henüz ders seçilmedi</div>
+      <div class="v46-selected-subject" id="v46SelectedSubject" role="status" aria-live="polite">Ders seçilmedi · Genel Çalışma olarak kaydedilir</div>
     </section>
     <div class="v46-secondary-grid">
       <section class="v46-focus-step" aria-labelledby="v46TopicStepTitle">
@@ -150,7 +127,7 @@ export function installFocusSessionGuardV43():FocusSessionGuardV43Api{
   if(window.__YKS_FOCUS_SESSION_GUARD_V43__)return window.__YKS_FOCUS_SESSION_GUARD_V43__;
 
   const originalTogglePomo=legacy("togglePomo"),originalSwToggle=legacy("swToggle"),originalSetSubject=legacy("setPomoSubject"),originalRecordSession=legacy("recordSession"),originalSwRecord=legacy("swRecord");
-  let pendingMode:FocusStartMode|null=null,subjectConfirmed=false;
+  let subjectConfirmed=false;
   let subjectObserver:MutationObserver|null=null,topicObserver:MutationObserver|null=null,taskObserver:MutationObserver|null=null;
 
   buildPreparationUi();
@@ -185,7 +162,7 @@ export function installFocusSessionGuardV43():FocusSessionGuardV43Api{
     const summary=selectedSummary();
     if(!summary)return;
     const selected=subjectConfirmed?document.querySelector<HTMLElement>("#pomoSubjPick .chip.on"):null;
-    if(!selected){summary.textContent="Henüz ders seçilmedi";summary.dataset.state="empty";return;}
+    if(!selected){summary.textContent="Ders seçilmedi · Genel Çalışma olarak kaydedilir";summary.dataset.state="empty";return;}
     const label=selected.textContent?.trim()||"Ders";
     summary.textContent=`${label} seçildi ✓`;
     summary.dataset.state="ready";
@@ -245,7 +222,7 @@ export function installFocusSessionGuardV43():FocusSessionGuardV43Api{
     const hint=document.getElementById("v46FocusPrepHint");
     if(badge)badge.textContent=mode==="sw"?"Kronometre":"Sayaç";
     if(title)title.textContent=mode==="sw"?"Kronometre oturumunu hazırla":"Sayaç oturumunu hazırla";
-    if(hint)hint.textContent=mode==="sw"?"Dersini seç; kronometrede geçen süre doğrudan bu çalışmaya yazılsın.":"Dersini seç; sonra konu ve çalışma türüyle oturumu netleştir.";
+    if(hint)hint.textContent=mode==="sw"?"Ders seçmeden başlat; süre Genel Çalışma olarak kaydedilir. İstersen ders de seçebilirsin.":"Ders seçimi isteğe bağlı; boş bırakırsan sayaç Genel Çalışma olarak kaydedilir.";
     setupCard()?.setAttribute("data-v46-mode",mode);
   };
 
@@ -256,12 +233,10 @@ export function installFocusSessionGuardV43():FocusSessionGuardV43Api{
   };
 
   const resetPreparationForNextSession=():void=>{
-    pendingMode=null;
+    if(hasLiveFocusSession())return;
     subjectConfirmed=false;
-    setupCard()?.classList.remove("v43-session-required","v43-session-ready");
-    setupCard()?.removeAttribute("data-v43-start-mode");
-    const gate=document.getElementById("v43FocusStartGate");
-    if(gate)gate.textContent="";
+    // Önceki ders, yeni ve boş başlayan bir oturuma yanlışlıkla taşınmasın.
+    originalSetSubject?.(GENERAL_SUBJECT);
     const search=searchInput();
     if(search)search.value="";
     try{legacy("setPomoTopic")?.("");}catch{}
@@ -305,38 +280,15 @@ export function installFocusSessionGuardV43():FocusSessionGuardV43Api{
   installPickerEnhancements();
   if(!hasLiveFocusSession())window.setTimeout(resetPreparationForNextSession,0);
 
-  const clearGate=():void=>{
-    pendingMode=null;
-    const setup=setupCard();
-    setup?.classList.remove("v43-session-required","v43-session-ready");
-    setup?.removeAttribute("data-v43-start-mode");
-    const message=document.getElementById("v43FocusStartGate");
-    if(message)message.textContent="";
-    updateSelectedUi();
-  };
-
-  const requestPreparation=(mode:FocusStartMode):void=>{
-    pendingMode=mode;
-    try{legacy("v29ToggleMinimal")?.(false);}catch{}
-    installPickerEnhancements();
-    syncModeUi();
-    updateSelectedUi();
-    const setup=setupCard(),message=ensureGateMessage();
-    if(!setup||!message)return;
-    setup.classList.add("v43-session-required");
-    setup.classList.remove("v43-session-ready");
-    setup.dataset.v43StartMode=mode;
-    message.textContent="Başlamadan önce dersini seç.";
-    try{setup.scrollIntoView?.({behavior:reducedMotion()?"auto":"smooth",block:"center"});}catch{}
-    window.setTimeout(()=>document.querySelector<HTMLElement>("#pomoSubjPick .chip")?.focus(),reducedMotion()?0:220);
-  };
-
   const guardedStart=(mode:FocusStartMode,original:LegacyFn|undefined,args:unknown[]):unknown=>{
     if(!original)return undefined;
     if(!needsPreparation(mode))return original(...args);
-    if(!subjectConfirmed){requestPreparation(mode);return undefined;}
-    pendingMode=mode;
-    clearGate();
+    if(!subjectConfirmed){
+      // İsteğe bağlı ders seçilmediyse süreyi hiçbir gerçek derse yazma.
+      originalSetSubject?.(GENERAL_SUBJECT);
+      legacy("setPomoTopic")?.("");
+      legacy("setPomoTask")?.("");
+    }
     return original(...args);
   };
 
@@ -345,14 +297,7 @@ export function installFocusSessionGuardV43():FocusSessionGuardV43Api{
   if(originalSetSubject)(window as unknown as Record<string,unknown>).setPomoSubject=(subject:unknown,...rest:unknown[])=>{
     const result=originalSetSubject(subject,...rest);
     const chosen=String(subject??"").trim();
-    if(chosen){
-      subjectConfirmed=true;
-      pendingMode=currentFocusMode();
-      const setup=setupCard(),message=ensureGateMessage();
-      setup?.classList.add("v43-session-ready");
-      setup?.classList.remove("v43-session-required");
-      if(message)message.textContent=`${selectedSubjectLabel()} seçildi ✓ Başlatmaya hazırsın.`;
-    }
+    subjectConfirmed=!!chosen&&chosen!==GENERAL_SUBJECT;
     decorateSubjectButtons();
     updateSelectedUi();
     renderChoicePickers();
