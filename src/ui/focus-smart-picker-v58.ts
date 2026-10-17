@@ -107,8 +107,8 @@ export function installFocusSmartPickerV58():{installed:boolean;validate():strin
     if(!pending.length){
       const empty=make("p","v58-plan-empty");
       empty.textContent=rows.length
-        ?"Bugünkü görevler tamamlandı. Aşağıdan yeni bir ders seçebilirsin."
-        :"Bugün için plan görevi yok. Aşağıdan dersini seçerek çalışmaya başla.";
+        ?"Bugünkü görevler tamamlandı. İstersen ders seç, istersen Genel Çalışma olarak başla."
+        :"Bugün için plan görevi yok. Ders seçmeden de Genel Çalışma olarak başlayabilirsin.";
       list.append(empty);return;
     }
     for(const item of pending){
