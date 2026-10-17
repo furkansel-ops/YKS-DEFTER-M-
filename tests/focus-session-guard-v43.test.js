@@ -7,22 +7,22 @@ const root=path.resolve(__dirname,"..");
 const guard=()=>fs.readFileSync(path.join(root,"src/ui/focus-session-guard-v43.ts"),"utf8");
 const css=()=>fs.readFileSync(path.join(root,"src/ui/focus-session-guard-v43.css"),"utf8");
 
-test("yeni Sayaç ve Kronometre başlangıcı önce Oturumu hazırla alanına yönlenir",()=>{
+test("Sayaç ve Kronometre hazırlık ekranı durur ancak ders seçimi zorunlu değildir",()=>{
   const source=guard(),html=fs.readFileSync(path.join(root,"index.html"),"utf8");
   assert.match(html,/v29-session-setup/);assert.match(html,/Oturumu hazırla/);assert.match(html,/id="pomoSubjPick"/);
   assert.match(source,/togglePomo/);assert.match(source,/swToggle/);assert.match(source,/setPomoSubject/);
   assert.match(source,/data-run/);assert.match(source,/!=="idle"/);assert.match(source,/data-phase/);assert.match(source,/!=="work"/);
-  assert.match(source,/Başlamadan önce dersini seç/);assert.match(source,/scrollIntoView/);
+  assert.match(source,/Genel Çalışma/);assert.doesNotMatch(source,/requestPreparation/);
 });
 
-test("ders gerçekten seçilmeden Başlat çağrısı oturumu çalıştırmaz",()=>{
+test("ders seçmeden Başlat doğrudan çalışır ve süre Genel Çalışma olarak etiketlenir",()=>{
   const source=guard();
-  assert.match(source,/subjectConfirmed=false/);
-  assert.match(source,/if\(!subjectConfirmed\)\{requestPreparation\(mode\);return undefined;\}/);
-  assert.match(source,/const chosen=String\(subject\?\?""\)\.trim\(\)/);
-  assert.match(source,/if\(chosen\)\{/);
-  assert.match(source,/subjectConfirmed=true/);
-  assert.match(source,/seçildi ✓ Başlatmaya hazırsın/);
+  assert.match(source,/const GENERAL_SUBJECT="Genel Çalışma"/);
+  assert.match(source,/if\(!subjectConfirmed\)\{/);
+  assert.match(source,/originalSetSubject\?\.\(GENERAL_SUBJECT\)/);
+  assert.match(source,/legacy\("setPomoTask"\)\?\.\(""\)/);
+  assert.match(source,/return original\(\.\.\.args\)/);
+  assert.match(source,/subjectConfirmed=!!chosen&&chosen!==GENERAL_SUBJECT/);
 });
 
 test("duraklatılmış oturum, mola ve önceden hazırlanmış görev başlangıçları gereksiz seçim kapısına takılmaz",()=>{
