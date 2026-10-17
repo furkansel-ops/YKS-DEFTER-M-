@@ -17,14 +17,14 @@ test("Sayaç ve Kronometre aynı iyileştirilmiş ders hazırlık akışını ku
   assert.match(source,/data-v46-mode/);
 });
 
-test("her yeni oturum ders seçimini boş ve kullanıcı onaylı başlatır",()=>{
+test("her yeni oturumda seçim boş kalabilir; seçilmezse Genel Çalışma kullanılır",()=>{
   const source=read("src/ui/focus-session-guard-v43.ts");
   assert.match(source,/subjectConfirmed=false/);
   assert.match(source,/if\(!subjectConfirmed\)button\.classList\.remove\("on"\)/);
-  assert.match(source,/Henüz ders seçilmedi/);
-  assert.match(source,/if\(!subjectConfirmed\)\{requestPreparation\(mode\);return undefined;\}/);
-  assert.match(source,/subjectConfirmed=true/);
-  assert.match(source,/pendingMode=currentFocusMode\(\)/);
+  assert.match(source,/Ders seçilmedi · Genel Çalışma olarak kaydedilir/);
+  assert.match(source,/if\(!subjectConfirmed\)\{/);
+  assert.match(source,/originalSetSubject\?\.\(GENERAL_SUBJECT\)/);
+  assert.match(source,/subjectConfirmed=!!chosen&&chosen!==GENERAL_SUBJECT/);
 });
 
 test("ders seçici arama ve yeniden render sonrasında güvenli kalır",()=>{
