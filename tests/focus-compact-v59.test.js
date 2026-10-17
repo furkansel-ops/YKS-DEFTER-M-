@@ -17,7 +17,7 @@ test("v60 keeps the stable v59 installer, while replacing its long stack with sm
  assert.match(compact,/v60TopicMenu/);
  assert.match(compact,/subjectButton\.addEventListener\("click",\(\)=>open\("subject"\)\)/);
  assert.match(compact,/topicButton\.addEventListener\("click",\(\)=>open\("topic"\)\)/);
- assert.match(compact,/subjectValue\.textContent=chosen\|\|"Ders seç"/);
+ assert.match(compact,/subjectValue\.textContent=chosen\|\|"Genel Çalışma"/);
  assert.match(compact,/topicValue\.textContent=topic\|\|"Konu seç"/);
  assert.doesNotMatch(compact,/v59-fold|v59-plan-fold|v59-subject-open|v59-all-subjects/);
 });
@@ -39,7 +39,7 @@ test("existing legacy selectors are preserved: real fields are moved not duplica
  assert.doesNotMatch(compact,/localStorage|sessionStorage|indexedDB|save\(|S\.pomoMin|S\.pomoSubj|programSetCellDone|swCreditElapsed|\.innerHTML\s*=/);
 });
 
-test("accessible popovers close on selection, outside click and Escape; subject guard can open menu",()=>{
+test("accessible popovers close on selection, outside click and Escape; start never forces a subject menu",()=>{
  assert.match(compact,/setAttribute\("aria-expanded","false"\)/);
  assert.match(compact,/setAttribute\("aria-controls",menu\.id\)/);
  assert.match(compact,/subjectMenu\.hidden=true;topicMenu\.hidden=true;/);
@@ -47,7 +47,7 @@ test("accessible popovers close on selection, outside click and Escape; subject 
  assert.match(compact,/event\.target\.closest\("\.v46-choice-card"\)/);
  assert.match(compact,/document\.addEventListener\("pointerdown"/);
  assert.match(compact,/if\(event\.key!=="Escape"\)return;/);
- assert.match(compact,/gateObserver\.observe\(setup,\{attributes:true,attributeFilter:\["class"\]\}\)/);
+ assert.doesNotMatch(compact,/gateObserver/);
  assert.match(compact,/selectionObserver\.observe\(selectedSummary/);
  assert.match(compact,/optionsObserver\.observe\(topicSelect/);
 });
