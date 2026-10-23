@@ -178,6 +178,10 @@ jobs:
       - name: Bağımlılıkları kilit dosyasından kur
         run: npm ci --no-audit --no-fund
 
+      - name: Prepare permitted anatomy assets for the canonical YKS Defterim release
+        if: github.repository == 'furkansel-ops/YKS-DEFTER-M-'
+        run: node scripts/prepare-anatomy-assets.mjs --allow-upstream-assets
+
       - name: Capacitor sürüm sözleşmesini doğrula
         run: |
           node -e '
