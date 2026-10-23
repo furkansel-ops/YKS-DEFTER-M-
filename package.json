@@ -33,8 +33,8 @@
     "dexie": "^4.4.6",
     "three": "0.186.0"
   },
-  "description": "Open-source YKS study companion for planning, progress tracking, exam analysis, and interactive learning.",
-  "license": "MIT",
+  "description": "YKS study companion for planning, progress tracking, exam analysis, focus tools, and interactive learning.",
+  "license": "AGPL-3.0-only",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/furkansel-ops/YKS-DEFTER-M-.git"
