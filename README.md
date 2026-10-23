@@ -15,6 +15,8 @@ The application runs on the web as a PWA and can also be packaged for Android wi
 - Optional Firebase synchronization bridge
 - Interactive Learning Laboratory
 - Biology Atlas with optional 3D anatomy models
+
+Optional anatomy assets have separate permission terms and are excluded from the project-level license. Forks do not download them by default; see [THIRD_PARTY_ANATOMY.md](THIRD_PARTY_ANATOMY.md) and [LICENSE-SCOPE.md](LICENSE-SCOPE.md).
 - Physics simulations and chemistry visualizations
 - Android packaging with Capacitor
 
@@ -121,7 +123,7 @@ The project also includes dedicated privacy and data-deletion pages in the appli
 
 ## License
 
-This project is licensed under the [MIT License](LICENSE).
+The proposed license for original YKS Defterim code and first-party documentation is **GNU AGPL v3.0 only**; see [LICENSE](LICENSE) and [the license-scope notes](LICENSE-SCOPE.md). Third-party assets, upstream-derived material, and dependencies are not automatically covered by this grant. In particular, the optional 3D anatomy models and images described in [THIRD_PARTY_ANATOMY.md](THIRD_PARTY_ANATOMY.md) have separate permission terms.
 
 ## Maintainer
 
