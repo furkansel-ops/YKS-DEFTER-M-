@@ -63,6 +63,10 @@ jobs:
         continue-on-error: true
         run: node scripts/build-teachers-v2-archives.mjs
 
+      - name: Prepare permitted anatomy assets for the canonical YKS Defterim deployment
+        if: github.repository == 'furkansel-ops/YKS-DEFTER-M-'
+        run: node scripts/prepare-anatomy-assets.mjs --allow-upstream-assets
+
       - name: Kararlı sürümü doğrula ve derle
         run: npm run release:check
 

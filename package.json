@@ -32,5 +32,14 @@
     "@capacitor/core": "8.5.2",
     "dexie": "^4.4.6",
     "three": "0.186.0"
+  },
+  "description": "YKS study companion for planning, progress tracking, exam analysis, focus tools, and interactive learning.",
+  "license": "AGPL-3.0-only",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/furkansel-ops/YKS-DEFTER-M-.git"
+  },
+  "bugs": {
+    "url": "https://github.com/furkansel-ops/YKS-DEFTER-M-/issues"
   }
 }

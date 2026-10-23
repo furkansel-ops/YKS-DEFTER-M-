@@ -147,7 +147,11 @@ test("Anatomi dosyaları değişmez commit ve SHA-256 ile sabitlenir; model dosy
   assert.match(manifest.commit,/^[a-f0-9]{40}$/);assert.equal(manifest.files.length,27);
   assert.equal(new Set(manifest.files.map(f=>f.target)).size,27);
   for(const file of manifest.files){assert.match(file.sha256,/^[a-f0-9]{64}$/);assert.ok(file.bytes>0&&file.bytes<12*1024*1024);assert.match(file.target,/^(models|images|thumbs)\/[a-z]+\.(glb|webp)$/);}
-  assert.match(read("scripts/prepare-anatomy-assets.mjs"),/valid\(bytes, entry\)/);
+  const prepareAssets=read("scripts/prepare-anatomy-assets.mjs");
+  assert.match(prepareAssets,/valid\(bytes, entry\)/);
+  assert.match(prepareAssets,/process\.argv\.includes\("--allow-upstream-assets"\)/);
+  assert.match(prepareAssets,/else if \(allowUpstreamAssets\)/);
+  assert.match(prepareAssets,/skipped\.push\(entry\.target\)/);
   const sw=read("sw.js"),core=sw.match(/const CORE=\[.*?\];/)[0];assert.ok(!core.includes("anatomy"));
   assert.match(read("src/ui/biology-atlas-bridge.ts"),/import\("\.\/biology-atlas\.ts"\)/);
   assert.match(read("src/ui/biology-atlas.ts"),/import\("\.\/biology-atlas-model\.ts"\)/);

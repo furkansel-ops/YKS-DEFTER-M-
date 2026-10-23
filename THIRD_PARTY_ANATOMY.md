@@ -1,5 +1,9 @@
 # Anatomi varlıklarının kaynağı
 
+**Third-party licensing boundary:** The anatomy models and organ images documented here are excluded from the proposed AGPL-3.0-only license for YKS Defterim's original source code. The existing permission recorded below applies to use and publication in YKS Defterim; it does not grant independent reuse rights to downstream users. Source attribution alone does not change that.
+
+The build helper requires an explicit `--allow-upstream-assets` option to fetch assets from this upstream repository. Use that option only when the project maintainer has permission for the specific YKS Defterim publication. Downstream forks should obtain their own permission or provide a separately authorized asset directory with `--source`. Without assets, the in-code 2D SVG diagrams remain available.
+
 3B organ modelleri ve organ resimleri: Anatomy Atelier, thebuggeddev/anatomy.
 Kaynak: https://github.com/thebuggeddev/anatomy
 Sabit kaynak sürümü: 8c0e6f321a47f895ae58ce098028b92774733ee9
