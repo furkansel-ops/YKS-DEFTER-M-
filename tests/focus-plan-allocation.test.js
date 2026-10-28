@@ -85,3 +85,28 @@ test("aylık ders özeti otomatik dağıtılmış ders dakikalarını ayrı ayr�
     {subject:"Fizik",minutes:60}
   ]);
 });
+
+
+test("ders seçilmeyen Genel Çalışma süresi programdaki derslere dağıtılmaz",()=>{
+  const tasks=[
+    {id:"f",text:"TYT Fizik · 60 dk",subject:"TYT Fizik",done:false},
+    {id:"k",text:"TYT Kimya · 120 dk",subject:"TYT Kimya",done:false}
+  ];
+  assert.deepEqual(core.focusPlanAllocation(tasks,"",180,"Genel Çalışma"),[
+    {subject:"Genel Çalışma",minutes:180,taskId:""}
+  ]);
+});
+
+test("çalışan son recordSession tanımı ders dağılımını oturum geçmişine yazar",()=>{
+  const app=read("app.js");
+  const defs=[...app.matchAll(/recordSession=function\(done\)\{[^\n]*/g)].map(m=>m[0]).filter(def=>def.includes("todaySessions().push("));
+  assert.ok(defs.length>0,"recordSession yeniden tanımı bulunmalı");
+  assert.match(defs[defs.length-1],/split:focusAllocation\(mins\)/);
+});
+
+test("Devam et, listede olmayan son dersi önceki seçili derse yazmaz",()=>{
+  const app=read("app.js");
+  const body=app.slice(app.indexOf("function v25ContinueLast"),app.indexOf("function v25DoneNext"));
+  assert.match(body,/setPomoSubject\(String\(x\.subj\|\|""\)\.trim\(\)\|\|"Genel Çalışma"\)/);
+  assert.doesNotMatch(body,/if\(x\.subj&&SUBJ_NAMES\.includes\(x\.subj\)\)setPomoSubject/);
+});

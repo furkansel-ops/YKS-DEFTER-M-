@@ -10369,7 +10369,7 @@ const __v18AddWrong=window.addWrong;window.addWrong=function(){const before=(S.w
 /* Konulu çalışma oturumu */
 const __v18RenderPomoSubjects=renderPomoSubjects;renderPomoSubjects=function(){__v18RenderPomoSubjects();renderPomoTopicPicker();};
 const __v18SetPomoSubject=setPomoSubject;setPomoSubject=function(n){if(n!==pomoSubject)pomoTopic="";__v18SetPomoSubject(n);renderPomoTopicPicker();};
-recordSession=function(done){const mins=pomoCredited;if(!pomoIsWork||mins<1)return;todaySessions().push({t:pomoStartedAt,m:mins,subj:pomoSubject,topic:pomoTopic,task:pomoTask,type:"work",done:!!done});if(S.sessions[todayKey()].length>40)S.sessions[todayKey()]=S.sessions[todayKey()].slice(-40);save();};
+recordSession=function(done){const mins=pomoCredited;if(!pomoIsWork||mins<1)return;todaySessions().push({t:pomoStartedAt,m:mins,subj:pomoSubject,topic:pomoTopic,task:pomoTask,split:focusAllocation(mins),type:"work",done:!!done});if(S.sessions[todayKey()].length>40)S.sessions[todayKey()]=S.sessions[todayKey()].slice(-40);save();};
 swRecord=function(){const mins=Math.floor(swElapsed()/60000);if(mins<1)return;todaySessions().push({t:Date.now()-swElapsed(),m:mins,subj:pomoSubject,topic:pomoTopic,task:"",type:"work",done:true});const k=todayKey();if(S.sessions[k].length>40)S.sessions[k]=S.sessions[k].slice(-40);};
 const __v18SwHistoryAdd=swHistoryAdd;swHistoryAdd=function(ms,subj,start,end){const ok=__v18SwHistoryAdd(ms,subj,start,end);if(ok){const k=keyOf(new Date(Number(end)||Date.now())),a=S.swHistory[k]||[];if(a.length)a[a.length-1].topic=pomoTopic||"";}return ok;};
 renderSessions=function(){const w=el("sessionList");if(!w)return;const list=todaySessions().filter(x=>x.type==="work");if(!list.length){w.innerHTML='<div class="empty">Bugün henüz oturum yok.</div>';return;}w.classList.add("long-list");w.innerHTML=list.slice().reverse().map(x=>{const t=new Date(x.t),hh=String(t.getHours()).padStart(2,"0")+":"+String(t.getMinutes()).padStart(2,"0");return '<div class="dayrow"><span class="k">'+hh+' · '+esc(x.subj||"—")+(x.topic?' · '+esc(x.topic):'')+(x.task?' · plan':'')+(x.note?'<br><small>'+esc(x.note)+'</small>':'')+'</span><span class="v" style="color:'+(x.done?'var(--success)':'var(--label-3)')+'">'+x.m+' dk'+(x.done?'':' · yarıda')+'</span></div>';}).join('');};
@@ -10972,7 +10972,8 @@ function v25StartTask(){
 }
 function v25ContinueLast(){
   const x=v25LastFocus||v25LatestFocus();if(!x){toast("Devam edilecek çalışma yok");return false;}if(sw().run){go("pomo");setFocusMode("sw");return true;}
-  if(x.subj&&SUBJ_NAMES.includes(x.subj))setPomoSubject(x.subj);pomoTopic=x.topic||"";pomoTask="";setFocusMode("sw");go("pomo");swStart();toast("Devam ediyor · "+(x.subj||"Ders"));return true;
+  /* Genel Çalışma gibi listede olmayan bir dersle devam ederken önceki seçili derse yazma. */
+  setPomoSubject(String(x.subj||"").trim()||"Genel Çalışma");pomoTopic=x.topic||"";pomoTask="";setFocusMode("sw");go("pomo");swStart();toast("Devam ediyor · "+(x.subj||"Ders"));return true;
 }
 function v25DoneNext(){const p=v25PlanToday();if(!p.next)return false;return toggleCellDone(p.next.wk,p.next.cid)===true;}
 function v25TomorrowNext(){const p=v25PlanToday();if(!p.next)return false;return movePlanCellTomorrow(p.next.wk,p.next.blk,p.next.i,p.next.d);}
