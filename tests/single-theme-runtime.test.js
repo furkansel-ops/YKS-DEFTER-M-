@@ -6,7 +6,7 @@ const vm=require("node:vm");
 
 const root=path.resolve(__dirname,"..");
 const read=file=>fs.readFileSync(path.join(root,file),"utf8");
-const themes=["auto","refined-blue","paper","night","forest","ocean","lavender","sunset","graphite"];
+const themes=["auto","refined-blue","paper","night","forest","ocean","lavender","sunset","graphite","notebook"];
 
 function harness(initial="refined-blue",dark=false){
   const app=read("app.js");
@@ -81,11 +81,11 @@ test("eski açık/koyu tanımları saklanır, bilinmeyenler maviye döner",()=>{
   const normal=source.slice(source.indexOf("function normalize("),source.indexOf("/* ================= GÖRÜNÜM",source.indexOf("function normalize(")));
   assert.match(normal,/if\(o\.theme==="light"\)o\.theme="paper"/);
   assert.match(normal,/if\(o\.theme==="dark"\)o\.theme="night"/);
-  assert.match(normal,/if\(!\["auto","refined-blue","paper","night","forest","ocean","lavender","sunset","graphite"\]\.includes\(o\.theme\)\)/);
+  assert.match(normal,/if\(!\["auto","refined-blue","paper","night","forest","ocean","lavender","sunset","graphite","notebook"\]\.includes\(o\.theme\)\)/);
   assert.match(normal,/if\(!\["auto"[^\n]+includes\(o\.theme\)\)o\.theme="refined-blue"/);
 });
 
-test("Görünüm alanında erişilebilir dokuz radyo kartı ve yazı boyutları birlikte çalışır",()=>{
+test("Görünüm alanında erişilebilir on radyo kartı ve yazı boyutları birlikte çalışır",()=>{
   const html=read("index.html"),settings=read("public/settings-profile-runtime.js");
   const region=html.slice(html.indexOf('id="appearancePreferences"'),html.indexOf('id="appearancePreferences"')+6800);
   assert.match(region,/id="yksThemePicker"/);
@@ -94,7 +94,7 @@ test("Görünüm alanında erişilebilir dokuz radyo kartı ve yazı boyutları 
     assert.match(region,new RegExp('type="radio" name="yksTheme" value="'+name+'"'));
     assert.match(region,new RegExp("setTheme\\('"+name+"'\\)"));
   }
-  assert.equal((region.match(/name="yksTheme"/g)||[]).length,9);
+  assert.equal((region.match(/name="yksTheme"/g)||[]).length,10);
   for(const scale of ["0.9","1","1.15","1.3"])assert.ok(region.includes("setFontScale("+scale+")"));
   assert.match(settings,/data-yms-appearance-slot/);
   assert.match(settings,/title:"Görünüm"/);

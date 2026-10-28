@@ -30,6 +30,7 @@ import "./ui/today-mobile-polish-v43.css";
 import "./ui/theme-choices-v45.css";
 import "./ui/theme-contrast-v49.css";
 import "./ui/theme-contrast-v50.css";
+import "./ui/theme-notebook-v64.css";
 import "./ui/stopwatch-break-v51.css";
 import "./ui/today-final-v55.css";
 

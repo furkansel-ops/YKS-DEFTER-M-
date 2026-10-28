@@ -257,7 +257,7 @@ function bind(root){
   // Tema alanı modern Ayarlar'a taşındığında bile kartın tamamı dokunulabilir.
   // Mevcut setTheme/save tek veri sahibidir; hiçbir çalışma kaydı yeniden yazılmaz.
   const applyThemeChoice=value=>{
-    if(!["auto","refined-blue","paper","night","forest","ocean","lavender","sunset","graphite"].includes(value))return;
+    if(!["auto","refined-blue","paper","night","forest","ocean","lavender","sunset","graphite","notebook"].includes(value))return;
     try{
       if(typeof window.setTheme==="function"){window.setTheme(value);return;}
       const state=window.YKSLegacyState?.readState?.();

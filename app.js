@@ -588,7 +588,7 @@ function normalize(o){
   // Önceki tema seçimini koru; geçmiş sürümdeki açık/koyu takma adlarını eşleştir.
   if(o.theme==="light")o.theme="paper";
   if(o.theme==="dark")o.theme="night";
-  if(!["auto","refined-blue","paper","night","forest","ocean","lavender","sunset","graphite"].includes(o.theme))o.theme="refined-blue";
+  if(!["auto","refined-blue","paper","night","forest","ocean","lavender","sunset","graphite","notebook"].includes(o.theme))o.theme="refined-blue";
   if(["none","white","brown"].indexOf(o.focusSound)<0)o.focusSound="none";
   /* v1 -> v2: konular boolean idi, artık {st,conf,ts,rev} */
   if((o.v|0)<2){
@@ -771,7 +771,7 @@ function markReview(key,gi){
 /* ================= GÖRÜNÜM / GERİ GELEN TEMALAR =================
    Renkler yalnız görsel belirteçleri değiştirir; mevcut program, deneme ve
    koç kayıtları için ayrı bir durum/yazma modeli oluşturulmaz. */
-const YKS_THEME_IDS=["auto","refined-blue","paper","night","forest","ocean","lavender","sunset","graphite"];
+const YKS_THEME_IDS=["auto","refined-blue","paper","night","forest","ocean","lavender","sunset","graphite","notebook"];
 let yksThemeMediaBound=false,yksThemeLastApplied="";
 function yksThemeValue(value){
   if(value==="light")return "paper";
@@ -795,7 +795,7 @@ function updateThemeGrid(){
   const label=el("yksThemeActive");
   if(label)label.textContent=selected==="auto"?(isDarkNow()?"Sistem · Koyu":"Sistem · Açık"):
     ({'refined-blue':"Mavi",paper:"Kağıt",night:"Gece",forest:"Orman",
-      ocean:"Okyanus",lavender:"Lavanta",sunset:"Gün batımı",graphite:"Grafit"}[selected]||"Mavi");
+      ocean:"Okyanus",lavender:"Lavanta",sunset:"Gün batımı",graphite:"Grafit",notebook:"Defter"}[selected]||"Mavi");
 }
 function applyTheme(){
   if(!S||typeof S!=="object")return;
@@ -809,7 +809,7 @@ function applyTheme(){
   root.style.colorScheme=(active==="night"||active==="graphite")?"dark":"light";
   const mt=el("metaTheme");
   const metaColor={night:"#101827",graphite:"#171b22",paper:"#f7f4ec",forest:"#edf6f0",
-    ocean:"#eaf7fa",lavender:"#f5f1fd",sunset:"#fff3e9"}[active]||"#f5f8fd";
+    ocean:"#eaf7fa",lavender:"#f5f1fd",sunset:"#fff3e9",notebook:"#f6f1e7"}[active]||"#f5f8fd";
   if(mt)mt.setAttribute("content",metaColor);
   updateThemeGrid();
   if(!yksThemeMediaBound&&window.matchMedia){

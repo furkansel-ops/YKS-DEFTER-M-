@@ -34,6 +34,11 @@
  --yks-theme-ink:#edf1f6;--yks-theme-muted:#bbc5d3;--yks-theme-line:#444e5f;
  --yks-theme-accent:#ccd8f0;--yks-theme-deep:#3b506f;--yks-theme-on:#fff;
 }
+:root[data-theme="notebook"]{
+ --yks-theme-bg:#f6f1e7;--yks-theme-surface:#fffdf8;--yks-theme-soft:#f1e8d8;
+ --yks-theme-ink:#2b2620;--yks-theme-muted:#665a4c;--yks-theme-line:#e3d7c3;
+ --yks-theme-accent:#9c3a12;--yks-theme-deep:#7c2d10;--yks-theme-on:#fff;
+}
 :root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]){
  --bg:var(--yks-theme-bg);--glass:var(--yks-theme-surface);--glass-strong:var(--yks-theme-surface);
  --label:var(--yks-theme-ink);--label-2:var(--yks-theme-muted);--label-3:var(--yks-theme-muted);
