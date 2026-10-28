@@ -299,7 +299,11 @@ async function startStudent(session){
 
 async function onSignedIn({user,auth,db}){
   cleanup();const session=rt.session;rt.user=user;rt.auth=auth;rt.db=db;
-  if(!user?.emailVerified)throw new Error("Doğrulanmış Google hesabı gerekli");
+  if(!user?.emailVerified){
+    // E-posta/şifre kaydı doğrulama bağlantısını bekler; karşılama ekranı bağlantıyı gönderip oturumu kapatır.
+    if(list(user?.providerData).some(p=>p?.providerId==="password"))return{role:"reauth",profile:null};
+    throw new Error("Doğrulanmış Google hesabı gerekli");
+  }
   let profile,profileError;
   try{profile=await ensureProfile(user,db)}catch(error){profileError=error}
   requireSession(session);
