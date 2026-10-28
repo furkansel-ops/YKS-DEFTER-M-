@@ -206,16 +206,6 @@ const playStoreShell=installOptional(
   {installed:false,legacyCloudRemoved:false}
 );
 document.documentElement.dataset.playStorePrivacy=playStoreShell.installed?"ready":"deferred";
-/* Karşılama ve hesap ekranı ayrı chunk'tadır; yüklenemezse uygulama misafir gibi açılır. */
-void import("./ui/auth-welcome-v60")
-  .then(({installAuthWelcomeV60})=>{
-    const welcome=installOptional("auth-welcome",()=>installAuthWelcomeV60(),{installed:false,reason:"error"});
-    document.documentElement.dataset.authWelcome=welcome.installed?"ready":welcome.reason;
-  })
-  .catch(error=>{
-    document.documentElement.dataset.authWelcome="deferred";
-    console.error("Karşılama ekranı yüklenemedi",error);
-  });
 /* Hafif bağımsız modüller; kritik açılış zincirini etkilemez. */
 void import("./ui/startup-extras").catch(console.error);
 const v43Runtime=installV43SafeRuntime();

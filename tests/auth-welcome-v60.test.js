@@ -8,9 +8,11 @@ const read=file=>fs.readFileSync(path.join(root,file),"utf8");
 const welcome=read("src/ui/auth-welcome-v60.ts");
 
 test("v60 karşılama ekranı ayrı chunk ve fail-open sınırında kurulur",()=>{
-  const main=read("src/main.ts");
-  assert.match(main,/import\("\.\/ui\/auth-welcome-v60"\)/);
-  assert.match(main,/installOptional\("auth-welcome"/);
+  // Ana paket bütçesi için yükleme startup-extras köprüsündedir.
+  const extras=read("src/ui/startup-extras.ts");
+  assert.match(read("src/main.ts"),/import\("\.\/ui\/startup-extras"\)/);
+  assert.match(extras,/import\("\.\/auth-welcome-v60"\)/);
+  assert.match(extras,/dataset\.authWelcome="deferred"/);
   assert.match(read("vite.config.mts"),/"src\/ui\/auth-welcome-v60\.ts"/);
 });
 

@@ -32,4 +32,20 @@ void import("./study-gamification")
     document.documentElement.dataset.studyGamification="deferred";
     console.error("Başarım sistemi yüklenemedi",error);
   });
+
+/* Karşılama ve hesap ekranı; yüklenemezse uygulama misafir gibi açılır. */
+void import("./auth-welcome-v60")
+  .then(({installAuthWelcomeV60})=>{
+    try{
+      const value=installAuthWelcomeV60();
+      document.documentElement.dataset.authWelcome=value.installed?"ready":value.reason;
+    }catch(error){
+      document.documentElement.dataset.authWelcome="deferred";
+      console.error("Karşılama ekranı başlatılamadı",error);
+    }
+  })
+  .catch(error=>{
+    document.documentElement.dataset.authWelcome="deferred";
+    console.error("Karşılama ekranı yüklenemedi",error);
+  });
 export {};
