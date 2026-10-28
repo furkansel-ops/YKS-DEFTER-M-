@@ -38,6 +38,22 @@ test("v63 karşılama ekranında giriş tamamlanınca kapanır ve katman sıras�
   assert.match(read("src/ui/launch-screen-v63.css"),/z-index:100450/);
 });
 
+test("v63 oturum başına bir kez gösterilir: yenilemede gelmez, uygulama yeniden açılınca gelir",()=>{
+  assert.match(launch,/SESSION_KEY="yks_launch_seen_v1"/);
+  assert.match(launch,/if\(sessionStorage\.getItem\(SESSION_KEY\)\)\{[^}]*return \{installed:false\};\}/);
+  assert.match(launch,/sessionStorage\.setItem\(SESSION_KEY,"1"\)/);
+  // Söz atlanan açılışta da Bugün'de görünmez.
+  assert.ok(launch.indexOf('dataset.launchQuote="moved"')<launch.indexOf("sessionStorage.getItem(SESSION_KEY)"));
+});
+
+test("v63 orta alan Bugün ve son 7 gün verisini salt okunur gösterir",()=>{
+  assert.match(launch,/yksTodayDailyProgressSnapshot\?\.\(\)/);
+  assert.match(launch,/todayTaskOptions\?\.\(\)/);
+  assert.match(launch,/readState\?\.\(\)\?\.pomoMin/);
+  assert.doesNotMatch(launch,/\.save\?\.\(|localStorage\.setItem\("yks_|pomoMin\[[^\]]+\]\s*=/);
+  assert.match(read("src/ui/launch-screen-v63.css"),/@media \(min-width:760px\)/);
+});
+
 test("v63 bağlantı yoksa daha önce hesapla girilmiş cihazı içeride tutar",()=>{
   assert.match(launch,/result==="timeout"/);
   assert.match(launch,/localStorage\.getItem\(deps\.entryKey\)==="account"/);

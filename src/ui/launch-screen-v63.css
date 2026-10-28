@@ -34,5 +34,45 @@
 .yl-wait{height:52px;border-radius:14px;background:rgba(255,255,255,.12);display:grid;place-items:center;font-size:14px;opacity:.85}
 .yl-error{font-size:13px;line-height:1.4;background:rgba(255,255,255,.95);color:#B42318;border-radius:10px;padding:9px 11px;margin:0}
 .yl-error:empty{display:none}
+/* Orta alan: bugün özeti, son 7 gün ve söz. Telefonda tek sütun, geniş ekranda iki sütun. */
+.yl-grid{display:grid;gap:12px;grid-template-areas:"intro" "today" "week" "quote";margin:26px 0 0;flex:1;align-content:start}
+.yl-intro{grid-area:intro}
+.yl-today{grid-area:today}
+.yl-weekslot{grid-area:week}
+.yl-quoteslot{grid-area:quote}
+.yl-intro .yl-date{margin:0}
+.yl-today:empty,.yl-quoteslot:empty{display:none}
+.yl-card{border-radius:18px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);padding:14px}
+.yl-skel{height:132px;background:linear-gradient(90deg,rgba(255,255,255,.08),rgba(255,255,255,.16),rgba(255,255,255,.08));background-size:200% 100%;animation:yl-shine 1.2s linear infinite}
+@keyframes yl-shine{to{background-position:-200% 0}}
+@media (prefers-reduced-motion:reduce){.yl-skel{animation:none}}
+.yl-card-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.yl-card-head b{font-size:15px}
+.yl-card-head span{font-size:12.5px;opacity:.8;font-weight:600;text-align:right}
+.yl-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0 0}
+.yl-stat{border-radius:12px;background:rgba(255,255,255,.1);padding:9px 10px 10px;display:grid;gap:2px;min-width:0}
+.yl-stat span{font-size:11px;font-weight:700;opacity:.75;letter-spacing:.03em}
+.yl-stat b{font-size:17px;font-weight:750;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.yl-stat small{font-size:11px;opacity:.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.yl-bar{display:block;height:4px;border-radius:2px;margin-top:5px;background:linear-gradient(90deg,#fff var(--p,0%),rgba(255,255,255,.22) var(--p,0%))}
+.yl-sub{font-size:11.5px;font-weight:700;opacity:.75;letter-spacing:.04em;margin:12px 0 0;text-transform:uppercase}
+.yl-next{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:6px}
+.yl-next li{position:relative;padding-left:25px;font-size:14px;line-height:1.35;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.yl-next li span{position:absolute;left:0;top:1px;width:16px;height:16px;border-radius:5px;border:1.5px solid rgba(255,255,255,.65)}
+.yl-done-all{font-size:13.5px;opacity:.85;margin:12px 0 0}
+.yl-week{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;align-items:end;height:92px;margin:12px 0 0}
+.yl-day{height:100%;display:grid;grid-template-rows:1fr auto;gap:5px;justify-items:center}
+.yl-day i{align-self:end;width:100%;max-width:26px;height:var(--h,3%);min-height:3px;border-radius:6px;background:rgba(255,255,255,.35)}
+.yl-day.is-today i{background:#fff}
+.yl-day span{font-size:11px;font-weight:600;opacity:.75}
+.yl-day.is-today span{opacity:1}
+/* Ana düğme kaydırmadan görünsün: alta sabit, arkası koyu geçişli. */
+.yl-acts{position:sticky;bottom:0;z-index:2;margin:14px -22px calc(-1 * max(20px,env(safe-area-inset-bottom)));padding:22px 22px max(20px,env(safe-area-inset-bottom));background:linear-gradient(to top,#0A2F7A 0%,#0A2F7A 62%,rgba(10,47,122,0) 100%)}
+@media (min-width:760px){
+  .yl-shell{max-width:980px;padding-left:40px;padding-right:40px}
+  .yl-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"intro today" "quote week";column-gap:22px;row-gap:16px;margin-top:48px;align-content:center}
+  .yl-root .yl-hello{font-size:40px}
+  .yl-acts{position:static;width:100%;max-width:420px;margin:24px auto 0;padding:0;background:none}
+}
 /* Günün sözü Bugün ekranından açılış ekranına taşındı. */
 :root[data-launch-quote="moved"] #todayFreshQuoteCard{display:none!important}
