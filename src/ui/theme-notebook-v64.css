@@ -1,6 +1,6 @@
-/* v64 · Defter teması. Renkler theme-choices-v45.css'teki palette; burada yalnız
-   Defter'e özgü yazı, köşe ve kâğıt dokusu var. Diğer temalara ve Mavi'ye dokunmaz.
-   Yazı tipi cihazdakilerden seçilir; ağdan font indirilmez (çevrimdışı aynı görünür). */
+/* v64 · Defter: uygulamanın tek teması. Renkler theme-choices-v45.css'teki palette;
+   burada yazı, köşe, buton, form ve kâğıt dokusu var. Yazı tipi cihazdakilerden
+   seçilir; ağdan font indirilmez (çevrimdışı aynı görünür). */
 :root[data-theme="notebook"]{
   --yks-serif:"Iowan Old Style","Palatino Linotype","Book Antiqua",Palatino,Georgia,"Noto Serif","Droid Serif",serif;
   --yks-notebook-lines:repeating-linear-gradient(to bottom,transparent 0 27px,rgb(176 140 90 / 13%) 27px 28px);
@@ -9,14 +9,74 @@
   --shadow-2:0 1px 0 var(--yks-theme-line),0 10px 24px -20px rgb(80 60 30 / 45%);
 }
 
-/* Başlıklar serif: defter/kitap hissi */
+/* Yazı: başlıklar ve büyük sayılar serif (defter/kitap), gövde metni okunaklı sans. */
+:root[data-theme="notebook"]{
+  --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --yks-ink-shadow:0 1px 0 rgb(43 38 32 / 22%);
+}
+:root[data-theme="notebook"] body{font-family:var(--font);color:var(--yks-theme-ink);background:var(--yks-theme-bg)}
 :root[data-theme="notebook"] :is(
-  h1,h2,h3,.rb-brand span,.today-fresh-hello h2,.today-fresh-progress h2,
-  .yms-detail-heading h2,.yms-profile-copy b,.section-label
+  h1,h2,h3,h4,.rb-brand span,.today-fresh-hello h2,.today-fresh-progress h2,
+  .yms-detail-heading h2,.yms-profile-copy b,.yms-category-copy b,.nt,.hero .count,
+  .yw-brand,.yw-h,.yp-h,.ypg-who b,.ypg-stat b,.yl-hello,
+  .subj-head .nm,.rb-study-disclosure-copy strong,.v315-kpi .v
 ){
-  font-family:var(--yks-serif);
+  font-family:var(--yks-serif)!important;
   letter-spacing:-.005em;
 }
+/* Küçük üst etiketler: büyük harf, aralıklı, kiremit */
+:root[data-theme="notebook"] :is(.section-label,.eyebrow,.yp-kicker,.ypg-gl,.today-fresh-card-eyebrow){
+  font-family:var(--font);letter-spacing:.07em;color:var(--yks-theme-accent);
+}
+
+/* Butonlar: kiremit mürekkep, kâğıt ikincil, az yuvarlak */
+:root[data-visual-system="refined-blue"][data-theme="notebook"] .btn{
+  border-radius:10px;font-weight:650;letter-spacing:0;
+  background:var(--yks-theme-deep);color:#fff;
+  box-shadow:var(--yks-ink-shadow);
+}
+:root[data-visual-system="refined-blue"][data-theme="notebook"] :is(.btn.green,.btn.primary,.yms-actions .primary){
+  background:var(--yks-theme-deep);color:#fff;border-color:var(--yks-theme-deep);
+}
+:root[data-visual-system="refined-blue"][data-theme="notebook"] .btn.ghost{
+  background:var(--yks-theme-surface);color:var(--yks-theme-accent);
+  border:1px solid var(--yks-theme-line);box-shadow:none;
+}
+:root[data-visual-system="refined-blue"][data-theme="notebook"] .btn.red{background:#b42318;color:#fff}
+:root[data-visual-system="refined-blue"][data-theme="notebook"] :is(.btn.small,.btn.tiny){border-radius:8px}
+:root[data-visual-system="refined-blue"][data-theme="notebook"] .btn:hover{filter:brightness(1.06)}
+:root[data-visual-system="refined-blue"][data-theme="notebook"] .seg{
+  background:var(--yks-theme-soft);border:1px solid var(--yks-theme-line);border-radius:10px;
+}
+:root[data-visual-system="refined-blue"][data-theme="notebook"] .seg button{border-radius:8px}
+:root[data-visual-system="refined-blue"][data-theme="notebook"] .seg button.on{
+  background:var(--yks-theme-deep);color:#fff;box-shadow:var(--yks-ink-shadow);
+}
+:root[data-visual-system="refined-blue"][data-theme="notebook"] .chip{
+  border-radius:999px;background:var(--yks-theme-surface);border:1px solid var(--yks-theme-line);color:var(--yks-theme-ink);
+}
+:root[data-visual-system="refined-blue"][data-theme="notebook"] .chip.on{
+  background:var(--yks-theme-deep);border-color:var(--yks-theme-deep);color:#fff;
+}
+
+/* Formlar: kâğıt üstüne kutu, odakta kiremit çerçeve */
+:root[data-visual-system="refined-blue"][data-theme="notebook"] :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),select,textarea){
+  border-radius:8px;border:1px solid var(--yks-theme-line)!important;background-color:var(--yks-theme-surface);
+}
+:root[data-visual-system="refined-blue"][data-theme="notebook"] :is(input,select,textarea):focus{
+  border-color:var(--yks-theme-accent)!important;box-shadow:0 0 0 3px rgb(156 58 18 / 14%)!important;outline:none;
+}
+:root[data-theme="notebook"] :is(input[type="checkbox"],input[type="radio"],input[type="range"],progress){accent-color:var(--yks-theme-deep)}
+:root[data-theme="notebook"] ::selection{background:rgb(156 58 18 / 18%)}
+
+/* Kartlar: kâğıt yüzey, ince çizgi, yumuşak gölge */
+:root[data-visual-system="refined-blue"][data-theme="notebook"] :is(.card,.restcard,.hero,.stat,.focuscard){
+  border:1px solid var(--yks-theme-line);box-shadow:var(--shadow-2);
+}
+:root[data-visual-system="refined-blue"][data-theme="notebook"] :is(.navbar,.tabbar){
+  background:color-mix(in srgb,var(--yks-theme-surface) 92%,transparent);
+}
+:root[data-visual-system="refined-blue"][data-theme="notebook"] .tabbar .tab.active{color:var(--yks-theme-deep)}
 :root[data-theme="notebook"] :is(.today-fresh-days strong,.today-fresh-stat strong,.today-fresh-ring strong){
   font-family:var(--yks-serif);
 }
@@ -40,6 +100,18 @@
 :root[data-visual-system="refined-blue"][data-theme="notebook"] .tabbar{
   border-top:1px solid var(--yks-theme-line);
 }
+
+/* Karşılama, profil kurulumu ve profil sayfası (v60–v62): mavi geçişler yerine kiremit */
+:root[data-theme="notebook"] :is(.yw-root,.yp-root,.ypg-root){background-image:var(--yks-notebook-lines)}
+:root[data-theme="notebook"] .yw-glow{background:radial-gradient(60% 60% at 25% 40%,rgb(156 58 18 / 12%),transparent 70%)}
+:root[data-theme="notebook"] :is(.yw-mark,.ypg-av:not([data-guest="true"])){background:var(--yks-theme-deep);box-shadow:var(--yks-ink-shadow)}
+:root[data-theme="notebook"] :is(.ypg-cta,.yp-count){background:linear-gradient(135deg,var(--yks-theme-accent),var(--yks-theme-deep))}
+:root[data-theme="notebook"] .ypg-cta button{color:var(--yks-theme-deep)}
+:root[data-theme="notebook"] :is(.yw-done-ic,.ypg-ic,.yp-badge){background:var(--yks-theme-soft)}
+:root[data-theme="notebook"] :is(.yw-primary,.yp-primary,.ypg-btn[data-tone="danger"]){box-shadow:var(--yks-ink-shadow)}
+:root[data-theme="notebook"] :is(.yw-primary,.yp-primary){background:var(--yks-theme-deep)}
+:root[data-theme="notebook"] :is(.yw-btn,.yp-btn,.ypg-btn,.yl-btn){border-radius:10px}
+:root[data-theme="notebook"] :is(.yw-btn,.yp-btn,.ypg-btn,.ypg-row,.yp-track,.yp-chip,.yp-days button,.ypg-icon-btn,.yl-new):focus-visible{outline-color:rgb(156 58 18 / 40%)}
 
 /* Açılış ekranı (v63): mavi yerine kâğıt zemin ve kiremit vurgu */
 :root[data-theme="notebook"] .yl-root{

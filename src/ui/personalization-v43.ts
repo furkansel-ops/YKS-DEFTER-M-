@@ -248,7 +248,7 @@ export function installPersonalizationV43():{installed:boolean;validate:()=>stri
   let applying=false;
 
   document.getElementById("themeBtn")?.remove();
-  document.documentElement.dataset.themeControl="multiple";
+  document.documentElement.dataset.themeControl="single";
 
   const apply=()=>{
     if(applying)return;

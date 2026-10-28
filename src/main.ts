@@ -95,8 +95,8 @@ function installOptional<T>(name:string,installer:()=>T,fallback:T):T{
 }
 document.documentElement.dataset.v4OptionalErrors="0";
 
-/* Yerleşim sistemi tektir; renk paleti kullanıcı tarafından seçilebilir. */
-document.documentElement.dataset.themeControl="multiple";
+/* Yerleşim sistemi ve tema tektir: Defter. */
+document.documentElement.dataset.themeControl="single";
 
 const teachersPaused=document.documentElement.dataset.teacherFeature!=="on";
 document.documentElement.dataset.teacherFeatureState=teachersPaused?"paused":"on";

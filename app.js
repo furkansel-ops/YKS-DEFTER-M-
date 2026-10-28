@@ -585,10 +585,8 @@ function normalize(o){
   if(!Array.isArray(o.lab.topicFav))o.lab.topicFav=[];
   o.lab.topicFav=[...new Set(o.lab.topicFav.filter(x=>typeof x==="string").map(x=>x.slice(0,180)))].slice(0,500);
   if(!o.coef)o.coef=Object.assign({},DEF.coef); else o.coef=Object.assign({},DEF.coef,o.coef);
-  // Önceki tema seçimini koru; geçmiş sürümdeki açık/koyu takma adlarını eşleştir.
-  if(o.theme==="light")o.theme="paper";
-  if(o.theme==="dark")o.theme="night";
-  if(!["auto","refined-blue","paper","night","forest","ocean","lavender","sunset","graphite","notebook"].includes(o.theme))o.theme="refined-blue";
+  // Uygulamanın tek teması Defter; eski kayıtlardaki tüm tema seçimleri buna taşınır.
+  o.theme="notebook";
   if(["none","white","brown"].indexOf(o.focusSound)<0)o.focusSound="none";
   /* v1 -> v2: konular boolean idi, artık {st,conf,ts,rev} */
   if((o.v|0)<2){
@@ -771,79 +769,36 @@ function markReview(key,gi){
 /* ================= GÖRÜNÜM / GERİ GELEN TEMALAR =================
    Renkler yalnız görsel belirteçleri değiştirir; mevcut program, deneme ve
    koç kayıtları için ayrı bir durum/yazma modeli oluşturulmaz. */
-const YKS_THEME_IDS=["auto","refined-blue","paper","night","forest","ocean","lavender","sunset","graphite","notebook"];
-let yksThemeMediaBound=false,yksThemeLastApplied="";
-function yksThemeValue(value){
-  if(value==="light")return "paper";
-  if(value==="dark")return "night";
-  return YKS_THEME_IDS.includes(value)?value:"refined-blue";
-}
-function yksThemeSystemDark(){
-  try{return !!(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches);}catch(e){return false;}
-}
-function isDarkNow(){
-  const v=yksThemeValue(S.theme);
-  return v==="night"||v==="graphite"||(v==="auto"&&yksThemeSystemDark());
-}
+const YKS_THEME_IDS=["notebook"];
+let yksThemeLastApplied="";
+/* Tek tema: eski kayıtlarda ne yazarsa yazsın Defter uygulanır. */
+function yksThemeValue(value){ return "notebook"; }
+function isDarkNow(){ return false; }
 function updateThemeGrid(){
-  const selected=yksThemeValue(S.theme);
-  document.querySelectorAll('input[name="yksTheme"]').forEach(input=>{
-    input.checked=input.value===selected;
-    const card=input.closest(".yks-theme-choice");
-    if(card)card.classList.toggle("is-selected",input.checked);
-  });
   const label=el("yksThemeActive");
-  if(label)label.textContent=selected==="auto"?(isDarkNow()?"Sistem · Koyu":"Sistem · Açık"):
-    ({'refined-blue':"Mavi",paper:"Kağıt",night:"Gece",forest:"Orman",
-      ocean:"Okyanus",lavender:"Lavanta",sunset:"Gün batımı",graphite:"Grafit",notebook:"Defter"}[selected]||"Mavi");
-}
-function applyTheme(){
+  if(label)label.textContent="Defter";
+}function applyTheme(){
   if(!S||typeof S!=="object")return;
-  const selected=yksThemeValue(S.theme);
-  S.theme=selected;
-  const active=selected==="auto"?(yksThemeSystemDark()?"night":"paper"):selected;
+  S.theme="notebook";
   const root=document.documentElement;
-  root.dataset.visualSystem="refined-blue"; // Yerleşim değişmez; sadece palet değişir.
-  root.dataset.theme=active;
-  root.dataset.themeControl="multiple";
-  root.style.colorScheme=(active==="night"||active==="graphite")?"dark":"light";
+  root.dataset.visualSystem="refined-blue"; // Yerleşim sistemi aynı; palet ve doku Defter.
+  root.dataset.theme="notebook";
+  root.dataset.themeControl="single";
+  root.style.colorScheme="light";
   const mt=el("metaTheme");
-  const metaColor={night:"#101827",graphite:"#171b22",paper:"#f7f4ec",forest:"#edf6f0",
-    ocean:"#eaf7fa",lavender:"#f5f1fd",sunset:"#fff3e9",notebook:"#f6f1e7"}[active]||"#f5f8fd";
-  if(mt)mt.setAttribute("content",metaColor);
+  if(mt)mt.setAttribute("content","#f6f1e7");
   updateThemeGrid();
-  if(!yksThemeMediaBound&&window.matchMedia){
-    try{
-      const media=window.matchMedia("(prefers-color-scheme: dark)");
-      if(media&&typeof media.addEventListener==="function"){
-        media.addEventListener("change",()=>{if(yksThemeValue(S.theme)==="auto")applyTheme();});
-        yksThemeMediaBound=true;
-      }
-    }catch(e){}
-  }
-  if(yksThemeLastApplied!==active){
-    yksThemeLastApplied=active;
+  if(yksThemeLastApplied!=="notebook"){
+    yksThemeLastApplied="notebook";
     setTimeout(()=>{if(el("deneme")?.classList.contains("active")){
       if(typeof drawChart==="function")drawChart();
       if(typeof drawSubjChart==="function")drawSubjChart();
     }},60);
   }
 }
-function setTheme(value){
-  const selected=yksThemeValue(value);
-  if(!YKS_THEME_IDS.includes(value)&&value!=="light"&&value!=="dark")return false;
-  if(yksThemeValue(S.theme)===selected){applyTheme();return true;}
-  S.theme=selected;
-  applyTheme();
-  const saved=save();
-  if(saved===false){try{toast("Tema uygulandı fakat kaydedilemedi");}catch(e){}}
-  return saved!==false;
-}
-function cycleTheme(){
-  const current=yksThemeValue(S.theme),index=YKS_THEME_IDS.indexOf(current);
-  return setTheme(YKS_THEME_IDS[(index+1)%YKS_THEME_IDS.length]);
-}
-
+/* Eski çağrılar için korunur; tema değişmez, yalnız Defter yeniden uygulanır. */
+function setTheme(value){ applyTheme(); return value==="notebook"; }
+function cycleTheme(){ return setTheme("notebook"); }
 /* ================= SES ================= */
 let audioCtx=null,noiseSrc=null,noiseGain=null;
 function ensureAudio(){

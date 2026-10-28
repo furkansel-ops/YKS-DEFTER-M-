@@ -192,10 +192,10 @@ test("ayarlar sabit görsel sistemin tokenlarını ve güncel hesap yükleyicisi
 });
 
 
-test("Görünüm açıldığında çoklu tema modu korunur, seçilen palet yeniden işaretlenir",()=>{
+test("Görünüm açıldığında tek tema (Defter) modu korunur ve tema yeniden uygulanır",()=>{
   const h=harness();let applied=0;h.window.applyTheme=()=>{applied++};
   h.run("enforceSingleAppearance()");
-  assert.equal(h.document.documentElement.dataset.themeControl,"multiple");
+  assert.equal(h.document.documentElement.dataset.themeControl,"single");
   assert.equal(h.window.__YKS_SETTINGS__.open("appearance"),true);
   assert.equal(h.root.dataset.category,"appearance");
   assert.ok(applied>=1,"mevcut tema veri sahibinden yeniden uygulanır");
@@ -223,6 +223,6 @@ test("Tema dosyası farklı URL ile indirilir ve PWA çevrimdışı önbelleğin
   assert.equal(src,"./settings-profile-runtime.js?v=3.0.2-theme-card-tap");
   assert.ok(worker.includes('"'+src+'"'),"service worker aynı tam sürümlü dosyayı önbelleğe alır");
   assert.doesNotMatch(worker,/settings-profile-runtime\.js\?v=3\.0\.0/);
-  assert.doesNotMatch(source,/dataset\.themeControl="single"/);
-  assert.match(source,/dataset\.themeControl="multiple"/);
+  assert.doesNotMatch(source,/dataset\.themeControl="multiple"/);
+  assert.match(source,/dataset\.themeControl="single"/);
 });
