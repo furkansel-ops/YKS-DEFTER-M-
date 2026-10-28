@@ -20,7 +20,7 @@ test("v60 native pakette ve önceki bulut kullanıcısında ekranı zorla açmaz
   assert.match(welcome,/if\(isNativeApp\(\)\)return \{installed:false,reason:"native"\}/);
   assert.match(welcome,/yks_account_role_hint/);
   assert.match(welcome,/authStateReady/);
-  assert.match(welcome,/if\(api\.auth\.currentUser\)finish\("account"\)/);
+  assert.match(welcome,/if\(api\.auth\.currentUser\)store\(ENTRY_KEY,"account"\)/);
 });
 
 test("v60 misafir seçimi verilere dokunmadan saklanır ve bant kapatılabilir",()=>{

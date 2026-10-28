@@ -1,4 +1,5 @@
 import "./auth-welcome-v60.css";
+import {installLaunchScreenV63} from "./launch-screen-v63";
 
 /* v60 — ilk açılış karşılama ekranı ve e-posta/Google hesabı.
  * Bulut senkronu, profil ve koç bağlantısı mevcut Firebase çalışma zamanında kalır;
@@ -66,6 +67,19 @@ export function firebaseAuth():Promise<FirebaseAuthApi|null>{
   })();
   void firebasePromise.then(api=>{if(!api)firebasePromise=null;});
   return firebasePromise;
+}
+
+/* Karşılama ve açılış ekranının ortak Google girişi; hata çağırana fırlatılır. */
+export async function signInWithGoogle():Promise<void>{
+  const api=await firebaseAuth();
+  if(!api)throw Object.assign(new Error("Hesap servisi yok"),{code:"auth/network-request-failed"});
+  const provider=new api.m.GoogleAuthProvider();
+  provider.setCustomParameters({prompt:"select_account"});
+  try{sessionStorage.setItem(PENDING_ROLE,"student");}catch{}
+  await api.m.setPersistence(api.auth,api.m.browserLocalPersistence);
+  await api.m.signInWithPopup(api.auth,provider);
+  try{localStorage.setItem(ENTRY_KEY,"account");}catch{}
+  try{(window as unknown as {toast?:(m:string)=>void}).toast?.("Giriş yapıldı · verilerin eşitleniyor");}catch{}
 }
 
 export function authErrorText(error:unknown):string{
@@ -258,6 +272,7 @@ export function installAuthWelcomeV60():{installed:boolean;reason:string}{
     setBusy(false);
     document.documentElement.dataset.welcome=choice;
     renderGuestBanner();
+    window.dispatchEvent(new CustomEvent("yks:entry-finished",{detail:{choice}}));
   };
 
   const close=()=>{
@@ -371,16 +386,9 @@ export function installAuthWelcomeV60():{installed:boolean;reason:string}{
     if(busy)return;
     clearErrors();
     setBusy(true);
-    const api=await firebaseAuth();
-    if(!api){setBusy(false);setError(scope,"Hesap servisine ulaşılamadı. İnternet bağlantını kontrol et.");return;}
     try{
-      const provider=new api.m.GoogleAuthProvider();
-      provider.setCustomParameters({prompt:"select_account"});
-      try{sessionStorage.setItem(PENDING_ROLE,"student");}catch{}
-      await api.m.setPersistence(api.auth,api.m.browserLocalPersistence);
-      await api.m.signInWithPopup(api.auth,provider);
+      await signInWithGoogle();
       finish("account");
-      try{(window as unknown as {toast?:(m:string)=>void}).toast?.("Giriş yapıldı · verilerin eşitleniyor");}catch{}
     }catch(error){
       console.error("Google hesabı",error);
       setError(scope,authErrorText(error));
@@ -439,17 +447,24 @@ export function installAuthWelcomeV60():{installed:boolean;reason:string}{
 
   window.YKSWelcome={open,close};
 
+  // İlk kurulumdan sonraki her açılışta v63 açılış ekranı gelir (tek dokunuşla giriş).
+  const launch=()=>{
+    try{installLaunchScreenV63({firebaseAuth,signInWithGoogle,openWelcome:view=>open(view),authErrorText,entryKey:ENTRY_KEY});}
+    catch(error){console.error("Açılış ekranı başlatılamadı",error);}
+  };
+
   const choice=store(ENTRY_KEY);
   if(choice){
     document.documentElement.dataset.welcome=choice;
     renderGuestBanner();
+    launch();
   }else if(hadCloudAccount()){
-    // Önceki bulut kullanıcısı: oturum geri gelirse karşılama hiç görünmez.
+    // Önceki bulut kullanıcısı: karşılama yerine açılış ekranı; oturum yoksa karşılama.
+    launch();
     void firebaseAuth().then(async api=>{
       if(!api)return;
       try{await api.auth.authStateReady?.();}catch{}
-      if(api.auth.currentUser)finish("account");
-      else if(!store(ENTRY_KEY))open("welcome");
+      if(api.auth.currentUser)store(ENTRY_KEY,"account");
     });
   }else{
     open("welcome");

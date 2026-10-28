@@ -1,0 +1,38 @@
+/* v63 — her açılışta gelen açılış ekranı. Karşılama/giriş (100500) altında, profil kurulumunun (100400) üstünde. */
+.yl-root{position:fixed;inset:0;z-index:100450;display:flex;justify-content:center;color:#fff;font-family:var(--font,system-ui,sans-serif);-webkit-font-smoothing:antialiased;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;background:linear-gradient(170deg,#1C6DF2 0%,#0B4FC0 46%,#0A2F7A 100%)}
+.yl-root[hidden],.yl-root [hidden]{display:none!important}
+.yl-root::before{content:"";position:fixed;inset:-80px -60px auto;height:360px;background:radial-gradient(55% 55% at 25% 40%,rgba(255,255,255,.18),transparent 70%),radial-gradient(45% 45% at 85% 25%,rgba(150,120,255,.35),transparent 70%);pointer-events:none}
+.yl-root h1,.yl-root h2{display:block;border:0;background:none;padding:0;text-transform:none;color:inherit}
+.yl-root h1::before,.yl-root h1::after,.yl-root h2::before,.yl-root h2::after{content:none;display:none}
+.yl-shell{position:relative;width:100%;max-width:440px;min-height:100%;display:flex;flex-direction:column;padding:max(16px,env(safe-area-inset-top)) 22px max(20px,env(safe-area-inset-bottom))}
+.yl-brand{display:flex;align-items:center;gap:9px;font-weight:700;font-size:15px}
+.yl-mark{width:32px;height:32px;border-radius:9px;background:rgba(255,255,255,.18);display:grid;place-items:center;border:1px solid rgba(255,255,255,.25)}
+.yl-mark svg{width:17px;height:17px}
+.yl-date{margin:34px 0 0;font-size:13px;opacity:.78;font-weight:600}
+.yl-root .yl-hello{font-size:30px;font-weight:750;letter-spacing:-.02em;margin:4px 0 0;line-height:1.15;overflow-wrap:anywhere}
+.yl-count{display:inline-flex;align-items:center;gap:8px;margin:14px 0 0;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);border-radius:999px;padding:7px 13px;font-size:13px;font-weight:600;align-self:flex-start}
+.yl-count b{font-size:16px}
+.yl-spacer{flex:1;min-height:28px}
+.yl-quote{border-radius:18px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);padding:16px 16px 18px}
+.yl-ql{display:flex;justify-content:space-between;align-items:center;font-size:11.5px;font-weight:700;letter-spacing:.06em;opacity:.85}
+.yl-new{width:34px;height:34px;border-radius:10px;border:0;background:rgba(255,255,255,.18);color:#fff;font-size:16px;cursor:pointer;display:grid;place-items:center;padding:0}
+.yl-qt{font-size:18px;font-weight:600;line-height:1.42;margin:10px 0 0;overflow-wrap:anywhere}
+.yl-qa{font-size:13px;opacity:.78;margin:8px 0 0}
+.yl-acts{margin-top:16px;display:grid;gap:9px}
+.yl-btn{height:52px;border-radius:14px;border:0;font:600 16px var(--font,system-ui,sans-serif);display:flex;align-items:center;justify-content:center;gap:9px;cursor:pointer;width:100%;-webkit-tap-highlight-color:transparent}
+.yl-btn:disabled{opacity:.65;cursor:default}
+.yl-btn svg{width:19px;height:19px;flex:none}
+.yl-btn:focus-visible,.yl-new:focus-visible,.yl-link:focus-visible{outline:3px solid rgba(255,255,255,.7);outline-offset:2px}
+.yl-white{background:#fff;color:#0A55C4;box-shadow:0 10px 24px -12px rgba(0,0,0,.45)}
+.yl-glass{background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.28)}
+.yl-links{display:flex;justify-content:center;gap:18px;margin-top:4px}
+.yl-link{border:0;background:none;color:rgba(255,255,255,.9);font:600 14px var(--font,system-ui,sans-serif);padding:8px 2px;cursor:pointer}
+.yl-acct{display:flex;align-items:center;gap:10px;margin-top:12px;font-size:13px;min-width:0}
+.yl-acct span:not(.yl-av){opacity:.88;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.yl-av{width:30px;height:30px;border-radius:50%;background:#fff;color:#0A55C4;display:grid;place-items:center;font-size:11.5px;font-weight:800;flex:none}
+.yl-acct .yl-link{margin-left:auto;padding:6px 0;text-decoration:underline;white-space:nowrap;flex:none}
+.yl-wait{height:52px;border-radius:14px;background:rgba(255,255,255,.12);display:grid;place-items:center;font-size:14px;opacity:.85}
+.yl-error{font-size:13px;line-height:1.4;background:rgba(255,255,255,.95);color:#B42318;border-radius:10px;padding:9px 11px;margin:0}
+.yl-error:empty{display:none}
+/* Günün sözü Bugün ekranından açılış ekranına taşındı. */
+:root[data-launch-quote="moved"] #todayFreshQuoteCard{display:none!important}
