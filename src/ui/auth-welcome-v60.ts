@@ -14,7 +14,7 @@ const GUEST_ID="yksGuestBanner";
 
 type View="welcome"|"email"|"sent"|"verify";
 type EmailMode="login"|"register"|"reset";
-type FirebaseAuthApi={auth:any;m:any};
+export type FirebaseAuthApi={auth:any;m:any;app:any};
 
 declare global{
   interface Window{
@@ -46,7 +46,7 @@ function hadCloudAccount():boolean{
 }
 
 let firebasePromise:Promise<FirebaseAuthApi|null>|null=null;
-function firebaseAuth():Promise<FirebaseAuthApi|null>{
+export function firebaseAuth():Promise<FirebaseAuthApi|null>{
   if(firebasePromise)return firebasePromise;
   firebasePromise=(async()=>{
     try{
@@ -55,9 +55,10 @@ function firebaseAuth():Promise<FirebaseAuthApi|null>{
       for(let i=0;i<200&&!appModule.getApps().length;i++)await new Promise(resolve=>setTimeout(resolve,50));
       if(!appModule.getApps().length)return null;
       const m:any=await import(/* @vite-ignore */ FIREBASE+"firebase-auth.js");
-      const auth=m.getAuth(appModule.getApp());
+      const app=appModule.getApp();
+      const auth=m.getAuth(app);
       try{auth.languageCode="tr";}catch{}
-      return {auth,m};
+      return {auth,m,app};
     }catch(error){
       console.error("Hesap servisi yüklenemedi",error);
       return null;
@@ -67,7 +68,7 @@ function firebaseAuth():Promise<FirebaseAuthApi|null>{
   return firebasePromise;
 }
 
-function authErrorText(error:unknown):string{
+export function authErrorText(error:unknown):string{
   const code=String((error as {code?:string})?.code||"");
   const map:Record<string,string>={
     "auth/invalid-email":"E-posta adresi geçerli görünmüyor.",
@@ -85,7 +86,9 @@ function authErrorText(error:unknown):string{
     "auth/cancelled-popup-request":"Google girişi iptal edildi.",
     "auth/popup-blocked":"Google penceresi engellendi. Tarayıcıda açılır pencere izni ver.",
     "auth/unauthorized-domain":"Bu adres Firebase'de yetkili değil.",
-    "auth/account-exists-with-different-credential":"Bu e-posta başka bir giriş yöntemiyle kayıtlı."
+    "auth/account-exists-with-different-credential":"Bu e-posta başka bir giriş yöntemiyle kayıtlı.",
+    "auth/requires-recent-login":"Güvenlik için tekrar giriş yapman gerekiyor.",
+    "auth/user-mismatch":"Seçilen Google hesabı bu hesapla aynı değil."
   };
   return map[code]||"Bir sorun oluştu. Tekrar dene.";
 }

@@ -231,7 +231,8 @@ service cloud.firestore {
         && request.resource.data.createdAt == resource.data.createdAt
         && request.resource.data.get('registrationInvite', '') == resource.data.get('registrationInvite', '')
         && request.resource.data.updatedAt == request.time;
-      allow delete: if false;
+      // Hesap silme: kişi yalnız kendi profilini silebilir.
+      allow delete: if ownsUserSpace(userId);
     }
 
     match /coachRegistrationInvites/{inviteCode} {
@@ -494,7 +495,10 @@ service cloud.firestore {
             && profileRole(request.auth.uid, 'coach'))
         );
 
-      allow update, delete: if false;
+      allow update: if false;
+      // Hesap silme: öğrenci kendi konuşmalarını silebilir; koç silemez.
+      allow delete: if verifiedUser()
+        && request.auth.uid == resource.data.studentUid;
     }
 
     match /coachingActions/{actionId} {
@@ -534,7 +538,9 @@ service cloud.firestore {
           (request.auth.uid == resource.data.coachUid
             && request.resource.data.status == 'cancelled')
         );
-      allow delete: if false;
+      // Hesap silme: öğrenci kendisine gönderilen görev/notları silebilir.
+      allow delete: if verifiedUser()
+        && request.auth.uid == resource.data.studentUid;
     }
 
     match /users/{userId}/sync/meta {

@@ -48,4 +48,12 @@ void import("./auth-welcome-v60")
     document.documentElement.dataset.authWelcome="deferred";
     console.error("Karşılama ekranı yüklenemedi",error);
   });
+
+/* Profil sayfası; yüklenemezse profil simgesi eskisi gibi Ayarlar'ı açar. */
+void import("./profile-page-v62")
+  .then(({installProfilePageV62})=>{
+    try{installProfilePageV62();}
+    catch(error){console.error("Profil sayfası başlatılamadı",error);}
+  })
+  .catch(error=>console.error("Profil sayfası yüklenemedi",error));
 export {};
