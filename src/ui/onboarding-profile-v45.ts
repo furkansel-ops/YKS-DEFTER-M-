@@ -112,6 +112,11 @@ export function installOnboardingProfileV45():{installed:boolean;examDate:string
   runtime.renderSettings=()=>{const result=oldRenderSettings?.();populateSettings();return result;};
   runtime.saveSettings=()=>{syncSettings();return oldSaveSettings?.();};
   if(changed)try{runtime.YKSLegacyState?.save?.();}catch{}
+  // v61 görünümü eski sihirbazın yerine açılır; kurulamazsa eski sihirbaz çalışmaya devam eder.
+  // Ayrı chunk: CSS'i ana paketin ön yükleme listesine girmez (ana JS bütçesi).
+  void import("./profile-setup-v61")
+    .then(({installProfileSetupV61})=>installProfileSetupV61())
+    .catch(error=>console.error("Profil kurulumu v61 başlatılamadı",error));
   document.documentElement.dataset.onboardingProfile="v4.5";
   return {installed:true,examDate:TYT_DATE};
 }
