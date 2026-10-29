@@ -6,11 +6,16 @@ const path=require("node:path");
 const root=path.resolve(__dirname,"..");
 const read=file=>fs.readFileSync(path.join(root,file),"utf8");
 
-test("v4.3 Merkez bilgi mimarisi dört net kategoriye ayrılır",()=>{
+test("Merkez sekmesiz: araçlar tek kaydırmada üç grupta, Ayarlar tekrarı yok",()=>{
   const ui=read("src/ui/navigation-v43.ts");
-  for(const id of ['id:"learning"','id:"analysis"','id:"settings"','id:"system"'])assert.ok(ui.includes(id));
-  for(const label of ["Öğrenme","Analiz","Ayarlar","Veri & Sistem"])assert.ok(ui.includes(label));
-  assert.ok(ui.includes('document.querySelectorAll("[data-v43-more-category]").length!==4'));
+  for(const id of ['id:"learning"','id:"analysis"','id:"system"'])assert.ok(ui.includes(id));
+  for(const label of ["Öğrenme","Analiz ve geçmiş","Veri ve uygulama"])assert.ok(ui.includes(label));
+  assert.ok(ui.includes('document.querySelectorAll("[data-v43-more-group]").length!==3'));
+  assert.doesNotMatch(ui,/data-v43-more-category|v43-more-categories|v43-more-settings/);
+  // Kayıt araması üstte görünür; kısayollar 4 tane.
+  assert.match(ui,/v43MoreSearchSlot/);
+  assert.match(ui,/label:"Yanlış arşivi"/);
+  assert.match(ui,/lastManualBackup?.()/);
 });
 
 test("Merkez mevcut v30Action alt sayfalarını korur ve Analiz Merkezi için ayrı İlerleme ekranını kullanır",()=>{
@@ -25,7 +30,7 @@ test("Daha navigasyonu Merkez olarak sadeleşir ve eski kalabalık kartlar yaln�
   const ui=read("src/ui/navigation-v43.ts"),css=read("src/ui/navigation-v43.css");
   assert.match(ui,/textContent="Merkez"/);assert.match(ui,/setAttribute\("aria-label","Merkez"\)/);
   assert.match(ui,/v43LegacyHidden/);assert.match(ui,/v30-menu-grid/);assert.match(ui,/v30QuickGrid/);
-  assert.match(css,/v43-more-categories/);assert.match(css,/grid-template-columns:repeat\(4/);assert.match(css,/pointer:coarse/);assert.match(css,/prefers-reduced-motion:reduce/);
+  assert.match(css,/v43-more-group-label/);assert.match(css,/\.v43-more-shortcuts\{display:grid;grid-template-columns:repeat\(4/);assert.match(css,/pointer:coarse/);assert.match(css,/prefers-reduced-motion:reduce/);
 });
 
 test("Merkez yalnız ilgili ekran olaylarında yenilenir; tüm document ağacını gözlemez",()=>{

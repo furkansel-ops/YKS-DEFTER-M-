@@ -1,45 +1,57 @@
 import "./navigation-v43.css";
 
-type CategoryId="learning"|"analysis"|"settings"|"system";
+type GroupId="learning"|"analysis"|"system";
 type MoreAction="lab"|"resources"|"tactics"|"archive"|"success"|"reports"|"settings"|"about"|"data"|"system"|"backup"|"log"|"progress";
 interface MoreItem{action:MoreAction;label:string;description:string;icon:string;}
-interface MoreCategory{id:CategoryId;label:string;description:string;icon:string;items:readonly MoreItem[];}
+interface MoreGroup{id:GroupId;label:string;items:readonly MoreItem[];}
+interface Shortcut{screen?:string;action?:MoreAction;label:string;icon:string;}
 interface NavigationRuntime{installed:true;version:string;validate():string[];refresh():void;}
-type LegacyWindow=Window&{v30Action?:(action:string)=>unknown;go?:(screen:string)=>unknown;};
+type LegacyWindow=Window&{v30Action?:(action:string)=>unknown;go?:(screen:string)=>unknown;lastManualBackup?:()=>number;};
 type RouteDetail={to?:string};
 declare global{interface Window{__YKS_NAV_V43__?:NavigationRuntime;}}
 
-const VERSION="4.3.0-refined";
-const CATEGORIES:readonly MoreCategory[]=[
-  {id:"learning",label:"Öğrenme",description:"Laboratuvar, kaynaklar ve yanlışlardan öğrenme",icon:"◎",items:[
+const VERSION="4.4.0-merkez";
+/* Merkez: sekme yok; bütün araçlar tek kaydırmada üç grupta. "İlerleme" kısayolu
+   Analiz Merkezi'ni, "Yanlış arşivi" kısayolu fotoğraflı yanlışları açar. */
+const SHORTCUTS:readonly Shortcut[]=[
+  {screen:"pomo",label:"Odaklan",icon:'<circle cx="12" cy="13" r="8"/><path d="M9 2h6m-3 6v5l3 2"/>'},
+  {action:"progress",label:"İlerleme",icon:'<path d="M4 20V10m8 10V4m8 16v-7"/>'},
+  {screen:"pp",label:"Paragraf & problem",icon:'<path d="M4 4h16v16H4zM8 8h8m-8 4h8m-8 4h4"/>'},
+  {action:"archive",label:"Yanlış arşivi",icon:'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M9 13h6"/>'}
+];
+const GROUPS:readonly MoreGroup[]=[
+  {id:"learning",label:"Öğrenme",items:[
     {action:"lab",label:"Öğrenme Laboratuvarı",description:"Konu atlası, 3B organlar ve bilim kartları",icon:"⌁"},
     {action:"resources",label:"Kaynaklar & videolar",description:"Kitaplar, oynatma listeleri ve izleme geçmişi",icon:"▤"},
-    {action:"tactics",label:"Taktikler",description:"Çalışma ve sınav stratejileri",icon:"◈"},
-    {action:"archive",label:"Yanlış soru arşivi",description:"Fotoğraflı yanlışlarını aç ve tekrar et",icon:"▣"}
+    {action:"tactics",label:"Taktikler",description:"Sana uyan çalışma ve sınav stratejileri",icon:"◈"}
   ]},
-  {id:"analysis",label:"Analiz",description:"İlerleme, karne ve dönem raporları",icon:"↗",items:[
-    {action:"progress",label:"Analiz Merkezi",description:"7/30 gün, net eğilimi ve kritik konu sinyalleri",icon:"↗"},
+  {id:"analysis",label:"Analiz ve geçmiş",items:[
     {action:"success",label:"Çalışma özeti",description:"Haftalık karne, çalışma düzeni ve geçmiş",icon:"▦"},
-    {action:"reports",label:"Raporlar & geçmiş",description:"Ay raporu, retrospektif ve dönem geçmişi",icon:"≋"}
-  ]},
-  {id:"settings",label:"Ayarlar",description:"Görünüm, hedefler ve uygulama tercihleri",icon:"⚙",items:[
-    {action:"settings",label:"Ayarlar",description:"Tema, hedefler, bildirimler ve video seçenekleri",icon:"⚙"},
-    {action:"about",label:"Hakkında",description:"Sürüm, geliştirici ve uygulama bilgileri",icon:"i"}
-  ]},
-  {id:"system",label:"Veri & Sistem",description:"Yerel kayıt, yedek, kurtarma ve sistem sağlığı",icon:"⇅",items:[
-    {action:"data",label:"Veri & yedek",description:"Yerel kayıt, içe/dışa aktarma ve ham veri",icon:"⇅"},
-    {action:"system",label:"Sistem durumu",description:"PWA, depolama, veri şeması ve kontroller",icon:"✓"},
-    {action:"backup",label:"JSON yedek",description:"Manuel geri dönüş kopyası oluştur",icon:"⇩"},
+    {action:"reports",label:"Raporlar & geçmiş",description:"Ay raporu, retrospektif ve dönem geçmişi",icon:"≋"},
     {action:"log",label:"Değişiklik günlüğü",description:"Son ekleme ve silmeleri incele",icon:"≡"}
+  ]},
+  {id:"system",label:"Veri ve uygulama",items:[
+    {action:"data",label:"Veri & yedek",description:"Yerel kayıt, içe/dışa aktarma ve ham veri",icon:"⇅"},
+    {action:"backup",label:"Yedek indir",description:"JSON geri dönüş kopyası oluştur",icon:"⇩"},
+    {action:"system",label:"Sistem durumu",description:"PWA, depolama, veri şeması ve kontroller",icon:"✓"},
+    {action:"settings",label:"Ayarlar",description:"Profil, bildirimler ve koç bağlantısı",icon:"⚙"},
+    {action:"about",label:"Hakkında",description:"Sürüm, geliştirici ve uygulama bilgileri",icon:"i"}
   ]}
 ];
 
 const esc=(value:string)=>value.replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]!));
 const legacy=()=>window as LegacyWindow;
 
+/* Son yedeğin yaşı: mevcut lastManualBackup() okunur, hiçbir şey yazılmaz. */
+function backupNote():string{
+  let at=0;try{at=Number(legacy().lastManualBackup?.())||0;}catch{}
+  if(!at)return "Henüz yedek yok";
+  const days=Math.floor((Date.now()-at)/86400000);
+  return days<1?"Bugün yedeklendi":`Son yedek ${days} gün önce`;
+}
+
 export function installNavigationV43():NavigationRuntime{
   if(window.__YKS_NAV_V43__)return window.__YKS_NAV_V43__;
-  let current:CategoryId="learning";
   let home:HTMLElement|null=null,hub:HTMLElement|null=null;
 
   function renameNavigation(){
@@ -50,12 +62,13 @@ export function installNavigationV43():NavigationRuntime{
     const moreScreen=document.getElementById("more");const title=document.getElementById("navTitle");
     if(moreScreen?.classList.contains("active")&&title&&title.textContent!=="Merkez")title.textContent="Merkez";
   }
-  function renderCategory(){
+  function renderGroups(){
     if(!hub)return;
-    for(const button of hub.querySelectorAll<HTMLElement>("[data-v43-more-category]"))button.setAttribute("aria-pressed",String(button.dataset.v43MoreCategory===current));
-    const category=CATEGORIES.find(row=>row.id===current)!;
     const target=hub.querySelector<HTMLElement>("#v43MoreTools");if(!target)return;
-    target.innerHTML=`<div class="v43-more-tools-head"><div><span>${esc(category.label.toLocaleUpperCase("tr-TR"))}</span><b>${esc(category.description)}</b></div><small>${category.items.length} araç</small></div><div class="v43-more-tool-grid">${category.items.map(item=>`<button type="button" class="v43-more-tool" data-v43-more-action="${item.action}"><span class="v43-more-tool-icon" aria-hidden="true">${esc(item.icon)}</span><span><b>${esc(item.label)}</b><small>${esc(item.description)}</small></span><i aria-hidden="true">›</i></button>`).join("")}</div>`;
+    target.innerHTML=GROUPS.map(group=>`<section class="v43-more-group" data-v43-more-group="${group.id}" aria-label="${esc(group.label)}"><h2 class="v43-more-group-label">${esc(group.label)}</h2><div class="v43-more-tool-grid">${group.items.map(item=>{
+      const note=item.action==="data"?`<em class="v43-more-note">${esc(backupNote())}</em>`:"";
+      return `<button type="button" class="v43-more-tool" data-v43-more-action="${item.action}"><span class="v43-more-tool-icon" aria-hidden="true">${esc(item.icon)}</span><span><b>${esc(item.label)}</b><small>${esc(item.description)}</small>${note}</span><i aria-hidden="true">›</i></button>`;
+    }).join("")}</div></section>`).join("");
   }
   function hideLegacyMenu(){
     if(!home)return;
@@ -67,28 +80,23 @@ export function installNavigationV43():NavigationRuntime{
     renameNavigation();hideLegacyMenu();
     hub=document.getElementById("v43MoreHub");
     if(!hub){
-      hub=document.createElement("section");hub.id="v43MoreHub";hub.className="v43-more-hub";hub.setAttribute("aria-label","Merkez kategorileri");
-      hub.innerHTML=`<header class="v43-more-head"><h1>Merkez</h1><p>Çalışmana yardımcı olan her şey.</p></header><div class="v43-more-shortcuts" aria-label="Sık kullanılan ekranlar"><button type="button" data-v43-screen="pomo"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M9 2h6m-3 6v5l3 2"/></svg><span>Odaklan</span></button><button type="button" data-v43-screen="progress"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10m8 10V4m8 16v-7"/></svg><span>İlerleme</span></button><button type="button" data-v43-screen="pp"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v16H4zM8 8h8m-8 4h8m-8 4h4"/></svg><span>Paragraf & problem</span></button></div><button type="button" class="v43-more-settings" data-v43-more-action="settings"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M9 3h6l1 3 3 1 2 5-2 5-3 1-1 3H9l-1-3-3-1-2-5 2-5 3-1Z"/></svg><span><b>Ayarlar</b><small>Profil, görünüm ve uygulama tercihleri</small></span><i aria-hidden="true">›</i></button><div class="v43-more-categories" role="group" aria-label="Merkez kategorileri">${CATEGORIES.map(category=>`<button type="button" data-v43-more-category="${category.id}" aria-pressed="${category.id===current}">${esc(category.label)}</button>`).join("")}</div><section id="v43MoreTools" class="v43-more-tools" aria-live="polite"></section><details class="v43-more-quick"><summary>Kişisel kısayollarım</summary><div id="v43MoreQuickSlot"></div></details>`;
+      hub=document.createElement("section");hub.id="v43MoreHub";hub.className="v43-more-hub";hub.setAttribute("aria-label","Merkez");
+      hub.innerHTML=`<header class="v43-more-head"><h1>Merkez</h1><p>Araçların, raporların ve verin.</p></header><div id="v43MoreSearchSlot" class="v43-more-search"></div><div class="v43-more-shortcuts" aria-label="Sık kullanılan ekranlar">${SHORTCUTS.map(item=>`<button type="button" ${item.screen?`data-v43-screen="${item.screen}"`:`data-v43-more-action="${item.action}"`}><svg viewBox="0 0 24 24" aria-hidden="true">${item.icon}</svg><span>${esc(item.label)}</span></button>`).join("")}</div><div id="v43MoreTools" class="v43-more-tools"></div><details class="v43-more-quick"><summary>Kişisel kısayollarım</summary><div id="v43MoreQuickSlot"></div></details>`;
       const status=document.getElementById("v30MoreStatus");if(status&&status.parentElement===home)status.insertAdjacentElement("afterend",hub);else home.prepend(hub);
       hub.addEventListener("click",event=>{
         if(!(event.target instanceof Element))return;
         const screen=event.target.closest<HTMLElement>("[data-v43-screen]")?.dataset.v43Screen;
         if(screen){legacy().go?.(screen);return;}
-        const categoryButton=event.target.closest<HTMLElement>("[data-v43-more-category]");
-        if(categoryButton?.dataset.v43MoreCategory){current=categoryButton.dataset.v43MoreCategory as CategoryId;renderCategory();return;}
         const actionButton=event.target.closest<HTMLElement>("[data-v43-more-action]");const action=actionButton?.dataset.v43MoreAction as MoreAction|undefined;if(!action)return;
         if(action==="progress")legacy().go?.("progress");else legacy().v30Action?.(action);
       });
     }
     const quick=document.getElementById("v30QuickGrid"),slot=document.getElementById("v43MoreQuickSlot");if(quick&&slot&&quick.parentElement!==slot)slot.appendChild(quick);
     const status=document.getElementById("v30MoreStatus");if(status&&slot&&status.parentElement!==slot)slot.append(status);
-    const search=document.querySelector<HTMLElement>("#more > .v30-search-card");
-    if(search){
-      const disclosure=document.createElement("details");disclosure.className="v43-more-quick";
-      const summary=document.createElement("summary");summary.textContent="Kayıtlarımda ara";
-      disclosure.append(summary,search);hub.append(disclosure);
-    }
-    renderCategory();renameNavigation();return true;
+    // Kayıt araması gizli bir açılır alan yerine Merkez'in en üstünde görünür.
+    const search=document.querySelector<HTMLElement>("#more .v30-search-card"),searchSlot=document.getElementById("v43MoreSearchSlot");
+    if(search&&searchSlot&&search.parentElement!==searchSlot)searchSlot.append(search);
+    renderGroups();renameNavigation();return true;
   }
   let queued=false;
   const refresh=()=>{if(queued)return;queued=true;queueMicrotask(()=>{queued=false;mount();});};
@@ -106,6 +114,6 @@ export function installNavigationV43():NavigationRuntime{
     if(detail?.to==="home")refresh();
   });
   mount();
-  const api:NavigationRuntime={installed:true,version:VERSION,validate(){const issues:string[]=[];if(!document.getElementById("v43MoreHub"))issues.push("hub");if(document.querySelectorAll("[data-v43-more-category]").length!==4)issues.push("categories");const more=document.querySelector<HTMLElement>('[data-s="more"]');if(more&&more.getAttribute("aria-label")!=="Merkez")issues.push("nav-label");return issues;},refresh};
+  const api:NavigationRuntime={installed:true,version:VERSION,validate(){const issues:string[]=[];if(!document.getElementById("v43MoreHub"))issues.push("hub");if(document.querySelectorAll("[data-v43-more-group]").length!==3)issues.push("groups");const more=document.querySelector<HTMLElement>('[data-s="more"]');if(more&&more.getAttribute("aria-label")!=="Merkez")issues.push("nav-label");return issues;},refresh};
   window.__YKS_NAV_V43__=api;return api;
 }
