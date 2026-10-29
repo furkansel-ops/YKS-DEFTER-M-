@@ -34,11 +34,12 @@ test("v62 bulut silme mevcut tombstone protokolünü ve profil-önce sırasını
   assert.match(cloud,/active:false,endedAt:fs\.serverTimestamp\(\),updatedAt:fs\.serverTimestamp\(\)/);
 });
 
-test("kurallar: kişi yalnız kendi profilini, görev ve mesajlarını silebilir; meta ve bağlantı silinemez",()=>{
+test("kurallar: kişi yalnız kendi profilini; öğrenci ya da koç kendi görev ve mesajlarını silebilir; meta ve bağlantı silinemez",()=>{
+  const ownerDelete=/allow delete: if verifiedUser\(\)\s*&& \(request\.auth\.uid == resource\.data\.studentUid\s*\|\| request\.auth\.uid == resource\.data\.coachUid\);/;
   assert.match(block("accountProfiles"),/allow delete: if ownsUserSpace\(userId\);/);
-  assert.match(block("coachingActions"),/allow delete: if verifiedUser\(\)\s*&& request\.auth\.uid == resource\.data\.studentUid;/);
+  assert.match(block("coachingActions"),ownerDelete);
   assert.match(block("coachingMessages"),/allow update: if false;/);
-  assert.match(block("coachingMessages"),/allow delete: if verifiedUser\(\)\s*&& request\.auth\.uid == resource\.data\.studentUid;/);
+  assert.match(block("coachingMessages"),ownerDelete);
   assert.match(block("coachingLinks"),/allow delete: if false;/);
   const metaAt=rules.indexOf("match /users/{userId}/sync/meta {");
   assert.match(rules.slice(metaAt,rules.indexOf("\n    }\n",metaAt)),/allow delete: if false;/);

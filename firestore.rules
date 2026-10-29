@@ -496,9 +496,10 @@ service cloud.firestore {
         );
 
       allow update: if false;
-      // Hesap silme: öğrenci kendi konuşmalarını silebilir; koç silemez.
+      // Hesap silme: konuşmanın öğrencisi ya da koçu kendi hesabını silerken konuşmayı silebilir.
       allow delete: if verifiedUser()
-        && request.auth.uid == resource.data.studentUid;
+        && (request.auth.uid == resource.data.studentUid
+          || request.auth.uid == resource.data.coachUid);
     }
 
     match /coachingActions/{actionId} {
@@ -538,9 +539,10 @@ service cloud.firestore {
           (request.auth.uid == resource.data.coachUid
             && request.resource.data.status == 'cancelled')
         );
-      // Hesap silme: öğrenci kendisine gönderilen görev/notları silebilir.
+      // Hesap silme: öğrenci kendisine gelen, koç kendi gönderdiği görev/notları silebilir.
       allow delete: if verifiedUser()
-        && request.auth.uid == resource.data.studentUid;
+        && (request.auth.uid == resource.data.studentUid
+          || request.auth.uid == resource.data.coachUid);
     }
 
     match /users/{userId}/sync/meta {
