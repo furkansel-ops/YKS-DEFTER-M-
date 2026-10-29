@@ -1,0 +1,207 @@
+/* v66 · Üç tema, tek düzen: Sade Mavi (refined-blue), Gece (night), Canlı (vivid).
+   Yalnız görünüm: DOM sırası, kimlikler, kayıtlar ve işleyiciler değişmez. Bugün ekranı
+   ara kapsayıcıları display:contents ile düzleştirilip order ile yeniden sıralanır.
+   Seçiciler #mainWrap ile eski iki kimlikli katmanların (v42–v55, tema v45–v50) önüne geçer. */
+
+/* ---------- Tema belirteçleri ---------- */
+:root[data-visual-system="refined-blue"]{
+  --d-bg:#f5f7fb;--d-surface:#fff;--d-soft:#eef3fb;--d-ink:#121a2b;--d-muted:#5f6b80;--d-line:#e3e9f2;
+  --d-accent:#2f6bea;--d-on-accent:#fff;--d-chip:#e9f0fe;--d-chip-ink:#2453b8;--d-track:#e8edf5;--d-ok:#13906b;
+  --d-hero:linear-gradient(140deg,#2f6bea,#1d4cc4);--d-hero-ink:#fff;--d-hero-btn:#fff;--d-hero-btn-ink:#1d4cc4;--d-hero-ghost:rgba(255,255,255,.18);
+  --d-launch:linear-gradient(170deg,#1C6DF2 0%,#0B4FC0 46%,#0A2F7A 100%);
+  --d-r:18px;--d-r-sm:14px;--d-shadow:0 1px 2px rgba(20,40,80,.05);--d-nav:rgba(255,255,255,.94);
+  --d-math:#2f6bea;--d-physics:#d9800f;--d-chemistry:#13906b;--d-biology:#7c4dcc;--d-reading:#c2417a;--d-social:#9a6b2f;--d-other:#64748b;
+}
+:root[data-theme="night"]{
+  --d-bg:#0a0f1c;--d-surface:#121a2c;--d-soft:#1a2440;--d-ink:#eef2fb;--d-muted:#a9b5ca;--d-line:#26314d;
+  --d-accent:#7aa2ff;--d-on-accent:#0a0f1c;--d-chip:#1a2440;--d-chip-ink:#b5c8ff;--d-track:#1f2a45;--d-ok:#3ccf97;
+  --d-hero:radial-gradient(circle at 85% 0%,rgba(122,162,255,.42),transparent 55%),linear-gradient(160deg,#1a2650,#111a33);
+  --d-hero-ink:#eef2fb;--d-hero-btn:#7aa2ff;--d-hero-btn-ink:#0a0f1c;--d-hero-ghost:rgba(255,255,255,.09);
+  --d-launch:radial-gradient(circle at 80% 0%,rgba(122,162,255,.35),transparent 50%),linear-gradient(170deg,#141d3a 0%,#0c1328 55%,#070b16 100%);
+  --d-r:20px;--d-r-sm:15px;--d-shadow:none;--d-nav:rgba(18,26,44,.94);
+  --d-math:#7aa2ff;--d-physics:#f3b860;--d-chemistry:#5fdcaa;--d-biology:#c3a2ff;--d-reading:#ff8fbf;--d-social:#e0b98a;--d-other:#9aa7bd;
+}
+:root[data-theme="vivid"]{
+  --d-bg:#fbf8f4;--d-surface:#fff;--d-soft:#f4efe8;--d-ink:#1b1830;--d-muted:#615c76;--d-line:#ece5dc;
+  --d-accent:#5a3ee0;--d-on-accent:#fff;--d-chip:#f0ebff;--d-chip-ink:#4a2fc4;--d-track:#efe8df;--d-ok:#128a5c;
+  --d-hero:linear-gradient(135deg,#6a4cf5 0%,#a845e8 55%,#f0705a 100%);--d-hero-ink:#fff;--d-hero-btn:#fff;--d-hero-btn-ink:#4a2fc4;--d-hero-ghost:rgba(255,255,255,.22);
+  --d-launch:linear-gradient(160deg,#6a4cf5 0%,#9b47e6 50%,#e8665a 100%);
+  --d-r:22px;--d-r-sm:16px;--d-shadow:0 6px 16px rgba(60,40,20,.06);--d-nav:rgba(255,255,255,.95);
+  --d-math:#5a3ee0;--d-physics:#e0750f;--d-chemistry:#109466;--d-biology:#c03ac9;--d-reading:#e0446f;--d-social:#a9701c;--d-other:#6c6784;
+}
+:root[data-theme="night"],:root[data-theme="vivid"]{background:var(--d-bg)}
+:root[data-theme="night"] body,:root[data-theme="vivid"] body{background:var(--d-bg)}
+[data-tone="math"]{--tone:var(--d-math)}[data-tone="physics"]{--tone:var(--d-physics)}[data-tone="chemistry"]{--tone:var(--d-chemistry)}
+[data-tone="biology"]{--tone:var(--d-biology)}[data-tone="reading"]{--tone:var(--d-reading)}[data-tone="social"]{--tone:var(--d-social)}[data-tone="other"]{--tone:var(--d-other)}
+[data-v4-tone="math"]{--tone:var(--d-math)}[data-v4-tone="physics"]{--tone:var(--d-physics)}[data-v4-tone="chemistry"]{--tone:var(--d-chemistry)}
+[data-v4-tone="biology"]{--tone:var(--d-biology)}[data-v4-tone="reading"]{--tone:var(--d-reading)}[data-v4-tone="other"]{--tone:var(--d-other)}
+
+/* ---------- Bugün: yeni sıra ---------- */
+:root[data-visual-system] #mainWrap #home #todayFreshStart{display:flex;flex-direction:column;gap:12px}
+:root[data-visual-system] #mainWrap #home #todayFreshStart :is(.today-fresh-welcome,.today-fresh-daily,.today-fresh-progress,.today-fresh-work-pair),
+:root[data-visual-system] #mainWrap #home #todayFreshStart #todayFreshWorkCenter:not([hidden]){display:contents}
+:root[data-visual-system] #mainWrap #home #todayFreshStart :is(.today-fresh-hello,.today-fresh-quote,.today-fresh-progress-head,.today-fresh-section-heading){display:none}
+:root[data-visual-system] #mainWrap #home #todayFreshStart>*{order:20}
+:root[data-visual-system] #mainWrap #home #todayFreshStart .yw-guest{order:0}
+:root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-title{order:1;margin:0;display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+:root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-title h1{font-size:30px;letter-spacing:-.03em;color:var(--d-ink)}
+:root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-title time{font-size:12.5px;font-weight:650;color:var(--d-muted)}
+:root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-exam{
+  order:2;align-self:flex-start;display:inline-flex;align-items:baseline;gap:6px;min-height:0;margin:-4px 0 0;padding:6px 12px;
+  border:0;border-radius:99px;background:var(--d-chip);color:var(--d-chip-ink);box-shadow:none
+}
+:root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-exam .today-fresh-exam-label{display:none}
+:root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-exam .today-fresh-days{display:inline-flex;align-items:baseline;gap:4px;margin:0}
+:root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-exam .today-fresh-days :is(strong,span){font-size:13px;line-height:1.2;color:inherit;font-weight:800}
+:root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-exam .today-fresh-days strong{font-size:15px}
+:root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-exam small{margin:0;font-size:12px;font-weight:700;color:inherit;opacity:.8}
+:root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-exam small::before{content:"· "}
+
+/* Sıradaki görev: kahraman kart */
+:root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-work-card.today-fresh-next{
+  order:3;position:relative;overflow:hidden;min-height:0;padding:18px;border:0;border-radius:var(--d-r);
+  background:var(--d-hero);color:var(--d-hero-ink);box-shadow:0 14px 30px -18px rgba(20,30,80,.55)
+}
+:root[data-theme="vivid"] #mainWrap #home #todayFreshStart .today-fresh-next::after{content:"";position:absolute;right:-34px;top:-34px;width:140px;height:140px;border-radius:50%;background:rgba(255,255,255,.14);pointer-events:none}
+:root[data-theme="night"] #mainWrap #home #todayFreshStart .today-fresh-next{border:1px solid #2a3866}
+:root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-next .today-fresh-card-eyebrow{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:inherit;opacity:.82}
+:root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-next .today-fresh-next-icon{display:none}
+:root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-next h3{margin:6px 0 2px;font-size:22px;line-height:1.2;letter-spacing:-.02em;color:inherit}
+:root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-next p{margin:0;font-size:13.5px;color:inherit;opacity:.88}
+:root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-next .today-fresh-next-actions{display:flex;gap:8px;margin-top:16px}
+:root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-next .today-fresh-action{flex:1;min-height:44px;border:0;border-radius:13px;font-weight:800;font-size:14.5px;box-shadow:none}
+:root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-next .today-fresh-primary{background:var(--d-hero-btn);color:var(--d-hero-btn-ink)}
+:root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-next .today-fresh-secondary{flex:.65;background:var(--d-hero-ghost);color:var(--d-hero-ink)}
+:root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-next .today-fresh-action:disabled{opacity:.55}
+
+/* Üç küçük sayı */
+:root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-stats{order:4;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0;padding:0;border:0;background:none}
+:root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-stats .today-fresh-stat{
+  display:grid;gap:2px;min-width:0;padding:11px 12px;border:1px solid var(--d-line);border-radius:var(--d-r-sm);background:var(--d-surface);box-shadow:var(--d-shadow);text-align:left
+}
+:root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-stats .today-fresh-stat:nth-child(3){order:-1}
+:root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-stats .today-fresh-stat:nth-child(4){display:none}
+:root[data-visual-system] #mainWrap #home #todayFreshStart #todayFreshProgress .today-fresh-stats .today-fresh-stat span{font-size:11px;font-weight:750;color:var(--d-muted)}
+:root[data-visual-system] #mainWrap #home #todayFreshStart #todayFreshProgress .today-fresh-stats .today-fresh-stat strong{font-size:20px;line-height:1.15;letter-spacing:-.02em;color:var(--d-ink)}
+:root[data-visual-system] #mainWrap #home #todayFreshStart #todayFreshProgress .today-fresh-stats .today-fresh-stat small{font-size:10.5px;color:var(--d-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+:root[data-theme="vivid"] #mainWrap #home #todayFreshStart .today-fresh-stats .today-fresh-stat{border:0}
+:root[data-theme="vivid"] #mainWrap #home #todayFreshStart .today-fresh-stats .today-fresh-stat:nth-child(3){background:#f0ebff}
+:root[data-theme="vivid"] #mainWrap #home #todayFreshStart .today-fresh-stats .today-fresh-stat:nth-child(1){background:#fff1dc}
+:root[data-theme="vivid"] #mainWrap #home #todayFreshStart .today-fresh-stats .today-fresh-stat:nth-child(2){background:#dcf7ea}
+
+/* Odak: ince satır */
+:root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-work-card.today-fresh-focus{
+  order:5;display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:10px;min-height:0;padding:10px 12px;
+  border:1px solid var(--d-line);border-radius:var(--d-r-sm);background:var(--d-surface);color:var(--d-ink);box-shadow:var(--d-shadow)
+}
+:root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-focus :is(h3,p){display:none}
+:root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-focus .today-fresh-card-eyebrow{font-size:13px;font-weight:750;color:var(--d-ink);text-transform:none;letter-spacing:0}
+:root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-focus .today-fresh-focus-bottom{display:contents}
+:root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-focus #todayFreshFocusTime{font-size:15px;font-weight:800;color:var(--d-muted);font-variant-numeric:tabular-nums}
+:root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-focus .today-fresh-action{min-height:34px;padding:0 12px;border:1px solid var(--d-line);border-radius:10px;background:var(--d-soft);color:var(--d-accent);font-weight:750;font-size:12.5px;box-shadow:none}
+
+/* Günün planı */
+:root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-tasks{order:6;padding:0;border:0;background:none;box-shadow:none}
+:root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-tasks-head{display:flex;align-items:baseline;justify-content:space-between;margin:4px 2px 8px}
+:root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-tasks-head h3{font-size:16px;letter-spacing:-.01em;color:var(--d-ink)}
+:root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-tasks-head p{font-size:12px;color:var(--d-muted)}
+:root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-view-all{border:0;background:none;padding:0;min-height:0;color:var(--d-accent);font-weight:750;font-size:12.5px;box-shadow:none}
+:root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-task-list{display:grid;gap:8px;grid-template-columns:1fr}
+:root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-task{
+  position:relative;display:flex;align-items:center;gap:11px;min-height:58px;padding:10px 12px 10px 16px;
+  border:1px solid var(--d-line);border-radius:var(--d-r-sm);background:var(--d-surface);box-shadow:var(--d-shadow);overflow:hidden
+}
+:root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-task::before{content:"";position:absolute;left:0;top:10px;bottom:10px;width:4px;border-radius:0 4px 4px 0;background:var(--tone,var(--d-accent))}
+:root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-task-check{
+  flex:0 0 26px;width:26px;min-width:0;max-width:26px;height:26px;min-height:0;padding:0;border:2px solid var(--d-line);border-radius:8px;background:transparent;color:transparent;font-size:14px;font-weight:900;line-height:1;box-shadow:none
+}
+:root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-task.is-done .today-fresh-task-check{background:var(--d-ok);border-color:var(--d-ok);color:#fff}
+:root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-task-copy{flex:1;min-width:0;display:grid;gap:1px}
+:root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-task-title{font-size:14.5px;font-weight:780;color:var(--d-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+:root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-task-sub{font-size:12px;color:var(--d-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+:root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-task.is-done .today-fresh-task-title{text-decoration:line-through;color:var(--d-muted)}
+:root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-task-coach{flex:none;padding:3px 8px;border-radius:99px;background:var(--d-chip);color:var(--d-chip-ink);font-size:10.5px;font-weight:800}
+:root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-task-empty{margin:0;padding:12px;border:1px dashed var(--d-line);border-radius:var(--d-r-sm);color:var(--d-muted);font-size:13px;background:none}
+
+/* Katlanır satırlar */
+:root[data-visual-system] #mainWrap #home #todayFreshStart>:is(details,.today-fresh-review){
+  border:1px solid var(--d-line);border-radius:var(--d-r-sm);background:var(--d-surface);box-shadow:var(--d-shadow)
+}
+@media(min-width:900px){
+  :root[data-visual-system] #mainWrap #home #todayFreshStart{max-width:760px;margin-inline:auto}
+}
+
+/* ---------- Program ---------- */
+:root[data-visual-system] #mainWrap #program .rb-program-heading h1{letter-spacing:-.03em;color:var(--d-ink)}
+:root[data-visual-system] #mainWrap #program .rb-program-heading :is(p,.rb-program-week-summary){color:var(--d-muted)}
+:root[data-visual-system] #mainWrap #program .rb-v4-heading-badge{background:var(--d-chip);color:var(--d-chip-ink);border:0}
+:root[data-visual-system] #mainWrap #program .rb-program-tabs{border-radius:var(--d-r-sm);background:var(--d-soft);border-color:var(--d-line)}
+:root[data-visual-system] #mainWrap #program .rb-program-add{border-radius:var(--d-r-sm);background:var(--d-accent);color:var(--d-on-accent);border:0;box-shadow:0 10px 22px -14px var(--d-accent)}
+:root[data-visual-system] #mainWrap #program .rb-program-weeknav{border-radius:var(--d-r-sm);background:var(--d-surface);border-color:var(--d-line)}
+:root[data-visual-system] #mainWrap #program .rb-program-weekstrip>*{border-radius:13px;border-color:var(--d-line);background:var(--d-surface);color:var(--d-muted)}
+:root[data-visual-system] #mainWrap #program .rb-program-weekstrip>:is([aria-current="date"],[aria-pressed="true"],.is-selected,.active){background:var(--d-accent);border-color:var(--d-accent);color:var(--d-on-accent)}
+:root[data-visual-system] #mainWrap #program :is(.rb-v4-day-progress,.rb-program-summary){border-radius:var(--d-r);border-color:var(--d-line);background:var(--d-surface);box-shadow:var(--d-shadow)}
+:root[data-visual-system] #mainWrap #program .rb-v4-subject-heading{color:var(--d-ink)}
+:root[data-visual-system] #mainWrap #program .rb-v4-subject-icon{color:var(--tone,var(--d-accent));background:color-mix(in srgb,var(--tone,var(--d-accent)) 14%,transparent)}
+:root[data-visual-system] #mainWrap #program .rb-program-task{
+  position:relative;border-radius:var(--d-r-sm);border:1px solid var(--d-line);background:var(--d-surface);box-shadow:var(--d-shadow);overflow:hidden
+}
+:root[data-visual-system] #mainWrap #program .rb-program-task::before{content:"";position:absolute;left:0;top:12px;bottom:12px;width:4px;border-radius:0 4px 4px 0;background:var(--tone,var(--d-accent))}
+:root[data-visual-system] #mainWrap #program .rb-program-task-copy strong{color:var(--d-ink)}
+:root[data-visual-system] #mainWrap #program .rb-program-task-copy small{color:var(--d-muted)}
+:root[data-visual-system] #mainWrap #program .rb-program-check{border-radius:8px;border-color:var(--d-line)}
+:root[data-visual-system] #mainWrap #program .rb-program-check[aria-pressed="true"]{background:var(--d-ok);border-color:var(--d-ok)}
+:root[data-visual-system] #mainWrap #program .rb-v4-chip{border-radius:99px;background:var(--d-soft);color:var(--d-muted);border-color:var(--d-line)}
+
+/* ---------- Konular ---------- */
+:root[data-visual-system] #mainWrap #topics .card.subj{position:relative;border-radius:var(--d-r);border:1px solid var(--d-line);background:var(--d-surface);box-shadow:var(--d-shadow);overflow:hidden}
+:root[data-visual-system] #mainWrap #topics .card.subj .subj-head .nm{display:flex;align-items:center;gap:8px;flex-wrap:wrap;color:var(--d-ink)}
+:root[data-visual-system] #mainWrap #topics .card.subj .subj-head .nm::before{content:"";width:10px;height:10px;border-radius:4px;background:var(--tone,var(--d-accent));flex:none}
+:root[data-visual-system] #mainWrap #topics .card.subj .subj-head .pct{color:var(--d-muted)}
+:root[data-visual-system] #mainWrap #topics .card.subj>.bar{height:7px;border-radius:9px;background:var(--d-track)}
+:root[data-visual-system] #mainWrap #topics .card.subj>.bar i{border-radius:9px;background:var(--tone,var(--d-accent))}
+:root[data-visual-system] #mainWrap #topics .topic{border-color:var(--d-line)}
+:root[data-visual-system] #mainWrap #topics .topic-state{border-radius:99px;font-weight:800}
+:root[data-visual-system] #mainWrap #topics .topic-state.s0{background:var(--d-track);color:var(--d-muted)}
+:root[data-visual-system] #mainWrap #topics .topic-state.s1{background:color-mix(in srgb,var(--d-physics) 16%,var(--d-surface));color:color-mix(in srgb,var(--d-physics) 78%,var(--d-ink))}
+:root[data-visual-system] #mainWrap #topics .topic-state.s2{background:var(--d-chip);color:var(--d-chip-ink)}
+:root[data-visual-system] #mainWrap #topics .topic-state.s3{background:color-mix(in srgb,var(--d-ok) 16%,var(--d-surface));color:color-mix(in srgb,var(--d-ok) 80%,var(--d-ink))}
+:root[data-visual-system] #mainWrap #topics .seg button.on{background:var(--d-ink);color:var(--d-bg)}
+
+/* ---------- Kabuk: üst çubuk, alt menü ---------- */
+:root[data-visual-system] body .tabbar{background:var(--d-nav);border-color:var(--d-line);backdrop-filter:blur(14px)}
+:root[data-visual-system][data-theme] body .tabbar .tab.active{color:var(--d-accent)}
+:root[data-theme="night"] body .navbar,:root[data-theme="vivid"] body .navbar{background:color-mix(in srgb,var(--d-bg) 92%,transparent);border-color:var(--d-line)}
+
+/* ---------- Açılış ekranı temaya uyar ---------- */
+:root[data-visual-system] .yl-root{background:var(--d-launch)}
+
+/* ---------- Ayarlar › Görünüm: üç tema kartı ---------- */
+#appearancePreferences .yks-theme-grid.yks-theme-trio{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+#appearancePreferences .yks-theme-trio .yks-theme-choice{flex-direction:column;align-items:flex-start;gap:8px;min-height:96px;padding:12px}
+#appearancePreferences .yks-theme-trio .yks-theme-swatch{width:100%;height:34px;border-radius:10px;background:var(--yks-swatch)}
+@media(max-width:360px){#appearancePreferences .yks-theme-grid.yks-theme-trio{grid-template-columns:1fr}}
+
+/* Eski tema katmanları :is() içinde kimlik kullandığı için metin renkleri kimlikle sabitlenir. */
+:root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-next :is(#todayFreshNextTitle,#todayFreshNextMeta){color:var(--d-hero-ink)}
+:root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-next #todayFreshNextMeta{opacity:.88}
+:root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-next :is(#todayFreshNextStart){background:var(--d-hero-btn);color:var(--d-hero-btn-ink);border:0}
+:root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-next :is(#todayFreshNextDone){background:var(--d-hero-ghost);color:var(--d-hero-ink);border:0}
+:root[data-visual-system] #mainWrap #home #todayFreshStart :is(#todayFreshDate,#todayFreshTaskCount,#todayFreshExamDate){color:var(--d-muted)}
+:root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-exam :is(#todayFreshDays,#todayFreshExamDate){color:var(--d-chip-ink)}
+:root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-focus :is(#todayFreshFocusState){color:var(--d-ink)}
+:root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-focus :is(#todayFreshFocusTime){color:var(--d-muted)}
+:root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-focus :is(#todayFreshFocusOpen){background:var(--d-soft);color:var(--d-accent);border-color:var(--d-line)}
+:root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-tasks :is(#todayFreshAllTasks){color:var(--d-accent);background:none;border:0}
+:root[data-visual-system] #mainWrap #home #todayFreshReview :is(button,.btn):not([aria-pressed="true"]):not(.is-selected):not(.on){background:var(--d-soft);color:var(--d-ink);border-color:var(--d-line)}
+
+/* Açılış ekranının alt düğme şeridi gradyanın son rengine kaynar. */
+:root[data-visual-system="refined-blue"]{--d-launch-end:#0A2F7A}
+:root[data-theme="night"]{--d-launch-end:#070b16}
+:root[data-theme="vivid"]{--d-launch-end:#e8665a}
+@media(max-width:759px){
+  :root[data-visual-system] .yl-root .yl-acts{background:linear-gradient(to top,var(--d-launch-end) 0%,var(--d-launch-end) 62%,transparent 100%)}
+}
+
+/* Odak kartının parlak cam katmanı koyu temada griye döner; Gece'de hafif mavi ışıltı olur. */
+:root[data-theme="night"] #mainWrap #pomo #focusCard::before{background:radial-gradient(circle at 85% 0%,rgba(122,162,255,.22),transparent 55%);opacity:1}

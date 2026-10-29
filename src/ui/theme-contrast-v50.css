@@ -148,7 +148,7 @@
   background:var(--yks-theme-deep);
 }
 /* Never fade away text in dark palettes or inject bright white backgrounds. */
-:root[data-theme="night"],:root[data-theme="graphite"]{
+:root[data-theme="night"]{
   --yks-theme-quiet:var(--yks-theme-muted);
 }
 @media(prefers-reduced-motion:reduce){

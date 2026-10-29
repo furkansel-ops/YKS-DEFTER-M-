@@ -6,11 +6,11 @@ const vm=require("node:vm");
 
 const root=path.resolve(__dirname,"..");
 const read=file=>fs.readFileSync(path.join(root,file),"utf8");
-const themes=["auto","refined-blue","paper","night","forest","ocean","lavender","sunset","graphite"];
+const themes=["refined-blue","night","vivid"];
 
 function harness(initial="refined-blue",dark=false){
   const app=read("app.js");
-  const code=app.slice(app.indexOf("/* ================= GÖRÜNÜM / GERİ GELEN TEMALAR"),app.indexOf("/* ================= SES"));
+  const code=app.slice(app.indexOf("/* ================= GÖRÜNÜM / ÜÇ TEMA"),app.indexOf("/* ================= SES"));
   assert.ok(code.length>1300);
   const radios=themes.map(value=>({
     value,checked:false,
@@ -33,18 +33,18 @@ function harness(initial="refined-blue",dark=false){
     run:source=>vm.runInContext(source,ctx)};
 }
 
-test("temalar geri geldi; kayıtlar değişmeden açılışta tercih korunur",()=>{
-  const h=harness("forest");
+test("üç tema: kayıtlar değişmeden açılışta tercih korunur",()=>{
+  const h=harness("vivid");
   const original=JSON.stringify({weeks:h.state.weeks,denemeler:h.state.denemeler,fontScale:h.state.fontScale});
   h.run("applyTheme()");
-  assert.equal(h.state.theme,"forest");
-  assert.equal(h.doc.documentElement.dataset.theme,"forest");
+  assert.equal(h.state.theme,"vivid");
+  assert.equal(h.doc.documentElement.dataset.theme,"vivid");
   assert.equal(h.doc.documentElement.dataset.visualSystem,"refined-blue");
   assert.equal(h.doc.documentElement.dataset.themeControl,"multiple");
   assert.equal(h.doc.documentElement.style.colorScheme,"light");
-  assert.equal(h.header.content,"#edf6f0");
-  assert.equal(h.radios.find(x=>x.value==="forest").checked,true);
-  assert.equal(h.label.textContent,"Orman");
+  assert.equal(h.header.content,"#fbf8f4");
+  assert.equal(h.radios.find(x=>x.value==="vivid").checked,true);
+  assert.equal(h.label.textContent,"Canlı");
   assert.equal(h.saveCount,0,"açılışta ekstra kayıt/yazma yapılmaz");
   assert.equal(JSON.stringify({weeks:h.state.weeks,denemeler:h.state.denemeler,fontScale:h.state.fontScale}),original);
   h.run('setTheme("night")');
@@ -55,37 +55,31 @@ test("temalar geri geldi; kayıtlar değişmeden açılışta tercih korunur",()
   assert.equal(h.radios.find(x=>x.value==="night").checked,true);
   assert.equal(h.run("isDarkNow()"),true);
   assert.equal(h.run('setTheme("unknown")'),false);
+  assert.equal(h.run('setTheme("forest")'),false,"kaldırılan temalar seçilemez");
   assert.equal(h.state.theme,"night");
   h.run('setTheme("night")');
   assert.equal(h.saveCount,1,"aynı palete yeniden dokununca tekrar yazma yok");
   assert.equal(JSON.stringify({weeks:h.state.weeks,denemeler:h.state.denemeler,fontScale:h.state.fontScale}),original);
 });
 
-test("Sistem teması cihazın açık/koyu değişimini izler; tercih değişmez",()=>{
-  const h=harness("auto",false);
-  h.run("applyTheme()");
-  assert.equal(h.doc.documentElement.dataset.theme,"paper");
-  assert.equal(h.state.theme,"auto");
-  assert.equal(h.radios.find(x=>x.value==="auto").checked,true);
-  assert.equal(h.saveCount,0);
-  h.setSystemDark(true);h.listeners.change();
-  assert.equal(h.doc.documentElement.dataset.theme,"night");
-  assert.equal(h.doc.documentElement.style.colorScheme,"dark");
-  assert.equal(h.header.content,"#101827");
-  assert.equal(h.state.theme,"auto");
-  assert.equal(h.saveCount,0);
+test("eski temalar açılışta üç temaya taşınır: koyular Gece'ye, diğerleri Sade Mavi'ye",()=>{
+  for(const [old,next,meta] of [["graphite","night","#0a0f1c"],["dark","night","#0a0f1c"],["auto","refined-blue","#f5f7fb"],["forest","refined-blue","#f5f7fb"],["paper","refined-blue","#f5f7fb"],["notebook","refined-blue","#f5f7fb"]]){
+    const h=harness(old);h.run("applyTheme()");
+    assert.equal(h.state.theme,next,old);assert.equal(h.doc.documentElement.dataset.theme,next,old);assert.equal(h.header.content,meta,old);
+    assert.equal(h.saveCount,0,"taşıma açılışta ekstra yazma yapmaz");
+  }
+  const h=harness("night");h.run("applyTheme()");
+  assert.equal(h.doc.documentElement.style.colorScheme,"dark");assert.equal(h.header.content,"#0a0f1c");assert.equal(h.label.textContent,"Gece");
 });
 
-test("eski açık/koyu tanımları saklanır, bilinmeyenler maviye döner",()=>{
+test("kayıt normalize: eski koyu temalar Gece'ye, bilinmeyenler Sade Mavi'ye döner",()=>{
   const source=read("app.js");
   const normal=source.slice(source.indexOf("function normalize("),source.indexOf("/* ================= GÖRÜNÜM",source.indexOf("function normalize(")));
-  assert.match(normal,/if\(o\.theme==="light"\)o\.theme="paper"/);
-  assert.match(normal,/if\(o\.theme==="dark"\)o\.theme="night"/);
-  assert.match(normal,/if\(!\["auto","refined-blue","paper","night","forest","ocean","lavender","sunset","graphite"\]\.includes\(o\.theme\)\)/);
-  assert.match(normal,/if\(!\["auto"[^\n]+includes\(o\.theme\)\)o\.theme="refined-blue"/);
+  assert.match(normal,/if\(o\.theme==="dark"\|\|o\.theme==="graphite"\)o\.theme="night"/);
+  assert.match(normal,/if\(!\["refined-blue","night","vivid"\]\.includes\(o\.theme\)\)o\.theme="refined-blue"/);
 });
 
-test("Görünüm alanında erişilebilir dokuz radyo kartı ve yazı boyutları birlikte çalışır",()=>{
+test("Görünüm alanında erişilebilir üç radyo kartı ve yazı boyutları birlikte çalışır",()=>{
   const html=read("index.html"),settings=read("public/settings-profile-runtime.js");
   const region=html.slice(html.indexOf('id="appearancePreferences"'),html.indexOf('id="appearancePreferences"')+6800);
   assert.match(region,/id="yksThemePicker"/);
@@ -94,7 +88,8 @@ test("Görünüm alanında erişilebilir dokuz radyo kartı ve yazı boyutları 
     assert.match(region,new RegExp('type="radio" name="yksTheme" value="'+name+'"'));
     assert.match(region,new RegExp("setTheme\\('"+name+"'\\)"));
   }
-  assert.equal((region.match(/name="yksTheme"/g)||[]).length,9);
+  assert.equal((region.match(/name="yksTheme"/g)||[]).length,3);
+  for(const removed of ["auto","paper","forest","ocean","lavender","sunset","graphite"])assert.doesNotMatch(region,new RegExp('name="yksTheme" value="'+removed+'"'));
   for(const scale of ["0.9","1","1.15","1.3"])assert.ok(region.includes("setFontScale("+scale+")"));
   assert.match(settings,/data-yms-appearance-slot/);
   assert.match(settings,/title:"Görünüm"/);
@@ -103,10 +98,13 @@ test("Görünüm alanında erişilebilir dokuz radyo kartı ve yazı boyutları 
 test("tema CSS yeni mobil tasarımı koruyarak hem koyu hem açık paletleri uygular",()=>{
   const css=read("src/ui/theme-choices-v45.css");
   const main=read("src/main.ts"),personal=read("src/ui/personalization-v43.ts");
-  for(const id of themes.slice(2)){
+  for(const id of ["night","vivid"]){
     assert.match(css,new RegExp(':root\\[data-theme="'+id+'"\\]'));
   }
   assert.match(css,/color-scheme:dark/);
+  for(const removed of ["paper","forest","ocean","lavender","sunset","graphite"])assert.doesNotMatch(css,new RegExp(':root\\[data-theme="'+removed+'"\\]'));
+  assert.match(main,/import "\.\/ui\/design-trio-v66\.css"/);
+  assert.ok(main.indexOf("design-trio-v66.css")>main.indexOf("today-final-v55.css"),"yeni düzen en son yüklenir");
   assert.match(css,/#home #todayFreshStart/);
   assert.match(css,/#appearancePreferences \.yks-theme-grid/);
   assert.match(css,/@media\(max-width:430px\)/);

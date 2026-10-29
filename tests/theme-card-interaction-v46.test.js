@@ -8,7 +8,7 @@ const read=p=>fs.readFileSync(path.join(root,p),"utf8");
 
 function harness(hasThemeApi=true){
   const callbacks={},chosen=[];
-  const input={name:"yksTheme",value:"forest",disabled:false,
+  const input={name:"yksTheme",value:"vivid",disabled:false,
     focusCount:0,focus(){this.focusCount++},
     closest:selector=>selector==="#appearancePreferences"?{}:null,
     matches:selector=>selector==='input[name="yksTheme"]'};
@@ -37,25 +37,27 @@ test("dokunmada kartın tamamı temayı seçer, ayarlar paneli taşısa da çal�
   const h=harness();
   assert.equal(h.callbacks.click.length,1);
   assert.equal(h.fire("click",h.swatch),1);
-  assert.deepEqual(h.chosen,["forest"]);
+  assert.deepEqual(h.chosen,["vivid"]);
   assert.equal(h.input.focusCount,1);
   h.input.value="night";h.fire("click",h.input);
   assert.equal(h.chosen.at(-1),"night");
 });
 test("klavye ile radio change aynı tema seçimini uygular",()=>{
   const h=harness();
-  h.input.value="lavender";h.fire("change",h.input);
-  assert.deepEqual(h.chosen,["lavender"]);
+  h.input.value="night";h.fire("change",h.input);
+  assert.deepEqual(h.chosen,["night"]);
   h.input.value="bad";h.fire("change",h.input);
   assert.equal(h.chosen.length,1);
-  h.input.value="paper";h.input.disabled=true;
+  h.input.value="forest";h.fire("change",h.input);
+  assert.equal(h.chosen.length,1,"kaldırılan eski tema seçilemez");
+  h.input.value="refined-blue";h.input.disabled=true;
   h.fire("click",h.swatch);
   assert.equal(h.chosen.length,1);
 });
 test("eski setTheme yoksa yalnız tema tercihi kayıt sistemiyle korunur",()=>{
   const h=harness(false);
   h.fire("click",h.swatch);
-  assert.equal(h.stored.theme,"forest");
+  assert.equal(h.stored.theme,"vivid");
   assert.equal(h.saveCount,1);
   assert.equal(h.applyCount,1);
 });

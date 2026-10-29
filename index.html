@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="theme-color" id="metaTheme" content="#EFF2F8">
+<meta name="theme-color" id="metaTheme" content="#f5f7fb">
 <title>YKS Defterim</title>
 <style id="yksBootGuard">
   html:not([data-ui-ready="true"]) body{overflow:hidden}
@@ -1991,18 +1991,12 @@
       <fieldset class="yks-theme-picker" id="yksThemePicker">
         <legend>Uygulama teması</legend>
         <p class="hint">Renkleri değiştir; çalışma kayıtların ve ekran düzenin korunur.</p>
-        <div class="yks-theme-grid">
-        <label class="yks-theme-choice"><input type="radio" name="yksTheme" value="auto" onchange="setTheme('auto')" ><span class="yks-theme-swatch" style="--yks-swatch:#dde3ed" aria-hidden="true"></span><span class="yks-theme-copy"><strong>Sistem</strong><small>Cihazla uyumlu</small></span></label>
-        <label class="yks-theme-choice"><input type="radio" name="yksTheme" value="refined-blue" onchange="setTheme('refined-blue')" checked><span class="yks-theme-swatch" style="--yks-swatch:#1768e7" aria-hidden="true"></span><span class="yks-theme-copy"><strong>Mavi</strong><small>Mevcut görünüm</small></span></label>
-        <label class="yks-theme-choice"><input type="radio" name="yksTheme" value="paper" onchange="setTheme('paper')" ><span class="yks-theme-swatch" style="--yks-swatch:#d3ad76" aria-hidden="true"></span><span class="yks-theme-copy"><strong>Kağıt</strong><small>Sıcak açık</small></span></label>
-        <label class="yks-theme-choice"><input type="radio" name="yksTheme" value="night" onchange="setTheme('night')" ><span class="yks-theme-swatch" style="--yks-swatch:#1d3048" aria-hidden="true"></span><span class="yks-theme-copy"><strong>Gece</strong><small>Koyu</small></span></label>
-        <label class="yks-theme-choice"><input type="radio" name="yksTheme" value="forest" onchange="setTheme('forest')" ><span class="yks-theme-swatch" style="--yks-swatch:#2c8365" aria-hidden="true"></span><span class="yks-theme-copy"><strong>Orman</strong><small>Doğal yeşil</small></span></label>
-        <label class="yks-theme-choice"><input type="radio" name="yksTheme" value="ocean" onchange="setTheme('ocean')" ><span class="yks-theme-swatch" style="--yks-swatch:#098baa" aria-hidden="true"></span><span class="yks-theme-copy"><strong>Okyanus</strong><small>Turkuaz</small></span></label>
-        <label class="yks-theme-choice"><input type="radio" name="yksTheme" value="lavender" onchange="setTheme('lavender')" ><span class="yks-theme-swatch" style="--yks-swatch:#8f6dd2" aria-hidden="true"></span><span class="yks-theme-copy"><strong>Lavanta</strong><small>Yumuşak mor</small></span></label>
-        <label class="yks-theme-choice"><input type="radio" name="yksTheme" value="sunset" onchange="setTheme('sunset')" ><span class="yks-theme-swatch" style="--yks-swatch:#d87953" aria-hidden="true"></span><span class="yks-theme-copy"><strong>Gün batımı</strong><small>Sıcak turuncu</small></span></label>
-        <label class="yks-theme-choice"><input type="radio" name="yksTheme" value="graphite" onchange="setTheme('graphite')" ><span class="yks-theme-swatch" style="--yks-swatch:#414650" aria-hidden="true"></span><span class="yks-theme-copy"><strong>Grafit</strong><small>Koyu gri</small></span></label>
+        <div class="yks-theme-grid yks-theme-trio">
+        <label class="yks-theme-choice"><input type="radio" name="yksTheme" value="refined-blue" onchange="setTheme('refined-blue')" checked><span class="yks-theme-swatch" style="--yks-swatch:#2f6bea" aria-hidden="true"></span><span class="yks-theme-copy"><strong>Sade Mavi</strong><small>Ferah ve sakin</small></span></label>
+        <label class="yks-theme-choice"><input type="radio" name="yksTheme" value="night" onchange="setTheme('night')"><span class="yks-theme-swatch" style="--yks-swatch:#0a0f1c" aria-hidden="true"></span><span class="yks-theme-copy"><strong>Gece</strong><small>Koyu, göz yormaz</small></span></label>
+        <label class="yks-theme-choice"><input type="radio" name="yksTheme" value="vivid" onchange="setTheme('vivid')"><span class="yks-theme-swatch" style="--yks-swatch:linear-gradient(135deg,#6a4cf5,#ff7a59)" aria-hidden="true"></span><span class="yks-theme-copy"><strong>Canlı</strong><small>Sıcak ve renkli</small></span></label>
         </div>
-        <p class="yks-theme-current" role="status">Seçili tema: <strong id="yksThemeActive">Mavi</strong></p>
+        <p class="yks-theme-current" role="status">Seçili tema: <strong id="yksThemeActive">Sade Mavi</strong></p>
       </fieldset>
       <p class="eyebrow" style="margin:18px 0 8px;">Yazı boyutu</p>
       <div class="seg quad" style="margin-bottom:0;">

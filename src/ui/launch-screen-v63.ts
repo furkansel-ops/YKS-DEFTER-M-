@@ -154,7 +154,7 @@ export function installLaunchScreenV63(deps:LaunchDeps):{installed:boolean}{
     if(!snap){slot.innerHTML=`<div class="yl-card yl-skel" aria-hidden="true"></div>`;return false;}
     const {items,total}=pendingTasks();
     const focusGoal=Number(snap.focusGoal)||0,questionGoal=Number(snap.questionGoal)||0,tasks=Number(snap.tasks)||total,done=Number(snap.done)||0;
-    const next=items.slice(0,3).map(task=>`<li><span aria-hidden="true"></span>${esc(task.txt)}</li>`).join("");
+    const next=items.slice(0,3).map(task=>`<li><span aria-hidden="true"></span>${esc(String(task.txt).replace(/^Koç\s*·\s*(?:Deneme sonrası\s*·\s*)?/i,""))}</li>`).join("");
     slot.innerHTML=`<section class="yl-card" aria-label="Bugünün özeti">
       <div class="yl-card-head"><b>Bugün</b><span>${tasks?`${done}/${tasks} görev`:"Program yok"}</span></div>
       <div class="yl-stats">

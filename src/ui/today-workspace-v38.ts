@@ -2,6 +2,12 @@
    The legacy controls continue to own timers, task completion and persistence. */
 type W38=Window&{go?:(page:string)=>unknown;v25StartTask?:()=>unknown;v25DoneNext?:()=>unknown};
 
+/* Ders rengi için kaba sınıf; yalnız görünüm içindir, kayda yazılmaz. */
+function todayTaskTone(value:string):string{
+  const s=value.toLocaleLowerCase("tr-TR");
+  return /matematik|geometri/.test(s)?"math":/fizik/.test(s)?"physics":/kimya/.test(s)?"chemistry":/biyoloji/.test(s)?"biology":
+    /türkçe|paragraf|edebiyat/.test(s)?"reading":/tarih|coğrafya|felsefe|din/.test(s)?"social":"other";
+}
 export function installTodayWorkspaceV38():{installed:boolean}{
   const root=document.getElementById("todayFreshWorkCenter");
   const plan=document.getElementById("todayPlan");
@@ -124,16 +130,21 @@ export function installTodayWorkspaceV38():{installed:boolean}{
       button.textContent=done?"✓":"○";
       button.setAttribute("aria-pressed",String(done));
       const subjectText=text(row.querySelector(".pl"));
-      const title=text(row.querySelector(".pt"))||subjectText||"Görev";
-      button.setAttribute("aria-label",title+(done?" tamamlandı, geri al":" tamamla"));
+      const raw=text(row.querySelector(".pt"))||subjectText||"Görev";
+      // v66: "Koç ·" öneki rozet olur; başlık dersten, alt satır konudan oluşur.
+      const coach=/^Koç\s*·/i.test(raw),title=raw.replace(/^Koç\s*·\s*(?:Deneme sonrası\s*·\s*)?/i,""),cut=title.indexOf(" · ");
+      task.dataset.tone=todayTaskTone(subjectText+" "+title);
+      button.setAttribute("aria-label",raw+(done?" tamamlandı, geri al":" tamamla"));
       button.addEventListener("click",()=>{
         if((row.getAttribute("onclick")||"").includes("toggleCellDone"))row.click();
       });
       const copy=document.createElement("div");copy.className="today-fresh-task-copy";
-      const b=document.createElement("strong");b.className="today-fresh-task-title";b.textContent=title;
+      const b=document.createElement("strong");b.className="today-fresh-task-title";b.textContent=cut>0?title.slice(0,cut):title;
       const small=document.createElement("small");small.className="today-fresh-task-sub";
-      small.textContent=subjectText&&subjectText!=="—"?subjectText:(done?"Tamamlandı":"Program görevi");
-      copy.append(b,small);task.append(button,copy);children.push(task);
+      small.textContent=cut>0?title.slice(cut+3):subjectText&&subjectText!=="—"?subjectText:(done?"Tamamlandı":"Program görevi");
+      copy.append(b,small);task.append(button,copy);
+      if(coach){const tag=document.createElement("span");tag.className="today-fresh-task-coach";tag.textContent="Koç";task.append(tag);}
+      children.push(task);
     });
     if(rows.length>4){
       const rest=document.createElement("p");rest.className="today-fresh-task-empty";

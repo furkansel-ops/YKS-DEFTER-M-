@@ -30,8 +30,8 @@ function palette(name){
   }
   return colors;
 }
-test("v50 all seven alternate palettes retain high readability across surfaces and action fills",()=>{
-  for(const name of ["paper","night","forest","ocean","lavender","sunset","graphite"]){
+test("v50 both alternate palettes (Gece, Canlı) retain high readability across surfaces and action fills",()=>{
+  for(const name of ["night","vivid"]){
     const p=palette(name),fg=p["--yks-theme-ink"],secondary=p["--yks-theme-muted"],
       bg=p["--yks-theme-surface"],soft=p["--yks-theme-soft"],accent=p["--yks-theme-accent"];
     for(const [label,a,b] of [

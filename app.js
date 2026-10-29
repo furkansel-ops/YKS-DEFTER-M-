@@ -586,9 +586,9 @@ function normalize(o){
   o.lab.topicFav=[...new Set(o.lab.topicFav.filter(x=>typeof x==="string").map(x=>x.slice(0,180)))].slice(0,500);
   if(!o.coef)o.coef=Object.assign({},DEF.coef); else o.coef=Object.assign({},DEF.coef,o.coef);
   // Önceki tema seçimini koru; geçmiş sürümdeki açık/koyu takma adlarını eşleştir.
-  if(o.theme==="light")o.theme="paper";
-  if(o.theme==="dark")o.theme="night";
-  if(!["auto","refined-blue","paper","night","forest","ocean","lavender","sunset","graphite"].includes(o.theme))o.theme="refined-blue";
+  // Üç tema kaldı: Sade Mavi, Gece, Canlı. Eski koyu seçimler Gece'ye, diğerleri Sade Mavi'ye taşınır.
+  if(o.theme==="dark"||o.theme==="graphite")o.theme="night";
+  if(!["refined-blue","night","vivid"].includes(o.theme))o.theme="refined-blue";
   if(["none","white","brown"].indexOf(o.focusSound)<0)o.focusSound="none";
   /* v1 -> v2: konular boolean idi, artık {st,conf,ts,rev} */
   if((o.v|0)<2){
@@ -768,23 +768,18 @@ function markReview(key,gi){
   save();
 }
 
-/* ================= GÖRÜNÜM / GERİ GELEN TEMALAR =================
-   Renkler yalnız görsel belirteçleri değiştirir; mevcut program, deneme ve
-   koç kayıtları için ayrı bir durum/yazma modeli oluşturulmaz. */
-const YKS_THEME_IDS=["auto","refined-blue","paper","night","forest","ocean","lavender","sunset","graphite"];
-let yksThemeMediaBound=false,yksThemeLastApplied="";
+/* ================= GÖRÜNÜM / ÜÇ TEMA =================
+   Sade Mavi (refined-blue), Gece (night) ve Canlı (vivid). Renkler yalnız görsel
+   belirteçleri değiştirir; program, deneme ve koç kayıtları için ayrı yazma yoktur. */
+const YKS_THEME_IDS=["refined-blue","night","vivid"];
+const YKS_THEME_NAMES={"refined-blue":"Sade Mavi",night:"Gece",vivid:"Canlı"};
+const YKS_THEME_META={"refined-blue":"#f5f7fb",night:"#0a0f1c",vivid:"#fbf8f4"};
+let yksThemeLastApplied="";
 function yksThemeValue(value){
-  if(value==="light")return "paper";
-  if(value==="dark")return "night";
+  if(value==="dark"||value==="graphite")return "night";
   return YKS_THEME_IDS.includes(value)?value:"refined-blue";
 }
-function yksThemeSystemDark(){
-  try{return !!(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches);}catch(e){return false;}
-}
-function isDarkNow(){
-  const v=yksThemeValue(S.theme);
-  return v==="night"||v==="graphite"||(v==="auto"&&yksThemeSystemDark());
-}
+function isDarkNow(){ return yksThemeValue(S.theme)==="night"; }
 function updateThemeGrid(){
   const selected=yksThemeValue(S.theme);
   document.querySelectorAll('input[name="yksTheme"]').forEach(input=>{
@@ -793,34 +788,20 @@ function updateThemeGrid(){
     if(card)card.classList.toggle("is-selected",input.checked);
   });
   const label=el("yksThemeActive");
-  if(label)label.textContent=selected==="auto"?(isDarkNow()?"Sistem · Koyu":"Sistem · Açık"):
-    ({'refined-blue':"Mavi",paper:"Kağıt",night:"Gece",forest:"Orman",
-      ocean:"Okyanus",lavender:"Lavanta",sunset:"Gün batımı",graphite:"Grafit"}[selected]||"Mavi");
+  if(label)label.textContent=YKS_THEME_NAMES[selected];
 }
 function applyTheme(){
   if(!S||typeof S!=="object")return;
-  const selected=yksThemeValue(S.theme);
-  S.theme=selected;
-  const active=selected==="auto"?(yksThemeSystemDark()?"night":"paper"):selected;
+  const active=yksThemeValue(S.theme);
+  S.theme=active;
   const root=document.documentElement;
-  root.dataset.visualSystem="refined-blue"; // Yerleşim değişmez; sadece palet değişir.
+  root.dataset.visualSystem="refined-blue"; // Ortak yerleşim; tema paleti ve vurguları değiştirir.
   root.dataset.theme=active;
   root.dataset.themeControl="multiple";
-  root.style.colorScheme=(active==="night"||active==="graphite")?"dark":"light";
+  root.style.colorScheme=active==="night"?"dark":"light";
   const mt=el("metaTheme");
-  const metaColor={night:"#101827",graphite:"#171b22",paper:"#f7f4ec",forest:"#edf6f0",
-    ocean:"#eaf7fa",lavender:"#f5f1fd",sunset:"#fff3e9"}[active]||"#f5f8fd";
-  if(mt)mt.setAttribute("content",metaColor);
+  if(mt)mt.setAttribute("content",YKS_THEME_META[active]);
   updateThemeGrid();
-  if(!yksThemeMediaBound&&window.matchMedia){
-    try{
-      const media=window.matchMedia("(prefers-color-scheme: dark)");
-      if(media&&typeof media.addEventListener==="function"){
-        media.addEventListener("change",()=>{if(yksThemeValue(S.theme)==="auto")applyTheme();});
-        yksThemeMediaBound=true;
-      }
-    }catch(e){}
-  }
   if(yksThemeLastApplied!==active){
     yksThemeLastApplied=active;
     setTimeout(()=>{if(el("deneme")?.classList.contains("active")){
@@ -830,17 +811,16 @@ function applyTheme(){
   }
 }
 function setTheme(value){
-  const selected=yksThemeValue(value);
-  if(!YKS_THEME_IDS.includes(value)&&value!=="light"&&value!=="dark")return false;
-  if(yksThemeValue(S.theme)===selected){applyTheme();return true;}
-  S.theme=selected;
+  if(!YKS_THEME_IDS.includes(value))return false;
+  if(yksThemeValue(S.theme)===value){applyTheme();return true;}
+  S.theme=value;
   applyTheme();
   const saved=save();
   if(saved===false){try{toast("Tema uygulandı fakat kaydedilemedi");}catch(e){}}
   return saved!==false;
 }
 function cycleTheme(){
-  const current=yksThemeValue(S.theme),index=YKS_THEME_IDS.indexOf(current);
+  const index=YKS_THEME_IDS.indexOf(yksThemeValue(S.theme));
   return setTheme(YKS_THEME_IDS[(index+1)%YKS_THEME_IDS.length]);
 }
 
@@ -1277,6 +1257,12 @@ function planTaskSubject(txt){
 }
 /* Satır adı farklı bir dersse (ör. "Fizik" satırına düşmüş Kimya görevi) görevin dersi gösterilir;
    saat gibi serbest satır adları korunur. */
+/* Ders rengi sınıfı; yalnız görünüm içindir (Bugün ve Program ile aynı adlar). */
+function planSubjectTone(name){
+  const s=String(name||"").toLocaleLowerCase("tr-TR");
+  return /matematik|geometri/.test(s)?"math":/fizik/.test(s)?"physics":/kimya/.test(s)?"chemistry":/biyoloji/.test(s)?"biology":
+    /türkçe|paragraf|edebiyat|yabancı/.test(s)?"reading":/tarih|coğrafya|felsefe|din/.test(s)?"social":"other";
+}
 function planSubjBase(name){return String(name||"").replace(/\s*\(AYT\)$/,"");}
 function planCellLabel(lbl,txt){
   const label=String(lbl||"").trim(),p=planTaskSubject(txt);
@@ -1903,7 +1889,7 @@ function renderSubjects(){
   const wrap=el("subjectList");if(!wrap)return;wrap.innerHTML="";const q=(typeof topicQuery==="string")?topicQuery:"",ctx=v26BuildContext();v26RenderCtx=ctx;v26RenderOverview(ctx);v26RenderAttention(ctx);let shown=0;
   ["TYT","AYT","YDT"].forEach(exam=>{if(!q&&exam!==examTab)return;(CURRICULUM[exam]||[]).forEach((s,si)=>{
     const subjHit=q&&s.name.toLocaleLowerCase("tr").indexOf(q)>=0;let topics=s.topics.filter(tp=>{const hit=!q||subjHit||tp.toLocaleLowerCase("tr").indexOf(q)>=0;if(!hit)return false;return v26MatchesFilter({exam,subj:s.name,topic:tp,key:tkey(exam,s.name,tp),t:tget(tkey(exam,s.name,tp))},ctx)});if(!topics.length)return;shown+=topics.length;
-    const st=subjStat(exam,s),id=exam+si,att=ctx.priorityList.filter(x=>x.exam===exam&&x.subj===s.name&&x.score>=30).slice(0,3),div=document.createElement("div");div.className="card subj";div.innerHTML='<div class="subj-head" onclick="toggleSubj(\''+id+'\')"><span class="nm">'+esc(s.name)+(q?' <small style="font-weight:400;color:var(--label-3)">'+exam+'</small>':'')+(att.length?'<small class="subj-sub">Dikkat: '+att.map(x=>esc(x.topic)).join(' · ')+'</small>':'')+'</span><span class="pct">'+st.full+'/'+st.total+' bitti · %'+st.pct+'</span></div><div class="bar"><i style="width:'+st.pct+'%"></i></div><div class="topics'+(q||v26TopicFilter!=="all"?' open':'')+'" id="tp'+id+'">'+topics.map(tp=>topicRow(exam,s.name,tp,ctx)).join('')+'</div>';wrap.appendChild(div);
+    const st=subjStat(exam,s),id=exam+si,att=ctx.priorityList.filter(x=>x.exam===exam&&x.subj===s.name&&x.score>=30).slice(0,3),div=document.createElement("div");div.className="card subj";div.dataset.tone=typeof planSubjectTone==="function"?planSubjectTone(s.name):"other";div.innerHTML='<div class="subj-head" onclick="toggleSubj(\''+id+'\')"><span class="nm">'+esc(s.name)+(q?' <small style="font-weight:400;color:var(--label-3)">'+exam+'</small>':'')+(att.length?'<small class="subj-sub">Dikkat: '+att.map(x=>esc(x.topic)).join(' · ')+'</small>':'')+'</span><span class="pct">'+st.full+'/'+st.total+' bitti · %'+st.pct+'</span></div><div class="bar"><i style="width:'+st.pct+'%"></i></div><div class="topics'+(q||v26TopicFilter!=="all"?' open':'')+'" id="tp'+id+'">'+topics.map(tp=>topicRow(exam,s.name,tp,ctx)).join('')+'</div>';wrap.appendChild(div);
   })});
   const info=el("searchInfo"),filterName={all:"",work:" · çalışılıyor",review:" · tekrar bekleyen",risk:" · riskli",done:" · tamamlanan"}[v26TopicFilter]||"";if(info)info.textContent=q?(shown?shown+" konu bulundu"+filterName:"Eşleşen konu yok"+filterName):(v26TopicFilter!=="all"?(shown+" konu gösteriliyor"+filterName):"");if(!shown)wrap.innerHTML='<div class="card"><div class="empty">Bu filtrede gösterilecek konu yok.</div></div>';
 }
