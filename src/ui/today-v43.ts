@@ -180,9 +180,11 @@ function taskMenu(buttons:HTMLElement[],label:string):HTMLDetailsElement{
 }
 
 /** Keep the legacy click handler as the single owner of completion and persistence. */
+// Koç görevlerinin "Koç ·" öneki ders adı değildir; başlık dersten başlar.
+const COACH_TASK_PREFIX=/^Koç\s*·\s*(?:Deneme sonrası\s*·\s*)?/i;
 export function enhanceTodayTaskRow(row:HTMLElement):void{
   if(row.dataset.rbTask)return;row.dataset.rbTask="true";
-  const copy=row.querySelector(".pt")?.textContent||"Görev";
+  const copy=(row.querySelector(".pt")?.textContent||"Görev").replace(COACH_TASK_PREFIX,"");
   const label=row.querySelector(".pl")?.textContent?.trim();
   if(!label||label==="—"||label==="Görev")row.classList.add("rb-task-no-label");
   const separator=copy.indexOf(" · "),textNode=row.querySelector(".pt");
@@ -217,7 +219,7 @@ export function enhanceTodayNext(next:HTMLElement):void{
   const actions=next.querySelector<HTMLElement>(".next-actions");if(!actions||actions.dataset.rbActions)return;
   actions.dataset.rbActions="true";
   const heading=next.querySelector(".next-eyebrow");if(heading)heading.textContent="Sıradaki çalışma";
-  const title=next.querySelector(".next-title"),meta=next.querySelector(".next-meta"),raw=title?.textContent||"",separator=raw.indexOf(" · ");
+  const title=next.querySelector(".next-title"),meta=next.querySelector(".next-meta"),raw=(title?.textContent||"").replace(COACH_TASK_PREFIX,""),separator=raw.indexOf(" · ");
   if(title&&meta&&separator>0){title.textContent=raw.slice(0,separator);meta.textContent=raw.slice(separator+3);}
   const buttons=Array.from(actions.querySelectorAll<HTMLButtonElement>("button")),primary=buttons.shift();
   if(primary?.getAttribute("onclick")?.includes("v25StartTask"))primary.textContent="Başla";

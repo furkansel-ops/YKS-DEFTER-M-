@@ -68,3 +68,12 @@ test("an empty plan keeps its original open-program action instead of inventing 
   open.setAttribute("onclick","go('program')");actions.append(open);next.append(actions);
   enhanceNext(next);assert.equal(open.textContent,"Programı aç");assert.equal(next.querySelector(".rb-task-menu"),null);
 });
+
+test("koç görevinde başlık 'Koç' değil, görevin dersi olur",()=>{
+  const {node,enhanceNext,enhanceRow}=fixture();const next=node("div"),actions=node("div","next-actions"),start=node("button","btn","Kronometreyi başlat");
+  const title=node("div","next-title","Koç · TYT Fizik · Optik · Konu anlatımı"),meta=node("div","next-meta","Fizik (AYT)");
+  actions.append(start);next.append(node("div","next-eyebrow","Sıradaki görev"),title,meta,actions);enhanceNext(next);
+  assert.equal(title.textContent,"TYT Fizik");assert.equal(meta.textContent,"Optik · Konu anlatımı");
+  const row=node("div","plancell");row.append(node("span","pl","—"),node("span","pt","Koç · Deneme sonrası · TYT Kimya · Mol Kavramı"));enhanceRow(row);
+  assert.equal(row.querySelector(".rb-task-title").textContent,"TYT Kimya");
+});
