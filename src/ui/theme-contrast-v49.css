@@ -1,7 +1,26 @@
 /* v49 · Contrast-safe theme surfaces.
    Applies only to alternate palettes; refined-blue default geometry and paint remain untouched.
    Prefer existing stateful data and native controls; no runtime DOM or storage changes. */
-
+:root[data-theme="paper"]{
+  --yks-theme-muted:#6c574a;
+  --yks-theme-accent:#844617;
+}
+:root[data-theme="forest"]{
+  --yks-theme-muted:#435e50;
+  --yks-theme-accent:#1b694b;
+}
+:root[data-theme="ocean"]{
+  --yks-theme-muted:#3e616b;
+  --yks-theme-accent:#08617b;
+}
+:root[data-theme="lavender"]{
+  --yks-theme-muted:#625173;
+  --yks-theme-accent:#65449f;
+}
+:root[data-theme="sunset"]{
+  --yks-theme-muted:#6c4841;
+  --yks-theme-accent:#913a22;
+}
 :root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]){
   --ys-ink:var(--yks-theme-ink);
   --ys-muted:var(--yks-theme-muted);

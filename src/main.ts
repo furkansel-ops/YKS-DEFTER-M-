@@ -30,7 +30,6 @@ import "./ui/today-mobile-polish-v43.css";
 import "./ui/theme-choices-v45.css";
 import "./ui/theme-contrast-v49.css";
 import "./ui/theme-contrast-v50.css";
-import "./ui/theme-notebook-v64.css";
 import "./ui/focus-minimal-v65.css";
 import "./ui/stopwatch-break-v51.css";
 import "./ui/today-final-v55.css";
@@ -96,8 +95,8 @@ function installOptional<T>(name:string,installer:()=>T,fallback:T):T{
 }
 document.documentElement.dataset.v4OptionalErrors="0";
 
-/* Yerleşim sistemi ve tema tektir: Defter. */
-document.documentElement.dataset.themeControl="single";
+/* Yerleşim sistemi tektir; renk paleti kullanıcı tarafından seçilebilir. */
+document.documentElement.dataset.themeControl="multiple";
 
 const teachersPaused=document.documentElement.dataset.teacherFeature!=="on";
 document.documentElement.dataset.teacherFeatureState=teachersPaused?"paused":"on";

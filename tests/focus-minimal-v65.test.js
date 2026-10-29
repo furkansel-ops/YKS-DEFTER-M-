@@ -12,7 +12,7 @@ test("minimal odak modu dairesel halka ve dekoratif yarım daire olmadan çizili
   assert.match(css,/\.v29-minimal-ring\{[^}]*border-radius:0;background:none/);
   assert.match(css,/\.v29-minimal-ring:after\{display:none\}/);
   assert.match(css,/\.v29-minimal-ring-inner::after\{[^}]*var\(--minimal-progress,0\)/);
-  assert.match(read("src/main.ts"),/import "\.\/ui\/theme-notebook-v64\.css";\s*import "\.\/ui\/focus-minimal-v65\.css";/);
+  assert.match(read("src/main.ts"),/import "\.\/ui\/theme-contrast-v50\.css";\s*import "\.\/ui\/focus-minimal-v65\.css";/);
 });
 
 test("minimal mod DOM kimlikleri ve render mantığı korunur",()=>{

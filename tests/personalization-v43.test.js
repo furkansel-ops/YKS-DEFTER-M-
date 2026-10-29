@@ -52,7 +52,7 @@ test("kişiselleştirme özeti yalnız sınav ve Bugün ayarlarını gösterir",
   assert.match(ui,/Bugün kartı/);
   assert.doesNotMatch(ui,/Aktif tema/);
   assert.match(ui,/document\.getElementById\("themeBtn"\)\?\.remove\(\)/);
-  assert.match(ui,/dataset\.themeControl="single"/);
+  assert.match(ui,/dataset\.themeControl="multiple"/);
   assert.match(css,/grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
   assert.match(css,/v43-summary-item/);
 });

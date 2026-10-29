@@ -7,7 +7,7 @@ const read=p=>fs.readFileSync(path.join(root,p),"utf8");
 
 const palette=read("src/ui/theme-choices-v45.css");
 const contrast=read("src/ui/theme-contrast-v49.css");
-const themes=["notebook"];
+const themes=["paper","night","forest","ocean","lavender","sunset","graphite"];
 const nameToRgb=hex=>{
   const value=hex.replace("#","");
   const normalized=value.length===3?value.split("").map(x=>x+x).join(""):value;

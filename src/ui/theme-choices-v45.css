@@ -1,9 +1,38 @@
 /* v45: Geri gelen temalar. Mevcut refined-blue yerleşimi ve DOM aynen kalır. */
-
-:root[data-theme="notebook"]{
- --yks-theme-bg:#f6f1e7;--yks-theme-surface:#fffdf8;--yks-theme-soft:#f1e8d8;
- --yks-theme-ink:#2b2620;--yks-theme-muted:#665a4c;--yks-theme-line:#e3d7c3;
- --yks-theme-accent:#9c3a12;--yks-theme-deep:#7c2d10;--yks-theme-on:#fff;
+:root[data-theme="paper"]{
+ --yks-theme-bg:#f7f4ec;--yks-theme-surface:#fffdfa;--yks-theme-soft:#f5ead8;
+ --yks-theme-ink:#322b26;--yks-theme-muted:#796b61;--yks-theme-line:#e7dac9;
+ --yks-theme-accent:#ad652d;--yks-theme-deep:#85502f;--yks-theme-on:#fff;
+}
+:root[data-theme="night"]{
+ --yks-theme-bg:#101827;--yks-theme-surface:#1c283a;--yks-theme-soft:#253852;
+ --yks-theme-ink:#e9f0fb;--yks-theme-muted:#bfcee2;--yks-theme-line:#35465e;
+ --yks-theme-accent:#8bbaff;--yks-theme-deep:#31548c;--yks-theme-on:#fff;
+}
+:root[data-theme="forest"]{
+ --yks-theme-bg:#edf6f0;--yks-theme-surface:#fff;--yks-theme-soft:#e0efe5;
+ --yks-theme-ink:#1d382d;--yks-theme-muted:#567665;--yks-theme-line:#cde2d5;
+ --yks-theme-accent:#217c59;--yks-theme-deep:#1d6248;--yks-theme-on:#fff;
+}
+:root[data-theme="ocean"]{
+ --yks-theme-bg:#eaf7fa;--yks-theme-surface:#fff;--yks-theme-soft:#d7eef3;
+ --yks-theme-ink:#173744;--yks-theme-muted:#507580;--yks-theme-line:#c9e3ea;
+ --yks-theme-accent:#0a839f;--yks-theme-deep:#16617d;--yks-theme-on:#fff;
+}
+:root[data-theme="lavender"]{
+ --yks-theme-bg:#f5f1fd;--yks-theme-surface:#fff;--yks-theme-soft:#ece3fb;
+ --yks-theme-ink:#362a50;--yks-theme-muted:#77688d;--yks-theme-line:#e2d7f5;
+ --yks-theme-accent:#7752b8;--yks-theme-deep:#59428a;--yks-theme-on:#fff;
+}
+:root[data-theme="sunset"]{
+ --yks-theme-bg:#fff3e9;--yks-theme-surface:#fffdfa;--yks-theme-soft:#ffe1d3;
+ --yks-theme-ink:#4b302d;--yks-theme-muted:#8b6259;--yks-theme-line:#efd4c9;
+ --yks-theme-accent:#bd5538;--yks-theme-deep:#934530;--yks-theme-on:#fff;
+}
+:root[data-theme="graphite"]{
+ --yks-theme-bg:#171b22;--yks-theme-surface:#272d38;--yks-theme-soft:#373f4d;
+ --yks-theme-ink:#edf1f6;--yks-theme-muted:#bbc5d3;--yks-theme-line:#444e5f;
+ --yks-theme-accent:#ccd8f0;--yks-theme-deep:#3b506f;--yks-theme-on:#fff;
 }
 :root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]){
  --bg:var(--yks-theme-bg);--glass:var(--yks-theme-surface);--glass-strong:var(--yks-theme-surface);
@@ -23,7 +52,7 @@
  --shadow-1:0 4px 14px -12px #0004;
  color:var(--yks-theme-ink);
 }
-
+:root[data-theme="night"],:root[data-theme="graphite"]{color-scheme:dark}
 :root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) :is(input,textarea,select){
  background-color:var(--yks-theme-surface);color:var(--yks-theme-ink);border-color:var(--yks-theme-line);
 }
@@ -80,7 +109,10 @@
 :root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) #home #todayFreshStart .today-fresh-task.is-done{
  background:var(--yks-theme-soft);border-color:var(--yks-theme-line);
 }
-
+:root[data-theme="night"] #home #todayFreshStart .today-fresh-task.is-done .today-fresh-task-title,
+:root[data-theme="graphite"] #home #todayFreshStart .today-fresh-task.is-done .today-fresh-task-title{
+ color:var(--yks-theme-muted);
+}
 /* Ayarlar → Görünüm: doğal radyo erişilebilirliği; dokunmatik 44px hedefler. */
 #appearancePreferences .yks-theme-picker{
  min-width:0;padding:0;margin:8px 0 14px;border:0;
@@ -133,7 +165,8 @@
 
 /* v46: palette differentiation across the shell, Today and Settings.
    Keep layout/sizing unchanged, and only paint existing surfaces. */
-
+:root[data-theme="night"]{--yks-theme-on:#15263b}
+:root[data-theme="graphite"]{--yks-theme-on:#1d2b40}
 :root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]){
   --border:var(--yks-theme-line);
   --success:var(--yks-theme-accent);
@@ -206,7 +239,10 @@
   border-radius:50%;font-size:11px;font-weight:800;
   color:var(--rb-on-accent,#fff);background:var(--accent);
 }
-
+:root[data-theme="night"] #appearancePreferences .yks-theme-choice.is-selected::after,
+:root[data-theme="graphite"] #appearancePreferences .yks-theme-choice.is-selected::after{
+  color:var(--yks-theme-on);
+}
 :root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) #appearancePreferences .yks-theme-current strong{
   color:var(--yks-theme-accent);
 }

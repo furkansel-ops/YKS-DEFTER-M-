@@ -98,7 +98,7 @@ function account(){const title=document.querySelector("[data-account-title]")?.t
 function initials(name){return txt(name,80).split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]?.toLocaleUpperCase("tr-TR")).join("")||"YK"}
 function syncText(){return ["cloudSyncText","cloudSyncMeta"].map(id=>document.getElementById(id)?.textContent?.trim()).filter(Boolean).join(" · ")||"Bulut durumu hazırlanıyor"}
 function appVersion(){return document.documentElement.dataset.appVersion||document.getElementById("appVersionLabel")?.textContent?.trim()||"YKS Defterim"}
-function enforceSingleAppearance(){document.getElementById("themeBtn")?.remove();document.documentElement.dataset.themeControl="single"}
+function enforceSingleAppearance(){document.getElementById("themeBtn")?.remove();document.documentElement.dataset.themeControl="multiple"}
 function hideCardFor(id,reason){const card=document.getElementById(id)?.closest?.(".card");if(card){card.hidden=true;card.dataset.ymsHidden="true";card.dataset.ymsHiddenReason=reason}}
 function hideLegacySettings(){
   const panel=document.getElementById("mrp_ayar");if(!panel)return;
@@ -254,7 +254,32 @@ function bind(root){
   on("[data-yms-data]",()=>{if(typeof window.v30Action==="function")window.v30Action("data");else window.setMoreTab?.("veri")});
   on("[data-yms-system]",()=>window.v30Action?.("system"));on("[data-yms-about]",()=>window.v30Action?.("about"));
   on("[data-yms-demo-load]",()=>window.loadDemo?.());on("[data-yms-demo-clear]",()=>window.clearDemo?.());on("[data-yms-wizard]",()=>window.openWizard?.());
-  // Tek tema (Defter): tema seçimi yok; görünüm kategorisi açılınca Defter yeniden uygulanır.
+  // Tema alanı modern Ayarlar'a taşındığında bile kartın tamamı dokunulabilir.
+  // Mevcut setTheme/save tek veri sahibidir; hiçbir çalışma kaydı yeniden yazılmaz.
+  const applyThemeChoice=value=>{
+    if(!["auto","refined-blue","paper","night","forest","ocean","lavender","sunset","graphite"].includes(value))return;
+    try{
+      if(typeof window.setTheme==="function"){window.setTheme(value);return;}
+      const state=window.YKSLegacyState?.readState?.();
+      if(!state)return;
+      const before=state.theme;state.theme=value;
+      if(window.YKSLegacyState?.save?.()===false){state.theme=before;return;}
+      window.applyTheme?.();
+    }catch(error){console.error("Tema uygulanamadı",error);}
+  };
+  root.addEventListener("click",event=>{
+    const card=event.target?.closest?.(".yks-theme-choice");
+    if(!card||!card.closest?.("#appearancePreferences"))return;
+    const input=card.querySelector('input[name="yksTheme"]');
+    if(!input||input.disabled)return;
+    if(event.target!==input){event.preventDefault();input.focus?.({preventScroll:true});}
+    applyThemeChoice(input.value);
+  });
+  root.addEventListener("change",event=>{
+    const input=event.target;
+    if(input?.matches?.('input[name="yksTheme"]')&&input.closest?.("#appearancePreferences"))
+      applyThemeChoice(input.value);
+  });
   root.addEventListener("change",()=>{refresh(root)});
 }
 let observedPanel=null,observer=null,refreshQueued=false;
