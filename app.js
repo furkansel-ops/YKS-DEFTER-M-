@@ -9372,7 +9372,7 @@ function renderBrief(b){
     const kalan=b.gorevler.filter(x=>!x.done);
     h+=b.gorevler.slice(0,7).map(g=>
       '<div class="dayrow"><span class="k'+(g.done?" done":"")+'">'+
-      (g.done?"✓ ":"• ")+esc(g.txt.length>54?g.txt.slice(0,54)+"…":g.txt)+'</span></div>').join("");
+      (g.done?"✓ ":"• ")+esc((t=>t.length>54?t.slice(0,54)+"…":t)(planStripCoach(g.txt)))+'</span></div>').join("");
     if(b.gorevler.length>7)h+='<p class="hint">ve '+(b.gorevler.length-7)+' tane daha</p>';
     if(kalan.length)h+='<p class="hint">'+kalan.length+' iş bekliyor.</p>';
     else h+='<p class="hint" style="color:var(--success)">Bugünün planı tamam.</p>';

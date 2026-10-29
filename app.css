@@ -1072,10 +1072,11 @@ h2::after{
 .wizbox .dots i.on{background:var(--accent);}
 .wizt{font-size:24px;font-weight:700;letter-spacing:-.024em;margin:2px 0 8px;}
 .wizp{font-size:15px;color:var(--label-2);line-height:1.45;margin:0 0 16px;}
-/* Gövdenin sol menü boşluğu sabit katmanların genişliğini daraltmamalı. */
+/* Gövdenin sol menü boşluğu sabit katmanların genişliğini daraltmamalı. Sabit katman zaten
+   görüntü alanına göre konumlanır; eski translateX(-rail/2) onu menü genişliğinin yarısı kadar
+   ekran dışına itiyordu (232px menüde 116px), bu yüzden kaldırıldı. */
 .simov,.qaviewer,.wizov,.brov,.vidov,.playov,.gunov,.optikov,.anaov{
   left:0;right:auto;width:100vw;max-width:none;
-  transform:translateX(calc(var(--rail) / -2));
 }
 
 /* ==================================================================

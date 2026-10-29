@@ -106,3 +106,13 @@ test("v67/v66 hiçbir kural etkin olmayan bir ekranı görünür yapamaz (.scree
     }
   }
 });
+
+test("v67 sabit tam ekran katmanlar menü genişliğinin yarısı kadar kaydırılmaz; gün planı penceresinde Koç öneki yok",()=>{
+  const css=read("app.css");
+  const at=css.indexOf(".simov,.qaviewer,.wizov,.brov,.vidov,.playov,.gunov,.optikov,.anaov{");
+  assert.ok(at>0);
+  const rule=css.slice(at,css.indexOf("}",at));
+  assert.match(rule,/left:0;right:auto;width:100vw;max-width:none;/);
+  assert.doesNotMatch(rule,/translateX/,"232px menüde katman 116px ekran dışına kayıyordu");
+  assert.match(read("app.js"),/esc\(\(t=>t\.length>54\?t\.slice\(0,54\)\+"…":t\)\(planStripCoach\(g\.txt\)\)\)/);
+});
