@@ -1249,6 +1249,42 @@ function cellOpenLink(txt){
   openExternalUrl(l.url);
   return true;
 }
+/* Görevin dersi metnin başından okunur ("Koç · AYT Kimya · Gazlar · …" dahil).
+   Satır adı yalnız metinde ders yoksa yedek olarak kullanılır. */
+const PLAN_AYT_ALIAS={"Felsefe":"Felsefe Grubu","Türkçe":"Türkçe","Edebiyat":"Edebiyat"};
+function planTaskSubject(txt){
+  let t=String(txt||"").split("\n")[0].replace(/^Koç\s*·\s*(?:Deneme sonrası\s*·\s*)?/i,"").replace(/^[▶☰]\s*/,"").trim();
+  const em=t.match(/^(TYT|AYT|YDT)\s+/i),exam=em?em[1].toUpperCase():"";
+  if(em)t=t.slice(em[0].length);
+  const low=t.toLocaleLowerCase("tr-TR");
+  const starts=n=>{const l=n.toLocaleLowerCase("tr-TR");return low.startsWith(l)&&!/[a-zçğıöşüâîû0-9]/i.test(low.charAt(l.length));};
+  let name=[...SUBJ_NAMES].sort((a,b)=>b.length-a.length).find(starts)||"";
+  if(!name&&starts("paragraf"))name="Türkçe";
+  if(!name&&/^(?:ingilizce|english)/i.test(low))name="Yabancı Dil";
+  if(!name)return null;
+  const cut=name==="Türkçe"&&starts("paragraf")?0:starts(name)?name.length:(low.match(/^\S+/)||[""])[0].length;
+  if(exam==="AYT"&&!/\(AYT\)|-2$/.test(name)){
+    const ayt=PLAN_AYT_ALIAS[name]||name+" (AYT)";
+    if(SUBJ_NAMES.includes(ayt))name=ayt;
+  }
+  const rest=t.slice(cut).replace(/^[\s·:,-]+/,"").trim();
+  let topic="";const sb=ALL_SUBJECTS.find(x=>x.name===name);
+  if(sb){
+    const first=(rest.split(/\s+·\s+/)[0]||"").toLocaleLowerCase("tr-TR"),all=rest.toLocaleLowerCase("tr-TR");
+    topic=sb.topics.find(x=>x.toLocaleLowerCase("tr-TR")===first)||sb.topics.find(x=>all.includes(x.toLocaleLowerCase("tr-TR")))||"";
+  }
+  return {subj:name,topic};
+}
+/* Satır adı farklı bir dersse (ör. "Fizik" satırına düşmüş Kimya görevi) görevin dersi gösterilir;
+   saat gibi serbest satır adları korunur. */
+function planSubjBase(name){return String(name||"").replace(/\s*\(AYT\)$/,"");}
+function planCellLabel(lbl,txt){
+  const label=String(lbl||"").trim(),p=planTaskSubject(txt);
+  if(!p)return label;
+  if(!label)return p.subj;
+  const own=planTaskSubject(label);
+  return own&&planSubjBase(own.subj)!==planSubjBase(p.subj)?p.subj:label;
+}
 function cellTopic(txt){
   const t=String(txt||"").trim();
   const i=t.indexOf(" · ");
@@ -1303,7 +1339,7 @@ function renderTodayPlan(){
       filled++;
       const cid=blk+"-"+i+"-"+dw,isDone=!!w.dn[cid];
       if(isDone)done++;
-      const lbl=blk==="r"?(S.rowLabels.r[i]||"Rutin"):(S.rowLabels.s[i]||"—");
+      const lbl=blk==="r"?(S.rowLabels.r[i]||"Rutin"):((typeof planCellLabel==="function"?planCellLabel(S.rowLabels.s[i],txt):S.rowLabels.s[i])||"—");
       html+=`<div class="plancell ${isDone?"pd":""}" onclick="toggleCellDone('${wk}','${cid}')">
         <span class="pl">${esc(lbl)}</span><span class="pt">${esc(txt)}</span>${cellVidBtn(txt)}<button class="plan-tomorrow" title="Yarına taşı" onclick="event.stopPropagation();movePlanCellTomorrow('${wk}','${blk}',${i},${dw})">→ Yarına</button></div>`;
     });
@@ -1357,7 +1393,19 @@ function programTaskCompleted(wk,cid,w){
     const meta=typeof v25TaskMeta==="function"?v25TaskMeta({txt:txt,lbl:lbl}):{subj:lbl,topic:""};
     const progress=programDayStats(w,d);
     window.dispatchEvent(new CustomEvent("yks:task-completed",{detail:{taskId:String(wk)+":"+cid,week:String(wk),cellId:cid,subject:meta.subj||lbl,topic:meta.topic||"",completedCount:progress.done,totalCount:progress.filled}}));
+    if(typeof programAutoTopicDone==="function")programAutoTopicDone(meta);
   }catch(e){}
+}
+/* Programdaki görev bitince konusu Konular'da "Pekiştirdim" (bitti) olur.
+   Durum yalnız ileri taşınır ve tek dokunuşla geri alınabilir. */
+function programAutoTopicDone(meta){
+  if(!meta||!meta.subj||!meta.topic||typeof topicKeyOf!=="function")return false;
+  const key=topicKeyOf(meta.subj,meta.topic);if(!key)return false;
+  const before=S.topics[key]?clone(S.topics[key]):null;
+  if(before&&before.st>=3)return false;
+  tsetStatus(key,3);
+  if(typeof pushUndo==="function")pushUndo(meta.topic+" “Bitti” olarak işaretlendi",()=>{if(before)S.topics[key]=before;else delete S.topics[key];});
+  return true;
 }
 /* Completion feedback belongs to a committed user action, not a render or a
    data-change listener (which also runs during restore, import and sync). */
@@ -1778,7 +1826,7 @@ function renderDayDetail(){
     let rows="";
     ["r","s"].forEach(blk=>w[blk].forEach((r,i)=>{
       if(r[dw]&&r[dw].trim()){
-        const cid=blk+"-"+i+"-"+dw,lbl=blk==="r"?(S.rowLabels.r[i]||"Rutin"):(S.rowLabels.s[i]||"—");
+        const cid=blk+"-"+i+"-"+dw,lbl=blk==="r"?(S.rowLabels.r[i]||"Rutin"):((typeof planCellLabel==="function"?planCellLabel(S.rowLabels.s[i],r[dw]):S.rowLabels.s[i])||"—");
         rows+=`<div class="plancell ${w.dn[cid]?"pd":""}"><span class="pl">${esc(lbl)}</span><span>${esc(r[dw])}</span></div>`;
       }
     }));
@@ -2565,7 +2613,7 @@ function todayTaskOptions(){
   ["r","s"].forEach(blk=>(w[blk]||[]).forEach((row,i)=>{
     const txt=row[dw];
     if(!txt||!txt.trim())return;
-    const cid=blk+"-"+i+"-"+dw,lbl=blk==="r"?(S.rowLabels.r[i]||"Rutin"):(S.rowLabels.s[i]||"Görev");
+    const cid=blk+"-"+i+"-"+dw,lbl=blk==="r"?(S.rowLabels.r[i]||"Rutin"):((typeof planCellLabel==="function"?planCellLabel(S.rowLabels.s[i],txt):S.rowLabels.s[i])||"Görev");
     out.push({cid:cid,txt:txt.trim(),lbl:lbl,done:!!w.dn[cid]});
   }));
   const order=w.mv&&Array.isArray(w.mv["order-"+dw])?w.mv["order-"+dw]:null;
@@ -5184,10 +5232,15 @@ function addToDays(text,days,haftaOfs){
   let candidate;
   try{candidate=normWeek(hadWeek?clone(previous):blankWeek());}
   catch(e){return {ok:false,reason:"invalid"};}
+  // Önce görevin dersiyle aynı adlı satır, sonra başka bir dersin adını taşımayan satır.
+  const subj=typeof planTaskSubject==="function"?planSubjBase((planTaskSubject(value)||{}).subj||""):"";
+  const rowSubj=i=>subj?planSubjBase((planTaskSubject(String((previousLabels||[])[i]||""))||{}).subj||""):"";
   for(const day of selected){
     let row=-1;
-    for(let i=0;i<candidate.s.length;i++){
-      if(!String(candidate.s[i][day]||"").trim()){row=i;break;}
+    const free=i=>!String(candidate.s[i][day]||"").trim();
+    if(subj)for(let i=0;i<candidate.s.length;i++){if(free(i)&&rowSubj(i)===subj){row=i;break;}}
+    if(row<0)for(let i=0;i<candidate.s.length;i++){
+      if(free(i)&&(!rowSubj(i)||rowSubj(i)===subj)){row=i;break;}
     }
     if(row<0){
       row=candidate.s.length;candidate.s.push(new Array(7).fill(""));
@@ -10713,11 +10766,12 @@ const V25_VERSION="2.5.0";
 let v25LastFocus=null;
 function v25PlanToday(){
   const now=new Date(),d=dowOf(now),wk=keyOf(mondayOf(now)),w=getWeek(wk,false),items=[];
-  if(w){["r","s"].forEach(blk=>(w[blk]||[]).forEach((row,i)=>{const txt=String((row||[])[d]||"").trim();if(!txt)return;const cid=blk+"-"+i+"-"+d,lbl=blk==="r"?(S.rowLabels.r[i]||"Rutin"):(S.rowLabels.s[i]||"Görev");items.push({wk,blk,i,d,cid,txt,lbl,done:!!w.dn[cid]});}));}
+  if(w){["r","s"].forEach(blk=>(w[blk]||[]).forEach((row,i)=>{const txt=String((row||[])[d]||"").trim();if(!txt)return;const cid=blk+"-"+i+"-"+d,lbl=blk==="r"?(S.rowLabels.r[i]||"Rutin"):((typeof planCellLabel==="function"?planCellLabel(S.rowLabels.s[i],txt):S.rowLabels.s[i])||"Görev");items.push({wk,blk,i,d,cid,txt,lbl,done:!!w.dn[cid]});}));}
   const done=items.filter(x=>x.done).length;return {wk,d,w,items,filled:items.length,done,pct:items.length?Math.round(done/items.length*100):0,next:items.find(x=>!x.done)||null,dayDone:!!(w&&w.done&&w.done[d])};
 }
 function v25TaskMeta(item){
   if(!item)return {subj:"",topic:""};
+  try{const p=typeof planTaskSubject==="function"?planTaskSubject(item.txt):null;if(p)return p;}catch(e){}
   try{const c=cellTopic(item.txt);if(c)return {subj:c.subj,topic:c.topic};}catch(e){}
   const txt=String(item.txt||""),lbl=String(item.lbl||"");
   let subj=SUBJ_NAMES.find(n=>n===lbl)||SUBJ_NAMES.find(n=>txt===n||txt.startsWith(n+" ")||txt.startsWith(n+" · "))||"";
