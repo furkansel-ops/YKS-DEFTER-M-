@@ -90,7 +90,20 @@ const topicMapCss=chunks.find(name=>/^biology-topic-map-v44-.+\.css$/.test(name)
 if(!atlasChunk||!modelChunk||!topicMapCss||!chunks.some(name=>/^biology-atlas-.+\.css$/.test(name)))throw new Error("Atlas, konu haritası veya 3B modül lazy paket olarak bulunamadı");
 const atlasBundle=await readFile(resolve(dist,"assets",atlasChunk),"utf8");
 if(!atlasBundle.includes("Genden proteine")||!atlasBundle.includes("Kendini sına")||!atlasBundle.includes("AYT GÖRSEL KONU HARİTASI")||!atlasBundle.includes("Kavramları tek bakışta bağla")||bundle.includes("AYT GÖRSEL KONU HARİTASI")||bundle.includes("WebGLRenderer"))throw new Error("Atlas içeriği / konu haritası / isteğe bağlı yükleme sınırı bozuk");
-await verifyAnatomyAssets(resolve(dist,"anatomy"),JSON.parse(await readFile(resolve(root,"scripts/anatomy-assets.json"),"utf8")));
+const anatomyManifest=JSON.parse(await readFile(resolve(root,"scripts/anatomy-assets.json"),"utf8"));
+const anatomyPresence=await Promise.all(anatomyManifest.files.map(async entry=>{
+  try{await access(resolve(dist,"anatomy",entry.target));return true;}
+  catch(error){if(error?.code==="ENOENT")return false;throw error;}
+}));
+const anatomyPresentCount=anatomyPresence.filter(Boolean).length;
+if(anatomyPresentCount===0){
+  const attribution=await readFile(resolve(dist,"anatomy/ATTRIBUTION.md"),"utf8");
+  if(!attribution.includes(anatomyManifest.commit))throw new Error("Anatomi kaynak bildirimi eksik");
+}else if(anatomyPresentCount===anatomyManifest.files.length){
+  await verifyAnatomyAssets(resolve(dist,"anatomy"),anatomyManifest);
+}else{
+  throw new Error("Anatomi varlıklarının yalnız bir kısmı üretim paketine girdi; tüm dosyaları sağlayın veya public/anatomy klasörünü temizleyin");
+}
 for(const asset of ["error-journal.js?v=4.1.0-r20","personal-upgrades.js?v=4.1.0-r20","progress-v2.js?v=4.1.0-r20","learning-lab-v2.js?v=4.1.0-r24","learning-lab-v3.js?v=4.1.0-r28","motivation-quotes-v1.js?v=4.1.0-r5","motivation-quotes-v2.css?v=4.1.0-r2"])if(!sw.includes(asset))throw new Error("Kişisel/ana modül çevrimdışı çekirdekte eksik: "+asset);
 if(!stability.includes("personal-upgrades.js?v=4.1.0-r20")||!stability.includes("progress-v2.js?v=4.1.0-r20")||!stability.includes("learning-lab-v2.js?v=4.1.0-r24")||!stability.includes("learning-lab-v3.js?v=4.1.0-r28")||!stability.includes("motivation-quotes-v1.js?v=4.1.0-r5"))throw new Error("Kişisel geliştirme/motivasyon modülleri çalışma zamanında yüklenmiyor");
 if(!personal.includes("enforceSingleUser")||!personal.includes("bindProgramGrid"))throw new Error("Tek kullanıcı / Program v2 üretim paketinde eksik");
