@@ -8,7 +8,9 @@ const {stripTypeScriptTypes}=require("node:module");
 const root=path.resolve(__dirname,"..");
 const read=file=>fs.readFileSync(path.join(root,file),"utf8");
 const css=read("src/ui/responsive-v67.css");
-const block=query=>{const at=css.indexOf("@media("+query+"){");assert.ok(at>=0,query);let depth=0,i=css.indexOf("{",at);for(;i<css.length;i++){if(css[i]==="{")depth++;else if(css[i]==="}"&&--depth===0)break;}return css.slice(at,i+1);};
+const blockAt=at=>{let depth=0,i=css.indexOf("{",at);for(;i<css.length;i++){if(css[i]==="{")depth++;else if(css[i]==="}"&&--depth===0)break;}return css.slice(at,i+1);};
+const block=query=>{const at=css.indexOf("@media("+query+"){");assert.ok(at>=0,query);return blockAt(at);};
+const blocks=query=>{const out=[];for(let at=css.indexOf("@media("+query+"){");at>=0;at=css.indexOf("@media("+query+"){",at+1))out.push(blockAt(at));assert.ok(out.length,query);return out.join("\n");};
 
 test("v67 üç kırılma: telefon alt menü, tablet şerit, bilgisayar 232px tam yan menü",()=>{
   const main=read("src/main.ts");
@@ -98,9 +100,9 @@ test("v67/v66 hiçbir kural etkin olmayan bir ekranı görünür yapamaz (.scree
     for(const found of source.matchAll(/([^{}]+)\{([^{}]*)\}/g)){
       if(!/(^|;)\s*display\s*:/.test(found[2]))continue;
       for(const selector of found[1].split(",")){
-        const last=selector.trim().split(/\s+/).pop();
+        const last=selector.trim().split(/\s*[>+~]\s*|\s+/).pop();
         for(const id of screens)
-          if(new RegExp("^#"+id+"(?![\w-])").test(last))
+          if(new RegExp("^#"+id+"(?![\\w-])").test(last))
             assert.match(last,/\.active/,file+": "+selector.trim()+" ekranın görünürlüğünü .active olmadan değiştiriyor");
       }
     }
@@ -115,4 +117,22 @@ test("v67 sabit tam ekran katmanlar menü genişliğinin yarısı kadar kaydır�
   assert.match(rule,/left:0;right:auto;width:100vw;max-width:none;/);
   assert.doesNotMatch(rule,/translateX/,"232px menüde katman 116px ekran dışına kayıyordu");
   assert.match(read("app.js"),/esc\(\(t=>t\.length>54\?t\.slice\(0,54\)\+"…":t\)\(planStripCoach\(g\.txt\)\)\)/);
+});
+
+test("v68 Odak, Deneme, Merkez: tablette sayaç önce ve iki sütun; bilgisayarda yan yana düzen",()=>{
+  const tablet=blocks("min-width:760px) and (max-width:1023px"),t=blocks("min-width:760px"),pc=blocks("min-width:1280px");
+  assert.match(tablet,/#pomo \.desktop-focus-workspace>\.desktop-focus-side:last-child\{order:-1\}/);
+  assert.match(t,/#more #v43MoreTools\{grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+  assert.match(t,/#deneme\.screen\.active\{display:grid;grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+  assert.match(t,/#deneme>:is\(#refinedExamJournal,#refinedExamCycle,#refinedExamAnalysis,#refinedExamHistory\)\{grid-column:auto\}/);
+  assert.match(pc,/#pomo\.screen\.active\{display:grid;grid-template-columns:minmax\(0,1fr\) minmax\(0,1\.6fr\);grid-template-rows:repeat\(5,auto\) 1fr/,"son esnek satır sol sütunda boşluk bırakmaz");
+  assert.match(pc,/\.desktop-focus-side:last-child\{grid-column:2;grid-row:4 \/ 7\}/);
+  assert.match(pc,/#pomo>#refinedFocusDetails\{grid-column:1;grid-row:5/);
+  assert.match(pc,/#more #v43MoreHub\{max-width:1180px\}/);
+  assert.match(pc,/#more #v43MoreTools\{grid-template-columns:repeat\(3,minmax\(0,1fr\)\)\}/);
+  assert.match(pc,/\.v315-dash-grid>\.v315-subject-card\{grid-column:2;grid-row:1\}/);
+  const study=read("src/ui/refined-study-screens.ts");
+  assert.match(study,/const keepSubject=wideExamLayout\(\);/);
+  assert.match(study,/!\(keepSubject&&card\.classList\.contains\("v315-subject-card"\)\)/);
+  assert.match(study,/matchMedia\(WIDE_EXAM_QUERY\)\.addEventListener\("change",schedule\)/,"pencere değişince kart yerine döner");
 });

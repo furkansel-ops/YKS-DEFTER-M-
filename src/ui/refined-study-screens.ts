@@ -27,6 +27,10 @@ export function revealStudyTarget(target:HTMLElement):void{
   while(parent){if(parent instanceof HTMLDetailsElement&&parent.classList.contains("rb-study-disclosure"))parent.open=true;parent=parent.parentElement;}
 }
 
+const WIDE_EXAM_QUERY="(min-width:1280px)";
+function wideExamLayout():boolean{
+  try{return typeof matchMedia==="function"&&matchMedia(WIDE_EXAM_QUERY).matches;}catch{return false;}
+}
 function moveLive(parent:HTMLElement,child:HTMLElement|null,before:Element|null=null):void{
   if(!child||child===parent||child.contains(parent)||child.parentElement===parent)return;
   const active=document.activeElement instanceof HTMLElement&&child.contains(document.activeElement)?document.activeElement:null;
@@ -91,12 +95,18 @@ export function installRefinedStudyScreens():StudyApi{
     if(form&&dashboard&&form.previousElementSibling!==dashboard)examScreen.insertBefore(form,dashboard.nextSibling);
     if(reflection&&form&&reflection.previousElementSibling!==form)examScreen.insertBefore(reflection,form.nextSibling);
     const grid=dashboard?.querySelector<HTMLElement>(".v315-dash-grid");
-    if(grid)for(const card of Array.from(grid.children))if(card instanceof HTMLElement&&!card.classList.contains("v315-trend-card"))moveLive(detailGrid,card);
+    // v67: bilgisayarda ders bazlı performans trendin yanında kalır; dar ekranda Analiz katmanına taşınır.
+    const keepSubject=wideExamLayout();
+    if(grid)for(const card of Array.from(grid.children))if(card instanceof HTMLElement&&!card.classList.contains("v315-trend-card")&&!(keepSubject&&card.classList.contains("v315-subject-card")))moveLive(detailGrid,card);
+    const subjectCard=examScreen.querySelector<HTMLElement>(".v315-subject-card");
+    if(grid&&subjectCard&&keepSubject&&subjectCard.parentElement!==grid)moveLive(grid,subjectCard);
     const insights=document.getElementById("v4ExamInsights");if(insights&&dashboard?.contains(insights))moveLive(analysis.body,insights,detailGrid);
     cycle.details.hidden=!cycle.body.children.length;
   }
   function refresh():void{arrangeTopics();arrangeExam();protectDeepLinks();topicScreen.dataset.refinedStudy="ready";examScreen.dataset.refinedStudy="ready";}
   function schedule():void{if(queued)return;queued=true;queueMicrotask(()=>{queued=false;refresh();});}
+  // Pencere bilgisayar genişliğine geçince/çıkınca ders kartı doğru yere taşınır.
+  try{matchMedia(WIDE_EXAM_QUERY).addEventListener("change",schedule);}catch{}
   function wrap(name:string,before?:(...args:unknown[])=>void):void{
     const original=legacy[name];if(typeof original!=="function")return;
     legacy[name]=function(this:unknown,...args:unknown[]){before?.(...args);const result=original.apply(this,args);schedule();return result;};

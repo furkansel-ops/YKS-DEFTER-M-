@@ -105,3 +105,35 @@
 @media(min-width:1280px) and (max-width:1439px){
   :root[data-visual-system] #mainWrap #topics #subjectList{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
+
+/* ================= v68 · Odak, Deneme, Merkez ================= */
+/* Tablet: sayaç önce gelir; oturum ayarı altında. */
+@media(min-width:760px) and (max-width:1023px){
+  :root[data-visual-system] #mainWrap #pomo .desktop-focus-workspace>.desktop-focus-side:last-child{order:-1}
+}
+@media(min-width:760px){
+  /* Merkez: gruplar kart; tablette iki sütun. */
+  :root[data-visual-system] #mainWrap #more #v43MoreTools{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;gap:14px}
+  :root[data-visual-system] #mainWrap #more #v43MoreTools>.v43-more-group{min-width:0;padding:14px;border:1px solid var(--d-line);border-radius:var(--d-r);background:var(--d-surface);box-shadow:var(--d-shadow)}
+  :root[data-visual-system] #mainWrap #more #v43MoreTools .v43-more-tool-grid{grid-template-columns:1fr}
+  /* Deneme: alt katmanlar iki sütun. */
+  :root[data-visual-system] #mainWrap #deneme.screen.active{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:14px;align-items:start}
+  :root[data-visual-system] #mainWrap #deneme>*{grid-column:1/-1;min-width:0}
+  :root[data-visual-system] #mainWrap #deneme>:is(#refinedExamJournal,#refinedExamCycle,#refinedExamAnalysis,#refinedExamHistory){grid-column:auto}
+}
+@media(min-width:1280px){
+  /* Odak: solda oturum ve bugünkü ayrıntılar, sağda büyük sayaç. */
+  :root[data-visual-system] #mainWrap #pomo.screen.active{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);grid-template-rows:repeat(5,auto) 1fr;column-gap:18px;align-items:start}
+  :root[data-visual-system] #mainWrap #pomo>*{grid-column:1/-1;min-width:0}
+  :root[data-visual-system] #mainWrap #pomo>.desktop-focus-workspace{display:contents}
+  :root[data-visual-system] #mainWrap #pomo .desktop-focus-workspace>.desktop-focus-side:first-child{grid-column:1;grid-row:4}
+  :root[data-visual-system] #mainWrap #pomo .desktop-focus-workspace>.desktop-focus-side:last-child{grid-column:2;grid-row:4 / 7}
+  :root[data-visual-system] #mainWrap #pomo>#refinedFocusDetails{grid-column:1;grid-row:5;margin-top:14px}
+  /* Merkez: geniş kap, üç grup yan yana. */
+  :root[data-visual-system] #mainWrap #more #v43MoreHub{max-width:1180px}
+  :root[data-visual-system] #mainWrap #more #v43MoreTools{grid-template-columns:repeat(3,minmax(0,1fr))}
+  /* Deneme: ders bazlı performans trendin yanında (refined-study-screens bilgisayarda taşımaz). */
+  :root[data-visual-system] #mainWrap #deneme #v315Dashboard .v315-dash-grid{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(300px,1fr);gap:12px;align-items:stretch}
+  :root[data-visual-system] #mainWrap #deneme #v315Dashboard .v315-dash-grid>.v315-trend-card{grid-column:1;grid-row:1}
+  :root[data-visual-system] #mainWrap #deneme #v315Dashboard .v315-dash-grid>.v315-subject-card{grid-column:2;grid-row:1}
+}
