@@ -801,6 +801,9 @@ function applyTheme(){
   root.style.colorScheme=active==="night"?"dark":"light";
   const mt=el("metaTheme");
   if(mt)mt.setAttribute("content",YKS_THEME_META[active]);
+  // Açılış ekranının rengi için cihaz ipucu (index.html#yksThemeHint); kayıt verisi değildir.
+  root.dataset.bootTheme=active;
+  try{localStorage.setItem("yks_theme_hint_v1",active);}catch(e){}
   updateThemeGrid();
   if(yksThemeLastApplied!==active){
     yksThemeLastApplied=active;
@@ -1232,13 +1235,23 @@ function cellOpenLink(txt){
 /* Görevin dersi metnin başından okunur ("Koç · AYT Kimya · Gazlar · …" dahil).
    Satır adı yalnız metinde ders yoksa yedek olarak kullanılır. */
 const PLAN_AYT_ALIAS={"Felsefe":"Felsefe Grubu","Türkçe":"Türkçe","Edebiyat":"Edebiyat"};
+// Koç görevleri metne "Koç · " (ve deneme sonrası için "Deneme sonrası · ") önekiyle yazılır.
+// Bu önek ve ders rengi tek yerde tanımlanır; TS ekranları globalThis.YKSTaskText üzerinden kullanır.
+const PLAN_COACH_PREFIX=/^Koç\s*·\s*(?:Deneme sonrası\s*·\s*)?/i;
+const PLAN_SUBJECTS_BY_LENGTH=[...SUBJ_NAMES].sort((a,b)=>b.length-a.length);
+function planStripCoach(txt){return String(txt||"").replace(PLAN_COACH_PREFIX,"");}
+/* Konu, metinde geçen en uzun konu adıdır: "Hücre Bölünmeleri", "Hücre"den önce gelir. */
+function planFindTopic(topics,text){
+  const low=String(text||"").toLocaleLowerCase("tr-TR");
+  return topics.filter(x=>low.includes(x.toLocaleLowerCase("tr-TR"))).sort((a,b)=>b.length-a.length)[0]||"";
+}
 function planTaskSubject(txt){
-  let t=String(txt||"").split("\n")[0].replace(/^Koç\s*·\s*(?:Deneme sonrası\s*·\s*)?/i,"").replace(/^[▶☰]\s*/,"").trim();
+  let t=planStripCoach(String(txt||"").split("\n")[0]).replace(/^[▶☰]\s*/,"").trim();
   const em=t.match(/^(TYT|AYT|YDT)\s+/i),exam=em?em[1].toUpperCase():"";
   if(em)t=t.slice(em[0].length);
   const low=t.toLocaleLowerCase("tr-TR");
   const starts=n=>{const l=n.toLocaleLowerCase("tr-TR");return low.startsWith(l)&&!/[a-zçğıöşüâîû0-9]/i.test(low.charAt(l.length));};
-  let name=[...SUBJ_NAMES].sort((a,b)=>b.length-a.length).find(starts)||"";
+  let name=PLAN_SUBJECTS_BY_LENGTH.find(starts)||"";
   if(!name&&starts("paragraf"))name="Türkçe";
   if(!name&&/^(?:ingilizce|english)/i.test(low))name="Yabancı Dil";
   if(!name)return null;
@@ -1250,8 +1263,8 @@ function planTaskSubject(txt){
   const rest=t.slice(cut).replace(/^[\s·:,-]+/,"").trim();
   let topic="";const sb=ALL_SUBJECTS.find(x=>x.name===name);
   if(sb){
-    const first=(rest.split(/\s+·\s+/)[0]||"").toLocaleLowerCase("tr-TR"),all=rest.toLocaleLowerCase("tr-TR");
-    topic=sb.topics.find(x=>x.toLocaleLowerCase("tr-TR")===first)||sb.topics.find(x=>all.includes(x.toLocaleLowerCase("tr-TR")))||"";
+    const first=(rest.split(/\s+·\s+/)[0]||"").toLocaleLowerCase("tr-TR");
+    topic=sb.topics.find(x=>x.toLocaleLowerCase("tr-TR")===first)||planFindTopic(sb.topics,rest);
   }
   return {subj:name,topic};
 }
@@ -1261,8 +1274,9 @@ function planTaskSubject(txt){
 function planSubjectTone(name){
   const s=String(name||"").toLocaleLowerCase("tr-TR");
   return /matematik|geometri/.test(s)?"math":/fizik/.test(s)?"physics":/kimya/.test(s)?"chemistry":/biyoloji/.test(s)?"biology":
-    /türkçe|paragraf|edebiyat|yabancı/.test(s)?"reading":/tarih|coğrafya|felsefe|din/.test(s)?"social":"other";
+    /türkçe|paragraf|edebiyat|okuma|yabancı|ingilizce|ydt/.test(s)?"reading":/tarih|coğrafya|felsefe|din/.test(s)?"social":"other";
 }
+globalThis.YKSTaskText=Object.freeze({stripCoachPrefix:planStripCoach,subjectTone:planSubjectTone});
 function planSubjBase(name){return String(name||"").replace(/\s*\(AYT\)$/,"");}
 function planCellLabel(lbl,txt){
   const label=String(lbl||"").trim(),p=planTaskSubject(txt);
@@ -1379,18 +1393,25 @@ function programTaskCompleted(wk,cid,w){
     const meta=typeof v25TaskMeta==="function"?v25TaskMeta({txt:txt,lbl:lbl}):{subj:lbl,topic:""};
     const progress=programDayStats(w,d);
     window.dispatchEvent(new CustomEvent("yks:task-completed",{detail:{taskId:String(wk)+":"+cid,week:String(wk),cellId:cid,subject:meta.subj||lbl,topic:meta.topic||"",completedCount:progress.done,totalCount:progress.filled}}));
-    if(typeof programAutoTopicDone==="function")programAutoTopicDone(meta);
+    if(typeof programAutoTopicDone==="function")programAutoTopicDone(meta,txt);
   }catch(e){}
 }
-/* Programdaki görev bitince konusu Konular'da "Pekiştirdim" (bitti) olur.
+/* Programdaki görev bitince konusu Konular'da çalışma türüne göre ilerler:
+   konu anlatımı/video → İşledim, soru çözümü → Soru çözdüm, tekrar → Pekiştirdim.
    Durum yalnız ileri taşınır ve tek dokunuşla geri alınabilir. */
-function programAutoTopicDone(meta){
+function programTopicLevel(txt){
+  const t=String(txt||"").toLocaleLowerCase("tr-TR");
+  if(/tekrar|pekiştir/.test(t))return 3;
+  if(/soru|test\b|deneme analizi/.test(t))return 2;
+  return 1;
+}
+function programAutoTopicDone(meta,txt){
   if(!meta||!meta.subj||!meta.topic||typeof topicKeyOf!=="function")return false;
   const key=topicKeyOf(meta.subj,meta.topic);if(!key)return false;
-  const before=S.topics[key]?clone(S.topics[key]):null;
-  if(before&&before.st>=3)return false;
-  tsetStatus(key,3);
-  if(typeof pushUndo==="function")pushUndo(meta.topic+" “Bitti” olarak işaretlendi",()=>{if(before)S.topics[key]=before;else delete S.topics[key];});
+  const level=programTopicLevel(txt),before=S.topics[key]?clone(S.topics[key]):null;
+  if(before&&before.st>=level)return false;
+  tsetStatus(key,level);
+  if(typeof pushUndo==="function")pushUndo(meta.topic+" “"+ST_LABEL[level]+"” olarak işaretlendi",()=>{if(before)S.topics[key]=before;else delete S.topics[key];});
   return true;
 }
 /* Completion feedback belongs to a committed user action, not a render or a
@@ -10762,7 +10783,7 @@ function v25TaskMeta(item){
   const txt=String(item.txt||""),lbl=String(item.lbl||"");
   let subj=SUBJ_NAMES.find(n=>n===lbl)||SUBJ_NAMES.find(n=>txt===n||txt.startsWith(n+" ")||txt.startsWith(n+" · "))||"";
   if(!subj){const low=(lbl+" "+txt).toLocaleLowerCase("tr-TR");subj=SUBJ_NAMES.find(n=>low.includes(n.toLocaleLowerCase("tr-TR")))||"";}
-  let topic="";const sb=ALL_SUBJECTS.find(x=>x.name===subj);if(sb){const low=txt.toLocaleLowerCase("tr-TR");topic=sb.topics.find(t=>low.includes(t.toLocaleLowerCase("tr-TR")))||"";}
+  let topic="";const sb=ALL_SUBJECTS.find(x=>x.name===subj);if(sb){const low=txt.toLocaleLowerCase("tr-TR");topic=planFindTopic(sb.topics,low);}
   return {subj,topic};
 }
 function v25UniqueReviews(){const out=[],seen=new Set();for(const r of reviewQueue()){if(seen.has(r.key))continue;seen.add(r.key);out.push(r);}return out;}

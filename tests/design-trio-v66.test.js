@@ -3,6 +3,7 @@ const assert=require("node:assert/strict");
 const fs=require("node:fs");
 const path=require("node:path");
 const vm=require("node:vm");
+const {loadTaskText}=require("./task-text-fixture");
 
 const root=path.resolve(__dirname,"..");
 const read=file=>fs.readFileSync(path.join(root,file),"utf8");
@@ -36,17 +37,21 @@ test("v66 yeni düzen en son yüklenir ve eski iki kimlikli katmanları #mainWra
   assert.doesNotMatch(css,/@import|url\(\s*["']?https?:/);
 });
 
-test("v66 Bugün görev satırı: Koç öneki rozet olur, başlık ders, alt satır konu, ders tonu atanır",()=>{
-  const source=read("src/ui/today-workspace-v38.ts");
-  assert.match(source,/coach=\/\^Koç\\s\*·\/i\.test\(raw\)/);
-  assert.match(source,/tag\.className="today-fresh-task-coach";tag\.textContent="Koç"/);
-  assert.match(source,/task\.dataset\.tone=todayTaskTone\(/);
-  const fn=source.match(/function todayTaskTone\([\s\S]*?\n}/)[0];
-  const ctx={};vm.createContext(ctx);vm.runInContext(fn.replace(/:string/g,""),ctx);
-  assert.equal(ctx.todayTaskTone("Kimya TYT Kimya"),"chemistry");
-  assert.equal(ctx.todayTaskTone("— TYT Matematik"),"math");
-  assert.equal(ctx.todayTaskTone("Paragraf"),"reading");
-  assert.equal(ctx.todayTaskTone("kitap okuma"),"other");
+test("v66 tek kaynak: Koç öneki ve ders tonu app.js'ten gelir; ekranlar kendi kopyasını tutmaz",()=>{
+  const {stripCoachPrefix,subjectTone}=loadTaskText();
+  assert.equal(stripCoachPrefix("Koç · Deneme sonrası · TYT Kimya · Mol Kavramı"),"TYT Kimya · Mol Kavramı");
+  assert.equal(stripCoachPrefix("TYT Kimya"),"TYT Kimya");
+  for(const [value,tone] of [["Kimya TYT Kimya","chemistry"],["— TYT Matematik","math"],["Paragraf","reading"],["kitap okuma","reading"],["Yabancı Dil","reading"],["Tarih-2","social"],["Deneme Analizi","other"]])
+    assert.equal(subjectTone(value),tone,value);
+  for(const file of ["src/ui/today-v43.ts","src/ui/today-workspace-v38.ts","src/ui/launch-screen-v63.ts","src/ui/refined-program.ts"]){
+    const source=read(file);
+    assert.ok(!source.includes("Deneme sonrası\\s"),file+" önek kopyası tutmaz");
+    assert.ok(source.includes("(globalThis as {YKSTaskText?:YksTaskText}).YKSTaskText"),file);
+  }
+  const v38=read("src/ui/today-workspace-v38.ts");
+  assert.ok(v38.includes("const title=stripCoach(raw),coach=title!==raw"));
+  assert.ok(v38.includes('tag.className="today-fresh-task-coach";tag.textContent="Koç"'));
+  assert.ok(v38.includes("task.dataset.tone=taskText()?.subjectTone("));
 });
 
 test("v66 Konular ders kartı aynı ton adını alır; açılış ekranı ve alt şeridi temaya uyar",()=>{
@@ -59,10 +64,32 @@ test("v66 Konular ders kartı aynı ton adını alır; açılış ekranı ve alt
   assert.equal(ctx.planSubjectTone("Yabancı Dil"),"reading");
   assert.match(css,/:root\[data-visual-system\] \.yl-root\{background:var\(--d-launch\)\}/);
   assert.match(css,/\.yl-root \.yl-acts\{background:linear-gradient\(to top,var\(--d-launch-end\)/);
-  assert.match(read("src/ui/launch-screen-v63.ts"),/replace\(\/\^Koç\\s\*·\\s\*\(\?:Deneme sonrası\\s\*·\\s\*\)\?\/i,""\)/);
+  assert.ok(read("src/ui/launch-screen-v63.ts").includes("esc(stripCoach(String(task.txt)))"));
 });
 
 test("v66 Ayarlar › Görünüm üç tema kartını tek satırda gösterir",()=>{
   assert.match(css,/#appearancePreferences \.yks-theme-grid\.yks-theme-trio\{display:grid;grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/);
   assert.match(read("index.html"),/class="yks-theme-grid yks-theme-trio"/);
+});
+
+test("v66 Gece/Canlı açılışta açık renk parlaması olmaz: ayrı ipucu betiği, boot denetleyicisi depolamaya dokunmaz",()=>{
+  const html=read("index.html"),app=read("app.js");
+  const hint=html.match(/<script id="yksThemeHint">([\s\S]*?)<\/script>/)?.[1];
+  assert.ok(hint,"ipucu betiği var");
+  assert.ok(html.indexOf('id="yksThemeHint"')<html.indexOf("<body"),"gövde boyanmadan önce çalışır");
+  const run=(stored,throws=false)=>{
+    const dataset={},meta={content:"#f5f7fb"};
+    vm.runInNewContext(hint,{localStorage:{getItem:key=>{if(throws)throw new Error("blocked");return key==="yks_theme_hint_v1"?stored:null}},
+      document:{documentElement:{dataset},getElementById:id=>id==="metaTheme"?meta:null}});
+    return {dataset,meta};
+  };
+  assert.equal(run("night").dataset.bootTheme,"night");assert.equal(run("night").meta.content,"#0a0f1c");
+  assert.equal(run("vivid").dataset.bootTheme,"vivid");
+  assert.equal(run("refined-blue").dataset.bootTheme,undefined);assert.equal(run("graphite").dataset.bootTheme,undefined);
+  assert.doesNotThrow(()=>run(null,true),"depolama kapalıysa sessizce geçer");
+  assert.match(html,/html\[data-boot-theme="night"\] #yksBootShell\{background:#0a0f1c/);
+  const apply=app.slice(app.indexOf("function applyTheme()"),app.indexOf("function setTheme("));
+  assert.match(apply,/root\.dataset\.bootTheme=active;\n  try\{localStorage\.setItem\("yks_theme_hint_v1",active\);\}catch\(e\)\{\}/);
+  const controller=html.match(/<script id="yksBootController">([\s\S]*?)<\/script>/)[1];
+  assert.doesNotMatch(controller,/localStorage/);
 });

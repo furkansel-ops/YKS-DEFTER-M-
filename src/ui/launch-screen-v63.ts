@@ -102,6 +102,10 @@ function readQuote():{text:string;by:string}|null{
   return {text,by:author||category};
 }
 
+/* Koç öneki ve ders rengi app.js'deki tek kaynaktan gelir (globalThis.YKSTaskText). */
+type YksTaskText={stripCoachPrefix(value:string):string;subjectTone(value:string):string};
+const taskText=():YksTaskText|undefined=>(globalThis as {YKSTaskText?:YksTaskText}).YKSTaskText;
+const stripCoach=(value:string):string=>taskText()?.stripCoachPrefix(value)??value;
 export function installLaunchScreenV63(deps:LaunchDeps):{installed:boolean}{
   if(document.getElementById(ROOT_ID))return {installed:true};
   document.documentElement.dataset.launchQuote="moved";
@@ -154,7 +158,7 @@ export function installLaunchScreenV63(deps:LaunchDeps):{installed:boolean}{
     if(!snap){slot.innerHTML=`<div class="yl-card yl-skel" aria-hidden="true"></div>`;return false;}
     const {items,total}=pendingTasks();
     const focusGoal=Number(snap.focusGoal)||0,questionGoal=Number(snap.questionGoal)||0,tasks=Number(snap.tasks)||total,done=Number(snap.done)||0;
-    const next=items.slice(0,3).map(task=>`<li><span aria-hidden="true"></span>${esc(String(task.txt).replace(/^Koç\s*·\s*(?:Deneme sonrası\s*·\s*)?/i,""))}</li>`).join("");
+    const next=items.slice(0,3).map(task=>`<li><span aria-hidden="true"></span>${esc(stripCoach(String(task.txt)))}</li>`).join("");
     slot.innerHTML=`<section class="yl-card" aria-label="Bugünün özeti">
       <div class="yl-card-head"><b>Bugün</b><span>${tasks?`${done}/${tasks} görev`:"Program yok"}</span></div>
       <div class="yl-stats">

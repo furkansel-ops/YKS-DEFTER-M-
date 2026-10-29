@@ -3,6 +3,7 @@ const assert=require("node:assert/strict");
 const fs=require("node:fs");
 const path=require("node:path");
 const vm=require("node:vm");
+const {loadTaskText}=require("./task-text-fixture");
 const {stripTypeScriptTypes}=require("node:module");
 
 function fixture(){
@@ -22,7 +23,7 @@ function fixture(){
   }
   const document={createElement:tag=>new Node(tag),createElementNS:(_,tag)=>new Node(tag)};
   const source=fs.readFileSync(path.resolve(__dirname,"../src/ui/today-v43.ts"),"utf8").replace('import "./today-v43.css";','').replace(/\bexport /g,'');
-  const context=vm.createContext({document,HTMLElement:Node,Event});
+  const context=vm.createContext({document,HTMLElement:Node,Event,YKSTaskText:loadTaskText()});
   vm.runInContext(stripTypeScriptTypes(source),context);
   const node=(tag,cls="",text="")=>{const item=new Node(tag);item.className=cls;item.textContent=text;return item;};
   return {node,enhanceRow:context.enhanceTodayTaskRow,enhanceNext:context.enhanceTodayNext};

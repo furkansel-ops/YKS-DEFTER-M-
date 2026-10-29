@@ -43,12 +43,16 @@ test("v49 every alternate palette has readable text, muted descriptions and acce
   }
 });
 
-test("v49 puts hero stat tiles on a dark translucent surface and keeps white text",()=>{
-  const src=contrast;
-  assert.match(src,/\.today-fresh-progress \.today-fresh-stat\s*\{\s*background:rgb\(255 255 255 \/ 12%\)/);
-  assert.match(src,/\.today-fresh-progress :is\([\s\S]*?#todayFreshProgressStatus[\s\S]*?\)\s*\{color:var\(--yks-theme-on-deep\)\}/);
-  assert.match(src,/\.today-fresh-progress\{[\s\S]*?background:var\(--yks-theme-hero\)/);
-  assert.match(src,/\.today-fresh-next-actions \.today-fresh-primary\{[\s\S]*?color:var\(--yks-theme-on-deep\)/);
+test("v49 eski koyu ilerleme kartı kuralları kalktı; Bugün listeleri kimlik içeren :is() kullanmaz",()=>{
+  // v66 ilerleme kartını düzleştirir; :is() içindeki tek bir kimlik listedeki her öğeyi
+  // kimlik önceliğine taşıyıp yeni düzenin renklerini eziyordu.
+  for(const src of [contrast,palette]){
+    assert.doesNotMatch(src,/\.today-fresh-progress/);
+    for(const found of src.matchAll(/#todayFreshStart[^{]*:is\(([^)]*)\)\s*\{/g))
+      assert.doesNotMatch(found[1],/#[A-Za-z]/,"kimlikli :is(): "+found[1].slice(0,80));
+  }
+  assert.match(contrast,/\.today-fresh-exam small,\.today-fresh-quote-text/);
+  assert.match(contrast,/\.today-fresh-insights-actions button,\.today-fresh-insight-detail/);
 });
 
 test("v49 is CSS-only, scoped away from the default Blue theme and loads after the prior palette",()=>{

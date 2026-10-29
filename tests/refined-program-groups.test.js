@@ -3,6 +3,7 @@ const assert=require("node:assert/strict");
 const fs=require("node:fs");
 const path=require("node:path");
 const vm=require("node:vm");
+const {loadTaskText}=require("./task-text-fixture");
 const {stripTypeScriptTypes}=require("node:module");
 
 const root=path.resolve(__dirname,"..");
@@ -13,7 +14,7 @@ const runtime=stripTypeScriptTypes(source
   .replace(/^import "\.\/refined-program-v4\.css";\r?\n/,"")
   .replace(/^import \{renderSmartProgram\} from "\.\/smart-program";\r?\n/,""),{mode:"strip"}).replace(/^export /gm,"");
 const api=vm.runInNewContext(runtime+
-  "\n({refinedProgramDailyGroupKey,refinedProgramDailyGroups,refinedProgramDailyGroupProgress,refinedProgramTasks})",{Date,URL});
+  "\n({refinedProgramDailyGroupKey,refinedProgramDailyGroups,refinedProgramDailyGroupProgress,refinedProgramTasks})",{Date,URL,YKSTaskText:loadTaskText()});
 const plain=val=>JSON.parse(JSON.stringify(val));
 const task=(id,text,label="Çalışma",done=false)=>({id,block:"s",row:Number(id.slice(1))||0,day:2,text,label,done});
 

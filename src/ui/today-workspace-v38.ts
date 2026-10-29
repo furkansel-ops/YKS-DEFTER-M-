@@ -2,12 +2,10 @@
    The legacy controls continue to own timers, task completion and persistence. */
 type W38=Window&{go?:(page:string)=>unknown;v25StartTask?:()=>unknown;v25DoneNext?:()=>unknown};
 
-/* Ders rengi için kaba sınıf; yalnız görünüm içindir, kayda yazılmaz. */
-function todayTaskTone(value:string):string{
-  const s=value.toLocaleLowerCase("tr-TR");
-  return /matematik|geometri/.test(s)?"math":/fizik/.test(s)?"physics":/kimya/.test(s)?"chemistry":/biyoloji/.test(s)?"biology":
-    /türkçe|paragraf|edebiyat/.test(s)?"reading":/tarih|coğrafya|felsefe|din/.test(s)?"social":"other";
-}
+/* Koç öneki ve ders rengi app.js'deki tek kaynaktan gelir (globalThis.YKSTaskText). */
+type YksTaskText={stripCoachPrefix(value:string):string;subjectTone(value:string):string};
+const taskText=():YksTaskText|undefined=>(globalThis as {YKSTaskText?:YksTaskText}).YKSTaskText;
+const stripCoach=(value:string):string=>taskText()?.stripCoachPrefix(value)??value;
 export function installTodayWorkspaceV38():{installed:boolean}{
   const root=document.getElementById("todayFreshWorkCenter");
   const plan=document.getElementById("todayPlan");
@@ -132,8 +130,8 @@ export function installTodayWorkspaceV38():{installed:boolean}{
       const subjectText=text(row.querySelector(".pl"));
       const raw=text(row.querySelector(".pt"))||subjectText||"Görev";
       // v66: "Koç ·" öneki rozet olur; başlık dersten, alt satır konudan oluşur.
-      const coach=/^Koç\s*·/i.test(raw),title=raw.replace(/^Koç\s*·\s*(?:Deneme sonrası\s*·\s*)?/i,""),cut=title.indexOf(" · ");
-      task.dataset.tone=todayTaskTone(subjectText+" "+title);
+      const title=stripCoach(raw),coach=title!==raw,cut=title.indexOf(" · ");
+      task.dataset.tone=taskText()?.subjectTone(subjectText+" "+title)??"other";
       button.setAttribute("aria-label",raw+(done?" tamamlandı, geri al":" tamamla"));
       button.addEventListener("click",()=>{
         if((row.getAttribute("onclick")||"").includes("toggleCellDone"))row.click();

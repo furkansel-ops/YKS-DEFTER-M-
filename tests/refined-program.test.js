@@ -3,11 +3,12 @@ const assert=require("node:assert/strict");
 const fs=require("node:fs");
 const path=require("node:path");
 const vm=require("node:vm");
+const {loadTaskText}=require("./task-text-fixture");
 const {stripTypeScriptTypes}=require("node:module");
 const root=path.resolve(__dirname,"..");
 const source=fs.readFileSync(path.join(root,"src/ui/refined-program.ts"),"utf8");
 const runtime=stripTypeScriptTypes(source.replace(/^import "\.\/refined-program\.css";\r?\n/,"").replace(/^import "\.\/refined-program-v4\.css";\r?\n/,"").replace(/^import \{renderSmartProgram\} from "\.\/smart-program";\r?\n/,""),{mode:"strip"}).replace(/^export /gm,"");
-const api=vm.runInNewContext(runtime+"\n({refinedProgramTasks,refinedProgramWeekOffset,refinedProgramQuickText,refinedProgramResourceUrl,refinedProgramTaskDetail,refinedProgramSubjectLabel,createRefinedProgramController})",{Date,URL});
+const api=vm.runInNewContext(runtime+"\n({refinedProgramTasks,refinedProgramWeekOffset,refinedProgramQuickText,refinedProgramResourceUrl,refinedProgramTaskDetail,refinedProgramSubjectLabel,createRefinedProgramController})",{Date,URL,YKSTaskText:loadTaskText()});
 const plain=value=>JSON.parse(JSON.stringify(value));
 const rows=()=>[Array(7).fill(""),Array(7).fill("")];
 function week(){return {r:rows(),s:rows(),dn:{},done:Array(7).fill(false),mv:{}};}

@@ -26,7 +26,11 @@
   #yksBootRetry[hidden]{display:none!important}
   #yksBootRetry:focus-visible{outline:3px solid #81b3ff;outline-offset:3px}
   html[data-ui-ready="true"] #yksBootShell{display:none!important}
+  html[data-boot-theme="night"],html[data-boot-theme="night"] #yksBootShell{background:#0a0f1c;color:#eef2fb}
+  html[data-boot-theme="night"] #yksBootShell .yks-boot-card{background:#121a2c;border-color:#26314d;box-shadow:none}
+  html[data-boot-theme="vivid"],html[data-boot-theme="vivid"] #yksBootShell{background:#fbf8f4}
 </style>
+<script id="yksThemeHint">/* Gece/Canlı için açılış rengi; yalnız bu cihazdaki ipucu, kayıt değil. */try{var h=localStorage.getItem("yks_theme_hint_v1");if(h==="night"||h==="vivid"){document.documentElement.dataset.bootTheme=h;document.getElementById("metaTheme").content=h==="night"?"#0a0f1c":"#fbf8f4"}}catch(e){}</script>
 <script id="yksBootController">
 /* A slow or failed download may offer a retry, but must never uncover the old DOM. */
 (function(){

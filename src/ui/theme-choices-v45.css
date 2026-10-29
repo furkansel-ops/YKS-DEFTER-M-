@@ -67,15 +67,6 @@
  .today-fresh-activity-totals strong,.today-fresh-insights-preview small
 ){color:var(--yks-theme-accent)}
 :root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) #home #todayFreshStart :is(
- .today-fresh-progress,.today-fresh-next-actions .today-fresh-primary
-){background:var(--yks-theme-deep);border-color:var(--yks-theme-deep);color:#fff}
-:root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) #home #todayFreshStart .today-fresh-progress :is(h2,p,small,span,strong){
- color:#fff;
-}
-:root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) #home #todayFreshStart .today-fresh-ring::before{
- background:var(--yks-theme-deep);
-}
-:root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) #home #todayFreshStart :is(
  .today-fresh-action,.today-fresh-view-all,.today-fresh-quote-new,.today-fresh-insight-detail,
  .today-fresh-review-status,.today-fresh-insight-more,.today-fresh-recent-duration
 ){color:var(--yks-theme-accent)}
@@ -168,10 +159,6 @@
   background-color:var(--yks-theme-accent);
   color:var(--yks-theme-on);
   border-color:var(--yks-theme-accent);
-}
-:root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) #home #todayFreshStart .today-fresh-progress{
-  background:var(--yks-theme-hero);
-  border-color:color-mix(in srgb,var(--yks-theme-deep) 72%,var(--yks-theme-line));
 }
 :root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) #home #todayFreshStart :is(
   .today-fresh-stat,.today-fresh-subject-row,.today-fresh-recent-row,.today-history-week,

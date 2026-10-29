@@ -12,16 +12,17 @@ function harness(labels=["Fizik","Matematik"]){
   class Clock extends Date{constructor(...args){super(...(args.length?args:["2026-10-28T12:00:00"]));}}
   const context=vm.createContext({Date:Clock,S:state,save:()=>{calls.push("save");return true;},perfInvalidateState:()=>{},
     renderTodayPlan:()=>{},renderSuggest:()=>{},renderPlan:()=>{},el:()=>({classList:{contains:()=>false}}),toast:()=>{},
-    pushUndo:(label,restore)=>undo.push({label,restore}),todayKey:()=>"2026-10-28"});
+    pushUndo:(label,restore)=>undo.push({label,restore}),todayKey:()=>"2026-10-28",ST_LABEL:["Başlanmadı","İşledim","Soru çözdüm","Pekiştirdim"]});
   const curriculum=app.slice(app.indexOf("const CURRICULUM="),app.indexOf("const DAYS="));
   vm.runInContext(curriculum.replace(/^const /gm,"var "),context);
-  vm.runInContext(app.match(/^const PLAN_AYT_ALIAS=[^\n]+$/m)[0].replace(/^const /,"var "),context);
-  for(const name of ["keyOf","parseKey","addDaysKey","dowOf","mondayOf","clone","tkey","findSubj","planSubjBase"]){
+  for(const name of ["PLAN_AYT_ALIAS","PLAN_COACH_PREFIX","PLAN_SUBJECTS_BY_LENGTH"])
+    vm.runInContext(app.match(new RegExp("^const "+name+"=[^\\n]+$","m"))[0].replace(/^const /,"var "),context);
+  for(const name of ["keyOf","parseKey","addDaysKey","dowOf","mondayOf","clone","tkey","findSubj","planSubjBase","planStripCoach"]){
     const line=app.match(new RegExp(`^function ${name}\\([^\\n]+$`,"m"));
     const block=line&&/\}\s*$/.test(line[0])&&!/^function \w+\([^)]*\)\{\s*$/.test(line[0])?line:app.match(new RegExp(`function ${name}\\([^\\n]*\\)\\{[\\s\\S]*?\\r?\\n}`));
     assert.ok(block,name);vm.runInContext(block[0],context);
   }
-  for(const name of ["topicKeyOf","tsetStatus","blankWeek","normWeek","addToDays","planTaskSubject","planCellLabel","v25TaskMeta","programAutoTopicDone"]){
+  for(const name of ["topicKeyOf","tsetStatus","blankWeek","normWeek","addToDays","planFindTopic","planTaskSubject","planCellLabel","v25TaskMeta","programTopicLevel","programAutoTopicDone"]){
     const block=app.match(new RegExp(`function ${name}\\([^\\n]*\\)\\{[\\s\\S]*?\\r?\\n}`));assert.ok(block,name);vm.runInContext(block[0],context);
   }
   return {context,state,calls,undo};
@@ -63,23 +64,37 @@ test("addToDays görevi aynı dersin satırına, yoksa başka derse ait olmayan 
   assert.equal(h.state.weeks[wk].s[0][1],"Serbest okuma","dersi olmayan görev eskisi gibi ilk boş satıra");
 });
 
-test("görev bitince konu Bitti olur, yalnız ileri taşınır ve geri alınabilir",()=>{
-  const h=harness(),c=h.context,key="TYT|Kimya|Mol Kavramı";
-  assert.equal(c.programAutoTopicDone({subj:"Kimya",topic:"Mol Kavramı"}),true);
+test("görev bitince konu çalışma türüne göre ilerler, yalnız ileri taşınır ve geri alınabilir",()=>{
+  const h=harness(),c=h.context,key="TYT|Kimya|Mol Kavramı",meta={subj:"Kimya",topic:"Mol Kavramı"};
+  assert.equal(c.programTopicLevel("Koç · TYT Kimya · Mol Kavramı · Konu anlatımı — https://youtu.be/x"),1);
+  assert.equal(c.programTopicLevel("TYT Kimya · Mol Kavramı · Soru çözümü · 40 soru"),2);
+  assert.equal(c.programTopicLevel("TYT Kimya · Mol Kavramı · Tekrar"),3);
+  assert.equal(c.programTopicLevel("Mol Kavramı"),1,"türü belirtilmeyen çalışma İşledim sayılır");
+  assert.equal(c.programAutoTopicDone(meta,"TYT Kimya · Mol Kavramı · Konu anlatımı"),true);
+  assert.equal(h.state.topics[key].st,1);assert.match(h.undo.at(-1).label,/Mol Kavramı “İşledim”/);
+  assert.equal(c.programAutoTopicDone(meta,"TYT Kimya · Mol Kavramı · Soru çözümü · 40 soru"),true);
+  assert.equal(h.state.topics[key].st,2);
+  assert.equal(c.programAutoTopicDone(meta,"TYT Kimya · Mol Kavramı · Konu anlatımı"),false,"durum geri düşmez");
+  assert.equal(h.state.topics[key].st,2);
+  h.undo.at(-1).restore();assert.equal(h.state.topics[key].st,1,"geri al önceki duruma döner");
+  assert.equal(c.programAutoTopicDone(meta,"TYT Kimya · Mol Kavramı · Tekrar"),true);
   assert.equal(h.state.topics[key].st,3);assert.equal(h.state.topics[key].ts,"2026-10-28");
-  assert.match(h.undo[0].label,/Mol Kavramı “Bitti”/);
-  h.undo[0].restore();assert.equal(h.state.topics[key],undefined);
   h.state.topics[key]={st:3,conf:4,ts:"2026-10-01",rev:[0]};
-  assert.equal(c.programAutoTopicDone({subj:"Kimya",topic:"Mol Kavramı"}),false);
+  assert.equal(c.programAutoTopicDone(meta,"TYT Kimya · Mol Kavramı · Tekrar"),false);
   assert.deepEqual(plain(h.state.topics[key]),{st:3,conf:4,ts:"2026-10-01",rev:[0]});
   h.state.topics[key]={st:1,conf:2,ts:null,rev:[],dl:"2026-11-01"};
-  assert.equal(c.programAutoTopicDone({subj:"Kimya",topic:"Mol Kavramı"}),true);
-  assert.equal(h.state.topics[key].st,3);assert.equal(h.state.topics[key].dl,"2026-11-01");
-  h.undo.at(-1).restore();assert.deepEqual(plain(h.state.topics[key]),{st:1,conf:2,ts:null,rev:[],dl:"2026-11-01"});
-  for(const meta of [{subj:"Kimya",topic:""},{subj:"",topic:"Mol Kavramı"},{subj:"Kimya",topic:"Uydurma"},null])assert.equal(c.programAutoTopicDone(meta),false);
+  assert.equal(c.programAutoTopicDone(meta,"TYT Kimya · Mol Kavramı · Tekrar"),true);
+  assert.equal(h.state.topics[key].dl,"2026-11-01","hedef tarih korunur");
+  for(const bad of [{subj:"Kimya",topic:""},{subj:"",topic:"Mol Kavramı"},{subj:"Kimya",topic:"Uydurma"},null])assert.equal(c.programAutoTopicDone(bad,"Tekrar"),false);
 });
 
-test("tamamlama yolu konu işaretlemeyi çağırır",()=>{
+test("konu yedek eşleşmesi en uzun konu adını seçer",()=>{
+  const {context:c}=harness();
+  assert.deepEqual(plain(c.planTaskSubject("TYT Biyoloji Hücre Bölünmeleri tekrar")),{subj:"Biyoloji",topic:"Hücre Bölünmeleri"});
+  assert.equal(c.v25TaskMeta({txt:"Hücre Bölünmeleri çalış",lbl:"Biyoloji"}).topic,"Hücre Bölünmeleri");
+});
+
+test("tamamlama yolu konu işaretlemeyi görev metniyle çağırır",()=>{
   const fn=app.match(/function programTaskCompleted\([^\n]*\)\{[\s\S]*?\r?\n}/)[0];
-  assert.match(fn,/programAutoTopicDone\(meta\)/);
+  assert.match(fn,/programAutoTopicDone\(meta,txt\)/);
 });

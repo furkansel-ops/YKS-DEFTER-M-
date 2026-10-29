@@ -77,7 +77,7 @@
 ){color:var(--yks-theme-ink)}
 :root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) #home #todayFreshStart :is(
   .today-fresh-title time,.today-fresh-hello p,.today-fresh-exam-label,
-  #todayFreshExamDate,.today-fresh-quote-text,.today-fresh-quote-author,
+  .today-fresh-exam small,.today-fresh-quote-text,.today-fresh-quote-author,
   .today-fresh-focus-hint,.today-fresh-work-card p,.today-fresh-task-sub,
   .today-fresh-tasks-head p,.today-fresh-insight-sub,.today-fresh-insight-reason,
   .today-fresh-insight-empty,.today-fresh-insight-footnote,.today-fresh-insight-more,
@@ -96,35 +96,12 @@
   .today-fresh-insights-preview small,.today-fresh-recent-duration
 ){color:var(--yks-theme-accent)}
 :root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) #home #todayFreshStart :is(
-  #todayFreshInsightsAll,.today-fresh-insight-detail,.today-fresh-view-all,
+  .today-fresh-insights-actions button,.today-fresh-insight-detail,.today-fresh-view-all,
   .today-fresh-action,.today-fresh-quote-new,.today-daily-open,.today-gap-open
 ){
   background:var(--yks-theme-inner);
   color:var(--yks-theme-accent);
   border-color:var(--yks-theme-line);
-}
-:root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) #home #todayFreshStart .today-fresh-next-actions .today-fresh-primary{
-  background:var(--yks-theme-deep);
-  border-color:var(--yks-theme-deep);
-  color:var(--yks-theme-on-deep);
-}
-/* The daily progress hero MUST stay dark with white lettering.
-   Previous v46 rules painted its mini-stat cards pastel but kept their text white. */
-:root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) #home #todayFreshStart .today-fresh-progress{
-  background:var(--yks-theme-hero);
-  color:var(--yks-theme-on-deep);
-  border-color:var(--yks-theme-deep);
-}
-:root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) #home #todayFreshStart .today-fresh-progress .today-fresh-stat{
-  background:rgb(255 255 255 / 12%);
-  border-color:rgb(255 255 255 / 24%);
-}
-:root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) #home #todayFreshStart .today-fresh-progress :is(
-  h2,p,small,span,strong,.today-fresh-stat span,.today-fresh-stat strong,.today-fresh-stat small,
-  #todayFreshRatio,#todayFreshPercent,#todayFreshProgressStatus
-){color:var(--yks-theme-on-deep)}
-:root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) #home #todayFreshStart .today-fresh-progress .today-fresh-ring::before{
-  background:var(--yks-theme-deep);
 }
 :root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]) #home #todayFreshStart .today-fresh-task.is-done .today-fresh-task-title{
   color:var(--yks-theme-muted);

@@ -118,9 +118,12 @@ export function refinedProgramTaskDetail(text:string,label="Çalışma"):Refined
   if(url){try{const parsed=new URL(url),host=parsed.hostname.toLowerCase();hasVideo=["youtube.com","www.youtube.com","m.youtube.com","music.youtube.com","youtu.be","www.youtu.be"].includes(host);}catch{}}
   return {display,title,meta,url,hasVideo};
 }
+/* Koç öneki ve ders rengi app.js'deki tek kaynaktan gelir (globalThis.YKSTaskText). */
+type YksTaskText={stripCoachPrefix(value:string):string;subjectTone(value:string):string};
+const taskText=():YksTaskText|undefined=>(globalThis as {YKSTaskText?:YksTaskText}).YKSTaskText;
+const stripCoach=(value:string):string=>taskText()?.stripCoachPrefix(value)??value;
 function refinedProgramDetectedSubject(text:string):string{
-  const clean=text
-    .replace(/^Koç\s*·\s*(?:Deneme sonrası\s*·\s*)?/i,"")
+  const clean=stripCoach(text)
     .replace(/\s+—\s+https?:\/\/\S+\s*$/i,"")
     .trim();
   const subjects=[
@@ -139,7 +142,7 @@ function refinedProgramDetectedSubject(text:string):string{
 export function refinedProgramSubjectLabel(text:string,label="Çalışma"):string{
   const fallback=label.trim()||"Çalışma",detected=refinedProgramDetectedSubject(text);
   if(detected)return detected;
-  const clean=text.replace(/^Koç\s*·\s*(?:Deneme sonrası\s*·\s*)?/i,"").replace(/\s+—\s+https?:\/\/\S+\s*$/i,"").trim();
+  const clean=stripCoach(text).replace(/\s+—\s+https?:\/\/\S+\s*$/i,"").trim();
   const first=(clean.split(/\s+·\s+/)[0]||"").trim();
   if(!first)return fallback;
   const exam=first.match(/^(TYT|AYT|YDT)\s+(.+)$/i);
@@ -147,13 +150,7 @@ export function refinedProgramSubjectLabel(text:string,label="Çalışma"):strin
   return first.length<=42?first:fallback;
 }
 function refinedProgramVisualTone(subject:string):string{
-  const label=subject.toLocaleLowerCase("tr-TR");
-  if(/matematik|geometri/.test(label))return "math";
-  if(/biyoloji/.test(label))return "biology";
-  if(/kimya/.test(label))return "chemistry";
-  if(/türkçe|paragraf|edebiyat|okuma/.test(label))return "reading";
-  if(/fizik/.test(label))return "physics";
-  return "other";
+  return taskText()?.subjectTone(subject)??"other";
 }
 function refinedProgramVisualIcon(tone:string):string{
   return ({math:"√x",biology:"❧",chemistry:"⚗",reading:"▣",physics:"⚡",other:"✦"} as Record<string,string>)[tone]||"✦";
@@ -179,8 +176,7 @@ const DAILY_GROUP_DEFINITIONS:ReadonlyArray<{key:RefinedProgramGroupKey;title:st
 /** Classify by subject prefix, not a random word in the topic or note.
  * Existing storage order and cell ids never change, only the rendered groups. */
 export function refinedProgramDailyGroupKey(task:Pick<RefinedProgramTask,"text"|"label">):RefinedProgramGroupKey{
-  const work=refinedProgramSplitExtras(task.text).work
-    .replace(/^Koç\s*·\s*(?:Deneme sonrası\s*·\s*)?/i,"").trim();
+  const work=stripCoach(refinedProgramSplitExtras(task.text).work).trim();
   const candidate=work.split(/\s+·\s+|\n/)[0]?.replace(/^(?:TYT|AYT|YDT)\s+/i,"").trim()||"";
   const label=String(task.label||"").replace(/^(?:TYT|AYT|YDT)\s+/i,"").trim();
   for(const rawToken of [candidate,label]){

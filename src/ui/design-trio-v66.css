@@ -34,7 +34,7 @@
 [data-tone="math"]{--tone:var(--d-math)}[data-tone="physics"]{--tone:var(--d-physics)}[data-tone="chemistry"]{--tone:var(--d-chemistry)}
 [data-tone="biology"]{--tone:var(--d-biology)}[data-tone="reading"]{--tone:var(--d-reading)}[data-tone="social"]{--tone:var(--d-social)}[data-tone="other"]{--tone:var(--d-other)}
 [data-v4-tone="math"]{--tone:var(--d-math)}[data-v4-tone="physics"]{--tone:var(--d-physics)}[data-v4-tone="chemistry"]{--tone:var(--d-chemistry)}
-[data-v4-tone="biology"]{--tone:var(--d-biology)}[data-v4-tone="reading"]{--tone:var(--d-reading)}[data-v4-tone="other"]{--tone:var(--d-other)}
+[data-v4-tone="biology"]{--tone:var(--d-biology)}[data-v4-tone="reading"]{--tone:var(--d-reading)}[data-v4-tone="social"]{--tone:var(--d-social)}[data-v4-tone="other"]{--tone:var(--d-other)}
 
 /* ---------- Bugün: yeni sıra ---------- */
 :root[data-visual-system] #mainWrap #home #todayFreshStart{display:flex;flex-direction:column;gap:12px}
@@ -81,9 +81,9 @@
 }
 :root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-stats .today-fresh-stat:nth-child(3){order:-1}
 :root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-stats .today-fresh-stat:nth-child(4){display:none}
-:root[data-visual-system] #mainWrap #home #todayFreshStart #todayFreshProgress .today-fresh-stats .today-fresh-stat span{font-size:11px;font-weight:750;color:var(--d-muted)}
-:root[data-visual-system] #mainWrap #home #todayFreshStart #todayFreshProgress .today-fresh-stats .today-fresh-stat strong{font-size:20px;line-height:1.15;letter-spacing:-.02em;color:var(--d-ink)}
-:root[data-visual-system] #mainWrap #home #todayFreshStart #todayFreshProgress .today-fresh-stats .today-fresh-stat small{font-size:10.5px;color:var(--d-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+:root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-stats .today-fresh-stat span{font-size:11px;font-weight:750;color:var(--d-muted)}
+:root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-stats .today-fresh-stat strong{font-size:20px;line-height:1.15;letter-spacing:-.02em;color:var(--d-ink)}
+:root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-stats .today-fresh-stat small{font-size:10.5px;color:var(--d-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 :root[data-theme="vivid"] #mainWrap #home #todayFreshStart .today-fresh-stats .today-fresh-stat{border:0}
 :root[data-theme="vivid"] #mainWrap #home #todayFreshStart .today-fresh-stats .today-fresh-stat:nth-child(3){background:#f0ebff}
 :root[data-theme="vivid"] #mainWrap #home #todayFreshStart .today-fresh-stats .today-fresh-stat:nth-child(1){background:#fff1dc}
@@ -182,17 +182,6 @@
 #appearancePreferences .yks-theme-trio .yks-theme-swatch{width:100%;height:34px;border-radius:10px;background:var(--yks-swatch)}
 @media(max-width:360px){#appearancePreferences .yks-theme-grid.yks-theme-trio{grid-template-columns:1fr}}
 
-/* Eski tema katmanları :is() içinde kimlik kullandığı için metin renkleri kimlikle sabitlenir. */
-:root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-next :is(#todayFreshNextTitle,#todayFreshNextMeta){color:var(--d-hero-ink)}
-:root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-next #todayFreshNextMeta{opacity:.88}
-:root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-next :is(#todayFreshNextStart){background:var(--d-hero-btn);color:var(--d-hero-btn-ink);border:0}
-:root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-next :is(#todayFreshNextDone){background:var(--d-hero-ghost);color:var(--d-hero-ink);border:0}
-:root[data-visual-system] #mainWrap #home #todayFreshStart :is(#todayFreshDate,#todayFreshTaskCount,#todayFreshExamDate){color:var(--d-muted)}
-:root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-exam :is(#todayFreshDays,#todayFreshExamDate){color:var(--d-chip-ink)}
-:root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-focus :is(#todayFreshFocusState){color:var(--d-ink)}
-:root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-focus :is(#todayFreshFocusTime){color:var(--d-muted)}
-:root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-focus :is(#todayFreshFocusOpen){background:var(--d-soft);color:var(--d-accent);border-color:var(--d-line)}
-:root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-tasks :is(#todayFreshAllTasks){color:var(--d-accent);background:none;border:0}
 :root[data-visual-system] #mainWrap #home #todayFreshReview :is(button,.btn):not([aria-pressed="true"]):not(.is-selected):not(.on){background:var(--d-soft);color:var(--d-ink);border-color:var(--d-line)}
 
 /* Açılış ekranının alt düğme şeridi gradyanın son rengine kaynar. */

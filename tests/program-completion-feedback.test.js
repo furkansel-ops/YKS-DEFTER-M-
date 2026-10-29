@@ -27,7 +27,7 @@ function harness(){
   for(const name of ["keyOf","parseKey","addDaysKey","dowOf","mondayOf"]){
     const match=app.match(new RegExp(`^function ${name}\\([^\\n]+$`,"m"));assert.ok(match,name);vm.runInContext(match[0],context);
   }
-  for(const name of ["blankWeek","normWeek","getWeek","programDayStats","programTaskCompleted","programSetCellDone","toggleCellDone","gunTasks","gunToggle","gunDoneNext","v25PlanToday","v25TaskMeta","finishPhase"]){
+  for(const name of ["blankWeek","normWeek","getWeek","programDayStats","programTaskCompleted","programSetCellDone","toggleCellDone","gunTasks","gunToggle","gunDoneNext","v25PlanToday","planFindTopic","v25TaskMeta","finishPhase"]){
     const match=app.match(new RegExp(`function ${name}\\([^\\n]*\\)\\{[\\s\\S]*?\\r?\\n}`));assert.ok(match,name);vm.runInContext(match[0],context);
   }
   const next=app.match(/^function v25DoneNext\([^\n]+$/m);assert.ok(next);vm.runInContext(next[0],context);
