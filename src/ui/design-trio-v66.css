@@ -127,9 +127,7 @@
 :root[data-visual-system] #mainWrap #home #todayFreshStart>:is(details,.today-fresh-review){
   border:1px solid var(--d-line);border-radius:var(--d-r-sm);background:var(--d-surface);box-shadow:var(--d-shadow)
 }
-@media(min-width:900px){
-  :root[data-visual-system] #mainWrap #home #todayFreshStart{max-width:760px;margin-inline:auto}
-}
+/* Tablet ve bilgisayar genişlikleri responsive-v67.css'tedir. */
 
 /* ---------- Program ---------- */
 :root[data-visual-system] #mainWrap #program .rb-program-heading h1{letter-spacing:-.03em;color:var(--d-ink)}
@@ -194,3 +192,9 @@
 
 /* Odak kartının parlak cam katmanı koyu temada griye döner; Gece'de hafif mavi ışıltı olur. */
 :root[data-theme="night"] #mainWrap #pomo #focusCard::before{background:radial-gradient(circle at 85% 0%,rgba(122,162,255,.22),transparent 55%);opacity:1}
+
+/* "Günlük ilerleme özeti" başlığı diğer katlanır satırlarla aynı görünür (önceden stilsiz kalıyordu). */
+:root[data-visual-system] #mainWrap #home #todayFreshDailyProgress>summary{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 14px;list-style:none;cursor:pointer}
+:root[data-visual-system] #mainWrap #home #todayFreshDailyProgress>summary::-webkit-details-marker{display:none}
+:root[data-visual-system] #mainWrap #home #todayFreshDailyProgress>summary h2{margin:0;font-size:15px;letter-spacing:-.01em;color:var(--d-ink)}
+:root[data-visual-system] #mainWrap #home #todayFreshDailyProgress>summary small{font-size:12px;font-weight:650;color:var(--d-muted)}

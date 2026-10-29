@@ -1,0 +1,96 @@
+/* v67 · Cihaza göre düzen. Tek tasarım, üç kırılma:
+   telefon ≤759px (alt menü, tek sütun) · tablet 760–1279px (sol şerit, iki sütun;
+   1024px üstünde plan yanda) · bilgisayar ≥1280px (tam yan menü, pano düzeni).
+   Yalnız yerleşim: DOM sırası, kimlikler ve işleyiciler değişmez. */
+
+/* ================= Tablet: sol şerit üstten başlar ================= */
+@media(min-width:760px){
+  :root[data-visual-system] body .tabbar{justify-content:flex-start;gap:4px}
+  :root[data-visual-system] body .tabbar .tab{flex:0 0 auto}
+  /* Plan ve günlük ders kartları iki sütun. */
+  :root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-task-list{grid-template-columns:repeat(2,minmax(0,1fr))}
+  :root[data-visual-system] #mainWrap #program .rb-v4-subject-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+}
+@media(min-width:760px) and (max-width:1023px){
+  :root[data-visual-system] #mainWrap #home #todayFreshStart{max-width:720px;margin-inline:auto}
+}
+
+/* ================= Tablet yatay: sıradaki görev solda, plan sağda ================= */
+@media(min-width:1024px){
+  :root[data-visual-system] #mainWrap #home{max-width:none}
+  :root[data-visual-system] #mainWrap #home #todayFreshStart{
+    display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);column-gap:18px;row-gap:12px;align-items:start;max-width:1140px;margin-inline:auto
+  }
+  :root[data-visual-system] #mainWrap #home #todayFreshStart>*,
+  :root[data-visual-system] #mainWrap #home #todayFreshStart :is(.today-fresh-exam,.today-fresh-next,.today-fresh-stats,.today-fresh-focus,.today-fresh-tasks){grid-column:1/-1}
+  :root[data-visual-system] #mainWrap #home #todayFreshStart .yw-guest{grid-row:1}
+  :root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-title{grid-row:2}
+  :root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-exam{grid-row:3;justify-self:start}
+  :root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-work-card.today-fresh-next{grid-column:1;grid-row:4}
+  :root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-stats{grid-column:1;grid-row:5}
+  :root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-work-card.today-fresh-focus{grid-column:1;grid-row:6}
+  :root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-tasks{grid-column:2;grid-row:4 / span 3}
+  :root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-task-list{grid-template-columns:1fr}
+  :root[data-visual-system] #mainWrap #home #todayFreshStart>:is(details,.today-fresh-review){grid-column:1/-1}
+  :root[data-visual-system] #mainWrap #topics #subjectList{grid-template-columns:repeat(3,minmax(0,1fr))}
+  /* Haftalık Bakış kendi gün kartlarıyla gün seçtirir; üstteki gün şeridi bu görünümde tekrar olur. */
+  :root[data-visual-system] #mainWrap #program[data-refined-program="week"] .rb-program-weekstrip{display:none}
+}
+
+/* ================= Bilgisayar: tam yan menü ve pano ================= */
+@media(min-width:1280px){
+  :root[data-visual-system="refined-blue"]{--rail:232px}
+  :root[data-visual-system] body .tabbar{align-items:stretch;padding:20px 14px 168px;gap:2px;overflow-y:auto}
+  :root[data-visual-system] body .tabbar .tab{
+    position:relative;flex-direction:row;justify-content:flex-start;gap:10px;width:100%;height:auto;min-height:44px;padding:5px 10px;border-radius:12px;text-align:left
+  }
+  :root[data-visual-system] body .tabbar .tab .ic{flex:0 0 34px;width:34px;height:34px;min-width:0;min-height:0}
+  :root[data-visual-system] body .tabbar .tab .tl{font-size:13.5px;font-weight:720;letter-spacing:0}
+  /* ::before mevcut tasarımda etkin sekme çubuğudur; grup başlıkları ::after ile yazılır.
+     Gruplar: Çalışma (Bugün, Program, Odak) · Takip (Konular, Deneme, İlerleme, P&P) · Merkez. */
+  :root[data-visual-system] body .tabbar .tab[data-s="home"]{order:1;margin-top:22px}
+  :root[data-visual-system] body .tabbar .tab[data-s="program"]{order:2}
+  :root[data-visual-system] body .tabbar .tab[data-s="pomo"]{order:3}
+  :root[data-visual-system] body .tabbar .tab[data-s="topics"]{order:4;margin-top:30px}
+  :root[data-visual-system] body .tabbar .tab[data-s="deneme"]{order:5}
+  :root[data-visual-system] body .tabbar .tab[data-s="progress"]{order:6}
+  :root[data-visual-system] body .tabbar .tab[data-s="pp"]{order:7}
+  :root[data-visual-system] body .tabbar .tab[data-s="more"]{order:8;margin-top:18px}
+  :root[data-visual-system] body .tabbar .tab:is([data-s="home"],[data-s="topics"])::after{
+    position:absolute;left:12px;top:auto;bottom:calc(100% + 6px);font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--d-muted);pointer-events:none
+  }
+  :root[data-visual-system] body .tabbar .tab[data-s="home"]::after{content:"Çalışma"}
+  :root[data-visual-system] body .tabbar .tab[data-s="topics"]::after{content:"Takip"}
+  .rb-side-count{
+    position:fixed;left:14px;bottom:16px;z-index:191;width:204px;padding:14px 16px;border-radius:16px;
+    background:var(--d-hero);color:var(--d-hero-ink);box-shadow:0 14px 30px -18px rgba(20,30,80,.55)
+  }
+  .rb-side-count small{display:block;font-size:11.5px;font-weight:700;opacity:.85}
+  .rb-side-count b{display:block;margin:2px 0;font-size:26px;line-height:1.1;letter-spacing:-.02em}
+
+  /* Bugün: solda sıradaki görev ve plan, sağda sayılar, odak ve konu takibi. */
+  :root[data-visual-system] #mainWrap #home #todayFreshStart{grid-template-columns:minmax(0,2fr) minmax(320px,1fr);column-gap:20px;row-gap:14px;max-width:1180px}
+  :root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-exam{display:none}
+  :root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-work-card.today-fresh-next{grid-column:1;grid-row:3 / span 2}
+  :root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-stats{grid-column:2;grid-row:3}
+  :root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-work-card.today-fresh-focus{grid-column:2;grid-row:4;align-self:end}
+  :root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-tasks{grid-column:1;grid-row:5 / span 2}
+  :root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-task-list{grid-template-columns:repeat(2,minmax(0,1fr))}
+  :root[data-visual-system] #mainWrap #home #todayFreshStart #todayFreshInsights{grid-column:2;grid-row:5}
+  :root[data-visual-system] #mainWrap #home #todayFreshStart #todayFreshInsights .today-fresh-insights-grid{grid-template-columns:1fr}
+
+  /* Konular: filtreler solda sabit, dersler sağda. */
+  :root[data-visual-system] #mainWrap #topics{display:grid;grid-template-columns:280px minmax(0,1fr);column-gap:20px;align-items:start}
+  :root[data-visual-system] #mainWrap #topics>*{grid-column:1/-1;min-width:0}
+  :root[data-visual-system] #mainWrap #topics>.seg{grid-column:1;grid-row:2;margin:0}
+  :root[data-visual-system] #mainWrap #topics>#refinedTopicsMore{grid-column:2;grid-row:2}
+  :root[data-visual-system] #mainWrap #topics>.v26-topic-tools{grid-column:1;grid-row:3 / span 6;position:sticky;top:calc(var(--nav-h,66px) + 14px);margin:0}
+  :root[data-visual-system] #mainWrap #topics>#subjectList{grid-column:2;grid-row:3 / span 6}
+  /* Dar filtre sütununda çipler kaymaz, alt satıra iner. */
+  :root[data-visual-system] #mainWrap #topics>.v26-topic-tools :is(.topic-filter-row,.topic-filter){flex-wrap:wrap;overflow:visible}
+}
+@media(max-width:1279px){.rb-side-count{display:none}}
+/* Dar bilgisayar ekranında (1280–1439px) filtre sütunu yer kapladığından dersler iki sütun. */
+@media(min-width:1280px) and (max-width:1439px){
+  :root[data-visual-system] #mainWrap #topics #subjectList{grid-template-columns:repeat(2,minmax(0,1fr))}
+}

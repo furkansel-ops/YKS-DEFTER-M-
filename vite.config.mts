@@ -114,7 +114,8 @@ const OFFLINE_STARTUP_MODULES=[
   "src/ui/lab-quiz-v43.ts","src/ui/navigation-v43.ts","src/ui/personalization-v43.ts",
   "src/ui/focus-session-guard-v43.ts","src/ui/focus-smart-picker-v58.ts","src/ui/auth-welcome-v60.ts","src/ui/profile-page-v62.ts","src/ui/runtime-resilience-v431.ts","src/ui/refined-shell.ts",
   "src/ui/study-gamification.ts",
-  "src/ui/startup-extras.ts"
+  "src/ui/startup-extras.ts",
+  "src/ui/shell-countdown-v67.ts"
 ];
 
 function prepareOfflineStartupAssets():Plugin{

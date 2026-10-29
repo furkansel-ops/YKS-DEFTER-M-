@@ -16,7 +16,9 @@ const api=vm.runInNewContext(runtime+"\n({refinedProgramSplitExtras,refinedProgr
 const plain=x=>JSON.parse(JSON.stringify(x));
 
 test("student planner actually replaces the main daily view, not only the smart tab",()=>{
-  assert.match(source,/view:ProgramView="day"/);
+  // Telefonda/tablette Günlük Plan, bilgisayarda (≥1280px) Haftalık Bakış ile açılır.
+  assert.ok(source.includes("view:ProgramView=refinedProgramInitialView()"));
+  assert.ok(source.includes('matchMedia("(min-width:1280px)").matches?"week":"day"'));
   assert.match(source,/button\("Günlük Plan"\)/);
   assert.match(source,/button\("Haftalık Bakış"\)/);
   assert.match(source,/rb-v4-day-progress/);

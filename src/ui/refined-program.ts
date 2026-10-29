@@ -261,8 +261,12 @@ function refinedProgramSubjectTone(label:string):number{
   return hash%6;
 }
 
+/* Bilgisayarda (≥1280px) Program ders × gün tablosuyla açılır; seçim oturum boyunca kullanıcıya aittir. */
+export function refinedProgramInitialView():ProgramView{
+  try{return typeof matchMedia==="function"&&matchMedia("(min-width:1280px)").matches?"week":"day";}catch{return "day";}
+}
 export function createRefinedProgramController(bridge:RefinedProgramBridge,now=()=>new Date()){
-  let day=(now().getDay()+6)%7,view:ProgramView="day";
+  let day=(now().getDay()+6)%7,view:ProgramView=refinedProgramInitialView();
   const snapshot=()=>{
     const week=bridge.visibleWeek(),state=bridge.readState(),tasks=refinedProgramTasks(state,week,day);
     return {week,day,view,tasks,date:offsetDate(week,day),days:SHORT_DAYS.map((label,index)=>{

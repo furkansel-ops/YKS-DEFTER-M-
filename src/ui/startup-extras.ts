@@ -57,3 +57,9 @@ void import("./profile-page-v62")
   })
   .catch(error=>console.error("Profil sayfası yüklenemedi",error));
 export {};
+
+void import("./shell-countdown-v67")
+  .then(({installShellCountdownV67})=>{
+    try{installShellCountdownV67();}catch(error){console.error("Yan menü geri sayımı başlatılamadı",error);}
+  })
+  .catch(error=>console.error("Yan menü geri sayımı yüklenemedi",error));
