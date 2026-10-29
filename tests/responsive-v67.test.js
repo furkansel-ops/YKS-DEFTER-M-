@@ -81,3 +81,11 @@ test("v67 yan menü geri sayımı Bugün metnini okur, kayıt yazmaz ve tembel y
   nodes.todayFreshDays.textContent="232";onChange();
   assert.equal(card.hidden,false);assert.equal(card.children[1].textContent,"232 gün");
 });
+
+test("v67 tablet yatay ve üstünde Günlük Plan iki sütun: görevler solda, gün özeti ve halka sağda",()=>{
+  const tl=block("min-width:1024px");
+  assert.match(tl,/#refinedProgramDay:not\(\[hidden\]\)\{display:grid;grid-template-columns:minmax\(0,1fr\) 300px/,"gizli panel gizli kalır");
+  assert.match(tl,/#refinedProgramDay>\.rb-program-tasks\{grid-column:1;grid-row:2 \/ span 3;min-width:0\}/);
+  assert.match(tl,/#refinedProgramDay>\.rb-v4-day-progress\{grid-column:2;grid-row:2;position:sticky/);
+  assert.match(tl,/#refinedProgramDay>\.rb-v4-day-progress\{flex-wrap:wrap/,"dar sütunda metin üst üste binmez");
+});

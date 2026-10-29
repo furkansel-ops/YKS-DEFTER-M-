@@ -33,6 +33,16 @@
   :root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-task-list{grid-template-columns:1fr}
   :root[data-visual-system] #mainWrap #home #todayFreshStart>:is(details,.today-fresh-review){grid-column:1/-1}
   :root[data-visual-system] #mainWrap #topics #subjectList{grid-template-columns:repeat(3,minmax(0,1fr))}
+  /* Günlük Plan: görevler solda, gün özeti ve ilerleme halkası sağda kayarken yerinde kalır. */
+  :root[data-visual-system] #mainWrap #program #refinedProgramDay:not([hidden]){display:grid;grid-template-columns:minmax(0,1fr) 300px;column-gap:16px;align-items:start}
+  :root[data-visual-system] #mainWrap #program #refinedProgramDay>.rb-v4-day-heading{grid-column:1;grid-row:1}
+  :root[data-visual-system] #mainWrap #program #refinedProgramDay>.rb-program-tasks{grid-column:1;grid-row:2 / span 3;min-width:0}
+  :root[data-visual-system] #mainWrap #program #refinedProgramDay>.rb-program-summary{grid-column:2;grid-row:1}
+  :root[data-visual-system] #mainWrap #program #refinedProgramDay>.rb-v4-day-progress{grid-column:2;grid-row:2;position:sticky;top:calc(var(--nav-h,66px) + 14px)}
+  /* Dar yan sütunda halka üstte, metin ve açıklama altında tam genişlik. */
+  :root[data-visual-system] #mainWrap #program #refinedProgramDay>.rb-v4-day-progress{flex-wrap:wrap;align-items:center;gap:12px}
+  :root[data-visual-system] #mainWrap #program #refinedProgramDay>.rb-v4-day-progress>.rb-v4-progress-copy{flex:1 1 150px;min-width:0}
+  :root[data-visual-system] #mainWrap #program #refinedProgramDay>.rb-v4-day-progress>.rb-v4-progress-caption{flex:1 1 100%;min-width:0;margin:0}
   /* Haftalık Bakış kendi gün kartlarıyla gün seçtirir; üstteki gün şeridi bu görünümde tekrar olur. */
   :root[data-visual-system] #mainWrap #program[data-refined-program="week"] .rb-program-weekstrip{display:none}
 }
