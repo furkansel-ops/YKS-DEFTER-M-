@@ -5,7 +5,8 @@ const path=require("node:path");
 const vm=require("node:vm");
 const {stripTypeScriptTypes}=require("node:module");
 const root=path.resolve(__dirname,"..");
-const read=p=>fs.readFileSync(path.join(root,p),"utf8");
+const {indexWithStartupCss}=require("./index-html-fixture");
+const read=p=>p==="index.html"?indexWithStartupCss():fs.readFileSync(path.join(root,p),"utf8");
 
 test("v39 foldable mobile editor is an optional offline-safe adapter",()=>{
   const html=read("index.html"),source=read("src/ui/today-review-v39.ts");

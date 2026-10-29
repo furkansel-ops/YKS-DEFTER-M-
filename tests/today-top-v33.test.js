@@ -4,7 +4,8 @@ const fs=require("node:fs");
 const path=require("node:path");
 const vm=require("node:vm");
 const root=path.resolve(__dirname,"..");
-const read=p=>fs.readFileSync(path.join(root,p),"utf8");
+const {indexWithStartupCss}=require("./index-html-fixture");
+const read=p=>p==="index.html"?indexWithStartupCss():fs.readFileSync(path.join(root,p),"utf8");
 const source=read("src/ui/today-top-v33.ts");
 // Isolate the two small presentation functions for VM behavior tests. Avoid
 // transpileModule: the project's TS 7 release uses a different transpiler API.

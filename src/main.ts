@@ -10,7 +10,6 @@ import {installLegacyBackupBridge} from "./data/legacy-backup-bridge";
 import {installLegacyProgressAnalysisBridge} from "./domain/legacy-progress-analysis-bridge";
 import {installLegacyExamAnalysisBridge} from "./domain/legacy-exam-analysis-bridge";
 import {installPwaRuntime} from "./pwa/pwa-runtime";
-import {installScienceCards} from "./ui/science-cards";
 import {installBiologyAtlas} from "./ui/biology-atlas-bridge";
 import {installChemistryVisualsBridgeV44} from "./ui/chemistry-visuals-bridge";
 import {installLabInteractionsBridgeV44} from "./ui/lab-interactions-bridge-v44";
@@ -19,7 +18,6 @@ import {installV43SafeRuntime} from "./ui/v43-safe-runtime";
 import {installPlayStoreShell} from "./ui/play-store-shell";
 import {installParagraphProblemTracker} from "./ui/paragraph-problem-tracker";
 
-import {installTeachersV2} from "./ui/teachers-v2";
 import "./ui/visual-stability-hotfix.css";
 import "./ui/recent-feature-stability.css";
 import "./ui/topics-toolbar-hotfix.css";
@@ -144,7 +142,10 @@ const services=installLegacyServiceBridge();
 const data=installLegacyDataBridge();
 // Görsel laboratuvarlar isteğe bağlıdır. Bunlardan birindeki hata ana uygulama
 // açılışını ya da yerel kayıtları durdurmamalı.
-installOptional<unknown>("science-cards",()=>installScienceCards(),null);
+// Bilim kartları açılışta gerekmez; ayrı chunk'ta yüklenir (≈27 KB ana JS'ten çıkar).
+void import("./ui/science-cards")
+  .then(({installScienceCards})=>{installOptional<unknown>("science-cards",()=>installScienceCards(),null);})
+  .catch(error=>console.error("Bilim kartları yüklenemedi",error));
 installOptional<unknown>("biology-atlas",()=>installBiologyAtlas(),null);
 installOptional<unknown>("chemistry-visuals",()=>installChemistryVisualsBridgeV44(),null);
 installOptional<unknown>("lab-interactions",()=>installLabInteractionsBridgeV44(),null);
@@ -175,13 +176,6 @@ void import("./ui/today-top-v33")
     document.documentElement.dataset.todayTopV33="deferred";
     console.error("Bugün üst kartı yüklenemedi",error);
   });
-const teachersV2=lt
-  ? {installed:false,version:"old",refresh:()=>{},destroy:()=>{}}
-  : installOptional(
-      "teachers-v2",
-      ()=>installTeachersV2(),
-      {installed:false,version:"deferred",refresh:()=>{},destroy:()=>{}}
-    );
 window.__YKS_V4_BOOTSTRAP__=bootstrap;
 installReleaseOverlay();
 document.documentElement.dataset.v4Runtime="ready";
@@ -200,8 +194,18 @@ window.dispatchEvent(new CustomEvent<BootstrapState>("yks:v4-bootstrap",{detail:
 /* V2 aktifse medya ve kişisel kütüphane katmanları ayrı chunklar olarak paint sonrasında
    yüklenir; ana başlangıç paketinin performans bütçesi korunur. V2 başlatılamazsa eski
    katman fail-open yedek olur. */
-if(teachersV2.installed)window.setTimeout(loadTeachersV2Media,0);
-else document.documentElement.dataset.teacherVideosRuntime="legacy-core";
+/* Hocalar v2 yalnız teacherFeature="on" iken kurulur; kapalıyken (varsayılan) kodu hiç indirilmez. */
+if(lt)document.documentElement.dataset.teacherVideosRuntime="legacy-core";
+else void import("./ui/teachers-v2")
+  .then(({installTeachersV2})=>{
+    const teachersV2=installOptional("teachers-v2",()=>installTeachersV2(),{installed:false,version:"deferred",refresh:()=>{},destroy:()=>{}});
+    if(teachersV2.installed)window.setTimeout(loadTeachersV2Media,0);
+    else document.documentElement.dataset.teacherVideosRuntime="legacy-core";
+  })
+  .catch(error=>{
+    document.documentElement.dataset.teacherVideosRuntime="legacy-core";
+    console.error("Hocalar v2 yüklenemedi",error);
+  });
 
 const playStoreShell=installOptional(
   "play-store-shell",

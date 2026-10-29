@@ -75,7 +75,9 @@ if(!progressModernCss.includes('@import url("./ui-polish-program-v1.css");')||!p
 if(!labPolishCss.includes('#mrp_lab .v320-course-browser')||!labPolishCss.includes('#mrp_lab .v4-science-card')||!labPolishCss.includes('#mrp_lab .v320-element-grid')||!labPolishCss.includes('#mrp_lab #v320Timeline.v4-history-timeline')||!labPolishCss.includes('#mrp_lab #v320PanelAtlas .atlas-model-stage')||!labPolishCss.includes('prefers-reduced-motion:reduce'))throw new Error("Öğrenme Laboratuvarı premium cila katmanı eksik veya eksik paketlendi");
 if(!finalPolishCss.includes('.v26-topic-modal')||!finalPolishCss.includes('.toast')||!finalPolishCss.includes('.tabbar .tab')||!finalPolishCss.includes('pointer:coarse')||!finalPolishCss.includes('prefers-reduced-motion:reduce')||finalPolishCss.includes('data-theme='))throw new Error("Uygulama geneli final tutarlılık/erişilebilirlik cilası eksik veya eksik paketlendi");
 if(!index.includes("core-utils.js?v=4.1.0-r28")||!sw.includes("core-utils.js?v=4.1.0-r28"))throw new Error("Bilim kartlarının senkronizasyon güncellemesi pakette eksik");
-if(!bundle.includes("FEN TEKRAR ATÖLYESİ"))throw new Error("Biyoloji/Fizik kart sistemi TypeScript paketinde eksik");
+// Bilim kartları ana JS bütçesini korumak için ayrı lazy chunk'tadır; ana paket ona başvurmalıdır.
+const scienceChunk=(await readdir(resolve(dist,"assets"))).find(name=>/^science-cards-[^.]+\.js$/.test(name));
+if(!scienceChunk||!bundle.includes(scienceChunk)||!(await readFile(resolve(dist,"assets",scienceChunk),"utf8")).includes("FEN TEKRAR ATÖLYESİ"))throw new Error("Biyoloji/Fizik kart sistemi ayrı lazy chunk olarak pakette eksik");
 if(!bundle.includes("YKSBiologyAtlas")||!labV3.includes("v320PanelAtlas"))throw new Error("Biyoloji atlası çalışma zamanına bağlı değil");
 const chunks=await readdir(resolve(dist,"assets"));
 const v43Chunks=["today-v43","analysis-center-v43","learning-cycle-v43","lab-quiz-v43","navigation-v43","personalization-v43","focus-session-guard-v43"];

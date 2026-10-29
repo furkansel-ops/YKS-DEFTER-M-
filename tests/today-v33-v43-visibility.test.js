@@ -4,7 +4,8 @@ const fs=require("node:fs");
 const path=require("node:path");
 const vm=require("node:vm");
 const {stripTypeScriptTypes}=require("node:module");
-const read=p=>fs.readFileSync(path.resolve(__dirname,"..",p),"utf8");
+const {indexWithStartupCss,TODAY_STARTUP_CSS_LINK}=require("./index-html-fixture");
+const read=p=>p==="index.html"?indexWithStartupCss():fs.readFileSync(path.resolve(__dirname,"..",p),"utf8");
 
 function fixture(){
   class Node{
@@ -152,7 +153,11 @@ test("v35 blank Today remains visible when legacy v43 bootstrap rebuilds the hom
 test("v35 hides only the old Today visuals, not student data or other tabs",()=>{
   const html=read("index.html"),v43=read("src/ui/today-v43.ts");
   const style=html.match(/<style id="todayFreshStartStyles">([\s\S]*?)<\/style>/)?.[1];
-  assert.ok(style,"startup-critical CSS must be embedded directly in HTML");
+  assert.ok(style,"Bugün açılış stilleri bulunamadı");
+  // Açılış için kritik: <head> içinde app.css'ten önce, render'ı bekleten bağlantıyla yüklenir.
+  const raw=fs.readFileSync(path.resolve(__dirname,"..","index.html"),"utf8"),at=raw.indexOf(TODAY_STARTUP_CSS_LINK);
+  assert.ok(at>0&&at<raw.indexOf("</head>")&&at<raw.indexOf("href=\"./app.css\""),"açılış stili head içinde app.css'ten önce bağlanır");
+  assert.doesNotMatch(raw.slice(at,at+200),/media=|disabled|rel="preload"/,"render'ı bekleten normal stil bağlantısıdır");
   assert.match(style,/#home\s*>\s*:not\(#todayFreshStart\)\s*\{\s*display:none!important\s*\}/);
   assert.match(style,/#home\s*>\s*#todayFreshStart\s*\{/);
   assert.doesNotMatch(style,/#program|#focus|#topics|#exams/);
