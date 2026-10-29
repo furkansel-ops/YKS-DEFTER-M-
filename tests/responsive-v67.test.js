@@ -41,7 +41,7 @@ test("v67 Bugün: tablet yatayda plan sağda, bilgisayarda sağ sütun sayılar/
 
 test("v67 Konular: bilgisayarda filtreler solda yapışkan; Program haftalıkta tekrar eden gün şeridi gizli",()=>{
   const pc=block("min-width:1280px");
-  assert.match(pc,/#topics\{display:grid;grid-template-columns:280px minmax\(0,1fr\)/);
+  assert.match(pc,/#topics\.screen\.active\{display:grid;grid-template-columns:280px minmax\(0,1fr\)/);
   assert.match(pc,/#topics>\.v26-topic-tools\{grid-column:1;grid-row:3 \/ span 6;position:sticky/);
   assert.match(pc,/#topics>#subjectList\{grid-column:2;grid-row:3 \/ span 6\}/);
   assert.match(block("min-width:1280px) and (max-width:1439px"),/#subjectList\{grid-template-columns:repeat\(2,minmax\(0,1fr\)\)\}/);
@@ -88,4 +88,21 @@ test("v67 tablet yatay ve üstünde Günlük Plan iki sütun: görevler solda, g
   assert.match(tl,/#refinedProgramDay>\.rb-program-tasks\{grid-column:1;grid-row:2 \/ span 3;min-width:0\}/);
   assert.match(tl,/#refinedProgramDay>\.rb-v4-day-progress\{grid-column:2;grid-row:2;position:sticky/);
   assert.match(tl,/#refinedProgramDay>\.rb-v4-day-progress\{flex-wrap:wrap/,"dar sütunda metin üst üste binmez");
+});
+
+test("v67/v66 hiçbir kural etkin olmayan bir ekranı görünür yapamaz (.screen gizlemesi korunur)",()=>{
+  // Bilgisayarda Konular her ekranın üstünde görünüyordu: #topics{display:grid} etkin olmayan ekranı da açıyordu.
+  const screens=["home","program","topics","deneme","pomo","more","progress"];
+  for(const file of ["src/ui/responsive-v67.css","src/ui/design-trio-v66.css"]){
+    const source=read(file).replace(/\/\*[\s\S]*?\*\//g,"");
+    for(const found of source.matchAll(/([^{}]+)\{([^{}]*)\}/g)){
+      if(!/(^|;)\s*display\s*:/.test(found[2]))continue;
+      for(const selector of found[1].split(",")){
+        const last=selector.trim().split(/\s+/).pop();
+        for(const id of screens)
+          if(new RegExp("^#"+id+"(?![\w-])").test(last))
+            assert.match(last,/\.active/,file+": "+selector.trim()+" ekranın görünürlüğünü .active olmadan değiştiriyor");
+      }
+    }
+  }
 });

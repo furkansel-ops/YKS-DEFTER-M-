@@ -90,7 +90,8 @@
   :root[data-visual-system] #mainWrap #home #todayFreshStart #todayFreshInsights .today-fresh-insights-grid{grid-template-columns:1fr}
 
   /* Konular: filtreler solda sabit, dersler sağda. */
-  :root[data-visual-system] #mainWrap #topics{display:grid;grid-template-columns:280px minmax(0,1fr);column-gap:20px;align-items:start}
+  /* Yalnız etkin ekran: .screen gizlemesini ezmemek için .active şarttır. */
+  :root[data-visual-system] #mainWrap #topics.screen.active{display:grid;grid-template-columns:280px minmax(0,1fr);column-gap:20px;align-items:start}
   :root[data-visual-system] #mainWrap #topics>*{grid-column:1/-1;min-width:0}
   :root[data-visual-system] #mainWrap #topics>.seg{grid-column:1;grid-row:2;margin:0}
   :root[data-visual-system] #mainWrap #topics>#refinedTopicsMore{grid-column:2;grid-row:2}
