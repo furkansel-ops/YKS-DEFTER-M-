@@ -306,6 +306,25 @@ function element<K extends keyof HTMLElementTagNameMap>(tag:K,className="",text=
   const node=document.createElement(tag);node.className=className;if(text)node.textContent=text;return node;
 }
 function button(text:string,className=""):HTMLButtonElement{const node=element("button",className,text);node.type="button";return node;}
+
+/* Programdaki video açıldı mı: cihazda ayrı tutulur. Görev metnine, koç senkronuna,
+   süre ve ilerleme toplamlarına yazılmaz. Anahtar hafta + görev + bağlantıdır; görev
+   değişirse eski işaret yeni göreve taşınmaz. */
+const VIDEO_WATCH_KEY="yks_program_video_watched_v1";
+function readVideoWatches():Record<string,number>{
+  try{const value=JSON.parse(localStorage.getItem(VIDEO_WATCH_KEY)||"{}");return value&&typeof value==="object"?value as Record<string,number>:{};}catch{return {};}
+}
+export function refinedProgramVideoWatchedAt(week:string,taskId:string,url:string):number{
+  if(!url)return 0;return Number(readVideoWatches()[`${week}|${taskId}|${url}`])||0;
+}
+export function refinedProgramMarkVideoWatched(week:string,taskId:string,url:string,at=Date.now()):void{
+  if(!url)return;
+  const map=readVideoWatches();map[`${week}|${taskId}|${url}`]=at;
+  // En yeni 300 kayıt tutulur; eski haftalar kendiliğinden düşer.
+  const keep=Object.entries(map).sort((a,b)=>b[1]-a[1]).slice(0,300);
+  try{localStorage.setItem(VIDEO_WATCH_KEY,JSON.stringify(Object.fromEntries(keep)));}catch{}
+}
+const clockOf=(at:number)=>new Date(at).toLocaleTimeString("tr-TR",{hour:"2-digit",minute:"2-digit"});
 function icon(name:"check"|"plus"|"share"|"arrow"):HTMLElement{
   const paths={check:'<path d="m5 12 4 4L19 6"/>',plus:'<path d="M12 5v14M5 12h14"/>',share:'<path d="M12 16V3m-4 4 4-4 4 4M7 10H5v11h14V10h-2"/>',arrow:'<path d="m9 5 7 7-7 7"/>'};
   const node=element("span","rb-program-icon");node.setAttribute("aria-hidden","true");node.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${paths[name]}</svg>`;return node;
@@ -358,14 +377,24 @@ export function installRefinedProgram():ProgramApi{
   const detailDialog=element("div","rb-program-detail");detailDialog.hidden=true;detailDialog.setAttribute("role","dialog");detailDialog.setAttribute("aria-modal","true");detailDialog.setAttribute("aria-labelledby","rbProgramDetailTitle");
   const detailCard=element("div","rb-program-detail-card"),detailHead=element("div","rb-program-detail-head"),detailHeading=element("div","rb-program-detail-heading"),detailEyebrow=element("span","rb-program-detail-eyebrow","Günlük çalışma"),detailTitle=element("h2"),detailClose=button("×","rb-program-detail-close"),detailMeta=element("p","rb-program-detail-meta"),detailResource=element("div","rb-program-detail-resource"),detailActions=element("div","rb-program-detail-actions"),detailVideo=button("▶ YouTube videosuna git","rb-program-detail-video"),detailDone=button("✓ Tamamladım","rb-program-detail-done");
   const detailExtras=element("div","rb-v4-detail-extra"),detailEdit=button("✎ Not veya materyal düzenle","rb-v4-detail-edit");
-  detailTitle.id="rbProgramDetailTitle";detailClose.setAttribute("aria-label","Çalışma detayını kapat");detailHeading.append(detailEyebrow,detailTitle);detailHead.append(detailHeading,detailClose);detailActions.append(detailVideo,detailDone);detailCard.append(detailHead,detailMeta,detailResource,detailExtras,detailEdit,detailActions);detailDialog.append(detailCard);
-  let detailTaskId="",detailWeek="",detailTaskText="";
-  const closeDetail=()=>{detailTaskId="";detailWeek="";detailTaskText="";detailDialog.hidden=true;};
+  // Videodan dönünce sorulur; görev yalnız öğrenci onaylarsa tamamlanır.
+  const detailAsk=element("section","rb-program-detail-ask"),askDone=button("✓ Tamamlandı","rb-program-ask-done"),askLater=button("Daha sonra","rb-program-ask-later"),askButtons=element("div","rb-program-ask-actions");
+  detailAsk.hidden=true;detailAsk.setAttribute("role","group");detailAsk.setAttribute("aria-label","Videoyu bitirdin mi?");askButtons.append(askDone,askLater);
+  detailAsk.append(element("b","","Videoyu bitirdin mi?"),element("p","","Çalışmayı tamamlandı olarak işaretleyebilirsin. İstersen sonra da işaretleyebilirsin."),askButtons);
+  detailTitle.id="rbProgramDetailTitle";detailClose.setAttribute("aria-label","Çalışma detayını kapat");detailHeading.append(detailEyebrow,detailTitle);detailHead.append(detailHeading,detailClose);detailActions.append(detailVideo,detailDone);detailCard.append(detailHead,detailMeta,detailResource,detailAsk,detailExtras,detailEdit,detailActions);detailDialog.append(detailCard);
+  let detailTaskId="",detailWeek="",detailTaskText="",detailUrl="";
+  const closeDetail=()=>{detailTaskId="";detailWeek="";detailTaskText="";detailUrl="";detailAsk.hidden=true;detailDialog.hidden=true;};
   const openDetail=(task:RefinedProgramTask,week=controller.snapshot().week)=>{
     const extras=refinedProgramSplitExtras(task.text),info=refinedProgramTaskDetail(extras.work,task.label),resource=object(call("cellLink",extras.work));
     detailTaskId=task.id;detailWeek=week;detailTaskText=extras.work;detailTitle.textContent=info.title;detailMeta.textContent=info.meta||task.label;
-    const linked=typeof resource.url==="string"&&Boolean(resource.url);detailResource.replaceChildren();
-    if(linked){const badge=element("span","rb-program-detail-resource-badge",info.hasVideo?"YouTube bağlantısı":"Kaynak bağlantısı"),copy=element("small","",String(resource.url));copy.title=String(resource.url);detailResource.append(badge,copy);detailVideo.textContent=info.hasVideo?"▶ YouTube videosuna git":"↗ Kaynağı aç";}
+    const linked=typeof resource.url==="string"&&Boolean(resource.url);detailResource.replaceChildren();detailAsk.hidden=true;
+    detailUrl=linked?String(info.url||resource.url):"";
+    if(linked){
+      const badge=element("span","rb-program-detail-resource-badge",info.hasVideo?"YouTube bağlantısı":"Kaynak bağlantısı"),copy=element("small","",String(resource.url));copy.title=String(resource.url);detailResource.append(badge,copy);
+      const watched=refinedProgramVideoWatchedAt(week,task.id,detailUrl);
+      if(watched)badge.after(element("span","rb-program-detail-watched",`▶ İzlendi · ${clockOf(watched)}`));
+      detailVideo.textContent=watched?"▶ Videoya tekrar git":info.hasVideo?"▶ YouTube videosuna git":"↗ Kaynağı aç";
+    }
     else{detailResource.append(element("span","rb-program-detail-resource-badge","Konu içeriği"),element("small","","Bu çalışmaya kayıtlı video yok; varsa konu videosunu açabilirsin."));detailVideo.textContent="▶ Konu videosunu aç";}
     detailExtras.replaceChildren();
     const noteBox=element("section"),materialBox=element("section");
@@ -514,10 +543,11 @@ export function installRefinedProgram():ProgramApi{
       check.addEventListener("click",()=>{controller.toggleTask(task.id);refresh();});
       details.addEventListener("click",()=>openDetail(task,state.week));
       const chips=element("div","rb-v4-task-chips");
-      const videoChip=button("▶ Video","rb-v4-chip rb-v4-chip-video"),
+      const watchedAt=info.url?refinedProgramVideoWatchedAt(state.week,task.id,info.url):0;
+      const videoChip=button(watchedAt?"▶ İzlendi":"▶ Video","rb-v4-chip rb-v4-chip-video"+(watchedAt?" rb-v4-chip-watched":"")),
         noteChip=button("▤ Not","rb-v4-chip rb-v4-chip-note"),
         materialChip=button("▣ Materyal","rb-v4-chip rb-v4-chip-material");
-      videoChip.setAttribute("aria-label",`${label} video veya kaynak seçenekleri`);
+      videoChip.setAttribute("aria-label",watchedAt?`${label} videosu ${clockOf(watchedAt)}’da açıldı; detayı aç`:`${label} video veya kaynak seçenekleri`);
       noteChip.setAttribute("aria-label",`${label} notunu düzenle`);
       materialChip.setAttribute("aria-label",`${label} materyalini aç veya ekle`);
       videoChip.addEventListener("click",()=>openDetail(task,state.week));
@@ -724,11 +754,37 @@ export function installRefinedProgram():ProgramApi{
     }finally{submitting=false;save.disabled=false;}
   });
   detailClose.addEventListener("click",closeDetail);detailDialog.addEventListener("click",event=>{if(event.target===detailDialog)closeDetail();});
+  /* Video açılınca "izlendi" işaretlenir. Uygulama içi oynatıcı kapanınca ya da başka
+     sekmeden dönülünce görev hâlâ açıksa "Videoyu bitirdin mi?" sorulur. */
+  let askTimer=0;
+  const videoOverlayOpen=()=>["playOverlay","vidOverlay"].some(id=>document.getElementById(id)?.style.display==="flex");
+  const waitForVideoReturn=(taskId:string,week:string)=>{
+    window.clearInterval(askTimer);
+    const started=Date.now();
+    askTimer=window.setInterval(()=>{
+      const elapsed=Date.now()-started;
+      if(elapsed>3*3600000){window.clearInterval(askTimer);return;}
+      // Oynatıcının açılması ya da sekmenin gizlenmesi için kısa bir süre tanınır.
+      if(elapsed<2500||document.hidden||videoOverlayOpen())return;
+      window.clearInterval(askTimer);
+      const current=controller.snapshot().week===week?controller.snapshot().tasks.find(item=>item.id===taskId):undefined;
+      if(!current||current.done)return;
+      openDetail(current,week); // “İzlendi” etiketiyle yeniden çizilir
+      detailAsk.hidden=false;requestAnimationFrame(()=>askDone.focus());
+    },700);
+  };
   detailVideo.addEventListener("click",()=>{
     if(!detailTaskText)return;
     const linked=detailVideo.dataset.hasLink==="true",opened=linked?call("cellOpenLink",detailTaskText):call("cellVideo",detailTaskText);
-    if(opened===false)call("toast",linked?"Bağlantı açılamadı.":"Bu çalışma için konu videosu bulunamadı.");
+    if(opened===false){call("toast",linked?"Bağlantı açılamadı.":"Bu çalışma için konu videosu bulunamadı.");return;}
+    if(linked&&detailUrl&&detailTaskId&&detailWeek){
+      refinedProgramMarkVideoWatched(detailWeek,detailTaskId,detailUrl);
+      waitForVideoReturn(detailTaskId,detailWeek);
+      refresh();
+    }
   });
+  askDone.addEventListener("click",()=>{detailAsk.hidden=true;detailDone.click();});
+  askLater.addEventListener("click",()=>{detailAsk.hidden=true;detailVideo.focus();});
   detailDone.addEventListener("click",()=>{
     if(!detailTaskId||!detailWeek)return;
     const current=controller.snapshot().tasks.find(item=>item.id===detailTaskId),wasDone=Boolean(current?.done);

@@ -461,3 +461,15 @@
 }
 #program .rb-v4-day-progress[data-complete] .rb-v4-progress-bar>i{background:#29956e;}
 #program .rb-v4-day-progress[data-complete] .rb-v4-progress-caption{color:#1e7958;}
+
+/* Video izlendi: çip, detay etiketi ve dönüş sorusu (renkler temadan türetilir) */
+#program .rb-v4-chip-video.rb-v4-chip-watched{background:color-mix(in srgb,var(--success,#24836c) 16%,transparent);color:var(--success,#24836c)}
+#program .rb-program-detail-watched{justify-self:start;padding:4px 8px;border-radius:999px;background:color-mix(in srgb,var(--success,#24836c) 16%,transparent);color:var(--success,#24836c);font-size:10.5px;font-weight:800}
+#program .rb-program-detail-ask{display:grid;gap:6px;margin-top:12px;padding:12px 13px;border:1.5px solid var(--success,#24836c);border-radius:12px;background:color-mix(in srgb,var(--success,#24836c) 9%,transparent)}
+#program .rb-program-detail-ask[hidden]{display:none}
+#program .rb-program-detail-ask b{font-size:14px;color:var(--rp-ink,var(--label))}
+#program .rb-program-detail-ask p{margin:0;font-size:12px;line-height:1.45;color:var(--rp-muted,var(--label-2))}
+#program .rb-program-ask-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px}
+#program .rb-program-ask-actions button{min-height:40px;border-radius:11px;font:700 13px var(--font,inherit);cursor:pointer}
+#program .rb-program-ask-done{border:0;background:var(--success,#24836c);color:#fff}
+#program .rb-program-ask-later{border:1px solid var(--rp-line,var(--sep));background:var(--rp-surface,var(--glass-strong,#fff));color:var(--rp-ink,var(--label))}
