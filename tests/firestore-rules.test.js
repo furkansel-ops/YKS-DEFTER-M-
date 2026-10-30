@@ -110,3 +110,15 @@ test("Koç müdahalesi doğrudan öğrenci verisini yazmaz, kontrollü action ku
   assert.match(rules,/request\.resource\.data\.status == 'rejected'/);
   assert.match(rules,/request\.resource\.data\.status == 'cancelled'/);
 });
+
+test("Koç notları yalnız sahibi koç tarafından okunur, yazılır ve silinir; liste ve başkasının notu kapalı",()=>{
+  const rules=read("firestore.rules");
+  const block=rules.slice(rules.indexOf("match /coachNotes/{coachUid}"),rules.indexOf("match /users/{userId}/sync/meta"));
+  assert.match(block,/allow get, delete: if ownsUserSpace\(coachUid\);/);
+  assert.match(block,/allow list: if false;/);
+  assert.match(block,/allow create, update: if ownsUserSpace\(coachUid\)\s*&& profileRole\(coachUid, 'coach'\)/);
+  assert.match(block,/hasOnly\(\['text', 'updatedAt'\]\)/);
+  assert.match(block,/request\.resource\.data\.text\.size\(\) <= 2000/);
+  assert.match(block,/request\.resource\.data\.updatedAt == request\.time/);
+  assert.doesNotMatch(block,/if true/);
+});

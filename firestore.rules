@@ -545,6 +545,19 @@ service cloud.firestore {
           || request.auth.uid == resource.data.coachUid);
     }
 
+    // Koç notları: her koç yalnız kendi tek not belgesini okur, yazar ve siler.
+    match /coachNotes/{coachUid} {
+      allow get, delete: if ownsUserSpace(coachUid);
+      allow list: if false;
+      allow create, update: if ownsUserSpace(coachUid)
+        && profileRole(coachUid, 'coach')
+        && request.resource.data.keys().hasAll(['text', 'updatedAt'])
+        && request.resource.data.keys().hasOnly(['text', 'updatedAt'])
+        && request.resource.data.text is string
+        && request.resource.data.text.size() <= 2000
+        && request.resource.data.updatedAt == request.time;
+    }
+
     match /users/{userId}/sync/meta {
       allow read: if ownsUserSpace(userId);
       allow create: if ownsUserSpace(userId)
