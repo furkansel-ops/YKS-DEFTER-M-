@@ -558,6 +558,106 @@ service cloud.firestore {
         && request.resource.data.updatedAt == request.time;
     }
 
+    // Randevular · koçun haftalık uygun saatleri: koç yazar, bağlı öğrencileri okur.
+    match /coachAvailability/{coachUid} {
+      allow get: if ownsUserSpace(coachUid) || activeCoachingLink(request.auth.uid, coachUid);
+      allow list: if false;
+      allow create, update: if ownsUserSpace(coachUid)
+        && profileRole(coachUid, 'coach')
+        && request.resource.data.keys().hasAll(['days', 'duration', 'updatedAt'])
+        && request.resource.data.keys().hasOnly(['days', 'duration', 'updatedAt'])
+        && request.resource.data.days is map
+        && request.resource.data.days.size() <= 7
+        && request.resource.data.duration in [20, 30, 45, 60]
+        && request.resource.data.updatedAt == request.time;
+      allow delete: if ownsUserSpace(coachUid);
+    }
+
+    // Randevu belge kimliği: koçUid_YYYYMMDD_SSDD. Aynı saat için tek kayıt olabilir.
+    function appointmentId(data) {
+      return data.coachUid + '_' + data.date.replace('-', '') + '_' + data.time.replace(':', '');
+    }
+
+    function validSlotDate(data) {
+      return data.date is string && data.date.matches('^20[0-9]{2}-[01][0-9]-[0-3][0-9]$')
+        && data.time is string && data.time.matches('^[0-2][0-9]:[0-5][0-9]$');
+    }
+
+    // Saat kilidi: yalnız koç, tarih ve saat. Bağlı öğrenciler hangi saatlerin dolu
+    // olduğunu buradan görür, kimin aldığını göremez. Değiştirilemez; randevuyla
+    // birlikte yazılır ve birlikte silinir.
+    match /coachSlots/{slotId} {
+      allow get, list: if verifiedUser()
+        && (request.auth.uid == resource.data.coachUid
+          || activeCoachingLink(request.auth.uid, resource.data.coachUid));
+      allow create: if verifiedUser()
+        && request.resource.data.keys().hasAll(['coachUid', 'date', 'time'])
+        && request.resource.data.keys().hasOnly(['coachUid', 'date', 'time'])
+        && validSlotDate(request.resource.data)
+        && slotId == appointmentId(request.resource.data)
+        && existsAfter(/databases/$(database)/documents/coachAppointments/$(slotId))
+        && (request.auth.uid == request.resource.data.coachUid
+          || activeCoachingLink(request.auth.uid, request.resource.data.coachUid));
+      allow update: if false;
+      allow delete: if verifiedUser()
+        && !existsAfter(/databases/$(database)/documents/coachAppointments/$(slotId))
+        && (request.auth.uid == resource.data.coachUid
+          || get(/databases/$(database)/documents/coachAppointments/$(slotId)).data.studentUid == request.auth.uid);
+    }
+
+    function validAppointmentText(data) {
+      return data.topic is string && data.topic.size() <= 120
+        && data.link is string && data.link.size() <= 300
+        && (data.link == '' || data.link.matches('^https://.+'))
+        && data.note is string && data.note.size() <= 200;
+    }
+
+    match /coachAppointments/{slotId} {
+      allow get, list: if verifiedUser()
+        && (request.auth.uid == resource.data.coachUid
+          || request.auth.uid == resource.data.studentUid);
+      allow create: if verifiedUser()
+        && request.resource.data.keys().hasAll([
+          'coachUid', 'studentUid', 'date', 'time', 'duration', 'status',
+          'createdBy', 'topic', 'link', 'note', 'createdAt', 'updatedAt'
+        ])
+        && request.resource.data.keys().hasOnly([
+          'coachUid', 'studentUid', 'date', 'time', 'duration', 'status',
+          'createdBy', 'topic', 'link', 'note', 'createdAt', 'updatedAt'
+        ])
+        && validSlotDate(request.resource.data)
+        && slotId == appointmentId(request.resource.data)
+        && request.resource.data.duration in [20, 30, 45, 60]
+        && validAppointmentText(request.resource.data)
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time
+        && existsAfter(/databases/$(database)/documents/coachSlots/$(slotId))
+        && activeCoachingLink(request.resource.data.studentUid, request.resource.data.coachUid)
+        && (
+          (request.auth.uid == request.resource.data.studentUid
+            && request.resource.data.createdBy == 'student'
+            && request.resource.data.status == 'requested'
+            && request.resource.data.link == '')
+          ||
+          (request.auth.uid == request.resource.data.coachUid
+            && request.resource.data.createdBy == 'coach'
+            && request.resource.data.status == 'confirmed')
+        );
+      // Yalnız koç: isteği onaylar, link/konu/not ekler. Saat ve kişiler değişmez.
+      allow update: if verifiedUser()
+        && request.auth.uid == resource.data.coachUid
+        && request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['status', 'link', 'topic', 'note', 'updatedAt'])
+        && request.resource.data.status in ['requested', 'confirmed']
+        && validAppointmentText(request.resource.data)
+        && request.resource.data.updatedAt == request.time;
+      // İki taraf da iptal edebilir; saat kilidiyle birlikte silinir.
+      allow delete: if verifiedUser()
+        && (request.auth.uid == resource.data.coachUid
+          || request.auth.uid == resource.data.studentUid)
+        && !existsAfter(/databases/$(database)/documents/coachSlots/$(slotId));
+    }
+
     match /users/{userId}/sync/meta {
       allow read: if ownsUserSpace(userId);
       allow create: if ownsUserSpace(userId)

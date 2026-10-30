@@ -24,7 +24,7 @@ async function harness(t){
   t.after(()=>{for(const [key,value] of previous){if(value)Object.defineProperty(globalThis,key,value);else delete globalThis[key];}});
   const module=await import(pathToFileURL(path.resolve(__dirname,"../src/ui/student-account-loader.ts")).href+`?test=${sequence++}`);
   const complete=async(id,ok=true)=>{assert.ok(scripts.has(id),`${id} should be requested`);scripts.get(id).dispatchEvent(new Event(ok?"load":"error"));await flush();};
-  const finish=async()=>{for(const id of ["studentCoachingRuntime","studentCoachLink","studentProgramShareV2","authSessionRuntime","settingsProfileRuntime"]){if(scripts.get(id)?.dataset.loaded!=="1")await complete(id);}};
+  const finish=async()=>{for(const id of ["studentCoachingRuntime","studentCoachLink","studentAppointmentsScript","studentProgramShareV2","authSessionRuntime","settingsProfileRuntime"]){if(scripts.get(id)?.dataset.loaded!=="1")await complete(id);}};
   return {win,doc,scripts,appended,Node,calls,complete,finish,install:module.installStudentAccountLoader};
 }
 
@@ -45,14 +45,14 @@ test("eşzamanlı kurulumlar tek zinciri paylaşır ve başarılı modüller tek
   for(let i=0;i<4;i++)h.install();
   assert.equal(h.win.__YKS_ACCOUNT_READY__,pending);assert.equal(h.appended.length,2);
   await h.finish();assert.equal(await pending,true);h.install();
-  assert.equal(h.appended.length,5);
+  assert.equal(h.appended.length,6);
   assert.equal(h.doc.documentElement.dataset.studentAccountRuntime,"ready");
   assert.equal(h.scripts.has("studentAccountRecovery"),false);
 });
 
 test("geç modül hatasında önceden kurulmuş auth sarmalayıcıları korunur",async t=>{
   const h=await harness(t);h.install();
-  for(const id of ["studentCoachingRuntime","studentCoachLink","studentProgramShareV2","authSessionRuntime"])await h.complete(id);
+  for(const id of ["studentCoachingRuntime","studentCoachLink","studentAppointmentsScript","studentProgramShareV2","authSessionRuntime"])await h.complete(id);
   const wrapper=()=>"auth-session hook";h.win.YKSAccountAuth.beforeSignIn=wrapper;
   await h.complete("settingsProfileRuntime",false);h.install();h.win.dispatchEvent(new Event("online"));await flush();
   assert.equal(h.win.YKSAccountAuth.beforeSignIn,wrapper);
@@ -93,5 +93,14 @@ test("önceden hazır hesap köprüsü ayarlar ve oturum modüllerinin kurulumun
   h.install();const ready=h.win.__YKS_ACCOUNT_LOADER_READY__;
   assert.ok(ready);assert.equal(h.appended.length,2);
   await h.finish();assert.equal(await ready,true);
-  assert.equal(h.appended.length,5);assert.equal(h.doc.documentElement.dataset.studentAccountRuntime,"ready");
+  assert.equal(h.appended.length,6);assert.equal(h.doc.documentElement.dataset.studentAccountRuntime,"ready");
+});
+
+test("randevu modülü yüklenemezse hesap zinciri durmaz",async t=>{
+  const h=await harness(t);h.install();const ready=h.win.__YKS_ACCOUNT_READY__;
+  await h.complete("settingsProfileRuntime");await h.complete("studentCoachingRuntime");await h.complete("studentCoachLink");
+  await h.complete("studentAppointmentsScript",false);
+  await h.complete("studentProgramShareV2");await h.complete("authSessionRuntime");
+  assert.equal(await ready,true);
+  assert.equal(h.scripts.has("studentAccountRecovery"),false);
 });

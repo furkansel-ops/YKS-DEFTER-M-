@@ -122,3 +122,22 @@ test("Koç notları yalnız sahibi koç tarafından okunur, yazılır ve silinir
   assert.match(block,/request\.resource\.data\.updatedAt == request\.time/);
   assert.doesNotMatch(block,/if true/);
 });
+
+test("Randevular: saat kilidiyle çakışma yok, detayları yalnız iki taraf görür, öğrenci yalnız istek açar",()=>{
+  const rules=read("firestore.rules");
+  const block=(name,next)=>rules.slice(rules.indexOf(name),rules.indexOf(next));
+  const hours=block("match /coachAvailability/{coachUid}","function appointmentId");
+  assert.match(hours,/allow get: if ownsUserSpace\(coachUid\) \|\| activeCoachingLink\(request\.auth\.uid, coachUid\);/);
+  assert.match(hours,/duration in \[20, 30, 45, 60\]/);
+  const slots=block("match /coachSlots/{slotId}","function validAppointmentText");
+  assert.match(slots,/slotId == appointmentId\(request\.resource\.data\)/);
+  assert.match(slots,/existsAfter\(\/databases\/\$\(database\)\/documents\/coachAppointments\/\$\(slotId\)\)/);
+  assert.match(slots,/allow update: if false;/,"kilit değiştirilemez: aynı saate ikinci yazım reddedilir");
+  assert.match(slots,/hasOnly\(\['coachUid', 'date', 'time'\]\)/,"kilit öğrenci bilgisi taşımaz");
+  const appts=block("match /coachAppointments/{slotId}","match /users/{userId}/sync/meta");
+  assert.match(appts,/request\.auth\.uid == resource\.data\.coachUid\s*\|\| request\.auth\.uid == resource\.data\.studentUid\);/);
+  assert.match(appts,/createdBy == 'student'\s*&& request\.resource\.data\.status == 'requested'\s*&& request\.resource\.data\.link == ''/);
+  assert.match(appts,/activeCoachingLink\(request\.resource\.data\.studentUid, request\.resource\.data\.coachUid\)/);
+  assert.match(appts,/affectedKeys\(\)\s*\.hasOnly\(\['status', 'link', 'topic', 'note', 'updatedAt'\]\)/);
+  assert.match(rules,/data\.link\.matches\('\^https:\/\/\.\+'\)/,"link yalnız https");
+});

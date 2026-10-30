@@ -81,6 +81,13 @@ async function deleteCloudData(api:FirebaseAuthApi,uid:string,progress:(text:str
     const snap=await byStudent(name);
     for(const item of snap.docs)await fs.deleteDoc(item.ref);
   }
+  // v69: randevu ve saat kilidi birlikte silinir (koçun takviminde saat boşalır).
+  // Kural henüz yayında değilse randevu da olamaz; izin hatası silmeyi durdurmaz.
+  progress("Randevular siliniyor…");
+  try{
+    const appts=await byStudent("coachAppointments");
+    for(const item of appts.docs){const batch=fs.writeBatch(db);batch.delete(item.ref);batch.delete(fs.doc(db,"coachSlots",item.id));await batch.commit();}
+  }catch(error){if(!String((error as {code?:string})?.code||"").includes("permission-denied"))throw error;}
   progress("Koç bağlantıları kapatılıyor…");
   const links=await byStudent("coachingLinks");
   for(const item of links.docs){
