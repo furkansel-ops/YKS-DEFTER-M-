@@ -14,7 +14,7 @@ function load(){
   const batch=()=>{const ops=[];writes.push(ops);return{set:(ref,data)=>ops.push({op:"set",path:ref.path,data}),delete:ref=>ops.push({op:"delete",path:ref.path}),commit:async()=>{}}};
   const context={
     window:{YKSAccountAuth:auth,addEventListener(){},dispatchEvent(){}},
-    document:{documentElement:{dataset:{}},getElementById:()=>null,head:{append(){}},createElement:()=>({}),body:null},
+    document:{documentElement:{dataset:{},classList:{add(){},remove(){}}},getElementById:()=>null,querySelector:()=>null,head:{append(){}},createElement:()=>({}),body:null},
     collection:(_db,name)=>({name}),doc:(_db,...parts)=>({path:parts.join("/")}),query:(...x)=>x,where:(...x)=>x,
     getDoc:async()=>({exists:()=>false}),getDocs:async()=>({docs:[]}),onSnapshot:()=>()=>{},
     serverTimestamp:()=>"NOW",writeBatch:batch,confirm:()=>true,setInterval:()=>1,clearInterval(){},setTimeout(){},
@@ -22,7 +22,7 @@ function load(){
   };
   context.window.toast=()=>{};
   vm.createContext(context);
-  vm.runInContext(source.replace(/^import[^\n]+\n/gm,"")+"\n;globalThis.__t={state,slotsFor,freeSlots,upcoming,apptId,requestAppointment,cancelAppointment,iso};",context);
+  vm.runInContext(source.replace(/^import[^\n]+\n/gm,"")+"\n;globalThis.__t={state,slotsFor,freeSlots,upcoming,apptId,requestAppointment,cancelAppointment,iso,stripHtml,contentHtml,nearestFree};",context);
   return{t:context.__t,writes,auth,context};
 }
 const tomorrow=()=>{const d=new Date(Date.now()+864e5);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
@@ -30,9 +30,9 @@ const allDays=(start,end)=>Object.fromEntries(["0","1","2","3","4","5","6"].map(
 
 test("v69 randevu modülü hesap yükleyicisinde koç bağlantısından sonra, girişten önce yüklenir ve isteğe bağlıdır",()=>{
   const loader=read("src/ui/student-account-loader.ts");
-  const link=loader.indexOf("student-coach-link.js?v=1.3.1"),appts=loader.indexOf("student-appointments.js?v=1.0.0"),authAt=loader.indexOf("auth-session-runtime.js");
+  const link=loader.indexOf("student-coach-link.js?v=1.3.1"),appts=loader.indexOf("student-appointments.js?v=1.1.0"),authAt=loader.indexOf("auth-session-runtime.js");
   assert.ok(link>0&&appts>link&&authAt>appts,"sıra: koç bağlantısı → randevular → oturum");
-  assert.match(loader,/await loadModuleScript\(STUDENT_APPOINTMENTS_ID,"\.\/student-appointments\.js\?v=1\.0\.0"\);\n/,"başarısızlık yükleyiciyi durdurmaz");
+  assert.match(loader,/await loadModuleScript\(STUDENT_APPOINTMENTS_ID,"\.\/student-appointments\.js\?v=1\.1\.0"\);\n/,"başarısızlık yükleyiciyi durdurmaz");
   assert.match(loader,/STUDENT_APPOINTMENTS_ID="studentAppointmentsScript"/,"betik kimliği ekrandaki bölümle çakışmaz");
 });
 
@@ -94,4 +94,37 @@ test("v69 öğrenci hesap silmesi randevuları saat kilidiyle siler; kural yokke
   assert.ok(at>0&&at<links,"randevular bağlantılar kapanmadan silinir");
   assert.match(profile,/batch\.delete\(item\.ref\);batch\.delete\(fs\.doc\(db,"coachSlots",item\.id\)\)/);
   assert.match(profile,/includes\("permission-denied"\)\)throw error;/);
+});
+
+test("v69.1 gün şeridi 14 günü gösterir; boş saatli günler işaretli; ay takvimi isteğe bağlı",()=>{
+  const {t}=load(),day=tomorrow();
+  Object.assign(t.state,{coachUid:"koc1",coachName:"Furkan Hoca",availability:{duration:30,days:allDays("18:00","20:00")},day});
+  const strip=t.stripHtml();
+  assert.equal((strip.match(/data-sap-day=/g)||[]).length,14);
+  assert.match(strip,/<small>Yarın<\/small>/);
+  assert.ok(strip.includes('class="sap-chip has on" data-sap-day="'+day+'"'));
+  assert.match(strip,/data-sap-month-toggle>Tüm takvim</);
+  assert.doesNotMatch(t.contentHtml(),/class="sap-month"/,"ay takvimi kapalı başlar");
+  t.state.showMonth=true;
+  assert.match(t.contentHtml(),/class="sap-month"/);
+});
+
+test("v69.1 Bugün girişi en yakın boş günü söyler; koç yoksa yol gösterir",()=>{
+  const {t}=load(),day=tomorrow();
+  Object.assign(t.state,{coachUid:"koc1",availability:{duration:60,days:allDays("18:00","20:00")}});
+  t.state.busy=new Set([t.iso(new Date())+" 18:00",t.iso(new Date())+" 19:00"]);
+  const near=t.nearestFree();
+  assert.equal(near.date,day);assert.equal(near.count,2);
+  t.state.coachUid="";
+  assert.match(t.contentHtml(),/önce bir koç bağlamalısın/);
+});
+
+test("v69.1 randevuya üç yerden ulaşılır: Bugün kartı, Merkez aracı ve Ayarlar; ekran alttan açılır",()=>{
+  assert.match(source,/entry\.id="studentApptEntry"/);
+  assert.match(source,/<b>Koçunla görüşme ayarla<\/b>/);
+  assert.match(source,/button\.id="studentApptMore"/);
+  assert.match(source,/<b>Koçla görüşme<\/b>/);
+  assert.match(source,/role="dialog" aria-modal="true" aria-label="Koçunla görüşme"/);
+  assert.match(source,/event\.key==="Escape"\)\{event\.preventDefault\(\);closeSheet\(\)\}/);
+  assert.match(source,/if\(event\.target\.closest\?\.\("\.sap-join"\)\)return;openSheet\(\)/);
 });
