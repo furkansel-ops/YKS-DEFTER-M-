@@ -106,7 +106,11 @@ export function installRefinedStudyScreens():StudyApi{
   function refresh():void{arrangeTopics();arrangeExam();protectDeepLinks();topicScreen.dataset.refinedStudy="ready";examScreen.dataset.refinedStudy="ready";}
   function schedule():void{if(queued)return;queued=true;queueMicrotask(()=>{queued=false;refresh();});}
   // Pencere bilgisayar genişliğine geçince/çıkınca ders kartı doğru yere taşınır.
-  try{matchMedia(WIDE_EXAM_QUERY).addEventListener("change",schedule);}catch{}
+  try{
+    const wide=matchMedia(WIDE_EXAM_QUERY) as MediaQueryList&{addListener?:(listener:()=>void)=>void};
+    // iOS/iPadOS 13 ve öncesinde MediaQueryList yalnız addListener destekler.
+    if(typeof wide.addEventListener==="function")wide.addEventListener("change",schedule);else wide.addListener?.(schedule);
+  }catch{}
   function wrap(name:string,before?:(...args:unknown[])=>void):void{
     const original=legacy[name];if(typeof original!=="function")return;
     legacy[name]=function(this:unknown,...args:unknown[]){before?.(...args);const result=original.apply(this,args);schedule();return result;};

@@ -120,11 +120,14 @@ test("v67 sabit tam ekran katmanlar menü genişliğinin yarısı kadar kaydır�
 });
 
 test("v68 Odak, Deneme, Merkez: tablette sayaç önce ve iki sütun; bilgisayarda yan yana düzen",()=>{
-  const tablet=blocks("min-width:760px) and (max-width:1023px"),t=blocks("min-width:760px"),pc=blocks("min-width:1280px");
+  const tablet=blocks("min-width:760px) and (max-width:979px"),t=blocks("min-width:760px"),wide=blocks("min-width:1024px"),pc=blocks("min-width:1280px");
+  // 980px'ten sonra app.css Odak'ı iki sütun yapar; sayacı öne almak onu dar sol sütuna iterdi.
   assert.match(tablet,/#pomo \.desktop-focus-workspace>\.desktop-focus-side:last-child\{order:-1\}/);
+  assert.doesNotMatch(blocks("min-width:760px) and (max-width:1023px"),/order:-1/);
   assert.match(t,/#more #v43MoreTools\{grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
-  assert.match(t,/#deneme\.screen\.active\{display:grid;grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
-  assert.match(t,/#deneme>:is\(#refinedExamJournal,#refinedExamCycle,#refinedExamAnalysis,#refinedExamHistory\)\{grid-column:auto\}/);
+  assert.doesNotMatch(t,/#deneme\.screen\.active/,"dikey tablette Deneme tek sütun kalır");
+  assert.match(wide,/#deneme\.screen\.active\{display:grid;grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+  assert.match(wide,/#deneme>:is\(#refinedExamJournal,#refinedExamCycle,#refinedExamAnalysis,#refinedExamHistory\)\{grid-column:auto\}/);
   assert.match(pc,/#pomo\.screen\.active\{display:grid;grid-template-columns:minmax\(0,1fr\) minmax\(0,1\.6fr\);grid-template-rows:repeat\(5,auto\) 1fr/,"son esnek satır sol sütunda boşluk bırakmaz");
   assert.match(pc,/\.desktop-focus-side:last-child\{grid-column:2;grid-row:4 \/ 7\}/);
   assert.match(pc,/#pomo>#refinedFocusDetails\{grid-column:1;grid-row:5/);
@@ -134,5 +137,5 @@ test("v68 Odak, Deneme, Merkez: tablette sayaç önce ve iki sütun; bilgisayard
   const study=read("src/ui/refined-study-screens.ts");
   assert.match(study,/const keepSubject=wideExamLayout\(\);/);
   assert.match(study,/!\(keepSubject&&card\.classList\.contains\("v315-subject-card"\)\)/);
-  assert.match(study,/matchMedia\(WIDE_EXAM_QUERY\)\.addEventListener\("change",schedule\)/,"pencere değişince kart yerine döner");
+  assert.match(study,/wide\.addEventListener\("change",schedule\);else wide\.addListener\?\.\(schedule\)/,"pencere değişince kart yerine döner (eski Safari dahil)");
 });

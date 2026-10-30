@@ -107,8 +107,8 @@
 }
 
 /* ================= v68 · Odak, Deneme, Merkez ================= */
-/* Tablet: sayaç önce gelir; oturum ayarı altında. */
-@media(min-width:760px) and (max-width:1023px){
+/* Dikey tablet: sayaç önce gelir; oturum ayarı altında. 980px'ten sonra app.css iki sütuna geçer (sayaç sağda). */
+@media(min-width:760px) and (max-width:979px){
   :root[data-visual-system] #mainWrap #pomo .desktop-focus-workspace>.desktop-focus-side:last-child{order:-1}
 }
 @media(min-width:760px){
@@ -116,7 +116,9 @@
   :root[data-visual-system] #mainWrap #more #v43MoreTools{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;gap:14px}
   :root[data-visual-system] #mainWrap #more #v43MoreTools>.v43-more-group{min-width:0;padding:14px;border:1px solid var(--d-line);border-radius:var(--d-r);background:var(--d-surface);box-shadow:var(--d-shadow)}
   :root[data-visual-system] #mainWrap #more #v43MoreTools .v43-more-tool-grid{grid-template-columns:1fr}
-  /* Deneme: alt katmanlar iki sütun. */
+}
+@media(min-width:1024px){
+  /* Deneme: alt katmanlar iki sütun (dikey tablette tablolar daralmasın diye tek sütun kalır). */
   :root[data-visual-system] #mainWrap #deneme.screen.active{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:14px;align-items:start}
   :root[data-visual-system] #mainWrap #deneme>*{grid-column:1/-1;min-width:0}
   :root[data-visual-system] #mainWrap #deneme>:is(#refinedExamJournal,#refinedExamCycle,#refinedExamAnalysis,#refinedExamHistory){grid-column:auto}
