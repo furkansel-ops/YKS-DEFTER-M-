@@ -4,8 +4,8 @@ import{collection,doc,getDoc,getDocs,onSnapshot,query,serverTimestamp,where,writ
 // her randevu coachAppointments/{koçUid_YYYYMMDD_SSDD} ve aynı kimlikte bir saat kilidi
 // coachSlots'ta tutulur. Kilit ve randevu birlikte yazılıp silinir; kural aynı saate ikinci
 // kaydı reddeder, böylece iki öğrenci aynı saati alamaz.
-const VERSION="1.1.0";
-const state={user:null,db:null,coachUid:"",coachName:"Koçun",availability:null,busy:new Set(),appts:[],day:"",month:"",pick:"",showMonth:false,returnFocus:null,stops:[],observer:null,timer:0,sending:false,error:""};
+const VERSION="1.2.0";
+const state={user:null,db:null,coachUid:"",coachName:"Koçun",availability:null,busy:new Set(),appts:[],day:"",pick:"",topic:"",view:"home",returnFocus:null,stops:[],observer:null,timer:0,sending:false,error:""};
 const text=(value,max=160)=>String(value??"").trim().slice(0,max);
 const esc=value=>String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[char]));
 const toast=message=>{try{window.toast?.(message)}catch{console.info(message)}};
@@ -37,25 +37,10 @@ function styles(){
   .sap,.sap-next{box-sizing:border-box}
   .sap{margin-top:14px;padding:16px;border:1px solid var(--d-line,#e3e9f2);border-radius:16px;background:var(--d-surface,#fff);color:var(--d-ink,#121a2b)}
   .sap h4{margin:0 0 4px;font-size:16px}.sap-muted{margin:0;color:var(--d-muted,#5f6b80);font-size:12.5px;line-height:1.5}
-  .sap-month-head{display:flex;align-items:center;justify-content:space-between;margin:12px 0 8px}.sap-month-head b{font-size:14px;text-transform:capitalize}
-  .sap-month-head button{width:40px;height:40px;border:1px solid var(--d-line,#e3e9f2);border-radius:10px;background:var(--d-soft,#eef3fb);color:inherit;font:inherit;font-size:18px;cursor:pointer}
-  .sap-month-head button:disabled{opacity:.35;cursor:default}
-  .sap-month{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
-  .sap-month>b{text-align:center;font-size:11.5px;color:var(--d-muted,#5f6b80);padding:3px 0}
-  .sap-date{position:relative;min-height:40px;border:0;border-radius:10px;background:var(--d-soft,#eef3fb);color:var(--d-ink,#121a2b);font:inherit;font-size:13px;font-weight:700;cursor:pointer}
-  .sap-date:disabled{background:transparent;color:var(--d-muted,#5f6b80);opacity:.55;cursor:default}
-  .sap-date.has::after{content:"";position:absolute;left:50%;bottom:5px;width:5px;height:5px;margin-left:-2.5px;border-radius:50%;background:var(--d-ok,#13906b)}
-  .sap-date.mine{box-shadow:inset 0 0 0 2px var(--d-accent,#2f6bea)}
-  .sap-date.on{background:var(--d-accent,#2f6bea);color:var(--d-on-accent,#fff)}
-  .sap-date.on.has::after{background:var(--d-on-accent,#fff)}
-  .sap-day{margin:14px 0 6px;font-size:13px;font-weight:800;text-transform:capitalize}
-  .sap-slots{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:6px}
   .sap-slot{min-height:44px;border:1px solid var(--d-line,#e3e9f2);border-radius:11px;background:var(--d-surface,#fff);color:var(--d-ink,#121a2b);font:inherit;font-size:13.5px;font-weight:800;cursor:pointer}
   .sap-slot:disabled{background:var(--d-soft,#eef3fb);border-color:transparent;color:var(--d-muted,#5f6b80);text-decoration:line-through;cursor:default}
   .sap-slot.mine{background:var(--d-chip,#e9f0fe);color:var(--d-chip-ink,#2453b8);text-decoration:none}
   .sap-slot.pick{background:var(--d-accent,#2f6bea);border-color:var(--d-accent,#2f6bea);color:var(--d-on-accent,#fff)}
-  .sap-ask{display:grid;gap:8px;margin-top:12px}
-  .sap-ask input{min-height:44px;padding:0 12px;border:1px solid var(--d-line,#e3e9f2);border-radius:11px;background:var(--d-surface,#fff);color:inherit;font:inherit;font-size:14px}
   .sap-btn{min-height:44px;padding:0 14px;border:1px solid var(--d-line,#e3e9f2);border-radius:11px;background:var(--d-surface,#fff);color:var(--d-ink,#121a2b);font:inherit;font-size:13.5px;font-weight:800;cursor:pointer}
   .sap-btn.primary{background:var(--d-accent,#2f6bea);border-color:var(--d-accent,#2f6bea);color:var(--d-on-accent,#fff)}
   .sap-btn.danger{color:#c4323b}.sap-btn:disabled{opacity:.6;cursor:wait}
@@ -72,14 +57,6 @@ function styles(){
   .sap-next small{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;opacity:.88}
   .sap-next b{font-size:17px;line-height:1.3}.sap-next span{font-size:13px;opacity:.9}
   .sap-next .sap-join{justify-self:start;min-height:42px;padding:0 14px;border-radius:11px;background:var(--d-hero-btn,#fff);color:var(--d-hero-btn-ink,#1d4cc4);font-weight:800;font-size:13.5px;display:inline-flex;align-items:center;text-decoration:none;opacity:1}
-  .sap-strip{display:flex;gap:6px;overflow-x:auto;margin:12px -2px 4px;padding:2px 2px 6px;scroll-snap-type:x proximity;scrollbar-width:thin}
-  .sap-chip{flex:none;width:58px;min-height:58px;display:grid;place-items:center;gap:0;padding:6px 0;border:1px solid var(--d-line,#e3e9f2);border-radius:13px;background:var(--d-surface,#fff);color:var(--d-ink,#121a2b);font:inherit;cursor:pointer;scroll-snap-align:center;position:relative}
-  .sap-chip small{font-size:11px;font-weight:700;color:var(--d-muted,#5f6b80)}.sap-chip b{font-size:17px}
-  .sap-chip.has{box-shadow:inset 0 -3px 0 var(--d-ok,#13906b)}
-  .sap-chip.mine b{color:var(--d-accent,#2f6bea)}
-  .sap-chip.on{background:var(--d-accent,#2f6bea);border-color:var(--d-accent,#2f6bea);color:var(--d-on-accent,#fff)}
-  .sap-chip.on small,.sap-chip.on.mine b{color:inherit}
-  .sap-link{min-height:36px;padding:0;border:0;background:none;color:var(--d-accent,#2f6bea);font:inherit;font-size:13px;font-weight:800;cursor:pointer}
   .sap-entry{display:flex;align-items:center;gap:12px;width:100%;margin:12px 0;padding:14px 16px;border:1px dashed color-mix(in srgb,var(--d-accent,#2f6bea) 50%,var(--d-line,#e3e9f2));border-radius:var(--d-r,18px);background:color-mix(in srgb,var(--d-accent,#2f6bea) 6%,var(--d-surface,#fff));color:var(--d-ink,#121a2b);font:inherit;text-align:left;cursor:pointer;box-sizing:border-box}
   .sap-entry i{width:40px;height:40px;flex:none;display:grid;place-items:center;border-radius:12px;background:var(--d-chip,#e9f0fe);color:var(--d-chip-ink,#2453b8);font-style:normal;font-size:18px}
   .sap-entry span{min-width:0}.sap-entry b{display:block;font-size:14.5px}.sap-entry small{display:block;color:var(--d-muted,#5f6b80);font-size:12.5px}
@@ -92,6 +69,27 @@ function styles(){
   .sap-close{position:absolute;right:10px;top:4px;width:40px;height:40px;border:0;border-radius:12px;background:var(--d-soft,#eef3fb);color:var(--d-ink,#121a2b);font:inherit;font-size:16px;cursor:pointer}
   html.sap-sheet-open{overflow:hidden}
   @media(min-width:760px){.sap-sheet{align-items:center}.sap-sheet-panel{border-radius:20px}.sap-grab{display:none}}
+  .sap-wide{display:flex;width:100%;margin-top:12px;align-items:center;justify-content:center}
+  .sap-wiz-head{position:relative;display:flex;align-items:center;justify-content:center;min-height:44px}
+  .sap-wiz-head b{font-size:15px}.sap-wiz-head span{position:absolute;right:0;color:var(--d-muted,#5f6b80);font-size:13px;font-weight:700}
+  .sap-back{position:absolute;left:0;width:44px;height:44px;border:0;border-radius:12px;background:var(--d-soft,#eef3fb);color:var(--d-ink,#121a2b);font:inherit;font-size:22px;cursor:pointer}
+  .sap-progress{height:6px;margin:8px 0 14px;border-radius:9px;background:var(--d-line,#e3e9f2);overflow:hidden}.sap-progress i{display:block;height:100%;border-radius:9px;background:var(--d-accent,#2f6bea)}
+  .sap-q{margin:0 0 2px;font-size:17px}
+  .sap-days{display:grid;gap:8px;margin-top:12px}
+  .sap-daycard{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-height:58px;padding:11px 14px;border:1px solid var(--d-line,#e3e9f2);border-radius:14px;background:var(--d-surface,#fff);color:var(--d-ink,#121a2b);font:inherit;text-align:left;cursor:pointer;box-sizing:border-box}
+  .sap-daycard b{display:block;font-size:14px}.sap-daycard small{display:block;color:var(--d-muted,#5f6b80);font-size:12.5px}
+  .sap-daycard.on{border-color:var(--d-accent,#2f6bea);box-shadow:0 0 0 2px var(--d-chip,#e9f0fe)}
+  .sap-daycard.off{opacity:.55;cursor:default;background:var(--d-soft,#eef3fb)}
+  .sap-daycard .sap-pill:not(.ok){background:var(--d-line,#e3e9f2);color:var(--d-muted,#5f6b80)}
+  .sap-times{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:12px}
+  .sap-times .sap-slot{min-height:48px}
+  .sap-summary{display:flex;gap:12px;align-items:center;margin-top:10px;padding:12px 14px;border:1px solid var(--d-line,#e3e9f2);border-radius:14px;background:var(--d-surface,#fff)}
+  .sap-summary b{display:block;font-size:14.5px}.sap-summary small{display:block;color:var(--d-muted,#5f6b80);font-size:12.5px}
+  .sap-avatar{width:42px;height:42px;flex:none;display:grid;place-items:center;border-radius:50%;background:var(--d-chip,#e9f0fe);color:var(--d-chip-ink,#2453b8);font-weight:850;font-size:13px}
+  .sap-topic{display:grid;gap:6px;margin-top:12px;font-size:13px;font-weight:700;color:var(--d-muted,#5f6b80)}
+  .sap-topic textarea{min-height:76px;padding:10px 12px;border:1px solid var(--d-line,#e3e9f2);border-radius:12px;background:var(--d-surface,#fff);color:var(--d-ink,#121a2b);font:inherit;font-size:14px;resize:vertical;box-sizing:border-box}
+  .sap-btn:disabled{opacity:.5;cursor:not-allowed}
+  .sap-back:focus-visible,.sap-daycard:focus-visible{outline:2px solid var(--d-accent,#2f6bea);outline-offset:2px}
   :root[data-theme="night"] .sap-btn.danger{color:#ff8f8f}:root[data-theme="night"] .sap-pill.wait{background:color-mix(in srgb,#f3b860 16%,var(--d-surface,#121a2c));color:#f3b860}
   .sap :focus-visible,.sap-next:focus-visible,.sap-next .sap-join:focus-visible,.sap-entry:focus-visible,.sap-close:focus-visible{outline:2px solid var(--d-accent,#2f6bea);outline-offset:2px}`;
   document.head.append(style);
@@ -105,43 +103,48 @@ function section(){
   if(box.parentElement!==card)chat?card.insertBefore(box,chat):card.append(box);
   return box;
 }
-// Gün seçimi: telefonda tek elle rahat olsun diye 14 günlük yana kayan şerit; ay takvimi istenirse açılır.
-function stripHtml(){
-  let html='<div class="sap-strip" role="group" aria-label="Gün seç">';
-  for(let i=0;i<14;i++){
-    const date=iso(new Date(Date.now()+i*864e5)),has=freeSlots(date).length>0,own=state.appts.some(item=>item.date===date);
-    const day=new Date(date+"T12:00:00"),name=i===0?"Bugün":i===1?"Yarın":new Intl.DateTimeFormat("tr-TR",{weekday:"short"}).format(day);
-    const classes=["sap-chip"];if(has)classes.push("has");if(own)classes.push("mine");if(date===state.day)classes.push("on");
-    html+='<button type="button" class="'+classes.join(" ")+'" data-sap-day="'+date+'" aria-pressed="'+(date===state.day)+'" aria-label="'+esc(dateLabel(date))+(has?", boş saat var":", boş saat yok")+'"><small>'+esc(name)+'</small><b>'+day.getDate()+'</b></button>';
-  }
-  return html+'</div><button type="button" class="sap-link" data-sap-month-toggle>'+(state.showMonth?"Takvimi gizle":"Tüm takvim")+'</button>';
+// Şablon B · adım adım: Randevularım → 1 gün → 2 saat → 3 özet. Her adımda tek karar.
+const days14=()=>[...Array(14)].map((_,i)=>iso(new Date(Date.now()+i*864e5)));
+function dayTitle(date){
+  const today=iso(new Date()),tomorrow=iso(new Date(Date.now()+864e5)),long=dateLabel(date,{weekday:"long",day:"numeric",month:"long"});
+  return date===today?"Bugün · "+long:date===tomorrow?"Yarın · "+long:long;
 }
-function monthHtml(){
-  const today=iso(new Date()),limit=iso(new Date(Date.now()+60*864e5));
-  const [year,month]=state.month.split("-").map(Number),first=new Date(year,month-1,1),lead=(first.getDay()+6)%7,days=new Date(year,month,0).getDate();
-  const prevOk=state.month>today.slice(0,7),nextOk=state.month<limit.slice(0,7);
-  let html='<div class="sap-month-head"><button type="button" data-sap-month="-1" aria-label="Önceki ay"'+(prevOk?"":" disabled")+'>‹</button><b>'+esc(new Intl.DateTimeFormat("tr-TR",{month:"long",year:"numeric"}).format(first))+'</b><button type="button" data-sap-month="1" aria-label="Sonraki ay"'+(nextOk?"":" disabled")+'>›</button></div><div class="sap-month">';
-  html+=["Pt","Sa","Ça","Pe","Cu","Ct","Pz"].map(name=>'<b aria-hidden="true">'+name+'</b>').join("");
-  for(let i=0;i<lead;i++)html+='<span></span>';
-  for(let day=1;day<=days;day++){
-    const date=iso(new Date(year,month-1,day)),off=date<today||date>limit,has=!off&&freeSlots(date).length>0,own=state.appts.some(item=>item.date===date);
-    const classes=["sap-date"];if(has)classes.push("has");if(own)classes.push("mine");if(date===state.day)classes.push("on");
-    html+='<button type="button" class="'+classes.join(" ")+'" data-sap-day="'+date+'"'+(off?" disabled":"")+' aria-pressed="'+(date===state.day)+'" aria-label="'+esc(dateLabel(date))+(has?", boş saat var":"")+'">'+day+'</button>';
+function wizardHead(step){
+  return'<div class="sap-wiz-head"><button type="button" class="sap-back" data-sap-back aria-label="Geri">‹</button><b>Randevu al</b><span>'+step+'/3</span></div><div class="sap-progress" aria-hidden="true"><i style="width:'+Math.round(step/3*100)+'%"></i></div>';
+}
+function homeHtml(){
+  if(!state.coachUid)return'<h4>Koçunla görüşme</h4><p class="sap-muted">Randevu almak için önce bir koç bağlamalısın. Koç kodunu Ayarlar › Koç Kodum\'da bulabilirsin.</p>';
+  if(state.error)return'<h4>Koçunla görüşme</h4><p class="sap-muted">'+esc(state.error)+'</p>';
+  const action=state.availability?'<button type="button" class="sap-btn primary sap-wide" data-sap-go="day">Randevu al</button>':'<p class="sap-muted">Koçun henüz görüşme saatlerini açmadı. Açtığında buradan randevu alabilirsin.</p>';
+  return'<h4>'+esc(state.coachName)+' ile görüşme</h4><p class="sap-muted">'+esc(String(Number(state.availability?.duration)||30))+' dakikalık görüşmeler</p>'+action+'<h5 class="sap-sub">Randevularım</h5>'+listHtml();
+}
+function dayHtml(){
+  let html=wizardHead(1)+'<h4 class="sap-q">Hangi gün?</h4><p class="sap-muted">'+esc(state.coachName)+' · önümüzdeki 14 gün</p><div class="sap-days">';
+  for(const date of days14()){
+    const slots=slotsFor(date),free=freeSlots(date).length,day=state.availability?.days?.[String(new Date(date+"T12:00:00").getDay())];
+    if(!slots.length){html+='<div class="sap-daycard off"><div><b>'+esc(dayTitle(date))+'</b><small>Kapalı</small></div></div>';continue}
+    const range=esc(slots[0])+' – '+esc(day?.end||"");
+    if(!free){html+='<div class="sap-daycard off"><div><b>'+esc(dayTitle(date))+'</b><small>'+range+'</small></div><span class="sap-pill">Dolu</span></div>';continue}
+    html+='<button type="button" class="sap-daycard'+(date===state.day?" on":"")+'" data-sap-day="'+date+'" aria-label="'+esc(dayTitle(date))+', '+free+' boş saat"><div><b>'+esc(dayTitle(date))+'</b><small>'+range+'</small></div><span class="sap-pill ok">'+free+' boş saat</span></button>';
   }
   return html+'</div>';
 }
-function slotsHtml(){
+function timeHtml(){
   const date=state.day,times=[...new Set([...slotsFor(date),...state.appts.filter(item=>item.date===date).map(item=>item.time)])].sort();
-  let html='<div class="sap-day">'+esc(dateLabel(date))+'</div>';
-  if(!times.length)return html+'<p class="sap-muted">Bu gün koçunun açık saati yok. Yeşil çizgili bir gün seç.</p>';
-  html+='<div class="sap-slots" role="group" aria-label="Saatler">'+times.map(time=>{
-    const own=mine(date,time);
-    if(own)return'<button type="button" class="sap-slot mine" disabled aria-label="'+time+', senin randevun">'+time+'</button>';
+  let html=wizardHead(2)+'<h4 class="sap-q">Hangi saat?</h4><p class="sap-muted">'+esc(dateLabel(date))+'</p><div class="sap-times" role="group" aria-label="Saatler">';
+  html+=times.map(time=>{
+    if(mine(date,time))return'<button type="button" class="sap-slot mine" disabled aria-label="'+time+', senin randevun">'+time+'</button>';
     const taken=state.busy.has(date+" "+time),past=isPast(date,time);
     return'<button type="button" class="sap-slot'+(state.pick===time?" pick":"")+'" data-sap-slot="'+time+'"'+(taken||past?" disabled":"")+' aria-pressed="'+(state.pick===time)+'" aria-label="'+time+(taken?", dolu":past?", geçti":", boş")+'">'+time+'</button>';
-  }).join("")+'</div><p class="sap-muted" style="margin-top:6px">Üstü çizili saatler dolu ya da geçmiş.</p>';
-  if(state.pick)html+='<div class="sap-ask"><input type="text" maxlength="120" placeholder="Konu (isteğe bağlı) · örn. Deneme sonrası konuşalım" aria-label="Görüşme konusu" data-sap-topic><button type="button" class="sap-btn primary" data-sap-request>'+esc(state.pick)+' için randevu iste</button><p class="sap-muted">'+esc(state.coachName)+' onaylayınca randevun kesinleşir.</p></div>';
-  return html;
+  }).join("");
+  return html+'</div><p class="sap-muted" style="margin-top:8px">Üstü çizili saatler dolu ya da geçmiş.</p><button type="button" class="sap-btn primary sap-wide" data-sap-go="summary"'+(state.pick?"":" disabled")+'>Devam</button>';
+}
+function initials(name){return text(name,60).split(/\s+/).filter(Boolean).slice(0,2).map(part=>part[0]).join("").toLocaleUpperCase("tr-TR")||"K"}
+function summaryHtml(){
+  const duration=Number(state.availability?.duration)||30;
+  return wizardHead(3)+'<h4 class="sap-q">Özet</h4><div class="sap-summary"><span class="sap-avatar" aria-hidden="true">'+esc(initials(state.coachName))+'</span><div><b>'+esc(state.coachName)+'</b><small>'+esc(dateLabel(state.day))+' · '+esc(state.pick)+' · '+duration+' dk</small></div></div>'
+    +'<label class="sap-topic"><span>Ne konuşmak istersin? (isteğe bağlı)</span><textarea maxlength="120" rows="3" data-sap-topic placeholder="Örn. Deneme sonrası konuşalım">'+esc(state.topic)+'</textarea></label>'
+    +'<button type="button" class="sap-btn primary sap-wide" data-sap-request>Randevu iste</button><p class="sap-muted" style="text-align:center">'+esc(state.coachName)+' onaylayınca Bugün ekranında "Sıradaki görüşme" olarak görünür.</p>';
 }
 function listHtml(){
   const list=upcoming();
@@ -152,47 +155,40 @@ function listHtml(){
       +'<div class="sap-item-actions">'+(confirmed&&item.link?'<a class="sap-btn primary" href="'+esc(item.link)+'" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;text-decoration:none">Görüşmeye katıl</a>':confirmed?'<small>Koçun görüşme linkini eklediğinde burada çıkar.</small>':'')+'<button type="button" class="sap-btn danger" data-sap-cancel="'+esc(item.id)+'">İptal et</button></div></div>';
   }).join("")+'</div>';
 }
-function contentHtml(){
-  if(!state.coachUid)return'<h4>Koçunla görüşme</h4><p class="sap-muted">Randevu almak için önce bir koç bağlamalısın. Koç kodunu Ayarlar › Koç Kodum\'da bulabilirsin.</p>';
-  if(state.error)return'<h4>Koçunla görüşme</h4><p class="sap-muted">'+esc(state.error)+'</p>';
-  if(!state.availability)return'<h4>'+esc(state.coachName)+' ile görüşme</h4><p class="sap-muted">Koçun henüz görüşme saatlerini açmadı. Açtığında buradan randevu alabilirsin.</p><h5 class="sap-sub">Randevuların</h5>'+listHtml();
-  if(!state.day){const today=iso(new Date());state.day=[...Array(60)].map((_,i)=>iso(new Date(Date.now()+i*864e5))).find(date=>freeSlots(date).length)||today}
-  if(!state.month)state.month=state.day.slice(0,7);
-  return'<h4>'+esc(state.coachName)+' ile görüşme</h4><p class="sap-muted">Gün seç, sonra boş saati seç.</p>'+stripHtml()+(state.showMonth?monthHtml():"")+slotsHtml()+'<h5 class="sap-sub">Randevuların</h5>'+listHtml();
-}
-function paint(box){
-  const keep=box.querySelector("[data-sap-topic]")?.value||"";
-  box.innerHTML=contentHtml();
-  const topic=box.querySelector("[data-sap-topic]");if(topic&&keep)topic.value=keep;
-  bind(box);
+function viewHtml(view){
+  if(view!=="home"&&(!state.coachUid||!state.availability||state.error))view="home";
+  if(view==="time"&&!state.day)view="day";
+  if(view==="summary"&&!state.pick)view=state.day?"time":"day";
+  return view==="day"?dayHtml():view==="time"?timeHtml():view==="summary"?summaryHtml():homeHtml();
 }
 function render(){
   const box=section();
-  if(box){box.hidden=!state.user;if(state.user)paint(box)}
+  if(box){box.hidden=!state.user;if(state.user){box.innerHTML=homeHtml();bind(box,true)}}
   const sheet=document.getElementById("studentAppointmentsSheet"),body=sheet?.querySelector("[data-sap-body]");
-  if(sheet&&!sheet.hidden&&body)paint(body);
+  if(sheet&&!sheet.hidden&&body){body.innerHTML=viewHtml(state.view);bind(body,false)}
   renderMoreEntry();
 }
-function bind(box){
-  box.querySelectorAll("[data-sap-month]").forEach(button=>button.onclick=()=>{const [y,m]=state.month.split("-").map(Number);state.month=iso(new Date(y,m-1+Number(button.dataset.sapMonth),1)).slice(0,7);render()});
-  box.querySelectorAll("[data-sap-day]").forEach(button=>button.onclick=()=>{state.day=button.dataset.sapDay;state.month=state.day.slice(0,7);state.pick="";render()});
-  const toggle=box.querySelector("[data-sap-month-toggle]");if(toggle)toggle.onclick=()=>{state.showMonth=!state.showMonth;render()};
-  box.querySelectorAll("[data-sap-slot]").forEach(button=>button.onclick=()=>{state.pick=state.pick===button.dataset.sapSlot?"":button.dataset.sapSlot;render();box.querySelector("[data-sap-topic]")?.focus()});
-  const ask=box.querySelector("[data-sap-request]");if(ask)ask.onclick=()=>void requestAppointment(text(box.querySelector("[data-sap-topic]")?.value,120),ask);
+function go(view){state.view=view;render();const body=document.querySelector("#studentAppointmentsSheet [data-sap-body]");body?.querySelector("[data-sap-back],[data-sap-go],button")?.focus?.()}
+function bind(box,inSettings){
+  box.querySelectorAll("[data-sap-go]").forEach(button=>button.onclick=()=>{const view=button.dataset.sapGo;if(inSettings){openSheet(view);return}go(view)});
+  const back=box.querySelector("[data-sap-back]");if(back)back.onclick=()=>go(state.view==="summary"?"time":state.view==="time"?"day":"home");
+  box.querySelectorAll("[data-sap-day]").forEach(button=>button.onclick=()=>{if(state.day!==button.dataset.sapDay)state.pick="";state.day=button.dataset.sapDay;go("time")});
+  box.querySelectorAll("[data-sap-slot]").forEach(button=>button.onclick=()=>{state.pick=state.pick===button.dataset.sapSlot?"":button.dataset.sapSlot;render();box.querySelector('[data-sap-go="summary"]')?.focus()});
+  const topic=box.querySelector("[data-sap-topic]");if(topic)topic.oninput=()=>{state.topic=text(topic.value,120)};
+  const ask=box.querySelector("[data-sap-request]");if(ask)ask.onclick=()=>void requestAppointment(state.topic,ask);
   box.querySelectorAll("[data-sap-cancel]").forEach(button=>button.onclick=()=>void cancelAppointment(button.dataset.sapCancel,button));
-  const chip=box.querySelector(".sap-chip.on");if(chip&&typeof chip.scrollIntoView==="function")chip.scrollIntoView({block:"nearest",inline:"center"});
 }
 
 async function requestAppointment(topic,button){
   if(state.sending||!state.user||!state.db||!state.coachUid||!state.pick)return;
   const date=state.day,time=state.pick;
-  if(isPast(date,time)||state.busy.has(date+" "+time)){toast("Bu saat artık uygun değil, başka bir saat seç.");state.pick="";render();return}
+  if(isPast(date,time)||state.busy.has(date+" "+time)){toast("Bu saat artık uygun değil, başka bir saat seç.");state.pick="";state.view="time";render();return}
   state.sending=true;if(button)button.disabled=true;
   const id=apptId(state.coachUid,date,time),batch=writeBatch(state.db),now=serverTimestamp();
   batch.set(doc(state.db,"coachSlots",id),{coachUid:state.coachUid,date,time});
   batch.set(doc(state.db,"coachAppointments",id),{coachUid:state.coachUid,studentUid:state.user.uid,date,time,duration:Number(state.availability?.duration)||30,status:"requested",createdBy:"student",topic,link:"",note:"",createdAt:now,updatedAt:now});
-  try{await batch.commit();state.pick="";toast("Randevu isteğin koçuna gitti ✓")}
-  catch(error){console.error("Randevu isteği",error);toast(String(error?.code||"").includes("permission-denied")?"Bu saat az önce doldu, başka bir saat seç.":"Randevu isteği gönderilemedi.")}
+  try{await batch.commit();state.pick="";state.topic="";state.view="home";toast("Randevu isteğin koçuna gitti ✓")}
+  catch(error){console.error("Randevu isteği",error);const taken=String(error?.code||"").includes("permission-denied");if(taken){state.pick="";state.view="time"}toast(taken?"Bu saat az önce doldu, başka bir saat seç.":"Randevu isteği gönderilemedi.")}
   finally{state.sending=false;if(button)button.disabled=false;render()}
 }
 async function cancelAppointment(id,button){
@@ -218,8 +214,8 @@ function renderToday(){
     entry?.remove();
     if(!card){
       card=document.createElement("div");card.id="studentNextAppointment";card.className="sap-next";card.setAttribute("role","button");card.tabIndex=0;
-      card.addEventListener("click",event=>{if(event.target.closest?.(".sap-join"))return;openSheet()});
-      card.addEventListener("keydown",event=>{if((event.key==="Enter"||event.key===" ")&&!event.target.closest?.(".sap-join")){event.preventDefault();openSheet()}});
+      card.addEventListener("click",event=>{if(event.target.closest?.(".sap-join"))return;openSheet("home")});
+      card.addEventListener("keydown",event=>{if((event.key==="Enter"||event.key===" ")&&!event.target.closest?.(".sap-join")){event.preventDefault();openSheet("home")}});
     }
     place(card);
     const confirmed=next.status==="confirmed";
@@ -231,7 +227,7 @@ function renderToday(){
   if(!state.user||!state.coachUid||!state.availability){entry?.remove();return}
   if(!entry){
     entry=document.createElement("button");entry.type="button";entry.id="studentApptEntry";entry.className="sap-entry";
-    entry.addEventListener("click",()=>openSheet());
+    entry.addEventListener("click",()=>openSheet("day"));
   }
   place(entry);
   const free=nearestFree();
@@ -245,13 +241,13 @@ function renderMoreEntry(){
   if(!grid||!state.user||!state.coachUid){button?.remove();return}
   if(!button){
     button=document.createElement("button");button.type="button";button.id="studentApptMore";button.className="v43-more-tool";
-    button.innerHTML='<span class="v43-more-tool-icon" aria-hidden="true">◷</span><span><b>Koçla görüşme</b><small>Randevu al, görüşmelerini gör</small></span><i aria-hidden="true">›</i>';
-    button.addEventListener("click",()=>openSheet());
+    button.innerHTML='<span class="v43-more-tool-icon" aria-hidden="true">◷</span><span><b>Koçla görüşme</b><small>Randevu al, randevularını gör</small></span><i aria-hidden="true">›</i>';
+    button.addEventListener("click",()=>openSheet("home"));
   }
   if(button.parentElement!==grid)grid.prepend(button);
 }
 // Alttan açılan randevu ekranı (bilgisayarda ortada kart).
-function openSheet(){
+function openSheet(view="home"){
   styles();
   let sheet=document.getElementById("studentAppointmentsSheet");
   if(!sheet){
@@ -262,19 +258,20 @@ function openSheet(){
     document.body.append(sheet);
   }
   state.returnFocus=document.activeElement;
+  state.view=view;
   sheet.hidden=false;document.documentElement.classList.add("sap-sheet-open");
   render();
   sheet.querySelector("[data-sap-close]")?.focus();
 }
 function closeSheet(){
   const sheet=document.getElementById("studentAppointmentsSheet");if(!sheet||sheet.hidden)return;
-  sheet.hidden=true;document.documentElement.classList.remove("sap-sheet-open");
+  sheet.hidden=true;document.documentElement.classList.remove("sap-sheet-open");state.view="home";
   try{state.returnFocus?.focus?.()}catch{}
 }
 
 function stop(){for(const off of state.stops)try{off()}catch{}state.stops=[]}
 async function connect(){
-  stop();Object.assign(state,{coachUid:"",availability:null,busy:new Set(),appts:[],day:"",month:"",pick:"",error:""});
+  stop();Object.assign(state,{coachUid:"",availability:null,busy:new Set(),appts:[],day:"",pick:"",topic:"",view:"home",error:""});
   if(!state.user||!state.db)return;
   try{
     const links=(await getDocs(query(collection(state.db,"coachingLinks"),where("studentUid","==",state.user.uid)))).docs.map(item=>item.data()).filter(item=>item.active===true);
