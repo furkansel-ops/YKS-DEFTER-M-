@@ -11,7 +11,7 @@ const source=fs.readFileSync(path.join(root,"src/ui/refined-program.ts"),"utf8")
 const css=fs.readFileSync(path.join(root,"src/ui/refined-program-v4.css"),"utf8");
 const runtime=stripTypeScriptTypes(source
   .replace(/^import "\.\/refined-program\.css";\r?\n/,"")
-  .replace(/^import "\.\/refined-program-v4\.css";\r?\n/,"")
+  .replace(/^import "\.\/refined-program-v4\.css";\r?\n/,"").replace(/^import "\.\/refined-program-v72\.css";\r?\n/,"")
   .replace(/^import \{renderSmartProgram\} from "\.\/smart-program";\r?\n/,""),{mode:"strip"}).replace(/^export /gm,"");
 const api=vm.runInNewContext(runtime+
   "\n({refinedProgramDailyGroupKey,refinedProgramDailyGroups,refinedProgramDailyGroupProgress,refinedProgramTasks})",{Date,URL,YKSTaskText:loadTaskText()});
@@ -87,7 +87,7 @@ test("daily groups are a derived presentation and do not modify original week da
 test("grouped cards still use the existing task actions with no false changes to sync",()=>{
   assert.match(source,/for\(const group of refinedProgramDailyGroups\(state\.tasks\)\)/);
   assert.match(source,/section\.append\(groupHeading,cards\);list\.append\(section\)/);
-  assert.match(source,/card\.append\(check,subjectIcon,details,chips\);cards\.append\(card\)/);
+  assert.match(source,/card\.append\(check,details,chips\);cards\.append\(card\)/);
   assert.match(source,/controller\.toggleTask\(task\.id\)/);
   assert.match(source,/openDetail\(task,state\.week\)/);
   assert.match(source,/openEditor\(task,state\.week,"note"\)/);
@@ -138,7 +138,7 @@ test("subject fold state is UI only, date scoped, keyboard accessible and surviv
   assert.match(source,/collapsedDailyGroups\.delete\(groupId\)/);
   assert.match(source,/collapsedDailyGroups\.add\(groupId\)/);
   assert.match(source,/groupProgress\.append\(progressFill\)/);
-  assert.match(source,/groupName\.append\(element\("strong","",group\.title\),element\("small","",status\.done\+"\/"\+status\.total\+" tamamlandı"\)\)/);
+  assert.match(source,/groupName\.append\(element\("strong","",group\.title\),element\("small","",\(groupDone\?"✓ ":""\)\+status\.done\+"\/"\+status\.total\)\)/);
   assert.match(source,/check\.dataset\.rbProgramFocus=task\.id/);
   assert.match(source,/replacement\?\.focus\(\{preventScroll:true\}\)/);
   assert.match(css,/\.rb-v4-subject-cards\[hidden\]\{display:none!important\}/);

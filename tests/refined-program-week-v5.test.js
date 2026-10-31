@@ -9,7 +9,7 @@ const source=fs.readFileSync(path.join(root,"src/ui/refined-program.ts"),"utf8")
 const styles=fs.readFileSync(path.join(root,"src/ui/refined-program-v4.css"),"utf8");
 const javascript=stripTypeScriptTypes(source
   .replace(/^import "\.\/refined-program\.css";\r?\n/,"")
-  .replace(/^import "\.\/refined-program-v4\.css";\r?\n/,"")
+  .replace(/^import "\.\/refined-program-v4\.css";\r?\n/,"").replace(/^import "\.\/refined-program-v72\.css";\r?\n/,"")
   .replace(/^import \{renderSmartProgram\} from "\.\/smart-program";\r?\n/,""),
   {mode:"strip"}).replace(/^export /gm,"");
 const api=vm.runInNewContext(javascript+"\n({refinedProgramWeeklyGroups,refinedProgramWeeklyCompletion,refinedProgramDailyGroups})",{Date,URL});
@@ -54,12 +54,13 @@ test("desktop and mobile weekly views contain real task editing and accessible d
   assert.match(source,/rb-v5-week-mobile/);
   assert.match(source,/refinedProgramWeeklyGroups\(weekTasks\)/);
   assert.match(source,/refinedProgramWeeklyCompletion\(weekTasks\)/);
-  assert.match(source,/dayButton\.addEventListener\("click",\(\)=>openDay\(index\)\)/);
+  assert.match(source,/head\.addEventListener\("click",\(\)=>openDay\(index\)\)/);
+  assert.match(source,/go\.addEventListener\("click",\(\)=>day\.count\?openDay\(index\):addForDay\(index\)\)/);
   assert.match(source,/action\.addEventListener\("click",\(\)=>\{controller\.selectDay\(index\);openEditor\(task,state\.week\);\}\)/);
   assert.match(source,/const workName=info\.meta&&info\.meta!==task\.label\?info\.meta:info\.display/);
   assert.match(source,/const extra=refinedProgramSplitExtras\(task\.text\)/);
-  assert.match(source,/weekStats\.percent\+"%"/);
-  assert.match(source,/weekStats\.pending/);
+  assert.match(source,/"%"\+weekStats\.percent/);
+  assert.match(source,/Bu hafta \$\{weekStats\.done\}\/\$\{weekStats\.total\} tamamlandı/);
   assert.match(styles,/@media\(max-width:980px\)/);
   assert.match(styles,/\.rb-program-calendar\.rb-v5-week-desktop\{display:none!important;\}/);
   assert.match(styles,/\.rb-v5-week-mobile\{display:grid/);

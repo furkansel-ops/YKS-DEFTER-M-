@@ -1,0 +1,83 @@
+/* Program v72 · var olan ekran, daha düzenli. Renkler yalnız tema değişkenlerinden (--d-*, --tone).
+   Öncelik: design-trio-v66 (:root[data-visual-system] #mainWrap #program …) kurallarını geçer. */
+
+/* 1 — başlık: yalnız "Programım" ve haftanın özeti */
+:root[data-visual-system] #mainWrap #program .rb-program-heading .rb-program-week-summary{margin-top:2px;font-size:12.5px;font-weight:650}
+
+/* 2 — hafta seçimi tek kartta: tarih ve oklar üstte, gün şeridi altta */
+:root[data-visual-system] #mainWrap #program .rb-program-weekcard{margin:0 0 14px;padding:8px;border:1px solid var(--d-line);border-radius:var(--d-r,18px);background:var(--d-surface);box-shadow:var(--d-shadow)}
+:root[data-visual-system] #mainWrap #program .rb-program-weekcard>.rb-program-weeknav{display:flex;align-items:center;gap:6px;margin:0 0 8px;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none}
+:root[data-visual-system] #mainWrap #program .rb-program-weekcard>.rb-program-weeknav>span{flex:1;text-align:center}
+:root[data-visual-system] #mainWrap #program .rb-program-weekcard>.rb-program-weeknav>button{min-height:40px;min-width:40px}
+:root[data-visual-system] #mainWrap #program .rb-program-weekcard>.rb-program-weekstrip{margin:0}
+:root[data-visual-system] #mainWrap #program .rb-program-weekcard>.rb-program-weekstrip>button:not([aria-pressed="true"]){background:var(--d-soft);border-color:transparent;box-shadow:none}
+
+/* 3 — her dersin tek rengi: grup simgesi, grup çubuğu, tik ve şerit aynı tema tonundan */
+:root[data-visual-system] #mainWrap #program .rb-v4-subject-section[data-v4-tone]{
+  --rb-v4-group-color:var(--tone,var(--d-accent));
+  --rb-v4-group-soft:color-mix(in srgb,var(--tone,var(--d-accent)) 12%,var(--d-surface))
+}
+
+/* 4 — tik: boş kutu sakin gri çerçeve, tamamlanınca düz yeşil kutu ve okunur tik; içte ikinci kare yok */
+:root[data-visual-system] #mainWrap #program .rb-v4-subject-section .rb-program-check,
+:root[data-visual-system] #mainWrap #program .rb-v4-subject-section .rb-program-check[aria-pressed="true"]{background:transparent;border-color:transparent}
+:root[data-visual-system] #mainWrap #program .rb-v4-subject-section .rb-program-check::before{
+  border-color:color-mix(in srgb,var(--d-muted) 75%,var(--d-surface));background:var(--d-surface);box-shadow:none
+}
+:root[data-visual-system] #mainWrap #program .rb-v4-subject-section .rb-program-check[aria-pressed="true"]::before{background:var(--d-ok);border-color:var(--d-ok)}
+:root[data-visual-system] #mainWrap #program .rb-v4-subject-section .rb-program-check>.rb-program-icon{color:var(--d-on-accent,#fff)}
+:root[data-visual-system] #mainWrap #program .rb-v4-subject-section .rb-program-check:hover::before{border-color:var(--d-ok)}
+:root[data-visual-system] #mainWrap #program .rb-v4-subject-section .rb-program-check:focus-visible{outline-color:var(--d-accent)}
+/* Tamamlanan kart sade kalır: yeşil iç gölge ve renkli zemin yok; başlık üstü çizili. */
+:root[data-visual-system] #mainWrap #program .rb-v4-subject-section .rb-program-task[data-done]{background:var(--d-surface);border-color:var(--d-line);box-shadow:var(--d-shadow,none)}
+:root[data-visual-system] #mainWrap #program .rb-v4-subject-section .rb-program-task[data-done] .rb-program-task-copy>strong{
+  color:var(--d-muted);text-decoration:line-through;text-decoration-thickness:1px
+}
+
+/* 5 — tek gün özeti: gün adı ve 1/3, ince çubuk, kalan görev */
+:root[data-visual-system] #mainWrap #program #refinedProgramDay>.rb-v4-day-progress{display:block;margin:0 0 14px;padding:12px 14px}
+:root[data-visual-system] #mainWrap #program .rb-v4-day-progress>.rb-v4-progress-copy{display:block}
+:root[data-visual-system] #mainWrap #program .rb-v72-day-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:8px}
+:root[data-visual-system] #mainWrap #program .rb-v72-day-head>h2{margin:0;font-size:15px;font-weight:800;color:var(--d-ink);text-transform:capitalize}
+:root[data-visual-system] #mainWrap #program .rb-v72-day-head>span{font-size:15px;font-weight:850;color:var(--d-accent);font-variant-numeric:tabular-nums}
+:root[data-visual-system] #mainWrap #program .rb-v4-day-progress .rb-v4-progress-bar{height:6px;border-radius:9px;background:var(--d-soft);overflow:hidden}
+:root[data-visual-system] #mainWrap #program .rb-v4-day-progress .rb-v4-progress-bar>i{background:var(--d-accent)}
+:root[data-visual-system] #mainWrap #program .rb-v4-day-progress[data-complete] .rb-v4-progress-bar>i{background:var(--d-ok)}
+:root[data-visual-system] #mainWrap #program .rb-v4-day-progress>.rb-v4-progress-caption{display:block;max-width:none;margin:6px 0 0;padding:0;border:0;font-size:12px;font-weight:650;color:var(--d-muted)}
+:root[data-visual-system] #mainWrap #program .rb-v4-day-progress[data-complete]>.rb-v4-progress-caption{color:color-mix(in srgb,var(--d-ok) 75%,var(--d-ink))}
+@media(min-width:1024px){
+  /* Ayrı özet satırı kalktı; yan sütundaki tek kart en üstten başlar. */
+  :root[data-visual-system] #mainWrap #program #refinedProgramDay>.rb-v4-day-progress{grid-row:1 / span 2}
+}
+
+/* 6 — grup sayacı: bitince yeşil "✓ 1/1", bitmediyse gri */
+:root[data-visual-system] #mainWrap #program .rb-v4-subject-heading-title small{color:var(--d-muted);font-weight:700}
+:root[data-visual-system] #mainWrap #program .rb-v4-subject-section[data-complete] .rb-v4-subject-heading-title small{color:color-mix(in srgb,var(--d-ok) 75%,var(--d-ink));font-weight:800}
+
+/* 7 — kartta ders simgesi yok: tik ve metin iki sütun */
+:root[data-visual-system] #mainWrap #program .rb-v4-subject-section .rb-program-task{grid-template-columns:42px minmax(0,1fr)}
+:root[data-visual-system] #mainWrap #program .rb-v4-subject-section .rb-program-task>:is(.rb-program-task-details,.rb-v4-task-chips){grid-column:2}
+
+/* 8 — Video / Not / Materyal: küçük çerçeveli; içeriği olan belirgin, izlenen video yeşil */
+:root[data-visual-system] #mainWrap #program .rb-v4-subject-section .rb-v4-chip{
+  min-height:30px;padding:4px 9px;border:1px solid var(--d-line);background:transparent;color:var(--d-muted);font-size:11px;font-weight:750
+}
+:root[data-visual-system] #mainWrap #program .rb-v4-subject-section .rb-v4-chip.rb-v4-chip-has{
+  background:var(--d-chip);border-color:color-mix(in srgb,var(--d-accent) 30%,var(--d-line));color:var(--d-chip-ink)
+}
+:root[data-visual-system] #mainWrap #program .rb-v4-subject-section .rb-v4-chip.rb-v4-chip-watched{
+  background:color-mix(in srgb,var(--d-ok) 12%,var(--d-surface));border-color:color-mix(in srgb,var(--d-ok) 35%,var(--d-line));color:color-mix(in srgb,var(--d-ok) 75%,var(--d-ink))
+}
+:root[data-visual-system] #mainWrap #program .rb-v4-subject-section .rb-v4-chip:focus-visible{outline:2px solid var(--d-accent);outline-offset:2px}
+
+/* 9 — Haftalık Bakış kısa: tek satır özet; boş günler tek satır "plan yok · ＋ Ekle" */
+:root[data-visual-system] #mainWrap #program .rb-v72-week-summary{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:6px 10px;margin:0 0 12px;padding:12px 14px;
+  border:1px solid var(--d-line);border-radius:var(--d-r,18px);background:var(--d-surface);font-size:13px;font-weight:750;color:var(--d-ink)}
+:root[data-visual-system] #mainWrap #program .rb-v72-week-summary>strong{font-size:16px;color:var(--d-accent);font-variant-numeric:tabular-nums}
+:root[data-visual-system] #mainWrap #program .rb-v72-week-bar{grid-column:1/-1;height:6px;border-radius:9px;background:var(--d-soft);overflow:hidden}
+:root[data-visual-system] #mainWrap #program .rb-v72-week-bar>i{display:block;height:100%;border-radius:inherit;background:var(--d-accent)}
+:root[data-visual-system] #mainWrap #program .rb-v5-mobile-day[data-empty]{padding-top:8px;padding-bottom:8px}
+:root[data-visual-system] #mainWrap #program .rb-v5-mobile-day[data-empty] .rb-v5-mobile-day-heading{margin:0}
+:root[data-visual-system] #mainWrap #program .rb-v5-mobile-day[data-empty] .rb-v5-mobile-date{display:flex;align-items:baseline;gap:8px}
+:root[data-visual-system] #mainWrap #program .rb-v5-mobile-day[data-empty] .rb-v5-mobile-open{color:var(--d-accent)}
+:root[data-visual-system] #mainWrap #program :is(.rb-v5-subject-row,.rb-v5-mobile-group)[data-v4-tone]{--rp-subject:var(--tone,var(--d-accent))}

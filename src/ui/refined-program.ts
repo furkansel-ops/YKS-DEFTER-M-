@@ -1,5 +1,6 @@
 import "./refined-program.css";
 import "./refined-program-v4.css";
+import "./refined-program-v72.css";
 import {renderSmartProgram} from "./smart-program";
 
 type ProgramBlock="r"|"s";
@@ -234,6 +235,12 @@ export function refinedProgramWeeklyCompletion(days:readonly (readonly Pick<Refi
 }
 
 /** Static Lucide-style outline vectors shared by headings and individual lesson cards. */
+// v72: Program, Bugün ve Konular aynı tema tonlarını kullanır (design-trio --d-math…).
+// Tonu olmayan ders grubu en yakın tona bağlanır; şerit, simge, tik ve grup çubuğu tek renk olur.
+const GROUP_TONE:Partial<Record<RefinedProgramGroupKey,string>>={geometry:"math",literature:"reading",history:"social",geography:"social",philosophy:"social",religion:"social",english:"other"};
+export function refinedProgramGroupTone(key:RefinedProgramGroupKey):string{
+  return GROUP_TONE[key]??(["reading","math","physics","chemistry","biology"].includes(key)?key:"other");
+}
 function refinedProgramSubjectIcon(key:RefinedProgramGroupKey):HTMLElement{
   const paths:Record<RefinedProgramGroupKey,string>={
     reading:'<path d="M12 7v14"/><path d="M3 18V5.5A2.5 2.5 0 0 1 5.5 3H9a3 3 0 0 1 3 3 3 3 0 0 1 3-3h3.5A2.5 2.5 0 0 1 21 5.5V18h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3H3Z"/>',
@@ -357,16 +364,17 @@ export function installRefinedProgram():ProgramApi{
     updateTask:(week,id,text)=>call("programUpdateTask",week,id,text),
     deleteTask:(week,id)=>call("programDeleteTask",week,id)
   });
-  const heading=element("header","rb-program-heading"),weekSummary=element("div","rb-program-week-summary");heading.append(element("h1","","Programım"),element("span","rb-v4-heading-badge","✦ 4.0"),element("p","","Planla, çalış, takip et. Hedefine adım adım ilerle."),weekSummary);
+  const heading=element("header","rb-program-heading"),weekSummary=element("div","rb-program-week-summary");heading.append(element("h1","","Programım"),weekSummary);
   const tabs=element("div","rb-program-tabs");tabs.setAttribute("role","group");tabs.setAttribute("aria-label","Program görünümü");
   const daily=button("Günlük Plan"),weekly=button("Haftalık Bakış"),smart=button("Akıllı Plan");tabs.append(daily,weekly,smart);
   const weekNav=element("div","rb-program-weeknav"),previous=button("‹"),next=button("›"),weekLabel=element("span"),today=button("Bugün","rb-program-today");
-  previous.setAttribute("aria-label","Önceki hafta");next.setAttribute("aria-label","Sonraki hafta");weekNav.append(previous,weekLabel,today,next);
+  previous.setAttribute("aria-label","Önceki hafta");next.setAttribute("aria-label","Sonraki hafta");weekNav.append(previous,weekLabel,next,today);
   const strip=element("div","rb-program-weekstrip");strip.setAttribute("role","group");strip.setAttribute("aria-label","Program günü");
   const dayButtons=SHORT_DAYS.map((label,index)=>{
     const node=button(""),name=element("span","",label),number=element("b"),marker=element("i");marker.setAttribute("aria-hidden","true");
     node.append(name,number,marker);node.addEventListener("click",()=>{controller.selectDay(index);if(controller.snapshot().view!=="day")controller.setView("day");refresh();});strip.append(node);return {node,number,marker};
   });
+  const weekCard=element("div","rb-program-weekcard");weekCard.append(weekNav,strip);
   const dailyPanel=element("section","rb-program-day");dailyPanel.id="refinedProgramDay";dailyPanel.setAttribute("aria-label","Günlük çalışmalar");
   const editor=element("div","rb-program-editor");editor.hidden=true;editor.setAttribute("role","dialog");editor.setAttribute("aria-modal","true");editor.setAttribute("aria-labelledby","rbProgramEditorTitle");
   const editorForm=element("form","rb-program-editor-card"),editorHead=element("div","rb-program-editor-head"),editorTitle=element("h2","","Çalışmayı düzenle"),editorClose=button("×","rb-program-editor-close"),editorLabel=element("label","rb-program-editor-label","Çalışma"),editorInput=element("textarea","rb-program-editor-input"),editorHint=element("p","rb-program-editor-hint"),editorActions=element("div","rb-program-editor-actions"),editorDelete=button("Sil","rb-program-editor-delete"),editorCancel=button("Vazgeç"),editorSave=button("Kaydet","rb-program-editor-save");
@@ -420,11 +428,12 @@ export function installRefinedProgram():ProgramApi{
   const dailyHero=element("div","rb-v4-day-progress"),dailyRing=element("div","rb-v4-ring"),dailyPercent=element("strong","", "0%");
   const dailyHeroCopy=element("div","rb-v4-progress-copy"),dailyHeroCount=element("span"),dailyHeroBar=element("div","rb-v4-progress-bar"),dailyHeroBarFill=element("i");
   dailyRing.append(dailyPercent);dailyHeroBar.append(dailyHeroBarFill);
-  dailyHeroCopy.append(element("strong","","Seçili Günün İlerlemesi"),dailyHeroCount,dailyHeroBar);
+  const dailyHeroHead=element("div","rb-v72-day-head");
+  dailyHeroBar.setAttribute("role","progressbar");dailyHeroBar.setAttribute("aria-label","Seçili günün ilerlemesi");dailyHeroBar.setAttribute("aria-valuemin","0");dailyHeroBar.setAttribute("aria-valuemax","100");
   const dailyHeroCaption=element("div","rb-v4-progress-caption");
-  dailyHero.append(dailyRing,dailyHeroCopy,dailyHeroCaption);
-  const dailyTasksHeading=element("div","rb-v4-day-heading");dailyTasksHeading.append(element("span","","☀"),element("h3","","Bugünün Planı"));progress.max=100;progress.setAttribute("aria-label","Günlük görev tamamlama");completion.append(count,progress);summary.append(dayLabel,completion);
-  const list=element("div","rb-program-tasks");dailyPanel.append(summary,dailyHero,dailyTasksHeading,list);
+  dailyHero.append(dailyHeroCopy,dailyHeroCaption);
+  const dailyTasksHeading=element("div","rb-v4-day-heading");dailyTasksHeading.append(element("span","","☀"),element("h3","","Bugünün Planı"));progress.max=100;progress.setAttribute("aria-label","Günlük görev tamamlama");completion.append(count,progress);dailyHeroHead.append(dayLabel,dailyHeroCount);dailyHeroCopy.append(dailyHeroHead,dailyHeroBar);
+  const list=element("div","rb-program-tasks");dailyPanel.append(dailyHero,dailyTasksHeading,list);
   const actions=element("div","rb-program-actions"),toolbar=element("div","rb-program-toolbar"),add=button("","rb-program-add"),share=button("","rb-program-share"),shareStatus=element("p","rb-program-share-status");
   add.append(icon("plus"),document.createTextNode("Çalışma ekle"));add.setAttribute("aria-controls","refinedProgramAdd");add.setAttribute("aria-expanded","false");
   share.append(icon("share"),document.createTextNode("Koçla paylaş"));share.dataset.coachShareNow="";shareStatus.dataset.coachShareStatus="";shareStatus.setAttribute("role","status");
@@ -455,7 +464,7 @@ export function installRefinedProgram():ProgramApi{
   const draftButtons=SHORT_DAYS.map((label,index)=>{const node=button(label);node.setAttribute("aria-label",FULL_DAYS[index]!);node.addEventListener("click",()=>{if(draftDays.has(index))draftDays.delete(index);else draftDays.add(index);updatePreview();});dayOptions.append(node);return node;});
   for(const [label,days] of [["Seçili gün",null],["Hafta içi",[0,1,2,3,4]],["Her gün",[0,1,2,3,4,5,6]]] as const){const node=button(label);node.addEventListener("click",()=>{draftDays=new Set(days??[controller.snapshot().day]);updatePreview();});dayShortcuts.append(node);}
   daysField.append(element("legend","","Hangi günlere eklensin?"),dayOptions,dayShortcuts);preview.append(previewText,previewDays);form.append(formTabs,builder,custom,resourceField,daysField,preview,hint,formActions);
-  toolbar.append(tabs,add);actions.append(share,shareStatus);root.append(heading,toolbar,weekNav,strip,form,feedback,dailyPanel,weeklyPanel,smartPanel,actions,detailDialog,editor);
+  toolbar.append(tabs,add);actions.append(share,shareStatus);root.append(heading,toolbar,weekCard,form,feedback,dailyPanel,weeklyPanel,smartPanel,actions,detailDialog,editor);
   let destroyed=false,queued=false;
   // UI-only fold state, scoped by exact date and subject; never touches S.weeks or Firestore.
   const collapsedDailyGroups=new Set<string>();
@@ -478,8 +487,8 @@ export function installRefinedProgram():ProgramApi{
     screen.dataset.refinedProgram=state.view;daily.setAttribute("aria-pressed",String(isDaily));weekly.setAttribute("aria-pressed",String(state.view==="week"));smart.setAttribute("aria-pressed",String(state.view==="smart"));
     daily.setAttribute("aria-controls",dailyPanel.id);weekly.setAttribute("aria-controls",weeklyPanel.id);smart.setAttribute("aria-controls",smartPanel.id);dailyPanel.hidden=!isDaily;weeklyPanel.hidden=state.view!=="week";smartPanel.hidden=state.view!=="smart";legacyPanel.hidden=true;
     const total=state.days.reduce((sum,item)=>sum+item.count,0),completed=state.days.reduce((sum,item)=>sum+item.done,0);
-    weekSummary.textContent=`Haftalık plan · ${total} çalışma · ${completed} tamamlandı`;
-    weekLabel.textContent=start&&end?`${start.toLocaleDateString("tr-TR",{day:"numeric",month:"short"})} – ${end.toLocaleDateString("tr-TR",{day:"numeric",month:"short",year:"numeric"})}`:"";
+    weekSummary.textContent=total?`Bu hafta ${total} çalışma · ${completed} tamamlandı`:"Bu hafta henüz çalışma yok";
+    weekLabel.textContent=start&&end?`${start.toLocaleDateString("tr-TR",{day:"numeric",month:"short"})} – ${end.toLocaleDateString("tr-TR",end.getFullYear()===new Date().getFullYear()?{day:"numeric",month:"short"}:{day:"numeric",month:"short",year:"numeric"})}`:"";
     const todayKey=dateKey(new Date());
     state.days.forEach((day,index)=>{
       const item=dayButtons[index];if(!item)return;item.number.textContent=day.date.slice(-2);item.node.setAttribute("aria-pressed",String(index===state.day));item.node.setAttribute("aria-label",`${FULL_DAYS[index]}, ${day.date}, ${day.done}/${day.count} tamamlandı`);
@@ -488,16 +497,16 @@ export function installRefinedProgram():ProgramApi{
     dayLabel.textContent=selected?selected.toLocaleDateString("tr-TR",{weekday:"long",day:"numeric",month:"long"}):"Benim programım";
     const done=state.tasks.filter(task=>task.done).length;count.textContent=`${done}/${state.tasks.length} tamamlandı`;progress.value=state.tasks.length?done/state.tasks.length*100:0;
     dailyPercent.textContent=Math.round(Number(progress.value))+"%";dailyRing.style.setProperty("--rb-v4-percent",String(progress.value));
-    dailyHeroCount.textContent=`${done} / ${state.tasks.length} görev tamamlandı`;dailyHeroBarFill.style.width=String(progress.value)+"%";
+    dailyHeroCount.textContent=state.tasks.length?`${done}/${state.tasks.length}`:"";dailyHeroBarFill.style.width=String(progress.value)+"%";dailyHeroBar.setAttribute("aria-valuenow",String(Math.round(Number(progress.value))));
     const remaining=state.tasks.length-done;
     dailyHero.toggleAttribute("data-complete",state.tasks.length>0&&remaining===0);
-    dailyHeroCaption.textContent=!state.tasks.length?"Seçili gün için henüz bir görev yok.":remaining===0?"✓ Seçili günün bütün görevleri tamamlandı.":`${remaining} görev kaldı. Tamamladıkça ilerlemen güncellenir.`;
+    dailyHeroCaption.textContent=!state.tasks.length?"Bu gün için henüz görev yok.":remaining===0?"✓ Hepsi tamam":`${remaining} görev kaldı`;
     const focused=document.activeElement instanceof HTMLElement?document.activeElement.dataset.rbProgramFocus:undefined;
     list.replaceChildren();
     if(!state.tasks.length){const empty=element("div","rb-program-empty");empty.append(element("strong","","Bu günün planı henüz boş"),element("p","","Çalışma ekle’ye dokun; dersini ve konunu seç. Aynı çalışmayı birden fazla güne de ekleyebilirsin."));list.append(empty);}
     for(const group of refinedProgramDailyGroups(state.tasks)){
       const section=element("section","rb-v4-subject-section");
-      section.dataset.v4Group=group.key;
+      section.dataset.v4Group=group.key;section.dataset.v4Tone=refinedProgramGroupTone(group.key);
       const status=refinedProgramDailyGroupProgress(group),groupId=state.date+"|"+group.key;
       const folded=collapsedDailyGroups.has(groupId);
       section.toggleAttribute("data-complete",status.total>0&&status.done===status.total);
@@ -505,7 +514,8 @@ export function installRefinedProgram():ProgramApi{
       groupHeading.setAttribute("aria-label",group.title+": "+status.done+"/"+status.total+" tamamlandı, "+(folded?"genişlet":"daralt"));
       groupHeading.setAttribute("aria-expanded",String(!folded));
       const groupName=element("div","rb-v4-subject-heading-title");
-      groupName.append(element("strong","",group.title),element("small","",status.done+"/"+status.total+" tamamlandı"));
+      const groupDone=status.total>0&&status.done===status.total;
+      groupName.append(element("strong","",group.title),element("small","",(groupDone?"✓ ":"")+status.done+"/"+status.total));
       const groupProgress=element("div","rb-v4-subject-progress"),progressFill=element("i");
       progressFill.style.width=status.percent+"%";
       groupProgress.setAttribute("aria-hidden","true");
@@ -529,15 +539,13 @@ export function installRefinedProgram():ProgramApi{
       for(const task of group.tasks){
       const card=element("article","rb-program-task");card.toggleAttribute("data-done",task.done);card.dataset.taskId=task.id;
       const label=refinedProgramSubjectLabel(task.text,task.label);
-      card.dataset.v4Tone=group.key;
+      card.dataset.v4Tone=refinedProgramGroupTone(group.key);
       const check=button("","rb-program-check"),details=button("","rb-program-task-details"),copy=element("span","rb-program-task-copy"),openMark=element("span","rb-program-task-open","›");
       check.dataset.rbProgramFocus=task.id;
-      const subjectIcon=refinedProgramSubjectIcon(group.key);
       check.setAttribute("aria-pressed",String(task.done));check.setAttribute("aria-label",`${task.text}: ${task.done?"tamamlanmadı olarak işaretle":"tamamla"}`);if(task.done)check.append(icon("check"));
       const extras=refinedProgramSplitExtras(task.text),info=refinedProgramTaskDetail(extras.work,task.label);
       const meta=info.meta===task.label?"":info.meta;
       copy.append(element("strong","",label),element("small","",meta||"Çalışma detaylarını görüntüle"));
-      if(task.done)copy.append(element("span","rb-v4-task-done","✓ Tamamlandı"));
       const resourceBadge=element("span","rb-program-task-resource",info.url?"▶ Video / kaynak":"Detayı aç");
       details.setAttribute("aria-label",`${label} çalışma detayını aç`);details.append(copy,resourceBadge,openMark);
       check.addEventListener("click",()=>{controller.toggleTask(task.id);refresh();});
@@ -550,6 +558,7 @@ export function installRefinedProgram():ProgramApi{
       videoChip.setAttribute("aria-label",watchedAt?`${label} videosu ${clockOf(watchedAt)}’da açıldı; detayı aç`:`${label} video veya kaynak seçenekleri`);
       noteChip.setAttribute("aria-label",`${label} notunu düzenle`);
       materialChip.setAttribute("aria-label",`${label} materyalini aç veya ekle`);
+      videoChip.classList.toggle("rb-v4-chip-has",Boolean(info.url));noteChip.classList.toggle("rb-v4-chip-has",Boolean(extras.note));materialChip.classList.toggle("rb-v4-chip-has",Boolean(extras.material));
       videoChip.addEventListener("click",()=>openDetail(task,state.week));
       noteChip.addEventListener("click",()=>openEditor(task,state.week,"note"));
       materialChip.addEventListener("click",()=>{
@@ -558,7 +567,7 @@ export function installRefinedProgram():ProgramApi{
         }else openEditor(task,state.week,"material");
       });
       chips.append(videoChip,noteChip,materialChip);
-      card.append(check,subjectIcon,details,chips);cards.append(card);
+      card.append(check,details,chips);cards.append(card);
       }
     }
     // Checkbox remains keyboard-focusable after the legacy save triggers a full refresh.
@@ -570,41 +579,21 @@ export function installRefinedProgram():ProgramApi{
     const weekGroups=refinedProgramWeeklyGroups(weekTasks);
     const weekStats=refinedProgramWeeklyCompletion(weekTasks);
     weeklyPanel.replaceChildren();
-    const hero=element("div","rb-v5-week-hero"),heroCopy=element("div","rb-v5-week-hero-copy");
-    heroCopy.append(element("span","rb-v5-eyebrow","HAFTALIK PROGRAM"),element("h2","","Haftana bir bakış"),
-      element("p","","Hangi gün ne çalışacağını gör, eksiklerini takip et ve çalışmanın adına dokunarak düzenle."));
-    const score=element("div","rb-v5-week-score"),scoreNumber=element("strong","",weekStats.percent+"%");
-    const scoreBar=element("div","rb-v5-week-score-bar"),scoreFill=element("i");
-    scoreFill.style.width=weekStats.percent+"%";scoreBar.append(scoreFill);
-    score.append(scoreNumber,element("span","","Tamamlama oranı"),scoreBar);hero.append(heroCopy,score);
-    const statsRow=element("div","rb-v5-week-stats");
-    for(const [value,label,kind] of [
-      [String(weekStats.total),"Toplam çalışma","total"],
-      [String(weekStats.done),"Tamamlanan","done"],
-      [String(weekStats.pending),"Bekleyen","pending"],
-      [String(weekGroups.length),"Planlı ders grubu","subjects"]
-    ]){
-      const cell=element("div","rb-v5-stat");cell.dataset.kind=kind;
-      cell.append(element("strong","",value),element("small","",label));statsRow.append(cell);
-    }
-    const dayStrip=element("div","rb-v5-week-days");dayStrip.setAttribute("aria-label","Haftanın günlerine göre ilerleme");
+    const weekHead=element("div","rb-v72-week-summary"),weekBar=element("div","rb-v72-week-bar"),weekFill=element("i");
+    weekFill.style.width=weekStats.percent+"%";weekBar.append(weekFill);
+    weekBar.setAttribute("role","progressbar");weekBar.setAttribute("aria-label","Haftalık ilerleme");weekBar.setAttribute("aria-valuenow",String(weekStats.percent));
+    weekHead.append(element("span","",weekStats.total?`Bu hafta ${weekStats.done}/${weekStats.total} tamamlandı`:"Bu hafta henüz çalışma yok"),element("strong","","%"+weekStats.percent),weekBar);
     const openDay=(dayIndex:number)=>{
       controller.selectDay(dayIndex);controller.setView("day");refresh();
       dayButtons[dayIndex]?.node.focus({preventScroll:true});
     };
-    state.days.forEach((day,index)=>{
-      const dayButton=button("","rb-v5-week-day"),bar=element("div","rb-v5-week-day-bar"),fill=element("i");
-      dayButton.dataset.v5Day=day.date;
-      dayButton.toggleAttribute("data-today",day.date===todayKey);
-      dayButton.toggleAttribute("data-complete",day.count>0&&day.done===day.count);
-      const fraction=day.count?day.done/day.count:0;
-      fill.style.width=Math.round(fraction*100)+"%";bar.append(fill);
-      dayButton.append(element("span","",SHORT_DAYS[index]!),element("strong","",day.date.slice(-2)),
-        element("small","",day.count?day.done+"/"+day.count:"Plan yok"),bar);
-      dayButton.setAttribute("aria-label",FULL_DAYS[index]+", "+day.date+", "+day.done+"/"+day.count+" tamamlandı; günlük planı aç");
-      dayButton.addEventListener("click",()=>openDay(index));dayStrip.append(dayButton);
-    });
-    weeklyPanel.append(hero,statsRow,dayStrip);
+    // Boş güne "＋ Ekle": o gün seçilir ve ekleme formu o gün için açılır.
+    const addForDay=(dayIndex:number)=>{
+      controller.selectDay(dayIndex);refresh();
+      if(form.hidden)add.click();else{draftWeek=state.week;draftDays=new Set([dayIndex]);updatePreview();}
+      form.scrollIntoView({block:"start",behavior:"smooth"});
+    };
+    weeklyPanel.append(weekHead);
     if(!weekGroups.length){
       const empty=element("div","rb-program-week-empty");
       empty.append(element("strong","","Bu hafta henüz çalışma eklenmemiş."),
@@ -613,9 +602,6 @@ export function installRefinedProgram():ProgramApi{
       emptyButton.addEventListener("click",()=>add.click());empty.append(emptyButton);
       weeklyPanel.append(empty);
     }else{
-      const desktopHeading=element("div","rb-v5-week-section-heading");
-      desktopHeading.append(element("h3","","Derslere göre haftalık takvim"),
-        element("p","","Ders adları ve renkleri Günlük Plan ile aynı. Çalışma metnine dokunarak düzenleyebilirsin."));
       const calendar=element("div","rb-program-calendar rb-v5-week-desktop");
       calendar.setAttribute("role","region");calendar.setAttribute("aria-label","Haftalık ders tablosu; sağa kaydırılabilir");
       calendar.tabIndex=0;
@@ -633,7 +619,7 @@ export function installRefinedProgram():ProgramApi{
       // The week matrix reuses the same categorization and ordering as the daily view.
       for(const group of weekGroups){
         const row=element("div","rb-program-calendar-row rb-program-subject-row rb-v5-subject-row");
-        row.dataset.v4Group=group.key;
+        row.dataset.v4Group=group.key;row.dataset.v4Tone=refinedProgramGroupTone(group.key);
         const subjectCell=element("div","rb-program-subject-cell rb-v5-subject-cell");
         const info=element("div","rb-v5-week-subject-info"),progress=element("div","rb-v5-week-subject-progress"),fill=element("i");
         fill.style.width=Math.round(group.done/group.total*100)+"%";progress.append(fill);
@@ -668,28 +654,25 @@ export function installRefinedProgram():ProgramApi{
         });
         calendar.append(row);
       }
-      const mobileHeading=element("div","rb-v5-week-section-heading rb-v5-mobile-only");
-      mobileHeading.append(element("h3","","Gün gün haftalık plan"),element("p","","Çalışmaları görmek için kaydırmana gerek yok. Düzenlemek için çalışma metnine dokun."));
       const mobileDays=element("div","rb-v5-week-mobile");
       state.days.forEach((day,index)=>{
         const dayCard=element("section","rb-v5-mobile-day");
         dayCard.toggleAttribute("data-today",day.date===todayKey);
         const dayHeader=element("div","rb-v5-mobile-day-heading");
         const dateInfo=element("div","rb-v5-mobile-date");
-        dateInfo.append(element("strong","",FULL_DAYS[index]+" · "+day.date.slice(-2)),
-          element("small","",day.count?day.done+"/"+day.count+" tamamlandı":"Bu gün için çalışma yok"));
-        const go=button("Günü aç →","rb-v5-mobile-open");
-        go.setAttribute("aria-label",FULL_DAYS[index]+" günlük planını aç");
-        go.addEventListener("click",()=>openDay(index));
+        dateInfo.append(element("strong","",SHORT_DAYS[index]+" "+day.date.slice(-2)),
+          element("small","",day.count?day.done+"/"+day.count+" tamamlandı":"plan yok"));
+        const go=button(day.count?"Günü aç ›":"＋ Ekle","rb-v5-mobile-open");
+        go.setAttribute("aria-label",day.count?FULL_DAYS[index]+" günlük planını aç":FULL_DAYS[index]+" gününe çalışma ekle");
+        go.addEventListener("click",()=>day.count?openDay(index):addForDay(index));
+        dayCard.toggleAttribute("data-empty",!day.count);
         dayHeader.append(dateInfo,go);
         dayCard.append(dayHeader);
         const todayGroups=refinedProgramDailyGroups(weekTasks[index]||[]);
-        if(!todayGroups.length){
-          dayCard.append(element("p","rb-v5-mobile-empty","Bu gün boş. İstersen çalışma ekleyebilirsin."));
-        }else{
+        if(todayGroups.length){
           for(const group of todayGroups){
             const section=element("div","rb-v5-mobile-group");
-            section.dataset.v4Group=group.key;
+            section.dataset.v4Group=group.key;section.dataset.v4Tone=refinedProgramGroupTone(group.key);
             const groupHeader=element("div","rb-v5-mobile-group-title");
             groupHeader.append(refinedProgramSubjectIcon(group.key),
               element("strong","",group.title),element("small","",group.tasks.filter(task=>task.done).length+"/"+group.tasks.length));
@@ -711,7 +694,7 @@ export function installRefinedProgram():ProgramApi{
         }
         mobileDays.append(dayCard);
       });
-      weeklyPanel.append(desktopHeading,calendar,mobileHeading,mobileDays);
+      weeklyPanel.append(calendar,mobileDays);
     }
     if(state.view==="smart"){
       const rawState=object((window as unknown as ProgramWindow).S||window.YKSLegacyState?.readState?.());

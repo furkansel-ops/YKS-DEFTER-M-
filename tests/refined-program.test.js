@@ -7,7 +7,7 @@ const {loadTaskText}=require("./task-text-fixture");
 const {stripTypeScriptTypes}=require("node:module");
 const root=path.resolve(__dirname,"..");
 const source=fs.readFileSync(path.join(root,"src/ui/refined-program.ts"),"utf8");
-const runtime=stripTypeScriptTypes(source.replace(/^import "\.\/refined-program\.css";\r?\n/,"").replace(/^import "\.\/refined-program-v4\.css";\r?\n/,"").replace(/^import \{renderSmartProgram\} from "\.\/smart-program";\r?\n/,""),{mode:"strip"}).replace(/^export /gm,"");
+const runtime=stripTypeScriptTypes(source.replace(/^import "\.\/refined-program\.css";\r?\n/,"").replace(/^import "\.\/refined-program-v4\.css";\r?\n/,"").replace(/^import "\.\/refined-program-v72\.css";\r?\n/,"").replace(/^import \{renderSmartProgram\} from "\.\/smart-program";\r?\n/,""),{mode:"strip"}).replace(/^export /gm,"");
 const api=vm.runInNewContext(runtime+"\n({refinedProgramTasks,refinedProgramWeekOffset,refinedProgramQuickText,refinedProgramResourceUrl,refinedProgramTaskDetail,refinedProgramSubjectLabel,createRefinedProgramController})",{Date,URL,YKSTaskText:loadTaskText()});
 const plain=value=>JSON.parse(JSON.stringify(value));
 const rows=()=>[Array(7).fill(""),Array(7).fill("")];
@@ -174,7 +174,7 @@ test("program opens in the approved daily view and keeps weekly subject grouping
   assert.equal(api.refinedProgramSubjectLabel("X".repeat(60),"Rutin"),"Rutin");
   assert.match(source,/rb-program-calendar-row/);
   assert.match(source,/rb-program-subject-row/);
-  assert.match(source,/Derslere göre haftalık takvim/);
+  assert.match(source,/Haftalık ders tablosu; sağa kaydırılabilir/);
   assert.match(source,/refinedProgramWeeklyGroups\(weekTasks\)/);
 });
 
@@ -185,7 +185,7 @@ test("linked studies keep the weekly calendar clean and use the shared detail sh
   assert.doesNotMatch(source,/rb-program-calendar-resource/);
   assert.doesNotMatch(source,/rb-program-calendar-task-shell/);
   assert.doesNotMatch(source,/rb-program-resource"/);
-  assert.match(source,/Çalışma metnine dokunarak düzenleyebilirsin/);
+  assert.match(source,/group\.title\+": "\+info\.display\+" düzenle"/);
 });
 
 

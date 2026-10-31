@@ -10,7 +10,7 @@ const source=fs.readFileSync(path.join(root,"src/ui/refined-program.ts"),"utf8")
 const css=fs.readFileSync(path.join(root,"src/ui/refined-program-v4.css"),"utf8");
 const runtime=stripTypeScriptTypes(source
   .replace(/^import "\.\/refined-program\.css";\r?\n/,"")
-  .replace(/^import "\.\/refined-program-v4\.css";\r?\n/,"")
+  .replace(/^import "\.\/refined-program-v4\.css";\r?\n/,"").replace(/^import "\.\/refined-program-v72\.css";\r?\n/,"")
   .replace(/^import \{renderSmartProgram\} from "\.\/smart-program";\r?\n/,""),{mode:"strip"}).replace(/^export /gm,"");
 const api=vm.runInNewContext(runtime+"\n({refinedProgramSplitExtras,refinedProgramJoinExtras,refinedProgramTaskDetail,refinedProgramVisualTone,refinedProgramVisualIcon})",{Date,URL,YKSTaskText:loadTaskText()});
 const plain=x=>JSON.parse(JSON.stringify(x));
@@ -22,8 +22,8 @@ test("student planner actually replaces the main daily view, not only the smart 
   assert.match(source,/button\("Günlük Plan"\)/);
   assert.match(source,/button\("Haftalık Bakış"\)/);
   assert.match(source,/rb-v4-day-progress/);
-  assert.match(source,/dailyPanel\.append\(summary,dailyHero,dailyTasksHeading,list\)/);
-  assert.match(source,/card\.append\(check,subjectIcon,details,chips\)/);
+  assert.match(source,/dailyPanel\.append\(dailyHero,dailyTasksHeading,list\)/);
+  assert.match(source,/card\.append\(check,details,chips\)/);
   assert.match(css,/\.rb-v4-ring/);
   assert.match(css,/\.rb-v4-task-chips/);
   assert.match(css,/\.rb-program-weekstrip/);
@@ -72,9 +72,10 @@ test("subject cards use stable subject-specific accents and actions are not deco
 });
 
 test("completed task states are visible in daily cards and progress only celebrates nonempty fully completed days",()=>{
-  assert.match(source,/if\(task\.done\)copy\.append\(element\("span","rb-v4-task-done","✓ Tamamlandı"\)\)/);
+  assert.doesNotMatch(source,/rb-v4-task-done","✓ Tamamlandı"/,"tamamlanan görev üstü çizili; ayrıca etiket yok");
+  assert.match(fs.readFileSync(path.join(root,"src/ui/refined-program-v72.css"),"utf8"),/\.rb-program-task\[data-done\] \.rb-program-task-copy>strong\{\s*color:var\(--d-muted\);text-decoration:line-through/);
   assert.match(source,/dailyHero\.toggleAttribute\("data-complete",state\.tasks\.length>0&&remaining===0\)/);
-  assert.match(source,/remaining===0\?"✓ Seçili günün bütün görevleri tamamlandı\."/);
+  assert.match(source,/remaining===0\?"✓ Hepsi tamam":`\$\{remaining\} görev kaldı`/);
   assert.match(css,/\.rb-v4-task-done\{/);
   assert.match(css,/\.rb-program-task\[data-done\]/);
   assert.match(css,/\.rb-v4-day-progress\[data-complete\]/);
