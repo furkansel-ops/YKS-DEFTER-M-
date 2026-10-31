@@ -1,0 +1,67 @@
+/* Odak v70 · var olan ekran, daha düzenli. Renkler yalnız tema değişkenlerinden; koyu temada da aynı. */
+
+/* 5 · 7 — başlık satırı: Odaklan + Minimal, altında bugünkü toplam */
+#pomo .v70-head{min-width:0}
+#pomo .v70-head-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+#pomo .v70-head-row .rb-secondary-title{margin:0!important}
+#pomo .v70-minimal{flex:0 0 auto;min-height:36px!important;padding:6px 12px!important;border-radius:11px!important;font-size:12px!important}
+#pomo .v70-today{margin:4px 0 14px;color:var(--rb-muted,var(--label-2));font-size:13px;font-weight:650}
+
+/* 1 — tek sütunlu düzende "Ne çalışıyorsun?" kartı sayacın üstünde (980px+ iki sütun aynen kalır) */
+@media(max-width:979px){
+  :root[data-visual-system] #mainWrap #pomo .desktop-focus-workspace>.desktop-focus-side.v70-setup-side,
+  #pomo .desktop-focus-workspace>.desktop-focus-side.v70-setup-side{order:-2}
+}
+
+/* 2 — süre: 15 · 25 · 45 · 60 · Özel tek sırada; ayrıntılar Özel açılınca */
+#pomo #quickWrap.v70-quick{display:flex;flex-direction:column}
+#pomo #quickWrap.v70-quick>.v70-quickrow{order:1;display:flex;gap:6px;min-width:0}
+#pomo #quickWrap.v70-quick #quickMins{display:flex!important;flex:4 1 0;gap:6px;min-width:0;margin:0!important;grid-template-columns:none!important}
+#pomo #quickWrap.v70-quick #quickMins .qbtn,#pomo #quickWrap.v70-quick .v70-custom-btn{flex:1 1 0;min-width:0;height:40px;padding:0;border-radius:999px}
+#pomo #quickWrap.v70-quick .v70-custom-btn{flex:1.15 1 0}
+#pomo #quickWrap.v70-quick>.quickhead{order:2;margin-top:12px}
+#pomo #quickWrap.v70-quick>.focus-custom-time{order:3}
+#pomo #quickWrap.v70-quick>#focusCustomStatus{order:4}
+#pomo #quickWrap.v70-quick:not(.v70-custom-open)>:is(.quickhead,.focus-custom-time,#focusCustomStatus){display:none!important}
+
+/* 3 — çalışma evresi uygulamanın mavisiyle (mola evresi kendi renginde kalır) */
+#pomo #focusCard[data-phase="work"]{--phase:var(--rb-accent,var(--accent))}
+#pomo #focusCard[data-phase="work"] .playbtn{background:var(--rb-accent,var(--accent));color:var(--rb-on-accent,#fff)}
+#pomo #focusCard[data-phase="work"] .rprog{stroke:var(--rb-accent,var(--accent))}
+#pomo #focusCard[data-phase="work"] .rdot{fill:var(--rb-accent,var(--accent))}
+
+/* 4 — bildirimden kontrol, Odak ayarlarının başında */
+#fb_odakayar .v70-notify{display:grid;justify-items:start;gap:6px;margin:0 0 12px;padding:10px 12px;border-radius:14px;background:var(--rb-surface-alt,var(--fill))}
+#fb_odakayar .v70-notify .hint{margin:0}
+
+/* 6 — araçlar: kapalı kutu yerine açık liste; her satır kendi bölümünü açar */
+#pomo #refinedFocusDetails[data-v70="list"]{margin-top:14px;padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important}
+#pomo #refinedFocusDetails[data-v70="list"]>summary{display:none}
+#pomo .v70-tools{display:grid;border:1px solid var(--rb-line,var(--sep));border-radius:18px;overflow:hidden;background:var(--rb-surface,var(--glass))}
+#pomo .v70-tool{border-top:1px solid var(--rb-line,var(--sep))}
+#pomo .v70-tool:first-child{border-top:0}
+#pomo .v70-tool>summary{display:flex;align-items:center;gap:12px;min-height:58px;padding:9px 14px;list-style:none;cursor:pointer}
+#pomo .v70-tool>summary::-webkit-details-marker{display:none}
+#pomo .v70-ic{width:34px;height:34px;flex:none;display:grid;place-items:center;border-radius:11px;background:var(--rb-accent-soft,var(--accent-soft,var(--fill)));color:var(--rb-accent,var(--accent));font-size:15px;font-weight:800}
+#pomo .v70-tool-copy{flex:1;min-width:0}
+#pomo .v70-tool-copy b{display:block;font-size:14px;font-weight:760;color:var(--rb-ink,var(--label))}
+#pomo .v70-tool-copy small{display:block;margin-top:1px;font-size:12px;color:var(--rb-muted,var(--label-2))}
+#pomo .v70-chev{color:var(--rb-muted,var(--label-2));font-size:20px;line-height:1}
+#pomo .v70-tool[open]>summary .v70-chev{transform:rotate(90deg)}
+#pomo .v70-tool-body{display:grid;gap:10px;min-width:0;padding:2px 14px 14px}
+#pomo .v70-tool-body>.foldhead{display:none!important}
+#pomo .v70-tool-body>h2:first-child{display:none}
+#pomo .v70-tool-body>h2{margin:8px 0 0;font-size:13px}
+#pomo .v70-tool>summary:focus-visible{outline:2px solid var(--rb-accent,var(--accent));outline-offset:-2px}
+
+/* 8 — çalışırken sade: süre ayarları gizli, soru sayacı görünür (yalnız çalışma evresinde) */
+#pomo #focusCard[data-run="running"] #quickWrap{display:none!important}
+#pomo .v70-questions{display:none;align-items:center;justify-content:space-between;gap:10px;margin-top:12px;padding:10px 12px;border-radius:16px;background:var(--rb-surface-alt,var(--fill))}
+#pomo #focusCard[data-phase="work"]:is([data-run="running"],[data-run="paused"]) .v70-questions{display:flex}
+#pomo .v70-q-copy b{display:block;font-size:13.5px;color:var(--rb-ink,var(--label))}
+#pomo .v70-q-copy small{display:block;font-size:12px;color:var(--rb-muted,var(--label-2))}
+#pomo .v70-q-ctrls{display:flex;align-items:center;gap:6px}
+#pomo .v70-q-btn{width:42px;height:42px;border-radius:12px;border:1px solid var(--rb-line,var(--sep));background:var(--rb-surface,var(--glass));color:var(--rb-ink,var(--label));font:inherit;font-size:18px;font-weight:800;cursor:pointer}
+#pomo .v70-q-out{min-width:30px;text-align:center;font-size:18px;font-weight:850;color:var(--rb-ink,var(--label));font-variant-numeric:tabular-nums}
+#pomo .v70-q-btn:focus-visible,#pomo .v70-custom-btn:focus-visible{outline:2px solid var(--rb-accent,var(--accent));outline-offset:2px}
+@media(prefers-reduced-motion:no-preference){#pomo .v70-chev{transition:transform .15s}}
