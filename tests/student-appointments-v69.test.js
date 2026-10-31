@@ -30,7 +30,7 @@ const allDays=(start,end)=>Object.fromEntries(["0","1","2","3","4","5","6"].map(
 
 test("v69 randevu modülü hesap yükleyicisinde koç bağlantısından sonra, girişten önce yüklenir ve isteğe bağlıdır",()=>{
   const loader=read("src/ui/student-account-loader.ts");
-  const link=loader.indexOf("student-coach-link.js?v=1.3.1"),appts=loader.indexOf("student-appointments.js?v=1.3.1"),authAt=loader.indexOf("auth-session-runtime.js");
+  const link=loader.indexOf("student-coach-link.js?v=1.4.0"),appts=loader.indexOf("student-appointments.js?v=1.3.1"),authAt=loader.indexOf("auth-session-runtime.js");
   assert.ok(link>0&&appts>link&&authAt>appts,"sıra: koç bağlantısı → randevular → oturum");
   assert.match(loader,/await loadModuleScript\(STUDENT_APPOINTMENTS_ID,"\.\/student-appointments\.js\?v=1\.3\.1"\);\n/,"başarısızlık yükleyiciyi durdurmaz");
   assert.match(loader,/STUDENT_APPOINTMENTS_ID="studentAppointmentsScript"/,"betik kimliği ekrandaki bölümle çakışmaz");

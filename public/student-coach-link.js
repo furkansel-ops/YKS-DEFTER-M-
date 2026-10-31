@@ -1,4 +1,4 @@
-import{addDoc,collection,doc,getDoc,getDocs,onSnapshot,query,where,runTransaction,serverTimestamp,updateDoc}from"https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
+import{addDoc,collection,doc,getDoc,getDocs,onSnapshot,query,where,runTransaction,serverTimestamp,setDoc,updateDoc}from"https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
 
 const CODE_LENGTH=12;
 const CODE_RE=/^[A-Z2-9]{12}$/;
@@ -7,7 +7,7 @@ const ACCESS_COLLECTION="studentCoachAccess";
 const CODE_COLLECTION="studentCoachCodes";
 const LINK_COLLECTION="coachingLinks";
 const PROFILE_COLLECTION="accountProfiles";
-const state={user:null,db:null,profile:null,sharing:false,messageStop:null,activeCoachUid:"",observer:null};
+const state={user:null,db:null,profile:null,sharing:false,messageStop:null,activeCoachUid:"",observer:null,messages:[],reads:new Map(),readStop:null,readPending:0,readObserver:null,readChat:null,chatInView:false};
 const text=(value,max=160)=>String(value??"").trim().slice(0,max);
 const esc=value=>String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[char]));
 const normalizeCode=value=>String(value??"").toUpperCase().replace(/[^A-Z2-9]/g,"").slice(0,CODE_LENGTH);
@@ -21,7 +21,7 @@ function randomCode(){
 function styles(){
   if(document.getElementById("studentCoachLinkStyles"))return;
   const style=document.createElement("style");style.id="studentCoachLinkStyles";style.textContent=`
-  .scl-settings{margin-top:16px;padding:18px;border:1px solid var(--glass-line,var(--line,#2c3444));border-radius:18px;background:var(--glass,var(--surface,#151a24));color:var(--label,var(--ink,#f7f8fb))}.scl-head h3{margin:3px 0 5px;font-size:18px}.scl-kicker{font-size:10px;font-weight:850;letter-spacing:.08em;text-transform:uppercase;color:var(--accent,#6ea8ff)}.scl-muted{margin:0;color:var(--label-2,#aab2c0);font-size:12px;line-height:1.5}.scl-codebox{margin-top:14px;padding:15px;border:1px solid var(--glass-line,var(--line,#2c3444));border-radius:15px;background:var(--fill,rgba(255,255,255,.04))}.scl-code{font:850 clamp(20px,3vw,28px)/1.15 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.08em;word-break:break-word}.scl-code.empty{font:750 14px/1.4 var(--font,system-ui);letter-spacing:0;color:var(--label-2,#aab2c0)}.scl-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.scl-btn{min-height:38px;padding:8px 12px;border:1px solid var(--glass-line,var(--line,#2c3444));border-radius:11px;background:var(--fill,rgba(255,255,255,.05));color:inherit;font:750 12px var(--font,system-ui);cursor:pointer}.scl-btn.primary{border-color:color-mix(in srgb,var(--accent,#6ea8ff) 38%,transparent);background:var(--accent-soft,rgba(80,140,255,.14));color:var(--accent,#8db8ff)}.scl-btn.danger{color:var(--danger,#ff7d86)}.scl-btn.share{border-color:color-mix(in srgb,var(--green,#45d48a) 38%,transparent);background:color-mix(in srgb,var(--green,#45d48a) 12%,transparent);color:var(--green,#66e0a1)}.scl-btn:disabled{opacity:.55;cursor:wait}.scl-sharebox{margin-top:14px;padding:14px;border:1px solid var(--glass-line,var(--line,#2c3444));border-radius:14px;background:var(--fill,rgba(255,255,255,.035))}.scl-sharebox b{display:block;font-size:13px;margin-bottom:4px}.scl-share-status{margin-top:8px;color:var(--label-3,#818b9b);font-size:11px}.scl-program-share{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:12px 0 14px;padding:13px 14px;border:1px solid var(--glass-line,var(--line,#2c3444));border-radius:14px;background:var(--fill,rgba(255,255,255,.035))}.scl-program-share strong{display:block;font-size:13px}.scl-program-share small{display:block;margin-top:3px;color:var(--label-3,#818b9b);font-size:11px;line-height:1.35}@media(max-width:640px){.scl-program-share{align-items:stretch;flex-direction:column}.scl-program-share .scl-btn{width:100%}}.scl-chat{margin-top:14px;border:1px solid var(--glass-line,var(--line,#2c3444));border-radius:16px;overflow:hidden;background:var(--fill,rgba(255,255,255,.025))}.scl-chat-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 14px;border-bottom:1px solid var(--glass-line,var(--line,#2c3444))}.scl-chat-head b{font-size:13px}.scl-chat-head small{display:block;margin-top:2px;color:var(--label-3,#818b9b);font-size:10.5px}.scl-thread{height:260px;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:8px}.scl-msg{max-width:82%;padding:9px 11px;border-radius:13px;font-size:12px;line-height:1.45;white-space:pre-wrap;word-break:break-word}.scl-msg.me{align-self:flex-end;background:var(--accent,#3977f6);color:#fff;border-bottom-right-radius:5px}.scl-msg.coach{align-self:flex-start;background:var(--glass,var(--surface,#151a24));border:1px solid var(--glass-line,var(--line,#2c3444));border-bottom-left-radius:5px}.scl-msg time{display:block;margin-top:4px;font-size:9px;opacity:.7;text-align:right}.scl-compose{display:flex;gap:8px;padding:10px;border-top:1px solid var(--glass-line,var(--line,#2c3444))}.scl-compose textarea{flex:1;min-height:42px;max-height:100px;resize:vertical;border:1px solid var(--glass-line,var(--line,#2c3444));border-radius:11px;background:var(--glass,var(--surface,#151a24));color:inherit;padding:10px;font:12px var(--font,system-ui);outline:none}.scl-compose button{align-self:flex-end}.scl-chat-empty{margin:auto;text-align:center;color:var(--label-3,#818b9b);font-size:11px}.scl-coaches{display:grid;gap:8px;margin-top:14px}.scl-coach{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 12px;border:1px solid var(--glass-line,var(--line,#2c3444));border-radius:12px;background:var(--fill,rgba(255,255,255,.035))}.scl-coach b,.scl-coach small{display:block}.scl-coach small{margin-top:2px;color:var(--label-3,#818b9b);font-size:10.5px}@media(max-width:640px){.scl-code{font-size:20px}.scl-coach{align-items:flex-start;flex-direction:column}.scl-coach .scl-btn{width:100%}}`;
+  .scl-settings{margin-top:16px;padding:18px;border:1px solid var(--glass-line,var(--line,#2c3444));border-radius:18px;background:var(--glass,var(--surface,#151a24));color:var(--label,var(--ink,#f7f8fb))}.scl-head h3{margin:3px 0 5px;font-size:18px}.scl-kicker{font-size:10px;font-weight:850;letter-spacing:.08em;text-transform:uppercase;color:var(--accent,#6ea8ff)}.scl-muted{margin:0;color:var(--label-2,#aab2c0);font-size:12px;line-height:1.5}.scl-codebox{margin-top:14px;padding:15px;border:1px solid var(--glass-line,var(--line,#2c3444));border-radius:15px;background:var(--fill,rgba(255,255,255,.04))}.scl-code{font:850 clamp(20px,3vw,28px)/1.15 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.08em;word-break:break-word}.scl-code.empty{font:750 14px/1.4 var(--font,system-ui);letter-spacing:0;color:var(--label-2,#aab2c0)}.scl-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.scl-btn{min-height:38px;padding:8px 12px;border:1px solid var(--glass-line,var(--line,#2c3444));border-radius:11px;background:var(--fill,rgba(255,255,255,.05));color:inherit;font:750 12px var(--font,system-ui);cursor:pointer}.scl-btn.primary{border-color:color-mix(in srgb,var(--accent,#6ea8ff) 38%,transparent);background:var(--accent-soft,rgba(80,140,255,.14));color:var(--accent,#8db8ff)}.scl-btn.danger{color:var(--danger,#ff7d86)}.scl-btn.share{border-color:color-mix(in srgb,var(--green,#45d48a) 38%,transparent);background:color-mix(in srgb,var(--green,#45d48a) 12%,transparent);color:var(--green,#66e0a1)}.scl-btn:disabled{opacity:.55;cursor:wait}.scl-sharebox{margin-top:14px;padding:14px;border:1px solid var(--glass-line,var(--line,#2c3444));border-radius:14px;background:var(--fill,rgba(255,255,255,.035))}.scl-sharebox b{display:block;font-size:13px;margin-bottom:4px}.scl-share-status{margin-top:8px;color:var(--label-3,#818b9b);font-size:11px}.scl-program-share{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:12px 0 14px;padding:13px 14px;border:1px solid var(--glass-line,var(--line,#2c3444));border-radius:14px;background:var(--fill,rgba(255,255,255,.035))}.scl-program-share strong{display:block;font-size:13px}.scl-program-share small{display:block;margin-top:3px;color:var(--label-3,#818b9b);font-size:11px;line-height:1.35}@media(max-width:640px){.scl-program-share{align-items:stretch;flex-direction:column}.scl-program-share .scl-btn{width:100%}}.scl-chat{margin-top:14px;border:1px solid var(--glass-line,var(--line,#2c3444));border-radius:16px;overflow:hidden;background:var(--fill,rgba(255,255,255,.025))}.scl-chat-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 14px;border-bottom:1px solid var(--glass-line,var(--line,#2c3444))}.scl-chat-head b{font-size:13px}.scl-chat-head small{display:block;margin-top:2px;color:var(--label-3,#818b9b);font-size:10.5px}.scl-thread{height:260px;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:8px}.scl-msg{max-width:82%;padding:9px 11px;border-radius:13px;font-size:12px;line-height:1.45;white-space:pre-wrap;word-break:break-word}.scl-msg.me{align-self:flex-end;background:var(--accent,#3977f6);color:#fff;border-bottom-right-radius:5px}.scl-msg.coach{align-self:flex-start;background:var(--glass,var(--surface,#151a24));border:1px solid var(--glass-line,var(--line,#2c3444));border-bottom-left-radius:5px}.scl-msg time{display:block;margin-top:4px;font-size:9px;opacity:.7;text-align:right}.scl-tick{margin-left:4px;font-style:normal;font-weight:900;letter-spacing:-2px}.scl-tick.is-read{letter-spacing:-3px}.scl-msg.me time:has(.scl-tick.is-read){opacity:1}.scl-status{align-self:flex-end;margin:-4px 2px 0;font-size:11px;font-weight:800;color:var(--label-3,#818b9b)}.scl-status.is-read{color:var(--accent,#6ea8ff)}.scl-compose{display:flex;gap:8px;padding:10px;border-top:1px solid var(--glass-line,var(--line,#2c3444))}.scl-compose textarea{flex:1;min-height:42px;max-height:100px;resize:vertical;border:1px solid var(--glass-line,var(--line,#2c3444));border-radius:11px;background:var(--glass,var(--surface,#151a24));color:inherit;padding:10px;font:12px var(--font,system-ui);outline:none}.scl-compose button{align-self:flex-end}.scl-chat-empty{margin:auto;text-align:center;color:var(--label-3,#818b9b);font-size:11px}.scl-coaches{display:grid;gap:8px;margin-top:14px}.scl-coach{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 12px;border:1px solid var(--glass-line,var(--line,#2c3444));border-radius:12px;background:var(--fill,rgba(255,255,255,.035))}.scl-coach b,.scl-coach small{display:block}.scl-coach small{margin-top:2px;color:var(--label-3,#818b9b);font-size:10.5px}@media(max-width:640px){.scl-code{font-size:20px}.scl-coach{align-items:flex-start;flex-direction:column}.scl-coach .scl-btn{width:100%}}`;
   document.head.append(style);
 }
 async function getAccess(){
@@ -109,20 +109,58 @@ function installProgramShareButton(){
   return true;
 }
 
-function msgTime(value){try{const d=value?.toDate?.()||new Date(value);return Number.isNaN(d.getTime())?"":new Intl.DateTimeFormat("tr-TR",{hour:"2-digit",minute:"2-digit"}).format(d)}catch{return""}}
-function stopMessages(){try{state.messageStop?.()}catch{}state.messageStop=null;state.activeCoachUid=""}
+function msgTime(value){if(!value)return"";try{const d=value?.toDate?.()||new Date(value);return Number.isNaN(d.getTime())?"":new Intl.DateTimeFormat("tr-TR",{hour:"2-digit",minute:"2-digit"}).format(d)}catch{return""}}
+function stopMessages(){
+  try{state.messageStop?.()}catch{}try{state.readStop?.()}catch{}state.readObserver?.disconnect?.();
+  Object.assign(state,{messageStop:null,readStop:null,readObserver:null,readChat:null,chatInView:false,activeCoachUid:"",messages:[],reads:new Map(),readPending:0});
+}
+// v1.4 · Okundu: coachingReads/{koçUid_öğrenciUid} iki tarafın son okuma zamanını tutar (mesajlar değiştirilemez).
+// Öğrenci, sohbet ekranda ve sekme açıkken okumuş sayılır; yalnız kendi alanını sunucu zamanıyla yazar.
+function readMillis(value){return value?.toMillis?.()||0}
+function watchChat(card){
+  const chat=card.querySelector("[data-coach-chat]");if(!chat||state.readChat===chat)return;
+  state.readObserver?.disconnect?.();state.readObserver=null;state.readChat=chat;state.chatInView=false;
+  if(typeof IntersectionObserver!=="function")return;
+  state.readObserver=new IntersectionObserver(entries=>{state.chatInView=entries.some(entry=>entry.isIntersecting);if(state.chatInView)markStudentRead()});
+  state.readObserver.observe(chat);
+}
+function chatOnScreen(){
+  if(document.visibilityState==="hidden"||!state.readChat?.isConnected)return false;
+  return state.readObserver?state.chatInView:state.readChat.getClientRects().length>0;
+}
+function markStudentRead(){
+  const coachUid=state.activeCoachUid;if(!coachUid||!state.user||!state.db||!chatOnScreen())return;
+  const at=readMillis(state.messages.filter(m=>m.senderRole==="coach").at(-1)?.createdAt);
+  if(!at||at<=readMillis(state.reads.get(coachUid)?.studentReadAt)||state.readPending>=at)return;
+  state.readPending=at;
+  setDoc(doc(state.db,"coachingReads",coachUid+"_"+state.user.uid),{coachUid,studentUid:state.user.uid,studentReadAt:serverTimestamp()},{merge:true})
+    .catch(error=>{console.error("Okundu yazılamadı",error);state.readPending=0});
+}
+function renderThread(){
+  const thread=document.getElementById("studentCoachCodeSettings")?.querySelector("[data-coach-thread]");if(!thread)return;
+  const rows=state.messages,read=state.reads.get(state.activeCoachUid)||{},readAt=readMillis(read.coachReadAt),lastOwn=rows.map(m=>m.senderRole).lastIndexOf("student");
+  thread.innerHTML=rows.length?rows.map((m,index)=>{
+    const own=m.senderRole==="student",at=readMillis(m.createdAt),seen=own&&readAt>0&&at>0&&at<=readAt;
+    return `<div class="scl-msg ${own?"me":"coach"}">${esc(m.text)}<time>${esc(msgTime(m.createdAt))}${own?`<i class="scl-tick${seen?" is-read":""}" aria-label="${seen?"Okundu":"Gönderildi"}">${seen?"✓✓":"✓"}</i>`:""}</time></div>`
+      +(index===lastOwn?`<p class="scl-status${seen?" is-read":""}">${seen?"Okundu · "+esc(msgTime(read.coachReadAt)):"Gönderildi"}</p>`:"");
+  }).join(""):'<div class="scl-chat-empty">Henüz mesaj yok. Koçuna ilk mesajı gönderebilirsin.</div>';
+  requestAnimationFrame(()=>{thread.scrollTop=thread.scrollHeight});
+  markStudentRead();
+}
 function startMessages(coachUid,coachName="Koç"){
   const card=document.getElementById("studentCoachCodeSettings"),thread=card?.querySelector("[data-coach-thread]"),title=card?.querySelector("[data-coach-chat-title]");
   if(!card||!thread||!state.user||!state.db||!coachUid)return;
   if(title)title.textContent=coachName+" ile sohbet";
-  if(state.activeCoachUid===coachUid&&state.messageStop)return;
-  stopMessages();state.activeCoachUid=coachUid;
+  if(state.activeCoachUid===coachUid&&state.messageStop){watchChat(card);renderThread();return}
+  stopMessages();state.activeCoachUid=coachUid;watchChat(card);
   const q=query(collection(state.db,"coachingMessages"),where("studentUid","==",state.user.uid));
   state.messageStop=onSnapshot(q,snap=>{
-    const rows=snap.docs.map(d=>({id:d.id,...d.data()})).filter(x=>x.coachUid===coachUid).sort((a,b)=>(a.createdAt?.toMillis?.()||0)-(b.createdAt?.toMillis?.()||0));
-    thread.innerHTML=rows.length?rows.map(m=>`<div class="scl-msg ${m.senderRole==="student"?"me":"coach"}">${esc(m.text)}<time>${esc(msgTime(m.createdAt))}</time></div>`).join(""):'<div class="scl-chat-empty">Henüz mesaj yok. Koçuna ilk mesajı gönderebilirsin.</div>';
-    requestAnimationFrame(()=>{thread.scrollTop=thread.scrollHeight});
+    state.messages=snap.docs.map(d=>({id:d.id,...d.data()})).filter(x=>x.coachUid===coachUid).sort((a,b)=>(readMillis(a.createdAt)||Infinity)-(readMillis(b.createdAt)||Infinity));
+    renderThread();
   },error=>{console.error("Koç mesajları",error);thread.innerHTML='<div class="scl-chat-empty">Mesajlar yüklenemedi.</div>'});
+  state.readStop=onSnapshot(query(collection(state.db,"coachingReads"),where("studentUid","==",state.user.uid)),snap=>{
+    state.reads=new Map(snap.docs.map(d=>[d.data().coachUid,d.data()]));renderThread();
+  },error=>console.warn("Okundu bilgisi",error?.code||error));
 }
 async function sendStudentMessage(){
   const card=document.getElementById("studentCoachCodeSettings"),input=card?.querySelector("[data-coach-message-input]"),button=card?.querySelector("[data-coach-message-send]");
@@ -177,9 +215,10 @@ function install(){
   const originalSignedIn=auth.onSignedIn?.bind(auth),originalSignedOut=auth.onSignedOut?.bind(auth);
   auth.onSignedIn=async ctx=>{const result=originalSignedIn?await originalSignedIn(ctx):null;state.user=ctx.user;state.db=ctx.db;state.profile=result?.profile||null;if(result?.role==="student"){ensureStudentSettings();installProgramShareButton();setTimeout(()=>{ensureStudentSettings();installProgramShareButton()},0);setTimeout(()=>{ensureStudentSettings();installProgramShareButton()},1200)}return result};
   auth.onSignedOut=()=>{cleanup();return originalSignedOut?.()};
+  document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")markStudentRead()});
   window.addEventListener("yks:data-changed",()=>{if(state.profile?.role==="student"){ensureStudentSettings();if(document.getElementById("studentCoachCodeSettings"))void renderStudentSettings()}});window.addEventListener("click",event=>{const el=event.target?.closest?.('[onclick*="settings"],[onclick*="setMoreTab"]');if(el)setTimeout(()=>ensureStudentSettings(),0)},true);
   document.documentElement.dataset.studentCoachLink="ready";
-  window.dispatchEvent(new CustomEvent("yks:student-coach-link-ready",{detail:{version:"1.3.1"}}));
+  window.dispatchEvent(new CustomEvent("yks:student-coach-link-ready",{detail:{version:"1.4.0"}}));
   return true;
 }
 install();

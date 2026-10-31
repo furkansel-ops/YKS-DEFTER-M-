@@ -101,7 +101,7 @@ export function installStudentAccountLoader():boolean{
   const ready=(async()=>{
     const bridgeReady=await loadModuleScript(STUDENT_COACHING_RUNTIME_ID,"./student-coaching-runtime.js?v=1.2.21-localday-email");
     if(!bridgeReady||!forceStudentOnlyRegistration(win))return false;
-    const linkReady=await loadModuleScript(STUDENT_COACH_LINK_ID,"./student-coach-link.js?v=1.3.1");
+    const linkReady=await loadModuleScript(STUDENT_COACH_LINK_ID,"./student-coach-link.js?v=1.4.0");
     if(!linkReady)return false;
     // Randevular isteğe bağlı: yüklenemezse hesap ve koç bağlantısı yine çalışır.
     await loadModuleScript(STUDENT_APPOINTMENTS_ID,"./student-appointments.js?v=1.3.1");
