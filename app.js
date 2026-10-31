@@ -1245,6 +1245,21 @@ function planFindTopic(topics,text){
   const low=String(text||"").toLocaleLowerCase("tr-TR");
   return topics.filter(x=>low.includes(x.toLocaleLowerCase("tr-TR"))).sort((a,b)=>b.length-a.length)[0]||"";
 }
+/* Metinde ders adı yoksa ders, geçen en uzun konu adından çıkarılır ("Üslü sayılar 30 soru" → Matematik).
+   Aynı konu farklı derslerde geçiyorsa (Temel Kavramlar, Mantık) ders belirsiz kalır. */
+function planSubjectFromTopic(text,exam){
+  const low=String(text||"").toLocaleLowerCase("tr-TR"),letter=/[a-zçğıöşüâîû0-9]/i,base=n=>planSubjBase(n).replace(/-2$/,"").replace(/ Grubu$/,"");
+  let found=[],best=0;
+  for(const s of ALL_SUBJECTS)for(const tp of s.topics){
+    const l=tp.toLocaleLowerCase("tr-TR"),at=low.indexOf(l);
+    if(at<0||letter.test(low.charAt(at-1))||letter.test(low.charAt(at+l.length)))continue;
+    if(l.length>best){best=l.length;found=[]}
+    if(l.length===best)found.push({s,tp});
+  }
+  if(!found.length||new Set(found.map(x=>base(x.s.name))).size!==1)return null;
+  const pick=found.find(x=>x.s.exam===(exam||"TYT"))||found[0];
+  return {subj:pick.s.name,topic:pick.tp};
+}
 function planTaskSubject(txt){
   let t=planStripCoach(String(txt||"").split("\n")[0]).replace(/^[▶☰]\s*/,"").trim();
   const em=t.match(/^(TYT|AYT|YDT)\s+/i),exam=em?em[1].toUpperCase():"";
@@ -1254,7 +1269,7 @@ function planTaskSubject(txt){
   let name=PLAN_SUBJECTS_BY_LENGTH.find(starts)||"";
   if(!name&&starts("paragraf"))name="Türkçe";
   if(!name&&/^(?:ingilizce|english)/i.test(low))name="Yabancı Dil";
-  if(!name)return null;
+  if(!name)return planSubjectFromTopic(t,exam);
   const cut=name==="Türkçe"&&starts("paragraf")?0:starts(name)?name.length:(low.match(/^\S+/)||[""])[0].length;
   if(exam==="AYT"&&!/\(AYT\)|-2$/.test(name)){
     const ayt=PLAN_AYT_ALIAS[name]||name+" (AYT)";
@@ -5239,9 +5254,10 @@ function addToDays(text,days,haftaOfs){
   let candidate;
   try{candidate=normWeek(hadWeek?clone(previous):blankWeek());}
   catch(e){return {ok:false,reason:"invalid"};}
-  // Önce görevin dersiyle aynı adlı satır, sonra başka bir dersin adını taşımayan satır.
+  // Önce görevin dersiyle aynı adlı satır, sonra başka bir dersin adını taşımayan satır; yoksa yeni satır.
+  // Dersi anlaşılmayan görev de başka dersin satırına konmaz (yoksa o dersin görevi sanılır).
   const subj=typeof planTaskSubject==="function"?planSubjBase((planTaskSubject(value)||{}).subj||""):"";
-  const rowSubj=i=>subj?planSubjBase((planTaskSubject(String((previousLabels||[])[i]||""))||{}).subj||""):"";
+  const rowSubj=i=>typeof planTaskSubject==="function"?planSubjBase((planTaskSubject(String((previousLabels||[])[i]||""))||{}).subj||""):"";
   for(const day of selected){
     let row=-1;
     const free=i=>!String(candidate.s[i][day]||"").trim();

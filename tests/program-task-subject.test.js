@@ -22,7 +22,7 @@ function harness(labels=["Fizik","Matematik"]){
     const block=line&&/\}\s*$/.test(line[0])&&!/^function \w+\([^)]*\)\{\s*$/.test(line[0])?line:app.match(new RegExp(`function ${name}\\([^\\n]*\\)\\{[\\s\\S]*?\\r?\\n}`));
     assert.ok(block,name);vm.runInContext(block[0],context);
   }
-  for(const name of ["topicKeyOf","tsetStatus","blankWeek","normWeek","addToDays","planFindTopic","planTaskSubject","planCellLabel","v25TaskMeta","programTopicLevel","programAutoTopicDone"]){
+  for(const name of ["topicKeyOf","tsetStatus","blankWeek","normWeek","addToDays","planFindTopic","planSubjectFromTopic","planTaskSubject","planCellLabel","v25TaskMeta","programTopicLevel","programAutoTopicDone"]){
     const block=app.match(new RegExp(`function ${name}\\([^\\n]*\\)\\{[\\s\\S]*?\\r?\\n}`));assert.ok(block,name);vm.runInContext(block[0],context);
   }
   return {context,state,calls,undo};
@@ -61,7 +61,22 @@ test("addToDays görevi aynı dersin satırına, yoksa başka derse ait olmayan 
   assert.equal(h.state.weeks[wk].s[3][0],"Koç · TYT Kimya · Atom ve Yapısı");
   assert.equal(h.state.rows.s,4);assert.equal(h.state.rowLabels.s[3],"");
   assert.equal(h.context.addToDays("Serbest okuma",[1],0).ok,true);
-  assert.equal(h.state.weeks[wk].s[0][1],"Serbest okuma","dersi olmayan görev eskisi gibi ilk boş satıra");
+  assert.equal(h.state.weeks[wk].s[0][1],"","dersi anlaşılmayan görev başka dersin satırına konmaz");
+  assert.equal(h.state.weeks[wk].s[2][1],"Serbest okuma","adsız satıra yerleşir");
+});
+
+test("ders adı yazılmayan koç görevinin dersi konudan anlaşılır (Üslü sayılar → Matematik, Kimya'ya düşmez)",()=>{
+  const {context:c}=harness();
+  assert.deepEqual(plain(c.planTaskSubject("Koç · Üslü sayılar 30 soru")),{subj:"Matematik",topic:"Üslü Sayılar"});
+  assert.deepEqual(plain(c.planTaskSubject("Koç · Mol kavramı tekrar")),{subj:"Kimya",topic:"Mol Kavramı"});
+  assert.deepEqual(plain(c.planTaskSubject("Rasyonel sayılar 20 soru")),{subj:"Matematik",topic:"Rasyonel Sayılar"},"en uzun konu adı");
+  assert.deepEqual(plain(c.planTaskSubject("Koç · AYT Türev 25 soru")),{subj:"Matematik (AYT)",topic:"Türev"});
+  assert.equal(c.planTaskSubject("Temel kavramlar tekrarı"),null,"birden çok derste geçen konu dersi belirlemez");
+  assert.equal(c.v25TaskMeta({txt:"Mol kavramı tekrar",lbl:"Matematik"}).subj,"Kimya","konu satır adından önce gelir");
+  const h=harness(["Kimya","Matematik",""]),wk="2026-10-26";
+  assert.equal(h.context.addToDays("Koç · Üslü sayılar 30 soru",[2],0).ok,true);
+  assert.equal(h.state.weeks[wk].s[0][2],"","Kimya satırına konmaz");
+  assert.equal(h.state.weeks[wk].s[1][2],"Koç · Üslü sayılar 30 soru","Matematik satırına yerleşir");
 });
 
 test("görev bitince konu çalışma türüne göre ilerler, yalnız ileri taşınır ve geri alınabilir",()=>{
