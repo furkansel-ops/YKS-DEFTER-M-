@@ -30,9 +30,9 @@ const allDays=(start,end)=>Object.fromEntries(["0","1","2","3","4","5","6"].map(
 
 test("v69 randevu modülü hesap yükleyicisinde koç bağlantısından sonra, girişten önce yüklenir ve isteğe bağlıdır",()=>{
   const loader=read("src/ui/student-account-loader.ts");
-  const link=loader.indexOf("student-coach-link.js?v=1.3.1"),appts=loader.indexOf("student-appointments.js?v=1.3.0"),authAt=loader.indexOf("auth-session-runtime.js");
+  const link=loader.indexOf("student-coach-link.js?v=1.3.1"),appts=loader.indexOf("student-appointments.js?v=1.3.1"),authAt=loader.indexOf("auth-session-runtime.js");
   assert.ok(link>0&&appts>link&&authAt>appts,"sıra: koç bağlantısı → randevular → oturum");
-  assert.match(loader,/await loadModuleScript\(STUDENT_APPOINTMENTS_ID,"\.\/student-appointments\.js\?v=1\.3\.0"\);\n/,"başarısızlık yükleyiciyi durdurmaz");
+  assert.match(loader,/await loadModuleScript\(STUDENT_APPOINTMENTS_ID,"\.\/student-appointments\.js\?v=1\.3\.1"\);\n/,"başarısızlık yükleyiciyi durdurmaz");
   assert.match(loader,/STUDENT_APPOINTMENTS_ID="studentAppointmentsScript"/,"betik kimliği ekrandaki bölümle çakışmaz");
 });
 
@@ -162,4 +162,13 @@ test("v69.1 randevuya üç yerden ulaşılır: Bugün kartı, Merkez aracı ve A
   assert.match(source,/if\(event\.target\.closest\?\.\("\.sap-join"\)\)return;openSheet\(\)/);
   assert.match(source,/entry\.addEventListener\("click",\(\)=>openSheet\(\)\)/);
   assert.match(source,/if\(!grid\|\|!state\.user\)\{button\?\.remove\(\);return\}/,"Merkez düğmesi koçu olmayan öğrencide de var");
+});
+
+test("v69.4 Bugün kartı yeni düzende görünür alanda: Çalışma Merkezi'nin ardında, mavi kartın altında",()=>{
+  assert.match(source,/const work=document\.querySelector\("#todayFreshStart>#todayFreshWorkCenter"\);/);
+  assert.match(source,/if\(work\)\{if\(card\.previousElementSibling!==work\)work\.insertAdjacentElement\("afterend",card\);return\}/);
+  assert.match(source,/:root #mainWrap #home #todayFreshStart>:is\(#studentNextAppointment,#studentApptEntry\)\{order:3;margin:0\}/,"order:20 kuralını geçer");
+  // Gizleyen kural: #home altında yalnız #todayFreshStart görünür; kart onun doğrudan çocuğu olmalı.
+  const css=fs.readdirSync(path.join(root,"src/ui")).filter(f=>f.endsWith(".css")).map(f=>read("src/ui/"+f)).join("\n")+read("app.css");
+  assert.match(css,/#home\s*>\s*:not\(#todayFreshStart\)/);
 });

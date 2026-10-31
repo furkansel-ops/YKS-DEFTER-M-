@@ -4,7 +4,7 @@ import{collection,doc,getDoc,getDocs,onSnapshot,query,serverTimestamp,where,writ
 // her randevu coachAppointments/{koçUid_YYYYMMDD_SSDD} ve aynı kimlikte bir saat kilidi
 // coachSlots'ta tutulur. Kilit ve randevu birlikte yazılıp silinir; kural aynı saate ikinci
 // kaydı reddeder, böylece iki öğrenci aynı saati alamaz.
-const VERSION="1.3.0";
+const VERSION="1.3.1";
 const state={user:null,db:null,coachUid:"",coachName:"Koçun",availability:null,busy:new Set(),appts:[],day:"",pick:"",topic:"",view:"auto",week:0,returnFocus:null,stops:[],observer:null,timer:0,sending:false,error:""};
 const text=(value,max=160)=>String(value??"").trim().slice(0,max);
 const esc=value=>String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[char]));
@@ -68,6 +68,7 @@ function styles(){
   .sap-grab{width:44px;height:5px;border-radius:9px;background:var(--d-line,#e3e9f2)}
   .sap-close{position:absolute;right:10px;top:4px;width:40px;height:40px;border:0;border-radius:12px;background:var(--d-soft,#eef3fb);color:var(--d-ink,#121a2b);font:inherit;font-size:16px;cursor:pointer}
   html.sap-sheet-open{overflow:hidden}
+  :root #mainWrap #home #todayFreshStart>:is(#studentNextAppointment,#studentApptEntry){order:3;margin:0}
   @media(min-width:760px){.sap-sheet{align-items:center}.sap-sheet-panel{border-radius:20px}.sap-grab{display:none}}
   .sap-wide{display:flex;width:100%;margin-top:12px;align-items:center;justify-content:center}
   .sap-week-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
@@ -241,8 +242,14 @@ function nearestFree(){
 function renderToday(){
   const home=document.getElementById("home");if(!home)return;
   const next=state.user?upcoming()[0]:null;
+  // Yeni Bugün düzeni (#todayFreshStart) kendi kutusu dışındaki her şeyi gizler; kart o kutunun
+  // içine, Çalışma Merkezi'nin hemen ardına girer. Eski düzende eski yerinde kalır.
+  const work=document.querySelector("#todayFreshStart>#todayFreshWorkCenter");
   const anchor=home.querySelector(".rb-home-coach")||home.querySelector(".rb-today-tasks");
-  const place=card=>{if(anchor&&card.nextElementSibling!==anchor)anchor.parentElement.insertBefore(card,anchor);else if(!anchor&&card.parentElement!==home)home.append(card)};
+  const place=card=>{
+    if(work){if(card.previousElementSibling!==work)work.insertAdjacentElement("afterend",card);return}
+    if(anchor&&card.nextElementSibling!==anchor)anchor.parentElement.insertBefore(card,anchor);else if(!anchor&&card.parentElement!==home)home.append(card);
+  };
   let card=document.getElementById("studentNextAppointment"),entry=document.getElementById("studentApptEntry");
   if(next){
     entry?.remove();

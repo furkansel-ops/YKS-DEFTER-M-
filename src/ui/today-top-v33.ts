@@ -164,6 +164,21 @@ export function installTodayTopV33():{installed:boolean}{
       document.documentElement.dataset.todayReviewV39="deferred";
       console.error("Gün sonu değerlendirmesi yüklenemedi",error);
     });
+  // v71: Bugün düzen iyileştirmesi; ayrı isteğe bağlı parça, hata açılışı durdurmaz.
+  if(document.documentElement)void import("./today-refine-v71")
+    .then(({installTodayRefineV71})=>{
+      try{
+        const refine=installTodayRefineV71();
+        document.documentElement.dataset.todayRefineV71=refine.installed?"ready":"deferred";
+      }catch(error){
+        document.documentElement.dataset.todayRefineV71="deferred";
+        console.error("Bugün düzeni başlatılamadı",error);
+      }
+    })
+    .catch(error=>{
+      document.documentElement.dataset.todayRefineV71="deferred";
+      console.error("Bugün düzeni yüklenemedi",error);
+    });
   // v40: independent optional display chunk; a failure cannot block boot.
   if(document.documentElement)void import("./today-activity-v40")
     .then(({installTodayActivityV40})=>{
