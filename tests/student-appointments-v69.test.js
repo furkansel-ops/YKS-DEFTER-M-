@@ -22,7 +22,7 @@ function load(){
   };
   context.window.toast=()=>{};
   vm.createContext(context);
-  vm.runInContext(source.replace(/^import[^\n]+\n/gm,"")+"\n;globalThis.__t={state,slotsFor,freeSlots,upcoming,apptId,requestAppointment,cancelAppointment,iso,nearestFree,homeHtml,dayHtml,timeHtml,summaryHtml,viewHtml};",context);
+  vm.runInContext(source.replace(/^import[^\n]+\n/gm,"")+"\n;globalThis.__t={state,slotsFor,freeSlots,upcoming,apptId,requestAppointment,cancelAppointment,iso,nearestFree,mainHtml,settingsHtml,weekDays};",context);
   return{t:context.__t,writes,auth,context};
 }
 const tomorrow=()=>{const d=new Date(Date.now()+864e5);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
@@ -30,9 +30,9 @@ const allDays=(start,end)=>Object.fromEntries(["0","1","2","3","4","5","6"].map(
 
 test("v69 randevu modülü hesap yükleyicisinde koç bağlantısından sonra, girişten önce yüklenir ve isteğe bağlıdır",()=>{
   const loader=read("src/ui/student-account-loader.ts");
-  const link=loader.indexOf("student-coach-link.js?v=1.3.1"),appts=loader.indexOf("student-appointments.js?v=1.2.0"),authAt=loader.indexOf("auth-session-runtime.js");
+  const link=loader.indexOf("student-coach-link.js?v=1.3.1"),appts=loader.indexOf("student-appointments.js?v=1.3.0"),authAt=loader.indexOf("auth-session-runtime.js");
   assert.ok(link>0&&appts>link&&authAt>appts,"sıra: koç bağlantısı → randevular → oturum");
-  assert.match(loader,/await loadModuleScript\(STUDENT_APPOINTMENTS_ID,"\.\/student-appointments\.js\?v=1\.2\.0"\);\n/,"başarısızlık yükleyiciyi durdurmaz");
+  assert.match(loader,/await loadModuleScript\(STUDENT_APPOINTMENTS_ID,"\.\/student-appointments\.js\?v=1\.3\.0"\);\n/,"başarısızlık yükleyiciyi durdurmaz");
   assert.match(loader,/STUDENT_APPOINTMENTS_ID="studentAppointmentsScript"/,"betik kimliği ekrandaki bölümle çakışmaz");
 });
 
@@ -96,43 +96,52 @@ test("v69 öğrenci hesap silmesi randevuları saat kilidiyle siler; kural yokke
   assert.match(profile,/includes\("permission-denied"\)\)throw error;/);
 });
 
-test("v69.2 adım 1: 14 gün listelenir; boş saatli gün seçilebilir, kapalı ve dolu gün seçilemez",()=>{
-  const {t}=load(),day=tomorrow(),closedKey=String(new Date(day+"T12:00:00").getDay());
-  Object.assign(t.state,{coachUid:"koc1",coachName:"Furkan Hoca",availability:{duration:30,days:allDays("18:00","19:00")}});
-  let html=t.dayHtml();
-  assert.match(html,/<b>Randevu al<\/b><span>1\/3<\/span>/);
-  assert.equal((html.match(/class="sap-daycard/g)||[]).length,14);
-  assert.ok(html.includes('data-sap-day="'+day+'"'),"yarın seçilebilir");
-  assert.match(html,/2 boş saat<\/span>/);
-  t.state.busy=new Set([day+" 18:00",day+" 18:30"]);
-  html=t.dayHtml();
-  assert.ok(!html.includes('data-sap-day="'+day+'"'),"dolu gün seçilemez");
-  assert.match(html,/>Dolu</);
-  t.state.availability={duration:30,days:{...allDays("18:00","19:00"),[closedKey]:{on:false,start:"18:00",end:"19:00"}}};
-  assert.match(t.dayHtml(),/<small>Kapalı<\/small>/);
+test("v69.3 randevu yoksa ekran doğrudan bu haftanın 7 gününü ve ilk boş günün saatlerini açar",()=>{
+  const {t}=load(),day=tomorrow(),today=t.iso(new Date());
+  Object.assign(t.state,{coachUid:"koc1",coachName:"Furkan Hoca",availability:{duration:30,days:allDays("18:00","19:00")},busy:new Set([today+" 18:00",today+" 18:30"])});
+  const html=t.mainHtml();
+  assert.match(html,/<h4>Bu hafta randevu al<\/h4>/);
+  assert.equal((html.match(/class="sap-wday/g)||[]).length,7);
+  assert.equal(t.state.day,day,"bugün dolu, ilk boş gün yarın seçilir");
+  assert.match(html,/data-sap-day="[^"]+" disabled[^>]*>.*?<small>dolu<\/small>/,"dolu gün seçilemez");
+  assert.match(html,/data-sap-slot="18:00"/);
+  assert.match(html,/data-sap-request disabled>Önce saat seç</);
+  t.state.pick="18:30";
+  assert.match(t.mainHtml(),/data-sap-request>18:30 için randevu iste</);
+  t.state.week=1;
+  const next=t.mainHtml();
+  assert.match(next,/<h4>Gelecek hafta randevu al<\/h4>/);
+  assert.equal(t.weekDays()[0],t.iso(new Date(Date.now()+7*864e5)));
+  assert.equal(t.state.pick,"","hafta değişince seçili saat sıfırlanır");
 });
 
-test("v69.2 adım 2-3: saat seçilmeden Devam kapalı; özet koç, gün, saat ve süreyi gösterir",()=>{
+test("v69.3 randevu varsa ekran onun bilgisini gösterir; Başka randevu al aynı haftalık seçime geçer",()=>{
   const {t}=load(),day=tomorrow();
-  Object.assign(t.state,{coachUid:"koc1",coachName:"Furkan Hoca",availability:{duration:45,days:allDays("18:00","20:00")},day,pick:""});
-  assert.match(t.timeHtml(),/data-sap-go="summary" disabled>Devam</);
-  assert.equal(t.viewHtml("summary").includes("<b>Randevu al</b><span>2/3</span>"),true,"saat yokken özete geçilmez");
-  t.state.pick="18:45";
-  assert.match(t.timeHtml(),/data-sap-go="summary">Devam</);
-  const summary=t.summaryHtml();
-  assert.match(summary,/<span>3\/3<\/span>/);
-  assert.match(summary,/<b>Furkan Hoca<\/b><small>[^<]+ · 18:45 · 45 dk<\/small>/);
-  assert.match(summary,/data-sap-request>Randevu iste</);
+  Object.assign(t.state,{coachUid:"koc1",coachName:"Furkan Hoca",availability:{duration:30,days:allDays("18:00","20:00")},
+    appts:[{id:"koc1_x",coachUid:"koc1",date:day,time:"18:30",duration:30,status:"confirmed",topic:"Deneme analizi",link:"https://meet.google.com/abc",note:""}]});
+  const html=t.mainHtml();
+  assert.match(html,/<h4>Sıradaki görüşmen<\/h4>/);
+  assert.match(html,/<p class="sap-big">18:30<small> · 30 dk<\/small><\/p>/);
+  assert.match(html,/<b>Furkan Hoca<\/b><small>Deneme analizi<\/small>/);
+  assert.match(html,/href="https:\/\/meet\.google\.com\/abc" target="_blank" rel="noopener noreferrer">Görüşmeye katıl</);
+  assert.match(html,/data-sap-cancel="koc1_x">Randevuyu iptal et</);
+  assert.match(html,/data-sap-book>\+ Başka randevu al</);
+  t.state.appts[0].status="requested";
+  assert.match(t.mainHtml(),/Koçunun onayı bekleniyor/);
+  assert.doesNotMatch(t.mainHtml(),/Görüşmeye katıl/,"onaysız randevuda link yok");
+  t.state.view="book";
+  assert.match(t.mainHtml(),/data-sap-home>‹ Randevuma dön</);
+  assert.match(t.mainHtml(),/Bu hafta randevu al/);
 });
 
-test("v69.2 Randevularım: Randevu al düğmesi, koç saat açmadıysa bilgi; koç yoksa yönlendirme",()=>{
+test("v69.3 koç yoksa koç bağlantısına, saat yoksa bilgiye yönlendirir; Ayarlar'da kısa özet",()=>{
   const {t}=load();
-  Object.assign(t.state,{coachUid:"koc1",coachName:"Furkan Hoca",availability:{duration:30,days:allDays("18:00","20:00")}});
-  assert.match(t.homeHtml(),/data-sap-go="day">Randevu al</);
-  assert.match(t.homeHtml(),/<h5 class="sap-sub">Randevularım<\/h5>/);
-  t.state.availability=null;
-  assert.match(t.homeHtml(),/henüz görüşme saatlerini açmadı/);
-  assert.equal(t.viewHtml("day"),t.homeHtml(),"saat yokken adımlar açılmaz");
+  assert.match(t.mainHtml(),/data-sap-settings>Koç bağlantısına git</);
+  assert.match(t.settingsHtml(),/Koçunu bağlayınca/);
+  assert.doesNotMatch(t.settingsHtml(),/data-sap-open/);
+  Object.assign(t.state,{coachUid:"koc1",coachName:"Furkan Hoca",availability:null});
+  assert.match(t.mainHtml(),/henüz görüşme saatlerini açmadı/);
+  assert.match(t.settingsHtml(),/data-sap-open>Koçla görüşme</);
 });
 
 test("v69.1 Bugün girişi en yakın boş günü söyler; koç yoksa yol gösterir",()=>{
@@ -141,8 +150,6 @@ test("v69.1 Bugün girişi en yakın boş günü söyler; koç yoksa yol göster
   t.state.busy=new Set([t.iso(new Date())+" 18:00",t.iso(new Date())+" 19:00"]);
   const near=t.nearestFree();
   assert.equal(near.date,day);assert.equal(near.count,2);
-  t.state.coachUid="";
-  assert.match(t.homeHtml(),/önce bir koç bağlamalısın/);
 });
 
 test("v69.1 randevuya üç yerden ulaşılır: Bugün kartı, Merkez aracı ve Ayarlar; ekran alttan açılır",()=>{
@@ -150,8 +157,9 @@ test("v69.1 randevuya üç yerden ulaşılır: Bugün kartı, Merkez aracı ve A
   assert.match(source,/<b>Koçunla görüşme ayarla<\/b>/);
   assert.match(source,/button\.id="studentApptMore"/);
   assert.match(source,/<b>Koçla görüşme<\/b>/);
-  assert.match(source,/role="dialog" aria-modal="true" aria-label="Koçunla görüşme"/);
+  assert.match(source,/role="dialog" aria-modal="true" aria-label="Koçla görüşme"/);
   assert.match(source,/event\.key==="Escape"\)\{event\.preventDefault\(\);closeSheet\(\)\}/);
-  assert.match(source,/if\(event\.target\.closest\?\.\("\.sap-join"\)\)return;openSheet\("home"\)/);
-  assert.match(source,/entry\.addEventListener\("click",\(\)=>openSheet\("day"\)\)/);
+  assert.match(source,/if\(event\.target\.closest\?\.\("\.sap-join"\)\)return;openSheet\(\)/);
+  assert.match(source,/entry\.addEventListener\("click",\(\)=>openSheet\(\)\)/);
+  assert.match(source,/if\(!grid\|\|!state\.user\)\{button\?\.remove\(\);return\}/,"Merkez düğmesi koçu olmayan öğrencide de var");
 });
