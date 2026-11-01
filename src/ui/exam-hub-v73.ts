@@ -460,6 +460,7 @@ function wrap(name:string,after:(result:unknown,args:unknown[])=>void,before?:(a
 
 /* Başka ekranlardan (İlerleme) Deneme'nin bir sekmesini açmak için. */
 export function openExamTab(tab:Tab):void{call("go","deneme");setTab(tab);}
+export function openExamPhotos():void{errFilter="photo";errLimit=40;openExamTab("hata");}
 
 export function installExamHubV73():boolean{
   if(installed)return true;if(!ensureSkeleton())return false;installed=true;
@@ -487,6 +488,7 @@ export function installExamHubV73():boolean{
   byId("dybRows")?.addEventListener("change",()=>decorateRows());
   for(const event of ["yks:data-changed","yks:data-primary-ready"])window.addEventListener(event,schedule);
   document.addEventListener("yks:navigation-after",event=>{const d=(event as CustomEvent<{screen?:string;to?:string}>).detail;if((d?.screen??d?.to)==="deneme")schedule();});
+  (L as Loose).YKSExamHub={openTab:openExamTab,openPhotos:openExamPhotos};
   call("renderV315Dashboard");render();
   document.documentElement.dataset.examHubV73="ready";
   return true;

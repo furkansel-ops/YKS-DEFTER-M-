@@ -23,3 +23,12 @@
 #more #v43MoreSearchSlot .v30-search-card .row2{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center}
 #more #v43MoreSearchSlot .v30-search-card .btn{width:auto;min-height:0;padding:9px 12px;font-size:13px}
 #more #v43MoreHub .v43-more-group-label{font-family:var(--font)!important}
+
+/* v76 · gerçek eşitleme satırı; kaldırılan bölümler yalnız gizlenir */
+.v76-hidden{display:none!important}
+.v43-more-sync{display:flex;align-items:center;gap:8px;margin-top:10px;padding:9px 12px;border-radius:12px;font-size:13px;font-weight:750;background:color-mix(in srgb,var(--d-ok,#13906b) 12%,var(--d-surface,#fff));color:var(--d-ok,#13906b)}
+.v43-more-sync[data-tone="warn"]{background:color-mix(in srgb,#b7791f 13%,var(--d-surface,#fff));color:#8a5a12}
+:root[data-theme="night"] .v43-more-sync[data-tone="warn"]{color:#f3b860}
+.v43-more-sync i{flex:none;width:8px;height:8px;border-radius:50%;background:currentColor}
+.v43-more-sync span{flex:1;min-width:0}
+.v43-more-sync button{flex:none;min-height:36px;padding:0 12px;border:0;border-radius:10px;background:var(--d-accent,#2f6bea);color:var(--d-on-accent,#fff);font:inherit;font-size:12.5px;font-weight:800;cursor:pointer}

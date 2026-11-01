@@ -6,11 +6,12 @@ interface MoreItem{action:MoreAction;label:string;description:string;icon:string
 interface MoreGroup{id:GroupId;label:string;items:readonly MoreItem[];}
 interface Shortcut{screen?:string;action?:MoreAction;label:string;icon:string;}
 interface NavigationRuntime{installed:true;version:string;validate():string[];refresh():void;}
-type LegacyWindow=Window&{v30Action?:(action:string)=>unknown;go?:(screen:string)=>unknown;lastManualBackup?:()=>number;};
+type LegacyWindow=Window&{v30Action?:((action:string)=>unknown)&{__v76?:boolean};v30QuickItems?:(()=>QuickItem[])&{__v76?:boolean};go?:(screen:string)=>unknown;exportData?:()=>unknown;toast?:(text:string)=>void;YKSExamHub?:{openPhotos?:()=>void};};
+interface QuickItem{k:string;label:string;sub:string;icon:string;n?:number;base?:number;}
 type RouteDetail={to?:string};
 declare global{interface Window{__YKS_NAV_V43__?:NavigationRuntime;}}
 
-const VERSION="4.4.0-merkez";
+const VERSION="4.4.0-merkez-v76";
 /* Merkez: sekme yok; bütün araçlar tek kaydırmada üç grupta. "İlerleme" kısayolu
    Analiz Merkezi'ni, "Yanlış arşivi" kısayolu fotoğraflı yanlışları açar. */
 const SHORTCUTS:readonly Shortcut[]=[
@@ -21,8 +22,7 @@ const SHORTCUTS:readonly Shortcut[]=[
 ];
 const GROUPS:readonly MoreGroup[]=[
   {id:"learning",label:"Öğrenme",items:[
-    {action:"lab",label:"Öğrenme Laboratuvarı",description:"Konu atlası, 3B organlar ve bilim kartları",icon:"⌁"},
-    {action:"resources",label:"Kaynaklar & videolar",description:"Kitaplar, oynatma listeleri ve izleme geçmişi",icon:"▤"},
+    {action:"lab",label:"Öğrenme Laboratuvarı",description:"Periyodik tablo, kronoloji, bilim kartları, atlas ve hızlı okuma",icon:"⌁"},
     {action:"tactics",label:"Taktikler",description:"Sana uyan çalışma ve sınav stratejileri",icon:"◈"}
   ]},
   {id:"analysis",label:"Analiz ve geçmiş",items:[
@@ -30,24 +30,71 @@ const GROUPS:readonly MoreGroup[]=[
     {action:"reports",label:"Raporlar & geçmiş",description:"Ay raporu, retrospektif ve dönem geçmişi",icon:"≋"},
     {action:"log",label:"Değişiklik günlüğü",description:"Son ekleme ve silmeleri incele",icon:"≡"}
   ]},
-  {id:"system",label:"Veri ve uygulama",items:[
-    {action:"data",label:"Veri & yedek",description:"Yerel kayıt, içe/dışa aktarma ve ham veri",icon:"⇅"},
-    {action:"backup",label:"Yedek indir",description:"JSON geri dönüş kopyası oluştur",icon:"⇩"},
-    {action:"system",label:"Sistem durumu",description:"PWA, depolama, veri şeması ve kontroller",icon:"✓"},
-    {action:"settings",label:"Ayarlar",description:"Profil, bildirimler ve koç bağlantısı",icon:"⚙"},
-    {action:"about",label:"Hakkında",description:"Sürüm, geliştirici ve uygulama bilgileri",icon:"i"}
+  {id:"system",label:"Uygulama",items:[
+    {action:"settings",label:"Ayarlar",description:"Profil, bildirimler, koç bağlantısı ve verilerin",icon:"⚙"},
+    {action:"about",label:"Hakkında",description:"Sürüm, uygulama kurulumu ve destek",icon:"i"}
   ]}
 ];
+/* v76: Veri & yedek, Yedek indir, Sistem durumu, Kaynaklar & videolar ve ayrı arşiv girişi menüden kalktı.
+   Eski bağlantılar yeni yerine gider; kod ve veri silinmez. */
+const REMOVED_ACTIONS=new Set(["data","backup","system","resources","archive"]);
+const QUICK_FALLBACK:readonly QuickItem[]=[
+  {k:"lab",label:"Öğrenme Laboratuvarı",sub:"Ders & konu",icon:"⌁"},{k:"reports",label:"Raporlar",sub:"Ay & geçmiş",icon:"↗"},
+  {k:"success",label:"Çalışma özeti",sub:"Karne & geçmiş",icon:"▦"},{k:"settings",label:"Ayarlar",sub:"Görünüm & hedef",icon:"⚙"},
+  {k:"tactics",label:"Taktikler",sub:"Stratejiler",icon:"◎"},{k:"about",label:"Hakkında",sub:"Sürüm bilgisi",icon:"i"}
+];
+/* Rapor sayfasında kalanlar: ay raporu, retrospektif, değişiklik günlüğü. Yedek, dışa aktarma, sistem ve ham veri gizlenir. */
+const REPORT_HIDDEN=["v322ExportCenter","abBox","consBox","infraBox","dataBox"];
 
 const esc=(value:string)=>value.replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]!));
 const legacy=()=>window as LegacyWindow;
 
-/* Son yedeğin yaşı: mevcut lastManualBackup() okunur, hiçbir şey yazılmaz. */
-function backupNote():string{
-  let at=0;try{at=Number(legacy().lastManualBackup?.())||0;}catch{}
-  if(!at)return "Henüz yedek yok";
-  const days=Math.floor((Date.now()-at)/86400000);
-  return days<1?"Bugün yedeklendi":`Son yedek ${days} gün önce`;
+/* Eşitleme durumu: yalnız bulut eşitleme kutusunun durumu okunur, hiçbir şey yazılmaz. */
+function syncLine():{text:string;tone:string;guest:boolean}{
+  const box=document.getElementById("cloudSyncBox"),state=String(box?.dataset.state||"signedout");
+  if(!navigator.onLine||state==="offline")return {text:"Çevrimdışı · bağlantı gelince eşitlenir",tone:"warn",guest:false};
+  if(state==="synced")return {text:"Verilerin hesabınla eşitleniyor ✓",tone:"ok",guest:false};
+  if(state==="syncing"||state==="connecting")return {text:"Verilerin eşitleniyor…",tone:"ok",guest:false};
+  if(state==="error")return {text:"Eşitleme şu an yapılamıyor · verilerin bu cihazda güvende",tone:"warn",guest:false};
+  return {text:"Verilerin yalnız bu cihazda",tone:"warn",guest:true};
+}
+function openPhotos():void{const hub=legacy().YKSExamHub;if(hub?.openPhotos)hub.openPhotos();else legacy().go?.("deneme");}
+function exportAll():void{
+  try{const result=legacy().exportData?.();if(result instanceof Promise)result.catch(()=>legacy().toast?.("Veri dosyası hazırlanamadı"));}
+  catch{legacy().toast?.("Veri dosyası hazırlanamadı");}
+}
+/* Eski bağlantılar (Ayarlar'daki veri düğmesi, kişisel kısayollar) kaldırılan sayfalar yerine yeni yerlerine gider. */
+function patchLegacyActions():void{
+  const w=legacy(),original=w.v30Action;
+  if(typeof original==="function"&&!original.__v76){
+    const routed=Object.assign((action:string)=>{
+      if(action==="data"||action==="backup"){exportAll();return;}
+      if(action==="system")return original("about");
+      if(action==="resources"){w.go?.("topics");return;}
+      if(action==="archive"){openPhotos();return;}
+      return original(action);
+    },{__v76:true});
+    w.v30Action=routed;
+  }
+  const quick=w.v30QuickItems;
+  if(typeof quick==="function"&&!quick.__v76){
+    w.v30QuickItems=Object.assign(()=>{
+      const kept=quick().filter(item=>!REMOVED_ACTIONS.has(item.k));
+      for(const item of QUICK_FALLBACK){if(kept.length>=4)break;if(!kept.some(x=>x.k===item.k))kept.push(item);}
+      return kept.slice(0,4);
+    },{__v76:true});
+  }
+}
+function trimReports():void{
+  const panel=document.getElementById("mrp_veri");if(!panel||panel.dataset.v76)return;panel.dataset.v76="ready";
+  const title=panel.querySelector<HTMLElement>(".v30-subhead h1"),lead=panel.querySelector<HTMLElement>(".v30-subhead p");
+  if(title)title.textContent="Raporlar & geçmiş";if(lead)lead.textContent="Ay raporu, ay sonu retrospektifi ve değişiklik günlüğü";
+  const hide=(node:Element|null|undefined)=>node?.classList.add("v76-hidden");
+  hide(document.getElementById("v30DataTop"));hide(document.getElementById("v2DiagBox"));
+  for(const id of REPORT_HIDDEN){const node=document.getElementById(id);hide(node);const heading=node?.previousElementSibling;if(heading?.tagName==="H2")hide(heading);}
+  // Uygulama kurulum kartı Hakkında'ya taşınır; kimliği ve düğmeleri aynı kalır.
+  const pwa=document.getElementById("v4PwaCard"),about=document.getElementById("v30AboutPanel");
+  if(pwa&&about&&!about.contains(pwa)){const heading=pwa.previousElementSibling;if(heading?.tagName==="H2")about.append(heading);about.append(pwa);}
 }
 
 export function installNavigationV43():NavigationRuntime{
@@ -66,8 +113,7 @@ export function installNavigationV43():NavigationRuntime{
     if(!hub)return;
     const target=hub.querySelector<HTMLElement>("#v43MoreTools");if(!target)return;
     target.innerHTML=GROUPS.map(group=>`<section class="v43-more-group" data-v43-more-group="${group.id}" aria-label="${esc(group.label)}"><h2 class="v43-more-group-label">${esc(group.label)}</h2><div class="v43-more-tool-grid">${group.items.map(item=>{
-      const note=item.action==="data"?`<em class="v43-more-note">${esc(backupNote())}</em>`:"";
-      return `<button type="button" class="v43-more-tool" data-v43-more-action="${item.action}"><span class="v43-more-tool-icon" aria-hidden="true">${esc(item.icon)}</span><span><b>${esc(item.label)}</b><small>${esc(item.description)}</small>${note}</span><i aria-hidden="true">›</i></button>`;
+      return `<button type="button" class="v43-more-tool" data-v43-more-action="${item.action}"><span class="v43-more-tool-icon" aria-hidden="true">${esc(item.icon)}</span><span><b>${esc(item.label)}</b><small>${esc(item.description)}</small></span><i aria-hidden="true">›</i></button>`;
     }).join("")}</div></section>`).join("");
   }
   function hideLegacyMenu(){
@@ -81,18 +127,23 @@ export function installNavigationV43():NavigationRuntime{
     hub=document.getElementById("v43MoreHub");
     if(!hub){
       hub=document.createElement("section");hub.id="v43MoreHub";hub.className="v43-more-hub";hub.setAttribute("aria-label","Merkez");
-      hub.innerHTML=`<header class="v43-more-head"><h1>Merkez</h1><p>Araçların, raporların ve verin.</p></header><div id="v43MoreSearchSlot" class="v43-more-search"></div><div class="v43-more-shortcuts" aria-label="Sık kullanılan ekranlar">${SHORTCUTS.map(item=>`<button type="button" ${item.screen?`data-v43-screen="${item.screen}"`:`data-v43-more-action="${item.action}"`}><svg viewBox="0 0 24 24" aria-hidden="true">${item.icon}</svg><span>${esc(item.label)}</span></button>`).join("")}</div><div id="v43MoreTools" class="v43-more-tools"></div><details class="v43-more-quick"><summary>Kişisel kısayollarım</summary><div id="v43MoreQuickSlot"></div></details>`;
+      hub.innerHTML=`<header class="v43-more-head"><h1>Merkez</h1><p>Araçların, raporların ve ayarların.</p><div class="v43-more-sync" id="v43MoreSync" role="status"></div></header><div id="v43MoreSearchSlot" class="v43-more-search"></div><div class="v43-more-shortcuts" aria-label="Sık kullanılan ekranlar">${SHORTCUTS.map(item=>`<button type="button" ${item.screen?`data-v43-screen="${item.screen}"`:`data-v43-more-action="${item.action}"`}><svg viewBox="0 0 24 24" aria-hidden="true">${item.icon}</svg><span>${esc(item.label)}</span></button>`).join("")}</div><div id="v43MoreTools" class="v43-more-tools"></div><details class="v43-more-quick"><summary>Kişisel kısayollarım</summary><div id="v43MoreQuickSlot"></div></details>`;
       const status=document.getElementById("v30MoreStatus");if(status&&status.parentElement===home)status.insertAdjacentElement("afterend",hub);else home.prepend(hub);
       hub.addEventListener("click",event=>{
         if(!(event.target instanceof Element))return;
+        if(event.target.closest("[data-v76-account]")){legacy().v30Action?.("settings");window.dispatchEvent(new CustomEvent("yks:open-settings",{detail:{category:"account"}}));return;}
         const screen=event.target.closest<HTMLElement>("[data-v43-screen]")?.dataset.v43Screen;
         if(screen){legacy().go?.(screen);return;}
         const actionButton=event.target.closest<HTMLElement>("[data-v43-more-action]");const action=actionButton?.dataset.v43MoreAction as MoreAction|undefined;if(!action)return;
-        if(action==="progress")legacy().go?.("progress");else legacy().v30Action?.(action);
+        if(action==="progress")legacy().go?.("progress");else if(action==="archive")openPhotos();else legacy().v30Action?.(action);
       });
     }
     const quick=document.getElementById("v30QuickGrid"),slot=document.getElementById("v43MoreQuickSlot");if(quick&&slot&&quick.parentElement!==slot)slot.appendChild(quick);
-    const status=document.getElementById("v30MoreStatus");if(status&&slot&&status.parentElement!==slot)slot.append(status);
+    // Eski "Yalnız cihazda · son yedek" kutusu yerine başlıktaki gerçek eşitleme satırı kullanılır.
+    const status=document.getElementById("v30MoreStatus");if(status)status.classList.add("v76-hidden");
+    const sync=document.getElementById("v43MoreSync");
+    if(sync){const line=syncLine();sync.dataset.tone=line.tone;sync.innerHTML=`<i aria-hidden="true"></i><span>${esc(line.text)}</span>${line.guest?'<button type="button" data-v76-account>Hesap aç</button>':""}`;}
+    patchLegacyActions();trimReports();
     // Kayıt araması gizli bir açılır alan yerine Merkez'in en üstünde görünür.
     const search=document.querySelector<HTMLElement>("#more .v30-search-card"),searchSlot=document.getElementById("v43MoreSearchSlot");
     if(search&&searchSlot&&search.parentElement!==searchSlot)searchSlot.append(search);
