@@ -24,7 +24,8 @@ export function installRefinedSecondary(){
   }
   let paragraphOpen=false;
   function paragraph(){
-    const root=document.getElementById("paragraphProblemTracker");if(!root)return;
+    // v75: yeni Paragraf & Problem ekranında her kart görünür kalır; açılır kutu kurulmaz.
+    const root=document.getElementById("paragraphProblemTracker");if(!root||root.hasAttribute("data-pp-v75"))return;
     const details=disclosure(root,"refinedParagraphDetails","Eğilimler ve geçmiş çalışmalarım");
     if(!details.dataset.bound){details.dataset.bound="true";details.open=paragraphOpen;details.addEventListener("toggle",()=>{paragraphOpen=details.open;});}
     for(const node of Array.from(root.children)){
