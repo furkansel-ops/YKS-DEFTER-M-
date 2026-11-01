@@ -248,8 +248,8 @@ test("activation finishes without awaiting navigation or interrupting an open fo
 
 test("speed reading lazy modules are installed before offline readiness is granted",async()=>{
   const runtime=harness({network:shellNetwork});await runtime.install();
-  for(const file of ["runtime.mjs","model.mjs","content.mjs","speed-reading.css"])assert.equal(await runtime.body("./modules/speed-reading/"+file),"new asset");
-  const broken=harness({initial:previous,network:async url=>url.endsWith("/speed-reading/model.mjs")?new Response("missing",{status:404}):shellNetwork(url)});
+  for(const file of ["runtime.mjs","model.mjs","content.mjs","speed-reading.css"])assert.equal(await runtime.body("./modules/speed-reading/"+file+"?v=2.4.0"),"new asset");
+  const broken=harness({initial:previous,network:async url=>url.includes("/speed-reading/model.mjs")?new Response("missing",{status:404}):shellNetwork(url)});
   await assert.rejects(broken.install());assert.equal(broken.skipped,0);assert.equal(await broken.body("./index.html"),oldHtml);
 });
 

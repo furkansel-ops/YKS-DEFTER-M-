@@ -5,6 +5,9 @@ export const EXERCISE_IDS = ["groups", "lines", "focus", "returns", "paragraph"]
 export const SPEEDS = [150, 200, 250, 300, 350, 400, 450];
 export const DIFFICULTIES = ["medium", "hard", "expert"];
 const MAX_SESSIONS = 1000;
+export const ACCOUNT_SESSIONS = 300;
+export const DEFAULT_WEEKLY_GOAL = 3;
+const cleanGoal = value => Number.isInteger(value) && value >= 2 && value <= 7 ? value : DEFAULT_WEEKLY_GOAL;
 const finite = value => typeof value === "number" && Number.isFinite(value);
 const dateValue = value => finite(value) && value >= 0 && value <= 8640000000000000;
 export const wordCount = text => (String(text || "").match(/[\p{L}\p{N}]+(?:[’'\-][\p{L}\p{N}]+)*/gu) || []).length;
@@ -58,16 +61,56 @@ export function normalizeState(value, legacy = null) {
   for (const at of [...Object.values(lessons), ...(Array.isArray(source.lessonActivity) ? source.lessonActivity : [])]) {
     if (dateValue(at) && at > 0) activity.set(localDayKey(at), at);
   }
-  return {version: 2, lessons, lessonActivity: [...activity.values()].sort((a, b) => a - b).slice(-1000), sessions: [...unique.values()].sort((a, b) => a.at - b.at).slice(-MAX_SESSIONS)};
+  return {version: 2, lessons, lessonActivity: [...activity.values()].sort((a, b) => a - b).slice(-1000), sessions: [...unique.values()].sort((a, b) => a.at - b.at).slice(-MAX_SESSIONS), weeklyGoal: cleanGoal(source.weeklyGoal)};
 }
 function parse(value) {try {return JSON.parse(value);} catch {return null;}}
+const plainObject = value => value && typeof value === "object" && !Array.isArray(value) ? value : null;
+/* v2.4: kayıtlar hesap verisinde (S.speedReading) tutulur ve bulutla eşitlenir; cihazdaki kopya
+   yedek olarak yazılmaya devam eder. İlk açılışta cihazdaki eski kayıtlar hesaba birleştirilir.
+   Hesap kopyası son 300 çalışmayı taşır; cihaz kopyası 1000 çalışmaya kadar kalır. */
+export function accountStorage(local, legacy) {
+  const live = () => {try {return plainObject(legacy?.readState?.());} catch {return null;}};
+  const device = () => {try {return plainObject(parse(local.getItem(STORAGE_KEY)));} catch {return null;}};
+  return {
+    getItem(key) {
+      if (key !== STORAGE_KEY) return local.getItem(key);
+      const account = plainObject(live()?.speedReading), copy = device();
+      if (!account) return copy ? JSON.stringify(copy) : local.getItem(key);
+      if (!copy) return JSON.stringify(account);
+      const list = value => Array.isArray(value) ? value : [];
+      return JSON.stringify({version: 2, lessons: {...plainObject(copy.lessons), ...plainObject(account.lessons)}, lessonActivity: [...list(copy.lessonActivity), ...list(account.lessonActivity)], sessions: [...list(copy.sessions), ...list(account.sessions)], weeklyGoal: account.weeklyGoal ?? copy.weeklyGoal});
+    },
+    setItem(key, value) {
+      if (key !== STORAGE_KEY) return local.setItem(key, value);
+      const state = live();
+      let saved = false;
+      if (state && typeof legacy?.save === "function") {
+        const data = parse(value) || {};
+        state.speedReading = {...data, sessions: (Array.isArray(data.sessions) ? data.sessions : []).slice(-ACCOUNT_SESSIONS)};
+        legacy.save(); saved = true;
+      }
+      try {local.setItem(key, value);} catch (error) {if (!saved) throw error;}
+    },
+    get account() {return !!live();},
+    /** Cihazda olup hesapta olmayan kayıt var mı (ilk açılışta bir kez taşınır). */
+    pending() {
+      const state = live(), copy = device();
+      if (!state || !copy) return false;
+      const account = plainObject(state.speedReading);
+      if (!account) return true;
+      const ids = new Set((Array.isArray(account.sessions) ? account.sessions : []).map(row => row?.id));
+      const recent = (Array.isArray(copy.sessions) ? copy.sessions : []).slice(-ACCOUNT_SESSIONS);
+      return recent.some(row => row?.id && !ids.has(row.id)) || Object.keys(plainObject(copy.lessons) || {}).some(id => !Object.hasOwn(plainObject(account.lessons) || {}, id));
+    }
+  };
+}
 export function createStore(storage) {
   let memory = normalizeState(null), persistent = true;
   function read() {
     try {
       const latest = normalizeState(parse(storage.getItem(STORAGE_KEY)), parse(storage.getItem(LEGACY_KEY)));
       // Merge unsaved changes if storage was temporarily unavailable.
-      memory = persistent ? latest : normalizeState({lessons: {...latest.lessons, ...memory.lessons}, lessonActivity: [...latest.lessonActivity, ...memory.lessonActivity], sessions: [...latest.sessions, ...memory.sessions]});
+      memory = persistent ? latest : normalizeState({lessons: {...latest.lessons, ...memory.lessons}, lessonActivity: [...latest.lessonActivity, ...memory.lessonActivity], sessions: [...latest.sessions, ...memory.sessions], weeklyGoal: memory.weeklyGoal});
       return memory;
     } catch {persistent = false; return memory;}
   }
@@ -81,8 +124,24 @@ export function createStore(storage) {
     read,
     get persistent() {return persistent;},
     completeLesson(id, now = Date.now()) {return write(state => LESSON_IDS.includes(id) ? {...state, lessons: {...state.lessons, [id]: state.lessons[id] || now}, lessonActivity: [...state.lessonActivity, now]} : state);},
-    addSession(session) {return write(state => ({...state, sessions: [...state.sessions, session]}));}
+    addSession(session) {return write(state => ({...state, sessions: [...state.sessions, session]}));},
+    setWeeklyGoal(goal) {return write(state => ({...state, weeklyGoal: cleanGoal(goal)}));},
+    /** Okunan durumu yeniden yazar; cihazdaki eski kayıtların hesaba taşınması için. */
+    sync() {return write(state => state);}
   };
+}
+function weekStart(now) {const date = new Date(now); date.setHours(0, 0, 0, 0); date.setDate(date.getDate() - (date.getDay() + 6) % 7); return date.getTime();}
+/** Bu hafta (pazartesiden bugüne) çalışılan gün sayısı: egzersiz, test ya da ders yapılan her gün sayılır. */
+export function weeklyProgress(state, now = Date.now()) {
+  const start = weekStart(now), goal = cleanGoal(state.weeklyGoal);
+  const days = new Set([...state.sessions.map(row => row.at), ...Object.values(state.lessons), ...(state.lessonActivity || [])].filter(at => at > 0 && at >= start && at <= now).map(localDayKey));
+  return {days: days.size, goal, done: days.size >= goal};
+}
+/** Seçili dönemle bir önceki eş dönem arasındaki fark (test ortalamaları); veri yoksa null. */
+export function periodDelta(state, days = 7, now = Date.now()) {
+  const current = summarize(state, days, now), previous = summarize(state, days, now - (days === 30 ? 30 : 7) * 86400000);
+  const diff = (a, b) => a === null || b === null ? null : a - b;
+  return {wpm: diff(current.averageWpm, previous.averageWpm), comprehension: diff(current.averageComprehension, previous.averageComprehension), per100: diff(current.average100WordMs, previous.average100WordMs)};
 }
 export function localDayKey(timestamp) {
   const date = new Date(timestamp);

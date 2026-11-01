@@ -42,5 +42,4 @@
 :root[data-lab-retired] [data-v42-topic-action="lab"]{display:none!important}
 /* Okuma modülünün kendi başlığı sayfa başlığını tekrar etmesin ("Öğrenme Laboratuvarı" etiketi de kalkar) */
 #mrp_lab[data-v79-speed] .v30-subhead p,
-#mrp_lab[data-v79-speed] #speedReadingLearn .sr-eyebrow,
-#mrp_lab[data-v79-speed] #speedReadingLearn .sr-header h3{display:none}
+#mrp_lab[data-v79-speed] #speedReadingLearn .sr-header{display:none}

@@ -196,12 +196,63 @@ test("expanded passage pool reduces quick repetition while preserving question q
   const {PASSAGES}=await content;assert.ok(PASSAGES.length>=8);
   for(const passage of PASSAGES){assert.ok(passage.questions.length>=3);assert.ok(passage.text.length>400);}
 });
-test("speed reading v2.3 exposes adaptive difficulty, skill history and versioned lazy assets", async () => {
+test("speed reading v2.4 exposes adaptive difficulty, skill history and versioned lazy assets", async () => {
   const runtime=fs.readFileSync(path.join(base,"runtime.mjs"),"utf8"),css=fs.readFileSync(path.join(base,"speed-reading.css"),"utf8");
   const loader=fs.readFileSync(path.resolve(__dirname,"../modules/speed-reading-learn-v1.js"),"utf8");
   assert.match(runtime,/BUGÜNÜN ANTRENMANI/);assert.match(runtime,/daily-warmup/);assert.match(runtime,/weeklyTrend/);assert.match(runtime,/100 kelime okuma/);
   assert.match(runtime,/YKS tipi anlama sorusu/);assert.match(runtime,/resultSkillReport/);assert.match(runtime,/sr-test-skills/);assert.match(runtime,/recommendedDifficulty/);assert.match(runtime,/questionSkillBreakdown/);
-  assert.match(css,/sr-daily-steps/);assert.match(css,/sr-trend/);assert.match(css,/sr-skill-report/);assert.match(css,/sr-difficulty-card/);assert.match(css,/sr-skill-progress/);assert.match(loader,/speed-reading\.css\?v=2\.3\.0/);assert.match(loader,/runtime\.mjs\?v=2\.3\.0/);
+  assert.match(css,/sr-daily-steps/);assert.match(css,/sr-skill-report/);assert.match(css,/sr-skill-progress/);assert.match(loader,/speed-reading\.css\?v=2\.4\.0/);assert.match(loader,/runtime\.mjs\?v=2\.4\.0/);
+  assert.match(runtime,/from "\.\/model\.mjs\?v=2\.4\.0"/);assert.match(runtime,/from "\.\/content\.mjs\?v=2\.4\.0"/);
+});
+test("v2.4 screens: status strip, one next step, compact lessons, tempo stepper, readable progress", async () => {
+  const runtime=fs.readFileSync(path.join(base,"runtime.mjs"),"utf8"),css=fs.readFileSync(path.join(base,"speed-reading.css"),"utf8");
+  assert.match(runtime,/\[\["learn", "Bugün"\], \["exercise", "Egzersiz"\]/);
+  assert.match(runtime,/SIRADAKİ ADIM/);assert.match(runtime,/class="sr-strip"/);assert.match(runtime,/sr-lesson-row/);
+  assert.match(runtime,/speed-down/);assert.match(runtime,/önerilen \$\{recommended\}/);
+  assert.match(runtime,/Bu hafta \$\{week\.days\}\/\$\{week\.goal\} antrenman günü/);assert.match(runtime,/İlk testi çöz, gelişimin burada görünsün\./);assert.match(runtime,/Tüm ölçümler/);
+  assert.doesNotMatch(runtime,/v2\.3 testlerinden|ÖĞRENME LABORATUVARI|Bir ders seçerek başla/);
+  assert.doesNotMatch(runtime,/<select id="sr-speed"/);
+  for(const name of ["sr-strip","sr-next","sr-lesson-row","sr-tempo","sr-goal","sr-kpis","sr-chart"])assert.match(css,new RegExp(`\\.${name}\\b`),name);
+});
+test("v2.4 account storage keeps records in the synced state and merges the device copy once", async () => {
+  const m = await model, disk = storage(), state = {}, legacy = {readState: () => state, save() {this.saves = (this.saves || 0) + 1;}};
+  const deviceOnly = m.createStore(disk); deviceOnly.completeLesson("groups", at(1)); deviceOnly.addSession(session(m, {id: "old"}));
+  const adapter = m.accountStorage(disk, legacy);
+  assert.equal(adapter.pending(), true, "cihazda olup hesapta olmayan kayıt var");
+  const store = m.createStore(adapter); store.sync();
+  assert.equal(adapter.pending(), false); assert.equal(legacy.saves, 1);
+  assert.equal(state.speedReading.sessions.length, 1); assert.equal(state.speedReading.lessons.groups, at(1));
+  store.addSession(session(m, {id: "new", at: at(4)}));
+  assert.deepEqual(state.speedReading.sessions.map(row => row.id), ["old", "new"]);
+  assert.equal(JSON.parse(disk.getItem(m.STORAGE_KEY)).sessions.length, 2, "cihaz kopyası da yazılır");
+  // Başka cihaz: hesapta kayıt var, cihaz boş.
+  const other = m.createStore(m.accountStorage(storage(), {readState: () => state, save() {}}));
+  assert.equal(other.read().sessions.length, 2); assert.equal(other.read().lessons.groups, at(1));
+  // Hesap kopyası son 300 çalışmayı taşır; cihaz kopyası 1000'e kadar kalır.
+  const many = Array.from({length: 320}, (_, index) => session(m, {id: "s" + index, at: at(5) + index}));
+  for (const row of many) store.addSession(row);
+  assert.equal(state.speedReading.sessions.length, m.ACCOUNT_SESSIONS); assert.equal(store.read().sessions.length, 322);
+  // Durum okunamazsa cihaz depolamasıyla çalışmaya devam eder.
+  const fallback = m.createStore(m.accountStorage(storage(), {readState: () => null, save() {}})); fallback.addSession(session(m));
+  assert.equal(fallback.read().sessions.length, 1);
+});
+test("v2.4 weekly goal counts training days since Monday and stays within 2-7", async () => {
+  const m = await model, disk = storage(), store = m.createStore(disk), monday = new Date(2026, 9, 26, 9).getTime();
+  assert.equal(store.read().weeklyGoal, 3);
+  store.addSession(session(m, {id: "a", at: monday})); store.addSession(session(m, {id: "b", at: monday + 3600e3}));
+  store.addSession(session(m, {id: "c", at: monday + 2 * 86400e3})); store.addSession(session(m, {id: "last-week", at: monday - 86400e3}));
+  store.completeLesson("voice", monday + 3 * 86400e3);
+  assert.deepEqual(m.weeklyProgress(store.read(), monday + 4 * 86400e3), {days: 3, goal: 3, done: true});
+  store.setWeeklyGoal(9); assert.equal(store.read().weeklyGoal, 3, "geçersiz hedef varsayılana döner");
+  store.setWeeklyGoal(5); assert.equal(m.createStore(disk).read().weeklyGoal, 5);
+  assert.equal(m.weeklyProgress(store.read(), monday + 4 * 86400e3).done, false);
+});
+test("v2.4 period delta compares the selected window with the previous one", async () => {
+  const m = await model, now = at(20, 20);
+  const rows = [session(m, {id: "p1", at: at(10), readingMs: 60000}), session(m, {id: "c1", at: at(18), readingMs: 40000, correct: 3})];
+  const delta = m.periodDelta(m.normalizeState({sessions: rows}), 7, now);
+  assert.equal(delta.wpm, 300 - 200); assert.equal(delta.comprehension, 75 - 100); assert.equal(delta.per100, 20000 - 30000);
+  assert.deepEqual(m.periodDelta(m.normalizeState({}), 7, now), {wpm: null, comprehension: null, per100: null});
 });
 
 

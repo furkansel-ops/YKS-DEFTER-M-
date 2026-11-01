@@ -91,7 +91,7 @@ test("v77 arayüz: seviye unvanı kalktı; Kariyerim'de rank kartı, bugünün X
 
 test("v77 koça seviye ve deneme rankı gider; alanlar temizlenir",()=>{
   const runtime=read("public/student-coaching-runtime.js");
-  assert.match(runtime,/targetDepartment:text\(s\.targetDepartment,120\),career:careerShare\(\)\}/);
+  assert.match(runtime,/targetDepartment:text\(s\.targetDepartment,120\),career:careerShare\(\),reading:readingShare\(s\)\}/);
   const fn=runtime.match(/function careerShare\(\)\{[\s\S]*?\n\}/)[0];
   const share=summary=>vm.runInNewContext(`const window={YKSCareer:{summary:()=>(${JSON.stringify(summary)})}};const finite=(v,d=0)=>Number.isFinite(Number(v))?Number(v):d;const text=(v,n)=>String(v??"").trim().slice(0,n);${fn};careerShare()`);
   assert.deepEqual(JSON.parse(JSON.stringify(share({level:12.7,xp:5370,tyt:{label:"TYT",name:"Platin III",net:79.123,league:3,tier:3},ayt:null,ydt:null}))),{level:12,xp:5370,tyt:{label:"TYT",name:"Platin III",net:79.12,league:3,tier:3},ayt:null,ydt:null});
