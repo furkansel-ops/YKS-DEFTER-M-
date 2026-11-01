@@ -4,6 +4,14 @@ const fs=require("node:fs"),path=require("node:path"),vm=require("node:vm");
 const root=path.resolve(__dirname,"..");
 const read=p=>fs.readFileSync(path.join(root,p),"utf8");
 
+test("v81 koça giden hata kaydı denemeyi ve hata türünü taşır; boşsa alan eklenmez",()=>{
+  const runtime=read("public/student-coaching-runtime.js");
+  assert.match(runtime,/n:Math\.max\(1,finite\(x\?\.n,1\)\),\.\.\.errorExtra\(x\)\}\)\);/);
+  const fn=runtime.match(/function errorExtra\(x\)\{[^\n]*\}/)[0];
+  const extra=x=>JSON.parse(JSON.stringify(vm.runInNewContext(`const text=(v,n)=>String(v??"").trim().slice(0,n);${fn};errorExtra(x)`,{x})));
+  assert.deepEqual(extra({deneme:1730000000000,kind:"bilgi"}),{exam:"1730000000000",kind:"bilgi"});
+  assert.deepEqual(extra({}),{},"undefined alan Firestore'a gitmez");
+});
 test("v80 koça hızlı okuma özeti gider: yalnız sayılar, son 30 gün geçerli testler",()=>{
   const runtime=read("public/student-coaching-runtime.js");
   assert.match(runtime,/career:careerShare\(\),reading:readingShare\(s\)\}/,"profil içinde (kurallar yalnız üst anahtarları denetler)");
