@@ -4,6 +4,8 @@ import {installStudyTaskPanel} from "./study-tasks-panel.ts";
 import {installStudyInsightsPanel} from "./study-insights-panel.ts";
 import {achievementOverview,badgeProgressPercent} from "../domain/achievement-overview.ts";
 import "./study-gamification.css";
+import {renderRankHero,renderTodayXp,careerSummary} from "./career-rank-v77.ts";
+import {computeExamRanks} from "../domain/exam-rank.ts";
 
 type LegacyWindow=Window&{
   YKSLegacyState?:{readState?:()=>StudyGamificationState|null;save?:()=>unknown};
@@ -103,8 +105,9 @@ function renderTodayTeaser(snapshot:StudyGamificationSnapshot):void{
   const fill=link.querySelector<HTMLElement>(".sg-today-level-fill");
   const progress=snapshot.activated?Math.max(0,snapshot.levelProgress):0;
   const goal=snapshot.activated?Math.max(1,snapshot.levelGoal):1;
+  const tyt=computeExamRanks(readState() as Record<string,unknown>|null).tyt;
   if(level)level.textContent=snapshot.activated?
-    "Seviye "+snapshot.level+" · "+snapshot.rank:"Kariyerini başlat";
+    "Seviye "+snapshot.level+(tyt?" · TYT "+tyt.name:""):"Kariyerini başlat";
   if(xp)xp.textContent=snapshot.activated?
     progress+" / "+goal+" XP · Sonraki seviye için "+Math.max(0,goal-progress)+" XP":"Hedeflerini seç, XP kazanmaya başla";
   if(summary)summary.textContent=snapshot.activated?
@@ -569,7 +572,7 @@ function render(snapshot:StudyGamificationSnapshot,root:HTMLElement):void{
     node("p","","Rozet yolculuğun, haftalık çalışma ritmin ve gerçek XP kazanımların tek yerde."));
   const emblem=node("span","sg-hero-emblem","🏆");emblem.setAttribute("aria-hidden","true");
   hero.append(leading,emblem);
-  root.append(hero);
+  root.append(hero,renderRankHero(readState() as Record<string,unknown>|null));
   if(!snapshot.activated){
     root.append(node("p","sg-intro",
       "Başarım yolculuğunu başlatmak için günlük odak ve soru hedeflerini belirle."),
@@ -579,8 +582,7 @@ function render(snapshot:StudyGamificationSnapshot,root:HTMLElement):void{
   const top=node("div","sg-career-profile");
   const rank=node("div","sg-career-rank");
   rank.append(node("span","sg-rank-icon","⚡"),
-    node("span","sg-career-rank-label","Seviye "+snapshot.level),
-    node("strong","sg-career-rank-title",snapshot.rank));
+    node("strong","sg-career-rank-label","Seviye "+snapshot.level));
   const total=node("span","sg-career-total",fmt(snapshot.xp)+" toplam XP");
   const levelHead=node("div","sg-career-level-head");
   levelHead.append(node("strong","","Sonraki seviyeye doğru"),
@@ -608,7 +610,7 @@ function render(snapshot:StudyGamificationSnapshot,root:HTMLElement):void{
       node("small","",item[2]));
     stats.append(card);
   }
-  root.append(top,stats);
+  root.append(top,stats,renderTodayXp(snapshot));
   const tabs=node("div","sg-career-tabs");
   tabs.setAttribute("role","tablist");tabs.setAttribute("aria-label","Başarım kategorileri");
   for(const [id,label] of [
@@ -764,7 +766,7 @@ function refresh():void{
     }else profile.earned=priorEarned;
     snapshot=calculateStudyGamification(state);
   }
-  if(previousLevel>0&&snapshot.level>previousLevel)celebrate("⚡ Seviye "+snapshot.level,"Yeni unvan: "+snapshot.rank,"✨");
+  if(previousLevel>0&&snapshot.level>previousLevel)celebrate("⚡ Seviye "+snapshot.level,"Seviye atladın! Böyle devam.","✨");
   previousLevel=snapshot.level;
   render(snapshot,root);
   renderTodayTeaser(snapshot);
@@ -777,6 +779,8 @@ function schedule():void{
 }
 export function installStudyGamification():{installed:boolean}{
   if(!mount())return {installed:false};
+  // v77: koça giden özet için seviye ve deneme rankı (yalnız okuma).
+  (window as unknown as {YKSCareer?:unknown}).YKSCareer={summary:()=>{const s=readState();return careerSummary(s as Record<string,unknown>|null,s?calculateStudyGamification(s):null);}};
   if(document.documentElement.dataset.studyGamificationListeners==="ready"){schedule();return {installed:true};}
   document.documentElement.dataset.studyGamificationListeners="ready";
   installStudyTaskPanel({readState,saveState,toast:message=>runtime.toast?.(message)});

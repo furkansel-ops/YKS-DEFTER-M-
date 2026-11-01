@@ -113,6 +113,13 @@ function buildProgramShare(s){
 
 /* v75: isteğe bağlı süre ve soru türü yalnız doluysa eklenir (Firestore undefined kabul etmez). */
 function ppExtra(x){const out={},minutes=Math.max(0,Math.min(600,Math.floor(finite(x?.minutes))));if(minutes)out.minutes=minutes;const topic=text(x?.topic,40);if(topic)out.topic=topic;return out;}
+/* v77: kariyer özeti (seviye, XP, deneme rankları) yalnız sayı ve kısa metin olarak paylaşılır. */
+function careerShare(){
+  let raw=null;try{raw=window.YKSCareer?.summary?.()||null;}catch(e){raw=null;}
+  if(!raw||typeof raw!=="object")return null;
+  const rank=r=>r&&typeof r==="object"?{label:text(r.label,24),name:text(r.name,24),net:Math.round(finite(r.net)*100)/100,league:Math.max(0,Math.min(7,Math.floor(finite(r.league)))),tier:Math.max(0,Math.min(3,Math.floor(finite(r.tier))))}:null;
+  return {level:Math.max(0,Math.floor(finite(raw.level))),xp:Math.max(0,Math.floor(finite(raw.xp))),tyt:rank(raw.tyt),ayt:rank(raw.ayt),ydt:rank(raw.ydt)};
+}
 function progressDaily(s,days=7){
   return Array.from({length:days},(_,index)=>{
     const date=localDayOffset(-(days-1-index));
@@ -136,7 +143,7 @@ function sharePayload(s,u){
   const errors=list(s.wrongLog).slice(-100).map(x=>({date:text(x?.date,10),subject:text(x?.subject,60),topic:text(x?.topic,100),n:Math.max(1,finite(x?.n,1))}));
   const dayReviews=Object.entries(s.dayReview&&typeof s.dayReview==="object"?s.dayReview:{}).filter(([date])=>/^\d{4}-\d{2}-\d{2}$/.test(date)).sort(([a],[b])=>a.localeCompare(b)).slice(-14).map(([date,value])=>({date,mood:["good","mid","hard"].includes(value?.mood)?value.mood:"",note:text(value?.note,3000),at:finite(value?.at)})).filter(x=>x.mood||x.note);
   const daily14=progressDaily(s,14),subjects7=progressSubjects(s,daily14.slice(-7));
-  return{studentUid:u.uid,version:1,profile:{name:text(s.name||u.displayName,80),track:text(s.puanTuru,8),targetNetTYT:Number(s.targetNetTYT??s.targetNet??0),targetNetAYT:Number(s.targetNetAYT||0),targetUniversity:text(s.targetUniversity,120),targetDepartment:text(s.targetDepartment,120)},program:buildProgramShare(s),exams,progress:{minutes7:sum(s.pomoMin,7),questions7:sum(s.solved,7),daily14,subjects7,completedTopics:topics.filter(x=>x.st>=3).length,activeTopics:topics.filter(x=>x.st>0&&x.st<3).length,overdueTopics:topics.filter(x=>x.deadline&&x.deadline<today()&&x.st<3).length,dayReview:{entries:dayReviews}},paragraphProblem:{entries:pp},topics:{items:topics},errorJournal:errors,updatedAt:serverTimestamp()};
+  return{studentUid:u.uid,version:1,profile:{name:text(s.name||u.displayName,80),track:text(s.puanTuru,8),targetNetTYT:Number(s.targetNetTYT??s.targetNet??0),targetNetAYT:Number(s.targetNetAYT||0),targetUniversity:text(s.targetUniversity,120),targetDepartment:text(s.targetDepartment,120),career:careerShare()},program:buildProgramShare(s),exams,progress:{minutes7:sum(s.pomoMin,7),questions7:sum(s.solved,7),daily14,subjects7,completedTopics:topics.filter(x=>x.st>=3).length,activeTopics:topics.filter(x=>x.st>0&&x.st<3).length,overdueTopics:topics.filter(x=>x.deadline&&x.deadline<today()&&x.st<3).length,dayReview:{entries:dayReviews}},paragraphProblem:{entries:pp},topics:{items:topics},errorJournal:errors,updatedAt:serverTimestamp()};
 }
 async function publishShare(options={}){
   const manual=options?.manual===true,session=rt.session;
@@ -320,7 +327,7 @@ async function onSignedIn({user,auth,db}){
 function onSignedOut(){cleanup();rt.user=rt.auth=rt.db=rt.profile=null;delete document.documentElement.dataset.accountRole}
 
 let resolveAccountReady;try{window.__YKS_ACCOUNT_READY__=new Promise(resolve=>{resolveAccountReady=resolve})}catch{}
-window.YKSAccountAuth={version:"1.2.23",beforeSignIn,onSignedIn,onSignedOut,publishShare};
+window.YKSAccountAuth={version:"1.2.24",beforeSignIn,onSignedIn,onSignedOut,publishShare};
 try{resolveAccountReady?.(window.YKSAccountAuth)}catch{}
 document.documentElement.dataset.studentCoachingBridge="ready";
-window.dispatchEvent(new CustomEvent("yks:student-coaching-ready",{detail:{version:"1.2.23"}}));
+window.dispatchEvent(new CustomEvent("yks:student-coaching-ready",{detail:{version:"1.2.24"}}));

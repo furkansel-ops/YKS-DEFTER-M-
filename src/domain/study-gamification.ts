@@ -22,10 +22,13 @@ export type GamificationProfile={
 export type StudyGamificationState={
   pomoMin?:Record<string,unknown>;
   solved?:Record<string,unknown>;
-  denemeler?:Array<{date?:unknown;at?:unknown;type?:unknown;totalNet?:unknown;id?:unknown}>;
+  denemeler?:Array<{date?:unknown;at?:unknown;type?:unknown;totalNet?:unknown;id?:unknown;name?:unknown}>;
   pomoSubj?:Record<string,Record<string,unknown>>;
   solvedTopic?:Record<string,Record<string,unknown>>;
-  topics?:Record<string,{revDone?:Record<string,unknown>}>;
+  topics?:Record<string,{revDone?:Record<string,unknown>;st?:unknown;ts?:unknown}>;
+  paragraphProblem?:{entries?:Array<{date?:unknown;correct?:unknown;wrong?:unknown;blank?:unknown;createdAt?:unknown}>};
+  wrongLog?:readonly unknown[];
+  errorJournal?:Array<{resolved?:unknown;resolvedAt?:unknown}>;
   sessions?:Record<string,Array<{t?:unknown;m?:unknown;type?:unknown;done?:unknown}>>;
   gamification?:GamificationProfile;
 };
@@ -37,13 +40,18 @@ export type StudyBadge={
 };
 export type StudyDayStatus="completed"|"rest"|"shield"|"missed"|"pending";
 export type StudyWeekDay={key:string;label:string;completed:boolean;today:boolean;status:StudyDayStatus};
+/** v77: odak ve soru dışındaki doğrulanabilir çalışmalardan XP; her biri günlük sınırlı. */
+export type TodayXp={focus:number;questions:number;goal:number;pp:number;topics:number;reviews:number;exams:number;errors:number;total:number};
+export const ACTIVITY_XP={ppPerTwo:1,ppDailyMax:40,topic:30,topicDailyMax:3,review:10,reviewDailyMax:5,exam:40,examAnalysis:20,examDailyMax:2,error:10,errorDailyMax:5} as const;
 export type StudyGamificationSnapshot={
   activated:boolean;todayKey:string;todayMinutes:number;todayQuestions:number;
   goalMinutes:number;goalQuestions:number;todayCompleted:boolean;
   currentStreak:number;longestStreak:number;activeDays:number;
   shields:number;shieldsUsed:number;shieldLimit:number;restDays:string[];
   totalMinutes:number;totalQuestions:number;totalExams:number;
-  xp:number;level:number;rank:string;levelProgress:number;levelGoal:number;
+  xp:number;level:number;levelProgress:number;levelGoal:number;
+  /** Bugünün XP kırılımı (günlük sınırlar uygulanmış). */
+  todayXp:TodayXp;
   /** Server-independent, deterministic XP sources: sum always equals xp. */
   xpSources:{study:number;badges:number;tasks:number};
   earnedBadges:number;badges:StudyBadge[];newBadgeIds:string[];
@@ -116,12 +124,46 @@ export function planRestDay(profile:GamificationProfile,day:string,now:Date):Gam
   return {...profile,restDays:[...existing,day].sort()};
 }
 
-function rankFor(level:number):string{
-  if(level>=35)return "YKS Efsanesi";
-  if(level>=20)return "Usta";
-  if(level>=10)return "Savaşçı";
-  if(level>=5)return "Çırak";
-  return "Acemi";
+/* v77: seviyeden gelen unvanlar kaldırıldı; "rank" yalnız deneme rankıdır (exam-rank.ts). */
+type ActivityDay={pp:number;topics:number;reviews:number;exams:number;errors:number};
+function dayFromMs(ms:number):string{return ms>0?keyOf(new Date(ms)):"";}
+/** Kariyer başlatıldıktan sonraki kayıtlardan, günlük sınırlarla etkinlik XP'si. */
+function activityXp(state:StudyGamificationState,profile:GamificationProfile,todayKey:string):{total:number;days:Map<string,ActivityDay>}{
+  const days=new Map<string,ActivityDay>(),from=profile.activationDay,started=profile.activatedAt;
+  const inRange=(day:string)=>isDayKey(day)&&day>=from&&day<=todayKey;
+  const bump=(day:string,key:keyof ActivityDay,value:number)=>{const d=days.get(day)??{pp:0,topics:0,reviews:0,exams:0,errors:0};d[key]+=value;days.set(day,d);};
+  for(const e of state.paragraphProblem?.entries??[]){
+    const day=String(e?.date??""),q=amount(e?.correct,999)+amount(e?.wrong,999)+amount(e?.blank,999);
+    if(inRange(day)&&Number(e?.createdAt)>=started)bump(day,"pp",q);
+  }
+  for(const t of Object.values(state.topics??{})){
+    const ts=String(t?.ts??"");if(Number(t?.st)===3&&inRange(ts)&&ts>from)bump(ts,"topics",1);
+    for(const done of Object.values(t?.revDone??{})){const day=String(done??"");if(inRange(day)&&day>from)bump(day,"reviews",1);}
+  }
+  const linked=new Set((state.wrongLog??[]).map(w=>String((w as {deneme?:unknown}|null)?.deneme??"")).filter(Boolean)),seen=new Set<string>(),examBonus=new Map<string,number>();
+  for(const exam of state.denemeler??[]){
+    const day=String(exam?.date??""),id=Number(exam?.id),at=Number(exam?.at);
+    if(!inRange(day))continue;
+    if(!(day>from||(Number.isFinite(id)&&id>=started)||(Number.isFinite(at)&&at>=started)))continue;
+    const key=[exam?.type,day,String(exam?.name??"").trim(),Number(exam?.totalNet)||0].join("|");if(seen.has(key))continue;seen.add(key);
+    const used=days.get(day)?.exams??0;if(used>=ACTIVITY_XP.examDailyMax)continue;
+    bump(day,"exams",1);if(linked.has(String(exam?.id??"")))examBonus.set(day,(examBonus.get(day)??0)+1);
+  }
+  for(const j of state.errorJournal??[]){const at=Number(j?.resolvedAt);if(j?.resolved&&at>=started){const day=dayFromMs(at);if(inRange(day))bump(day,"errors",1);}}
+  let total=0;
+  for(const [day,d] of days){
+    const xp=xpForDay(d,examBonus.get(day)??0);total+=xp.total;
+    days.set(day,{pp:xp.pp,topics:xp.topics,reviews:xp.reviews,exams:xp.exams,errors:xp.errors});
+  }
+  return {total,days};
+}
+function xpForDay(d:ActivityDay,analysed:number):ActivityDay&{total:number}{
+  const pp=Math.min(ACTIVITY_XP.ppDailyMax,Math.floor(d.pp/2)*ACTIVITY_XP.ppPerTwo);
+  const topics=Math.min(d.topics,ACTIVITY_XP.topicDailyMax)*ACTIVITY_XP.topic;
+  const reviews=Math.min(d.reviews,ACTIVITY_XP.reviewDailyMax)*ACTIVITY_XP.review;
+  const exams=Math.min(d.exams,ACTIVITY_XP.examDailyMax)*ACTIVITY_XP.exam+Math.min(analysed,ACTIVITY_XP.examDailyMax)*ACTIVITY_XP.examAnalysis;
+  const errors=Math.min(d.errors,ACTIVITY_XP.errorDailyMax)*ACTIVITY_XP.error;
+  return {pp,topics,reviews,exams,errors,total:pp+topics+reviews+exams+errors};
 }
 export function levelForXp(xp:number):{level:number;progress:number;goal:number}{
   let level=1,progress=Math.max(0,Math.floor(xp));
@@ -161,6 +203,11 @@ function definitions(s:{minutes:number;questions:number;successfulDays:number;lo
     {id:"hidden-perfect",icon:"🌟",title:"Mükemmel Hafta",description:"Bir haftayı çalışma ve dinlenmeyle kusursuz tamamla",rarity:"Elmas",goal:1,value:Number(insights.hidden.perfectWeek),hidden:true},
     {id:"hidden-surprise",icon:"✨",title:"Sürpriz Ustalık",description:"Üç derste Gümüş ustalığa ulaş",rarity:"Elmas",goal:1,value:Number(insights.hidden.surprise),hidden:true}
   ];
+}
+function todayXpFor(record:{minutes:number;questions:number}|undefined,completed:boolean,extra:ActivityDay|undefined):TodayXp{
+  const focus=record?Math.min(120,Math.floor(record.minutes/2)):0,questions=record?Math.min(80,Math.floor(record.questions/2)):0,goal=completed?50:0;
+  const e=extra??{pp:0,topics:0,reviews:0,exams:0,errors:0};
+  return {focus,questions,goal,...e,total:focus+questions+goal+e.pp+e.topics+e.reviews+e.exams+e.errors};
 }
 export function calculateStudyGamification(state:StudyGamificationState|null|undefined,now=new Date()):StudyGamificationSnapshot{
   const todayKey=keyOf(now),profile=state?.gamification;
@@ -217,6 +264,8 @@ export function calculateStudyGamification(state:StudyGamificationState|null|und
     }
   }
   const todayCompleted=dayStatuses.get(todayKey)==="completed";
+  const activity=activated?activityXp(state!,profile!,todayKey):{total:0,days:new Map<string,ActivityDay>()};
+  workXp+=activity.total;
   const totalExams=activated?(state?.denemeler??[]).filter(exam=>{
     const stamp=Number(exam?.at);
     return Number.isFinite(stamp)&&stamp>=profile.activatedAt&&stamp<=now.getTime()
@@ -266,7 +315,7 @@ export function calculateStudyGamification(state:StudyGamificationState|null|und
     currentStreak,longestStreak,activeDays,totalMinutes,totalQuestions,totalExams,
     shields,shieldsUsed,shieldLimit:2,restDays:[...plannedRest].sort(),
     xp,xpSources:{study:workXp,badges:earnedXp,tasks:taskRewardXp},
-    level:levelInfo.level,rank:rankFor(levelInfo.level),
+    level:levelInfo.level,todayXp:todayXpFor(todayRecord,todayCompleted,activity.days.get(todayKey)),
     levelProgress:levelInfo.progress,levelGoal:levelInfo.goal,
     earnedBadges:badges.filter(b=>b.unlocked).length,badges,newBadgeIds,week,history};
 }
