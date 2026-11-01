@@ -25,7 +25,7 @@ const index=await readFile(resolve(dist,"index.html"),"utf8");
 if(!index.includes('./modules/focus-notifications.js?v=4.4.0-r27'))throw new Error("Odak bildirim denetimi üretim HTML'ine bağlı değil");
 if(!index.includes('data-ui-shell="refined-v1"')||!index.includes('id="yksBootGuard"')||!index.includes('id="yksBootController"')||index.includes('uiReady="fallback"'))throw new Error("Üretim HTML'i güvenli yeni arayüz açılış sözleşmesini taşımıyor");
 if(!/assets\/index-[^"']+\.js/.test(index))throw new Error("TypeScript üretim paketi index.html içine bağlanmadı");
-if(!index.includes('./app.js?v=4.1.0-r28')||!index.includes('./modules/stability.js?v=4.1.0-r29')||!index.includes('./modules/learning-lab.js?v=4.1.0-r26')||!index.includes('./modules/error-journal.js?v=4.1.0-r24'))throw new Error("Uygulama çalışma zamanı üretim paketinde bağlı değil");
+if(!index.includes('./app.js?v=4.1.0-r28')||!index.includes('./modules/stability.js?v=4.1.0-r30')||!index.includes('./modules/learning-lab.js?v=4.1.0-r26')||!index.includes('./modules/error-journal.js?v=4.1.0-r24'))throw new Error("Uygulama çalışma zamanı üretim paketinde bağlı değil");
 for(const forbidden of ["legacyFirebaseSyncModule","firebaseSyncModule","www.gstatic.com/firebasejs","cloudSyncBox","Google ile giriş"]){
   if(index.includes(forbidden))throw new Error(`Play Store yerel-veri paketinde eski bulut çalışma zamanı kaldı: ${forbidden}`);
 }
@@ -59,9 +59,11 @@ if(!app.includes('const APP_VERSION="4.1.0"')||!app.includes('const APP_BUILD="4
 if(!sw.includes(`const APP_VERSION="${localRelease.version}"`)||!sw.includes(`const APP_BUILD="${localRelease.build}"`)||!sw.includes(`const CACHE="yks-core-v${localRelease.build}"`)||!sw.includes('"yks-core-v4.3.1-r1"')||!sw.includes('"yks-core-v4.2.0-r1"'))throw new Error("Kopyalanan service worker v4.4 kararlı sürüm/cache revizyonuyla eşleşmiyor");
 if(!sw.includes('learning-lab.js?v=4.1.0-r26'))throw new Error("Laboratuvar favori düzeltmesi çevrimdışı çekirdekte eksik");
 const v42Runtime=["global-search-v42.js","smart-repeat-v42.js","error-topic-lab-v42.js","exam-analysis-v42.js","progress-v42.js","learning-lab-flow-v42.js"];
+// v79: global arama Laboratuvar kalktığı için r2 ile yeniden yayımlandı.
+const v42Revision=file=>file==="global-search-v42.js"?"4.2.0-r2":"4.2.0-r1";
 for(const file of v42Runtime){
-  if(!sw.includes(`${file}?v=4.2.0-r1`))throw new Error("v4.2 uyumluluk modülü çevrimdışı çekirdekte eksik: "+file);
-  if(!stability.includes(`${file}?v=4.2.0-r1`))throw new Error("v4.2 uyumluluk modülü çalışma zamanında yüklenmiyor: "+file);
+  if(!sw.includes(`${file}?v=${v42Revision(file)}`))throw new Error("v4.2 uyumluluk modülü çevrimdışı çekirdekte eksik: "+file);
+  if(!stability.includes(`${file}?v=${v42Revision(file)}`))throw new Error("v4.2 uyumluluk modülü çalışma zamanında yüklenmiyor: "+file);
 }
 const polishCore=["study-intelligence-v5.css","ui-polish-v1.css","ui-polish-home-v2.css","ui-polish-focus-v1.css","ui-polish-exam-v1.css","ui-polish-topics-v1.css","ui-polish-error-journal-v1.css","ui-polish-progress-v1.css","ui-polish-progress-v2.css","ui-polish-more-v1.css","ui-polish-program-v1.css","ui-polish-learning-lab-v1.css","ui-polish-final-v1.css"];
 for(const file of polishCore)if(!sw.includes(`${file}?v=4.1.0-r1`))throw new Error("Cila katmanı çevrimdışı çekirdekte eksik: "+file);

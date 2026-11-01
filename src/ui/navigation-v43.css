@@ -32,3 +32,15 @@
 .v43-more-sync i{flex:none;width:8px;height:8px;border-radius:50%;background:currentColor}
 .v43-more-sync span{flex:1;min-width:0}
 .v43-more-sync button{flex:none;min-height:36px;padding:0 12px;border:0;border-radius:10px;background:var(--d-accent,#2f6bea);color:var(--d-on-accent,#fff);font:inherit;font-size:12.5px;font-weight:800;cursor:pointer}
+
+/* v79 · Öğrenme Laboratuvarı yerine yalnız Hızlı Okuma; diğer araçlar gizlenir (silinmez) */
+#mrp_lab[data-v79-speed] #v320LearningLab>:not(.v320-toolbox),
+#mrp_lab[data-v79-speed] .v320-toolbox>summary,
+#mrp_lab[data-v79-speed] .v320-toolbox>.v320-tabs,
+#mrp_lab[data-v79-speed] .v320-toolbox>[id^="v320Panel"]:not(#v320PanelSpeed){display:none!important}
+#mrp_lab[data-v79-speed] .v320-toolbox{margin:0;padding:0;border:0;background:none;box-shadow:none}
+:root[data-lab-retired] [data-v42-topic-action="lab"]{display:none!important}
+/* Okuma modülünün kendi başlığı sayfa başlığını tekrar etmesin ("Öğrenme Laboratuvarı" etiketi de kalkar) */
+#mrp_lab[data-v79-speed] .v30-subhead p,
+#mrp_lab[data-v79-speed] #speedReadingLearn .sr-eyebrow,
+#mrp_lab[data-v79-speed] #speedReadingLearn .sr-header h3{display:none}

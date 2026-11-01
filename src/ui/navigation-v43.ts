@@ -6,7 +6,7 @@ interface MoreItem{action:MoreAction;label:string;description:string;icon:string
 interface MoreGroup{id:GroupId;label:string;items:readonly MoreItem[];}
 interface Shortcut{screen?:string;action?:MoreAction;label:string;icon:string;}
 interface NavigationRuntime{installed:true;version:string;validate():string[];refresh():void;}
-type LegacyWindow=Window&{v30Action?:((action:string)=>unknown)&{__v76?:boolean};v30QuickItems?:(()=>QuickItem[])&{__v76?:boolean};go?:(screen:string)=>unknown;exportData?:()=>unknown;toast?:(text:string)=>void;YKSExamHub?:{openPhotos?:()=>void};};
+type LegacyWindow=Window&{v30Action?:((action:string)=>unknown)&{__v76?:boolean};v30QuickItems?:(()=>QuickItem[])&{__v76?:boolean};go?:(screen:string)=>unknown;exportData?:()=>unknown;v320SetTab?:(tab:string)=>unknown;toast?:(text:string)=>void;YKSExamHub?:{openPhotos?:()=>void};};
 interface QuickItem{k:string;label:string;sub:string;icon:string;n?:number;base?:number;}
 type RouteDetail={to?:string};
 declare global{interface Window{__YKS_NAV_V43__?:NavigationRuntime;}}
@@ -22,7 +22,7 @@ const SHORTCUTS:readonly Shortcut[]=[
 ];
 const GROUPS:readonly MoreGroup[]=[
   {id:"learning",label:"Öğrenme",items:[
-    {action:"lab",label:"Öğrenme Laboratuvarı",description:"Periyodik tablo, kronoloji, bilim kartları, atlas ve hızlı okuma",icon:"⌁"},
+    {action:"lab",label:"Hızlı Okuma",description:"Okuma hızını ve anlamanı ölç, düzenli çalış",icon:"»"},
     {action:"tactics",label:"Taktikler",description:"Sana uyan çalışma ve sınav stratejileri",icon:"◈"}
   ]},
   {id:"analysis",label:"Analiz ve geçmiş",items:[
@@ -39,7 +39,7 @@ const GROUPS:readonly MoreGroup[]=[
    Eski bağlantılar yeni yerine gider; kod ve veri silinmez. */
 const REMOVED_ACTIONS=new Set(["data","backup","system","resources","archive"]);
 const QUICK_FALLBACK:readonly QuickItem[]=[
-  {k:"lab",label:"Öğrenme Laboratuvarı",sub:"Ders & konu",icon:"⌁"},{k:"reports",label:"Raporlar",sub:"Ay & geçmiş",icon:"↗"},
+  {k:"lab",label:"Hızlı Okuma",sub:"Okuma çalışması",icon:"»"},{k:"reports",label:"Raporlar",sub:"Ay & geçmiş",icon:"↗"},
   {k:"success",label:"Çalışma özeti",sub:"Karne & geçmiş",icon:"▦"},{k:"settings",label:"Ayarlar",sub:"Görünüm & hedef",icon:"⚙"},
   {k:"tactics",label:"Taktikler",sub:"Stratejiler",icon:"◎"},{k:"about",label:"Hakkında",sub:"Sürüm bilgisi",icon:"i"}
 ];
@@ -79,7 +79,7 @@ function patchLegacyActions():void{
   const quick=w.v30QuickItems;
   if(typeof quick==="function"&&!quick.__v76){
     w.v30QuickItems=Object.assign(()=>{
-      const kept=quick().filter(item=>!REMOVED_ACTIONS.has(item.k));
+      const kept=quick().filter(item=>!REMOVED_ACTIONS.has(item.k)).map(item=>item.k==="lab"?{...item,label:"Hızlı Okuma",sub:"Okuma çalışması",icon:"»"}:item);
       for(const item of QUICK_FALLBACK){if(kept.length>=4)break;if(!kept.some(x=>x.k===item.k))kept.push(item);}
       return kept.slice(0,4);
     },{__v76:true});
@@ -95,6 +95,20 @@ function trimReports():void{
   // Uygulama kurulum kartı Hakkında'ya taşınır; kimliği ve düğmeleri aynı kalır.
   const pwa=document.getElementById("v4PwaCard"),about=document.getElementById("v30AboutPanel");
   if(pwa&&about&&!about.contains(pwa)){const heading=pwa.previousElementSibling;if(heading?.tagName==="H2")about.append(heading);about.append(pwa);}
+}
+
+/* v79: Öğrenme Laboratuvarı kalktı; aynı sayfada yalnız Hızlı Okuma kalır. Konu rehberi, periyodik tablo,
+   kronoloji, bilim kartları ve atlas gizlenir; kod ve kayıtlar silinmez. */
+function speedReadingOnly():void{
+  document.documentElement.dataset.labRetired="true";
+  const panel=document.getElementById("mrp_lab");if(!panel||panel.dataset.v79Speed)return;panel.dataset.v79Speed="ready";
+  const title=panel.querySelector<HTMLElement>(".v30-subhead h1");if(title)title.textContent="Hızlı Okuma";
+  const toolbox=panel.querySelector<HTMLDetailsElement>("details.v320-toolbox");if(toolbox)toolbox.open=true;
+}
+function openSpeedReading():void{
+  speedReadingOnly();
+  const run=()=>{const setTab=legacy().v320SetTab;if(typeof setTab!=="function")return false;setTab("speed");return true;};
+  if(!run())window.setTimeout(run,150);
 }
 
 export function installNavigationV43():NavigationRuntime{
@@ -143,7 +157,7 @@ export function installNavigationV43():NavigationRuntime{
     const status=document.getElementById("v30MoreStatus");if(status)status.classList.add("v76-hidden");
     const sync=document.getElementById("v43MoreSync");
     if(sync){const line=syncLine();sync.dataset.tone=line.tone;sync.innerHTML=`<i aria-hidden="true"></i><span>${esc(line.text)}</span>${line.guest?'<button type="button" data-v76-account>Hesap aç</button>':""}`;}
-    patchLegacyActions();trimReports();
+    patchLegacyActions();trimReports();speedReadingOnly();
     // Kayıt araması gizli bir açılır alan yerine Merkez'in en üstünde görünür.
     const search=document.querySelector<HTMLElement>("#more .v30-search-card"),searchSlot=document.getElementById("v43MoreSearchSlot");
     if(search&&searchSlot&&search.parentElement!==searchSlot)searchSlot.append(search);
@@ -163,6 +177,7 @@ export function installNavigationV43():NavigationRuntime{
   window.addEventListener("yks:more-after",event=>{
     const detail=(event as CustomEvent<RouteDetail>).detail;
     if(detail?.to==="home")refresh();
+    if(detail?.to==="lab")openSpeedReading();
   });
   mount();
   const api:NavigationRuntime={installed:true,version:VERSION,validate(){const issues:string[]=[];if(!document.getElementById("v43MoreHub"))issues.push("hub");if(document.querySelectorAll("[data-v43-more-group]").length!==3)issues.push("groups");const more=document.querySelector<HTMLElement>('[data-s="more"]');if(more&&more.getAttribute("aria-label")!=="Merkez")issues.push("nav-label");return issues;},refresh};

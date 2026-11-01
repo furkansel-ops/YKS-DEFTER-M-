@@ -72,9 +72,12 @@
   function resultKey(r){return [r.kind||"base",r.group||"",r.title||"",r.go||"",r.exam||"",r.subject||"",r.topic||"",r.element||"",r.timeline||""].join("|");}
   function serializeResult(r){return {kind:r.kind||"base",group:r.group||"Sonuç",title:r.title||"",detail:r.detail||"",go:r.go||"",query:r.query||"",exam:r.exam||"",subject:r.subject||"",topic:r.topic||"",subjectIndex:Number.isInteger(r.subjectIndex)?r.subjectIndex:null,topicIndex:Number.isInteger(r.topicIndex)?r.topicIndex:null,element:r.element||null,timeline:r.timeline||""};}
 
+  /* v79: Öğrenme Laboratuvarı kalktı (yalnız Hızlı Okuma kaldı). Müfredat konuları yine bulunur ama
+     Konular'daki konu sayfasını açar; element ve kronoloji sonuçları aranmaz. */
+  function labRetired(){return document.documentElement.dataset.labRetired==="true";}
   function labResults(q){
     const lab=window.YKSLearningLab;if(!lab)return [];
-    const query=norm(q),tokens=query.split(" ").filter(Boolean),out=[];
+    const retired=labRetired(),query=norm(q),tokens=query.split(" ").filter(Boolean),out=[];
     const matches=text=>{const hay=norm(text);return tokens.every(token=>hay.includes(token));};
     if(typeof lab.topicCatalog==="function"){
       ["TYT","AYT","YDT"].forEach(exam=>{
@@ -82,10 +85,11 @@
         list.filter(item=>matches(item.searchText||[item.exam,item.subject,item.topic].join(" "))).slice(0,8).forEach(item=>{
           let guide=null;try{guide=lab.topicGuide?.(item.exam,item.subject,item.topic)||null;}catch(e){}
           const hint=guide?.important?.[0]||guide?.attention?.[0]||"Konu rehberini laboratuvarda aç";
-          out.push({kind:"lab-topic",group:"Laboratuvar",title:item.subject+" · "+item.topic,detail:item.exam+" · "+hint,go:"more",exam:item.exam,subject:item.subject,topic:item.topic,subjectIndex:item.subjectIndex,topicIndex:item.topicIndex});
+          out.push({kind:"lab-topic",group:retired?"Konu":"Laboratuvar",title:item.subject+" · "+item.topic,detail:item.exam+" · "+(retired?"Konular'da aç":hint),go:"more",exam:item.exam,subject:item.subject,topic:item.topic,subjectIndex:item.subjectIndex,topicIndex:item.topicIndex});
         });
       });
     }
+    if(retired)return out;
     (Array.isArray(lab.elements)?lab.elements:[]).filter(item=>matches([item.n,item.symbol,item.name,item.type].join(" "))).slice(0,6).forEach(item=>out.push({kind:"lab-element",group:"Periyodik tablo",title:item.symbol+" · "+item.name,detail:"Atom no "+item.n+" · "+item.type,go:"more",element:item.n}));
     (Array.isArray(lab.timeline)?lab.timeline:[]).filter(item=>matches([item.year,item.title,item.detail,item.era].join(" "))).slice(0,6).forEach(item=>out.push({kind:"lab-timeline",group:"Kronoloji",title:item.year+" · "+item.title,detail:item.era+" · "+item.detail,go:"more",timeline:item.title}));
     return out;
@@ -133,7 +137,7 @@
     defaultScreens.forEach(x=>{const meta=SCREEN_META[x.id];html+=quickButton(meta.icon,meta.label,"Ekranı aç",'data-v42-screen="'+esc(x.id)+'"');});html+='</div></div>';
     if(recent.length){html+='<div class="v42-search-section"><div class="v42-search-section-title"><span>Son açtıkların</span><span>Arama geçmişi</span></div><div class="v42-search-grid">';recent.forEach((r,i)=>{html+=quickButton(iconFor(r.group),r.title,r.group,'data-v42-recent="'+i+'"');});html+='</div></div>';}
     if(used.length){html+='<div class="v42-search-section"><div class="v42-search-section-title"><span>Sık kullandıkların</span><span>En çok açılanlar</span></div><div class="v42-search-grid">';used.forEach((r,i)=>{html+=quickButton(iconFor(r.group),r.title,(r.group||"Sonuç")+" · "+r.useCount+" kez",'data-v42-used="'+i+'"');});html+='</div></div>';}
-    html+='<div class="v42-search-empty"><b>Her şeyi tek yerden bul</b>Konu, deneme, hata kaydı ve Öğrenme Laboratuvarı içeriği arasında ara. Arama yalnız yönlendirir; Programına veya kayıtlarına dokunmaz.</div>';
+    html+='<div class="v42-search-empty"><b>Her şeyi tek yerden bul</b>Konu, deneme ve hata kaydı arasında ara. Arama yalnız yönlendirir; Programına veya kayıtlarına dokunmaz.</div>';
     body.innerHTML=html;
     body.querySelectorAll("[data-v42-screen]").forEach(btn=>btn.addEventListener("click",()=>{v42Close();window.go?.(btn.dataset.v42Screen);}));
     body.querySelectorAll("[data-v42-recent]").forEach(btn=>btn.addEventListener("click",()=>activate(recent[Number(btn.dataset.v42Recent)])));
@@ -166,7 +170,13 @@
     setTimeout(()=>{try{after?.();}catch(e){try{if(typeof infraError==="function")infraError("global-search-v42-lab-nav",e);}catch(_){}}},120);
   }
   function activate(result){
-    if(!result)return false;recordUse(result);
+    if(!result)return false;
+    if(labRetired()&&String(result.kind||"").startsWith("lab-")){
+      v42Close();
+      if(result.kind==="lab-topic"&&result.exam&&result.subject&&result.topic){recordUse(result);window.go?.("topics");setTimeout(()=>{try{window.openTopicDetail?.(result.exam,result.subject,result.topic);}catch(e){}},70);return true;}
+      try{window.toast?.("Bu bölüm kaldırıldı");}catch(e){}return false;
+    }
+    recordUse(result);
     if(result.kind==="lab-topic"){
       openMoreLab(()=>{window.v320SetExam?.(result.exam||"TYT");setTimeout(()=>window.v4OpenLabTopic?.(Number(result.subjectIndex)||0,Number(result.topicIndex)||0),40);});return true;
     }
@@ -195,7 +205,7 @@
   function inlineActivate(index){const r=inlineResults[index];if(r)activate(r);}
   function v42RunInline(){
     const input=$("gsInput"),box=$("gsBox");if(!input||!box)return false;const q=(input.value||"").trim();
-    if(q.length<2){inlineResults=[];box.innerHTML='<div class="empty">En az iki harf yaz. Konu, deneme, hata, plan, not ve Öğrenme Laboratuvarı içeriği birlikte aranır.</div>';return true;}
+    if(q.length<2){inlineResults=[];box.innerHTML='<div class="empty">En az iki harf yaz. Konu, deneme, hata, plan ve notlar birlikte aranır.</div>';return true;}
     inlineResults=v42Search(q);
     if(!inlineResults.length){box.innerHTML='<div class="empty">“'+esc(q)+'” için sonuç yok.</div>';return true;}
     box.innerHTML='<p class="v42-inline-count">'+inlineResults.length+' sonuç · global arama motoru</p>'+inlineResults.map((r,i)=>'<button class="v42-result v42-inline-result" type="button" onclick="YKSGlobalSearchV42.activateInline('+i+')"><span class="v42-result-icon" aria-hidden="true">'+esc(iconFor(r.group))+'</span><span class="v42-result-main"><b>'+esc(r.title)+'</b><small>'+esc(r.group+' · '+String(r.detail||"").slice(0,110))+'</small></span><span class="v42-result-group">'+esc(r.group)+'</span></button>').join("");return true;

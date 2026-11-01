@@ -60,7 +60,7 @@ test("v76 Merkez 7 giriş: veri, yedek, sistem ve kaynaklar menüden kalkar; esk
   assert.match(ui,/if\(action==="system"\)return original\("about"\);/);
   assert.match(ui,/if\(action==="resources"\)\{w\.go\?\.\("topics"\);return;\}/);
   assert.match(ui,/if\(action==="archive"\)\{openPhotos\(\);return;\}/);
-  assert.match(ui,/const kept=quick\(\)\.filter\(item=>!REMOVED_ACTIONS\.has\(item\.k\)\);/,"kişisel kısayollarda kalkan bölüm görünmez");
+  assert.match(ui,/const kept=quick\(\)\.filter\(item=>!REMOVED_ACTIONS\.has\(item\.k\)\)/,"kişisel kısayollarda kalkan bölüm görünmez");
   assert.match(ui,/return kept\.slice\(0,4\);/,"kısayol sayısı 4 kalır");
   assert.match(css,/\.v76-hidden\{display:none!important\}/);
 });

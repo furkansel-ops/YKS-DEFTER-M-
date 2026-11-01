@@ -41,7 +41,7 @@ test("global arama sadece gezinir; Program verisini otomatik değiştiren mutato
 
 test("global arama çalışma zamanında yüklenir",()=>{
   const stability=read("modules/stability.js");
-  assert.match(stability,/global-search-v42\.js\?v=4\.2\.0-r1/);
+  assert.match(stability,/global-search-v42\.js\?v=4\.2\.0-r2/);
   assert.match(stability,/data-yks-global-search-v42/);
   assert.match(stability,/__YKS_GLOBAL_SEARCH_V42__/);
 });

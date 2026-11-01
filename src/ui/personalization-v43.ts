@@ -193,7 +193,7 @@ function createSettingsPanel(getPrefs:()=>PersonalizationV43State,commit:(next:P
     examField.appendChild(element("legend","","Sınav kapsamı"));
     examField.appendChild(element("p","hint","Kullanmadığın sınav türlerini gizle. En az bir sınav türü açık kalır."));
     const examGrid=element("div","v43-personal-grid exam-grid");
-    V43_EXAM_TYPES.forEach(type=>examGrid.appendChild(makeChoice(type,`${type} konu, deneme ve Laboratuvar kısayollarını göster`,prefs.examScope[type],checked=>{
+    V43_EXAM_TYPES.forEach(type=>examGrid.appendChild(makeChoice(type,`${type} konu ve deneme kısayollarını göster`,prefs.examScope[type],checked=>{
       const next=cloneState(getPrefs());
       if(!checked&&V43_EXAM_TYPES.filter(item=>next.examScope[item]).length===1){
         status.textContent="En az bir sınav türü açık kalmalı.";

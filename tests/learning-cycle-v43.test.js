@@ -34,7 +34,7 @@ test("v4.3 öğrenme döngüsü tekrar eden açık hatayı ve bekleyen tekrarı 
 test("v4.3 öğrenme döngüsü eski kayıtları değiştirmez ve Program mutasyonu içermez",()=>{
   const service=read("src/domain/learning-cycle-analysis-service.ts"),ui=read("src/ui/learning-cycle-v43.ts");
   assert.match(service,/wrongLog/);assert.match(service,/errorJournal/);assert.match(service,/manualReviews/);assert.match(service,/returnedAfterResolve/);
-  assert.match(ui,/Hata → Öğren → Tekrar → Kontrol/);assert.match(ui,/errorJournalOpenTopic/);assert.match(ui,/v4OpenLabTopic/);assert.match(ui,/reviewBox/);
+  assert.match(ui,/Hata → Öğren → Tekrar → Kontrol/);assert.match(ui,/errorJournalOpenTopic/);assert.doesNotMatch(ui,/v4OpenLabTopic/,"v79: Laboratuvar kalktı");assert.match(ui,/reviewBox/);
   assert.doesNotMatch(ui,/\baddToToday\s*\(/);assert.doesNotMatch(ui,/\baddToDay\s*\(/);assert.doesNotMatch(ui,/\.weeks\s*\[/);assert.doesNotMatch(ui,/\.rows\s*\[/);assert.doesNotMatch(ui,/\.save\s*\(/);
 });
 

@@ -139,7 +139,7 @@
   function loadGlobalSearchV42(){
     if(window.__YKS_GLOBAL_SEARCH_V42__||document.querySelector('script[data-yks-global-search-v42]'))return;
     const s=document.createElement("script");
-    s.src="./modules/global-search-v42.js?v=4.2.0-r1";
+    s.src="./modules/global-search-v42.js?v=4.2.0-r2";
     s.async=false;
     s.setAttribute("data-yks-global-search-v42","1");
     s.onerror=()=>{try{if(typeof infraError==="function")infraError("global-search-v42-load",new Error("Global arama yüklenemedi"));}catch(e){}};

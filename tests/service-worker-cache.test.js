@@ -258,7 +258,7 @@ test("focus control worker imports once, dispatches requests and precaches both 
   assert.deepEqual(runtime.imports,["./modules/focus-notification-worker.js?v=4.4.0-r27"]);
   for(const name of ["focus-notifications","focus-notification-worker"])assert.equal(await runtime.body("./modules/"+name+".js?v=4.4.0-r27"),"new asset");
   assert.equal(await runtime.body("./app.js?v=4.1.0-r28"),"new asset");
-  assert.equal(await runtime.body("./modules/stability.js?v=4.1.0-r29"),"new asset");
+  assert.equal(await runtime.body("./modules/stability.js?v=4.1.0-r30"),"new asset");
   const response=await runtime.message({type:"YKS_FOCUS_REQUEST",operation:"read"});
   assert.equal(response.ok,false);assert.equal(response.error,"storage_unavailable","focus worker owns this message even when IDB is unavailable");
   const version=await runtime.message({type:"GET_VERSION"});assert.equal(version.build,"4.4.0-r27");
