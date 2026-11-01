@@ -14,7 +14,7 @@ type LegacyWindow=Window&Record<string,any>&{
   YKSLegacyState?:{readState?:()=>Loose;save?:()=>unknown;subjects?:()=>string[]};
   YKSErrorJournal?:{add?:(data:Loose,opts?:Loose)=>Loose|null;openReviews?:()=>Loose[];render?:()=>void};
 };
-export type ErrorRow={key:string;kind:"wrong"|"journal";id:string|number;subject:string;topic:string;n:number;date:string;sort:number;exam:string;reason:string;note:string;photos:number;resolved:boolean;journalId:string};
+export type ErrorRow={key:string;kind:"wrong"|"journal";id:string|number;subject:string;topic:string;n:number;date:string;sort:number;exam:string;reason:string;note:string;photos:number;resolved:boolean;journalId:string;question?:string;coach?:{comment:string;status:string}};
 
 const L=window as unknown as LegacyWindow;
 const TABS:Tab[]=["ozet","analiz","hata","gecmis"];
@@ -256,13 +256,18 @@ function compareRows(a:Loose|undefined,b:Loose|undefined):string{
 }
 
 /* ---------- Hatalar ---------- */
+/* v82: koçun Hata Defteri fotoğraflarına yazdığı not (yanlış kaydına göre); koç paylaşımı modülü doldurur. */
+function coachNote(id:unknown):{comment:string;status:string}|undefined{
+  const note=(L as Loose).YKSCoachPhotoNotes?.[String(id)];
+  return note&&typeof note==="object"&&(note.comment||note.status)?{comment:String(note.comment||""),status:String(note.status||"")}:undefined;
+}
 export function errorRows():ErrorRow[]{
   const s=state(),journal=list(s.errorJournal),denemeler=list(s.denemeler),examName=new Map(denemeler.map(d=>[String(d.id),String(d.name||"Deneme")]));
   const mirrors=new Map<string,Loose>();for(const j of journal){const ref=String(j.sourceRef||"");if(ref.startsWith("wrong:"))mirrors.set(ref.slice(6),j);}
   const wrongIds=new Set<string>(),rows:ErrorRow[]=[];
   for(const w of list(s.wrongLog)){
     const id=String(w.id);wrongIds.add(id);const m=mirrors.get(id),photos=Array.isArray(w.questionImgs)?w.questionImgs.length:(w.questionImg?1:0);
-    rows.push({key:"w"+id,kind:"wrong",id:w.id,subject:String(w.subject||""),topic:String(w.topic||""),n:Math.max(1,num(w.n)),date:String(w.date||""),sort:Date.parse(String(w.date||""))||num(w.id),exam:examName.get(String(w.deneme??""))||"",reason:KIND_LABEL[String(w.kind||"")]||"",note:String(w.note||""),photos,resolved:!!m?.resolved,journalId:m?String(m.id):""});
+    rows.push({key:"w"+id,kind:"wrong",id:w.id,subject:String(w.subject||""),topic:String(w.topic||""),n:Math.max(1,num(w.n)),date:String(w.date||""),sort:Date.parse(String(w.date||""))||num(w.id),exam:examName.get(String(w.deneme??""))||"",reason:KIND_LABEL[String(w.kind||"")]||"",note:String(w.note||""),photos,resolved:!!m?.resolved,journalId:m?String(m.id):"",question:w.q?String(w.q):"",coach:coachNote(w.id)});
   }
   for(const j of journal){
     const ref=String(j.sourceRef||"");if(ref.startsWith("wrong:")&&wrongIds.has(ref.slice(6)))continue;
@@ -292,10 +297,12 @@ function renderHata(pane:HTMLElement):void{
   if(errFormOpen)html+=errorForm();
   html+=`<div class="card eh-errors"><div class="eh-card-head"><b>Hata Defteri</b><small>${shown.length} kayıt</small></div>`;
   html+=shown.length?shown.slice(0,errLimit).map(r=>{
-    const meta=[r.n>1||r.kind==="wrong"?`${r.n} yanlış`:"",r.exam,r.reason,r.date?dayLabel(r.date):""].filter(Boolean).join(" · ");
+    const meta=[r.n>1||r.kind==="wrong"?`${r.n} yanlış`:"",r.exam,r.question?`Soru ${r.question}`:"",r.reason,r.date?dayLabel(r.date):""].filter(Boolean).join(" · ");
+    const coach=r.coach?`<div class="eh-coach-note${r.coach.status?" is-"+r.coach.status:""}"><b>KOÇUN NOTU${r.coach.status==="review"?" · TEKRAR GEREKLİ":r.coach.status==="solved"?" · ÇÖZÜLDÜ":""}</b>${r.coach.comment?esc(r.coach.comment):""}</div>`:"";
     const thumb=r.kind==="wrong"?`<button type="button" class="eh-ph${r.photos?" has":""}" data-act="${r.photos?"photo-open":"photo-add"}" data-id="${esc(r.id)}" aria-label="${r.photos?"Soru fotoğraflarını aç":"Soru fotoğrafı ekle"}">📷<small>${r.photos}/${r.n}</small></button>`:`<span class="eh-ph none" aria-hidden="true">✎</span>`;
-    return `<div class="eh-err${r.resolved?" is-done":""}">${thumb}<div class="eh-err-main"><b>${esc(r.subject)} · ${esc(r.topic)}</b><small>${esc(meta)}</small>${r.note?`<small class="eh-note">${esc(r.note)}</small>`:""}</div><div class="eh-err-act"><button type="button" class="eh-state ${r.resolved?"done":"open"}" data-act="toggle" data-key="${esc(r.key)}" aria-pressed="${r.resolved}">${r.resolved?"Çözüldü ✓":"Tekrar gerekli"}</button><button type="button" class="eh-del" data-act="delete" data-key="${esc(r.key)}" aria-label="${esc(r.subject+" "+r.topic)} kaydını sil">Sil</button></div></div>`;
+    return `<div class="eh-err${r.resolved?" is-done":""}">${thumb}<div class="eh-err-main"><b>${esc(r.subject)} · ${esc(r.topic)}</b><small>${esc(meta)}</small>${r.note?`<small class="eh-note">${esc(r.note)}</small>`:""}${coach}</div><div class="eh-err-act"><button type="button" class="eh-state ${r.resolved?"done":"open"}" data-act="toggle" data-key="${esc(r.key)}" aria-pressed="${r.resolved}">${r.resolved?"Çözüldü ✓":"Tekrar gerekli"}</button><button type="button" class="eh-del" data-act="delete" data-key="${esc(r.key)}" aria-label="${esc(r.subject+" "+r.topic)} kaydını sil">Sil</button></div></div>`;
   }).join("")+(shown.length>errLimit?`<button type="button" class="btn ghost eh-more" data-act="more-errors">${shown.length-errLimit} kayıt daha göster</button>`:""):`<p class="hint">${rows.length?"Bu süzgeçte kayıt yok.":"Henüz hata kaydın yok. Denemeden sonra yanlışlarını işle ya da buradan ekle."}</p>`;
+    if(rows.some(r=>r.photos>0))html+=`<label class="eh-share"><input type="checkbox" data-act="photo-share"${state().coachPhotoShare===false?"":" checked"}><span><b>Soru fotoğraflarımı koçumla paylaş</b><small>Koç bağlantın varsa çözülmemiş yanlışların son 90 günlük fotoğrafları gider. Kapatınca paylaşılanlar koçtan silinir.</small></span></label>`;
   pane.innerHTML=html+"</div>";
 }
 function errorForm():string{
@@ -304,7 +311,8 @@ function errorForm():string{
     <label for="ehErrTopic">Konu</label><input type="text" id="ehErrTopic" maxlength="140" list="ehErrTopics" placeholder="Örn. Problemler" autocomplete="off"><datalist id="ehErrTopics"></datalist>
     <label>Sebep</label><div class="eh-reasons" role="radiogroup" aria-label="Sebep">${[["","Belirtme"],["bilmiyordum","Bilgi eksiği"],["dikkat","Dikkat"],["sure","Süre"]].map(([v,l],i)=>`<label class="eh-reason"><input type="radio" name="ehErrKind" value="${v}"${i===0?" checked":""}><span>${l}</span></label>`).join("")}</div>
     <label for="ehErrExam">Deneme</label><select id="ehErrExam"><option value="">Denemeye bağlama</option>${recent.map(d=>`<option value="${esc(d.id)}">${esc((d.name||"Deneme")+" · "+dayLabel(String(d.date||"")))}</option>`).join("")}</select>
-    <label for="ehErrNote">Kısa not</label><input type="text" id="ehErrNote" maxlength="400" placeholder="Örn. Soru kökünü yanlış okudum">
+    <label for="ehErrQ">Soru no (isteğe bağlı)</label><input type="number" id="ehErrQ" min="1" max="200" inputmode="numeric" placeholder="Örn. 12">
+    <label for="ehErrNote">Not ya da çözüm</label><textarea id="ehErrNote" maxlength="400" rows="2" placeholder="Örn. Kuvveti bileşenlerine ayırmayı unuttum"></textarea>
     <label class="eh-check"><input type="checkbox" id="ehErrReview" checked> Tekrar listeme ekle</label>
     <button type="button" class="btn green" data-act="err-save">Kaydet</button></div>`;
 }
@@ -316,6 +324,7 @@ function saveError():void{
   const s=state();if(!Array.isArray(s.wrongLog))s.wrongLog=[];
   const exam=examId?list(s.denemeler).find(d=>num(d.id)===examId):undefined;
   const wrong:Loose={id:Date.now(),date:exam?String(exam.date||today()):today(),subject,topic,n,note,questionImgs:[]};if(kind)wrong.kind=kind;if(exam)wrong.deneme=exam.id;
+  const question=Math.floor(num(byId<HTMLInputElement>("ehErrQ")?.value));if(question>=1&&question<=200)wrong.q=question;
   s.wrongLog.push(wrong);call("linkWrongToTopic",subject,topic,n);
   try{L.YKSErrorJournal?.add?.({subject,topic,type:KIND_LABEL[kind]||"Bilgi eksiği",count:n,review,source:exam?"Deneme · "+String(exam.name||""):"Hata Defteri",sourceRef:"wrong:"+wrong.id,denemeId:exam?exam.id:null,note},{render:false});}catch(error){console.error("v73 hata defteri",error);}
   save();errFormOpen=false;refreshLegacyErrors();toast("Hata kaydedildi · istersen fotoğrafını ekle");render();
@@ -442,6 +451,7 @@ function onPaneClick(event:Event):void{
   else if(a==="photo-open")call("wrongPhotoOpen",id,0);
   else if(a==="photo-add")call("wrongPhotoPick",id);
   else if(a==="more-errors"){errLimit+=40;render();}
+  else if(a==="photo-share"){const s=state();s.coachPhotoShare=(act as HTMLInputElement).checked;save();window.dispatchEvent(new CustomEvent("yks:data-changed",{detail:{source:"coach-photo-share"}}));toast(s.coachPhotoShare?"Soru fotoğrafların koçunla paylaşılacak":"Fotoğraf paylaşımı kapatıldı; paylaşılanlar koçtan silinecek");}
   else if(a==="clear-pick"){picked.length=0;render();}
 }
 function onPaneChange(event:Event):void{
@@ -486,7 +496,7 @@ export function installExamHubV73():boolean{
   wrap("addDenemeByNet",afterSave,()=>list(state().denemeler).length);
   byId("dybRows")?.addEventListener("input",()=>{updateRowNets();});
   byId("dybRows")?.addEventListener("change",()=>decorateRows());
-  for(const event of ["yks:data-changed","yks:data-primary-ready"])window.addEventListener(event,schedule);
+  for(const event of ["yks:data-changed","yks:data-primary-ready","yks:coach-photo-notes"])window.addEventListener(event,schedule);
   document.addEventListener("yks:navigation-after",event=>{const d=(event as CustomEvent<{screen?:string;to?:string}>).detail;if((d?.screen??d?.to)==="deneme")schedule();});
   (L as Loose).YKSExamHub={openTab:openExamTab,openPhotos:openExamPhotos};
   call("renderV315Dashboard");render();

@@ -86,6 +86,13 @@ async function deleteCloudData(api:FirebaseAuthApi,uid:string,progress:(text:str
     const reads=await byStudent("coachingReads");
     for(const item of reads.docs)await fs.deleteDoc(item.ref);
   }catch(error){if(!String((error as {code?:string})?.code||"").includes("permission-denied"))throw error;}
+  // v82: koçla paylaşılan Hata Defteri fotoğrafları (önizleme ve büyük fotoğraf) da silinir.
+  try{
+    for(const name of ["coachingErrorPhotos","coachingErrorPhotoImages"]){
+      const photos=await byStudent(name);
+      for(const item of photos.docs)await fs.deleteDoc(item.ref);
+    }
+  }catch(error){if(!String((error as {code?:string})?.code||"").includes("permission-denied"))throw error;}
   // v69: randevu ve saat kilidi birlikte silinir (koçun takviminde saat boşalır).
   // Kural henüz yayında değilse randevu da olamaz; izin hatası silmeyi durdurmaz.
   progress("Randevular siliniyor…");

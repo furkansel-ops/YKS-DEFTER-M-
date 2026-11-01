@@ -192,3 +192,12 @@
 #examHubSettings .foldhead{margin-top:10px}
 #examHubSettings .hint{margin:8px 0 0;color:var(--d-muted,#5f6b80);font-size:12.5px}
 :root.eh-sheet-open body{overflow:hidden}
+/* v82 · koçun fotoğraf notu, soru no, not/çözüm alanı ve fotoğraf paylaşım anahtarı */
+#deneme .eh-coach-note{display:block;margin-top:6px;padding:7px 10px;border-radius:10px;background:var(--d-soft,#eef3fb);color:var(--d-ink,#121a2b);font-size:12.5px;line-height:1.45}
+#deneme .eh-coach-note b{display:block;font-size:11px;letter-spacing:.05em;color:var(--d-accent,#2f6bea)}
+#deneme .eh-coach-note.is-review{background:var(--eh-warn-soft)}#deneme .eh-coach-note.is-review b{color:var(--eh-warn)}
+#deneme .eh-coach-note.is-solved b{color:var(--d-ok,#13906b)}
+#deneme .eh-form textarea{width:100%;min-height:58px;resize:vertical;font:inherit}
+#deneme .eh-share{display:flex;gap:10px;align-items:flex-start;margin-top:12px;padding:10px 12px;border:1px solid var(--d-line,#e3e9f2);border-radius:12px;cursor:pointer}
+#deneme .eh-share input{width:20px;height:20px;margin:2px 0 0;flex:none;accent-color:var(--d-accent,#2f6bea)}
+#deneme .eh-share b{display:block;font-size:13.5px}#deneme .eh-share small{display:block;margin-top:2px;color:var(--d-muted,#5f6b80);font-size:12px}

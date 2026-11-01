@@ -1,4 +1,4 @@
-import{collection,doc,getDoc,onSnapshot,query,where,setDoc,updateDoc,serverTimestamp}from"https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
+import{collection,deleteDoc,doc,getDoc,getDocs,onSnapshot,query,where,setDoc,updateDoc,serverTimestamp}from"https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
 
 const PENDING_ROLE="yks_account_role_pending",ROLE_HINT="yks_account_role_hint",DAY=86400000;
 const rt={auth:null,db:null,user:null,profile:null,stops:[],shareTimer:null,shareInterval:null,sharing:false,pending:false,inFlight:null,actionQueue:Promise.resolve(),session:0};
@@ -39,6 +39,7 @@ function cleanup(){
   rt.session++;
   rt.stops.splice(0).forEach(fn=>{try{fn()}catch{}});
   clearTimeout(rt.shareTimer);rt.shareTimer=null;clearInterval(rt.shareInterval);rt.shareInterval=null;rt.sharing=false;rt.pending=false;rt.inFlight=null;rt.actionQueue=Promise.resolve();
+  clearTimeout(rt.photoTimer);rt.photoTimer=null;rt.photoDocs=null;rt.photoFingerprint="";rt.photoSyncing=false;window.YKSCoachPhotoNotes={};
 }
 // Study dates belong to the student's local calendar, not the UTC day.
 function localDayOffset(offset){
@@ -189,6 +190,7 @@ async function publishShare(options={}){
       if(session!==rt.session){if(manual)requireSession(session);return false}
       document.documentElement.dataset.coachShare="ready";
       delete document.documentElement.dataset.coachShareError;
+      schedulePhotoSync();
       return true;
     }catch(error){
       if(session!==rt.session){if(manual)requireSession(session);return false}
@@ -210,6 +212,92 @@ async function publishShare(options={}){
   return rt.inFlight;
 }
 function scheduleShare(ms=900){clearTimeout(rt.shareTimer);rt.shareTimer=setTimeout(()=>void publishShare(),ms)}
+
+/* v82 · Hata Defteri fotoğrafları: yalnız aktif koç bağlantısı varken çözülmemiş yanlışların son 90 günlük
+   fotoğrafları (en fazla 150) paylaşılır. Bilgi + küçük önizleme coachingErrorPhotos'ta, büyük fotoğraf
+   coachingErrorPhotoImages'ta. Öğrenci paylaşımı kapatırsa (s.coachPhotoShare===false) ya da bağlantı biterse
+   paylaşılanlar silinir. Koçun yorumu ve durumu yalnız okunur; öğrenci yazarken bu alanlara dokunmaz. */
+const PHOTO_META="coachingErrorPhotos",PHOTO_IMAGE="coachingErrorPhotoImages",PHOTO_DAYS=90,PHOTO_MAX=150;
+function photoHash(value){let h=5381;const s=String(value);for(let i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))>>>0;return h.toString(36)}
+function photoCandidates(s,now=Date.now()){
+  const resolved=new Set(list(s?.errorJournal).filter(x=>x?.resolved&&String(x?.sourceRef||"").startsWith("wrong:")).map(x=>String(x.sourceRef).slice(6)));
+  const since=dateKey(new Date(now-PHOTO_DAYS*DAY)),exams=new Map(list(s?.denemeler).map(d=>[String(d?.id),text(d?.name,100)])),out=[];
+  for(const w of list(s?.wrongLog)){
+    if(!w||w.resolved||resolved.has(String(w.id))||!/^\d{4}-\d{2}-\d{2}$/.test(String(w.date||""))||String(w.date)<since)continue;
+    list(w.questionImgs).forEach((img,index)=>{
+      if(typeof img!=="string"||!img.startsWith("data:image/")||img.length>900000)return;
+      const meta={photoKey:text(w.id,40)+"-"+index,wrongId:text(w.id,40),subject:text(w.subject,60),topic:text(w.topic,100),date:text(w.date,10),exam:text(w.deneme,40),examName:exams.get(String(w.deneme))||"",question:text(w.q,6),kind:text(w.kind,24),note:text(w.note,600)};
+      const imageSig=photoHash(img.length+":"+img.slice(-64));out.push({...meta,image:img,imageSig,sig:photoHash(JSON.stringify(meta))+"."+imageSig});
+    });
+  }
+  return out.sort((a,b)=>b.date.localeCompare(a.date)||b.photoKey.localeCompare(a.photoKey)).slice(0,PHOTO_MAX);
+}
+/* Koçun yorumları yanlış kaydına göre (en yeni) toplanır; Hata Defteri kartında gösterilir. */
+function photoCoachNotes(rows){
+  const notes={};
+  for(const row of rows){
+    if(!row?.wrongId||!(row.coachComment||row.coachStatus))continue;
+    const at=finite(row.coachAt?.toMillis?.()),old=notes[row.wrongId];
+    if(!old||at>=old.at)notes[row.wrongId]={comment:text(row.coachComment,1000),status:["review","solved"].includes(row.coachStatus)?row.coachStatus:"",at};
+  }
+  return notes;
+}
+function photoThumb(src){
+  return new Promise(resolve=>{try{
+    const img=new Image();img.onerror=()=>resolve("");
+    img.onload=()=>{try{const scale=Math.min(1,240/Math.max(img.naturalWidth||1,img.naturalHeight||1)),cv=document.createElement("canvas");cv.width=Math.max(1,Math.round((img.naturalWidth||1)*scale));cv.height=Math.max(1,Math.round((img.naturalHeight||1)*scale));cv.getContext("2d").drawImage(img,0,0,cv.width,cv.height);const out=cv.toDataURL("image/jpeg",.6);resolve(out.length<=60000?out:"")}catch{resolve("")}};
+    img.src=src;
+  }catch{resolve("")}});
+}
+async function activeCoachUid(){
+  const snap=await getDocs(query(collection(rt.db,"coachingLinks"),where("studentUid","==",rt.user.uid)));
+  return text(snap.docs.map(d=>d.data()).filter(x=>x?.active===true).sort((a,b)=>finite(b.updatedAt?.toMillis?.())-finite(a.updatedAt?.toMillis?.()))[0]?.coachUid,128);
+}
+async function syncErrorPhotos(session){
+  if(rt.photoSyncing||Date.now()<(rt.photoBlockedUntil||0))return;
+  const s=state();if(!s||!rt.user||!rt.db)return;
+  rt.photoSyncing=true;
+  try{
+    const uid=rt.user.uid,coachUid=await activeCoachUid();requireSession(session);
+    const wanted=coachUid&&s.coachPhotoShare!==false?photoCandidates(s):[],fingerprint=coachUid+"|"+wanted.map(x=>x.photoKey+":"+x.sig).join(",");
+    if(fingerprint===rt.photoFingerprint)return;
+    const existing=rt.photoDocs||new Map((await getDocs(query(collection(rt.db,PHOTO_META),where("studentUid","==",uid)))).docs.map(d=>[d.id,d.data()]));
+    requireSession(session);
+    const keep=new Set();
+    for(const item of wanted){
+      const id=uid+"_"+item.photoKey;keep.add(id);
+      let old=existing.get(id);
+      if(old&&old.coachUid!==coachUid){await deleteDoc(doc(rt.db,PHOTO_IMAGE,id)).catch(()=>{});await deleteDoc(doc(rt.db,PHOTO_META,id));old=null}
+      if(old&&old.sig===item.sig)continue;
+      let thumb=old?.thumb||"";
+      if(!old||!thumb||String(old.sig||"").split(".")[1]!==item.imageSig){
+        thumb=await photoThumb(item.image);if(!thumb)continue;
+        await setDoc(doc(rt.db,PHOTO_IMAGE,id),{studentUid:uid,coachUid,photoKey:item.photoKey,image:item.image,updatedAt:serverTimestamp()});
+      }
+      const {image:_image,imageSig:_imageSig,...meta}=item;
+      await setDoc(doc(rt.db,PHOTO_META,id),{...meta,studentUid:uid,coachUid,thumb,updatedAt:serverTimestamp()},{merge:true});
+      requireSession(session);
+    }
+    for(const [id,row] of existing){
+      if(keep.has(id)||row?.studentUid!==uid)continue;
+      await deleteDoc(doc(rt.db,PHOTO_IMAGE,id)).catch(()=>{});await deleteDoc(doc(rt.db,PHOTO_META,id));
+    }
+    rt.photoFingerprint=fingerprint;
+  }catch(error){
+    // Kural henüz yayında değilse ya da bağlantı yoksa 10 dakika bekle; paylaşımın geri kalanı etkilenmez.
+    if(String(error?.code||"").includes("permission-denied"))rt.photoBlockedUntil=Date.now()+600000;
+    console.warn("Hata Defteri fotoğrafları paylaşılamadı",error);
+  }finally{rt.photoSyncing=false}
+}
+function schedulePhotoSync(ms=4000){clearTimeout(rt.photoTimer);const session=rt.session;rt.photoTimer=setTimeout(()=>{if(session===rt.session)void syncErrorPhotos(session)},ms)}
+function watchErrorPhotos(session){
+  rt.stops.push(onSnapshot(query(collection(rt.db,PHOTO_META),where("studentUid","==",rt.user.uid)),snap=>{
+    if(session!==rt.session)return;
+    rt.photoDocs=new Map(snap.docs.map(d=>[d.id,d.data()]));
+    window.YKSCoachPhotoNotes=photoCoachNotes([...rt.photoDocs.values()]);
+    window.dispatchEvent(new CustomEvent("yks:coach-photo-notes"));
+  },error=>{if(String(error?.code||"").includes("permission-denied"))rt.photoBlockedUntil=Date.now()+600000;console.warn("Koç fotoğraf notları",error)}));
+}
 
 function dateInfo(date){
   const d=new Date(date+"T12:00:00");
@@ -309,6 +397,7 @@ async function startStudent(session){
   requireSession(session);
   const q=query(collection(rt.db,"coachingActions"),where("studentUid","==",rt.user.uid));
   rt.stops.push(onSnapshot(q,snap=>snap.docChanges().forEach(change=>queueAction(change,session)),error=>console.error("Koç action",error)));
+  watchErrorPhotos(session);
   const changed=()=>scheduleShare(120);window.addEventListener("yks:data-changed",changed);rt.stops.push(()=>window.removeEventListener("yks:data-changed",changed));
   const wake=()=>{if(session!==rt.session)return;if(document.visibilityState&&document.visibilityState!=="visible")return;scheduleShare(60)};
   window.addEventListener("online",wake);rt.stops.push(()=>window.removeEventListener("online",wake));
@@ -338,7 +427,7 @@ async function onSignedIn({user,auth,db}){
 function onSignedOut(){cleanup();rt.user=rt.auth=rt.db=rt.profile=null;delete document.documentElement.dataset.accountRole}
 
 let resolveAccountReady;try{window.__YKS_ACCOUNT_READY__=new Promise(resolve=>{resolveAccountReady=resolve})}catch{}
-window.YKSAccountAuth={version:"1.2.26",beforeSignIn,onSignedIn,onSignedOut,publishShare};
+window.YKSAccountAuth={version:"1.2.27",beforeSignIn,onSignedIn,onSignedOut,publishShare};
 try{resolveAccountReady?.(window.YKSAccountAuth)}catch{}
 document.documentElement.dataset.studentCoachingBridge="ready";
-window.dispatchEvent(new CustomEvent("yks:student-coaching-ready",{detail:{version:"1.2.26"}}));
+window.dispatchEvent(new CustomEvent("yks:student-coaching-ready",{detail:{version:"1.2.27"}}));
