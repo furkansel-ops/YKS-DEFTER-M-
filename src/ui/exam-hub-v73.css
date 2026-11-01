@@ -1,0 +1,194 @@
+/* v73 · Deneme ekranı: sekmeler, adım adım ekleme, tek Hata Defteri, karşılaştırma, ayarlar.
+   Renkler tema belirteçlerinden (--d-*) gelir; kırmızı ve turuncu tonlar her temada ayrıca tanımlı. */
+#deneme,#examHubSettings{--eh-bad:#d6455f;--eh-bad-soft:#fdecef;--eh-warn:#b7791f;--eh-warn-soft:#fff4de;--eh-blank:#c7d0dd}
+:root[data-theme="night"] #deneme,:root[data-theme="night"] #examHubSettings{--eh-bad:#ff8a9c;--eh-bad-soft:#3a1d29;--eh-warn:#f3b860;--eh-warn-soft:#3a2d16;--eh-blank:#4a5778}
+
+/* ---------- sekmeler ve görünürlük ---------- */
+#deneme .eh-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:3px;margin:12px 0 0;padding:4px;border-radius:14px;background:var(--d-soft,#eef3fb)}
+#deneme .eh-tabs button{min-height:38px;border:0;border-radius:10px;background:transparent;color:var(--d-muted,#5f6b80);font:inherit;font-size:13px;font-weight:800;cursor:pointer}
+#deneme .eh-tabs button[aria-selected="true"]{background:var(--d-surface,#fff);color:var(--d-accent,#2f6bea);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+#deneme .eh-tabs button:focus-visible{outline:2px solid var(--d-accent,#2f6bea);outline-offset:1px}
+#deneme[data-exam-tab]:not([data-exam-tab="ozet"]) #v315Dashboard :is(#v315Kpis,.v315-dash-grid){display:none!important}
+#deneme[data-exam-tab]>:is(#refinedExamJournal,#refinedExamCycle,#refinedExamAnalysis,#refinedExamHistory){display:none!important}
+#deneme[data-exam-tab="analiz"]>#refinedExamAnalysis{display:block!important}
+#deneme[data-exam-tab="hata"]>#refinedExamCycle:not([hidden]){display:block!important}
+#deneme .eh-pane[hidden],#deneme .eh-dup{display:none!important}
+#deneme.v315-form-open :is(#examHubTabs,.eh-pane,#v315Kpis,.v315-dash-grid,.v315-filterbar,#refinedExamJournal,#refinedExamCycle,#refinedExamAnalysis,#refinedExamHistory){display:none!important}
+:root[data-visual-system] #mainWrap #deneme[data-exam-tab]>:is(#refinedExamJournal,#refinedExamCycle,#refinedExamAnalysis,#refinedExamHistory,.eh-pane){grid-column:1/-1}
+#deneme .eh-pane{margin:0 0 14px}
+
+/* ---------- ortak kart parçaları ---------- */
+#deneme .eh-pane .card{margin:12px 0 0}
+#deneme .eh-card-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin:0 0 10px}
+#deneme .eh-card-head b{font-size:15px}
+#deneme .eh-card-head small{color:var(--d-muted,#5f6b80);font-size:12px;font-weight:700;text-align:right}
+#deneme .eh-eyebrow{display:block;color:var(--d-accent,#2f6bea)!important;font-size:11px!important;font-weight:850!important;letter-spacing:.06em;text-transform:uppercase}
+#deneme .eh-empty{color:var(--d-muted,#5f6b80);font-size:14px}
+#deneme .eh-linkbtn{border:0;background:none;padding:2px 4px;color:var(--d-accent,#2f6bea);font:inherit;font-size:13px;font-weight:800;cursor:pointer}
+#deneme .up{color:var(--d-ok,#13906b)}#deneme .down{color:var(--eh-bad)}
+#deneme .eh-gear{width:44px;min-width:44px;height:44px;display:inline-grid;place-items:center;margin-right:8px;border:1px solid var(--d-line,#e3e9f2);border-radius:13px;background:var(--d-surface,#fff);color:var(--d-muted,#5f6b80);cursor:pointer}
+#deneme .eh-gear svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+#deneme .v315-dash-head{align-items:center}
+@media(min-width:760px){#deneme .eh-gear{margin-left:auto}}
+@media(max-width:759px){
+  #deneme .v315-dash-head{position:relative}
+  #deneme .v315-dash-title{padding-right:54px}
+  #deneme .eh-gear{position:absolute;top:2px;right:0;margin:0}
+}
+
+/* ---------- net grafiği ---------- */
+#deneme .eh-trend{display:block;width:100%;height:auto;overflow:visible}
+#deneme .eh-trend .eh-grid{stroke:var(--d-line,#e3e9f2);stroke-width:1}
+#deneme .eh-trend .eh-axis{fill:var(--d-muted,#5f6b80);font-size:11px;font-weight:700}
+#deneme .eh-trend .eh-val{fill:var(--d-ink,#121a2b);font-size:12px;font-weight:850}
+#deneme .eh-trend .eh-line{fill:none;stroke:var(--d-accent,#2f6bea);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+#deneme .eh-trend .eh-dot{fill:var(--d-accent,#2f6bea);stroke:var(--d-surface,#fff);stroke-width:2}
+#deneme .eh-trend .eh-target{stroke:var(--eh-warn);stroke-width:1.5;stroke-dasharray:5 5}
+#deneme .eh-trend .eh-target-label{fill:var(--eh-warn);font-size:11px;font-weight:850}
+
+/* ---------- Özet ---------- */
+#deneme .eh-latest-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+#deneme .eh-latest-top b{display:block;font-size:16px;margin:2px 0}
+#deneme .eh-latest-top small{display:block;color:var(--d-muted,#5f6b80);font-size:12.5px}
+#deneme .eh-big{text-align:right;font-size:28px;font-weight:850;line-height:1;letter-spacing:-.02em;color:var(--d-ink,#121a2b)}
+#deneme .eh-big em{display:block;margin-top:4px;font-style:normal;font-size:12px;font-weight:800;letter-spacing:0}
+#deneme .eh-nets{display:grid;grid-template-columns:repeat(auto-fill,minmax(68px,1fr));gap:6px;margin-top:12px}
+#deneme .eh-nets span{padding:7px 4px;border-radius:11px;background:var(--d-soft,#eef3fb);color:var(--d-muted,#5f6b80);font-size:11.5px;font-weight:700;text-align:center}
+#deneme .eh-nets b{display:block;color:var(--d-ink,#121a2b);font-size:15px}
+#deneme .eh-btns{display:flex;gap:8px;margin-top:12px}
+#deneme .eh-btns .btn{flex:1;margin:0}
+#deneme .eh-loop{display:block;width:100%;text-align:left;font:inherit;color:inherit;cursor:pointer}
+#deneme .eh-loop .eh-card-head{display:flex}
+#deneme .eh-loop-steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+#deneme .eh-loop-steps>span{position:relative;padding:9px 4px;border-radius:12px;background:var(--d-soft,#eef3fb);color:var(--d-muted,#5f6b80);font-size:11.5px;font-weight:800;text-align:center}
+#deneme .eh-loop-steps>span:not(:last-child)::after{content:"›";position:absolute;right:-6px;top:50%;transform:translateY(-50%);color:var(--d-muted,#5f6b80);opacity:.55}
+#deneme .eh-loop-steps b{display:block;color:var(--d-ink,#121a2b);font-size:19px}
+#deneme .eh-loop-steps .is-due{background:var(--eh-warn-soft);color:var(--eh-warn)}#deneme .eh-loop-steps .is-due b{color:var(--eh-warn)}
+#deneme .eh-hint{display:block;margin-top:9px;color:var(--d-muted,#5f6b80);font-size:12.5px;line-height:1.45}
+
+/* ---------- Analiz ---------- */
+#deneme .eh-subj{padding:10px 0;border-top:1px solid var(--d-line,#e3e9f2)}
+#deneme .eh-subj:first-of-type{border-top:0;padding-top:0}
+#deneme .eh-subj-row{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+#deneme .eh-subj-row b{font-size:14px}
+#deneme .eh-subj-row small{color:var(--d-muted,#5f6b80);font-size:12.5px;font-weight:700;white-space:nowrap}
+#deneme .eh-dyb{display:flex;height:9px;margin-top:7px;border-radius:9px;overflow:hidden;background:var(--d-track,#e8edf5)}
+#deneme .eh-dyb i{display:block;height:100%}
+#deneme .eh-dyb .c,#deneme .eh-legend .c{background:var(--d-ok,#13906b)}
+#deneme .eh-dyb .w,#deneme .eh-legend .w{background:var(--eh-bad)}
+#deneme .eh-dyb .e,#deneme .eh-legend .e{background:var(--eh-blank)}
+#deneme .eh-subj-top{display:block;margin-top:6px;color:var(--d-muted,#5f6b80);font-size:12px}
+#deneme .eh-subj-top b{color:var(--d-ink,#121a2b)}
+#deneme .eh-legend{display:flex;gap:12px;margin-top:8px;color:var(--d-muted,#5f6b80);font-size:11.5px;font-weight:700}
+#deneme .eh-legend i{display:inline-block;width:9px;height:9px;margin-right:5px;border-radius:3px;vertical-align:-1px}
+#deneme .eh-sw{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-top:12px}
+#deneme .eh-sw>div{padding:12px;border-radius:var(--d-r-sm,14px);font-size:12px;font-weight:700}
+#deneme .eh-sw small{display:block}#deneme .eh-sw b{display:block;margin:2px 0;font-size:16px}
+#deneme .eh-good{background:color-mix(in srgb,var(--d-ok,#13906b) 13%,var(--d-surface,#fff));color:var(--d-ok,#13906b)}
+#deneme .eh-bad{background:var(--eh-bad-soft);color:var(--eh-bad)}
+#deneme .eh-insights ul{margin:0;padding-left:18px;color:var(--d-ink,#121a2b);font-size:13.5px;line-height:1.5}
+#deneme .eh-insights li+li{margin-top:4px}
+#deneme .eh-cmp-pick{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:6px;align-items:center;margin-bottom:8px}
+#deneme .eh-cmp-pick select{min-width:0;margin:0;font-size:13px}
+#deneme .eh-cmp-names{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:13px;font-weight:800}
+#deneme .eh-cmp-names i{color:var(--d-muted,#5f6b80);font-style:normal}
+#deneme .eh-cmp-row{display:grid;grid-template-columns:minmax(0,1fr) auto 64px;gap:8px;align-items:center;padding:8px 0;border-top:1px solid var(--d-line,#e3e9f2);font-size:13px}
+#deneme .eh-cmp-row:first-child{border-top:0}
+#deneme .eh-cmp-row span{font-weight:750}
+#deneme .eh-cmp-row small{color:var(--d-muted,#5f6b80);font-size:12px;white-space:nowrap}
+#deneme .eh-cmp-row b{text-align:right}
+
+/* ---------- Hatalar ---------- */
+#deneme .eh-stats3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:12px}
+#deneme .eh-stats3>span{padding:10px 6px;border-radius:var(--d-r-sm,14px);background:var(--d-surface,#fff);border:1px solid var(--d-line,#e3e9f2);color:var(--d-muted,#5f6b80);font-size:11.5px;font-weight:800;text-align:center}
+#deneme .eh-stats3 b{display:block;color:var(--d-ink,#121a2b);font-size:20px}
+#deneme .eh-stats3 .is-due b{color:var(--eh-warn)}
+#deneme .eh-filters{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+#deneme .eh-chip{min-height:36px;padding:0 12px;border:1px solid var(--d-line,#e3e9f2);border-radius:999px;background:var(--d-surface,#fff);color:var(--d-muted,#5f6b80);font:inherit;font-size:12.5px;font-weight:800;cursor:pointer}
+#deneme .eh-chip[aria-pressed="true"]{background:var(--d-chip,#e9f0fe);border-color:color-mix(in srgb,var(--d-accent,#2f6bea) 35%,transparent);color:var(--d-chip-ink,#2453b8)}
+#deneme .eh-subject-filter{width:auto;min-height:36px;margin:0;padding:0 10px;border-radius:999px;font-size:12.5px}
+#deneme .eh-add-row{margin-top:12px}#deneme .eh-add-row .btn{width:100%;margin:0}
+#deneme .eh-form label{margin-top:10px}
+#deneme .eh-reasons{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+#deneme .eh-reason{margin:0!important;cursor:pointer}
+#deneme .eh-reason input{position:absolute;opacity:0;pointer-events:none}
+#deneme .eh-reason span{display:inline-grid;place-items:center;min-height:36px;padding:0 12px;border:1px solid var(--d-line,#e3e9f2);border-radius:999px;background:var(--d-surface,#fff);color:var(--d-muted,#5f6b80);font-size:12.5px;font-weight:800}
+#deneme .eh-reason input:checked+span{background:var(--d-chip,#e9f0fe);color:var(--d-chip-ink,#2453b8);border-color:color-mix(in srgb,var(--d-accent,#2f6bea) 35%,transparent)}
+#deneme .eh-reason input:focus-visible+span{outline:2px solid var(--d-accent,#2f6bea)}
+#deneme .eh-check{display:flex!important;align-items:center;gap:8px;font-weight:700}
+#deneme .eh-check input,#deneme .eh-pick input{appearance:auto;-webkit-appearance:checkbox;width:20px;height:20px;min-width:20px;min-height:0;margin:0;padding:0;border:0;border-radius:4px;box-shadow:none;flex:none;accent-color:var(--d-accent,#2f6bea)}
+#deneme .eh-form .btn{width:100%;margin-top:12px}
+#deneme .eh-err{display:grid;grid-template-columns:48px minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px 0;border-top:1px solid var(--d-line,#e3e9f2)}
+#deneme .eh-err:first-of-type{border-top:0;padding-top:0}
+#deneme .eh-err.is-done .eh-err-main b{color:var(--d-muted,#5f6b80)}
+#deneme .eh-ph{width:48px;height:48px;display:grid;place-items:center;align-content:center;gap:1px;padding:0;border:1px dashed var(--d-line,#e3e9f2);border-radius:12px;background:var(--d-soft,#eef3fb);color:var(--d-muted,#5f6b80);font:inherit;font-size:15px;cursor:pointer}
+#deneme .eh-ph small{font-size:11px;font-weight:800}
+#deneme .eh-ph.has{border-style:solid;background:var(--d-chip,#e9f0fe);color:var(--d-chip-ink,#2453b8)}
+#deneme .eh-ph.none{cursor:default;border-style:solid}
+#deneme .eh-err-main{min-width:0}
+#deneme .eh-err-main b{display:block;font-size:14px;overflow-wrap:anywhere}
+#deneme .eh-err-main small{display:block;margin-top:2px;color:var(--d-muted,#5f6b80);font-size:12px}
+#deneme .eh-err-main .eh-note{font-style:italic}
+#deneme .eh-err-act{display:grid;gap:4px;justify-items:end}
+#deneme .eh-state{min-height:32px;padding:0 10px;border:0;border-radius:999px;font:inherit;font-size:12px;font-weight:850;white-space:nowrap;cursor:pointer}
+#deneme .eh-state.open{background:var(--eh-warn-soft);color:var(--eh-warn)}
+#deneme .eh-state.done{background:color-mix(in srgb,var(--d-ok,#13906b) 14%,var(--d-surface,#fff));color:var(--d-ok,#13906b)}
+#deneme .eh-del{min-height:28px;padding:0 6px;border:0;background:none;color:var(--d-muted,#5f6b80);font:inherit;font-size:12px;font-weight:700;cursor:pointer}
+#deneme .eh-del:hover{color:var(--eh-bad)}
+#deneme .eh-more{width:100%;margin-top:10px}
+
+/* ---------- Geçmiş ---------- */
+#deneme .eh-hist{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--d-line,#e3e9f2)}
+#deneme .eh-hist:first-of-type{border-top:0;padding-top:0}
+#deneme .eh-hist.is-picked .eh-hist-main b{color:var(--d-accent,#2f6bea)}
+#deneme .eh-pick{display:grid;place-items:center;width:40px;height:40px;margin:0!important;cursor:pointer}
+#deneme .eh-hist-main{min-width:0;padding:4px 0;border:0;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer}
+#deneme .eh-hist-main b{display:block;font-size:14px;overflow-wrap:anywhere}
+#deneme .eh-hist-main small{display:block;color:var(--d-muted,#5f6b80);font-size:12px}
+#deneme .eh-hist-net{text-align:right;font-size:18px;font-weight:850;line-height:1.1}
+#deneme .eh-hist-net em{display:block;font-style:normal;font-size:12px;font-weight:800;color:var(--d-muted,#5f6b80)}
+#deneme .eh-hist-net em.up{color:var(--d-ok,#13906b)}#deneme .eh-hist-net em.down{color:var(--eh-bad)}
+#deneme .eh-pick-hint{margin:10px 2px 0;color:var(--d-muted,#5f6b80);font-size:12.5px;font-weight:700}
+#deneme .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* ---------- deneme ekleme adımları ---------- */
+#v315ExamFormCard .eh-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:0 0 12px}
+#v315ExamFormCard .eh-steps>*{display:grid;place-items:center;min-height:34px;padding:0 4px;border:1px solid var(--d-line,#e3e9f2);border-radius:11px;background:var(--d-surface,#fff);color:var(--d-muted,#5f6b80);font:inherit;font-size:12px;font-weight:800;text-align:center}
+#v315ExamFormCard .eh-steps button{cursor:pointer}
+#v315ExamFormCard .eh-steps .on{background:var(--d-accent,#2f6bea);border-color:var(--d-accent,#2f6bea);color:var(--d-on-accent,#fff)}
+#v315ExamFormCard .eh-steps .done{background:var(--d-chip,#e9f0fe);color:var(--d-chip-ink,#2453b8)}
+#v315ExamFormCard[data-step="1"] .eh-s2,#v315ExamFormCard[data-step="2"] .eh-s1{display:none!important}
+#v315ExamFormCard .eh-date-row{margin:0}
+#v315ExamFormCard .eh-extra{margin:12px 0 0;border:1px solid var(--d-line,#e3e9f2);border-radius:var(--d-r-sm,14px);background:var(--d-soft,#eef3fb)}
+#v315ExamFormCard .eh-extra summary{padding:12px;font-weight:800;font-size:14px;cursor:pointer}
+#v315ExamFormCard .eh-extra summary small{color:var(--d-muted,#5f6b80);font-weight:700;font-size:12px}
+#v315ExamFormCard .eh-extra-body{padding:0 12px 12px}
+#v315ExamFormCard .eh-next{width:100%;margin-top:14px}
+#v315ExamFormCard .eh-step-summary{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:0 0 6px;padding:10px 12px;border:1px solid var(--d-line,#e3e9f2);border-radius:var(--d-r-sm,14px);background:var(--d-surface,#fff)}
+#v315ExamFormCard .eh-step-summary b{display:block;font-size:14px}
+#v315ExamFormCard .eh-step-summary small{color:var(--d-muted,#5f6b80);font-size:12px}
+#v315ExamFormCard .eh-linkbtn{border:0;background:none;color:var(--d-accent,#2f6bea);font:inherit;font-size:13px;font-weight:800;cursor:pointer}
+#v315ExamFormCard .dyb-grid{grid-template-columns:minmax(0,1.6fr) repeat(3,minmax(0,1fr)) 50px}
+#v315ExamFormCard .eh-rownet{text-align:right;font-weight:850;font-size:14px;color:var(--d-ink,#121a2b)}
+#v315ExamFormCard .dyb-head .eh-rownet{font-size:12px;color:var(--d-muted,#5f6b80)}
+#v315ExamFormCard .eh-rownet.is-empty{color:var(--d-muted,#5f6b80);font-weight:700}
+#v315ExamFormCard .eh-off-field{display:none!important}
+#v315ExamFormCard.eh-all-subjects .eh-off-field{display:grid!important}
+#v315ExamFormCard .eh-field-toggle{width:100%;margin:2px 0 8px;padding:9px 12px;border:0;border-radius:12px;background:var(--d-chip,#e9f0fe);color:var(--d-chip-ink,#2453b8);font:inherit;font-size:12.5px;font-weight:800;text-align:left;cursor:pointer}
+#v315ExamFormCard .eh-field-toggle[hidden]{display:none}
+#v315ExamFormCard #livePreview{font-size:17px;font-weight:850}
+#v315ExamFormCard>.btn.green.eh-s2{width:100%}
+
+/* ---------- ayarlar sayfası ---------- */
+#examHubSettings{position:fixed;inset:0;z-index:1200;display:flex;align-items:flex-end;justify-content:center;background:rgba(10,15,28,.42)}
+#examHubSettings[hidden]{display:none}
+#examHubSettings .eh-sheet-box{width:min(560px,100%);max-height:88dvh;display:flex;flex-direction:column;border-radius:22px 22px 0 0;background:var(--d-bg,#f5f7fb);color:var(--d-ink,#121a2b);box-shadow:0 -10px 40px rgba(10,15,28,.2)}
+@media(min-width:760px){#examHubSettings{align-items:center}#examHubSettings .eh-sheet-box{border-radius:22px}}
+#examHubSettings .eh-sheet-head{display:flex;justify-content:space-between;align-items:center;padding:16px 16px 8px}
+#examHubSettings .eh-sheet-head h3{margin:0;font-size:18px}
+#examHubSettings .eh-x{width:44px;height:44px;border:1px solid var(--d-line,#e3e9f2);border-radius:13px;background:var(--d-surface,#fff);color:var(--d-muted,#5f6b80);font-size:22px;line-height:1;cursor:pointer}
+#examHubSettings .eh-sheet-body{overflow:auto;padding:4px 16px calc(18px + env(safe-area-inset-bottom,0px))}
+#examHubSettings .card{margin:10px 0 0}
+#examHubSettings .foldhead{margin-top:10px}
+#examHubSettings .hint{margin:8px 0 0;color:var(--d-muted,#5f6b80);font-size:12.5px}
+:root.eh-sheet-open body{overflow:hidden}

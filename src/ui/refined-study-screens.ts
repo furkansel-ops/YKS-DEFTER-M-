@@ -86,7 +86,7 @@ export function installRefinedStudyScreens():StudyApi{
     const children=Array.from(examScreen.children).filter((item):item is HTMLElement=>item instanceof HTMLElement);
     const destination=(child:HTMLElement)=>child.id==="v43LearningCycle"?cycle.body:journalNodes.has(child)?journal.body:historyNodes.has(child)?history.body:analysis.body;
     for(let index=0;index<children.length;index++){
-      const child=children[index];if(!child||special.has(child as HTMLDetailsElement)||primary.has(child))continue;
+      const child=children[index];if(!child||special.has(child as HTMLDetailsElement)||primary.has(child)||child.dataset.examHub!==undefined)continue;
       const next=child.tagName==="H2"?children.slice(index+1).find(item=>item.tagName!=="H2"):undefined;
       moveLive(next?destination(next):destination(child),child);
     }

@@ -129,7 +129,7 @@ function progressSubjects(s,daily){
 
 function sharePayload(s,u){
   const topics=Object.entries(s.topics&&typeof s.topics==="object"?s.topics:{}).slice(0,500).map(([key,v])=>({key:text(key,220),...topicParts(key),st:finite(v?.st),deadline:text(v?.dl,10)}));
-  const exams=list(s.denemeler).slice(-24).map(d=>({id:String(d?.id||""),type:text(d?.type,16),name:text(d?.name,100),date:text(d?.date,10),totalNet:finite(d?.totalNet),subjectResults:list(d?.subjectResults).slice(0,16).map(x=>({name:text(x?.name,60),net:finite(x?.net)}))}));
+  const exams=list(s.denemeler).slice(-24).map(d=>({id:String(d?.id||""),type:text(d?.type,16),name:text(d?.name,100),date:text(d?.date,10),totalNet:finite(d?.totalNet),subjectResults:list(d?.subjectResults).slice(0,16).map(x=>({name:text(x?.name,60),net:finite(x?.net),d:Math.max(0,Math.floor(finite(x?.d))),y:Math.max(0,Math.floor(finite(x?.y))),b:Math.max(0,Math.floor(finite(x?.b)))}))}));
   const pp=list(s.paragraphProblem?.entries).slice(-2000).map(x=>({id:text(x?.id,80),date:text(x?.date,10),kind:x?.kind==="problem"?"problem":"paragraph",correct:Math.max(0,Math.floor(finite(x?.correct))),wrong:Math.max(0,Math.floor(finite(x?.wrong))),blank:Math.max(0,Math.floor(finite(x?.blank))),createdAt:Math.max(0,finite(x?.createdAt))})).filter(x=>x.id&&/^\d{4}-\d{2}-\d{2}$/.test(x.date));
   const errors=list(s.wrongLog).slice(-100).map(x=>({date:text(x?.date,10),subject:text(x?.subject,60),topic:text(x?.topic,100),n:Math.max(1,finite(x?.n,1))}));
   const dayReviews=Object.entries(s.dayReview&&typeof s.dayReview==="object"?s.dayReview:{}).filter(([date])=>/^\d{4}-\d{2}-\d{2}$/.test(date)).sort(([a],[b])=>a.localeCompare(b)).slice(-14).map(([date,value])=>({date,mood:["good","mid","hard"].includes(value?.mood)?value.mood:"",note:text(value?.note,3000),at:finite(value?.at)})).filter(x=>x.mood||x.note);
@@ -318,7 +318,7 @@ async function onSignedIn({user,auth,db}){
 function onSignedOut(){cleanup();rt.user=rt.auth=rt.db=rt.profile=null;delete document.documentElement.dataset.accountRole}
 
 let resolveAccountReady;try{window.__YKS_ACCOUNT_READY__=new Promise(resolve=>{resolveAccountReady=resolve})}catch{}
-window.YKSAccountAuth={version:"1.2.21",beforeSignIn,onSignedIn,onSignedOut,publishShare};
+window.YKSAccountAuth={version:"1.2.22",beforeSignIn,onSignedIn,onSignedOut,publishShare};
 try{resolveAccountReady?.(window.YKSAccountAuth)}catch{}
 document.documentElement.dataset.studentCoachingBridge="ready";
-window.dispatchEvent(new CustomEvent("yks:student-coaching-ready",{detail:{version:"1.2.21"}}));
+window.dispatchEvent(new CustomEvent("yks:student-coaching-ready",{detail:{version:"1.2.22"}}));
