@@ -19,7 +19,7 @@ export function installRefinedSecondary(){
     const root=document.getElementById("progress");if(!root)return;
     const details=disclosure(root,"refinedProgressDetails","Ayrıntılı ilerleme raporları");
     for(const node of Array.from(root.children)){
-      if(node instanceof HTMLElement&&!node.matches(".rb-back,#v43AnalysisCenter,#refinedProgressDetails"))details.append(node);
+      if(node instanceof HTMLElement&&!node.matches(".rb-back,#v43AnalysisCenter,#refinedProgressDetails,[data-progress-hub]"))details.append(node);
     }
   }
   let paragraphOpen=false;

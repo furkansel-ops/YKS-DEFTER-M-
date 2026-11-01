@@ -8,13 +8,13 @@ import {analyzeLearningCycle} from "../domain/learning-cycle-analysis-service";
    Hata Defteri'nin (S.errorJournal, S.manualReviews) kendi kayıtlarında kalır. Eski fonksiyonlar çağrılır. */
 
 type Loose=Record<string,any>;
-type Tab="ozet"|"analiz"|"hata"|"gecmis";
+export type Tab="ozet"|"analiz"|"hata"|"gecmis";
 type LegacyFn=(...args:any[])=>any;
 type LegacyWindow=Window&Record<string,any>&{
   YKSLegacyState?:{readState?:()=>Loose;save?:()=>unknown;subjects?:()=>string[]};
   YKSErrorJournal?:{add?:(data:Loose,opts?:Loose)=>Loose|null;openReviews?:()=>Loose[];render?:()=>void};
 };
-type ErrorRow={key:string;kind:"wrong"|"journal";id:string|number;subject:string;topic:string;n:number;date:string;sort:number;exam:string;reason:string;note:string;photos:number;resolved:boolean;journalId:string};
+export type ErrorRow={key:string;kind:"wrong"|"journal";id:string|number;subject:string;topic:string;n:number;date:string;sort:number;exam:string;reason:string;note:string;photos:number;resolved:boolean;journalId:string};
 
 const L=window as unknown as LegacyWindow;
 const TABS:Tab[]=["ozet","analiz","hata","gecmis"];
@@ -256,7 +256,7 @@ function compareRows(a:Loose|undefined,b:Loose|undefined):string{
 }
 
 /* ---------- Hatalar ---------- */
-function errorRows():ErrorRow[]{
+export function errorRows():ErrorRow[]{
   const s=state(),journal=list(s.errorJournal),denemeler=list(s.denemeler),examName=new Map(denemeler.map(d=>[String(d.id),String(d.name||"Deneme")]));
   const mirrors=new Map<string,Loose>();for(const j of journal){const ref=String(j.sourceRef||"");if(ref.startsWith("wrong:"))mirrors.set(ref.slice(6),j);}
   const wrongIds=new Set<string>(),rows:ErrorRow[]=[];
@@ -457,6 +457,9 @@ function wrap(name:string,after:(result:unknown,args:unknown[])=>void,before?:(a
   const fn=function(this:unknown,...args:unknown[]){const memo=before?.(args);const result=(original as LegacyFn).apply(this,args);try{after(result,[...args,memo]);}catch(error){console.error("v73 "+name,error);}return result;};
   (fn as {__v73?:boolean}).__v73=true;L[name]=fn;
 }
+
+/* Başka ekranlardan (İlerleme) Deneme'nin bir sekmesini açmak için. */
+export function openExamTab(tab:Tab):void{call("go","deneme");setTab(tab);}
 
 export function installExamHubV73():boolean{
   if(installed)return true;if(!ensureSkeleton())return false;installed=true;
