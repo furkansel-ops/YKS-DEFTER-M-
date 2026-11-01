@@ -3,6 +3,7 @@ import {installRefinedSecondary} from "./refined-secondary";
 import {installRefinedStudyScreens} from "./refined-study-screens";
 import {installExamHubV73} from "./exam-hub-v73";
 import {installProgressHubV74} from "./progress-hub-v74";
+import {installAboutV78} from "./about-v78";
 
 type ShellWindow=Window&{go?:(screen:string)=>void;v30Action?:(action:string)=>void;setMoreTab?:(panel:string)=>void};
 const legacy=()=>window as ShellWindow;
@@ -50,5 +51,6 @@ export function installRefinedShell(){
   installRefinedStudyScreens();
   try{installExamHubV73();}catch(error){console.error("v73 deneme ekranı",error);}
   try{installProgressHubV74();}catch(error){console.error("v74 ilerleme ekranı",error);}
+  try{installAboutV78();}catch(error){console.error("v78 Hakkında",error);}
   return {installed:true,validate(){return [!program.installed?"program":"",!document.getElementById("refinedBrand")?"brand":""].filter(Boolean);}};
 }
