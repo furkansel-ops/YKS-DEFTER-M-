@@ -9397,7 +9397,7 @@ function renderBrief(b){
 
   if(b.tekrar.length){
     h+='<div class="bfsec"><p class="eyebrow">Tekrar zamanı</p>'+
-      b.tekrar.map(t=>'<div class="dayrow"><span class="k">'+esc(t.subject+" · "+t.topic)+'</span></div>').join("")+
+      b.tekrar.map(t=>'<div class="dayrow"><span class="k">'+esc((t.subj||t.subject||"")+" · "+t.topic)+'</span></div>').join("")+
       '</div>';
   }
 
