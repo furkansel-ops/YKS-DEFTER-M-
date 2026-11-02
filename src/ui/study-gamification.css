@@ -490,3 +490,26 @@
 @media(max-width:600px){
   #ymsAchievementsContent .sg-career-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
+/* v84 · başlatılmamış kariyer: belirgin başlat kartı, kilitli seviye, gri rozetler, görev önizlemesi */
+#ymsAchievementsContent .sg-v84-start{margin-top:12px;padding:14px;border:2px solid var(--d-accent,#2f6bea);border-radius:16px;background:var(--d-surface,#fff)}
+#ymsAchievementsContent .sg-v84-title{display:block;font-size:16px;color:var(--d-ink,#121a2b)}
+#ymsAchievementsContent .sg-v84-text{margin:4px 0 6px;font-size:13px;color:var(--d-muted,#5f6b80)}
+#ymsAchievementsContent .sg-v84-start .sg-form button[type=submit],#ymsAchievementsContent .sg-v84-start .sg-form .sg-primary{width:100%;min-height:44px;font-weight:850}
+#ymsAchievementsContent .sg-v84-level,#ymsAchievementsContent .sg-v84-badges,#ymsAchievementsContent .sg-v84-tasks{margin-top:12px;padding:12px 14px;border:1px solid var(--d-line,#e3e9f2);border-radius:16px;background:var(--d-surface,#fff)}
+#ymsAchievementsContent .sg-v84-level-head,#ymsAchievementsContent .sg-v84-head{display:flex;justify-content:space-between;align-items:center;gap:10px}
+#ymsAchievementsContent .sg-v84-level-head strong{display:block;font-size:16px}
+#ymsAchievementsContent .sg-v84-level-head small,#ymsAchievementsContent .sg-v84-hint{display:block;font-size:12px;color:var(--d-muted,#5f6b80)}
+#ymsAchievementsContent .sg-v84-hint{margin-top:6px}
+#ymsAchievementsContent .sg-v84-lock{flex:none;padding:3px 9px;border-radius:999px;background:var(--d-soft,#eef3fb);color:var(--d-muted,#5f6b80);font-size:11.5px;font-weight:850}
+#ymsAchievementsContent .sg-v84-label{font-size:12px;font-weight:850;letter-spacing:.06em;text-transform:uppercase;color:var(--d-muted,#5f6b80)}
+#ymsAchievementsContent .sg-v84-more{border:0;background:none;color:var(--d-accent,#2f6bea);font:inherit;font-size:13px;font-weight:800;cursor:pointer;min-height:36px}
+#ymsAchievementsContent .sg-v84-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:8px}
+@media(min-width:760px){#ymsAchievementsContent .sg-v84-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+#ymsAchievementsContent .sg-v84-badge{display:grid;grid-template-columns:36px minmax(0,1fr);gap:9px;align-items:center;padding:9px;border:1px solid var(--d-line,#e3e9f2);border-radius:13px}
+#ymsAchievementsContent .sg-v84-badge i{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-size:17px;background:var(--d-soft,#eef3fb);filter:grayscale(1);opacity:.75}
+#ymsAchievementsContent .sg-v84-badge b,#ymsAchievementsContent .sg-v84-badge small,#ymsAchievementsContent .sg-v84-badge em{display:block}
+#ymsAchievementsContent .sg-v84-badge b{font-size:13px}#ymsAchievementsContent .sg-v84-badge small{font-size:11.5px;color:var(--d-muted,#5f6b80);line-height:1.35}
+#ymsAchievementsContent .sg-v84-badge em{font-style:normal;font-size:11px;font-weight:850;color:#a0703a}
+:root[data-theme="night"] #ymsAchievementsContent .sg-v84-badge em{color:#e7b26c}
+#ymsAchievementsContent .sg-v84-tasks{border-style:dashed;font-size:12.5px;color:var(--d-muted,#5f6b80)}
+#ymsAchievementsContent .sg-v84-tasks b{display:block;color:var(--d-ink,#121a2b);font-size:13px}

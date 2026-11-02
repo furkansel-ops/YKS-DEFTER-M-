@@ -98,3 +98,12 @@ test("v77 koça seviye ve deneme rankı gider; alanlar temizlenir",()=>{
   assert.equal(share(null),null);
   assert.match(read("src/ui/study-gamification.ts"),/YKSCareer=\{summary:\(\)=>\{const s=readState\(\);return careerSummary\(/);
 });
+
+test("v84 kariyer başlatılmadan da seviye, kilitli rozetler ve görev önizlemesi görünür; başlat kartı belirgin",()=>{
+  const ui=read("src/ui/study-gamification.ts"),css=read("src/ui/study-gamification.css");
+  assert.match(ui,/if\(!snapshot\.activated\)\{root\.append\(\.\.\.renderLockedCareer\(snapshot\)\);syncTabPanels\(\);return;\}/);
+  assert.match(ui,/"🚀 Kariyerini başlat"/);assert.match(ui,/"⚡ Seviye 1"/);assert.match(ui,/"🔒 Günlük ve haftalık görevler"/);
+  assert.match(ui,/snapshot\.badges\.filter\(b=>!b\.hidden\)\.slice\(0,lockedBadgesOpen\?undefined:6\)/);
+  assert.match(ui,/goalForm\(snapshot,true\)/,"başlatma formu aynı (XP bugünden sayılır)");
+  assert.match(css,/\.sg-v84-start\{/);
+});
