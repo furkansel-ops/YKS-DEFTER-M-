@@ -157,6 +157,6 @@ test("v73 kurulum: kabuk modülü kurar, eski düzenleyici yeni bölmelere dokun
 test("v73 koça doğru/yanlış/boş da gider; yeni sürüm yükleyicide",()=>{
   const runtime=read("public/student-coaching-runtime.js"),loader=read("src/ui/student-account-loader.ts");
   assert.match(runtime,/subjectResults:list\(d\?\.subjectResults\)\.slice\(0,16\)\.map\(x=>\(\{name:text\(x\?\.name,60\),net:finite\(x\?\.net\),d:Math\.max\(0,Math\.floor\(finite\(x\?\.d\)\)\),y:Math\.max\(0,Math\.floor\(finite\(x\?\.y\)\)\),b:Math\.max\(0,Math\.floor\(finite\(x\?\.b\)\)\)\}\)\)/);
-  assert.match(runtime,/version:"1.2.28"/);
-  assert.match(loader,/"\.\/student-coaching-runtime\.js\?v=1.2.28"/);
+  assert.match(runtime,/version:"1.2.29"/);
+  assert.match(loader,/"\.\/student-coaching-runtime\.js\?v=1.2.29"/);
 });
