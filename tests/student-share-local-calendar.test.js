@@ -95,7 +95,7 @@ test("tek öğrenci paylaşımı koçun program, hata, konu ve deneme alanların
 
 test("deployed student runtime query changes so old cached UTC report code is not loaded",()=>{
   const loader=read("src/ui/student-account-loader.ts");
-  assert.match(loader,/student-coaching-runtime\.js\?v=1.2.27"/);
+  assert.match(loader,/student-coaching-runtime\.js\?v=1.2.28"/);
   assert.match(runtime,/function localDayOffset/);
   assert.doesNotMatch(runtime,/Date\.now\(\)-i\*DAY\)\.toISOString\(\)\.slice\(0,10\)/);
 });

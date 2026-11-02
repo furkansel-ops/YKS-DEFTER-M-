@@ -23,3 +23,9 @@ test("v80 koça hızlı okuma özeti gider: yalnız sayılar, son 30 gün geçer
   const result=share({speedReading:{lessons:{groups:1,voice:2},sessions:[t(now-40*day,150,50),t(now-5*day,200,80),t(now-2*day,240,100),t(now-day,999,100,3000),{kind:"exercise",at:now,wpm:300,comprehension:100,readingMs:60000}]}});
   assert.deepEqual(result,{tests30:2,wpm30:220,comprehension30:90,lessons:2,last:{at:now-2*day,wpm:240,comprehension:100}},"kısa ölçüm ve egzersiz sayılmaz");
 });
+
+test("v83 koça son 31 gün gün gün ders kırılımıyla gider (gün/hafta/ay raporu ve ders süzgeci için)",()=>{
+  const runtime=read("public/student-coaching-runtime.js");
+  assert.match(runtime,/const daily31=progressDaily\(s,31\)\.map\(day=>\(\{\.\.\.day,subjects:progressSubjects\(s,\[day\]\)\.slice\(0,8\)\}\)\);/);
+  assert.match(runtime,/progress:\{minutes7:sum\(s\.pomoMin,7\),questions7:sum\(s\.solved,7\),daily14,daily31,subjects7,/,"eski daily14 de kalır");
+});

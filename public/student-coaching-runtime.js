@@ -155,7 +155,9 @@ function sharePayload(s,u){
   const errors=list(s.wrongLog).slice(-100).map(x=>({date:text(x?.date,10),subject:text(x?.subject,60),topic:text(x?.topic,100),n:Math.max(1,finite(x?.n,1)),...errorExtra(x)}));
   const dayReviews=Object.entries(s.dayReview&&typeof s.dayReview==="object"?s.dayReview:{}).filter(([date])=>/^\d{4}-\d{2}-\d{2}$/.test(date)).sort(([a],[b])=>a.localeCompare(b)).slice(-14).map(([date,value])=>({date,mood:["good","mid","hard"].includes(value?.mood)?value.mood:"",note:text(value?.note,3000),at:finite(value?.at)})).filter(x=>x.mood||x.note);
   const daily14=progressDaily(s,14),subjects7=progressSubjects(s,daily14.slice(-7));
-  return{studentUid:u.uid,version:1,profile:{name:text(s.name||u.displayName,80),track:text(s.puanTuru,8),targetNetTYT:Number(s.targetNetTYT??s.targetNet??0),targetNetAYT:Number(s.targetNetAYT||0),targetUniversity:text(s.targetUniversity,120),targetDepartment:text(s.targetDepartment,120),career:careerShare(),reading:readingShare(s)},program:buildProgramShare(s),exams,progress:{minutes7:sum(s.pomoMin,7),questions7:sum(s.solved,7),daily14,subjects7,completedTopics:topics.filter(x=>x.st>=3).length,activeTopics:topics.filter(x=>x.st>0&&x.st<3).length,overdueTopics:topics.filter(x=>x.deadline&&x.deadline<today()&&x.st<3).length,dayReview:{entries:dayReviews}},paragraphProblem:{entries:pp},topics:{items:topics},errorJournal:errors,updatedAt:serverTimestamp()};
+  // v83: koçun gün/hafta/ay raporu ve ders süzgeci için son 31 gün, gün gün ders kırılımıyla.
+  const daily31=progressDaily(s,31).map(day=>({...day,subjects:progressSubjects(s,[day]).slice(0,8)}));
+  return{studentUid:u.uid,version:1,profile:{name:text(s.name||u.displayName,80),track:text(s.puanTuru,8),targetNetTYT:Number(s.targetNetTYT??s.targetNet??0),targetNetAYT:Number(s.targetNetAYT||0),targetUniversity:text(s.targetUniversity,120),targetDepartment:text(s.targetDepartment,120),career:careerShare(),reading:readingShare(s)},program:buildProgramShare(s),exams,progress:{minutes7:sum(s.pomoMin,7),questions7:sum(s.solved,7),daily14,daily31,subjects7,completedTopics:topics.filter(x=>x.st>=3).length,activeTopics:topics.filter(x=>x.st>0&&x.st<3).length,overdueTopics:topics.filter(x=>x.deadline&&x.deadline<today()&&x.st<3).length,dayReview:{entries:dayReviews}},paragraphProblem:{entries:pp},topics:{items:topics},errorJournal:errors,updatedAt:serverTimestamp()};
 }
 async function publishShare(options={}){
   const manual=options?.manual===true,session=rt.session;
@@ -427,7 +429,7 @@ async function onSignedIn({user,auth,db}){
 function onSignedOut(){cleanup();rt.user=rt.auth=rt.db=rt.profile=null;delete document.documentElement.dataset.accountRole}
 
 let resolveAccountReady;try{window.__YKS_ACCOUNT_READY__=new Promise(resolve=>{resolveAccountReady=resolve})}catch{}
-window.YKSAccountAuth={version:"1.2.27",beforeSignIn,onSignedIn,onSignedOut,publishShare};
+window.YKSAccountAuth={version:"1.2.28",beforeSignIn,onSignedIn,onSignedOut,publishShare};
 try{resolveAccountReady?.(window.YKSAccountAuth)}catch{}
 document.documentElement.dataset.studentCoachingBridge="ready";
-window.dispatchEvent(new CustomEvent("yks:student-coaching-ready",{detail:{version:"1.2.27"}}));
+window.dispatchEvent(new CustomEvent("yks:student-coaching-ready",{detail:{version:"1.2.28"}}));

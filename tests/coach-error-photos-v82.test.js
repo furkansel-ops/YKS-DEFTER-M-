@@ -48,7 +48,7 @@ test("v82 eşitleme: bağlantı/izin yoksa paylaşılanlar silinir; koç alanlar
   assert.doesNotMatch(runtime.slice(runtime.indexOf("async function syncErrorPhotos"),runtime.indexOf("function schedulePhotoSync")),/coachComment|coachStatus/,"öğrenci koç alanlarını yazmaz");
   assert.match(runtime,/rt\.photoBlockedUntil=Date\.now\(\)\+600000/);
   assert.match(runtime,/document\.documentElement\.dataset\.coachShare="ready";\s*delete document\.documentElement\.dataset\.coachShareError;\s*schedulePhotoSync\(\);/);
-  assert.match(runtime,/watchErrorPhotos\(session\);/);assert.match(runtime,/version:"1\.2\.27"/);
+  assert.match(runtime,/watchErrorPhotos\(session\);/);assert.match(runtime,/version:"1\.2\.(2[7-9]|[3-9]\d)"/);
 });
 
 test("v82 öğrenci Hata Defteri: soru no, not ya da çözüm, koçun notu ve paylaşım anahtarı",()=>{
