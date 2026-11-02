@@ -28,7 +28,7 @@ test("v86 müfredat yoksa eski davranış: yalnız kayıtlı konular, full işar
   assert.equal(out.full,undefined);assert.deepEqual(out.items.map(x=>x.key),["TYT|Matematik|Problemler"]);
   assert.match(runtime,/const topicShare=topicsShare\(s\),topics=topicShare\.items;/);
   assert.match(runtime,/topics:topicShare,errorJournal/);
-  assert.match(runtime,/window\.YKSAccountAuth=\{version:"1\.2\.29"/);
+  assert.match(runtime,/window\.YKSAccountAuth=\{version:"1\.2\.30"/);
 });
 
 test("v86 gerçek müfredatla 240 konu gider (500 sınırının altında)",()=>{
