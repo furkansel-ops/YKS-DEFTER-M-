@@ -26,11 +26,11 @@
   #yksBootRetry[hidden]{display:none!important}
   #yksBootRetry:focus-visible{outline:3px solid #81b3ff;outline-offset:3px}
   html[data-ui-ready="true"] #yksBootShell{display:none!important}
-  html[data-boot-theme="night"],html[data-boot-theme="night"] #yksBootShell{background:#0a0f1c;color:#eef2fb}
-  html[data-boot-theme="night"] #yksBootShell .yks-boot-card{background:#121a2c;border-color:#26314d;box-shadow:none}
-  html[data-boot-theme="vivid"],html[data-boot-theme="vivid"] #yksBootShell{background:#fbf8f4}
+  html[data-boot-theme="night"],html[data-boot-theme="night"] #yksBootShell{background:#192134;color:#f2f5fc}
+  html[data-boot-theme="night"] #yksBootShell .yks-boot-card{background:#222c46;border-color:#3a4769;box-shadow:none}
+  html[data-boot-theme="vivid"],html[data-boot-theme="vivid"] #yksBootShell{background:#fff0e4}
 </style>
-<script id="yksThemeHint">/* Gece/Canlı için açılış rengi; yalnız bu cihazdaki ipucu, kayıt değil. */try{var h=localStorage.getItem("yks_theme_hint_v1");if(h==="night"||h==="vivid"){document.documentElement.dataset.bootTheme=h;document.getElementById("metaTheme").content=h==="night"?"#0a0f1c":"#fbf8f4"}}catch(e){}</script>
+<script id="yksThemeHint">/* Gece/Canlı için açılış rengi; yalnız bu cihazdaki ipucu, kayıt değil. */try{var h=localStorage.getItem("yks_theme_hint_v1");if(h==="night"||h==="vivid"){document.documentElement.dataset.bootTheme=h;document.getElementById("metaTheme").content=h==="night"?"#192134":"#fff0e4"}}catch(e){}</script>
 <script id="yksBootController">
 /* A slow or failed download may offer a retry, but must never uncover the old DOM. */
 (function(){
@@ -1648,8 +1648,8 @@
         <p class="hint">Renkleri değiştir; çalışma kayıtların ve ekran düzenin korunur.</p>
         <div class="yks-theme-grid yks-theme-trio">
         <label class="yks-theme-choice"><input type="radio" name="yksTheme" value="refined-blue" onchange="setTheme('refined-blue')" checked><span class="yks-theme-swatch" style="--yks-swatch:#2f6bea" aria-hidden="true"></span><span class="yks-theme-copy"><strong>Sade Mavi</strong><small>Ferah ve sakin</small></span></label>
-        <label class="yks-theme-choice"><input type="radio" name="yksTheme" value="night" onchange="setTheme('night')"><span class="yks-theme-swatch" style="--yks-swatch:#0a0f1c" aria-hidden="true"></span><span class="yks-theme-copy"><strong>Gece</strong><small>Koyu, göz yormaz</small></span></label>
-        <label class="yks-theme-choice"><input type="radio" name="yksTheme" value="vivid" onchange="setTheme('vivid')"><span class="yks-theme-swatch" style="--yks-swatch:linear-gradient(135deg,#6a4cf5,#ff7a59)" aria-hidden="true"></span><span class="yks-theme-copy"><strong>Canlı</strong><small>Sıcak ve renkli</small></span></label>
+        <label class="yks-theme-choice"><input type="radio" name="yksTheme" value="night" onchange="setTheme('night')"><span class="yks-theme-swatch" style="--yks-swatch:#192134" aria-hidden="true"></span><span class="yks-theme-copy"><strong>Gece</strong><small>Koyu, göz yormaz</small></span></label>
+        <label class="yks-theme-choice"><input type="radio" name="yksTheme" value="vivid" onchange="setTheme('vivid')"><span class="yks-theme-swatch" style="--yks-swatch:linear-gradient(135deg,#6a2cff,#ff6a48)" aria-hidden="true"></span><span class="yks-theme-copy"><strong>Canlı</strong><small>Sıcak ve renkli</small></span></label>
         </div>
         <p class="yks-theme-current" role="status">Seçili tema: <strong id="yksThemeActive">Sade Mavi</strong></p>
       </fieldset>

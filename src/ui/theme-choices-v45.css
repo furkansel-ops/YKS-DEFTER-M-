@@ -1,14 +1,14 @@
 /* v45 → v66: Üç tema. Sade Mavi (refined-blue) temel görünümdür; Gece ve Canlı aynı
    yerleşimi kendi paletleriyle boyar. DOM ve kayıtlar değişmez. */
 :root[data-theme="night"]{
- --yks-theme-bg:#0a0f1c;--yks-theme-surface:#121a2c;--yks-theme-soft:#1a2440;
- --yks-theme-ink:#eef2fb;--yks-theme-muted:#a9b5ca;--yks-theme-line:#26314d;
- --yks-theme-accent:#7aa2ff;--yks-theme-deep:#2b4486;--yks-theme-on:#0a0f1c;
+ --yks-theme-bg:#192134;--yks-theme-surface:#222c46;--yks-theme-soft:#2c3753;
+ --yks-theme-ink:#f2f5fc;--yks-theme-muted:#b9c4d9;--yks-theme-line:#3a4769;
+ --yks-theme-accent:#8aacff;--yks-theme-deep:#3a5296;--yks-theme-on:#111a30;
 }
 :root[data-theme="vivid"]{
- --yks-theme-bg:#fbf8f4;--yks-theme-surface:#fff;--yks-theme-soft:#f1ecff;
- --yks-theme-ink:#1b1830;--yks-theme-muted:#615c76;--yks-theme-line:#ece5dc;
- --yks-theme-accent:#5a3ee0;--yks-theme-deep:#4a2fc4;--yks-theme-on:#fff;
+ --yks-theme-bg:#fff0e4;--yks-theme-surface:#fff;--yks-theme-soft:#f3eaff;
+ --yks-theme-ink:#1c1433;--yks-theme-muted:#5a4f74;--yks-theme-line:#f0dccd;
+ --yks-theme-accent:#6a2cff;--yks-theme-deep:#4f17d9;--yks-theme-on:#fff;
 }
 :root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]){
  --bg:var(--yks-theme-bg);--glass:var(--yks-theme-surface);--glass-strong:var(--yks-theme-surface);

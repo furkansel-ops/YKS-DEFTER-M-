@@ -42,7 +42,7 @@ test("üç tema: kayıtlar değişmeden açılışta tercih korunur",()=>{
   assert.equal(h.doc.documentElement.dataset.visualSystem,"refined-blue");
   assert.equal(h.doc.documentElement.dataset.themeControl,"multiple");
   assert.equal(h.doc.documentElement.style.colorScheme,"light");
-  assert.equal(h.header.content,"#fbf8f4");
+  assert.equal(h.header.content,"#fff0e4");
   assert.equal(h.radios.find(x=>x.value==="vivid").checked,true);
   assert.equal(h.label.textContent,"Canlı");
   assert.equal(h.saveCount,0,"açılışta ekstra kayıt/yazma yapılmaz");
@@ -63,13 +63,13 @@ test("üç tema: kayıtlar değişmeden açılışta tercih korunur",()=>{
 });
 
 test("eski temalar açılışta üç temaya taşınır: koyular Gece'ye, diğerleri Sade Mavi'ye",()=>{
-  for(const [old,next,meta] of [["graphite","night","#0a0f1c"],["dark","night","#0a0f1c"],["auto","refined-blue","#f5f7fb"],["forest","refined-blue","#f5f7fb"],["paper","refined-blue","#f5f7fb"],["notebook","refined-blue","#f5f7fb"]]){
+  for(const [old,next,meta] of [["graphite","night","#192134"],["dark","night","#192134"],["auto","refined-blue","#f5f7fb"],["forest","refined-blue","#f5f7fb"],["paper","refined-blue","#f5f7fb"],["notebook","refined-blue","#f5f7fb"]]){
     const h=harness(old);h.run("applyTheme()");
     assert.equal(h.state.theme,next,old);assert.equal(h.doc.documentElement.dataset.theme,next,old);assert.equal(h.header.content,meta,old);
     assert.equal(h.saveCount,0,"taşıma açılışta ekstra yazma yapmaz");
   }
   const h=harness("night");h.run("applyTheme()");
-  assert.equal(h.doc.documentElement.style.colorScheme,"dark");assert.equal(h.header.content,"#0a0f1c");assert.equal(h.label.textContent,"Gece");
+  assert.equal(h.doc.documentElement.style.colorScheme,"dark");assert.equal(h.header.content,"#192134");assert.equal(h.label.textContent,"Gece");
 });
 
 test("kayıt normalize: eski koyu temalar Gece'ye, bilinmeyenler Sade Mavi'ye döner",()=>{

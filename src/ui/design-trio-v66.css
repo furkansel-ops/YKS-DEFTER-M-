@@ -12,22 +12,23 @@
   --d-r:18px;--d-r-sm:14px;--d-shadow:0 1px 2px rgba(20,40,80,.05);--d-nav:rgba(255,255,255,.94);
   --d-math:#2f6bea;--d-physics:#d9800f;--d-chemistry:#13906b;--d-biology:#7c4dcc;--d-reading:#c2417a;--d-social:#9a6b2f;--d-other:#64748b;
 }
+/* v85: Gece bir ton açıldı (simsiyah yerine yumuşak gece mavisi); Canlı daha doygun. */
 :root[data-theme="night"]{
-  --d-bg:#0a0f1c;--d-surface:#121a2c;--d-soft:#1a2440;--d-ink:#eef2fb;--d-muted:#a9b5ca;--d-line:#26314d;
-  --d-accent:#7aa2ff;--d-on-accent:#0a0f1c;--d-chip:#1a2440;--d-chip-ink:#b5c8ff;--d-track:#1f2a45;--d-ok:#3ccf97;
-  --d-hero:radial-gradient(circle at 85% 0%,rgba(122,162,255,.42),transparent 55%),linear-gradient(160deg,#1a2650,#111a33);
-  --d-hero-ink:#eef2fb;--d-hero-btn:#7aa2ff;--d-hero-btn-ink:#0a0f1c;--d-hero-ghost:rgba(255,255,255,.09);
-  --d-launch:radial-gradient(circle at 80% 0%,rgba(122,162,255,.35),transparent 50%),linear-gradient(170deg,#141d3a 0%,#0c1328 55%,#070b16 100%);
-  --d-r:20px;--d-r-sm:15px;--d-shadow:none;--d-nav:rgba(18,26,44,.94);
+  --d-bg:#192134;--d-surface:#222c46;--d-soft:#2c3753;--d-ink:#f2f5fc;--d-muted:#b9c4d9;--d-line:#3a4769;
+  --d-accent:#8aacff;--d-on-accent:#111a30;--d-chip:#2f3d6b;--d-chip-ink:#c8d7ff;--d-track:#303b5a;--d-ok:#48d8a2;
+  --d-hero:radial-gradient(circle at 85% 0%,rgba(138,172,255,.48),transparent 55%),linear-gradient(160deg,#2b3f80,#1f2b4f);
+  --d-hero-ink:#f2f5fc;--d-hero-btn:#8aacff;--d-hero-btn-ink:#111a30;--d-hero-ghost:rgba(255,255,255,.11);
+  --d-launch:radial-gradient(circle at 80% 0%,rgba(138,172,255,.38),transparent 50%),linear-gradient(170deg,#24336a 0%,#1a2448 55%,#121a33 100%);
+  --d-r:20px;--d-r-sm:15px;--d-shadow:none;--d-nav:rgba(34,44,70,.95);
   --d-math:#7aa2ff;--d-physics:#f3b860;--d-chemistry:#5fdcaa;--d-biology:#c3a2ff;--d-reading:#ff8fbf;--d-social:#e0b98a;--d-other:#9aa7bd;
 }
 :root[data-theme="vivid"]{
-  --d-bg:#fbf8f4;--d-surface:#fff;--d-soft:#f4efe8;--d-ink:#1b1830;--d-muted:#615c76;--d-line:#ece5dc;
-  --d-accent:#5a3ee0;--d-on-accent:#fff;--d-chip:#f0ebff;--d-chip-ink:#4a2fc4;--d-track:#efe8df;--d-ok:#128a5c;
-  --d-hero:linear-gradient(135deg,#6a4cf5 0%,#a845e8 55%,#f0705a 100%);--d-hero-ink:#fff;--d-hero-btn:#fff;--d-hero-btn-ink:#4a2fc4;--d-hero-ghost:rgba(255,255,255,.22);
-  --d-launch:linear-gradient(160deg,#6a4cf5 0%,#9b47e6 50%,#e8665a 100%);
-  --d-r:22px;--d-r-sm:16px;--d-shadow:0 6px 16px rgba(60,40,20,.06);--d-nav:rgba(255,255,255,.95);
-  --d-math:#5a3ee0;--d-physics:#e0750f;--d-chemistry:#109466;--d-biology:#c03ac9;--d-reading:#e0446f;--d-social:#a9701c;--d-other:#6c6784;
+  --d-bg:#fff0e4;--d-surface:#fff;--d-soft:#f3eaff;--d-ink:#1c1433;--d-muted:#5a4f74;--d-line:#f0dccd;
+  --d-accent:#6a2cff;--d-on-accent:#fff;--d-chip:#ebe0ff;--d-chip-ink:#4f17d9;--d-track:#f7dcc8;--d-ok:#0b9a62;
+  --d-hero:linear-gradient(135deg,#6a2cff 0%,#c13bf0 52%,#ff6a48 100%);--d-hero-ink:#fff;--d-hero-btn:#fff;--d-hero-btn-ink:#4f17d9;--d-hero-ghost:rgba(255,255,255,.24);
+  --d-launch:linear-gradient(160deg,#6a2cff 0%,#b83cec 50%,#ff6a48 100%);
+  --d-r:22px;--d-r-sm:16px;--d-shadow:0 8px 20px rgba(120,60,20,.08);--d-nav:rgba(255,255,255,.95);
+  --d-math:#6a2cff;--d-physics:#f06a00;--d-chemistry:#00a06a;--d-biology:#d22fc0;--d-reading:#f0386b;--d-social:#b8730f;--d-other:#6c6784;
 }
 :root[data-theme="night"],:root[data-theme="vivid"]{background:var(--d-bg)}
 :root[data-theme="night"] body,:root[data-theme="vivid"] body{background:var(--d-bg)}
@@ -184,17 +185,38 @@
 
 /* Açılış ekranının alt düğme şeridi gradyanın son rengine kaynar. */
 :root[data-visual-system="refined-blue"]{--d-launch-end:#0A2F7A}
-:root[data-theme="night"]{--d-launch-end:#070b16}
-:root[data-theme="vivid"]{--d-launch-end:#e8665a}
+:root[data-theme="night"]{--d-launch-end:#121a33}
+:root[data-theme="vivid"]{--d-launch-end:#ff6a48}
 @media(max-width:759px){
   :root[data-visual-system] .yl-root .yl-acts{background:linear-gradient(to top,var(--d-launch-end) 0%,var(--d-launch-end) 62%,transparent 100%)}
 }
 
 /* Odak kartının parlak cam katmanı koyu temada griye döner; Gece'de hafif mavi ışıltı olur. */
-:root[data-theme="night"] #mainWrap #pomo #focusCard::before{background:radial-gradient(circle at 85% 0%,rgba(122,162,255,.22),transparent 55%);opacity:1}
+:root[data-theme="night"] #mainWrap #pomo #focusCard::before{background:radial-gradient(circle at 85% 0%,rgba(138,172,255,.24),transparent 55%);opacity:1}
 
 /* "Günlük ilerleme özeti" başlığı diğer katlanır satırlarla aynı görünür (önceden stilsiz kalıyordu). */
 :root[data-visual-system] #mainWrap #home #todayFreshDailyProgress>summary{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 14px;list-style:none;cursor:pointer}
 :root[data-visual-system] #mainWrap #home #todayFreshDailyProgress>summary::-webkit-details-marker{display:none}
 :root[data-visual-system] #mainWrap #home #todayFreshDailyProgress>summary h2{margin:0;font-size:15px;letter-spacing:-.01em;color:var(--d-ink)}
 :root[data-visual-system] #mainWrap #home #todayFreshDailyProgress>summary small{font-size:12px;font-weight:650;color:var(--d-muted)}
+
+/* v85 · Gün sonu notu: Gece'de yazı, başlıklar ve ayırıcı çizgi eski açık temanın sabit
+   renginde (koyu lacivert) kalıyordu. Gece ve Canlı'da kutu temanın renklerini alır. */
+:root:is([data-theme="night"],[data-theme="vivid"]) #mainWrap #home #todayFreshStart #todayFreshReflectionInput{background:var(--d-soft)!important;color:var(--d-ink);border-color:var(--d-line)}
+:root:is([data-theme="night"],[data-theme="vivid"]) #mainWrap #home #todayFreshStart #todayFreshReflectionInput::placeholder{color:var(--d-muted);opacity:1}
+:root:is([data-theme="night"],[data-theme="vivid"]) #mainWrap #home #todayFreshStart :is(.today-fresh-review-label,.today-fresh-review-title strong){color:var(--d-ink)}
+:root:is([data-theme="night"],[data-theme="vivid"]) #mainWrap #home #todayFreshStart :is(.today-fresh-review-title small,.today-fresh-review-eyebrow,.today-fresh-review-chevron,#todayFreshReflectionCounter,.today-fresh-week-label){color:var(--d-muted)}
+:root:is([data-theme="night"],[data-theme="vivid"]) #mainWrap #home #todayFreshStart .today-fresh-review-status{color:var(--d-accent)}
+:root:is([data-theme="night"],[data-theme="vivid"]) #mainWrap #home #todayFreshStart .today-fresh-review-body{border-top-color:var(--d-line)}
+:root:is([data-theme="night"],[data-theme="vivid"]) #mainWrap #home #todayFreshReview .today-fresh-review-moods button.is-selected{background:var(--d-chip);color:var(--d-chip-ink);border-color:var(--d-accent);box-shadow:none}
+
+/* v85 · Gece'nin açık vurgu ve yeşil renkleri üstünde beyaz yazı okunmuyordu. */
+:root[data-theme="night"] #mainWrap #home #todayFreshStart .today-fresh-task.is-done .today-fresh-task-check{color:var(--d-on-accent)}
+:root[data-visual-system] #mainWrap #program .rb-program-weekstrip>:is([aria-current="date"],[aria-pressed="true"],.is-selected,.active) *{color:inherit}
+:root[data-theme="night"] #mainWrap #topics :is(.topic-filter.on,.topic-filter.on b,#revCount){color:var(--d-on-accent)}
+:root[data-theme="night"] #mainWrap #home #todayFreshStart #todayFreshRecentFocus{color:var(--d-accent)}
+/* Kırmızı ve hardal uyarı yazıları (bir kısmı !important ya da satır içi renk) Gece'de açık tonunu alır. */
+:root[data-theme="night"] #mainWrap :is(#topics,#progress) :is(.trend-down,.risk-badge.risk-high){color:#ff8a9c!important}
+:root[data-theme="night"] #mainWrap :is([style^="color:var(--danger)"],[style*=";color:var(--danger)"]){color:#ff8a9c!important}
+:root[data-theme="night"] #mainWrap :is([style^="color:var(--ochre-ink)"],[style*=";color:var(--ochre-ink)"]){color:#f3b860!important}
+:root[data-theme="vivid"] #mainWrap #topics :is(.risk-badge.risk-mid,.subj-sub){color:#a14e00}

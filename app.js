@@ -773,7 +773,7 @@ function markReview(key,gi){
    belirteçleri değiştirir; program, deneme ve koç kayıtları için ayrı yazma yoktur. */
 const YKS_THEME_IDS=["refined-blue","night","vivid"];
 const YKS_THEME_NAMES={"refined-blue":"Sade Mavi",night:"Gece",vivid:"Canlı"};
-const YKS_THEME_META={"refined-blue":"#f5f7fb",night:"#0a0f1c",vivid:"#fbf8f4"};
+const YKS_THEME_META={"refined-blue":"#f5f7fb",night:"#192134",vivid:"#fff0e4"};
 let yksThemeLastApplied="";
 function yksThemeValue(value){
   if(value==="dark"||value==="graphite")return "night";
