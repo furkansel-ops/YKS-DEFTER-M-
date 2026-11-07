@@ -1,5 +1,6 @@
 import {getStudyInsights} from "./study-insights.ts";
 import type {StudyInsights} from "./study-insights.ts";
+import {computeExamRanks} from "./exam-rank.ts";
 /** YKS Defterim: bağımsız, deterministik Aşama 1 oyunlaştırma hesabı.
  * İlk etkinleştirmeden önceki kayıtlar ödül üretmez. Hiçbir eski istatistik silinmez.
  */
@@ -126,9 +127,10 @@ export function planRestDay(profile:GamificationProfile,day:string,now:Date):Gam
 
 /* v77: seviyeden gelen unvanlar kaldırıldı; "rank" yalnız deneme rankıdır (exam-rank.ts). */
 type ActivityDay={pp:number;topics:number;reviews:number;exams:number;errors:number};
+type BadgeCounts={pp:number;topics:number;errors:number};
 function dayFromMs(ms:number):string{return ms>0?keyOf(new Date(ms)):"";}
 /** Kariyer başlatıldıktan sonraki kayıtlardan, günlük sınırlarla etkinlik XP'si. */
-function activityXp(state:StudyGamificationState,profile:GamificationProfile,todayKey:string):{total:number;days:Map<string,ActivityDay>}{
+function activityXp(state:StudyGamificationState,profile:GamificationProfile,todayKey:string):{total:number;days:Map<string,ActivityDay>;counts:BadgeCounts}{
   const days=new Map<string,ActivityDay>(),from=profile.activationDay,started=profile.activatedAt;
   const inRange=(day:string)=>isDayKey(day)&&day>=from&&day<=todayKey;
   const bump=(day:string,key:keyof ActivityDay,value:number)=>{const d=days.get(day)??{pp:0,topics:0,reviews:0,exams:0,errors:0};d[key]+=value;days.set(day,d);};
@@ -150,12 +152,15 @@ function activityXp(state:StudyGamificationState,profile:GamificationProfile,tod
     bump(day,"exams",1);if(linked.has(String(exam?.id??"")))examBonus.set(day,(examBonus.get(day)??0)+1);
   }
   for(const j of state.errorJournal??[]){const at=Number(j?.resolvedAt);if(j?.resolved&&at>=started){const day=dayFromMs(at);if(inRange(day))bump(day,"errors",1);}}
+  // v89: rozetler günlük sınırsız ham sayıyı kullanır; aşağıdaki döngü günleri XP'ye çevirir.
+  const counts:BadgeCounts={pp:0,topics:0,errors:0};
+  for(const d of days.values()){counts.pp+=d.pp;counts.topics+=d.topics;counts.errors+=d.errors;}
   let total=0;
   for(const [day,d] of days){
     const xp=xpForDay(d,examBonus.get(day)??0);total+=xp.total;
     days.set(day,{pp:xp.pp,topics:xp.topics,reviews:xp.reviews,exams:xp.exams,errors:xp.errors});
   }
-  return {total,days};
+  return {total,days,counts};
 }
 function xpForDay(d:ActivityDay,analysed:number):ActivityDay&{total:number}{
   const pp=Math.min(ACTIVITY_XP.ppDailyMax,Math.floor(d.pp/2)*ACTIVITY_XP.ppPerTwo);
@@ -175,7 +180,7 @@ export function levelForXp(xp:number):{level:number;progress:number;goal:number}
   return {level,progress,goal:200+(level-1)*50};
 }
 type BadgeDefinition={id:string;icon:string;title:string;description:string;rarity:BadgeRarity;goal:number;value:number;pending?:boolean;hidden?:boolean};
-function definitions(s:{minutes:number;questions:number;successfulDays:number;longest:number;exams:number},insights:StudyInsights):BadgeDefinition[]{
+function definitions(s:{minutes:number;questions:number;successfulDays:number;longest:number;exams:number;league:number}&BadgeCounts,insights:StudyInsights):BadgeDefinition[]{
   return [
     {id:"first-focus",icon:"🌱",title:"İlk Adım",description:"30 dakika odaklan",rarity:"Bronz",goal:30,value:s.minutes},
     {id:"first-streak",icon:"🔥",title:"İlk Kıvılcım",description:"İlk günlük hedefi tamamla",rarity:"Bronz",goal:1,value:s.successfulDays},
@@ -197,6 +202,27 @@ function definitions(s:{minutes:number;questions:number;successfulDays:number;lo
     {id:"questions-10000",icon:"🚀",title:"10 Bin Kulübü",description:"10.000 soru çöz",rarity:"Efsanevi",goal:10000,value:s.questions},
     {id:"hours-300",icon:"🌟",title:"Çalışma Efsanesi",description:"300 saat çalış",rarity:"Efsanevi",goal:18000,value:s.minutes},
     {id:"subjects-3x50h",icon:"🏅",title:"Çok Yönlü Usta",description:"3 derste 50'şer saat çalış",rarity:"Efsanevi",goal:3,value:insights.subjectsAt50Hours},
+    // v89: v77'de XP veren ama rozeti olmayan işler.
+    {id:"pp-100",icon:"📖",title:"Paragraf Isınması",description:"100 paragraf & problem sorusu çöz",rarity:"Bronz",goal:100,value:s.pp},
+    {id:"pp-500",icon:"🧩",title:"Paragraf Kurdu",description:"500 paragraf & problem sorusu çöz",rarity:"Gümüş",goal:500,value:s.pp},
+    {id:"pp-2000",icon:"🎯",title:"Problem Avcısı",description:"2.000 paragraf & problem sorusu çöz",rarity:"Altın",goal:2000,value:s.pp},
+    {id:"pp-5000",icon:"🏆",title:"P&P Ustası",description:"5.000 paragraf & problem sorusu çöz",rarity:"Elmas",goal:5000,value:s.pp},
+    {id:"topics-1",icon:"✅",title:"İlk Pekişen Konu",description:"1 konuyu pekiştir",rarity:"Bronz",goal:1,value:s.topics},
+    {id:"topics-10",icon:"📚",title:"Konu Toplayıcı",description:"10 konuyu pekiştir",rarity:"Gümüş",goal:10,value:s.topics},
+    {id:"topics-40",icon:"🗂️",title:"Müfredat Avcısı",description:"40 konuyu pekiştir",rarity:"Altın",goal:40,value:s.topics},
+    {id:"topics-100",icon:"🎓",title:"Müfredat Fatihi",description:"100 konuyu pekiştir",rarity:"Elmas",goal:100,value:s.topics},
+    {id:"reviews-50",icon:"🔁",title:"Tekrar Makinesi",description:"50 doğrulanmış konu tekrarı",rarity:"Altın",goal:50,value:insights.totalReviews},
+    {id:"reviews-150",icon:"🧠",title:"Unutmayan",description:"150 doğrulanmış konu tekrarı",rarity:"Elmas",goal:150,value:insights.totalReviews},
+    {id:"errors-1",icon:"🩹",title:"İlk Hata Kapandı",description:"Hata defterinde 1 hatayı çöz",rarity:"Bronz",goal:1,value:s.errors},
+    {id:"errors-25",icon:"🔧",title:"Hata Avcısı",description:"Hata defterinde 25 hatayı çöz",rarity:"Gümüş",goal:25,value:s.errors},
+    {id:"errors-100",icon:"🛠️",title:"Hatasız Kul Olmaz",description:"Hata defterinde 100 hatayı çöz",rarity:"Altın",goal:100,value:s.errors},
+    {id:"exams-10",icon:"🗒️",title:"Deneme Kurdu",description:"10 deneme kaydet",rarity:"Gümüş",goal:10,value:s.exams},
+    {id:"exams-30",icon:"📊",title:"Deneme Maratoncusu",description:"30 deneme kaydet",rarity:"Altın",goal:30,value:s.exams},
+    // Lig sırası exam-rank RANK_LEAGUES: 2 Altın, 3 Platin, 4 Elmas, 5 Usta.
+    {id:"rank-gold",icon:"🥇",title:"Altın Lig",description:"Deneme rankında Altın lige çık",rarity:"Gümüş",goal:2,value:s.league},
+    {id:"rank-platinum",icon:"💠",title:"Platin Lig",description:"Deneme rankında Platin lige çık",rarity:"Altın",goal:3,value:s.league},
+    {id:"rank-diamond",icon:"💎",title:"Elmas Lig",description:"Deneme rankında Elmas lige çık",rarity:"Elmas",goal:4,value:s.league},
+    {id:"rank-master",icon:"👑",title:"Usta Lig",description:"Deneme rankında Usta lige çık",rarity:"Efsanevi",goal:5,value:s.league},
     {id:"hidden-night-owl",icon:"🌙",title:"Gece Kuşu",description:"19.00–22.00 arasında 30 dk gerçek odak",rarity:"Gümüş",goal:1,value:Number(insights.hidden.nightOwl),hidden:true},
     {id:"hidden-early",icon:"🌅",title:"Erken Başlayan",description:"06.00–09.00 arasında 30 dk gerçek odak",rarity:"Gümüş",goal:1,value:Number(insights.hidden.earlyBird),hidden:true},
     {id:"hidden-last-minute",icon:"🎯",title:"Son Dakika Kahramanı",description:"Haftalık meydan okumayı pazar günü bitir",rarity:"Altın",goal:1,value:Number(insights.hidden.lastMinute),hidden:true},
@@ -264,7 +290,7 @@ export function calculateStudyGamification(state:StudyGamificationState|null|und
     }
   }
   const todayCompleted=dayStatuses.get(todayKey)==="completed";
-  const activity=activated?activityXp(state!,profile!,todayKey):{total:0,days:new Map<string,ActivityDay>()};
+  const activity=activated?activityXp(state!,profile!,todayKey):{total:0,days:new Map<string,ActivityDay>(),counts:{pp:0,topics:0,errors:0}};
   workXp+=activity.total;
   const totalExams=activated?(state?.denemeler??[]).filter(exam=>{
     const stamp=Number(exam?.at);
@@ -277,7 +303,10 @@ export function calculateStudyGamification(state:StudyGamificationState|null|und
       version:1,activatedAt:now.getTime(),activationDay:todayKey,baselineMinutes:0,
       baselineQuestions:0,goals:[],earned:{}
     },now,{});
-  const badgeDefinitions=definitions({minutes:totalMinutes,questions:totalQuestions,successfulDays:activeDays,longest:longestStreak,exams:totalExams},insights);
+  // Rank eski denemelerden de hesaplanır; rozet için kariyerden sonra en az bir deneme şart.
+  const ranks=totalExams>0?computeExamRanks(state as Record<string,unknown>):null;
+  const league=Math.max(0,...[ranks?.tyt,ranks?.ayt,ranks?.ydt].map(r=>r?.league??0));
+  const badgeDefinitions=definitions({minutes:totalMinutes,questions:totalQuestions,successfulDays:activeDays,longest:longestStreak,exams:totalExams,league,...activity.counts},insights);
   const earned=activated?profile.earned??{}:{};
   const newBadgeIds:string[]=[];
   const badges:StudyBadge[]=badgeDefinitions.map(b=>{

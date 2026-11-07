@@ -98,6 +98,9 @@ function renderTodayTeaser(snapshot:StudyGamificationSnapshot):void{
     link.addEventListener("click",openAchievements);
     hub.insertAdjacentElement("beforebegin",link);
   }
+  // v88: v35'ten beri #home'un doğrudan çocukları gizli; kart Bugün kabuğunun içine, günlük özetin altına taşınır.
+  const anchor=document.getElementById("todayFreshDailyProgress");
+  if(anchor&&link.previousElementSibling!==anchor)anchor.insertAdjacentElement("afterend",link);
   const level=link.querySelector<HTMLElement>(".sg-today-level");
   const xp=link.querySelector<HTMLElement>(".sg-today-xp");
   const summary=link.querySelector<HTMLElement>("[data-sg-quick-metrics]");
@@ -568,12 +571,12 @@ function renderLockedCareer(snapshot:StudyGamificationSnapshot):HTMLElement[]{
   const head=node("div","sg-v84-level-head"),titles=node("span","");
   titles.append(node("strong","","⚡ Seviye 1"),node("small","","0 / "+fmt(snapshot.levelGoal||200)+" XP · başlatınca sayılır"));
   head.append(titles,node("span","sg-v84-lock","🔒 kilitli"));
-  level.append(head,bar(0,"sg-career-rail"),node("small","sg-v84-hint","Odak, soru, günlük hedef, konu pekiştirme, tekrar, deneme ve çözülen hata XP kazandırır."));
+  level.append(head,bar(0,"sg-career-rail"),node("small","sg-v84-hint","Odak, soru, günlük hedef, paragraf & problem, konu pekiştirme, tekrar, deneme ve çözülen hata XP kazandırır."));
   const badges=node("section","sg-v84-badges");
   const badgeHead=node("div","sg-v84-head");
   const toggle=node("button","sg-v84-more",lockedBadgesOpen?"Daha az ‹":"Tümü ›") as HTMLButtonElement;toggle.type="button";
   toggle.setAttribute("aria-expanded",String(lockedBadgesOpen));
-  badgeHead.append(node("span","sg-v84-label","Rozetler · 0 / "+snapshot.badges.filter(b=>!b.hidden).length),toggle);
+  badgeHead.append(node("span","sg-v84-label","Rozetler · 0 / "+snapshot.badges.length),toggle);
   const grid=node("div","sg-v84-grid");
   for(const badge of snapshot.badges.filter(b=>!b.hidden).slice(0,lockedBadgesOpen?undefined:6)){
     const item=node("div","sg-v84-badge"),copy=node("span","");
@@ -583,7 +586,7 @@ function renderLockedCareer(snapshot:StudyGamificationSnapshot):HTMLElement[]{
   toggle.addEventListener("click",()=>{lockedBadgesOpen=!lockedBadgesOpen;schedule();});
   badges.append(badgeHead,grid);
   const tasks=node("section","sg-v84-tasks");
-  tasks.append(node("b","","🔒 Günlük ve haftalık görevler"),node("span","","Başlatınca her gün 3 görev ve haftalık bir görev açılır; seri ve kalkanlar sayılmaya başlar."));
+  tasks.append(node("b","","🔒 Günlük ve haftalık görevler"),node("span","","Başlatınca her gün 3 görev ve haftalık 2 maraton açılır; seri ve kalkanlar sayılmaya başlar."));
   return [start,level,badges,tasks];
 }
 function render(snapshot:StudyGamificationSnapshot,root:HTMLElement):void{

@@ -34,11 +34,11 @@ test("Career Center exposes general, badge, task and career tabs without rewriti
   assert.match(s,/pct\(snapshot\.levelProgress,snapshot\.levelGoal\)/);
   assert.doesNotMatch(s,/localStorage\.(setItem|clear|removeItem)/);
 });
-test("all 25 original badge definitions are retained, including the five hidden achievements",()=>{
+test("all 25 original badge definitions are retained (v89: 44 total), including the five hidden achievements",()=>{
   const domain=read("src/domain/study-gamification.ts");
   const ids=[...domain.matchAll(/\{id:"([^"]+)",icon:/g)].map(x=>x[1]);
-  assert.equal(ids.length,25);
-  assert.equal(new Set(ids).size,25);
+  assert.equal(ids.length,44);assert.equal(ids.indexOf("subjects-3x50h"),19,"ilk 20 görünür rozet yerinde");
+  assert.equal(new Set(ids).size,44);
   assert.equal(ids.filter(x=>x.startsWith("hidden-")).length,5);
   assert.match(domain,/Bronz:30,"Gümüş":75,"Altın":150,"Elmas":300,"Efsanevi":600/);
 });

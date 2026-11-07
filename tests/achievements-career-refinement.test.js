@@ -30,7 +30,7 @@ test("Career Center keeps old XP formula while a completed task can only be clai
     'state.gamification=first.profile;',
     'const snapshot=calculateStudyGamification(state,now);',
     'assert.equal(snapshot.xp,snapshot.xpSources.study+snapshot.xpSources.badges+snapshot.xpSources.tasks);',
-    'assert.equal(snapshot.badges.length,25);',
+    'assert.equal(snapshot.badges.length,44);',
     'assert.equal(snapshot.badges.filter(x=>x.hidden).length,5);',
     'console.log("Career Center regression passed");'
   ].join("\n");

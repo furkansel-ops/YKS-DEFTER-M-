@@ -41,7 +41,7 @@ test("Aşama 3: geçmiş kayıtlardan XP üretmeden TYT/AYT ustalık ve net reko
     'assert.equal(rows.calendar.find(x=>x.day==="2026-10-08").questions,45);',
     'assert.ok(rows.calendar.length>=365);',
     'const snap=calculateStudyGamification(state,now);',
-    'assert.ok(snap.newBadgeIds.includes("net-5"));assert.equal(snap.badges.length,25);',
+    'assert.ok(snap.newBadgeIds.includes("net-5"));assert.equal(snap.badges.length,44);',
     'assert.equal(snap.badges.find(x=>x.id==="net-5").unlocked,false);',
     'assert.equal(snap.badges.find(x=>x.id==="hidden-early").hidden,true);'
   ]);

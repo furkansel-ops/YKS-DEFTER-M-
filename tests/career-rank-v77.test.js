@@ -107,3 +107,37 @@ test("v84 kariyer başlatılmadan da seviye, kilitli rozetler ve görev önizlem
   assert.match(ui,/goalForm\(snapshot,true\)/,"başlatma formu aynı (XP bugünden sayılır)");
   assert.match(css,/\.sg-v84-start\{/);
 });
+
+test("v88 Bugün'de kariyer kartı günlük özetin altında görünür; kilitli metinler gerçeği söyler",()=>{
+  const ui=read("src/ui/study-gamification.ts"),fresh=read("src/ui/today-fresh-start-v35.css");
+  assert.match(fresh,/#home > :not\(#todayFreshStart\)\{display:none!important\}/,"kabuk dışı gizli kalır, kart bu yüzden içeri taşınır");
+  assert.match(ui,/getElementById\("todayFreshDailyProgress"\);\s*if\(anchor&&link\.previousElementSibling!==anchor\)anchor\.insertAdjacentElement\("afterend",link\)/);
+  assert.match(ui,/haftalık 2 maraton açılır/);assert.doesNotMatch(ui,/haftalık bir görev/);
+  assert.match(ui,/günlük hedef, paragraf & problem, konu pekiştirme/);
+  assert.match(ui,/"Rozetler · 0 \/ "\+snapshot\.badges\.length/,"gizli rozetler de toplamda sayılır, başladıktan sonraki 0 / 25 ile aynı");
+});
+
+test("v89 yeni rozetler: P&P, konu, hata ve rank yalnız kariyerden sonraki kayıtlardan açılır",()=>{
+  run([
+    'import assert from "node:assert/strict";',
+    `import {calculateStudyGamification,createGamificationProfile} from "${url("src/domain/study-gamification.ts")}";`,
+    'const start=new Date(2026,10,1,10),now=new Date(2026,10,7,12),t=start.getTime();',
+    'const old=d=>({type:"TYT",date:d,name:"Eski "+d,totalNet:72,id:1,at:1});',
+    'const base={denemeler:[old("2026-10-10"),old("2026-10-17"),old("2026-10-24")]};',
+    'const g=createGamificationProfile(start,90,60,{});',
+    'const state={...base,gamification:g,',
+    '  paragraphProblem:{entries:[{date:"2026-11-03",correct:80,wrong:15,blank:5,createdAt:t+1},{date:"2026-11-03",correct:500,createdAt:t-1}]},',
+    '  topics:{"TYT|Matematik|Problemler":{st:3,ts:"2026-11-04"}},',
+    '  errorJournal:[{resolved:true,resolvedAt:new Date(2026,10,5,9).getTime()}]};',
+    'const ids=s=>new Set(calculateStudyGamification(s,now).newBadgeIds);',
+    'let got=ids(state);',
+    'assert.equal(calculateStudyGamification(state,now).badges.length,44);',
+    'for(const id of ["pp-100","topics-1","errors-1"])assert.ok(got.has(id),id);',
+    'assert.ok(!got.has("pp-500"),"kariyer öncesi 500 P&P sayılmaz");',
+    'assert.ok(!got.has("rank-gold"),"kariyerden sonra deneme yoksa eski denemeler rank rozeti vermez");',
+    'got=ids({...state,denemeler:[...base.denemeler,{type:"TYT",date:"2026-11-06",name:"Yeni",totalNet:76,id:t+5,at:t+5}]});',
+    'assert.ok(got.has("rank-gold")&&got.has("rank-platinum"),"ortalama 73,33 net = Platin");',
+    'assert.ok(!got.has("rank-diamond"));',
+    'console.log("OK v89 badges");'
+  ],"OK v89 badges");
+});
