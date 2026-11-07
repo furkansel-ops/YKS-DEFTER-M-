@@ -1,0 +1,86 @@
+"use strict";
+const test=require("node:test"),assert=require("node:assert/strict");
+const fs=require("node:fs"),path=require("node:path"),{spawnSync}=require("node:child_process");
+const {pathToFileURL}=require("node:url");
+const root=path.resolve(__dirname,"..");
+const read=p=>fs.readFileSync(path.join(root,p),"utf8");
+const url=p=>pathToFileURL(path.join(root,p)).href;
+function run(lines,marker){
+  const result=spawnSync(process.execPath,["--experimental-strip-types","--input-type=module","-e",lines.join("\n")],{cwd:root,encoding:"utf8",timeout:20000});
+  assert.equal(result.status,0,result.stdout+"\n"+result.stderr);
+  assert.match(result.stdout,new RegExp(marker));
+}
+
+test("v89 katalog araması: kelime başı eşleşir, Türkçe harfler doğru, ders sayıları filtreden önce",()=>{
+  run([
+    'import assert from "node:assert/strict";',
+    `import {searchCatalog,catalog,PUBLISHERS} from "${url("src/domain/book-catalog.ts")}";`,
+    'assert.equal(PUBLISHERS.length,36);assert.equal(new Set(catalog().map(x=>x.key)).size,catalog().length,"anahtarlar tekil");',
+    'let r=searchCatalog("345 tyt mat");assert.ok(r.items.length>0);assert.ok(r.items.every(x=>x.pub==="345"&&x.exam==="TYT"&&x.subject==="Matematik"));',
+    'r=searchCatalog("özdebir kimya");assert.ok(r.items.length>0&&r.items.every(x=>x.pub==="Özdebir"));',
+    'r=searchCatalog("İLİM");assert.equal(r.total,0,"olmayan kitap uydurulmaz");',
+    'const all=searchCatalog("limit"),fiz=searchCatalog("limit","Fizik");',
+    'assert.equal(fiz.bySubject.Fizik,all.bySubject.Fizik);assert.ok(fiz.items.every(x=>x.subject==="Fizik"));',
+    'assert.ok(!searchCatalog("tyt edebiyat").total,"Edebiyat yalnız AYT");',
+    'console.log("OK search");'
+  ],"OK search");
+});
+
+test("v89 kitap oluşturma doğrular; ilerleme soru sayısını verir, sınırları aşmaz, eski kayıt değişmez",()=>{
+  run([
+    'import assert from "node:assert/strict";',
+    `import {createBook,advanceBook,bookStats,bookFinishDays} from "${url("src/domain/book-catalog.ts")}";`,
+    'assert.throws(()=>createBook({name:"",subject:"Matematik",total:10,perTest:12,done:0},1),/adını/);',
+    'assert.throws(()=>createBook({name:"A",subject:"Matematik",total:0,perTest:12,done:0},1),/test sayısını/);',
+    'assert.throws(()=>createBook({name:"A",subject:"Matematik",total:10,perTest:"x",done:0},1),/soru sayısını/);',
+    'const b=createBook({name:"  345 TYT Matematik Soru Bankası ",subject:"Matematik",total:40,perTest:13,done:50,pub:"345"},7);',
+    'assert.equal(b.name,"345 TYT Matematik Soru Bankası");assert.equal(b.done,40,"bitirilen test toplamı aşamaz");',
+    'const c=createBook({name:"K",subject:"Fizik",total:10,perTest:12,done:2},8);',
+    'let r=advanceBook(c,1,"2026-11-07");assert.equal(r.questions,12);assert.equal(r.book.done,3);assert.equal(c.done,2,"eski nesne değişmez");',
+    'r=advanceBook(r.book,100,"2026-11-07");assert.equal(r.book.done,10);assert.equal(r.questions,7*12);',
+    'assert.equal(advanceBook(r.book,1,"2026-11-07").questions,0,"bitmiş kitapta ilerleme yok");',
+    'r=advanceBook(r.book,-1,"2026-11-07");assert.equal(r.questions,-12,"geri alma soruyu da geri alır");',
+    'const legacy={id:1,name:"Eski",subject:"Matematik",total:40,done:17,log:[],topic:""};',
+    'assert.equal(advanceBook(legacy,1,"2026-11-07").questions,0,"soru/test bilinmeyen eski kitap soru eklemez");',
+    'assert.deepEqual(bookStats([b,c,legacy]),{books:3,finished:1,questions:40*13+2*12});',
+    'const shift=(d,n)=>{const x=new Date(d+"T12:00:00");x.setDate(x.getDate()+n);return x.toISOString().slice(0,10)};',
+    'assert.equal(bookFinishDays({...c,log:[{d:"2026-11-01",n:7}]},"2026-11-07",shift),Math.ceil(8/(7/14)));',
+    'assert.equal(bookFinishDays(c,"2026-11-07",shift),null);',
+    'console.log("OK books");'
+  ],"OK books");
+});
+
+test("v89 Kitaplarım Merkez'den açılır, +1 test sorularını bugüne yazar",()=>{
+  const nav=read("src/ui/navigation-v43.ts"),shell=read("src/ui/refined-shell.ts"),ui=read("src/ui/books-v89.ts");
+  assert.match(nav,/\{action:"books",label:"Kitaplarım"/);
+  assert.match(nav,/else if\(action==="books"\)\(window as Window&\{YKSBooks\?:\{open:\(\)=>void\}\}\)\.YKSBooks\?\.open\(\)/);
+  assert.match(shell,/try\{installBooksV89\(\);\}catch/);
+  assert.match(ui,/s\.solved\[day\]=Math\.max\(0,\(Number\(s\.solved\[day\]\)\|\|0\)\+questions\)/);
+  assert.match(ui,/Önceden bitirdiğin testler bugünün sorularına eklenmez/);
+});
+
+test("v89 kapak kısaltması: tek kelimelik yayınevi kısalmaz",()=>{
+  run([
+    'import assert from "node:assert/strict";',
+    `import {initials} from "${url("src/domain/book-catalog.ts")}";`,
+    'assert.equal(initials("345"),"345");assert.equal(initials("3D"),"3D");assert.equal(initials("Limit"),"LİM");',
+    'assert.equal(initials("Bilgi Sarmal"),"BS");assert.equal(initials("Hız ve Renk"),"HVR");assert.equal(initials(""),"?");',
+    'console.log("OK initials");'
+  ],"OK initials");
+});
+
+test("v89 pencere id'leri eski Kaynaklar formuyla çakışmaz",()=>{
+  const ui=read("src/ui/books-v89.ts"),html=read("index.html");
+  const mine=[...ui.matchAll(/id="([^"$]+)"/g)].map(m=>m[1]);
+  assert.ok(mine.length>=8);
+  for(const id of mine)assert.ok(!html.includes(`id="${id}"`),id+" index.html'de zaten var");
+});
+
+test("v89 kapak fotoğrafı: kapağa dokununca seçilir, küçük JPEG olarak saklanır, başka veri reddedilir",()=>{
+  const ui=read("src/ui/books-v89.ts");
+  assert.match(ui,/if\(act==="cover"\)\{pickCover\(id\);return;\}/);
+  assert.match(ui,/const COVER_PX=240,COVER_MAX=80000;/);
+  assert.match(ui,/value\.startsWith\("data:image\/jpeg;base64,"\)&&value\.length<=COVER_MAX/,"yalnız küçük JPEG kabul edilir");
+  assert.match(ui,/if\(isCover\(image\)\)return/,"geçersiz kapak yerine çizilmiş kapak görünür");
+  assert.match(ui,/L\.compressImage/,"HEIC dahil mevcut sıkıştırma kullanılır");
+});

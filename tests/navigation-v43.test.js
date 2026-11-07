@@ -51,10 +51,10 @@ test("v4.3 navigasyon katmanı güvenli runtime'a bağlıdır ve Program/veri du
   assert.doesNotMatch(ui,/\blocalStorage\b/);assert.doesNotMatch(ui,/\bsave\s*\(/);assert.doesNotMatch(ui,/\bDexie\b/);assert.doesNotMatch(ui,/\bFirebase\b/);assert.doesNotMatch(ui,/\.weeks\s*\[/);assert.doesNotMatch(ui,/\.rows\s*\[/);
 });
 
-test("v76 Merkez 7 giriş: veri, yedek, sistem ve kaynaklar menüden kalkar; eski bağlantılar yeni yerine gider",()=>{
+test("v76 Merkez 7 giriş (v89: +Kitaplarım = 8): veri, yedek, sistem ve kaynaklar menüden kalkar; eski bağlantılar yeni yerine gider",()=>{
   const ui=read("src/ui/navigation-v43.ts"),css=read("src/ui/navigation-v43.css");
   const groups=ui.slice(ui.indexOf("const GROUPS"),ui.indexOf("const REMOVED_ACTIONS"));
-  assert.equal((groups.match(/\{action:"/g)||[]).length,7);
+  assert.equal((groups.match(/\{action:"/g)||[]).length,8);
   for(const action of ["data","backup","system","resources"])assert.doesNotMatch(groups,new RegExp(`action:"${action}"`),action);
   assert.match(ui,/if\(action==="data"\|\|action==="backup"\)\{exportAll\(\);return;\}/);
   assert.match(ui,/if\(action==="system"\)return original\("about"\);/);

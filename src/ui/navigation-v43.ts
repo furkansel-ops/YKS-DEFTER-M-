@@ -1,7 +1,7 @@
 import "./navigation-v43.css";
 
 type GroupId="learning"|"analysis"|"system";
-type MoreAction="lab"|"resources"|"tactics"|"archive"|"success"|"reports"|"settings"|"about"|"data"|"system"|"backup"|"log"|"progress";
+type MoreAction="lab"|"books"|"resources"|"tactics"|"archive"|"success"|"reports"|"settings"|"about"|"data"|"system"|"backup"|"log"|"progress";
 interface MoreItem{action:MoreAction;label:string;description:string;icon:string;}
 interface MoreGroup{id:GroupId;label:string;items:readonly MoreItem[];}
 interface Shortcut{screen?:string;action?:MoreAction;label:string;icon:string;}
@@ -22,6 +22,7 @@ const SHORTCUTS:readonly Shortcut[]=[
 ];
 const GROUPS:readonly MoreGroup[]=[
   {id:"learning",label:"Öğrenme",items:[
+    {action:"books",label:"Kitaplarım",description:"Soru bankaların, çözdüğün test ve sorular",icon:"▤"},
     {action:"lab",label:"Hızlı Okuma",description:"Okuma hızını ve anlamanı ölç, düzenli çalış",icon:"»"},
     {action:"tactics",label:"Taktikler",description:"Sana uyan çalışma ve sınav stratejileri",icon:"◈"}
   ]},
@@ -149,7 +150,8 @@ export function installNavigationV43():NavigationRuntime{
         const screen=event.target.closest<HTMLElement>("[data-v43-screen]")?.dataset.v43Screen;
         if(screen){legacy().go?.(screen);return;}
         const actionButton=event.target.closest<HTMLElement>("[data-v43-more-action]");const action=actionButton?.dataset.v43MoreAction as MoreAction|undefined;if(!action)return;
-        if(action==="progress")legacy().go?.("progress");else if(action==="archive")openPhotos();else legacy().v30Action?.(action);
+        if(action==="progress")legacy().go?.("progress");else if(action==="archive")openPhotos();
+        else if(action==="books")(window as Window&{YKSBooks?:{open:()=>void}}).YKSBooks?.open();else legacy().v30Action?.(action);
       });
     }
     const quick=document.getElementById("v30QuickGrid"),slot=document.getElementById("v43MoreQuickSlot");if(quick&&slot&&quick.parentElement!==slot)slot.appendChild(quick);
