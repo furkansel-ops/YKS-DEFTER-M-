@@ -84,3 +84,18 @@ test("v89 kapak fotoğrafı: kapağa dokununca seçilir, küçük JPEG olarak sa
   assert.match(ui,/if\(isCover\(image\)\)return/,"geçersiz kapak yerine çizilmiş kapak görünür");
   assert.match(ui,/L\.compressImage/,"HEIC dahil mevcut sıkıştırma kullanılır");
 });
+
+test("v89 kitaplar koça progress.books içinde gider: kapak yok, sınırlı, geçersiz kayıt düşer",()=>{
+  const rt=read("public/student-coaching-runtime.js"),vm=require("node:vm");
+  const pick=re=>{const m=rt.match(re);assert.ok(m,String(re));return m[0];};
+  const src=[pick(/const text=.*?;\n/),pick(/const list=.*?;\n/),pick(/const finite=.*?;\n/),pick(/function booksShare\(s\)\{.*\n/)].join("")+"booksShare";
+  const booksShare=vm.runInNewContext(src);
+  const out=booksShare({books:[
+    {id:7,name:"345 TYT Matematik Soru Bankası",subject:"Matematik",pub:"345",exam:"TYT",kind:"Soru Bankası",total:40,done:99,perTest:13,cover:"data:image/jpeg;base64,AAAA",log:[{d:"2026-11-07",n:1},{d:"2026-11-02",n:2},{d:"bozuk",n:1}]},
+    {id:8,name:"",total:10},{id:9,name:"Sıfır testli",total:0},{name:"Eski kaynak",subject:"Fizik",total:20,done:3,log:[]}
+  ]});
+  assert.equal(out.length,1,"adı, id'si ya da testi olmayan düşer");
+  assert.deepEqual(JSON.parse(JSON.stringify(out[0])),{id:"7",name:"345 TYT Matematik Soru Bankası",subject:"Matematik",pub:"345",exam:"TYT",kind:"Soru Bankası",total:40,done:40,perTest:13,last:"2026-11-07"});
+  assert.equal(booksShare({books:Array.from({length:80},(_,i)=>({id:i+1,name:"K"+i,total:5}))}).length,60);
+  assert.match(rt,/books:booksShare\(s\),dayReview:\{entries:dayReviews\}/,"progress içinde, yeni üst alan yok (Firestore kuralı değişmez)");
+});
