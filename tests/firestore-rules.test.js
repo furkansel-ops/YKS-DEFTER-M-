@@ -141,3 +141,18 @@ test("Randevular: saat kilidiyle çakışma yok, detayları yalnız iki taraf g�
   assert.match(appts,/affectedKeys\(\)\s*\.hasOnly\(\['status', 'link', 'topic', 'note', 'updatedAt'\]\)/);
   assert.match(rules,/data\.link\.matches\('\^https:\/\/\.\+'\)/,"link yalnız https");
 });
+
+test("v95 bookCounts: doğrulanmış öğrenci bir kez yazar, sayılar sınırlı, değiştirilemez/silinemez/listelenemez",()=>{
+  const rules=read("firestore.rules"),block=rules.slice(rules.indexOf("match /bookCounts/{bookId}"),rules.indexOf("match /users/{userId}/sync/meta"));
+  assert.ok(block.length>100,"bookCounts kuralı var");
+  assert.match(block,/allow get: if verifiedUser\(\);/);
+  assert.match(block,/allow list: if false;/);
+  assert.match(block,/profileRole\(request\.auth\.uid, 'student'\)/);
+  assert.match(block,/bookId\.matches\('\^ks\[0-9\]\{1,9\}\$'\)/);
+  assert.match(block,/keys\(\)\.hasOnly\(\['tests', 'perTest', 'createdAt'\]\)/);
+  assert.match(block,/tests is int[\s\S]*tests >= 1[\s\S]*tests <= 2000/);
+  assert.match(block,/perTest is int[\s\S]*perTest >= 1[\s\S]*perTest <= 400/);
+  assert.match(block,/createdAt == request\.time/);
+  assert.match(block,/allow update, delete: if false;/);
+  assert.doesNotMatch(block,/uid'|studentUid/,"kimin yazdığı tutulmaz");
+});

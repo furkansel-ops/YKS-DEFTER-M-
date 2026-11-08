@@ -64,6 +64,20 @@ function changed(questions:number):void{
   window.dispatchEvent(new CustomEvent("yks:data-changed",{detail:{source:"books-v89"}}));
 }
 
+/* v95: paylaşılan sayılar. Seçilen katalog kitabının sayılarını daha önce bir öğrenci girdiyse forma gelir
+   (öğrenci değiştirmediyse); öğrenci eklediğinde kitabın sayıları henüz yoksa paylaşılır. Oturum yoksa hiçbir şey olmaz. */
+type BookCountsApi={get:(id:string)=>Promise<{tests:number;perTest:number}|null>;propose:(id:string,tests:number,perTest:number)=>Promise<boolean>};
+function countsApi():BookCountsApi|null{const api=(L.YKSAccountAuth as {bookCounts?:BookCountsApi}|undefined)?.bookCounts;return api&&typeof api.get==="function"?api:null;}
+async function applySharedCounts(item:CatalogItem):Promise<void>{
+  const api=countsApi();if(!api||!item.key.startsWith("ks"))return;
+  const shared=await api.get(item.key);if(!shared||view!=="form"||draft!==item||!dialog)return;
+  const total=dialog.querySelector<HTMLInputElement>("#bk89Total"),per=dialog.querySelector<HTMLInputElement>("#bk89Per"),hint=dialog.querySelector<HTMLElement>("#bk89Shared");
+  if(!total||!per)return;
+  const untouched=(input:HTMLInputElement)=>input.value===input.defaultValue;
+  if(untouched(total))total.value=String(shared.tests);
+  if(untouched(per))per.value=String(shared.perTest);
+  if(hint){hint.hidden=false;hint.textContent=`Bu kitabı ekleyen bir öğrenci ${shared.tests} test, testte ${shared.perTest} soru girmiş. Kitabındakiyle aynı mı, kontrol et.`;}
+}
 function listView():string{
   const list=books(),st=bookStats(list),day=today();
   const rows=list.map(b=>{
@@ -106,10 +120,11 @@ function formView():string{
       <label class="bk-label" for="bk89Name">Kitap adı</label><input id="bk89Name" name="name" required maxlength="120" value="${esc(d.name)}">
       <div class="bk-grid"><div><label class="bk-label" for="bk89Subject">Ders</label><select id="bk89Subject" name="subject">${subjects}</select></div>
       <div><label class="bk-label" for="bk89Pub">Yayınevi</label><input id="bk89Pub" name="pub" maxlength="40" value="${esc(d.pub)}"></div></div>
-      <div class="bk-grid"><div><label class="bk-label" for="bk89Total">Toplam test</label><input id="bk89Total" name="total" type="number" inputmode="numeric" min="1" max="2000" required></div>
-      <div><label class="bk-label" for="bk89Per">Testteki soru</label><input id="bk89Per" name="perTest" type="number" inputmode="numeric" min="1" max="400" required value="${deneme?(d.exam==="AYT"?80:120):""}"></div></div>
+      <div class="bk-grid"><div><label class="bk-label" for="bk89Total">Toplam test</label><input id="bk89Total" name="total" type="number" inputmode="numeric" min="1" max="2000" required value="${d.tests??""}"></div>
+      <div><label class="bk-label" for="bk89Per">Testteki soru</label><input id="bk89Per" name="perTest" type="number" inputmode="numeric" min="1" max="400" required value="${d.perTest??(deneme?(d.exam==="AYT"?80:120):"")}"></div></div>
       <label class="bk-label" for="bk89Done">Şu ana kadar bitirdiğin test</label><input id="bk89Done" name="done" type="number" inputmode="numeric" min="0" max="2000" value="0">
       <label class="bk-label" for="bk89Cover">📷 Kapak fotoğrafı <small>isteğe bağlı</small></label><input id="bk89Cover" name="cover" type="file" accept="image/*" capture="environment">
+      <p class="bk-hint bk-shared" id="bk89Shared" role="status" hidden></p>
       <p class="bk-hint">Test sayılarını kitabın içindekiler sayfasından yaz. Önceden bitirdiğin testler bugünün sorularına eklenmez.</p>
       <button type="submit" class="bk-btn is-primary bk-wide">Kitaplarıma ekle</button>
     </form>`;
@@ -133,7 +148,7 @@ function onClick(event:Event):void{
   if(act==="back"){view="list";render();return;}
   if(act==="back-search"){view="search";render();return;}
   if(act==="subject"){subject=target.dataset.subject??"";render();return;}
-  if(act==="pick"){draft=searchCatalog(query,subject,60,source()).items[Number(target.dataset.i)]??null;if(draft){view="form";render();}return;}
+  if(act==="pick"){draft=searchCatalog(query,subject,60,source()).items[Number(target.dataset.i)]??null;if(draft){view="form";render();void applySharedCounts(draft);}return;}
   if(act==="manual"){draft={key:"",name:query.trim(),pub:"",subject:subject||"Matematik",exam:"",kind:"",color:""};view="form";render();return;}
   if(act==="plus"){
     let questions=0,finished=false;const day=today();
@@ -159,6 +174,7 @@ async function onSubmit(event:Event):Promise<void>{
   const fields=new FormData(form),file=fields.get("cover");fields.delete("cover");
   const data=Object.fromEntries(fields) as Record<string,string>,submit=form.querySelector<HTMLButtonElement>("[type=submit]");
   try{
+    const picked=draft;
     const book=createBook({name:data.name??"",subject:data.subject??"",pub:data.pub,total:data.total,perTest:data.perTest,done:data.done,exam:draft?.exam,kind:draft?.kind,coverUrl:draft?.cover},Date.now());
     // v91: kapak isteğe bağlı; işlenemezse kitap yine eklenir, kapağa sonra dokunup eklenebilir.
     if(file instanceof File&&file.size>0){
@@ -166,6 +182,7 @@ async function onSubmit(event:Event):Promise<void>{
       try{book.cover=await coverFromFile(file);}catch{toast("Kapak işlenemedi · kitap kapaksız eklendi");}
     }
     const s=state();s.books=[...books(),book];changed(0);
+    if(picked?.key.startsWith("ks")&&book.perTest)void countsApi()?.propose(picked.key,book.total,book.perTest);
     view="list";query="";subject="";draft=null;render();toast("Kitap eklendi ✓");
   }catch(error){toast(error instanceof Error?error.message:"Kitap eklenemedi");}
   finally{if(submit?.isConnected){submit.disabled=false;submit.textContent="Kitaplarıma ekle";}}

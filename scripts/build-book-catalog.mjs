@@ -53,6 +53,20 @@ export function classify(name,pub=""){
   return {e:tyt&&ayt?"TYT-AYT":tyt?"TYT":ayt?"AYT":/\bydt\b/i.test(name)?"YDT":"",
     s:subject(withoutPublisher(low,pub)),k:KINDS.find(([,re])=>re.test(low))?.[0]??""};
 }
+/* v95: kitap adında yazan sayılar ("16x12" = 16 test × 12 soru, "10'lu Deneme", "40 Deneme"). Yalnız açıkça yazılan alınır;
+   tahmin yapılmaz. t: toplam test, q: testteki soru (biliniyorsa). */
+export function countsFromTitle(name){
+  const low=String(name).toLocaleLowerCase("tr-TR"),ok=(n,max)=>Number.isInteger(n)&&n>=1&&n<=max;
+  const nxm=low.match(/\b(\d{1,3})\s*[x×]\s*(\d{1,3})\b/);
+  if(nxm){const t=Number(nxm[1]),q=Number(nxm[2]);if(ok(t,200)&&ok(q,200))return {t,q};}
+  const plus=low.match(/\b(\d{1,3})\s*\+\s*(\d{1,3})\s*deneme/);
+  if(plus){const t=Number(plus[1])+Number(plus[2]);if(ok(t,200))return {t};}
+  const li=low.match(/\b(\d{1,3})\s*[`']?\s*l[ıiuü](?![a-zçğıöşü])[^0-9]{0,25}?deneme/);
+  if(li&&ok(Number(li[1]),200))return {t:Number(li[1])};
+  const n=low.match(/\b(\d{1,3})\s*(?:adet\s*)?(?:farklı\s*)?(?:branş\s*)?deneme(?:si|leri)?\b/);
+  if(n&&ok(Number(n[1]),200))return {t:Number(n[1])};
+  return {};
+}
 /** Bir liste sayfasından kitaplar. Kapak yalnız cdn.kitapsec.com/image/urun/ ise alınır. */
 export function parseListing(html){
   const out=[];
@@ -61,7 +75,7 @@ export function parseListing(html){
     if(!id||!name)continue;
     const img=block.match(/<meta itemprop="image" content="([^"]+)"/)?.[1]??"",pub=block.match(/class="yynImg"><div ?><a title="([^"]{2,80})"/)?.[1]??"";
     const n=decode(name);
-    out.push({id:Number(id),n,p:decode(pub),c:COVER_RE.test(img)?img.replace("https://cdn.kitapsec.com/image/urun/",""):"",...classify(n,decode(pub))});
+    out.push({id:Number(id),n,p:decode(pub),c:COVER_RE.test(img)?img.replace("https://cdn.kitapsec.com/image/urun/",""):"",...classify(n,decode(pub)),...countsFromTitle(n)});
   }
   return out;
 }
@@ -110,7 +124,7 @@ if(process.argv[1]===fileURLToPath(import.meta.url)){
   const out=arg("--out")||"public/book-catalog-v92.json";
   // --fill-covers: kapaksız kitapların kapağı kendi sayfalarından doldurulur (2 sn arayla).
   const base=process.argv.includes("--refilter")||process.argv.includes("--fill-covers");
-  const loaded=base?JSON.parse(readFileSync(out,"utf8")).items.filter(item=>!isSetName(item.n)).map(item=>({...item,...classify(item.n,item.p)})):null;
+  const loaded=base?JSON.parse(readFileSync(out,"utf8")).items.filter(item=>!isSetName(item.n)).map(({t,q,...item})=>({...item,...classify(item.n,item.p),...countsFromTitle(item.n)})):null;
   const items=loaded&&process.argv.includes("--fill-covers")?await fillCovers(loaded):loaded?loaded:await crawl({pages:Number(arg("--pages")||200)});
   if(items.length<50)throw new Error(`Yalnız ${items.length} kitap geldi; katalog yazılmadı.`);
   writeFileSync(out,JSON.stringify({version:1,source:"kitapsec.com",fetchedAt:new Date().toISOString().slice(0,10),cdn:"https://cdn.kitapsec.com/image/urun/",items}));

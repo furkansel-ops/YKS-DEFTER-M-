@@ -776,6 +776,26 @@ service cloud.firestore {
         && !existsAfter(/databases/$(database)/documents/coachSlots/$(slotId));
     }
 
+    // v95 · Kitap Ekle'de paylaşılan test/soru sayıları. Belge kimliği katalog kitabı (ks + Kitapseç ürün no).
+    // İlk giren doğrulanmış öğrenci yazar; sonra değiştirilemez, silinemez. Kimin yazdığı tutulmaz; liste alınamaz.
+    match /bookCounts/{bookId} {
+      allow get: if verifiedUser();
+      allow list: if false;
+      allow create: if verifiedUser()
+        && profileRole(request.auth.uid, 'student')
+        && bookId.matches('^ks[0-9]{1,9}$')
+        && request.resource.data.keys().hasAll(['tests', 'perTest', 'createdAt'])
+        && request.resource.data.keys().hasOnly(['tests', 'perTest', 'createdAt'])
+        && request.resource.data.tests is int
+        && request.resource.data.tests >= 1
+        && request.resource.data.tests <= 2000
+        && request.resource.data.perTest is int
+        && request.resource.data.perTest >= 1
+        && request.resource.data.perTest <= 400
+        && request.resource.data.createdAt == request.time;
+      allow update, delete: if false;
+    }
+
     match /users/{userId}/sync/meta {
       allow read: if ownsUserSpace(userId);
       allow create: if ownsUserSpace(userId)

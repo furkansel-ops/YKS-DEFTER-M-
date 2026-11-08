@@ -453,7 +453,22 @@ async function onSignedIn({user,auth,db}){
 function onSignedOut(){cleanup();rt.user=rt.auth=rt.db=rt.profile=null;delete document.documentElement.dataset.accountRole}
 
 let resolveAccountReady;try{window.__YKS_ACCOUNT_READY__=new Promise(resolve=>{resolveAccountReady=resolve})}catch{}
-window.YKSAccountAuth={version:"1.2.33",beforeSignIn,onSignedIn,onSignedOut,publishShare};
+/* v95: Kitap Ekle'de paylaşılan sayılar. bookCounts/{ks<id>} = {tests, perTest, createdAt}; ilk giren öğrenci yazar,
+   sonra değişmez (kural). Kim yazdığı tutulmaz. Oturum yoksa ya da hata olursa sessizce boş döner: kitap eklemek etkilenmez. */
+const BOOK_COUNT_ID=/^ks\d{1,9}$/;
+const bookCountValue=(v,max)=>Number.isInteger(v)&&v>=1&&v<=max?v:0;
+async function bookCountGet(bookId){
+  if(!BOOK_COUNT_ID.test(String(bookId))||rt.profile?.role!=="student"||!rt.db||!rt.user)return null;
+  try{const snap=await getDoc(doc(rt.db,"bookCounts",bookId));if(!snap.exists())return null;const d=snap.data()||{},tests=bookCountValue(d.tests,2000),perTest=bookCountValue(d.perTest,400);return tests&&perTest?{tests,perTest}:null}
+  catch(error){console.warn("Kitap sayıları okunamadı",error?.code||error);return null}
+}
+async function bookCountPropose(bookId,tests,perTest){
+  if(!BOOK_COUNT_ID.test(String(bookId))||rt.profile?.role!=="student"||!rt.db||!rt.user)return false;
+  const t=bookCountValue(tests,2000),q=bookCountValue(perTest,400);if(!t||!q)return false;
+  try{if((await getDoc(doc(rt.db,"bookCounts",bookId))).exists())return false;await setDoc(doc(rt.db,"bookCounts",bookId),{tests:t,perTest:q,createdAt:serverTimestamp()});return true}
+  catch(error){console.warn("Kitap sayıları paylaşılamadı",error?.code||error);return false}
+}
+window.YKSAccountAuth={version:"1.2.34",beforeSignIn,onSignedIn,onSignedOut,publishShare,bookCounts:{get:bookCountGet,propose:bookCountPropose}};
 try{resolveAccountReady?.(window.YKSAccountAuth)}catch{}
 document.documentElement.dataset.studentCoachingBridge="ready";
-window.dispatchEvent(new CustomEvent("yks:student-coaching-ready",{detail:{version:"1.2.33"}}));
+window.dispatchEvent(new CustomEvent("yks:student-coaching-ready",{detail:{version:"1.2.34"}}));

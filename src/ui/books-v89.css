@@ -52,3 +52,5 @@
 /* v92: katalog kapağı kısaltmalı kapağın üstüne biner; açılmazsa resim kaldırılır ve kısaltma görünür. */
 .bk-cover{position:relative;overflow:hidden}
 .bk-cover .bk-remote{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:var(--d-surface,#fff)}
+/* v95: paylaşılan sayı notu */
+.bk-dialog .bk-shared{color:var(--d-accent,#1d63e9);font-weight:600}

@@ -14,7 +14,7 @@ export const BOOK_SUBJECTS:Record<string,{color:string;exams:readonly ("TYT"|"AY
 export const BOOK_TYPES=["Soru Bankası","Fasikül Set","Branş Denemesi","Konu Anlatımlı"] as const;
 const DENEME_TYPES=["Branş Deneme Seti","Genel Deneme Seti"] as const;
 
-export type CatalogItem={key:string;name:string;pub:string;subject:string;exam:string;kind:string;color:string;cover?:string;terms?:string};
+export type CatalogItem={key:string;name:string;pub:string;subject:string;exam:string;kind:string;color:string;cover?:string;terms?:string;tests?:number;perTest?:number};
 /* Öğrencinin yazdığı kısa adlar: Kitapseç "Üç Dört Beş" yazar, öğrenci "345" arar. */
 const SEARCH_ALIASES:readonly [RegExp,string][]=[[/üç\s*dört\s*beş|ucdortbes/i,"345"],[/prf\s*paraf/i,"paraf"]];
 function aliases(text:string):string{return SEARCH_ALIASES.filter(([re])=>re.test(text)).map(([,alias])=>alias).join(" ");}
@@ -22,7 +22,8 @@ function aliases(text:string):string{return SEARCH_ALIASES.filter(([re])=>re.tes
 export const COVER_URL_RE=/^https:\/\/cdn\.kitapsec\.com\/image\/urun\/[A-Za-z0-9/_.-]+\.(?:jpe?g|png|webp|gif)$/i;
 export function isCoverUrl(value:unknown):value is string{return typeof value==="string"&&value.length<=200&&COVER_URL_RE.test(value);}
 type RawCatalog={cdn?:unknown;items?:unknown};
-type RawItem={id?:unknown;n?:unknown;p?:unknown;c?:unknown;s?:unknown;e?:unknown;k?:unknown};
+type RawItem={id?:unknown;n?:unknown;p?:unknown;c?:unknown;s?:unknown;e?:unknown;k?:unknown;t?:unknown;q?:unknown};
+const whole=(value:unknown,max:number):number|undefined=>{const n=Number(value);return Number.isInteger(n)&&n>=1&&n<=max?n:undefined;};
 /** Dışarıdan gelen JSON güvenilmez: her alan sınırlanır, kapak adresi doğrulanır. */
 export function parseRealCatalog(raw:unknown):CatalogItem[]{
   const data=(raw&&typeof raw==="object"?raw:{}) as RawCatalog,cdn=String(data.cdn??"");
@@ -32,7 +33,8 @@ export function parseRealCatalog(raw:unknown):CatalogItem[]{
     const id=Number(it?.id),name=String(it?.n??"").trim().slice(0,160);if(!Number.isInteger(id)||id<=0||!name)continue;
     const subject=String(it?.s??"").slice(0,30)||"Diğer",cover=it?.c?cdn+String(it.c):"";
     out.push({key:"ks"+id,name,pub:String(it?.p??"").slice(0,60),subject,exam:String(it?.e??"").slice(0,8),kind:String(it?.k??"").slice(0,30),
-      color:BOOK_SUBJECTS[subject]?.color??"#5a6478",...(isCoverUrl(cover)?{cover}:{}),terms:[String(it?.p??""),aliases(name+" "+String(it?.p??""))].join(" ").trim()});
+      color:BOOK_SUBJECTS[subject]?.color??"#5a6478",...(isCoverUrl(cover)?{cover}:{}),terms:[String(it?.p??""),aliases(name+" "+String(it?.p??""))].join(" ").trim(),
+      ...(whole(it?.t,2000)?{tests:whole(it?.t,2000)}:{}),...(whole(it?.q,400)?{perTest:whole(it?.q,400)}:{})});
   }
   return out;
 }

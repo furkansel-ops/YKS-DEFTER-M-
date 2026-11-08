@@ -120,3 +120,26 @@ test("v94 GIF kapak öğrencide, koça gönderimde ve koçta kabul edilir",()=>{
 test("v94 katalog her açılışta sunucuya sorulur (eski katalog önbellekte kalmaz)",()=>{
   assert.match(read("src/ui/books-v89.ts"),/fetch\(CATALOG_URL,\{cache:"no-cache"\}\)/);
 });
+
+test("v95 adından sayı: NxM, N'li, N+M ve N deneme; tahmin yok",()=>{
+  run([
+    'import assert from "node:assert/strict";',
+    `import {countsFromTitle as c} from "${url("scripts/build-book-catalog.mjs")}";`,
+    'assert.deepEqual(c("AYT Fizik 25x14 Branş Denemeleri"),{t:25,q:14});assert.deepEqual(c("TYT Fen 20 x 20 Up Deneme"),{t:20,q:20});',
+    'assert.deepEqual(c("2027 TYT Matematik 10`lu Deneme"),{t:10});assert.deepEqual(c("TYT 3 lü Deneme"),{t:3});',
+    'assert.deepEqual(c("AYT Matematik 7+2 Deneme Sınavı"),{t:9});assert.deepEqual(c("AYT Biyoloji 30 Deneme"),{t:30});',
+    'assert.deepEqual(c("2027 TYT Matematik Soru Bankası"),{},"soru bankasında tahmin yok");assert.deepEqual(c("TYT Son 1001 Soru"),{});',
+    'console.log("OK counts");'
+  ],"OK counts");
+});
+
+test("v95 form katalog sayılarıyla dolar; paylaşılan sayı öğrenci değiştirmediyse gelir, eklerken paylaşılır",()=>{
+  const ui=read("src/ui/books-v89.ts"),rt=read("public/student-coaching-runtime.js"),dom=read("src/domain/book-catalog.ts");
+  assert.match(dom,/\.\.\.\(whole\(it\?\.t,2000\)\?\{tests:whole\(it\?\.t,2000\)\}:\{\}\)/);
+  assert.match(ui,/value="\$\{d\.tests\?\?""\}"/);assert.match(ui,/value="\$\{d\.perTest\?\?\(deneme\?/);
+  assert.match(ui,/const untouched=\(input:HTMLInputElement\)=>input\.value===input\.defaultValue;/,"öğrencinin yazdığının üstüne yazılmaz");
+  assert.match(ui,/if\(picked\?\.key\.startsWith\("ks"\)&&book\.perTest\)void countsApi\(\)\?\.propose\(picked\.key,book\.total,book\.perTest\);/);
+  assert.match(rt,/bookCounts:\{get:bookCountGet,propose:bookCountPropose\}/);
+  assert.match(rt,/if\(\(await getDoc\(doc\(rt\.db,"bookCounts",bookId\)\)\)\.exists\(\)\)return false;/,"var olan sayının üstüne yazmaya çalışmaz");
+  assert.ok(rt.includes("const BOOK_COUNT_ID=/^ks\\d{1,9}$/;"),"yalnız katalog kimliği (ks + sayı)");
+});
