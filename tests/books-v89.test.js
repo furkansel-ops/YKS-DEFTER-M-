@@ -88,7 +88,7 @@ test("v89 kapak fotoğrafı: kapağa dokununca seçilir, küçük JPEG olarak sa
 test("v89/v91 kitaplar koça progress.books içinde gider: küçük kapakla, sınırlı, geçersiz kayıt düşer",()=>{
   const rt=read("public/student-coaching-runtime.js"),vm=require("node:vm");
   const pick=re=>{const m=rt.match(re);assert.ok(m,String(re));return m[0];};
-  const src=[pick(/const text=.*?;\n/),pick(/const list=.*?;\n/),pick(/const finite=.*?;\n/),pick(/const BOOK_COVER_MAX=.*\n/),pick(/function booksShare\(s\)\{.*\n/)].join("")+"booksShare";
+  const src=[pick(/const text=.*?;\n/),pick(/const list=.*?;\n/),pick(/const finite=.*?;\n/),pick(/const BOOK_COVER_MAX=.*\n/),pick(/const BOOK_COVER_URL_RE=.*\n/),pick(/function booksShare\(s\)\{.*\n/)].join("")+"booksShare";
   const booksShare=vm.runInNewContext(src);
   const out=booksShare({books:[
     {id:7,name:"345 TYT Matematik Soru Bankası",subject:"Matematik",pub:"345",exam:"TYT",kind:"Soru Bankası",total:40,done:99,perTest:13,cover:"data:image/jpeg;base64,AAAA",log:[{d:"2026-11-07",n:1},{d:"2026-11-02",n:2},{d:"bozuk",n:1}]},
@@ -103,7 +103,7 @@ test("v89/v91 kitaplar koça progress.books içinde gider: küçük kapakla, sı
 test("v91 koça giden kapak: yalnız geçerli küçük JPEG, toplam 240 KB bütçe",()=>{
   const rt=read("public/student-coaching-runtime.js"),vm=require("node:vm");
   const pick=re=>{const m=rt.match(re);assert.ok(m,String(re));return m[0];};
-  const booksShare=vm.runInNewContext([pick(/const text=.*?;\n/),pick(/const list=.*?;\n/),pick(/const finite=.*?;\n/),pick(/const BOOK_COVER_MAX=.*\n/),pick(/function booksShare\(s\)\{.*\n/)].join("")+"booksShare");
+  const booksShare=vm.runInNewContext([pick(/const text=.*?;\n/),pick(/const list=.*?;\n/),pick(/const finite=.*?;\n/),pick(/const BOOK_COVER_MAX=.*\n/),pick(/const BOOK_COVER_URL_RE=.*\n/),pick(/function booksShare\(s\)\{.*\n/)].join("")+"booksShare");
   const jpeg=n=>"data:image/jpeg;base64,"+"A".repeat(n);
   const one=cover=>booksShare({books:[{id:1,name:"K",total:5,cover}]})[0].cover;
   assert.equal(one(jpeg(100)),jpeg(100));

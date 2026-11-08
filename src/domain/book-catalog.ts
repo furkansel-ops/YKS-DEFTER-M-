@@ -14,12 +14,35 @@ export const BOOK_SUBJECTS:Record<string,{color:string;exams:readonly ("TYT"|"AY
 export const BOOK_TYPES=["Soru Bankası","Fasikül Set","Branş Denemesi","Konu Anlatımlı"] as const;
 const DENEME_TYPES=["Branş Deneme Seti","Genel Deneme Seti"] as const;
 
-export type CatalogItem={key:string;name:string;pub:string;subject:string;exam:string;kind:string;color:string};
+export type CatalogItem={key:string;name:string;pub:string;subject:string;exam:string;kind:string;color:string;cover?:string;terms?:string};
+/* Öğrencinin yazdığı kısa adlar: Kitapseç "Üç Dört Beş" yazar, öğrenci "345" arar. */
+const SEARCH_ALIASES:readonly [RegExp,string][]=[[/üç\s*dört\s*beş|ucdortbes/i,"345"],[/prf\s*paraf/i,"paraf"]];
+function aliases(text:string):string{return SEARCH_ALIASES.filter(([re])=>re.test(text)).map(([,alias])=>alias).join(" ");}
+/* v92: gerçek katalog (scripts/build-book-catalog.mjs → public/book-catalog-v92.json). Kapak yalnız Kitapseç CDN adresi. */
+export const COVER_URL_RE=/^https:\/\/cdn\.kitapsec\.com\/image\/urun\/[A-Za-z0-9/_.-]+\.(?:jpe?g|png|webp|gif)$/i;
+export function isCoverUrl(value:unknown):value is string{return typeof value==="string"&&value.length<=200&&COVER_URL_RE.test(value);}
+type RawCatalog={cdn?:unknown;items?:unknown};
+type RawItem={id?:unknown;n?:unknown;p?:unknown;c?:unknown;s?:unknown;e?:unknown;k?:unknown};
+/** Dışarıdan gelen JSON güvenilmez: her alan sınırlanır, kapak adresi doğrulanır. */
+export function parseRealCatalog(raw:unknown):CatalogItem[]{
+  const data=(raw&&typeof raw==="object"?raw:{}) as RawCatalog,cdn=String(data.cdn??"");
+  if(!Array.isArray(data.items))return [];
+  const out:CatalogItem[]=[];
+  for(const it of data.items as RawItem[]){
+    const id=Number(it?.id),name=String(it?.n??"").trim().slice(0,160);if(!Number.isInteger(id)||id<=0||!name)continue;
+    const subject=String(it?.s??"").slice(0,30)||"Diğer",cover=it?.c?cdn+String(it.c):"";
+    out.push({key:"ks"+id,name,pub:String(it?.p??"").slice(0,60),subject,exam:String(it?.e??"").slice(0,8),kind:String(it?.k??"").slice(0,30),
+      color:BOOK_SUBJECTS[subject]?.color??"#5a6478",...(isCoverUrl(cover)?{cover}:{}),terms:[String(it?.p??""),aliases(name+" "+String(it?.p??""))].join(" ").trim()});
+  }
+  return out;
+}
 export type BookLog={d:string;n:number};
 export type BookRecord={id:number;name:string;subject:string;total:number;done:number;log:BookLog[];topic:string;
   pub?:string;exam?:string;kind?:string;perTest?:number;createdAt?:number;
   /** Öğrencinin çektiği kapak: 240 px JPEG data URL. */
-  cover?:string};
+  cover?:string;
+  /** v92: katalogdan seçilen kitabın Kitapseç kapak adresi. */
+  coverUrl?:string};
 
 let catalogCache:CatalogItem[]|null=null;
 export function catalog():CatalogItem[]{
@@ -37,10 +60,10 @@ export function words(value:string):string[]{
   return value.toLocaleLowerCase("tr-TR").replace(/[^a-zçğıöşü0-9 ]/gu," ").split(/\s+/).filter(Boolean);
 }
 /** Her aranan kelime, adın bir kelimesinin başıyla eşleşmeli ("345 tyt mat"). Ders sayıları filtre öncesi verilir. */
-export function searchCatalog(query:string,subject="",limit=60):{items:CatalogItem[];total:number;bySubject:Record<string,number>}{
+export function searchCatalog(query:string,subject="",limit=60,source:readonly CatalogItem[]=catalog()):{items:CatalogItem[];total:number;bySubject:Record<string,number>}{
   const q=words(query),bySubject:Record<string,number>={},hits:CatalogItem[]=[];
-  for(const item of catalog()){
-    const w=words(item.name);
+  for(const item of source){
+    const w=words(item.terms?item.name+" "+item.terms:item.name);
     if(!q.every(part=>w.some(x=>x.startsWith(part))))continue;
     bySubject[item.subject]=(bySubject[item.subject]??0)+1;
     if(!subject||item.subject===subject)hits.push(item);
@@ -49,13 +72,13 @@ export function searchCatalog(query:string,subject="",limit=60):{items:CatalogIt
 }
 function count(value:unknown,max:number):number{const n=Math.floor(Number(value));return Number.isFinite(n)?Math.max(0,Math.min(max,n)):0;}
 /** Kitap ekleme girdisi doğrulanır; geçersizse açıklayıcı hata atar. */
-export function createBook(input:{name:string;subject:string;total:unknown;perTest:unknown;done:unknown;pub?:string;exam?:string;kind?:string},now:number):BookRecord{
+export function createBook(input:{name:string;subject:string;total:unknown;perTest:unknown;done:unknown;pub?:string;exam?:string;kind?:string;coverUrl?:unknown},now:number):BookRecord{
   const name=String(input.name??"").trim().slice(0,120),total=count(input.total,2000),perTest=count(input.perTest,400);
   if(!name)throw new Error("Kitap adını yaz.");
   if(total<1)throw new Error("Toplam test sayısını yaz.");
   if(perTest<1)throw new Error("Testteki soru sayısını yaz.");
   return {id:now,name,subject:String(input.subject||"Matematik").slice(0,40),total,done:Math.min(total,count(input.done,2000)),log:[],topic:"",
-    pub:input.pub?String(input.pub).slice(0,40):"",exam:input.exam?String(input.exam).slice(0,8):"",kind:input.kind?String(input.kind).slice(0,40):"",perTest,createdAt:now};
+    pub:input.pub?String(input.pub).slice(0,40):"",exam:input.exam?String(input.exam).slice(0,8):"",kind:input.kind?String(input.kind).slice(0,40):"",perTest,createdAt:now,...(isCoverUrl(input.coverUrl)?{coverUrl:input.coverUrl}:{})};
 }
 /** n test ilerletir (negatif geri alır); kaç sorunun değiştiğini döner. Kitap yeni nesne olarak döner. */
 export function advanceBook(book:BookRecord,n:number,day:string):{book:BookRecord;questions:number}{

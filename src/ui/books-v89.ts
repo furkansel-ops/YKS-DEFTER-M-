@@ -1,5 +1,5 @@
 import "./books-v89.css";
-import {searchCatalog,createBook,advanceBook,bookStats,bookFinishDays,bookQuestions,initials,BOOK_SUBJECTS,type BookRecord,type CatalogItem} from "../domain/book-catalog.ts";
+import {searchCatalog,catalog,parseRealCatalog,isCoverUrl,createBook,advanceBook,bookStats,bookFinishDays,bookQuestions,initials,BOOK_SUBJECTS,type BookRecord,type CatalogItem} from "../domain/book-catalog.ts";
 
 /* v89 · Kitaplarım: Merkez'den açılan pencere. Kitap listesi, ilerleme ve "Kitap Ekle" araması.
    Veri eski S.books dizisinde kalır; "+1 test" o testin sorularını bugünün soru sayısına (S.solved) ekler. */
@@ -8,6 +8,18 @@ type Loose=Record<string,any>;
 type LegacyWindow=Window&Record<string,any>&{YKSLegacyState?:{readState?:()=>Loose;save?:()=>unknown}};
 const L=window as unknown as LegacyWindow;
 let installed=false,view:"list"|"search"|"form"="list",query="",subject="",draft:CatalogItem|null=null,dialog:HTMLDialogElement|null=null;
+/* v92: gerçek katalog Kitap Ekle ilk açılınca bir kez yüklenir; yüklenemezse yayınevi birleşimleri kullanılır. */
+let real:CatalogItem[]|null=null,realState:"idle"|"loading"|"ready"|"failed"="idle";
+const CATALOG_URL="./book-catalog-v92.json";
+function source():readonly CatalogItem[]{return real?.length?real:catalog();}
+function loadReal():void{
+  if(realState!=="idle")return;realState="loading";
+  fetch(CATALOG_URL,{cache:"no-cache"}).then(r=>{if(!r.ok)throw new Error("HTTP "+r.status);return r.json();})
+    .then(json=>{real=parseRealCatalog(json);realState=real.length?"ready":"failed";})
+    .catch(error=>{console.warn("v92 kitap kataloğu yüklenemedi",error);realState="failed";})
+    .finally(()=>{if(view==="search")render();});
+}
+function pubLabel(pub:string):string{return !pub?"":/yay[ıi]n|akademi|kitap|yayıncılık/i.test(pub)?pub:pub+" Yayınları";}
 
 const esc=(v:unknown)=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]!));
 function state():Loose{try{return L.YKSLegacyState?.readState?.()??{};}catch{return {};}}
@@ -17,9 +29,11 @@ function today():string{const d=new Date();return d.getFullYear()+"-"+String(d.g
 function shift(day:string,n:number):string{const d=new Date(Number(day.slice(0,4)),Number(day.slice(5,7))-1,Number(day.slice(8)),12);d.setDate(d.getDate()+n);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
 function books():BookRecord[]{const s=state();if(!Array.isArray(s.books))s.books=[];return s.books as BookRecord[];}
 function color(subjectName:string):string{return BOOK_SUBJECTS[subjectName]?.color??"#5a6478";}
-function cover(pub:string,subjectName:string,exam:string,image=""):string{
+/* Öncelik: öğrencinin çektiği kapak → katalog kapağı → kısaltmalı kapak. Katalog kapağı açılmazsa resim kaldırılır, kısaltma görünür. */
+function cover(pub:string,subjectName:string,exam:string,image="",url=""):string{
   if(isCover(image))return `<span class="bk-cover has-img" aria-hidden="true"><img src="${esc(image)}" alt=""></span>`;
-  return `<span class="bk-cover" style="--bk:${esc(color(subjectName))}" aria-hidden="true"><b>${esc(initials(pub||"?"))}</b><small>${esc(exam||subjectName.slice(0,3))}</small></span>`;
+  const remote=isCoverUrl(url)?`<img class="bk-remote" src="${esc(url)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer">`:"";
+  return `<span class="bk-cover${remote?" has-remote":""}" style="--bk:${esc(color(subjectName))}" aria-hidden="true"><b>${esc(initials(pub||"?"))}</b><small>${esc(exam||subjectName.slice(0,3))}</small>${remote}</span>`;
 }
 const COVER_PX=240,COVER_MAX=80000;
 function isCover(value:unknown):value is string{return typeof value==="string"&&value.startsWith("data:image/jpeg;base64,")&&value.length<=COVER_MAX;}
@@ -55,9 +69,9 @@ function listView():string{
   const rows=list.map(b=>{
     const pct=b.total?Math.round(b.done/b.total*100):0,finish=bookFinishDays(b,day,shift);
     const note=b.done>=b.total?"Bitti 🎉":finish==null?"Son 14 günde ilerleme yok":"~"+finish+" günde biter";
-    const meta=[b.pub?b.pub+" Yayınları":"",b.kind||""].filter(Boolean).join(" · ");
+    const meta=[pubLabel(b.pub||""),b.kind||""].filter(Boolean).join(" · ");
     const per=b.perTest?`${b.done} / ${b.total} test · ${bookQuestions(b).toLocaleString("tr-TR")} soru`:`${b.done} / ${b.total}`;
-    return `<article class="bk-item" data-id="${b.id}"><button type="button" class="bk-cover-btn" data-act="cover" aria-label="${esc(b.name)} için ${b.cover?"kapak fotoğrafını değiştir":"kapak fotoğrafı ekle"}">${cover(b.pub||b.name,b.subject,b.exam||"",b.cover)}<span class="bk-cover-tip">${b.cover?"Değiştir":"📷 Kapak"}</span></button>
+    return `<article class="bk-item" data-id="${b.id}"><button type="button" class="bk-cover-btn" data-act="cover" aria-label="${esc(b.name)} için ${b.cover?"kapak fotoğrafını değiştir":"kapak fotoğrafı ekle"}">${cover(b.pub||b.name,b.subject,b.exam||"",b.cover,b.coverUrl)}<span class="bk-cover-tip">${b.cover?"Değiştir":"📷 Kapak"}</span></button>
       <div class="bk-body"><div class="bk-row"><b>${esc(b.name)}</b><span class="bk-tag">${esc(b.subject)}</span></div>
       ${meta?`<small>${esc(meta)}</small>`:""}
       <span class="bk-bar" role="progressbar" aria-label="${esc(b.name)} ilerlemesi" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><i style="width:${pct}%"></i></span>
@@ -72,11 +86,13 @@ function listView():string{
     ${rows||`<p class="bk-empty">Henüz kitap yok. Çözdüğün soru bankalarını ve denemeleri ekle; her bitirdiğin test bugünün sorularına eklenir.</p>`}`;
 }
 function searchView():string{
-  const r=searchCatalog(query,subject),all=Object.values(r.bySubject).reduce((a,b)=>a+b,0);
-  const chips=["",...Object.keys(BOOK_SUBJECTS)].map(s=>`<button type="button" class="bk-chip${s===subject?" is-on":""}" data-act="subject" data-subject="${esc(s)}" aria-pressed="${s===subject}">${esc(s||"Tümü")}<small>${s?r.bySubject[s]??0:all}</small></button>`).join("");
-  const items=r.items.map((it,i)=>`<div class="bk-item is-result">${cover(it.pub,it.subject,it.exam)}<div class="bk-body"><b>${esc(it.name)}</b><small>${esc(it.pub)} Yayınları</small><div class="bk-tags"><span class="bk-tag">${esc(it.subject)}</span><span class="bk-tag">${esc(it.kind)}</span></div></div><button type="button" class="bk-btn is-primary" data-act="pick" data-i="${i}">Seç</button></div>`).join("");
+  if(realState==="idle")loadReal();
+  const r=searchCatalog(query,subject,60,source()),all=Object.values(r.bySubject).reduce((a,b)=>a+b,0);
+  const subjects=[...new Set([...Object.keys(r.bySubject).sort((a,b)=>(r.bySubject[b]??0)-(r.bySubject[a]??0)),...(subject?[subject]:[])])];
+  const chips=["",...subjects].map(s=>`<button type="button" class="bk-chip${s===subject?" is-on":""}" data-act="subject" data-subject="${esc(s)}" aria-pressed="${s===subject}">${esc(s||"Tümü")}<small>${s?r.bySubject[s]??0:all}</small></button>`).join("");
+  const items=r.items.map((it,i)=>`<div class="bk-item is-result">${cover(it.pub,it.subject,it.exam,"",it.cover)}<div class="bk-body"><b>${esc(it.name)}</b><small>${esc(pubLabel(it.pub))}</small><div class="bk-tags"><span class="bk-tag">${esc(it.subject)}</span>${it.kind?`<span class="bk-tag">${esc(it.kind)}</span>`:""}</div></div><button type="button" class="bk-btn is-primary" data-act="pick" data-i="${i}">Seç</button></div>`).join("");
   return `<button type="button" class="bk-btn bk-back" data-act="back">‹ Kitaplarım</button>
-    <label class="bk-label" for="bk89Query">Kitap ara · yayınevi, sınav, ders</label>
+    <label class="bk-label" for="bk89Query">Kitap ara · ${realState==="loading"?"katalog yükleniyor…":realState==="ready"?source().length.toLocaleString("tr-TR")+" kitap":"yayınevi, sınav, ders"}</label>
     <div class="bk-search"><input id="bk89Query" type="search" placeholder="ör. 345 tyt matematik" autocomplete="off" value="${esc(query)}"><button type="button" class="bk-btn" data-act="manual">+ Kendim yazayım</button></div>
     <div class="bk-chips">${chips}</div>
     <p class="bk-count" aria-live="polite">${r.total} kitap${r.total>r.items.length?" · ilk "+r.items.length+" gösteriliyor":""}</p>
@@ -84,7 +100,7 @@ function searchView():string{
 }
 function formView():string{
   const d=draft!,deneme=d.subject==="Deneme";
-  const subjects=Object.keys(BOOK_SUBJECTS).map(s=>`<option${s===d.subject?" selected":""}>${esc(s)}</option>`).join("");
+  const subjects=[...new Set([...Object.keys(BOOK_SUBJECTS),d.subject].filter(Boolean))].map(s=>`<option${s===d.subject?" selected":""}>${esc(s)}</option>`).join("");
   return `<button type="button" class="bk-btn bk-back" data-act="back-search">‹ Listeye dön</button>
     <form class="bk-form" data-form="add">
       <label class="bk-label" for="bk89Name">Kitap adı</label><input id="bk89Name" name="name" required maxlength="120" value="${esc(d.name)}">
@@ -117,7 +133,7 @@ function onClick(event:Event):void{
   if(act==="back"){view="list";render();return;}
   if(act==="back-search"){view="search";render();return;}
   if(act==="subject"){subject=target.dataset.subject??"";render();return;}
-  if(act==="pick"){draft=searchCatalog(query,subject).items[Number(target.dataset.i)]??null;if(draft){view="form";render();}return;}
+  if(act==="pick"){draft=searchCatalog(query,subject,60,source()).items[Number(target.dataset.i)]??null;if(draft){view="form";render();}return;}
   if(act==="manual"){draft={key:"",name:query.trim(),pub:"",subject:subject||"Matematik",exam:"",kind:"",color:""};view="form";render();return;}
   if(act==="plus"){
     let questions=0,finished=false;const day=today();
@@ -143,7 +159,7 @@ async function onSubmit(event:Event):Promise<void>{
   const fields=new FormData(form),file=fields.get("cover");fields.delete("cover");
   const data=Object.fromEntries(fields) as Record<string,string>,submit=form.querySelector<HTMLButtonElement>("[type=submit]");
   try{
-    const book=createBook({name:data.name??"",subject:data.subject??"",pub:data.pub,total:data.total,perTest:data.perTest,done:data.done,exam:draft?.exam,kind:draft?.kind},Date.now());
+    const book=createBook({name:data.name??"",subject:data.subject??"",pub:data.pub,total:data.total,perTest:data.perTest,done:data.done,exam:draft?.exam,kind:draft?.kind,coverUrl:draft?.cover},Date.now());
     // v91: kapak isteğe bağlı; işlenemezse kitap yine eklenir, kapağa sonra dokunup eklenebilir.
     if(file instanceof File&&file.size>0){
       if(submit){submit.disabled=true;submit.textContent="Kapak hazırlanıyor…";}
@@ -163,6 +179,7 @@ function ensureDialog():HTMLDialogElement{
   dialog=document.createElement("dialog");dialog.className="bk-dialog";dialog.setAttribute("aria-labelledby","bk89Title");
   dialog.innerHTML=`<div class="bk-shell"><header class="bk-head"><span class="bk-ic" aria-hidden="true">📚</span><h2 id="bk89Title">Kitaplarım</h2><button type="button" class="bk-x" data-act="close" aria-label="Kapat">×</button></header><div class="bk-main"></div></div>`;
   dialog.addEventListener("click",event=>{if(event.target===dialog)dialog?.close();else onClick(event);});
+  dialog.addEventListener("error",event=>{const img=event.target;if(img instanceof HTMLImageElement&&img.classList.contains("bk-remote")){img.closest(".bk-cover")?.classList.remove("has-remote");img.remove();}},true);
   dialog.addEventListener("submit",event=>{void onSubmit(event);});dialog.addEventListener("input",onInput);
   document.body.appendChild(dialog);return dialog;
 }

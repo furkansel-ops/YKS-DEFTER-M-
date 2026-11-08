@@ -49,3 +49,6 @@
 .bk-cover.has-img img{width:100%;height:100%;object-fit:cover;display:block}
 .bk-cover-tip{font-size:10.5px;font-weight:650;color:var(--d-accent,#1d63e9);white-space:nowrap}
 .bk-item:not(.is-result){grid-template-columns:52px minmax(0,1fr)}
+/* v92: katalog kapağı kısaltmalı kapağın üstüne biner; açılmazsa resim kaldırılır ve kısaltma görünür. */
+.bk-cover{position:relative;overflow:hidden}
+.bk-cover .bk-remote{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:var(--d-surface,#fff)}
