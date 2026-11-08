@@ -97,7 +97,7 @@ test("v89/v91 kitaplar koça progress.books içinde gider: küçük kapakla, sı
   assert.equal(out.length,1,"adı, id'si ya da testi olmayan düşer");
   assert.deepEqual(JSON.parse(JSON.stringify(out[0])),{id:"7",name:"345 TYT Matematik Soru Bankası",subject:"Matematik",pub:"345",exam:"TYT",kind:"Soru Bankası",total:40,done:40,perTest:13,last:"2026-11-07",cover:"data:image/jpeg;base64,AAAA"});
   assert.equal(booksShare({books:Array.from({length:80},(_,i)=>({id:i+1,name:"K"+i,total:5}))}).length,60);
-  assert.match(rt,/books:booksShare\(s\),dayReview:\{entries:dayReviews\}/,"progress içinde, yeni üst alan yok (Firestore kuralı değişmez)");
+  assert.match(rt,/books:booksShare\(s\),wrongReview:wrongReviewShare\(s,today\(\)\),dayReview:\{entries:dayReviews\}/,"progress içinde, yeni üst alan yok (Firestore kuralı değişmez)");
 });
 
 test("v91 koça giden kapak: yalnız geçerli küçük JPEG, toplam 240 KB bütçe",()=>{

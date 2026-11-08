@@ -38,3 +38,20 @@ test("v96 Hatalar sekmesinde Tekrar çöz düğmesi ve pencere bağlı; öğreni
   assert.ok(ui.includes("/^data:image"+String.fromCharCode(92)+"//"),"yalnız data:image fotoğraf gösterilir");
   assert.match(shell,/installWrongReviewV96\(\)/);
 });
+
+test("v97 koça tekrar sonuçları: açık fotoğraflı yanlışlar, öğrenilen sayısı; fotoğraf ve bozuk kayıt gitmez",()=>{
+  const vm=require("node:vm"),src=read("public/student-coaching-runtime.js");
+  const pick=re=>{const m=src.match(re);assert.ok(m,String(re));return m[0];};
+  const share=vm.runInNewContext([pick(/const text=.*?;\n/),pick(/const list=.*?;\n/),pick(/const finite=.*?;\n/),pick(/function wrongReviewShare\(s,day\)\{.*\n/)].join("")+"wrongReviewShare");
+  const img="data:image/jpeg;base64,AAAA";
+  const out=share({wrongLog:[
+    {id:1,questionImgs:[img]},
+    {id:2,questionImgs:[img],rep:{due:"2026-11-20",ok:2,miss:1}},
+    {id:3,questionImgs:[img],rep:{due:"2026-11-08",ok:3,miss:0}},
+    {id:4,questionImgs:[],rep:{due:"2026-11-01",ok:1,miss:0}},
+    {id:5,questionImgs:[img],rep:{due:"bozuk",ok:9,miss:-2}}
+  ],errorJournal:[{sourceRef:"wrong:3",resolved:true}]},"2026-11-08");
+  assert.equal(JSON.stringify(out),JSON.stringify({learned:1,due:2,waiting:1,items:{"2":{ok:2,miss:1,due:"2026-11-20"}}}));
+  assert.ok(!JSON.stringify(out).includes("data:image"));
+  assert.match(src,/books:booksShare\(s\),wrongReview:wrongReviewShare\(s,today\(\)\),/);
+});
