@@ -14,7 +14,7 @@ function load(S,{fields={},kind="",journalAdd,reviews=[]}={}){
   const calls=[],journal={adds:[],toggles:[]};
   const strip=code=>stripTypeScriptTypes(code,{mode:"strip"}).replace(/^import[^\n]*\n/gm,"").replace(/^export /gm,"");
   const cycle=strip(read("src/domain/learning-cycle-analysis-service.ts"));
-  const hub=strip(source);
+  const hub=strip(source),review=strip(read("src/domain/wrong-review.ts"));
   const window={
     YKSLegacyState:{readState:()=>S,save:()=>calls.push("save"),subjects:()=>[{exam:"TYT",name:"Matematik",topics:["Problemler","Üslü Sayılar"]},{exam:"TYT",name:"Fizik",topics:["Optik"]}]},
     YKSErrorJournal:{
@@ -27,7 +27,7 @@ function load(S,{fields={},kind="",journalAdd,reviews=[]}={}){
   const document={getElementById:id=>fields[id]??null,querySelector:sel=>sel.includes("ehErrKind")?{value:kind}:null,querySelectorAll:()=>[],documentElement:{dataset:{}}};
   const context={window,document,localStorage:{getItem:()=>null,setItem(){}},confirm:()=>true,console,requestAnimationFrame:fn=>fn(),setTimeout:()=>0,Date,Math,Number,String,Array,Object,JSON,Map,Set,Intl,Infinity,isNaN,parseInt};
   vm.createContext(context);
-  vm.runInContext(`${cycle}\nconst analyzeExams=()=>({count:0});\n${hub}\n;globalThis.__t={errorRows,saveError,toggleError,deleteError,trendSvg,compareRows,loopStats,canonical,AYT_FIELD,curriculum};`,context);
+  vm.runInContext(`${cycle}\nconst analyzeExams=()=>({count:0});\nconst shiftDay=(k,n)=>{const d=new Date(k+"T12:00:00");d.setDate(d.getDate()+n);return d.toISOString().slice(0,10);};\n${review}\n${hub}\n;globalThis.__t={errorRows,saveError,toggleError,deleteError,trendSvg,compareRows,loopStats,canonical,AYT_FIELD,curriculum};`,context);
   return {t:context.__t,calls,journal};
 }
 const T=(n)=>{const d=new Date(Date.now()-n*864e5);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");};

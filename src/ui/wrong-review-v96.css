@@ -1,0 +1,13 @@
+/* v96 · Tekrar çöz penceresi; kabuk ve düğmeler Kitaplarım penceresinden (bk-*) gelir. */
+.wr-step{margin:0;font-size:13px;font-weight:650;color:var(--d-muted,#5b6b85)}
+.wr-photos{display:grid;gap:8px}
+.wr-photos img{width:100%;max-height:55dvh;object-fit:contain;border-radius:12px;border:1px solid var(--d-line,#dbe4f0);background:var(--d-surface,#fff)}
+.wr-note{border:1px solid var(--d-line,#dbe4f0);border-radius:11px;padding:8px 11px;font-size:14px}
+.wr-note summary{cursor:pointer;font-weight:650;min-height:28px}
+.wr-note p{margin:6px 0 0;overflow-wrap:anywhere}
+.wr-answer{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.wr-answer .bk-btn{min-height:48px;white-space:normal}
+.wr-answer .wr-ok{border-color:#2f9a55;color:#2f9a55}
+.wr-answer .wr-miss{border-color:#c0392b;color:#c0392b}
+.wr-done{display:grid;gap:4px;text-align:center;padding:12px 0}
+.wr-done b{font-size:18px}.wr-done p{margin:0;font-size:15px}

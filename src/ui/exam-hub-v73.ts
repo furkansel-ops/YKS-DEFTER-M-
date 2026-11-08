@@ -1,6 +1,7 @@
 import "./exam-hub-v73.css";
 import {analyzeExams,type ExamAnalysisType,type ExamAnalysisWindow} from "../domain/exam-analysis-service.ts";
 import {analyzeLearningCycle} from "../domain/learning-cycle-analysis-service";
+import {isDue} from "../domain/wrong-review.ts";
 
 /* v73 · Deneme ekranı: Özet · Analiz · Hatalar · Geçmiş sekmeleri, adım adım deneme ekleme,
    tek Hata Defteri listesi, iki deneme karşılaştırma ve ayarlar sayfası.
@@ -14,7 +15,7 @@ type LegacyWindow=Window&Record<string,any>&{
   YKSLegacyState?:{readState?:()=>Loose;save?:()=>unknown;subjects?:()=>string[]};
   YKSErrorJournal?:{add?:(data:Loose,opts?:Loose)=>Loose|null;openReviews?:()=>Loose[];render?:()=>void};
 };
-export type ErrorRow={key:string;kind:"wrong"|"journal";id:string|number;subject:string;topic:string;n:number;date:string;sort:number;exam:string;reason:string;note:string;photos:number;resolved:boolean;journalId:string;question?:string;coach?:{comment:string;status:string}};
+export type ErrorRow={key:string;kind:"wrong"|"journal";id:string|number;subject:string;topic:string;n:number;date:string;sort:number;exam:string;reason:string;note:string;photos:number;resolved:boolean;journalId:string;question?:string;coach?:{comment:string;status:string};due?:boolean};
 
 const L=window as unknown as LegacyWindow;
 const TABS:Tab[]=["ozet","analiz","hata","gecmis"];
@@ -267,7 +268,7 @@ export function errorRows():ErrorRow[]{
   const wrongIds=new Set<string>(),rows:ErrorRow[]=[];
   for(const w of list(s.wrongLog)){
     const id=String(w.id);wrongIds.add(id);const m=mirrors.get(id),photos=Array.isArray(w.questionImgs)?w.questionImgs.length:(w.questionImg?1:0);
-    rows.push({key:"w"+id,kind:"wrong",id:w.id,subject:String(w.subject||""),topic:String(w.topic||""),n:Math.max(1,num(w.n)),date:String(w.date||""),sort:Date.parse(String(w.date||""))||num(w.id),exam:examName.get(String(w.deneme??""))||"",reason:KIND_LABEL[String(w.kind||"")]||"",note:String(w.note||""),photos,resolved:!!m?.resolved,journalId:m?String(m.id):"",question:w.q?String(w.q):"",coach:coachNote(w.id)});
+    rows.push({key:"w"+id,kind:"wrong",id:w.id,subject:String(w.subject||""),topic:String(w.topic||""),n:Math.max(1,num(w.n)),date:String(w.date||""),sort:Date.parse(String(w.date||""))||num(w.id),exam:examName.get(String(w.deneme??""))||"",reason:KIND_LABEL[String(w.kind||"")]||"",note:String(w.note||""),photos,resolved:!!m?.resolved,journalId:m?String(m.id):"",question:w.q?String(w.q):"",coach:coachNote(w.id),due:photos>0&&isDue(w.rep,today())});
   }
   for(const j of journal){
     const ref=String(j.sourceRef||"");if(ref.startsWith("wrong:")&&wrongIds.has(ref.slice(6)))continue;
@@ -293,7 +294,8 @@ function renderHata(pane:HTMLElement):void{
   const chip=(key:string,label:string)=>`<button type="button" class="eh-chip" data-filter="${key}" aria-pressed="${errFilter===key}">${label}</button>`;
   let html=`<div class="eh-stats3"><span>Açık yanlış<b>${open.reduce((s,r)=>s+r.n,0)}</b></span><span>Eksik konu<b>${new Set(open.map(r=>(r.subject+"|"+r.topic).toLocaleLowerCase("tr-TR"))).size}</b></span><span class="${reviews?"is-due":""}">Tekrar bekleyen<b>${reviews}</b></span></div>`;
   html+=`<div class="eh-filters">${chip("all","Tümü")}${chip("open","Tekrar gerekli")}${chip("done","Çözüldü")}${chip("photo","📷 Fotoğraflı")}<select class="eh-subject-filter" aria-label="Derse göre süz"><option value="">Tüm dersler</option>${subjectsUsed.map(s=>`<option${s===errSubject?" selected":""}>${esc(s)}</option>`).join("")}</select></div>`;
-  html+=`<div class="eh-add-row"><button type="button" class="btn green" data-act="err-form" aria-expanded="${errFormOpen}">${errFormOpen?"Formu kapat":"+ Hata ekle"}</button></div>`;
+  const due=open.filter(r=>r.due).length;
+  html+=`<div class="eh-add-row">${due?`<button type="button" class="btn" data-act="wrong-review">📷 Tekrar çöz · ${due} soru</button>`:""}<button type="button" class="btn green" data-act="err-form" aria-expanded="${errFormOpen}">${errFormOpen?"Formu kapat":"+ Hata ekle"}</button></div>`;
   if(errFormOpen)html+=errorForm();
   html+=`<div class="card eh-errors"><div class="eh-card-head"><b>Hata Defteri</b><small>${shown.length} kayıt</small></div>`;
   html+=shown.length?shown.slice(0,errLimit).map(r=>{
@@ -330,7 +332,7 @@ function saveError():void{
   save();errFormOpen=false;refreshLegacyErrors();toast("Hata kaydedildi · istersen fotoğrafını ekle");render();
 }
 function refreshLegacyErrors():void{for(const name of ["renderWrongTopics","renderExamWrongArchive","renderWrongKinds"])call(name);try{L.YKSErrorJournal?.render?.();}catch{}}
-function toggleError(key:string):void{
+export function toggleError(key:string):void{
   const row=errorRows().find(r=>r.key===key);if(!row)return;
   if(row.journalId){call("errorJournalToggle",row.journalId);render();return;}
   // Yanlış kaydının Hata Defteri karşılığı yoksa önce oluşturulur; çözüldü bilgisi orada tutulur.
@@ -451,6 +453,7 @@ function onPaneClick(event:Event):void{
   else if(a==="photo-open")call("wrongPhotoOpen",id,0);
   else if(a==="photo-add")call("wrongPhotoPick",id);
   else if(a==="more-errors"){errLimit+=40;render();}
+  else if(a==="wrong-review")(L as Loose).YKSWrongReview?.open();
   else if(a==="photo-share"){const s=state();s.coachPhotoShare=(act as HTMLInputElement).checked;save();window.dispatchEvent(new CustomEvent("yks:data-changed",{detail:{source:"coach-photo-share"}}));toast(s.coachPhotoShare?"Soru fotoğrafların koçunla paylaşılacak":"Fotoğraf paylaşımı kapatıldı; paylaşılanlar koçtan silinecek");}
   else if(a==="clear-pick"){picked.length=0;render();}
 }
