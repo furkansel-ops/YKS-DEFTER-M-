@@ -93,6 +93,7 @@ function formView():string{
       <div class="bk-grid"><div><label class="bk-label" for="bk89Total">Toplam test</label><input id="bk89Total" name="total" type="number" inputmode="numeric" min="1" max="2000" required></div>
       <div><label class="bk-label" for="bk89Per">Testteki soru</label><input id="bk89Per" name="perTest" type="number" inputmode="numeric" min="1" max="400" required value="${deneme?(d.exam==="AYT"?80:120):""}"></div></div>
       <label class="bk-label" for="bk89Done">Şu ana kadar bitirdiğin test</label><input id="bk89Done" name="done" type="number" inputmode="numeric" min="0" max="2000" value="0">
+      <label class="bk-label" for="bk89Cover">📷 Kapak fotoğrafı <small>isteğe bağlı</small></label><input id="bk89Cover" name="cover" type="file" accept="image/*" capture="environment">
       <p class="bk-hint">Test sayılarını kitabın içindekiler sayfasından yaz. Önceden bitirdiğin testler bugünün sorularına eklenmez.</p>
       <button type="submit" class="bk-btn is-primary bk-wide">Kitaplarıma ekle</button>
     </form>`;
@@ -137,14 +138,21 @@ function onClick(event:Event):void{
     update(id,()=>null);changed(0);render();toast("Kitap silindi");
   }
 }
-function onSubmit(event:Event):void{
+async function onSubmit(event:Event):Promise<void>{
   const form=event.target as HTMLFormElement;if(form.dataset.form!=="add")return;event.preventDefault();
-  const data=Object.fromEntries(new FormData(form)) as Record<string,string>;
+  const fields=new FormData(form),file=fields.get("cover");fields.delete("cover");
+  const data=Object.fromEntries(fields) as Record<string,string>,submit=form.querySelector<HTMLButtonElement>("[type=submit]");
   try{
     const book=createBook({name:data.name??"",subject:data.subject??"",pub:data.pub,total:data.total,perTest:data.perTest,done:data.done,exam:draft?.exam,kind:draft?.kind},Date.now());
+    // v91: kapak isteğe bağlı; işlenemezse kitap yine eklenir, kapağa sonra dokunup eklenebilir.
+    if(file instanceof File&&file.size>0){
+      if(submit){submit.disabled=true;submit.textContent="Kapak hazırlanıyor…";}
+      try{book.cover=await coverFromFile(file);}catch{toast("Kapak işlenemedi · kitap kapaksız eklendi");}
+    }
     const s=state();s.books=[...books(),book];changed(0);
     view="list";query="";subject="";draft=null;render();toast("Kitap eklendi ✓");
   }catch(error){toast(error instanceof Error?error.message:"Kitap eklenemedi");}
+  finally{if(submit?.isConnected){submit.disabled=false;submit.textContent="Kitaplarıma ekle";}}
 }
 function onInput(event:Event):void{
   const input=event.target as HTMLInputElement;if(input.id!=="bk89Query")return;
@@ -155,7 +163,7 @@ function ensureDialog():HTMLDialogElement{
   dialog=document.createElement("dialog");dialog.className="bk-dialog";dialog.setAttribute("aria-labelledby","bk89Title");
   dialog.innerHTML=`<div class="bk-shell"><header class="bk-head"><span class="bk-ic" aria-hidden="true">📚</span><h2 id="bk89Title">Kitaplarım</h2><button type="button" class="bk-x" data-act="close" aria-label="Kapat">×</button></header><div class="bk-main"></div></div>`;
   dialog.addEventListener("click",event=>{if(event.target===dialog)dialog?.close();else onClick(event);});
-  dialog.addEventListener("submit",onSubmit);dialog.addEventListener("input",onInput);
+  dialog.addEventListener("submit",event=>{void onSubmit(event);});dialog.addEventListener("input",onInput);
   document.body.appendChild(dialog);return dialog;
 }
 export function openBooks():void{

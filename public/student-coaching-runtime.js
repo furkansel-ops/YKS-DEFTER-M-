@@ -166,8 +166,10 @@ function topicsShare(s){
 }
 /* v87: öğrencinin günlük paragraf / problem hedefi (yalnız koyduysa) koçta hedef çubuğu olur. */
 function ppGoals(s){const g=s?.paragraphProblem?.goals,out={};if(!g||typeof g!=="object")return null;for(const kind of ["paragraph","problem"]){const n=Math.floor(finite(g[kind]));if(n>=1&&n<=500)out[kind]=n}return Object.keys(out).length?out:null}
-/* v89: Kitaplarım koça gider (kapak fotoğrafı hariç; paylaşım kaydı küçük kalsın). progress içinde: kural değişmez. */
-function booksShare(s){return list(s?.books).slice(0,60).map(b=>{const total=Math.max(0,Math.min(2000,Math.floor(finite(b?.total)))),done=Math.max(0,Math.min(total,Math.floor(finite(b?.done)))),log=list(b?.log).map(x=>text(x?.d,10)).filter(d=>/^\d{4}-\d{2}-\d{2}$/.test(d)).sort();return{id:text(b?.id,40),name:text(b?.name,120),subject:text(b?.subject,40),pub:text(b?.pub,40),exam:text(b?.exam,8),kind:text(b?.kind,40),total,done,perTest:Math.max(0,Math.min(400,Math.floor(finite(b?.perTest)))),last:log.at(-1)||""}}).filter(b=>b.id&&b.name&&b.total>0)}
+/* v89: Kitaplarım koça gider. progress içinde: kural değişmez. v91: kapak da gider; yalnız geçerli küçük JPEG
+   (≤12 KB) ve hepsi birlikte en fazla 240 KB, paylaşım kaydı Firestore'un 1 MB sınırından uzak kalsın. */
+const BOOK_COVER_MAX=12000,BOOK_COVER_BUDGET=240000,BOOK_COVER_RE=/^data:image\/jpeg;base64,[A-Za-z0-9+/]+=*$/;
+function booksShare(s){let budget=BOOK_COVER_BUDGET;return list(s?.books).slice(0,60).map(b=>{const total=Math.max(0,Math.min(2000,Math.floor(finite(b?.total)))),done=Math.max(0,Math.min(total,Math.floor(finite(b?.done)))),log=list(b?.log).map(x=>text(x?.d,10)).filter(d=>/^\d{4}-\d{2}-\d{2}$/.test(d)).sort(),out={id:text(b?.id,40),name:text(b?.name,120),subject:text(b?.subject,40),pub:text(b?.pub,40),exam:text(b?.exam,8),kind:text(b?.kind,40),total,done,perTest:Math.max(0,Math.min(400,Math.floor(finite(b?.perTest)))),last:log.at(-1)||""},c=typeof b?.cover==="string"?b.cover:"";if(c.length<=BOOK_COVER_MAX&&c.length<=budget&&BOOK_COVER_RE.test(c)){out.cover=c;budget-=c.length}return out}).filter(b=>b.id&&b.name&&b.total>0)}
 function sharePayload(s,u){
   const topicShare=topicsShare(s),topics=topicShare.items;
   const exams=list(s.denemeler).slice(-24).map(d=>({id:String(d?.id||""),type:text(d?.type,16),name:text(d?.name,100),date:text(d?.date,10),totalNet:finite(d?.totalNet),subjectResults:list(d?.subjectResults).slice(0,16).map(x=>({name:text(x?.name,60),net:finite(x?.net),d:Math.max(0,Math.floor(finite(x?.d))),y:Math.max(0,Math.floor(finite(x?.y))),b:Math.max(0,Math.floor(finite(x?.b)))}))}));
@@ -449,7 +451,7 @@ async function onSignedIn({user,auth,db}){
 function onSignedOut(){cleanup();rt.user=rt.auth=rt.db=rt.profile=null;delete document.documentElement.dataset.accountRole}
 
 let resolveAccountReady;try{window.__YKS_ACCOUNT_READY__=new Promise(resolve=>{resolveAccountReady=resolve})}catch{}
-window.YKSAccountAuth={version:"1.2.31",beforeSignIn,onSignedIn,onSignedOut,publishShare};
+window.YKSAccountAuth={version:"1.2.32",beforeSignIn,onSignedIn,onSignedOut,publishShare};
 try{resolveAccountReady?.(window.YKSAccountAuth)}catch{}
 document.documentElement.dataset.studentCoachingBridge="ready";
-window.dispatchEvent(new CustomEvent("yks:student-coaching-ready",{detail:{version:"1.2.31"}}));
+window.dispatchEvent(new CustomEvent("yks:student-coaching-ready",{detail:{version:"1.2.32"}}));

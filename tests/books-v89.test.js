@@ -85,17 +85,42 @@ test("v89 kapak fotoğrafı: kapağa dokununca seçilir, küçük JPEG olarak sa
   assert.match(ui,/L\.compressImage/,"HEIC dahil mevcut sıkıştırma kullanılır");
 });
 
-test("v89 kitaplar koça progress.books içinde gider: kapak yok, sınırlı, geçersiz kayıt düşer",()=>{
+test("v89/v91 kitaplar koça progress.books içinde gider: küçük kapakla, sınırlı, geçersiz kayıt düşer",()=>{
   const rt=read("public/student-coaching-runtime.js"),vm=require("node:vm");
   const pick=re=>{const m=rt.match(re);assert.ok(m,String(re));return m[0];};
-  const src=[pick(/const text=.*?;\n/),pick(/const list=.*?;\n/),pick(/const finite=.*?;\n/),pick(/function booksShare\(s\)\{.*\n/)].join("")+"booksShare";
+  const src=[pick(/const text=.*?;\n/),pick(/const list=.*?;\n/),pick(/const finite=.*?;\n/),pick(/const BOOK_COVER_MAX=.*\n/),pick(/function booksShare\(s\)\{.*\n/)].join("")+"booksShare";
   const booksShare=vm.runInNewContext(src);
   const out=booksShare({books:[
     {id:7,name:"345 TYT Matematik Soru Bankası",subject:"Matematik",pub:"345",exam:"TYT",kind:"Soru Bankası",total:40,done:99,perTest:13,cover:"data:image/jpeg;base64,AAAA",log:[{d:"2026-11-07",n:1},{d:"2026-11-02",n:2},{d:"bozuk",n:1}]},
     {id:8,name:"",total:10},{id:9,name:"Sıfır testli",total:0},{name:"Eski kaynak",subject:"Fizik",total:20,done:3,log:[]}
   ]});
   assert.equal(out.length,1,"adı, id'si ya da testi olmayan düşer");
-  assert.deepEqual(JSON.parse(JSON.stringify(out[0])),{id:"7",name:"345 TYT Matematik Soru Bankası",subject:"Matematik",pub:"345",exam:"TYT",kind:"Soru Bankası",total:40,done:40,perTest:13,last:"2026-11-07"});
+  assert.deepEqual(JSON.parse(JSON.stringify(out[0])),{id:"7",name:"345 TYT Matematik Soru Bankası",subject:"Matematik",pub:"345",exam:"TYT",kind:"Soru Bankası",total:40,done:40,perTest:13,last:"2026-11-07",cover:"data:image/jpeg;base64,AAAA"});
   assert.equal(booksShare({books:Array.from({length:80},(_,i)=>({id:i+1,name:"K"+i,total:5}))}).length,60);
   assert.match(rt,/books:booksShare\(s\),dayReview:\{entries:dayReviews\}/,"progress içinde, yeni üst alan yok (Firestore kuralı değişmez)");
+});
+
+test("v91 koça giden kapak: yalnız geçerli küçük JPEG, toplam 240 KB bütçe",()=>{
+  const rt=read("public/student-coaching-runtime.js"),vm=require("node:vm");
+  const pick=re=>{const m=rt.match(re);assert.ok(m,String(re));return m[0];};
+  const booksShare=vm.runInNewContext([pick(/const text=.*?;\n/),pick(/const list=.*?;\n/),pick(/const finite=.*?;\n/),pick(/const BOOK_COVER_MAX=.*\n/),pick(/function booksShare\(s\)\{.*\n/)].join("")+"booksShare");
+  const jpeg=n=>"data:image/jpeg;base64,"+"A".repeat(n);
+  const one=cover=>booksShare({books:[{id:1,name:"K",total:5,cover}]})[0].cover;
+  assert.equal(one(jpeg(100)),jpeg(100));
+  assert.equal(one(jpeg(13000)),undefined,"12 KB üstü gitmez");
+  assert.equal(one("data:image/png;base64,AAAA"),undefined,"yalnız JPEG");
+  assert.equal(one('data:image/jpeg;base64,AA"><script>'),undefined,"base64 dışı karakter reddedilir");
+  assert.equal(one(42),undefined);
+  const many=booksShare({books:Array.from({length:30},(_,i)=>({id:i+1,name:"K"+i,total:5,cover:jpeg(11000)}))});
+  const sent=many.filter(b=>b.cover).length;
+  assert.equal(sent,Math.floor(240000/(11000+23)),"bütçe dolunca kalanlar kapaksız gider");
+  assert.ok(many.slice(sent).every(b=>!("cover" in b)),"Firestore undefined almaz: alan hiç eklenmez");
+});
+
+test("v91 kitap eklerken kapak çekilebilir; kapak işlenemezse kitap yine eklenir",()=>{
+  const ui=read("src/ui/books-v89.ts");
+  assert.match(ui,/<input id="bk89Cover" name="cover" type="file" accept="image\/\*" capture="environment">/);
+  assert.match(ui,/if\(file instanceof File&&file\.size>0\)/);
+  assert.match(ui,/try\{book\.cover=await coverFromFile\(file\);\}catch\{toast\("Kapak işlenemedi · kitap kapaksız eklendi"\);\}/);
+  assert.match(ui,/dialog\.addEventListener\("submit",event=>\{void onSubmit\(event\);\}\)/);
 });
