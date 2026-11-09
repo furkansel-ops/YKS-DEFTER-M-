@@ -1,5 +1,5 @@
 import "./books-v89.css";
-import {searchCatalog,catalog,parseRealCatalog,isCoverUrl,createBook,advanceBook,bookStats,bookFinishDays,bookQuestions,initials,BOOK_SUBJECTS,type BookRecord,type CatalogItem} from "../domain/book-catalog.ts";
+import {searchCatalog,catalog,parseRealCatalog,isCoverUrl,createBook,advanceBook,bookStats,bookFinishDays,bookQuestions,bookTaskEnd,initials,BOOK_SUBJECTS,type BookRecord,type CatalogItem} from "../domain/book-catalog.ts";
 
 /* v89 · Kitaplarım: Merkez'den açılan pencere. Kitap listesi, ilerleme ve "Kitap Ekle" araması.
    Veri eski S.books dizisinde kalır; "+1 test" o testin sorularını bugünün soru sayısına (S.solved) ekler. */
@@ -140,6 +140,20 @@ function update(id:number,fn:(b:BookRecord)=>BookRecord|null):void{
   const s=state(),list=books(),i=list.findIndex(b=>Number(b.id)===id);if(i<0)return;
   const next=fn(list[i]!);s.books=next?list.map((b,j)=>j===i?next:b):list.filter((_,j)=>j!==i);
 }
+/* v98: koçun bu kitaptan verdiği program görevi, istenen son teste ulaşılınca kendiliğinden işaretlenir. */
+function completeBookTasks(book:BookRecord):number{
+  const weeks=state().weeks,setDone=L.programSetCellDone as ((wk:string,cid:string,done:boolean)=>boolean)|undefined;
+  if(!weeks||typeof weeks!=="object"||typeof setDone!=="function")return 0;
+  let n=0;
+  for(const [wk,w] of Object.entries(weeks as Record<string,Loose>))for(const blk of ["r","s"]){
+    (Array.isArray(w?.[blk])?w[blk] as unknown[][]:[]).forEach((row,i)=>(Array.isArray(row)?row:[]).forEach((txt,d)=>{
+      const cid=blk+"-"+i+"-"+d,end=bookTaskEnd(String(txt??""),book.name);
+      if(end!=null&&book.done>=end&&!w.dn?.[cid]&&setDone(wk,cid,true))n++;
+    }));
+  }
+  if(n)try{(L.renderAll as (()=>void)|undefined)?.();}catch(error){console.error("v98 renderAll",error);}
+  return n;
+}
 function onClick(event:Event):void{
   const target=event.target instanceof Element?event.target.closest<HTMLElement>("[data-act]"):null;if(!target)return;
   const act=target.dataset.act,id=Number(target.closest<HTMLElement>("[data-id]")?.dataset.id);
@@ -151,11 +165,13 @@ function onClick(event:Event):void{
   if(act==="pick"){draft=searchCatalog(query,subject,60,source()).items[Number(target.dataset.i)]??null;if(draft){view="form";render();void applySharedCounts(draft);}return;}
   if(act==="manual"){draft={key:"",name:query.trim(),pub:"",subject:subject||"Matematik",exam:"",kind:"",color:""};view="form";render();return;}
   if(act==="plus"){
-    let questions=0,finished=false;const day=today();
-    update(id,b=>{const r=advanceBook(b,Number(target.dataset.n),day);questions=r.questions;finished=r.book.done>=r.book.total&&b.done<b.total;return r.book;});
+    let questions=0,finished=false,moved:BookRecord|null=null;const day=today(),n=Number(target.dataset.n);
+    update(id,b=>{const r=advanceBook(b,n,day);questions=r.questions;finished=r.book.done>=r.book.total&&b.done<b.total;if(r.book!==b)moved=r.book;return r.book;});
     if(questions){const s=state();if(!s.solved||typeof s.solved!=="object")s.solved={};s.solved[day]=Math.max(0,(Number(s.solved[day])||0)+questions);}
-    changed(questions);render();
-    if(finished)toast("🎉 Kitap bitti!");else if(questions)toast((questions>0?"+":"")+questions+" soru bugüne eklendi");
+    changed(questions);
+    const tasks=moved&&n>0?completeBookTasks(moved):0;render();
+    const extra=tasks?" · koçun görevi tamamlandı ✓":"";
+    if(finished)toast("🎉 Kitap bitti!"+extra);else if(questions)toast((questions>0?"+":"")+questions+" soru bugüne eklendi"+extra);else if(tasks)toast("Koçun kitap görevi tamamlandı ✓");
     return;
   }
   if(act==="per"){

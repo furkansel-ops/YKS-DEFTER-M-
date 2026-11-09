@@ -5,7 +5,7 @@ import {installStudyInsightsPanel} from "./study-insights-panel.ts";
 import {achievementOverview,badgeProgressPercent} from "../domain/achievement-overview.ts";
 import "./study-gamification.css";
 import {renderRankHero,renderTodayXp,careerSummary} from "./career-rank-v77.ts";
-import {computeExamRanks} from "../domain/exam-rank.ts";
+import {computeExamRanks,leagueUp} from "../domain/exam-rank.ts";
 
 type LegacyWindow=Window&{
   YKSLegacyState?:{readState?:()=>StudyGamificationState|null;save?:()=>unknown};
@@ -22,6 +22,7 @@ let activeTab:CareerTab="general",badgeFilter:BadgeFilter="all",badgeSort:BadgeS
   badgeQuery="",editing=false,renderQueued=false;
 let previousProfileKey="";
 let previousLevel=0;
+let previousLeagues:Record<string,number>|null=null;
 
 function node<K extends keyof HTMLElementTagNameMap>(tag:K,className="",value=""):HTMLElementTagNameMap[K]{
   const element=document.createElement(tag);
@@ -773,7 +774,7 @@ function refresh():void{
   let snapshot=calculateStudyGamification(state);
   const profile=state.gamification;
   const profileKey=profile?.activatedAt?String(profile.activatedAt):"inactive";
-  if(previousProfileKey!==profileKey){previousProfileKey=profileKey;previousLevel=0;activeTab="general";
+  if(previousProfileKey!==profileKey){previousProfileKey=profileKey;previousLevel=0;previousLeagues=null;activeTab="general";
     badgeFilter="all";badgeSort="nearest";badgeQuery="";editing=false;}
   // Tekil rozet kimliği saklanır; her yeniden çizimde aynı ödül yazılmaz.
   if(snapshot.activated&&profile&&snapshot.newBadgeIds.length){
@@ -795,6 +796,9 @@ function refresh():void{
   }
   if(previousLevel>0&&snapshot.level>previousLevel)celebrate("⚡ Seviye "+snapshot.level,"Seviye atladın! Böyle devam.","✨");
   previousLevel=snapshot.level;
+  // v98: deneme rankında yeni lige çıkınca kutlama (en son gösterilir, rozet/seviye kutlamasının yerine geçer).
+  const league=leagueUp(previousLeagues,computeExamRanks(state as Record<string,unknown>));previousLeagues=league.leagues;
+  if(league.up)celebrate("🏅 "+league.up.label+" · "+league.up.name,"Yeni lige çıktın! Son "+league.up.samples+" denemenin ortalaması "+String(league.up.net).replace(".",",")+" net.","🏅","Altın");
   render(snapshot,root);
   renderTodayTeaser(snapshot);
   renderSettingsOverview(snapshot);

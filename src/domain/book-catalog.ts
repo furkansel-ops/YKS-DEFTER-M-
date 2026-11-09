@@ -89,6 +89,12 @@ export function advanceBook(book:BookRecord,n:number,day:string):{book:BookRecor
   const log=[...(book.log??[]),{d:day,n:delta}].slice(-400);
   return {book:{...book,done,log},questions:delta*(book.perTest??0)};
 }
+/** Koçun kitap görevi ("📚 Ad · 18–20. testler · 39 soru") hangi teste kadar; bu kitabın görevi değilse null. */
+export function bookTaskEnd(text:string,name:string):number|null{
+  const head="📚 "+name.trim().slice(0,120)+" · ",i=text.indexOf(head);if(i<0)return null;
+  const m=/^(?:\d+[–-])?(\d+)\. test/.exec(text.slice(i+head.length));
+  return m?Number(m[1]):null;
+}
 export function bookQuestions(book:BookRecord):number{return book.done*(book.perTest??0);}
 export function bookStats(books:readonly BookRecord[]):{books:number;finished:number;questions:number}{
   return {books:books.length,finished:books.filter(b=>b.total>0&&b.done>=b.total).length,questions:books.reduce((s,b)=>s+bookQuestions(b),0)};

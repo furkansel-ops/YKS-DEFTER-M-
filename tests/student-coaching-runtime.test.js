@@ -288,3 +288,18 @@ test("student sharing preserves rows above 24 and never sends nested row arrays"
   assert.equal(Object.keys(program.weeks[0].data.s).length,2,"empty rows stay sparse");
   assert.equal(program.rowLabels.s[35],"Ders 36");
 });
+
+test("v98 koçun eklediği kitap Kitaplarım'a doğrulanarak eklenir; aynı ad ikinci kez eklenmez, bozuk kayıt reddedilir",()=>{
+  const h=harness(),apply=p=>h.window.testApplyAction({type:"coach_note",coachUid:"coach-1",payload:{operation:"book_add",text:"Kitap önerisi · x",...p}});
+  h.state.books=[{id:1,name:"Eski Kitap",subject:"Fizik",total:10,done:2,log:[],topic:""}];
+  assert.equal(apply({name:" 345 TYT Matematik <b>SB</b> ",subject:"Matematik",pub:"345",exam:"TYT",kind:"Soru Bankası",total:"40",perTest:13,coverUrl:"https://cdn.kitapsec.com/image/urun/2024/a.jpg"}),"Uygulandı");
+  const b=h.state.books[1];
+  assert.equal(h.state.books.length,2);assert.equal(h.state.books[0].name,"Eski Kitap","eski kitap korunur");
+  assert.equal(b.name,"345 TYT Matematik <b>SB</b>");assert.equal(b.total,40);assert.equal(b.done,0);assert.equal(b.perTest,13);assert.equal(b.log.length,0);
+  assert.equal(b.coverUrl,"https://cdn.kitapsec.com/image/urun/2024/a.jpg");assert.equal(typeof b.id,"number");
+  assert.equal(apply({name:"345 tyt matematik <B>SB</B>",total:5,perTest:5}),"Kitap zaten Kitaplarım'da");assert.equal(h.state.books.length,2);
+  apply({name:"Kapaksız",total:3,perTest:10,coverUrl:"https://kotu.example/a.jpg"});assert.equal(h.state.books[2].coverUrl,undefined,"yalnız Kitapseç kapağı");
+  assert.equal(h.state.books[2].subject,"Matematik");
+  for(const bad of [{name:"",total:3,perTest:3},{name:"A",total:0,perTest:3},{name:"A",total:3,perTest:401},{name:"A",total:"x",perTest:3}])assert.throws(()=>apply(bad),/Kitap bilgisi geçersiz/);
+  h.window.save=()=>false;assert.throws(()=>apply({name:"Kaydedilemeyen",total:3,perTest:3}),/kaydedilemedi/);assert.equal(h.state.books.length,3,"kaydedilemeyince geri alınır");
+});

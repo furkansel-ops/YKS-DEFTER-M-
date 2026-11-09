@@ -98,6 +98,12 @@ export function computeExamRanks(state:Loose|null|undefined):ExamRanks{
   };
 }
 
+/** v98 · Lig bildirimi: önceki liglerle karşılaştırır; ilk ölçümde (previous null) ya da yeni sınav türünde bildirim yok. */
+export function leagueUp(previous:Record<string,number>|null,ranks:ExamRanks):{leagues:Record<string,number>;up:RankResult|null}{
+  const list=[ranks.tyt,ranks.ayt,ranks.ydt].filter((r):r is RankResult=>!!r);
+  return {leagues:Object.fromEntries(list.map(r=>[r.exam,r.league])),up:previous?list.find(r=>r.league>(previous[r.exam]??r.league))??null:null};
+}
+
 /** Koç ve kısa gösterimler için özet. */
 export function rankSummary(rank:RankResult|null):{label:string;name:string;net:number;league:number;tier:number}|null{
   return rank?{label:rank.label,name:rank.name,net:rank.net,league:rank.league,tier:rank.tier}:null;

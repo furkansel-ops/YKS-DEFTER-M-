@@ -385,6 +385,17 @@ function applyAction(a){
     s.coachRecommendations.push(next);s.coachRecommendations=s.coachRecommendations.slice(-40);
     if(save()===false)throw new Error("Kaynak önerisi kaydedilemedi");
     window.dispatchEvent(new CustomEvent("yks:coach-recommendations-changed",{detail:{key}}));
+  }else if(a.type==="coach_note"&&p.operation==="book_add"){
+    // v98: koçun seçtiği kitap Kitaplarım'a eklenir (kural değişmesin diye coach_note; eski sürüm bunu not olarak kaydeder).
+    const name=text(p.name,120),total=Math.floor(finite(p.total)),perTest=Math.floor(finite(p.perTest)),coverUrl=text(p.coverUrl,200);
+    if(!name||!(total>=1&&total<=2000)||!(perTest>=1&&perTest<=400))throw new Error("Kitap bilgisi geçersiz");
+    const books=list(s.books),same=name.toLocaleLowerCase("tr-TR");
+    if(books.some(b=>text(b?.name,120).toLocaleLowerCase("tr-TR")===same))return"Kitap zaten Kitaplarım'da";
+    let id=Date.now();while(books.some(b=>Number(b?.id)===id))id++;
+    s.books=[...books,{id,name,subject:text(p.subject,40)||"Matematik",total,done:0,log:[],topic:"",pub:text(p.pub,40),exam:text(p.exam,8),kind:text(p.kind,40),perTest,createdAt:id,
+      ...(/^https:\/\/cdn\.kitapsec\.com\/image\/urun\/[A-Za-z0-9/_.-]+\.(?:jpe?g|png|webp|gif)$/i.test(coverUrl)?{coverUrl}:{})}];
+    if(save()===false){s.books=books;throw new Error("Kitap kaydedilemedi")}
+    window.dispatchEvent(new CustomEvent("yks:data-changed",{detail:{source:"coach-book"}}));
   }else if(a.type==="coach_note"){
     const v=text(p.text,500);if(!v)throw new Error("Not boş");s.coachNotes??=[];s.coachNotes.push({id:`coach-${Date.now()}`,at:Date.now(),coachUid:a.coachUid,text:v});s.coachNotes=s.coachNotes.slice(-80);save();
   }else if(a.type==="resource_recommendation"){
@@ -415,7 +426,7 @@ async function handleAction(change,session=rt.session){
     requireSession(session);
     await updateDoc(change.doc.ref,{status:"applied",updatedAt:serverTimestamp(),handledAt:serverTimestamp(),result});
     if(session!==rt.session)return;
-    toast(a.type==="resource_recommendation"||(a.type==="coach_note"&&a.payload?.operation==="resource_recommendation")?"Koçundan yeni video önerisi geldi ✓":"Koçundan yeni görev/not geldi ✓");scheduleShare(60);
+    toast(a.type==="resource_recommendation"||(a.type==="coach_note"&&a.payload?.operation==="resource_recommendation")?"Koçundan yeni video önerisi geldi ✓":a.payload?.operation==="book_add"?"Koçun Kitaplarım'a kitap ekledi 📚":"Koçundan yeni görev/not geldi ✓");scheduleShare(60);
   }catch(error){
     if(session!==rt.session)return;
     try{await updateDoc(change.doc.ref,{status:"rejected",updatedAt:serverTimestamp(),handledAt:serverTimestamp(),result:text(error?.message||"Uygulanamadı",500)})}catch{}
@@ -470,7 +481,7 @@ async function bookCountPropose(bookId,tests,perTest){
   try{if((await getDoc(doc(rt.db,"bookCounts",bookId))).exists())return false;await setDoc(doc(rt.db,"bookCounts",bookId),{tests:t,perTest:q,createdAt:serverTimestamp()});return true}
   catch(error){console.warn("Kitap sayıları paylaşılamadı",error?.code||error);return false}
 }
-window.YKSAccountAuth={version:"1.2.35",beforeSignIn,onSignedIn,onSignedOut,publishShare,bookCounts:{get:bookCountGet,propose:bookCountPropose}};
+window.YKSAccountAuth={version:"1.2.36",beforeSignIn,onSignedIn,onSignedOut,publishShare,bookCounts:{get:bookCountGet,propose:bookCountPropose}};
 try{resolveAccountReady?.(window.YKSAccountAuth)}catch{}
 document.documentElement.dataset.studentCoachingBridge="ready";
-window.dispatchEvent(new CustomEvent("yks:student-coaching-ready",{detail:{version:"1.2.35"}}));
+window.dispatchEvent(new CustomEvent("yks:student-coaching-ready",{detail:{version:"1.2.36"}}));
