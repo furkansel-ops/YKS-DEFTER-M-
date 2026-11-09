@@ -1143,7 +1143,8 @@ function renderSmartInsights(){ const w=el("smartInsightBox"); if(!w)return; con
 function reviewScheduleHTML(t){ if(!t||t.st!==3||!t.ts)return ""; const now=todayKey(); return '<span class="review-schedule">'+REVIEW_GAPS.map((gap,gi)=>{ const done=(t.rev||[]).indexOf(gi)>=0,due=addDaysKey(t.ts,gap),isDue=!done&&due<=now; return '<span class="review-step '+(done?'done':isDue?'due':'')+'">'+gap+'. gün'+(done?' ✓':'')+'</span>'; }).join('')+'</span>'; }
 
 function renderHome(){
-  el("greeting").textContent=S.name?"Merhaba, "+S.name:"Merhaba";
+  const hr=new Date().getHours(),hi=hr>=5&&hr<12?"Günaydın":hr>=12&&hr<18?"İyi günler":"İyi akşamlar";
+  el("greeting").textContent=S.name?hi+", "+S.name:hi;
   const d=daysUntil(S.examDate),ph=phaseOf(d);
   el("countdown").textContent=d>=0?d:0;
   el("phaseTitle").textContent=ph.t;

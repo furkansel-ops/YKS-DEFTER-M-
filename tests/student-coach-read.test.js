@@ -80,8 +80,8 @@ test("koç bağlantısı kapanınca iki dinleyici de kapanır; hesap silinince o
   assert.equal(t.state.messages.length,0);assert.equal(t.state.reads.size,0);
   const profile=read("src/ui/profile-page-v62.ts");
   assert.match(profile,/try\{\s*const reads=await byStudent\("coachingReads"\);\s*for\(const item of reads\.docs\)await fs\.deleteDoc\(item\.ref\);\s*\}catch\(error\)\{if\(!String\(\(error as \{code\?:string\}\)\?\.code\|\|""\)\.includes\("permission-denied"\)\)throw error;\}/);
-  assert.match(read("src/ui/student-account-loader.ts"),/"\.\/student-coach-link\.js\?v=1\.4\.0"/);
-  assert.match(source,/detail:\{version:"1\.4\.0"\}/);
+  assert.match(read("src/ui/student-account-loader.ts"),/"\.\/student-coach-link\.js\?v=1\.5\.0"/);
+  assert.match(source,/detail:\{version:"1\.5\.0"\}/);
 });
 
 test("Firestore: okundu kaydını her taraf yalnız kendi alanıyla ve sunucu zamanıyla yazar",()=>{

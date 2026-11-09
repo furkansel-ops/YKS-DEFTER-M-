@@ -482,7 +482,8 @@ function renderGuestBanner():void{
   const visible=store(ENTRY_KEY)==="guest"&&!store(GUEST_BANNER_KEY)&&!signedInNow();
   if(!visible){existing?.remove();return;}
   if(existing)return;
-  const host=document.getElementById("todayFreshStart");
+  // v101: uyarı Bugün'den Merkez'in başına taşındı.
+  const host=document.getElementById("more");
   if(!host)return;
   const banner=document.createElement("div");
   banner.id=GUEST_ID;

@@ -113,6 +113,7 @@ function msgTime(value){if(!value)return"";try{const d=value?.toDate?.()||new Da
 function stopMessages(){
   try{state.messageStop?.()}catch{}try{state.readStop?.()}catch{}state.readObserver?.disconnect?.();
   Object.assign(state,{messageStop:null,readStop:null,readObserver:null,readChat:null,chatInView:false,activeCoachUid:"",messages:[],reads:new Map(),readPending:0});
+  announceUnread();
 }
 // v1.4 · Okundu: coachingReads/{koçUid_öğrenciUid} iki tarafın son okuma zamanını tutar (mesajlar değiştirilemez).
 // Öğrenci, sohbet ekranda ve sekme açıkken okumuş sayılır; yalnız kendi alanını sunucu zamanıyla yazar.
@@ -136,6 +137,12 @@ function markStudentRead(){
   setDoc(doc(state.db,"coachingReads",coachUid+"_"+state.user.uid),{coachUid,studentUid:state.user.uid,studentReadAt:serverTimestamp()},{merge:true})
     .catch(error=>{console.error("Okundu yazılamadı",error);state.readPending=0});
 }
+// v1.5 · Bugün'deki "Koçundan yeni mesaj" satırı için: öğrencinin son okumasından sonraki koç mesajları.
+function announceUnread(){
+  const seenAt=readMillis(state.reads.get(state.activeCoachUid)?.studentReadAt);
+  const fresh=state.messages.filter(m=>m.senderRole==="coach"&&readMillis(m.createdAt)>seenAt);
+  window.dispatchEvent(new CustomEvent("yks:coach-unread",{detail:{count:fresh.length,text:String(fresh.at(-1)?.text||"").slice(0,140)}}));
+}
 function renderThread(){
   const thread=document.getElementById("studentCoachCodeSettings")?.querySelector("[data-coach-thread]");if(!thread)return;
   const rows=state.messages,read=state.reads.get(state.activeCoachUid)||{},readAt=readMillis(read.coachReadAt),lastOwn=rows.map(m=>m.senderRole).lastIndexOf("student");
@@ -145,7 +152,7 @@ function renderThread(){
       +(index===lastOwn?`<p class="scl-status${seen?" is-read":""}">${seen?"Okundu · "+esc(msgTime(read.coachReadAt)):"Gönderildi"}</p>`:"");
   }).join(""):'<div class="scl-chat-empty">Henüz mesaj yok. Koçuna ilk mesajı gönderebilirsin.</div>';
   requestAnimationFrame(()=>{thread.scrollTop=thread.scrollHeight});
-  markStudentRead();
+  markStudentRead();announceUnread();
 }
 function startMessages(coachUid,coachName="Koç"){
   const card=document.getElementById("studentCoachCodeSettings"),thread=card?.querySelector("[data-coach-thread]"),title=card?.querySelector("[data-coach-chat-title]");
@@ -218,7 +225,7 @@ function install(){
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")markStudentRead()});
   window.addEventListener("yks:data-changed",()=>{if(state.profile?.role==="student"){ensureStudentSettings();if(document.getElementById("studentCoachCodeSettings"))void renderStudentSettings()}});window.addEventListener("click",event=>{const el=event.target?.closest?.('[onclick*="settings"],[onclick*="setMoreTab"]');if(el)setTimeout(()=>ensureStudentSettings(),0)},true);
   document.documentElement.dataset.studentCoachLink="ready";
-  window.dispatchEvent(new CustomEvent("yks:student-coach-link-ready",{detail:{version:"1.4.0"}}));
+  window.dispatchEvent(new CustomEvent("yks:student-coach-link-ready",{detail:{version:"1.5.0"}}));
   return true;
 }
 install();
