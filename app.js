@@ -772,8 +772,8 @@ function markReview(key,gi){
    Sade Mavi (refined-blue), Gece (night) ve Canlı (vivid). Renkler yalnız görsel
    belirteçleri değiştirir; program, deneme ve koç kayıtları için ayrı yazma yoktur. */
 const YKS_THEME_IDS=["refined-blue","night","vivid"];
-const YKS_THEME_NAMES={"refined-blue":"Sade Mavi",night:"Gece",vivid:"Canlı"};
-const YKS_THEME_META={"refined-blue":"#f5f7fb",night:"#192134",vivid:"#fff0e4"};
+const YKS_THEME_NAMES={"refined-blue":"Glassy",night:"Gece",vivid:"Canlı"}; // v99: kimlik aynı, görünüm Glassy
+const YKS_THEME_META={"refined-blue":"#f1ecfb",night:"#192134",vivid:"#fff0e4"};
 let yksThemeLastApplied="";
 function yksThemeValue(value){
   if(value==="dark"||value==="graphite")return "night";
@@ -796,7 +796,8 @@ function applyTheme(){
   S.theme=active;
   const root=document.documentElement;
   root.dataset.visualSystem="refined-blue"; // Ortak yerleşim; tema paleti ve vurguları değiştirir.
-  root.dataset.theme=active;
+  // v99: açık tema ekranda "glassy" adını alır; Gece/Canlı'nın eski ekran düzeltmeleri ona da uygulanır. Kayıt "refined-blue" kalır.
+  root.dataset.theme=active==="refined-blue"?"glassy":active;
   root.dataset.themeControl="multiple";
   root.style.colorScheme=active==="night"?"dark":"light";
   const mt=el("metaTheme");

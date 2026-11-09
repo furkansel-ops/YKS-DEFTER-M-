@@ -47,5 +47,5 @@ test("v85 açılış ekranı ve tarayıcı çubuğu yeni zemin rengiyle açılı
   assert.match(html,/html\[data-boot-theme="night"\] #yksBootShell \.yks-boot-card\{background:#222c46;border-color:#3a4769/);
   assert.match(html,/html\[data-boot-theme="vivid"\],html\[data-boot-theme="vivid"\] #yksBootShell\{background:#fff0e4\}/);
   assert.match(html,/h==="night"\?"#192134":"#fff0e4"/);
-  assert.match(app,/const YKS_THEME_META=\{"refined-blue":"#f5f7fb",night:"#192134",vivid:"#fff0e4"\};/);
+  assert.match(app,/const YKS_THEME_META=\{"refined-blue":"#f1ecfb",night:"#192134",vivid:"#fff0e4"\};/,"v99: açık tema Glassy zemini");
 });

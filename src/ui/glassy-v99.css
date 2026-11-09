@@ -1,0 +1,45 @@
+/* v99 · Glassy: açık tema mor + cam görünüme geçer. Kayıtta tema "refined-blue" kalır, ekranda data-theme="glassy"
+   olur; böylece Gece/Canlı için yazılmış eski ekran düzeltmeleri (theme-choices-v45, theme-contrast-v49/v50) Glassy'yi
+   de boyar. Gece ve Canlı değişmez. Yalnız görünüm: DOM ve işleyiciler aynı.
+   :not(#g) yalnız özgüllük içindir (eski temaların 0,5,0'lık kurallarının önüne geçmek için). */
+:root[data-theme="glassy"]{
+  --yks-theme-bg:#f1ecfb;--yks-theme-surface:#fdfbff;--yks-theme-soft:#f3edff;
+  --yks-theme-ink:#1d1538;--yks-theme-muted:#5c5478;--yks-theme-line:#e6dcfa;
+  --yks-theme-accent:#7c3aed;--yks-theme-deep:#5b21b6;--yks-theme-on:#fff;
+  --g-glass:rgba(255,255,255,.62);--g-edge:rgba(255,255,255,.78);
+  --g-grad:linear-gradient(135deg,#9b6bff 0%,#7c3aed 48%,#5b21b6 100%);
+  --g-shadow:0 12px 32px -18px rgba(91,33,182,.32);
+  /* v66 belirteçleri */
+  --d-bg:#f1ecfb;--d-surface:#fdfbff;--d-soft:#f3edff;--d-ink:#1d1538;--d-muted:#5c5478;--d-line:#e6dcfa;
+  --d-accent:#7c3aed;--d-on-accent:#fff;--d-chip:#ece3ff;--d-chip-ink:#5b21b6;--d-track:#e9e0fb;--d-ok:#15803d;
+  --d-hero:var(--g-grad);--d-hero-ink:#fff;--d-hero-btn:#fff;--d-hero-btn-ink:#5b21b6;--d-hero-ghost:rgba(255,255,255,.2);
+  --d-launch:linear-gradient(160deg,#9b6bff 0%,#7c3aed 48%,#4c1d95 100%);
+  --d-r:22px;--d-r-sm:16px;--d-shadow:var(--g-shadow);--d-nav:rgba(255,255,255,.66);
+  --d-math:#7c3aed;--d-reading:#c2417a;--d-biology:#a21caf;
+  background:#f1ecfb;
+}
+/* Arka plan: lavanta üstünde iki yumuşak mor ışık; kaydırırken yerinde durur. */
+:root[data-theme="glassy"]:not(#g) body{
+  background:radial-gradient(520px 520px at 0% 0%,rgba(167,139,250,.5),transparent 70%),
+    radial-gradient(620px 620px at 100% 100%,rgba(124,58,237,.28),transparent 70%),#f1ecfb;
+  background-attachment:fixed;
+}
+/* Cam kartlar: yalnız ana kartlar bulanık arka planlı; iç satırlar ve pencereler opak kalır (okunurluk). */
+:root[data-theme="glassy"]:not(#g) body :is(.card,.hero,.stat,.focuscard,.streaks .sk,.yms-card,.yms-category-list){
+  background:var(--g-glass);border-color:var(--g-edge);box-shadow:var(--g-shadow);
+  -webkit-backdrop-filter:blur(18px) saturate(140%);backdrop-filter:blur(18px) saturate(140%);
+}
+:root[data-theme="glassy"]:not(#g) body :is(.navbar,.tabbar){
+  background:rgba(255,255,255,.62);border-color:var(--g-edge);
+  -webkit-backdrop-filter:blur(18px) saturate(140%);backdrop-filter:blur(18px) saturate(140%);
+}
+/* Seçili menü: mor degrade dolgu */
+:root[data-theme="glassy"]:not(#g) body .tabbar .tab.active{background:var(--g-grad);color:#fff;box-shadow:0 10px 20px -10px rgba(91,33,182,.7)}
+:root[data-theme="glassy"]:not(#g) body .tabbar .tab.active :is(.ic,.tl,svg){background:transparent;color:#fff}
+:root[data-theme="glassy"]:not(#g) body .tabbar .tab.active::before{display:none}
+/* Bugün'de eski katmanlardan kalan sabit maviler */
+:root[data-theme="glassy"]:not(#g) #home :is(#todayFreshInsightsAll,#todayFreshInsightsAll span,#todayFreshRecentFocus){color:var(--yks-theme-accent)}
+:root[data-theme="glassy"]:not(#g) #home :is(.today-fresh-week-label,.today-fresh-review-label,#todayFreshReflectionInput){color:var(--yks-theme-ink)}
+:root[data-theme="glassy"]:not(#g) #home #todayFreshReflectionCounter{color:var(--yks-theme-muted)}
+/* Ana düğmeler */
+:root[data-theme="glassy"]:not(#g) body :is(.btn.primary,.yms-actions .primary){background:var(--g-grad);color:#fff;border-color:transparent;box-shadow:0 10px 20px -12px rgba(91,33,182,.7)}

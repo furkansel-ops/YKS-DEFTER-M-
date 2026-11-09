@@ -62,10 +62,10 @@ test("üç tema: kayıtlar değişmeden açılışta tercih korunur",()=>{
   assert.equal(JSON.stringify({weeks:h.state.weeks,denemeler:h.state.denemeler,fontScale:h.state.fontScale}),original);
 });
 
-test("eski temalar açılışta üç temaya taşınır: koyular Gece'ye, diğerleri Sade Mavi'ye",()=>{
-  for(const [old,next,meta] of [["graphite","night","#192134"],["dark","night","#192134"],["auto","refined-blue","#f5f7fb"],["forest","refined-blue","#f5f7fb"],["paper","refined-blue","#f5f7fb"],["notebook","refined-blue","#f5f7fb"]]){
+test("eski temalar açılışta üç temaya taşınır: koyular Gece'ye, diğerleri açık temaya (v99: ekranda glassy)",()=>{
+  for(const [old,next,meta] of [["graphite","night","#192134"],["dark","night","#192134"],["auto","refined-blue","#f1ecfb"],["forest","refined-blue","#f1ecfb"],["paper","refined-blue","#f1ecfb"],["notebook","refined-blue","#f1ecfb"]]){
     const h=harness(old);h.run("applyTheme()");
-    assert.equal(h.state.theme,next,old);assert.equal(h.doc.documentElement.dataset.theme,next,old);assert.equal(h.header.content,meta,old);
+    assert.equal(h.state.theme,next,old);assert.equal(h.doc.documentElement.dataset.theme,next==="refined-blue"?"glassy":next,old);assert.equal(h.header.content,meta,old);
     assert.equal(h.saveCount,0,"taşıma açılışta ekstra yazma yapmaz");
   }
   const h=harness("night");h.run("applyTheme()");
