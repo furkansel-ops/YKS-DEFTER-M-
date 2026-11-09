@@ -1,0 +1,19 @@
+/* v100 yeni harita: menüde 5 başlık. Konular, İlerleme ve P&P Gelişim/Çalış altına girer (ekranları aynı). */
+:root[data-visual-system] body .tabbar .tab:is([data-s="topics"],[data-s="progress"],[data-s="pp"]){display:none}
+:root[data-visual-system] body .tabbar .tab[data-s="pomo"]{display:flex}
+:root[data-visual-system] body .tabbar .tab[data-s="home"]{order:1}:root[data-visual-system] body .tabbar .tab[data-s="program"]{order:2}
+:root[data-visual-system] body .tabbar .tab[data-s="pomo"]{order:3}:root[data-visual-system] body .tabbar .tab[data-s="deneme"]{order:4}
+:root[data-visual-system] body .tabbar .tab[data-s="more"]{order:5}
+/* Bilgisayar yan menüsü: eski grup başlıkları (Çalışma/Takip) kalkar; sıra Bugün, Program, Çalış, Gelişim, Ben */
+:root[data-visual-system] body .tabbar .tab[data-s]::after{content:none}
+@media(min-width:1280px){:root[data-visual-system] body .tabbar .tab[data-s]{margin-top:0}:root[data-visual-system] body .tabbar .tab[data-s="home"]{margin-top:8px}}
+/* Gelişim şeridi: Denemeler · Konular · İstatistik */
+.v100-growth[hidden]{display:none}
+.v100-growth{display:flex;gap:4px;margin:0 0 14px;padding:4px;border:1px solid var(--d-line);border-radius:14px;background:var(--d-surface)}
+.v100-growth button{flex:1;min-height:40px;padding:0 10px;border:0;border-radius:10px;background:transparent;color:var(--d-muted);font:inherit;font-size:14px;font-weight:750;cursor:pointer}
+.v100-growth button[aria-current="page"]{background:var(--d-accent);color:var(--d-on-accent)}
+.v100-growth button:focus-visible,.v100-work button:focus-visible{outline:3px solid color-mix(in srgb,var(--d-accent) 60%,transparent);outline-offset:2px}
+/* Çalış: kayıt kısayolları */
+.v100-work{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 14px}
+.v100-work button{display:grid;gap:2px;min-height:56px;padding:10px 12px;border:1px solid var(--d-line);border-radius:var(--d-r-sm,16px);background:var(--d-surface);color:var(--d-ink);font:inherit;text-align:left;cursor:pointer}
+.v100-work b{font-size:14px}.v100-work small{font-size:12px;color:var(--d-muted)}

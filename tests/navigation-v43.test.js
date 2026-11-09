@@ -28,16 +28,17 @@ test("Merkez mevcut v30Action alt sayfalarını korur ve Analiz Merkezi için ay
 
 test("Daha navigasyonu Merkez olarak sadeleşir ve eski kalabalık kartlar yalnız görünümde gizlenir",()=>{
   const ui=read("src/ui/navigation-v43.ts"),css=read("src/ui/navigation-v43.css");
-  assert.match(ui,/textContent="Merkez"/);assert.match(ui,/setAttribute\("aria-label","Merkez"\)/);
+  // v100: Merkez yeni haritada "Ben" adını aldı.
+  assert.match(ui,/textContent="Ben"/);assert.match(ui,/setAttribute\("aria-label","Ben"\)/);
   assert.match(ui,/v43LegacyHidden/);assert.match(ui,/v30-menu-grid/);assert.match(ui,/v30QuickGrid/);
   assert.match(css,/v43-more-group-label/);assert.match(css,/\.v43-more-shortcuts\{display:grid;grid-template-columns:repeat\(4/);assert.match(css,/pointer:coarse/);assert.match(css,/prefers-reduced-motion:reduce/);
 });
 
 test("Merkez yalnız ilgili ekran olaylarında yenilenir; tüm document ağacını gözlemez",()=>{
   const ui=read("src/ui/navigation-v43.ts");
-  assert.match(ui,/label&&label\.textContent!=="Merkez"/);
-  assert.match(ui,/back\.textContent!=="‹ Merkez"/);
-  assert.match(ui,/title\.textContent!=="Merkez"/);
+  assert.match(ui,/label&&label\.textContent!=="Ben"/);
+  assert.match(ui,/back\.textContent!=="‹ Ben"/);
+  assert.match(ui,/title\.textContent!=="Ben"/);
   assert.match(ui,/detail\?\.to==="more"/);
   assert.match(ui,/detail\?\.to==="home"/);
   assert.doesNotMatch(ui,/new MutationObserver/);

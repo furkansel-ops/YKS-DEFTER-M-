@@ -9,10 +9,11 @@ export function installRefinedSecondary(){
   const focus=document.getElementById("pomo");
   if(focus){
     const title=document.createElement("h1");title.className="rb-secondary-title";title.textContent="Odaklan";
-    focus.querySelector(".rb-back")?.insertAdjacentElement("afterend",title);
+    // v100: Odak artık ana sekme (Çalış), geri düğmesi yok; başlık en üste girer (focus-refine-v70 bu başlığı bekler).
+    const back=focus.querySelector(".rb-back");if(back)back.insertAdjacentElement("afterend",title);else focus.prepend(title);
     const details=disclosure(focus,"refinedFocusDetails","Oturumlarım, egzersizler ve odak ayarları");
     for(const node of Array.from(focus.children)){
-      if(node instanceof HTMLElement&&!node.matches(".rb-back,.rb-secondary-title,.seg,.desktop-focus-workspace,#refinedFocusDetails"))details.append(node);
+      if(node instanceof HTMLElement&&!node.matches(".rb-back,.rb-secondary-title,.v100-work,.seg,.desktop-focus-workspace,#refinedFocusDetails"))details.append(node);
     }
   }
   function progress(){

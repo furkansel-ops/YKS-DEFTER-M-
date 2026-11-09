@@ -201,9 +201,10 @@ export function installFocusRefineV70():boolean{
     const minutes=Number(document.getElementById("pomoTodayMin")?.textContent)||0;
     let sessions=0;
     try{const list=win.v29SessionList?.(1);sessions=Array.isArray(list)?list.length:0;}catch{}
-    if(line)line.textContent=focusTodayText(minutes,sessions);
+    // Yalnız değişince yaz: aynı metni yazmak da DOM değişikliğidir ve izleyen gözlemciyi sonsuz döngüye sokar.
+    const lineText=focusTodayText(minutes,sessions);if(line&&line.textContent!==lineText)line.textContent=lineText;
     const sub=document.querySelector<HTMLElement>('#v70FocusTools [data-tool="sessions"] .v70-tool-copy small');
-    if(sub)sub.textContent=sessions?sessions+" oturum · gün sonu özeti":"Henüz oturum yok · gün sonu özeti";
+    const subText=sessions?sessions+" oturum · gün sonu özeti":"Henüz oturum yok · gün sonu özeti";if(sub&&sub.textContent!==subText)sub.textContent=subText;
   }
 
   const steps:[string,()=>boolean][]=[["head",head],["setup",setupFirst],["duration",duration],["tools",tools],["notifications",notifications],["questions",questions]];

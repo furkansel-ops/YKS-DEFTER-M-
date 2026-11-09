@@ -118,11 +118,11 @@ export function installNavigationV43():NavigationRuntime{
 
   function renameNavigation(){
     const moreTab=document.querySelector<HTMLElement>('.bottomnav [data-s="more"], nav [data-s="more"]');
-    const label=moreTab?.querySelector<HTMLElement>(".tl");if(label&&label.textContent!=="Merkez")label.textContent="Merkez";
-    if(moreTab?.getAttribute("aria-label")!=="Merkez")moreTab?.setAttribute("aria-label","Merkez");
-    for(const back of document.querySelectorAll<HTMLElement>("#more .v30-back"))if(back.textContent!=="‹ Merkez")back.textContent="‹ Merkez";
+    const label=moreTab?.querySelector<HTMLElement>(".tl");if(label&&label.textContent!=="Ben")label.textContent="Ben";
+    if(moreTab?.getAttribute("aria-label")!=="Ben")moreTab?.setAttribute("aria-label","Ben");
+    for(const back of document.querySelectorAll<HTMLElement>("#more .v30-back"))if(back.textContent!=="‹ Ben")back.textContent="‹ Ben";
     const moreScreen=document.getElementById("more");const title=document.getElementById("navTitle");
-    if(moreScreen?.classList.contains("active")&&title&&title.textContent!=="Merkez")title.textContent="Merkez";
+    if(moreScreen?.classList.contains("active")&&title&&title.textContent!=="Ben")title.textContent="Ben";
   }
   function renderGroups(){
     if(!hub)return;
@@ -141,8 +141,8 @@ export function installNavigationV43():NavigationRuntime{
     renameNavigation();hideLegacyMenu();
     hub=document.getElementById("v43MoreHub");
     if(!hub){
-      hub=document.createElement("section");hub.id="v43MoreHub";hub.className="v43-more-hub";hub.setAttribute("aria-label","Merkez");
-      hub.innerHTML=`<header class="v43-more-head"><h1>Merkez</h1><p>Araçların, raporların ve ayarların.</p><div class="v43-more-sync" id="v43MoreSync" role="status"></div></header><div id="v43MoreSearchSlot" class="v43-more-search"></div><div class="v43-more-shortcuts" aria-label="Sık kullanılan ekranlar">${SHORTCUTS.map(item=>`<button type="button" ${item.screen?`data-v43-screen="${item.screen}"`:`data-v43-more-action="${item.action}"`}><svg viewBox="0 0 24 24" aria-hidden="true">${item.icon}</svg><span>${esc(item.label)}</span></button>`).join("")}</div><div id="v43MoreTools" class="v43-more-tools"></div><details class="v43-more-quick"><summary>Kişisel kısayollarım</summary><div id="v43MoreQuickSlot"></div></details>`;
+      hub=document.createElement("section");hub.id="v43MoreHub";hub.className="v43-more-hub";hub.setAttribute("aria-label","Ben");
+      hub.innerHTML=`<header class="v43-more-head"><h1>Ben</h1><p>Koçun, araçların, raporların ve ayarların.</p><div class="v43-more-sync" id="v43MoreSync" role="status"></div></header><div id="v43MoreSearchSlot" class="v43-more-search"></div><div class="v43-more-shortcuts" aria-label="Sık kullanılan ekranlar">${SHORTCUTS.map(item=>`<button type="button" ${item.screen?`data-v43-screen="${item.screen}"`:`data-v43-more-action="${item.action}"`}><svg viewBox="0 0 24 24" aria-hidden="true">${item.icon}</svg><span>${esc(item.label)}</span></button>`).join("")}</div><div id="v43MoreTools" class="v43-more-tools"></div><details class="v43-more-quick"><summary>Kişisel kısayollarım</summary><div id="v43MoreQuickSlot"></div></details>`;
       const status=document.getElementById("v30MoreStatus");if(status&&status.parentElement===home)status.insertAdjacentElement("afterend",hub);else home.prepend(hub);
       hub.addEventListener("click",event=>{
         if(!(event.target instanceof Element))return;
@@ -182,6 +182,6 @@ export function installNavigationV43():NavigationRuntime{
     if(detail?.to==="lab")openSpeedReading();
   });
   mount();
-  const api:NavigationRuntime={installed:true,version:VERSION,validate(){const issues:string[]=[];if(!document.getElementById("v43MoreHub"))issues.push("hub");if(document.querySelectorAll("[data-v43-more-group]").length!==3)issues.push("groups");const more=document.querySelector<HTMLElement>('[data-s="more"]');if(more&&more.getAttribute("aria-label")!=="Merkez")issues.push("nav-label");return issues;},refresh};
+  const api:NavigationRuntime={installed:true,version:VERSION,validate(){const issues:string[]=[];if(!document.getElementById("v43MoreHub"))issues.push("hub");if(document.querySelectorAll("[data-v43-more-group]").length!==3)issues.push("groups");const more=document.querySelector<HTMLElement>('[data-s="more"]');if(more&&more.getAttribute("aria-label")!=="Ben")issues.push("nav-label");return issues;},refresh};
   window.__YKS_NAV_V43__=api;return api;
 }

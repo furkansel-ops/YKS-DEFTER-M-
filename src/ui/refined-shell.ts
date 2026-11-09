@@ -9,7 +9,11 @@ import {installWrongReviewV96} from "./wrong-review-v96";
 
 type ShellWindow=Window&{go?:(screen:string)=>void;v30Action?:(action:string)=>void;setMoreTab?:(panel:string)=>void};
 const legacy=()=>window as ShellWindow;
-const CHILD_SCREENS=new Set(["progress","pomo","pp"]);
+/* v100 yeni harita: 5 başlık — Bugün, Program, Çalış (Odak), Gelişim (Deneme+Konular+İlerleme), Ben (Merkez).
+   Alt ekranlar bağlı oldukları başlığı seçili gösterir. Yalnız gezinme; ekranlar ve kayıtlar aynı. */
+const PARENT:Record<string,string>={topics:"deneme",progress:"deneme",pp:"pomo"};
+const LABELS:Record<string,string>={pomo:"Çalış",deneme:"Gelişim"};
+const GROWTH:readonly (readonly [string,string])[]=[["deneme","Denemeler"],["topics","Konular"],["progress","İstatistik"]];
 
 /** Navigation only: never changes the student's data or saved theme. */
 export function installRefinedShell(){
@@ -27,17 +31,46 @@ export function installRefinedShell(){
     profile.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 22v-3a8 8 0 0 1 16 0v3"/></svg>';
     profile.addEventListener("click",()=>{legacy().v30Action?.("settings");window.dispatchEvent(new CustomEvent("yks:open-settings",{detail:{category:"profile"}}));});tools.append(profile);
   }
-  for(const id of CHILD_SCREENS){
-    const screen=document.getElementById(id);if(!screen||screen.querySelector(":scope > .rb-back"))continue;
-    const back=document.createElement("button");back.type="button";back.className="rb-back";back.textContent="‹ Merkez";
-    back.addEventListener("click",()=>{legacy().go?.("more");legacy().setMoreTab?.("home");});screen.prepend(back);
+  for(const [s,label] of Object.entries(LABELS)){
+    const tab=document.querySelector<HTMLElement>(`.tabbar .tab[data-s="${s}"]`),tl=tab?.querySelector<HTMLElement>(".tl");
+    if(tl)tl.textContent=label;tab?.setAttribute("aria-label",label);
   }
-  const media=window.matchMedia("(max-width:759px)");
+  const pp=document.getElementById("pp");
+  if(pp&&!pp.querySelector(":scope > .rb-back")){
+    const back=document.createElement("button");back.type="button";back.className="rb-back";back.textContent="‹ Çalış";
+    back.addEventListener("click",()=>legacy().go?.("pomo"));pp.prepend(back);
+  }
+  const pomo=document.getElementById("pomo");
+  if(pomo&&!pomo.querySelector(":scope > .v100-work")){
+    const row=document.createElement("nav");row.className="v100-work";row.setAttribute("aria-label","Çalışma kayıtları");
+    row.innerHTML='<button type="button" data-v100-work="pp"><b>Paragraf &amp; Problem</b><small>Günlük kayıt</small></button><button type="button" data-v100-work="books"><b>Kitaplarım</b><small>+test, çözdüğün sorular</small></button>';
+    row.addEventListener("click",event=>{
+      const to=(event.target as Element).closest<HTMLElement>("[data-v100-work]")?.dataset.v100Work;
+      if(to==="pp")legacy().go?.("pp");else if(to==="books")(window as Window&{YKSBooks?:{open:()=>void}}).YKSBooks?.open();
+    });
+    pomo.prepend(row);
+  }
+  // Gelişim şeridi: ekranların dışında tek şerit (ekran modülleri kendi çocuklarını yeniden dizdiği için içlerine girmez).
+  let growth=document.getElementById("v100Growth");
+  if(!growth){
+    growth=document.createElement("nav");growth.id="v100Growth";growth.className="v100-growth";growth.setAttribute("aria-label","Gelişim");growth.hidden=true;
+    for(const [to,label] of GROWTH){
+      const b=document.createElement("button");b.type="button";b.dataset.v100Go=to;b.textContent=label;
+      b.addEventListener("click",()=>legacy().go?.(to));growth.append(b);
+    }
+    document.getElementById("mainWrap")?.prepend(growth);
+  }
   function sync(){
-    const active=document.querySelector<HTMLElement>(".screen.active")?.id;
-    const more=document.querySelector<HTMLElement>('.tabbar [data-s="more"]');
-    more?.classList.toggle("rb-child-active",!!active&&CHILD_SCREENS.has(active));
-    if(more)more.tabIndex=active==="more"||(media.matches&&!!active&&CHILD_SCREENS.has(active))?0:-1;
+    const active=document.querySelector<HTMLElement>(".screen.active")?.id||"";
+    if(growth){
+      growth.hidden=!GROWTH.some(([s])=>s===active);
+      for(const b of growth.querySelectorAll<HTMLElement>("button"))if(b.dataset.v100Go===active)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current");
+    }
+    for(const tab of document.querySelectorAll<HTMLElement>(".tabbar .tab")){
+      const child=PARENT[active]===tab.dataset.s;
+      tab.classList.toggle("rb-child-active",child);
+      if(child)tab.tabIndex=0;
+    }
   }
   const tabs=document.querySelector(".tabbar");
   tabs?.addEventListener("keydown",event=>{
@@ -48,7 +81,7 @@ export function installRefinedShell(){
     const next=key==="Home"?0:key==="End"?visible.length-1:(current+(["ArrowRight","ArrowDown"].includes(key)?1:-1)+visible.length)%visible.length;
     visible[next]?.focus();visible[next]?.click();
   });
-  media.addEventListener("change",sync);window.addEventListener("yks:navigation-after",sync);sync();
+  window.addEventListener("yks:navigation-after",sync);sync();
   installRefinedSecondary();
   installRefinedStudyScreens();
   try{installExamHubV73();}catch(error){console.error("v73 deneme ekranı",error);}
