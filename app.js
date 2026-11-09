@@ -8781,9 +8781,11 @@ function closeAnalysis(force){
   if(id&&typeof showRefl==="function")showRefl(id);
   return true;
 }
+/* v98: "Atla" sormadan geçer (onay penceresi bazı tarayıcılarda hiç açılmıyor ve düğme çalışmıyordu). */
 function skipAnalysis(){
-  if(!confirm("Analizi atlamak istediğine emin misin? Yanlışlarını işaretlemeden neyi tekrar edeceğini bilemezsin."))return false;
-  return closeAnalysis(true);
+  const done=closeAnalysis(true);
+  if(done)toast("Analiz atlandı · yanlışları sonra denemedeki \"Yanlışları işle\" ile ekleyebilirsin");
+  return done;
 }
 
 /* ==================================================================

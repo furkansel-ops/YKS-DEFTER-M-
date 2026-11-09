@@ -46,3 +46,12 @@ test("v98 bağlantılar: +test koç görevini işaretler, kutlama refresh'te, ki
   assert.match(rt,/a\.type==="coach_note"&&p\.operation==="book_add"/);
   assert.doesNotMatch(read("firestore.rules"),/book_add/,"kural değişmedi");
 });
+
+test("v98 deneme analizinde Atla onay sormadan geçer (onay penceresi açılmayan tarayıcıda da)",()=>{
+  const vm=require("node:vm"),src=read("app.js"),pick=name=>{const i=src.indexOf("function "+name+"(");return src.slice(i,src.indexOf("\n}\n",i)+3)};
+  const ov={style:{display:"flex"}},calls=[],ctx={anaId:7,el:()=>ov,anaMarked:()=>0,confirm:()=>{throw new Error("sorulmamalı")},toast:m=>calls.push(["toast",m]),showRefl:id=>calls.push(["refl",id])};
+  vm.createContext(ctx);vm.runInContext(pick("closeAnalysis")+pick("skipAnalysis"),ctx);
+  assert.equal(vm.runInContext("skipAnalysis()",ctx),true);
+  assert.equal(ov.style.display,"none");assert.equal(ctx.anaId,null);
+  assert.deepEqual(calls.map(c=>c[0]),["refl","toast"]);assert.match(calls[1][1],/Yanlışları işle/);
+});
