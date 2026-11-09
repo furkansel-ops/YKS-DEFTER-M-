@@ -87,7 +87,7 @@ function renderTodayTeaser(snapshot:StudyGamificationSnapshot):void{
     link.id="todayAchievementShortcut";link.type="button";
     link.setAttribute("aria-label","YKS Kariyeri: seviye ve başarımlar detayını aç");
     const head=node("div","sg-today-shortcut-head");
-    head.append(node("span","sg-today-shortcut-title","⚡ YKS Kariyerim"),
+    head.append(node("span","sg-today-shortcut-title","YKS Kariyerim"),
       node("strong","sg-today-level"),node("span","sg-today-shortcut-arrow","›"));
     const rail=node("span","sg-today-level-rail");
     rail.setAttribute("role","progressbar");rail.setAttribute("aria-label","Seviye XP ilerlemesi");

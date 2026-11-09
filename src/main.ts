@@ -34,6 +34,7 @@ import "./ui/today-final-v55.css";
 import "./ui/design-trio-v66.css";
 import "./ui/responsive-v67.css";
 import "./ui/glassy-v99.css";
+import "./ui/type-v102.css";
 
 type BootstrapState={
   version:typeof RELEASE_VERSION;

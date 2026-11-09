@@ -9,7 +9,7 @@ type CoachUnread={count:number;text:string};
 type V101Window=Window&{v30Action?:(action:string)=>unknown};
 
 export function isDayEnd(date:Date):boolean{return date.getHours()>=18;}
-export function doneFoldText(count:number,open:boolean):string{return "✓ "+count+" görev tamamlandı · "+(open?"Gizle":"Göster");}
+export function doneFoldText(count:number,open:boolean):string{return count+" görev tamamlandı · "+(open?"Gizle":"Göster");}
 export function goalPercent(text:string):number|null{
   const progress=planProgress(text);
   return progress?Math.round(progress.done/progress.total*100):null;
@@ -37,9 +37,10 @@ export function installTodayV101():{installed:boolean}{
 
   // Koç satırı: yalnız okunmamış koç mesajı varken görünür; dokununca Ayarlar'daki sohbet açılır.
   const coach=make("button","v101-coach");coach.type="button";coach.id="v101Coach";coach.hidden=true;
-  const coachIcon=make("i","","K"),coachCopy=make("span",""),coachTitle=make("b",""),coachText=make("small","");
+  // Simgeler (sohbet, ok, artı, tik) type-v102.css'te çizgi simge olarak çizilir.
+  const coachIcon=make("i",""),coachCopy=make("span",""),coachTitle=make("b",""),coachText=make("small","");
   coachIcon.setAttribute("aria-hidden","true");coachCopy.append(coachTitle,coachText);
-  coach.append(coachIcon,coachCopy,make("em","","Aç ›"));
+  coach.append(coachIcon,coachCopy,make("em","","Aç"));
   header.insertAdjacentElement("afterend",coach);
   coach.addEventListener("click",()=>{
     (window as V101Window).v30Action?.("settings");
@@ -59,7 +60,7 @@ export function installTodayV101():{installed:boolean}{
     value.insertAdjacentElement("afterend",bar);
     return {value,bar};
   });
-  document.getElementById("todayFreshQuestions")?.closest(".today-fresh-stat")?.append(make("span","v101-add","＋ Soru ekle"));
+  document.getElementById("todayFreshQuestions")?.closest(".today-fresh-stat")?.append(make("span","v101-add","Soru ekle"));
 
   // Biten görevler tek satırda katlanır.
   const tasks=list.closest<HTMLElement>(".today-fresh-tasks")||list.parentElement!;

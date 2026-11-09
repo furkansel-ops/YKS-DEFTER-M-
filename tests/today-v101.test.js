@@ -35,8 +35,8 @@ test("v101 yardımcıları: gün sonu 18:00, katlama metni, hedef yüzdesi, koç
   const h=helpers();
   assert.equal(h.isDayEnd(new Date(2026,10,9,17,59)),false);
   assert.equal(h.isDayEnd(new Date(2026,10,9,18,0)),true);
-  assert.equal(h.doneFoldText(2,false),"✓ 2 görev tamamlandı · Göster");
-  assert.equal(h.doneFoldText(1,true),"✓ 1 görev tamamlandı · Gizle");
+  assert.equal(h.doneFoldText(2,false),"2 görev tamamlandı · Göster","tik simgesi CSS'te çizilir");
+  assert.equal(h.doneFoldText(1,true),"1 görev tamamlandı · Gizle");
   assert.equal(h.goalPercent("86 / 120"),72);
   assert.equal(h.goalPercent("70 / 180 dk"),39);
   assert.equal(h.goalPercent("200 / 120"),100,"hedef aşılınca çubuk taşmaz");
@@ -71,4 +71,11 @@ test("v101 hareketleri yalnız hareket tercihi açıkken; transform/opacity ile"
   const frames=before.match(/@keyframes[^\n]+/g)||[];
   assert.ok(frames.length>=6);
   for(const line of frames)assert.doesNotMatch(line,/[{;](width|height|top|left|margin):/,line);
+});
+
+test("v101 bilgisayarda randevu kartı sağ sütunda kendi satırında; görevlerin/sayıların üstüne binmez",()=>{
+  const wide=css.slice(css.indexOf("@media(min-width:1024px)"));
+  assert.match(wide,/>:is\(#studentNextAppointment,#studentApptEntry\)\{grid-area:auto;grid-column:2;grid-row:4;align-self:start\}/);
+  assert.match(wide,/\.today-fresh-stats\{grid-column:2;grid-row:5\}/);
+  assert.match(wide,/\.today-fresh-tasks\{grid-column:1;grid-row:5 \/ span 4\}/);
 });

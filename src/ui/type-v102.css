@@ -1,0 +1,70 @@
+/* v102 · Yazı tipi ve simgeler. Tüm uygulama Plus Jakarta Sans (koç paneliyle aynı); internet yoksa telefonun yazısı.
+   Bugün ve üst çubuktaki karakter simgeleri (☾ › ↗ ✓ ◷ ⚡ K) her telefonda aynı görünen çizgi simgelere döner.
+   Simgeler CSS maskesiyle çizilir: renk currentColor'dan gelir, Gece/Canlı'da da doğru boyanır. */
+:root{
+  --font:"Plus Jakarta Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --i102-chev:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 6l6 6-6 6'/%3E%3C/svg%3E");
+  --i102-out:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 17L17 7M9 7h8v8'/%3E%3C/svg%3E");
+  --i102-moon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z'/%3E%3C/svg%3E");
+  --i102-play:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M8 5v14l11-7z' fill='black'/%3E%3C/svg%3E");
+  --i102-done:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E");
+  --i102-check:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='4' y='4' width='16' height='16' rx='4'/%3E%3Cpath d='M8.5 12l2.5 2.5 4.5-5'/%3E%3C/svg%3E");
+  --i102-timer:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='13' r='8'/%3E%3Cpath d='M12 9v4l2.5 2M9 2h6'/%3E%3C/svg%3E");
+  --i102-plus:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round'%3E%3Cpath d='M12 5v14M5 12h14'/%3E%3C/svg%3E");
+  --i102-chat:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 5h16v11H9l-5 4z'/%3E%3Cpath d='M8 9.5h8M8 12.5h5'/%3E%3C/svg%3E");
+  --i102-cal:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='5' width='18' height='16' rx='3'/%3E%3Cpath d='M8 3v4M16 3v4M3 10h18M12 13v3l2 1'/%3E%3C/svg%3E");
+  --i102-trophy:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 4h8v5a4 4 0 0 1-8 0z'/%3E%3Cpath d='M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M9 21h6M10 17h4'/%3E%3C/svg%3E");
+}
+/* Sayılar eşit genişlikte: sayaçlar ve kalan gün zıplamaz */
+:root #mainWrap #home #todayFreshStart :is(#todayFreshQuestions,#todayFreshMinutes,.today-fresh-days strong,#v71HeroCount,#v71FocusLive){font-variant-numeric:tabular-nums}
+
+/* Üst çubuk: logo mor kutuda, arama çizgi simge */
+:root[data-visual-system] .rb-brand .rb-logo{display:grid;place-items:center;flex:none;width:32px;height:32px;border-radius:10px;background:var(--d-hero,var(--d-accent,#7c3aed));color:var(--d-hero-ink,#fff);box-shadow:0 8px 16px -9px color-mix(in srgb,var(--d-accent,#7c3aed) 85%,transparent)}
+:root[data-visual-system] .rb-brand .rb-logo svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+:root[data-visual-system] .rb-brand{gap:9px;font-weight:800;letter-spacing:-.01em}
+.navbar .searchbtn .v102-ic{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* Ortak maske kalıbı (sözde öğeler :is() içine giremez, bu yüzden düz liste) */
+#home .today-fresh-stat.v71-tap::after,
+#home #v71Rows .v71-chev,
+#home #todayFreshReview .v71-ic::before,
+#home #todayFreshAllTasks>span,
+#home #todayFreshNextStart::before,
+#home #todayFreshNextDone::before,
+#home .v101-add::before,
+#home .v101-fold::before,
+#home #v101Coach>i::before,
+#home #v101Coach>em::after,
+#home .sg-today-shortcut-title::before,
+#home .sg-today-shortcut-arrow,
+#home .sap-entry>i::before,
+#home .today-fresh-stat>span:first-child::before{
+  content:"";display:inline-block;flex:none;width:16px;height:16px;background:currentColor;font-size:0;
+  -webkit-mask:var(--i102) center/contain no-repeat;mask:var(--i102) center/contain no-repeat}
+
+/* Bugün (özgüllük v71/v101 kurallarının önüne geçmek için) */
+:root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-stat.v71-tap::after{--i102:var(--i102-chev);width:14px;height:14px;top:9px;right:9px}
+:root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-stat>span:first-child{display:inline-flex;align-items:center;gap:6px}
+:root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-stat>span:first-child::before{display:none}
+:root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-stat:has(#todayFreshQuestions)>span:first-child::before{display:inline-block;--i102:var(--i102-check);color:var(--d-accent)}
+:root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-stat:has(#todayFreshMinutes)>span:first-child::before{display:inline-block;--i102:var(--i102-timer);color:var(--d-accent)}
+:root[data-visual-system] #mainWrap #home #todayFreshStart #v71Rows .v71-chev{--i102:var(--i102-chev);width:16px;height:16px}
+:root[data-visual-system] #mainWrap #home #todayFreshStart #todayFreshReview .v71-ic{font-size:0}
+:root[data-visual-system] #mainWrap #home #todayFreshStart #todayFreshReview .v71-ic::before{--i102:var(--i102-moon);width:19px;height:19px}
+:root[data-visual-system] #mainWrap #home #todayFreshStart #todayFreshAllTasks{display:inline-flex;align-items:center;gap:4px}
+:root[data-visual-system] #mainWrap #home #todayFreshStart #todayFreshAllTasks>span{--i102:var(--i102-out);width:15px;height:15px}
+:root[data-visual-system] #mainWrap #home #todayFreshStart :is(#todayFreshNextStart,#todayFreshNextDone){display:inline-flex;align-items:center;justify-content:center;gap:7px}
+:root[data-visual-system] #mainWrap #home #todayFreshStart #todayFreshNextStart::before{--i102:var(--i102-play)}
+:root[data-visual-system] #mainWrap #home #todayFreshStart #todayFreshNextDone::before{--i102:var(--i102-done)}
+:root[data-visual-system] #mainWrap #home #todayFreshStart .v101-add{display:flex;align-items:center;gap:5px}
+:root[data-visual-system] #mainWrap #home #todayFreshStart .v101-add::before{--i102:var(--i102-plus);width:14px;height:14px}
+:root[data-visual-system] #mainWrap #home #todayFreshStart .v101-fold{gap:6px}
+:root[data-visual-system] #mainWrap #home #todayFreshStart .v101-fold::before{--i102:var(--i102-done);color:var(--d-ok,#15803d)}
+:root[data-visual-system] #mainWrap #home #todayFreshStart #v101Coach>i::before{--i102:var(--i102-chat);width:20px;height:20px}
+:root[data-visual-system] #mainWrap #home #todayFreshStart #v101Coach>em{display:inline-flex;align-items:center;gap:2px}
+:root[data-visual-system] #mainWrap #home #todayFreshStart #v101Coach>em::after{--i102:var(--i102-chev);width:15px;height:15px}
+:root[data-visual-system] #mainWrap #home .sg-today-shortcut-title{display:inline-flex;align-items:center;gap:6px}
+:root[data-visual-system] #mainWrap #home .sg-today-shortcut-title::before{--i102:var(--i102-trophy);width:17px;height:17px;color:var(--d-accent)}
+:root[data-visual-system] #mainWrap #home .sg-today-shortcut-arrow{--i102:var(--i102-chev);width:16px;height:16px}
+:root[data-visual-system] #mainWrap #home .sap-entry>i{font-size:0}
+:root[data-visual-system] #mainWrap #home .sap-entry>i::before{--i102:var(--i102-cal);width:20px;height:20px}

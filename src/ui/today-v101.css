@@ -47,7 +47,7 @@
 :root[data-visual-system]:not(#v) #mainWrap #home #todayFreshStart .v101-bar{display:block;height:6px;margin:8px 0 4px;overflow:hidden;border-radius:99px;background:var(--d-track,var(--d-soft))}
 :root[data-visual-system]:not(#v) #mainWrap #home #todayFreshStart .v101-bar[hidden]{display:none}
 :root[data-visual-system]:not(#v) #mainWrap #home #todayFreshStart .v101-bar>i{display:block;height:100%;border-radius:inherit;background:var(--d-hero,var(--d-accent));transition:width .6s cubic-bezier(.22,.9,.28,1)}
-:root[data-visual-system]:not(#v) #mainWrap #home #todayFreshStart .v101-add{display:block;margin-top:8px;font-size:12.5px;font-weight:850;color:var(--d-accent)}
+:root[data-visual-system]:not(#v) #mainWrap #home #todayFreshStart .v101-add{display:flex;align-items:center;gap:5px;margin-top:8px;font-size:12.5px;font-weight:850;color:var(--d-accent)}
 
 /* Biten görevler katlanır */
 :root[data-visual-system]:not(#v) #mainWrap #home #todayFreshStart .today-fresh-tasks.v101-folded .today-fresh-task.is-done{display:none}
@@ -63,10 +63,12 @@
   :root[data-visual-system]:not(#v) #mainWrap #home #todayFreshStart .today-fresh-title .today-fresh-exam{display:flex}
   :root[data-visual-system]:not(#v) #mainWrap #home #todayFreshStart .today-fresh-work-card.today-fresh-next{grid-column:1;grid-row:3 / span 2}
   :root[data-visual-system]:not(#v) #mainWrap #home #todayFreshStart .today-fresh-tasks{grid-column:1;grid-row:5 / span 4}
+  /* Sağ sütun sırası; randevu kartı v71'deki eski hücresinde (6/1, 4/2) görevlerin ya da sayıların üstüne biniyordu. */
   :root[data-visual-system]:not(#v) #mainWrap #home #todayFreshStart>#v101Coach{grid-column:2;grid-row:3}
-  :root[data-visual-system]:not(#v) #mainWrap #home #todayFreshStart .today-fresh-stats{grid-column:2;grid-row:4}
-  :root[data-visual-system]:not(#v) #mainWrap #home #todayFreshStart>#v71Rows{grid-column:2;grid-row:5}
-  :root[data-visual-system]:not(#v) #mainWrap #home #todayFreshStart>#todayAchievementShortcut{grid-column:2;grid-row:6}
+  :root[data-visual-system]:not(#v) #mainWrap #home #todayFreshStart>:is(#studentNextAppointment,#studentApptEntry){grid-area:auto;grid-column:2;grid-row:4;align-self:start}
+  :root[data-visual-system]:not(#v) #mainWrap #home #todayFreshStart .today-fresh-stats{grid-column:2;grid-row:5}
+  :root[data-visual-system]:not(#v) #mainWrap #home #todayFreshStart>#v71Rows{grid-column:2;grid-row:6}
+  :root[data-visual-system]:not(#v) #mainWrap #home #todayFreshStart>#todayAchievementShortcut{grid-column:2;grid-row:7}
   :root[data-visual-system]:not(#v) #mainWrap #home #todayFreshStart .today-fresh-task-list{grid-template-columns:1fr}
 }
 

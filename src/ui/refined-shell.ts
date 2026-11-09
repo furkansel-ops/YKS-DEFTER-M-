@@ -18,7 +18,8 @@ export function installRefinedShell(){
   if(navbar&&!document.getElementById("refinedBrand")){
     const brand=document.createElement("button");brand.id="refinedBrand";brand.className="rb-brand";brand.type="button";
     brand.setAttribute("aria-label","YKS Defterim, Bugün sayfası");
-    brand.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5C9 2 5 3 2 4v15c4-2 7-1 10 1 3-2 6-3 10-1V4c-3-1-7-2-10 1Zm0 0v15"/></svg><span>YKS Defterim</span>';
+    // v102 logo: mor kutu içinde tikli defter
+    brand.innerHTML='<span class="rb-logo" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5"/><path d="M9 8l2 2 4-4"/></svg></span><span>YKS Defterim</span>';
     brand.addEventListener("click",()=>legacy().go?.("home"));navbar.prepend(brand);
   }
   if(tools&&!document.getElementById("refinedProfile")){
