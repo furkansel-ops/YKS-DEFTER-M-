@@ -94,3 +94,9 @@ test("v70 stilleri yalnız tema değişkenleri kullanır",()=>{
   assert.deepEqual(values.match(/[:,(\s]#[0-9a-fA-F]{3,8}\b/g)||[],[]);
   assert.doesNotMatch(css,/rgba?\(|hsl\(/);
 });
+
+test("odak gözlemcisi aynı metni tekrar yazmaz (yoksa kendi değişikliğiyle sonsuz döngüye girip sayfayı dondurur)",()=>{
+  const focus=fs.readFileSync(path.join(root,"src/ui/focus-refine-v70.ts"),"utf8");
+  assert.match(focus,/if\(line&&line\.textContent!==lineText\)line\.textContent=lineText/);
+  assert.match(focus,/if\(sub&&sub\.textContent!==subText\)sub\.textContent=subText/);
+});
