@@ -1,0 +1,150 @@
+/* Program v103 · zaman çizelgesi, gün halkaları, kayan sekme ve hareketler. Renkler v66 belirteçlerinden (--d-*, --tone).
+   :not(#v) yalnız özgüllük içindir (v4/v66/v72 katmanlarının önüne geçmek için). Sözde öğeler :is() içine konmaz. */
+@property --rb-v4-percent{syntax:"<number>";inherits:false;initial-value:0}
+@property --v103-p{syntax:"<number>";inherits:false;initial-value:0}
+
+/* Başlık: "Çalışma ekle" sağ üstte yuvarlak + */
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-program{position:relative}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-program-heading{padding-right:60px}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-program-toolbar{display:block;margin:0 0 12px}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-program-add{
+  position:absolute;top:2px;right:0;display:grid;place-items:center;width:48px;height:48px;min-height:48px;margin:0;padding:0;
+  border:0;border-radius:16px;background:var(--d-hero,var(--d-accent));color:var(--d-hero-ink,#fff);font-size:0!important; /* eski katmanda 14px!important; yazı yalnız aria için */
+  box-shadow:0 12px 22px -12px color-mix(in srgb,var(--d-accent) 90%,transparent)}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-program-add .rb-program-icon{display:grid;place-items:center;transition:transform .3s cubic-bezier(.22,.9,.28,1)}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-program-add .rb-program-icon svg{width:23px;height:23px;stroke-width:2.4}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-program-add[aria-expanded="true"] .rb-program-icon{transform:rotate(45deg)}
+
+/* Sekmeler: seçili olanın altında kayan mor gösterge */
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-program-tabs{position:relative;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));max-width:none;padding:4px;gap:0}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-program-tabs::before{
+  content:"";position:absolute;top:4px;bottom:4px;left:4px;width:calc((100% - 8px)/3);border-radius:11px;
+  background:var(--d-hero,var(--d-accent));box-shadow:0 8px 16px -10px color-mix(in srgb,var(--d-accent) 90%,transparent);
+  transition:transform .45s cubic-bezier(.22,.9,.28,1)}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-program-tabs:has(button:nth-child(2)[aria-pressed="true"])::before{transform:translateX(100%)}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-program-tabs:has(button:nth-child(3)[aria-pressed="true"])::before{transform:translateX(200%)}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-program-tabs button{position:relative;z-index:1;background:transparent;box-shadow:none;color:var(--d-muted);transition:color .3s}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-program-tabs button[aria-pressed="true"]{background:transparent;box-shadow:none;color:var(--d-hero-ink,#fff)}
+
+/* Hafta oklarında ve kart oklarında çizgi simge */
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-program-weeknav>button:not(.rb-program-today),
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-program-task-open{font-size:0;display:grid;place-items:center}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-program-weeknav>button:not(.rb-program-today)::before,
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-program-task-open::before{
+  content:"";width:16px;height:16px;background:currentColor;-webkit-mask:var(--i102-chev) center/contain no-repeat;mask:var(--i102-chev) center/contain no-repeat}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-program-weeknav>button:first-child::before{transform:scaleX(-1)}
+
+/* Gün şeridi: her günün altında küçük ilerleme halkası */
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-program-weekstrip>button>i{
+  display:grid;place-items:center;width:20px;height:20px;margin-top:2px;border-radius:50%;opacity:1;
+  background:conic-gradient(var(--d-accent) calc(var(--v103-p)*1%),color-mix(in srgb,var(--d-accent) 16%,var(--d-surface)) 0);
+  transition:--v103-p .8s cubic-bezier(.22,.9,.28,1)}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-program-weekstrip>button>i::after{content:"";width:12px;height:12px;border-radius:50%;background:var(--d-surface)}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-program-weekstrip>button>i:not([data-filled]){background:color-mix(in srgb,var(--d-muted) 12%,var(--d-surface))}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-program-weekstrip>button>i[data-complete]{background:var(--d-ok)}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-program-weekstrip>button[aria-pressed="true"]>i::after{background:color-mix(in srgb,var(--d-hero-ink,#fff) 22%,var(--d-accent))}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-program-weekstrip>button{transition:transform .2s cubic-bezier(.22,.9,.28,1)}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-program-weekstrip>button:active{transform:scale(.94)}
+
+/* Gün özeti: solda dolan halka, sağda gün, kalan görev ve planlı süre */
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v4-day-progress{
+  display:grid;grid-template-columns:64px minmax(0,1fr);grid-template-areas:"ring copy" "ring cap" "ring plan";column-gap:14px;row-gap:3px;align-items:center;padding:14px 16px;margin:0 0 16px}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v4-day-progress>.rb-v4-ring{grid-area:ring;width:62px;height:62px;flex:none;transition:--rb-v4-percent .9s cubic-bezier(.22,.9,.28,1)}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v4-day-progress>.rb-v4-ring::before{inset:7px}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v4-day-progress>.rb-v4-ring strong{font-size:14px}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v4-day-progress>.rb-v4-progress-copy{grid-area:copy}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v72-day-head h2::after{display:none}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v4-day-progress .rb-v4-progress-bar{display:none}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v4-day-progress>.rb-v4-progress-caption{grid-area:cap;margin:0}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v103-planned{grid-area:plan;justify-self:start;display:inline-flex;align-items:center;gap:4px;margin-top:4px;padding:3px 10px;border-radius:99px;background:var(--d-chip,var(--d-soft));color:var(--d-chip-ink,var(--d-accent));font-size:12px;font-weight:750}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v103-planned[hidden]{display:none}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v103-planned::before{content:"";width:13px;height:13px;background:currentColor;-webkit-mask:var(--i102-timer) center/contain no-repeat;mask:var(--i102-timer) center/contain no-repeat}
+/* "Bugünün Planı" başlığı gereksiz: gün özeti zaten gösteriyor */
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v4-day-heading{display:none}
+
+/* Zaman çizelgesi */
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-program-tasks{position:relative;display:block;padding-left:56px}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-program-tasks::before{content:"";position:absolute;left:44px;top:10px;bottom:10px;width:2px;border-radius:2px;background:linear-gradient(color-mix(in srgb,var(--d-accent) 30%,var(--d-line)),var(--d-line))}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-program-tasks:has(.rb-program-empty){padding-left:0}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-program-tasks:has(.rb-program-empty)::before{display:none}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v103-slot{position:relative;margin:0 0 10px}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v103-time{position:absolute;left:-56px;top:15px;width:38px;text-align:right;font-size:12px;font-weight:800;color:var(--d-muted);font-variant-numeric:tabular-nums}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v103-slot::before{content:"";position:absolute;left:-17px;top:18px;width:10px;height:10px;border-radius:50%;background:var(--d-surface);border:2.5px solid var(--tone,var(--d-accent));z-index:1}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v103-free{display:flex;align-items:center;gap:8px;margin:0 0 10px;padding:9px 12px;border:1px dashed var(--d-line);border-radius:14px;color:var(--d-muted);font-size:12.5px;font-weight:700}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v103-free::before{content:"";width:15px;height:15px;flex:none;background:var(--d-accent);-webkit-mask:var(--i102-timer) center/contain no-repeat;mask:var(--i102-timer) center/contain no-repeat}
+
+/* Görev kartı: kutu · ders/başlık/saat · ok; altta yalnız ekli olan çipler */
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v103-slot>.rb-program-task{
+  position:relative;display:grid;grid-template-columns:34px minmax(0,1fr);grid-template-areas:"check body";column-gap:10px;row-gap:6px;
+  align-items:center;min-height:0;margin:0;padding:12px 12px 12px 14px!important;overflow:hidden;
+  border:1px solid var(--d-line);border-radius:var(--d-r-sm,16px);background:var(--d-surface);box-shadow:var(--d-shadow);
+  transition:transform .22s cubic-bezier(.22,.9,.28,1),box-shadow .22s ease,opacity .3s ease}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v103-slot>.rb-program-task[data-v103-next]{box-shadow:0 0 0 2px color-mix(in srgb,var(--d-accent) 40%,transparent),var(--d-shadow)}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v103-slot>.rb-program-task[data-done]{opacity:.74}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v103-slot .rb-program-check{
+  grid-area:check;position:relative;display:grid;place-items:center;width:34px;min-width:34px;height:40px;min-height:40px;margin:0;padding:0;border:0;background:transparent;color:var(--d-on-accent,#fff)}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v103-slot .rb-program-check::before{
+  content:"";position:absolute;top:50%;left:50%;width:26px;height:26px;box-sizing:border-box;transform:translate(-50%,-50%);
+  border:2px solid color-mix(in srgb,var(--d-muted) 55%,var(--d-surface));border-radius:8px;background:var(--d-surface);transition:background .25s,border-color .25s}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v103-slot .rb-program-check[aria-pressed="true"]::before{background:var(--d-ok);border-color:var(--d-ok)}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v103-slot .rb-program-check>.rb-program-icon{position:relative;z-index:1;display:grid;place-items:center}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v103-slot .rb-program-check>.rb-program-icon svg{width:16px;height:16px;stroke-width:3}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v103-slot .rb-program-check:focus-visible{outline:3px solid var(--d-accent);outline-offset:2px}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v103-slot .rb-program-task-details{
+  grid-area:body;display:grid;grid-template-columns:minmax(0,1fr) 30px;align-items:center;gap:8px;min-width:0;min-height:0;margin:0;padding:0;border:0;background:transparent;text-align:left;color:var(--d-ink);font:inherit;cursor:pointer}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v103-slot>.rb-program-task[data-v103-next] .rb-program-task-copy{padding-right:58px}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v103-slot .rb-program-task-copy{display:flex;flex-direction:column;min-width:0}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v103-subject{font-size:11.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--tone,var(--d-accent))}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v103-slot .rb-program-task-copy>strong{position:relative;align-self:flex-start;max-width:100%;font-size:15px;font-weight:800;line-height:1.3;color:var(--d-ink);overflow-wrap:anywhere;text-decoration:none}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v103-slot .rb-program-task-copy>strong::after{content:"";position:absolute;left:0;right:0;top:52%;height:2px;border-radius:2px;background:currentColor;transform:scaleX(0);transform-origin:left;transition:transform .35s .1s cubic-bezier(.22,.9,.28,1)}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v103-slot .rb-program-task[data-done] .rb-program-task-copy>strong{color:var(--d-muted)}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v103-slot .rb-program-task[data-done] .rb-program-task-copy>strong::after{transform:scaleX(1)}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v103-slot .rb-program-task-copy>small{margin-top:2px;font-size:12.5px;color:var(--d-muted)}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v103-slot .rb-program-task-open{width:30px;height:30px;border-radius:10px;background:var(--d-soft);color:var(--d-accent)}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v103-slot .rb-v4-task-chips{grid-column:2;display:flex;flex-wrap:wrap;gap:6px;margin:0;padding:0}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v103-next{position:absolute;top:12px;right:52px;padding:3px 9px;border-radius:99px;background:var(--d-hero,var(--d-accent));color:var(--d-hero-ink,#fff);font-size:11px;font-weight:800;pointer-events:none}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v103-slot .rb-v4-chip{display:inline-flex;align-items:center;gap:4px}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v103-slot .rb-v4-chip::before{content:"";width:13px;height:13px;background:currentColor;-webkit-mask:var(--v103-chip) center/contain no-repeat;mask:var(--v103-chip) center/contain no-repeat}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v103-slot .rb-v4-chip-video{--v103-chip:var(--i102-play)}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v103-slot .rb-v4-chip-note{--v103-chip:var(--i102-chat)}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v103-slot .rb-v4-chip-material{--v103-chip:var(--i102-out)}
+
+/* Haftalık Bakış (telefon): günün derslerini renkli çubuklarla özetler */
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v103-bars{display:flex;gap:4px;width:100%;max-width:220px;height:6px;margin-top:6px}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v103-bars>i{flex:1;border-radius:99px;background:var(--tone,var(--d-accent));opacity:.35;transform-origin:left}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v103-bars>i[data-done]{opacity:1}
+
+/* ================= Hareket ================= */
+@keyframes v103-rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes v103-swap{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:none}}
+@keyframes v103-pop{0%{transform:translate(-50%,-50%) scale(.7)}60%{transform:translate(-50%,-50%) scale(1.18)}100%{transform:translate(-50%,-50%) scale(1)}}
+@keyframes v103-tick{from{stroke-dashoffset:24}to{stroke-dashoffset:0}}
+@keyframes v103-ring{from{--rb-v4-percent:0}}
+@keyframes v103-grow{from{transform:scaleX(0)}}
+@keyframes v103-ping{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--d-accent) 45%,transparent)}100%{box-shadow:0 0 0 9px transparent}}
+@media(prefers-reduced-motion:no-preference){
+  /* Gün, hafta ya da görünüm değişince içerik yandan süzülür, görevler sırayla yükselir */
+  :root[data-visual-system] #mainWrap #program .rb-program[data-v103-enter] :is(.rb-v4-day-progress,.rb-program-week-grid:not([hidden]),.rb-program-smart:not([hidden])){animation:v103-swap .45s cubic-bezier(.22,.9,.28,1) both}
+  :root[data-visual-system] #mainWrap #program .rb-program[data-v103-enter] :is(.rb-v103-slot,.rb-v103-free,.rb-v5-mobile-day){animation:v103-rise .55s cubic-bezier(.22,.9,.28,1) both}
+  :root[data-visual-system] #mainWrap #program .rb-program[data-v103-enter] :is(.rb-v103-slot,.rb-v103-free,.rb-v5-mobile-day):nth-child(2){animation-delay:.06s}
+  :root[data-visual-system] #mainWrap #program .rb-program[data-v103-enter] :is(.rb-v103-slot,.rb-v103-free,.rb-v5-mobile-day):nth-child(3){animation-delay:.12s}
+  :root[data-visual-system] #mainWrap #program .rb-program[data-v103-enter] :is(.rb-v103-slot,.rb-v103-free,.rb-v5-mobile-day):nth-child(4){animation-delay:.18s}
+  :root[data-visual-system] #mainWrap #program .rb-program[data-v103-enter] :is(.rb-v103-slot,.rb-v103-free,.rb-v5-mobile-day):nth-child(5){animation-delay:.24s}
+  :root[data-visual-system] #mainWrap #program .rb-program[data-v103-enter] :is(.rb-v103-slot,.rb-v103-free,.rb-v5-mobile-day):nth-child(n+6){animation-delay:.3s}
+  :root[data-visual-system] #mainWrap #program .rb-program[data-v103-enter] .rb-v4-day-progress>.rb-v4-ring{animation:v103-ring 1.1s cubic-bezier(.22,.9,.28,1) .15s both}
+  :root[data-visual-system] #mainWrap #program .rb-program[data-v103-enter] .rb-v103-bars>i{animation:v103-grow .8s cubic-bezier(.22,.9,.28,1) .2s both}
+  /* İşaretlenen görev: kutu zıplar, tik çizilir; başlığın üstü çizgisi yalnız onda geçişle gelir */
+  :root[data-visual-system] #mainWrap #program .rb-program-task[data-v103-just] .rb-program-check[aria-pressed="true"]::before{animation:v103-pop .42s cubic-bezier(.22,.9,.28,1)}
+  :root[data-visual-system] #mainWrap #program .rb-program-task[data-v103-just] .rb-program-check>.rb-program-icon path{stroke-dasharray:24;animation:v103-tick .35s .1s cubic-bezier(.22,.9,.28,1) both}
+  :root[data-visual-system] #mainWrap #program .rb-program-task[data-v103-just][data-done] .rb-program-task-copy>strong::after{animation:v103-grow .35s .12s cubic-bezier(.22,.9,.28,1) both}
+  :root[data-visual-system] #mainWrap #program .rb-v103-next{animation:v103-ping 1.8s ease-out infinite}
+  :root[data-visual-system] #mainWrap #program .rb-v103-slot>.rb-program-task:active{transform:scale(.985)}
+  @media(hover:hover){
+    :root[data-visual-system] #mainWrap #program .rb-v103-slot>.rb-program-task:hover{transform:translateY(-2px);box-shadow:0 18px 34px -20px color-mix(in srgb,var(--d-accent) 55%,transparent)}
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  :root[data-visual-system] #mainWrap #program .rb-program-tabs::before,
+  :root[data-visual-system] #mainWrap #program .rb-v4-ring,
+  :root[data-visual-system] #mainWrap #program .rb-program-weekstrip>button>i{transition:none}
+}

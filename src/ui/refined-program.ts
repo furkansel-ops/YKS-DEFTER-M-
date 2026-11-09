@@ -1,7 +1,9 @@
 import "./refined-program.css";
 import "./refined-program-v4.css";
 import "./refined-program-v72.css";
+import "./refined-program-v103.css";
 import {renderSmartProgram} from "./smart-program";
+import {cardTitles,clock,durationText,nextTaskIndex,parseTimeRange,plannedMinutes,plannedText,rowTimeLabel,timelineGaps,timelineOrder} from "./refined-program-v103";
 
 type ProgramBlock="r"|"s";
 type ProgramView="day"|"week"|"smart";
@@ -431,7 +433,9 @@ export function installRefinedProgram():ProgramApi{
   const dailyHeroHead=element("div","rb-v72-day-head");
   dailyHeroBar.setAttribute("role","progressbar");dailyHeroBar.setAttribute("aria-label","Seçili günün ilerlemesi");dailyHeroBar.setAttribute("aria-valuemin","0");dailyHeroBar.setAttribute("aria-valuemax","100");
   const dailyHeroCaption=element("div","rb-v4-progress-caption");
-  dailyHero.append(dailyHeroCopy,dailyHeroCaption);
+  // v103: solda dolan halka, altta planlı süre çipi.
+  const dailyPlanned=element("span","rb-v103-planned");dailyPlanned.hidden=true;
+  dailyHero.append(dailyRing,dailyHeroCopy,dailyHeroCaption,dailyPlanned);
   const dailyTasksHeading=element("div","rb-v4-day-heading");dailyTasksHeading.append(element("span","","☀"),element("h3","","Bugünün Planı"));progress.max=100;progress.setAttribute("aria-label","Günlük görev tamamlama");completion.append(count,progress);dailyHeroHead.append(dayLabel,dailyHeroCount);dailyHeroCopy.append(dailyHeroHead,dailyHeroBar);
   const list=element("div","rb-program-tasks");dailyPanel.append(dailyHero,dailyTasksHeading,list);
   const actions=element("div","rb-program-actions"),toolbar=element("div","rb-program-toolbar"),add=button("","rb-program-add"),share=button("","rb-program-share"),shareStatus=element("p","rb-program-share-status");
@@ -466,8 +470,8 @@ export function installRefinedProgram():ProgramApi{
   daysField.append(element("legend","","Hangi günlere eklensin?"),dayOptions,dayShortcuts);preview.append(previewText,previewDays);form.append(formTabs,builder,custom,resourceField,daysField,preview,hint,formActions);
   toolbar.append(tabs,add);actions.append(share,shareStatus);root.append(heading,toolbar,weekCard,form,feedback,dailyPanel,weeklyPanel,smartPanel,actions,detailDialog,editor);
   let destroyed=false,queued=false;
-  // UI-only fold state, scoped by exact date and subject; never touches S.weeks or Firestore.
-  const collapsedDailyGroups=new Set<string>();
+  // v103: yalnız görünüm durumu. justToggled: işaretlenen kart bir kez "pop" oynar; viewKey değişince kartlar sırayla gelir.
+  let justToggled="",viewKey="",enterTimer=0;
   const quickText=()=>{const item=subject.value===""?undefined:subjects[Number(subject.value)];return item?refinedProgramQuickText(`${item.exam} ${item.name.replace(/\s*\(AYT\)$/,"")}`,topic.value,questions.value,minutes.value):null;};
   function syncTopics(){topic.replaceChildren(new Option("Genel çalışma",""));const item=subject.value===""?undefined:subjects[Number(subject.value)];item?.topics.forEach(name=>topic.append(new Option(name,name)));topic.disabled=!item;updatePreview();}
   function updatePreview(){
@@ -493,6 +497,7 @@ export function installRefinedProgram():ProgramApi{
     state.days.forEach((day,index)=>{
       const item=dayButtons[index];if(!item)return;item.number.textContent=day.date.slice(-2);item.node.setAttribute("aria-pressed",String(index===state.day));item.node.setAttribute("aria-label",`${FULL_DAYS[index]}, ${day.date}, ${day.done}/${day.count} tamamlandı`);
       item.node.toggleAttribute("data-today",day.date===todayKey);item.marker.toggleAttribute("data-filled",day.count>0);item.marker.toggleAttribute("data-complete",day.count>0&&day.done===day.count);
+      item.marker.style.setProperty("--v103-p",String(day.count?Math.round(day.done/day.count*100):0)); // v103 gün halkası
     });
     dayLabel.textContent=selected?selected.toLocaleDateString("tr-TR",{weekday:"long",day:"numeric",month:"long"}):"Benim programım";
     const done=state.tasks.filter(task=>task.done).length;count.textContent=`${done}/${state.tasks.length} tamamlandı`;progress.value=state.tasks.length?done/state.tasks.length*100:0;
@@ -502,74 +507,60 @@ export function installRefinedProgram():ProgramApi{
     dailyHero.toggleAttribute("data-complete",state.tasks.length>0&&remaining===0);
     dailyHeroCaption.textContent=!state.tasks.length?"Bu gün için henüz görev yok.":remaining===0?"✓ Hepsi tamam":`${remaining} görev kaldı`;
     const focused=document.activeElement instanceof HTMLElement?document.activeElement.dataset.rbProgramFocus:undefined;
+    const nextKey=state.week+"|"+state.day+"|"+state.view;
+    if(nextKey!==viewKey){viewKey=nextKey;root.toggleAttribute("data-v103-enter",true);window.clearTimeout(enterTimer);enterTimer=window.setTimeout(()=>root.removeAttribute("data-v103-enter"),900);}
     list.replaceChildren();
     if(!state.tasks.length){const empty=element("div","rb-program-empty");empty.append(element("strong","","Bu günün planı henüz boş"),element("p","","Çalışma ekle’ye dokun; dersini ve konunu seç. Aynı çalışmayı birden fazla güne de ekleyebilirsin."));list.append(empty);}
-    for(const group of refinedProgramDailyGroups(state.tasks)){
-      const section=element("section","rb-v4-subject-section");
-      section.dataset.v4Group=group.key;section.dataset.v4Tone=refinedProgramGroupTone(group.key);
-      const status=refinedProgramDailyGroupProgress(group),groupId=state.date+"|"+group.key;
-      const folded=collapsedDailyGroups.has(groupId);
-      section.toggleAttribute("data-complete",status.total>0&&status.done===status.total);
-      const groupHeading=button("","rb-v4-subject-heading");
-      groupHeading.setAttribute("aria-label",group.title+": "+status.done+"/"+status.total+" tamamlandı, "+(folded?"genişlet":"daralt"));
-      groupHeading.setAttribute("aria-expanded",String(!folded));
-      const groupName=element("div","rb-v4-subject-heading-title");
-      const groupDone=status.total>0&&status.done===status.total;
-      groupName.append(element("strong","",group.title),element("small","",(groupDone?"✓ ":"")+status.done+"/"+status.total));
-      const groupProgress=element("div","rb-v4-subject-progress"),progressFill=element("i");
-      progressFill.style.width=status.percent+"%";
-      groupProgress.setAttribute("aria-hidden","true");
-      groupProgress.append(progressFill);
-      const groupIndicator=element("span","rb-v4-subject-expand");
-      groupIndicator.setAttribute("aria-hidden","true");
-      groupIndicator.textContent="⌄";
-      const cards=element("div","rb-v4-subject-cards");
-      cards.id="rb-v4-tasks-"+state.week+"-"+state.day+"-"+group.key;
-      cards.hidden=folded;
-      groupHeading.setAttribute("aria-controls",cards.id);
-      groupHeading.append(refinedProgramSubjectIcon(group.key),groupName,groupProgress,groupIndicator);
-      groupHeading.addEventListener("click",()=>{
-        const next=groupHeading.getAttribute("aria-expanded")!=="true";
-        cards.hidden=!next;
-        groupHeading.setAttribute("aria-expanded",String(next));
-        groupHeading.setAttribute("aria-label",group.title+": "+status.done+"/"+status.total+" tamamlandı, "+(next?"daralt":"genişlet"));
-        if(next)collapsedDailyGroups.delete(groupId);else collapsedDailyGroups.add(groupId);
-      });
-      section.append(groupHeading,cards);list.append(section);
-      for(const task of group.tasks){
-      const card=element("article","rb-program-task");card.toggleAttribute("data-done",task.done);card.dataset.taskId=task.id;
+    // v103: zaman çizelgesi. Saatliler (satır etiketi "09:00-11:00") saat sırasıyla, saatsizler kayıtlı sırasıyla sonda.
+    // Ders rengi karttaki şeritten gelir; görev kimliği, kayıt ve tamamlama aynı.
+    const rawState=(window as unknown as ProgramWindow).S||window.YKSLegacyState?.readState?.();
+    const timeline=timelineOrder(state.tasks.map(task=>({task,time:parseTimeRange(rowTimeLabel(rawState,task))})));
+    const clockNow=new Date(),nextAt=nextTaskIndex(timeline,state.date===todayKey?clockNow.getHours()*60+clockNow.getMinutes():null);
+    const gaps=new Map(timelineGaps(timeline).map(gap=>[gap.after,gap]));
+    dailyPlanned.textContent=plannedText(plannedMinutes(timeline));dailyPlanned.hidden=!dailyPlanned.textContent;
+    timeline.forEach(({task,time},index)=>{
+      const tone=refinedProgramGroupTone(refinedProgramDailyGroupKey(task));
+      const slot=element("div","rb-v103-slot");slot.dataset.v4Tone=tone;
+      slot.append(element("time","rb-v103-time",time?clock(time.start):task.block==="r"?"Rutin":"—"));
+      const card=element("article","rb-program-task");card.toggleAttribute("data-done",task.done);card.dataset.taskId=task.id;card.dataset.v4Tone=tone;
       const label=refinedProgramSubjectLabel(task.text,task.label);
-      card.dataset.v4Tone=refinedProgramGroupTone(group.key);
       const check=button("","rb-program-check"),details=button("","rb-program-task-details"),copy=element("span","rb-program-task-copy"),openMark=element("span","rb-program-task-open","›");
       check.dataset.rbProgramFocus=task.id;
       check.setAttribute("aria-pressed",String(task.done));check.setAttribute("aria-label",`${task.text}: ${task.done?"tamamlanmadı olarak işaretle":"tamamla"}`);if(task.done)check.append(icon("check"));
-      const extras=refinedProgramSplitExtras(task.text),info=refinedProgramTaskDetail(extras.work,task.label);
-      const meta=info.meta===task.label?"":info.meta;
-      copy.append(element("strong","",label),element("small","",meta||"Çalışma detaylarını görüntüle"));
-      const resourceBadge=element("span","rb-program-task-resource",info.url?"▶ Video / kaynak":"Detayı aç");
-      details.setAttribute("aria-label",`${label} çalışma detayını aç`);details.append(copy,resourceBadge,openMark);
-      check.addEventListener("click",()=>{controller.toggleTask(task.id);refresh();});
+      const extras=refinedProgramSplitExtras(task.text),plain=stripCoach(extras.work),info=refinedProgramTaskDetail(plain,task.label);
+      const titles=cardTitles(label,info.title,info.meta===task.label?"":info.meta);
+      const when=[time?time.label+" · "+durationText(time):"Saat yok",titles.meta,plain!==extras.work?"koçun ekledi":""].filter(Boolean).join(" · ");
+      if(titles.subject)copy.append(element("span","rb-v103-subject",titles.subject));
+      copy.append(element("strong","",titles.title),element("small","",when));
+      details.setAttribute("aria-label",`${label} çalışma detayını aç`);details.append(copy,openMark);
+      // Kayıt sonrası ikinci bir yeniden çizim gelir; işaret kısa süre tutulur ki "pop" kaybolmasın.
+      check.addEventListener("click",()=>{justToggled=task.id;window.setTimeout(()=>{if(justToggled===task.id)justToggled="";},700);controller.toggleTask(task.id);refresh();});
       details.addEventListener("click",()=>openDetail(task,state.week));
+      card.append(check,details);
+      // Video / Not / Materyal yalnız ekliyse; eklemek için detaydaki "Not veya materyal düzenle".
       const chips=element("div","rb-v4-task-chips");
-      const watchedAt=info.url?refinedProgramVideoWatchedAt(state.week,task.id,info.url):0;
-      const videoChip=button(watchedAt?"▶ İzlendi":"▶ Video","rb-v4-chip rb-v4-chip-video"+(watchedAt?" rb-v4-chip-watched":"")),
-        noteChip=button("▤ Not","rb-v4-chip rb-v4-chip-note"),
-        materialChip=button("▣ Materyal","rb-v4-chip rb-v4-chip-material");
-      videoChip.setAttribute("aria-label",watchedAt?`${label} videosu ${clockOf(watchedAt)}’da açıldı; detayı aç`:`${label} video veya kaynak seçenekleri`);
-      noteChip.setAttribute("aria-label",`${label} notunu düzenle`);
-      materialChip.setAttribute("aria-label",`${label} materyalini aç veya ekle`);
-      videoChip.classList.toggle("rb-v4-chip-has",Boolean(info.url));noteChip.classList.toggle("rb-v4-chip-has",Boolean(extras.note));materialChip.classList.toggle("rb-v4-chip-has",Boolean(extras.material));
-      videoChip.addEventListener("click",()=>openDetail(task,state.week));
-      noteChip.addEventListener("click",()=>openEditor(task,state.week,"note"));
-      materialChip.addEventListener("click",()=>{
-        if(extras.material&&refinedProgramResourceUrl(extras.material)!==null){
-          const anchor=document.createElement("a");anchor.href=extras.material;anchor.target="_blank";anchor.rel="noopener noreferrer";anchor.click();
-        }else openEditor(task,state.week,"material");
-      });
-      chips.append(videoChip,noteChip,materialChip);
-      card.append(check,details,chips);cards.append(card);
+      if(info.url){
+        const watchedAt=refinedProgramVideoWatchedAt(state.week,task.id,info.url);
+        const videoChip=button(watchedAt?"İzlendi":"Video","rb-v4-chip rb-v4-chip-video rb-v4-chip-has"+(watchedAt?" rb-v4-chip-watched":""));
+        videoChip.setAttribute("aria-label",watchedAt?`${label} videosu ${clockOf(watchedAt)}’da açıldı; detayı aç`:`${label} video veya kaynak seçenekleri`);
+        videoChip.addEventListener("click",()=>openDetail(task,state.week));chips.append(videoChip);
       }
-    }
+      if(extras.note){
+        const noteChip=button("Not","rb-v4-chip rb-v4-chip-note rb-v4-chip-has");noteChip.setAttribute("aria-label",`${label} notunu düzenle`);
+        noteChip.addEventListener("click",()=>openEditor(task,state.week,"note"));chips.append(noteChip);
+      }
+      if(extras.material&&refinedProgramResourceUrl(extras.material)!==null){
+        const materialChip=button("Materyal","rb-v4-chip rb-v4-chip-material rb-v4-chip-has");materialChip.setAttribute("aria-label",`${label} materyalini aç`);
+        materialChip.addEventListener("click",()=>{const anchor=document.createElement("a");anchor.href=extras.material;anchor.target="_blank";anchor.rel="noopener noreferrer";anchor.click();});
+        chips.append(materialChip);
+      }
+      if(chips.childElementCount)card.append(chips);
+      if(index===nextAt){card.toggleAttribute("data-v103-next",true);card.append(element("span","rb-v103-next","Sırada"));}
+      if(task.id===justToggled)card.toggleAttribute("data-v103-just",true);
+      slot.append(card);list.append(slot);
+      const gap=gaps.get(index);
+      if(gap)list.append(element("div","rb-v103-free",clock(gap.start)+"–"+clock(gap.end)+" boş · mola ya da ekstra çalışma"));
+    });
     // Checkbox remains keyboard-focusable after the legacy save triggers a full refresh.
     if(focused){
       const replacement=[...list.querySelectorAll<HTMLButtonElement>("[data-rb-program-focus]")].find(node=>node.dataset.rbProgramFocus===focused);
@@ -666,6 +657,10 @@ export function installRefinedProgram():ProgramApi{
         go.setAttribute("aria-label",day.count?FULL_DAYS[index]+" günlük planını aç":FULL_DAYS[index]+" gününe çalışma ekle");
         go.addEventListener("click",()=>day.count?openDay(index):addForDay(index));
         dayCard.toggleAttribute("data-empty",!day.count);
+        // v103: günün derslerini renkli çubuklarla özetler; biten görev dolu, bekleyen soluk.
+        const bars=element("span","rb-v103-bars");bars.setAttribute("aria-hidden","true");
+        for(const task of weekTasks[index]||[]){const bar=element("i");bar.dataset.v4Tone=refinedProgramGroupTone(refinedProgramDailyGroupKey(task));bar.toggleAttribute("data-done",task.done);bars.append(bar);}
+        if(bars.childElementCount)dateInfo.append(bars);
         dayHeader.append(dateInfo,go);
         dayCard.append(dayHeader);
         const todayGroups=refinedProgramDailyGroups(weekTasks[index]||[]);
@@ -785,7 +780,7 @@ export function installRefinedProgram():ProgramApi{
     wrappers.set(name,{original:original as LegacyFunction,wrapped});legacy[name]=wrapped;
   };
   wrap("renderPlan");wrap("planEditSelected",()=>controller.setView("week"));
-  const onNavigation=(event:Event)=>{const detail=(event as CustomEvent<{to?:string;screen?:string}>).detail;if((detail?.to??detail?.screen)==="program")schedule();};
+  const onNavigation=(event:Event)=>{const detail=(event as CustomEvent<{to?:string;screen?:string}>).detail;if((detail?.to??detail?.screen)==="program"){viewKey="";schedule();}};
   const events=["yks:data-changed","yks:data-primary-ready","yks:auth-state","yks:student-coach-link-ready"];
   for(const name of events)window.addEventListener(name,schedule);window.addEventListener("yks:navigation-after",onNavigation);document.addEventListener("yks:navigation-after",onNavigation);
   legacyPanel.addEventListener("input",schedule);

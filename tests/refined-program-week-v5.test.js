@@ -5,7 +5,7 @@ const path=require("node:path");
 const vm=require("node:vm");
 const {stripTypeScriptTypes}=require("node:module");
 const root=path.resolve(__dirname,"..");
-const source=fs.readFileSync(path.join(root,"src/ui/refined-program.ts"),"utf8");
+const source=require("./program-source-fixture").programSource();
 const styles=fs.readFileSync(path.join(root,"src/ui/refined-program-v4.css"),"utf8");
 const javascript=stripTypeScriptTypes(source
   .replace(/^import "\.\/refined-program\.css";\r?\n/,"")

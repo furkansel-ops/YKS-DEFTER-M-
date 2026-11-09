@@ -40,8 +40,10 @@ test("v72 3: her ders grubu tek tema tonuna bağlanır; şerit, grup ve tik ayn�
   for(const [key,expected] of [["math","math"],["reading","reading"],["physics","physics"],["chemistry","chemistry"],["biology","biology"],
     ["geometry","math"],["literature","reading"],["history","social"],["geography","social"],["philosophy","social"],["religion","social"],["english","other"],["other","other"]])
     assert.equal(tone(key),expected,key);
+  // v103: zaman çizelgesinde kart ve nokta aynı tonu taşır; Haftalık Bakış grupları tonu korur
   assert.match(source,/section\.dataset\.v4Group=group\.key;section\.dataset\.v4Tone=refinedProgramGroupTone\(group\.key\);/);
-  assert.match(source,/card\.dataset\.v4Tone=refinedProgramGroupTone\(group\.key\);/);
+  assert.match(source,/const tone=refinedProgramGroupTone\(refinedProgramDailyGroupKey\(task\)\);/);
+  assert.match(source,/card\.dataset\.v4Tone=tone;/);
   assert.match(css,/\.rb-v4-subject-section\[data-v4-tone\]\{\s*--rb-v4-group-color:var\(--tone,var\(--d-accent\)\);/);
 });
 
@@ -56,19 +58,22 @@ test("v72 4: boş kutu sakin ve görünür (en az 3:1), tamamlanınca düz yeşi
 
 test("v72 5 · 6: tek gün özeti; grup sayacı bitince koyulaştırılmış yeşil ✓",()=>{
   assert.match(source,/dailyPanel\.append\(dailyHero,dailyTasksHeading,list\);/);
-  assert.match(source,/dailyHero\.append\(dailyHeroCopy,dailyHeroCaption\);/);
+  assert.match(source,/dailyHero\.append\(dailyRing,dailyHeroCopy,dailyHeroCaption,dailyPlanned\);/,"v103: halka ve planlı süre");
   assert.match(source,/dailyHeroBar\.setAttribute\("role","progressbar"\)/);
   assert.match(source,/dailyHeroCount\.textContent=state\.tasks\.length\?`\$\{done\}\/\$\{state\.tasks\.length\}`:""/);
   assert.match(css,/\.rb-v4-day-progress>\.rb-v4-progress-caption\{display:block;/,"telefonda gizleyen eski kuralı geçer");
   assert.match(css,/@media\(min-width:1024px\)\{[^}]*#refinedProgramDay>\.rb-v4-day-progress\{grid-row:1 \/ span 2\}/);
-  assert.match(source,/element\("small","",\(groupDone\?"✓ ":""\)\+status\.done\+"\/"\+status\.total\)/);
+  // v103: günlük ders grupları kalktı; gün bitince halka yeşile döner (data-complete)
+  assert.match(source,/dailyHero\.toggleAttribute\("data-complete",state\.tasks\.length>0&&remaining===0\);/);
   assert.match(css,/\[data-complete\] \.rb-v4-subject-heading-title small\{color:color-mix\(in srgb,var\(--d-ok\) 75%,var\(--d-ink\)\)/);
 });
 
 test("v72 7 · 8: kartta ders simgesi yok; içerikli Video/Not/Materyal belirgin",()=>{
-  assert.match(source,/card\.append\(check,details,chips\);/);
+  assert.match(source,/card\.append\(check,details\);/);
   assert.doesNotMatch(source,/const subjectIcon=refinedProgramSubjectIcon\(group\.key\)/);
-  assert.match(source,/videoChip\.classList\.toggle\("rb-v4-chip-has",Boolean\(info\.url\)\);noteChip\.classList\.toggle\("rb-v4-chip-has",Boolean\(extras\.note\)\);materialChip\.classList\.toggle\("rb-v4-chip-has",Boolean\(extras\.material\)\);/);
+  // v103: Video/Not/Materyal yalnız ekliyse çıkar (boş çip yok)
+  assert.match(source,/if\(info\.url\)\{/);assert.match(source,/if\(extras\.note\)\{/);assert.match(source,/if\(extras\.material&&refinedProgramResourceUrl\(extras\.material\)!==null\)\{/);
+  assert.match(source,/"rb-v4-chip rb-v4-chip-video rb-v4-chip-has"/);
   assert.match(css,/\.rb-program-task\{grid-template-columns:42px minmax\(0,1fr\)\}/);
   assert.match(css,/\.rb-v4-chip\.rb-v4-chip-has\{/);
 });

@@ -6,7 +6,7 @@ const vm=require("node:vm");
 const {loadTaskText}=require("./task-text-fixture");
 const {stripTypeScriptTypes}=require("node:module");
 const root=path.resolve(__dirname,"..");
-const source=fs.readFileSync(path.join(root,"src/ui/refined-program.ts"),"utf8");
+const source=require("./program-source-fixture").programSource();
 const css=fs.readFileSync(path.join(root,"src/ui/refined-program-v4.css"),"utf8");
 const runtime=stripTypeScriptTypes(source
   .replace(/^import "\.\/refined-program\.css";\r?\n/,"")
@@ -23,7 +23,8 @@ test("student planner actually replaces the main daily view, not only the smart 
   assert.match(source,/button\("Haftalık Bakış"\)/);
   assert.match(source,/rb-v4-day-progress/);
   assert.match(source,/dailyPanel\.append\(dailyHero,dailyTasksHeading,list\)/);
-  assert.match(source,/card\.append\(check,details,chips\)/);
+  assert.match(source,/card\.append\(check,details\);/);
+  assert.match(source,/if\(chips\.childElementCount\)card\.append\(chips\);/,"çipler yalnız ekli olan varsa");
   assert.match(css,/\.rb-v4-ring/);
   assert.match(css,/\.rb-v4-task-chips/);
   assert.match(css,/\.rb-program-weekstrip/);

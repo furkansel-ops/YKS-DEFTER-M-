@@ -7,7 +7,7 @@ const {loadTaskText}=require("./task-text-fixture");
 const {stripTypeScriptTypes}=require("node:module");
 
 const root=path.resolve(__dirname,"..");
-const source=fs.readFileSync(path.join(root,"src/ui/refined-program.ts"),"utf8");
+const source=require("./program-source-fixture").programSource();
 const css=fs.readFileSync(path.join(root,"src/ui/refined-program-v4.css"),"utf8");
 const runtime=stripTypeScriptTypes(source
   .replace(/^import "\.\/refined-program\.css";\r?\n/,"")
@@ -84,10 +84,10 @@ test("daily groups are a derived presentation and do not modify original week da
   assert.equal(JSON.stringify(state),original);
 });
 
-test("grouped cards still use the existing task actions with no false changes to sync",()=>{
-  assert.match(source,/for\(const group of refinedProgramDailyGroups\(state\.tasks\)\)/);
-  assert.match(source,/section\.append\(groupHeading,cards\);list\.append\(section\)/);
-  assert.match(source,/card\.append\(check,details,chips\);cards\.append\(card\)/);
+test("v103 zaman çizelgesi kartları mevcut görev eylemlerini kullanır; senkrona yanlış yazmaz",()=>{
+  assert.match(source,/timelineOrder\(state\.tasks\.map\(task=>\(\{task,time:parseTimeRange\(rowTimeLabel\(rawState,task\)\)\}\)\)\)/);
+  assert.match(source,/slot\.append\(card\);list\.append\(slot\)/);
+  assert.match(source,/card\.append\(check,details\);/);
   assert.match(source,/controller\.toggleTask\(task\.id\)/);
   assert.match(source,/openDetail\(task,state\.week\)/);
   assert.match(source,/openEditor\(task,state\.week,"note"\)/);
@@ -129,16 +129,10 @@ test("abbreviated subjects are grouped without reading an incidental topic keywo
   ])assert.equal(api.refinedProgramDailyGroupKey(task("t1",work)),expected,work);
 });
 
-test("subject fold state is UI only, date scoped, keyboard accessible and survives task refresh",()=>{
-  assert.match(source,/collapsedDailyGroups=new Set<string>\(\)/);
-  assert.match(source,/groupId=state\.date\+"\|"\+group\.key/);
-  assert.match(source,/groupHeading=button\("","rb-v4-subject-heading"\)/);
-  assert.match(source,/groupHeading\.setAttribute\("aria-expanded",String\(!folded\)\)/);
-  assert.match(source,/cards\.hidden=folded/);
-  assert.match(source,/collapsedDailyGroups\.delete\(groupId\)/);
-  assert.match(source,/collapsedDailyGroups\.add\(groupId\)/);
-  assert.match(source,/groupProgress\.append\(progressFill\)/);
-  assert.match(source,/groupName\.append\(element\("strong","",group\.title\),element\("small","",\(groupDone\?"✓ ":""\)\+status\.done\+"\/"\+status\.total\)\)/);
+test("v103: görünüm durumu yalnız arayüzde; işaretlenen kutunun odağı yenilemeden sonra korunur",()=>{
+  // Ders katlama v103'te kalktı (zaman çizelgesi); justToggled/viewKey yalnız hareket içindir, kayda yazılmaz.
+  assert.match(source,/let justToggled="",viewKey="",enterTimer=0;/);
+  assert.doesNotMatch(source,/collapsedDailyGroups/);
   assert.match(source,/check\.dataset\.rbProgramFocus=task\.id/);
   assert.match(source,/replacement\?\.focus\(\{preventScroll:true\}\)/);
   assert.match(css,/\.rb-v4-subject-cards\[hidden\]\{display:none!important\}/);

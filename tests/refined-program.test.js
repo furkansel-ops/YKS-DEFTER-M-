@@ -6,7 +6,7 @@ const vm=require("node:vm");
 const {loadTaskText}=require("./task-text-fixture");
 const {stripTypeScriptTypes}=require("node:module");
 const root=path.resolve(__dirname,"..");
-const source=fs.readFileSync(path.join(root,"src/ui/refined-program.ts"),"utf8");
+const source=require("./program-source-fixture").programSource();
 const runtime=stripTypeScriptTypes(source.replace(/^import "\.\/refined-program\.css";\r?\n/,"").replace(/^import "\.\/refined-program-v4\.css";\r?\n/,"").replace(/^import "\.\/refined-program-v72\.css";\r?\n/,"").replace(/^import \{renderSmartProgram\} from "\.\/smart-program";\r?\n/,""),{mode:"strip"}).replace(/^export /gm,"");
 const api=vm.runInNewContext(runtime+"\n({refinedProgramTasks,refinedProgramWeekOffset,refinedProgramQuickText,refinedProgramResourceUrl,refinedProgramTaskDetail,refinedProgramSubjectLabel,createRefinedProgramController})",{Date,URL,YKSTaskText:loadTaskText()});
 const plain=value=>JSON.parse(JSON.stringify(value));
@@ -213,7 +213,7 @@ test("daily task ordering persists through mv metadata without changing cell ide
 
 
 test("Programım günlükte ders detay aksiyonlarını, haftalıkta yalnız yazıdan düzenlemeyi kullanır",()=>{
-  const source=fs.readFileSync(path.join(root,"src/ui/refined-program.ts"),"utf8");
+  const source=require("./program-source-fixture").programSource();
   const css=fs.readFileSync(path.join(root,"src/ui/refined-program.css"),"utf8");
   assert.doesNotMatch(source,/rb-program-select/);
   assert.doesNotMatch(source,/rb-program-calendar-select/);
@@ -248,7 +248,7 @@ test("kendim yazayım çalışmaları eski satır etiketini değil gerçek dersi
 
 
 test("haftalık uzun görev iki satırda kalır ve yeni editör mevcut hücreyi günceller",()=>{
-  const source=fs.readFileSync(path.join(root,"src/ui/refined-program.ts"),"utf8");
+  const source=require("./program-source-fixture").programSource();
   const css=fs.readFileSync(path.join(root,"src/ui/refined-program.css"),"utf8");
   const legacy=fs.readFileSync(path.join(root,"app.js"),"utf8");
   assert.match(source,/rb-program-editor/);

@@ -28,7 +28,7 @@ test("video açılınca işaretlenir; dönüşte görev açıksa soru gösterili
 });
 
 test("listede izlenen video çipi yeşil 'İzlendi' olur; stiller temadan türetilir",()=>{
-  assert.match(src,/watchedAt\?"▶ İzlendi":"▶ Video"/);
+  assert.match(src,/watchedAt\?"İzlendi":"Video"/,"v103: oynat simgesi CSS'te çizilir");
   const css=read("src/ui/refined-program-v4.css");
   assert.match(css,/\.rb-v4-chip-video\.rb-v4-chip-watched\{background:color-mix\(in srgb,var\(--success/);
   assert.match(css,/\.rb-program-detail-ask\[hidden\]\{display:none\}/);
