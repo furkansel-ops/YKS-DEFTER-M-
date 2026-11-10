@@ -55,6 +55,18 @@ function typeLabel(type:string):string{return type==="BRANS"?"Branş":type;}
 function shortName(name:string):string{return SHORT[name]||name;}
 function selectedType():ExamAnalysisType{const v=document.querySelector<HTMLButtonElement>("#deneme .v315-type-seg button.on")?.id.replace("v315t","");return v==="AYT"||v==="YDT"||v==="BRANS"?v:"TYT";}
 function selectedWindow():ExamAnalysisWindow{const id=document.querySelector<HTMLButtonElement>("#deneme .v315-window-seg button.on")?.id;return id==="v315w5"?5:id==="v315wAll"?0:10;}
+/* v106: dönem seçimi yalnız etkilediği kartların (Net trendi, Dersler) başlığında durur; eski düğmeler gizli kalır ve durumu onlar taşır. */
+const WINDOWS:[number,string][]=[[5,"Son 5"],[10,"Son 10"],[0,"Tümü"]];
+function winSelect():string{const w=selectedWindow();return `<span class="eh-winbox"><select class="eh-win" data-win aria-label="Analiz aralığı">${WINDOWS.map(([v,l])=>`<option value="${v}"${v===w?" selected":""}>${l}</option>`).join("")}</select></span>`;}
+function ic(name:string):string{return `<i class="eh-ic" data-ic="${name}" aria-hidden="true"></i>`;}
+/* Ders simgesi ve rengi Konular'daki takımdan (app.js v105SubjectIcon, YKSTaskText.subjectTone) gelir. */
+function tile(name:string):string{
+  // Deneme satırındaki grup adlarını (Fen Bilimleri, Sosyal Bilimler) görev renklendiricisi tanımaz.
+  let tone=/^Fen /.test(name)?"chemistry":/^Sosyal /.test(name)?"social":"";
+  if(!tone)try{tone=String(L.YKSTaskText?.subjectTone?.(name)||"other");}catch{tone="other";}
+  return `<i class="eh-tile" data-v105-ic="${esc(call("v105SubjectIcon",name)||"kitap")}" data-tone="${esc(tone)}" aria-hidden="true"></i>`;
+}
+function bar(percent:number):string{return `<i class="eh-bar"><i style="width:${Math.max(0,Math.min(100,Math.round(percent)))}%"></i></i>`;}
 function exams(type?:string):Loose[]{return list(state().denemeler).filter(d=>!type||d.type===type).slice().sort((a,b)=>String(a.date||"").localeCompare(String(b.date||""))||num(a.id)-num(b.id));}
 function results(exam:Loose|undefined):Loose[]{return list(exam?.subjectResults);}
 function wrongTotal(exam:Loose|undefined):number{return results(exam).reduce((sum,row)=>sum+Math.max(0,num(row.y)),0);}
@@ -69,7 +81,23 @@ function setTab(tab:Tab,focus=false):void{
   for(const button of Array.from(document.querySelectorAll<HTMLButtonElement>("#examHubTabs button"))){
     const on=button.dataset.tab===tab;button.setAttribute("aria-selected",String(on));button.tabIndex=on?0:-1;if(on&&focus)button.focus();
   }
-  render();
+  playEnter();render();
+}
+/* Giriş hareketi yalnız ekrana ya da sekmeye girişte oynar; veri değişip bölme yeniden çizilince tekrarlanmaz. */
+let enterTimer:ReturnType<typeof setTimeout>|undefined;
+function playEnter():void{
+  const root=screen();if(!root)return;root.dataset.ehEnter="";
+  clearTimeout(enterTimer);enterTimer=setTimeout(()=>{delete root.dataset.ehEnter;},1300);
+}
+/* Başlık altı, Hatalar sekmesindeki bekleyen tekrar sayısı ve Net trendi kartındaki dönem seçimi. */
+function syncChrome():void{
+  const type=selectedType(),hint=document.querySelector<HTMLElement>("#v315Dashboard .v315-dash-title .hint");
+  if(hint)hint.textContent=`${typeLabel(type)} · ${exams(type).length} deneme`;
+  let due=0;try{due=L.YKSErrorJournal?.openReviews?.().length??0;}catch{}
+  const tab=byId("examHubTab-hata");
+  if(tab&&tab.dataset.due!==String(due)){tab.dataset.due=String(due);tab.innerHTML=TAB_LABEL.hata+(due?`<em aria-label="${due} tekrar bekliyor">${due}</em>`:"");}
+  const win=byId("examHubWin");
+  if(win&&win.querySelector("select")?.value!==String(selectedWindow()))win.innerHTML=winSelect();
 }
 function ensureSkeleton():boolean{
   const root=screen(),dash=byId("v315Dashboard"),filter=dash?.querySelector<HTMLElement>(".v315-filterbar");if(!root||!dash||!filter)return false;
@@ -91,6 +119,9 @@ function ensureSkeleton():boolean{
     gear.addEventListener("click",openSettings);
     if(add)add.before(gear);else head?.append(gear);
   }
+  // v106: son deneme kartı sayı kutularının üstünde durur; dönem seçimi Net trendi başlığına girer.
+  if(!byId("examHubHero")){const hero=document.createElement("div");hero.id="examHubHero";hero.className="eh-hero-slot";byId("v315Kpis")?.before(hero);}
+  if(!byId("examHubWin")){const box=document.createElement("span");box.id="examHubWin";dash.querySelector(".v315-trend-card .v315-card-head")?.append(box);}
   let anchor:Element|null=byId("reflBox")||byId("v315ExamFormCard")||dash;
   for(const tab of TABS){
     let pane=byId(`examHub-${tab}`);
@@ -170,27 +201,32 @@ function trendSvg(rows:Loose[]):string{
   let svg=`<svg class="v315-trend-svg eh-trend" viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="${esc(typeLabel(type))} net grafiği, son ${show.length} deneme">`;
   for(let i=0;i<3;i++){const v=Math.round(hi-i*(hi-lo)/2),yy=y(v);svg+=`<line class="eh-grid" x1="${Lp}" y1="${yy}" x2="${W-Rp}" y2="${yy}"/><text class="eh-axis" x="${Lp-6}" y="${yy+4}" text-anchor="end">${v}</text>`;}
   if(target>0){const ty=y(target);svg+=`<line class="eh-target" x1="${Lp}" y1="${ty}" x2="${W-Rp}" y2="${ty}"/><text class="eh-target-label" x="${Lp+4}" y="${ty-6}">Hedef ${fmt(target)}</text>`;}
-  if(show.length>1)svg+=`<polyline class="eh-line" points="${show.map((d,i)=>`${x(i)},${y(num(d.totalNet))}`).join(" ")}"/>`;
+  // Dolgu rengi özniteliktedir: dış stil dosyasındaki url(#…) her tarayıcıda bu belgeye bakmaz.
+  if(show.length>1){const pts=show.map((d,i)=>`${x(i)},${y(num(d.totalNet))}`).join(" ");svg+=`<defs><linearGradient id="ehArea" x1="0" y1="0" x2="0" y2="1"><stop class="eh-a0" offset="0"/><stop class="eh-a1" offset="1"/></linearGradient></defs><polygon class="eh-area" fill="url(#ehArea)" points="${x(0)},${H-Bp} ${pts} ${x(show.length-1)},${H-Bp}"/><polyline class="eh-line" pathLength="1" points="${pts}"/>`;}
   const step=Math.ceil(show.length/(W<360?5:8));
-  show.forEach((d,i)=>{const px=x(i),py=y(num(d.totalNet));svg+=`<circle class="eh-dot" cx="${px}" cy="${py}" r="4.5"><title>${esc((d.name||"Deneme")+" · "+fmt(num(d.totalNet))+" net")}</title></circle><text class="eh-val" x="${px}" y="${py-9}" text-anchor="middle">${fmt(num(d.totalNet))}</text>`;
+  show.forEach((d,i)=>{const px=x(i),py=y(num(d.totalNet));svg+=`<circle class="eh-dot${i===show.length-1?" is-last":""}" cx="${px}" cy="${py}" r="${i===show.length-1?5.5:4.5}"><title>${esc((d.name||"Deneme")+" · "+fmt(num(d.totalNet))+" net")}</title></circle><text class="eh-val" x="${px}" y="${py-9}" text-anchor="middle">${fmt(num(d.totalNet))}</text>`;
     if(i%step===0||i===show.length-1)svg+=`<text class="eh-axis" x="${px}" y="${H-9}" text-anchor="middle">${esc(dayLabel(String(d.date||"")))}</text>`;});
   return svg+"</svg>";
 }
 
 /* ---------- Özet ---------- */
+/* v106 son deneme kartı: net, önceki denemeye göre fark, hedefe kalan net, ders netleri ve yanlışları işleme. */
+function heroHtml(type:string):string{
+  const all=exams(type),last=all.at(-1),prev=all.at(-2);if(!last)return "";
+  const net=num(last.totalNet),delta=prev?net-num(prev.totalNet):null,wrong=wrongTotal(last),open=Math.max(0,wrong-markedWrong(last)),target=targetFor(type);
+  const meta=[num(last.dur)?num(last.dur)+" dk":"",last.pub?String(last.pub):""].filter(Boolean).join(" · ");
+  let html=`<div class="eh-hero"><div class="eh-hero-top"><div><small class="eh-eyebrow">${esc(["Son "+typeLabel(type)+" denemesi",dayLabel(String(last.date||""))].filter(Boolean).join(" · "))}</small><b>${esc(last.name||"Deneme")}</b>${meta?`<small>${esc(meta)}</small>`:""}</div><div class="eh-big">${fmt(net)}<em>${delta==null?"ilk deneme":`${delta>0?"▲ ":delta<0?"▼ ":""}${fmt(Math.abs(delta))} net`}</em></div></div>`;
+  if(target>0)html+=`<div class="eh-goal">${bar(net/target*100)}<small><b>Hedef ${fmt(target)}</b> · ${net>=target?"hedefe ulaştın":fmt(target-net)+" net kaldı"}</small></div>`;
+  const rows=results(last).filter(r=>num(r.d)+num(r.y)+num(r.b)>0||num(r.net)!==0);
+  // Soru sayısı doğru+yanlış+boştan bilinir; yalnız net girilmişse çubuk çizilmez.
+  if(rows.length)html+=`<div class="eh-nets">${rows.slice(0,8).map(r=>{const q=num(r.d)+num(r.y)+num(r.b);return `<span><small>${esc(shortName(String(r.name||"")))}</small><b>${fmt(num(r.net))}</b>${q>0?bar(num(r.net)/q*100):""}</span>`;}).join("")}</div>`;
+  return html+`<div class="eh-btns">${wrong?`<button type="button" class="eh-hbtn${open?" is-main":""}" data-act="wrongs" data-id="${esc(last.id)}">${open?`Yanlışları işle · ${open}`:"Yanlışlar işlendi ✓"}</button>`:""}<button type="button" class="eh-hbtn${wrong&&open?"":" is-main"}" data-act="detail" data-id="${esc(last.id)}">Ayrıntı</button></div></div>`;
+}
 function renderOzet(pane:HTMLElement):void{
-  const type=selectedType(),all=exams(type),last=all.at(-1),prev=all.at(-2);
+  const hero=byId("examHubHero");if(hero)hero.innerHTML=heroHtml(selectedType());
   let html="";
-  if(last){
-    const delta=prev?num(last.totalNet)-num(prev.totalNet):null,wrong=wrongTotal(last),open=Math.max(0,wrong-markedWrong(last));
-    const meta=[dayLabel(String(last.date||"")),num(last.dur)?num(last.dur)+" dk":"",last.pub?String(last.pub):""].filter(Boolean).join(" · ");
-    html+=`<div class="card eh-latest"><div class="eh-latest-top"><div><small class="eh-eyebrow">Son ${esc(typeLabel(type))} denemesi</small><b>${esc(last.name||"Deneme")}</b><small>${esc(meta)}</small></div><div class="eh-big">${fmt(num(last.totalNet))}<em class="${tone(delta)}">${delta==null?"ilk deneme":signed(delta," net")}</em></div></div>`;
-    const rows=results(last).filter(r=>num(r.d)+num(r.y)+num(r.b)>0||num(r.net)!==0);
-    if(rows.length)html+=`<div class="eh-nets">${rows.slice(0,8).map(r=>`<span>${esc(shortName(String(r.name||"")))}<b>${fmt(num(r.net))}</b></span>`).join("")}</div>`;
-    html+=`<div class="eh-btns"><button type="button" class="btn ghost" data-act="detail" data-id="${esc(last.id)}">Ayrıntı</button>${wrong?`<button type="button" class="btn ${open?"green":"ghost"}" data-act="wrongs" data-id="${esc(last.id)}">${open?`Yanlışları işle · ${open}`:"Yanlışlar işlendi ✓"}</button>`:""}</div></div>`;
-  }
   const loop=loopStats();
-  html+=`<button type="button" class="card eh-loop" data-act="tab" data-tab="hata"><span class="eh-card-head"><b>Öğrenme döngüsü</b><small>yanlış → eksik → tekrar → kontrol</small></span>
+  html+=`<button type="button" class="card eh-loop" data-act="tab" data-tab="hata"><span class="eh-card-head"><b>Öğrenme döngüsü</b><small>yanlıştan kontrole</small></span>
     <span class="eh-loop-steps"><span>Kayıt<b>${loop.records}</b></span><span>Eksik konu<b>${loop.topics}</b></span><span class="${loop.reviews?"is-due":""}">Tekrar<b>${loop.reviews}</b></span><span>Kontrol<b>${loop.check}</b></span></span>
     <span class="eh-hint">${esc(loop.hint)}</span></button>`;
   pane.innerHTML=html;
@@ -223,11 +259,11 @@ function renderAnaliz(pane:HTMLElement):void{
     const avgCap=sub.successPercent!=null&&sub.successPercent>0?sub.averageNet/sub.successPercent*100:0,c=dyb.get(sub.name),q=c?c.d+c.y+c.b:0,top=topFor(sub.name);
     const bar=q?`<span class="eh-dyb" aria-label="Doğru %${Math.round(c!.d/q*100)}, yanlış %${Math.round(c!.y/q*100)}, boş %${Math.round(c!.b/q*100)}"><i class="c" style="width:${c!.d/q*100}%"></i><i class="w" style="width:${c!.y/q*100}%"></i><i class="e" style="width:${c!.b/q*100}%"></i></span>`:"";
     const d=sub.latestDelta;
-    return `<div class="eh-subj"><div class="eh-subj-row"><b>${esc(sub.name)}</b><small>${fmt(sub.averageNet)}${avgCap?" / "+Math.round(avgCap):""}${d!=null&&d!==0?` <span class="${tone(d)}">${d>0?"▲":"▼"} ${fmt(Math.abs(d))}</span>`:""}</small></div>${bar}${top?`<small class="eh-subj-top">En çok yanlış: <b>${esc(top.topic)}</b> (${top.n})</small>`:""}</div>`;
+    return `<div class="eh-subj">${tile(sub.name)}<div><div class="eh-subj-row"><b>${esc(sub.name)}</b><small>${fmt(sub.averageNet)}${avgCap?" / "+Math.round(avgCap):""}${d!=null&&d!==0?` <span class="${tone(d)}">${d>0?"▲":"▼"} ${fmt(Math.abs(d))}</span>`:""}</small></div>${bar}${top?`<small class="eh-subj-top">En çok yanlış: <b>${esc(top.topic)}</b> (${top.n})</small>`:""}</div></div>`;
   }).join("");
   const st=a.strongest,att=a.needsAttention;
-  let html=`<div class="card eh-subjects"><div class="eh-card-head"><b>Dersler</b><small>${a.window?`son ${a.count} deneme`:`${a.count} deneme`} ortalaması</small></div>${subjectHtml||'<p class="hint">Ders bazlı sonuç girdikçe burada görünür.</p>'}<div class="eh-legend"><span><i class="c"></i>Doğru</span><span><i class="w"></i>Yanlış</span><span><i class="e"></i>Boş</span></div></div>`;
-  if(st||att)html+=`<div class="eh-sw">${st?`<div class="eh-good"><small>En güçlü</small><b>${esc(st.name)}</b><small>%${st.successPercent??0} başarı</small></div>`:""}${att?`<div class="eh-bad"><small>Odaklan</small><b>${esc(att.name)}</b><small>%${att.successPercent??0} başarı${att.periodDelta!=null&&att.periodDelta<0?` · ${fmt(att.periodDelta)} net`:""}</small></div>`:""}</div>`;
+  let html=`<div class="card eh-subjects"><div class="eh-card-head"><b>Dersler</b>${winSelect()}</div>${subjectHtml||'<p class="hint">Ders bazlı sonuç girdikçe burada görünür.</p>'}<div class="eh-legend"><span><i class="c"></i>Doğru</span><span><i class="w"></i>Yanlış</span><span><i class="e"></i>Boş</span><em>${a.count} deneme ortalaması</em></div></div>`;
+  if(st||att)html+=`<div class="eh-sw">${st?`<div class="eh-good">${ic("top")}<span><small>En güçlü</small><b>${esc(st.name)}</b><small>%${st.successPercent??0} başarı</small></span></div>`:""}${att?`<div class="eh-bad">${ic("aim")}<span><small>Odaklan</small><b>${esc(att.name)}</b><small>%${att.successPercent??0} başarı${att.periodDelta!=null&&att.periodDelta<0?` · ${fmt(att.periodDelta)} net`:""}</small></span></div>`:""}</div>`;
   if(a.insights.length)html+=`<div class="card eh-insights"><div class="eh-card-head"><b>Kısa değerlendirme</b></div><ul>${a.insights.map(line=>`<li>${esc(line)}</li>`).join("")}</ul></div>`;
   html+=compareCard(type,"analiz");
   pane.innerHTML=html;
@@ -293,16 +329,16 @@ function renderHata(pane:HTMLElement):void{
   const subjectsUsed=[...new Set(rows.map(r=>r.subject).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"tr"));
   const chip=(key:string,label:string)=>`<button type="button" class="eh-chip" data-filter="${key}" aria-pressed="${errFilter===key}">${label}</button>`;
   let html=`<div class="eh-stats3"><span>Açık yanlış<b>${open.reduce((s,r)=>s+r.n,0)}</b></span><span>Eksik konu<b>${new Set(open.map(r=>(r.subject+"|"+r.topic).toLocaleLowerCase("tr-TR"))).size}</b></span><span class="${reviews?"is-due":""}">Tekrar bekleyen<b>${reviews}</b></span></div>`;
-  html+=`<div class="eh-filters">${chip("all","Tümü")}${chip("open","Tekrar gerekli")}${chip("done","Çözüldü")}${chip("photo","📷 Fotoğraflı")}<select class="eh-subject-filter" aria-label="Derse göre süz"><option value="">Tüm dersler</option>${subjectsUsed.map(s=>`<option${s===errSubject?" selected":""}>${esc(s)}</option>`).join("")}</select></div>`;
+  html+=`<div class="eh-filters">${chip("all","Tümü")}${chip("open","Tekrar gerekli")}${chip("done","Çözüldü")}${chip("photo",ic("cam")+"Fotoğraflı")}<select class="eh-subject-filter" aria-label="Derse göre süz"><option value="">Tüm dersler</option>${subjectsUsed.map(s=>`<option${s===errSubject?" selected":""}>${esc(s)}</option>`).join("")}</select></div>`;
   const due=open.filter(r=>r.due).length;
-  html+=`<div class="eh-add-row">${due?`<button type="button" class="btn" data-act="wrong-review">📷 Tekrar çöz · ${due} soru</button>`:""}<button type="button" class="btn green" data-act="err-form" aria-expanded="${errFormOpen}">${errFormOpen?"Formu kapat":"+ Hata ekle"}</button></div>`;
+  html+=`<div class="eh-add-row">${due?`<button type="button" class="btn" data-act="wrong-review">${ic("rep")}Tekrar çöz · ${due} soru</button>`:""}<button type="button" class="btn green" data-act="err-form" aria-expanded="${errFormOpen}">${errFormOpen?"Formu kapat":"+ Hata ekle"}</button></div>`;
   if(errFormOpen)html+=errorForm();
   html+=`<div class="card eh-errors"><div class="eh-card-head"><b>Hata Defteri</b><small>${shown.length} kayıt</small></div>`;
   html+=shown.length?shown.slice(0,errLimit).map(r=>{
     const meta=[r.n>1||r.kind==="wrong"?`${r.n} yanlış`:"",r.exam,r.question?`Soru ${r.question}`:"",r.reason,r.date?dayLabel(r.date):""].filter(Boolean).join(" · ");
     const coach=r.coach?`<div class="eh-coach-note${r.coach.status?" is-"+r.coach.status:""}"><b>KOÇUN NOTU${r.coach.status==="review"?" · TEKRAR GEREKLİ":r.coach.status==="solved"?" · ÇÖZÜLDÜ":""}</b>${r.coach.comment?esc(r.coach.comment):""}</div>`:"";
-    const thumb=r.kind==="wrong"?`<button type="button" class="eh-ph${r.photos?" has":""}" data-act="${r.photos?"photo-open":"photo-add"}" data-id="${esc(r.id)}" aria-label="${r.photos?"Soru fotoğraflarını aç":"Soru fotoğrafı ekle"}">📷<small>${r.photos}/${r.n}</small></button>`:`<span class="eh-ph none" aria-hidden="true">✎</span>`;
-    return `<div class="eh-err${r.resolved?" is-done":""}">${thumb}<div class="eh-err-main"><b>${esc(r.subject)} · ${esc(r.topic)}</b><small>${esc(meta)}</small>${r.note?`<small class="eh-note">${esc(r.note)}</small>`:""}${coach}</div><div class="eh-err-act"><button type="button" class="eh-state ${r.resolved?"done":"open"}" data-act="toggle" data-key="${esc(r.key)}" aria-pressed="${r.resolved}">${r.resolved?"Çözüldü ✓":"Tekrar gerekli"}</button><button type="button" class="eh-del" data-act="delete" data-key="${esc(r.key)}" aria-label="${esc(r.subject+" "+r.topic)} kaydını sil">Sil</button></div></div>`;
+    const thumb=r.kind==="wrong"?`<button type="button" class="eh-ph${r.photos?" has":""}" data-act="${r.photos?"photo-open":"photo-add"}" data-id="${esc(r.id)}" aria-label="${r.photos?"Soru fotoğraflarını aç":"Soru fotoğrafı ekle"}">${ic("cam")}<small>${r.photos}/${r.n}</small></button>`:`<span class="eh-ph none" aria-hidden="true">${ic("pen")}</span>`;
+    return `<div class="eh-err${r.resolved?" is-done":""}">${thumb}<div class="eh-err-main"><b>${esc(r.subject)} · ${esc(r.topic)}</b><small>${esc(meta)}</small>${r.note?`<small class="eh-note">${esc(r.note)}</small>`:""}${coach}</div><div class="eh-err-act"><button type="button" class="eh-state ${r.resolved?"done":"open"}" data-act="toggle" data-key="${esc(r.key)}" aria-pressed="${r.resolved}">${r.resolved?"Çözüldü ✓":"Tekrar gerekli"}</button><button type="button" class="eh-del" data-act="delete" data-key="${esc(r.key)}" aria-label="${esc(r.subject+" "+r.topic)} kaydını sil">${ic("bin")}</button></div></div>`;
   }).join("")+(shown.length>errLimit?`<button type="button" class="btn ghost eh-more" data-act="more-errors">${shown.length-errLimit} kayıt daha göster</button>`:""):`<p class="hint">${rows.length?"Bu süzgeçte kayıt yok.":"Henüz hata kaydın yok. Denemeden sonra yanlışlarını işle ya da buradan ekle."}</p>`;
     if(rows.some(r=>r.photos>0))html+=`<label class="eh-share"><input type="checkbox" data-act="photo-share"${state().coachPhotoShare===false?"":" checked"}><span><b>Soru fotoğraflarımı koçumla paylaş</b><small>Koç bağlantın varsa çözülmemiş yanlışların son 90 günlük fotoğrafları gider. Kapatınca paylaşılanlar koçtan silinir.</small></span></label>`;
   pane.innerHTML=html+"</div>";
@@ -359,14 +395,15 @@ function renderGecmis(pane:HTMLElement):void{
   for(let i=picked.length-1;i>=0;i--)if(!rows.some(d=>num(d.id)===picked[i]))picked.splice(i,1);
   let html="";
   if(picked.length===2){const [x,y]=picked.map(id=>rows.find(d=>num(d.id)===id)!).sort((p,q)=>String(p.date||"").localeCompare(String(q.date||""))||num(p.id)-num(q.id));compareA=num(x?.id);compareB=num(y?.id);html+=compareCard(type,"gecmis").replace('<div class="eh-card-head"><b>İki deneme karşılaştır</b></div>','<div class="eh-card-head"><b>Karşılaştırma</b><button type="button" class="eh-linkbtn" data-act="clear-pick">Temizle</button></div>');}
-  html+=`<div class="card eh-history"><div class="eh-card-head"><b>${esc(typeLabel(type))} denemeleri</b><small>${rows.length} kayıt · karşılaştırmak için iki tane işaretle</small></div>`;
+  html+=`<div class="card eh-history"><div class="eh-card-head"><b>${esc(typeLabel(type))} denemeleri</b><small>${rows.length} kayıt</small></div>`;
+  const best=Math.max(1,...rows.map(d=>num(d.totalNet)));
   html+=rows.length?rows.slice().reverse().map((d,i,arr)=>{
     const prev=arr[i+1],delta=prev?num(d.totalNet)-num(prev.totalNet):null,on=picked.includes(num(d.id));
     const meta=[typeLabel(String(d.type||"")),dayLabel(String(d.date||"")),num(d.dur)?num(d.dur)+" dk":"",d.pub?String(d.pub):""].filter(Boolean).join(" · ");
-    return `<div class="eh-hist${on?" is-picked":""}"><label class="eh-pick"><input type="checkbox" data-pick="${esc(d.id)}"${on?" checked":""}${!on&&picked.length>=2?" disabled":""}><span class="sr-only">${esc(d.name||"Deneme")} karşılaştırmaya ekle</span></label><button type="button" class="eh-hist-main" data-act="detail" data-id="${esc(d.id)}"><b>${esc(d.name||"Deneme")}</b><small>${esc(meta)}</small></button><div class="eh-hist-net">${fmt(num(d.totalNet))}<em class="${tone(delta)}">${delta==null?"ilk":signed(delta)}</em></div></div>`;
+    return `<div class="eh-hist${on?" is-picked":""}"><label class="eh-pick"><input type="checkbox" data-pick="${esc(d.id)}"${on?" checked":""}${!on&&picked.length>=2?" disabled":""}><span class="sr-only">${esc(d.name||"Deneme")} karşılaştırmaya ekle</span></label><button type="button" class="eh-hist-main" data-act="detail" data-id="${esc(d.id)}"><b>${esc(d.name||"Deneme")}</b><small>${esc(meta)}</small>${bar(num(d.totalNet)/best*100)}</button><div class="eh-hist-net">${fmt(num(d.totalNet))}<em class="${tone(delta)}">${delta==null?"ilk":signed(delta)}</em></div></div>`;
   }).join(""):`<p class="hint">Bu türde henüz deneme yok.</p>`;
   html+="</div>";
-  if(picked.length===1)html+=`<p class="eh-pick-hint">Bir deneme daha işaretle, farkları görelim.</p>`;
+  if(picked.length<2&&rows.length>1)html+=`<p class="eh-pick-hint">${picked.length?"Bir deneme daha işaretle, farkları görelim.":"Karşılaştırmak için iki deneme işaretle."}</p>`;
   pane.innerHTML=html;
 }
 
@@ -431,6 +468,7 @@ function updateRowNets():void{
 /* ---------- çizim ---------- */
 function render():void{
   if(!ensureSkeleton())return;
+  syncChrome();
   const tab=(screen()?.dataset.examTab as Tab)||"ozet",pane=byId(`examHub-${tab}`);
   for(const t of TABS){const p=byId(`examHub-${t}`);if(p)p.hidden=t!==tab;}
   if(!pane)return;
@@ -459,6 +497,7 @@ function onPaneClick(event:Event):void{
 }
 function onPaneChange(event:Event):void{
   const t=event.target as HTMLElement;
+  if(t instanceof HTMLSelectElement&&t.dataset.win!==undefined){call("setV315DashWindow",num(t.value));return;}
   if(t instanceof HTMLSelectElement&&t.dataset.cmp){if(t.dataset.cmp==="a")compareA=num(t.value);else compareB=num(t.value);render();return;}
   if(t instanceof HTMLSelectElement&&t.classList.contains("eh-subject-filter")){errSubject=t.value;errLimit=40;render();return;}
   if(t instanceof HTMLSelectElement&&t.id==="ehErrSubject"){fillTopics(t.value);return;}
@@ -479,7 +518,8 @@ export function installExamHubV73():boolean{
   if(installed)return true;if(!ensureSkeleton())return false;installed=true;
   ensureSettings();ensureFormSteps();decorateRows();
   L.v315TrendSVG=trendSvg;
-  for(const tab of TABS){const pane=byId(`examHub-${tab}`);pane?.addEventListener("click",onPaneClick);pane?.addEventListener("change",onPaneChange);}
+  // Son deneme kartı ve Net trendi başlığındaki dönem seçimi panonun içinde durur; bölmelerle aynı işleyiciler dinler.
+  for(const id of ["v315Dashboard",...TABS.map(tab=>`examHub-${tab}`)]){const pane=byId(id);pane?.addEventListener("click",onPaneClick);pane?.addEventListener("change",onPaneChange);}
   wrap("renderV315Dashboard",()=>schedule());
   wrap("renderWrongTopics",()=>schedule());
   wrap("errorJournalRender",()=>schedule());
@@ -500,7 +540,7 @@ export function installExamHubV73():boolean{
   byId("dybRows")?.addEventListener("input",()=>{updateRowNets();});
   byId("dybRows")?.addEventListener("change",()=>decorateRows());
   for(const event of ["yks:data-changed","yks:data-primary-ready","yks:coach-photo-notes"])window.addEventListener(event,schedule);
-  document.addEventListener("yks:navigation-after",event=>{const d=(event as CustomEvent<{screen?:string;to?:string}>).detail;if((d?.screen??d?.to)==="deneme")schedule();});
+  document.addEventListener("yks:navigation-after",event=>{const d=(event as CustomEvent<{screen?:string;to?:string}>).detail;if((d?.screen??d?.to)==="deneme"){playEnter();schedule();}});
   (L as Loose).YKSExamHub={openTab:openExamTab,openPhotos:openExamPhotos};
   call("renderV315Dashboard");render();
   document.documentElement.dataset.examHubV73="ready";

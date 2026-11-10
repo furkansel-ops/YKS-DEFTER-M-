@@ -1945,7 +1945,7 @@ function v105SortSubjects(exam){
 }
 function v105SubjectIcon(name){
   const s=String(name||"").toLocaleLowerCase("tr-TR");
-  for(const [re,ic] of [[/türkçe/,"tr"],[/edebiyat/,"edb"],[/matematik/,"mat"],[/geometri/,"geo"],[/fizik/,"fiz"],[/kimya/,"kim"],[/biyoloji/,"biy"],[/tarih/,"tar"],[/coğrafya/,"cog"],[/felsefe/,"fel"],[/dil|ingilizce/,"dil"]])if(re.test(s))return ic;
+  for(const [re,ic] of [[/türkçe/,"tr"],[/edebiyat/,"edb"],[/matematik/,"mat"],[/geometri/,"geo"],[/fizik/,"fiz"],[/kimya/,"kim"],[/biyoloji/,"biy"],[/tarih/,"tar"],[/coğrafya/,"cog"],[/felsefe/,"fel"],[/dil|ingilizce/,"dil"],[/fen/,"kim"],[/sosyal/,"cog"]])if(re.test(s))return ic;
   return "kitap";
 }
 function v105OpenReviews(){const box=el("reviewBox");if(box)box.scrollIntoView({behavior:"smooth",block:"start"})}
@@ -12073,14 +12073,14 @@ function setV315DashWindow(n){
 function openV315ExamForm(focus){
   const c=el("v315ExamFormCard"),root=el("deneme"),b=el("v315AddExamBtn");if(!c)return false;
   c.classList.add("open");if(root)root.classList.add("v315-form-open");
-  if(b){b.textContent="Formu Kapat";b.setAttribute("aria-expanded","true")}
+  if(b){b.textContent="Kapat";b.setAttribute("aria-expanded","true")}
   if(focus)setTimeout(()=>{try{c.scrollIntoView({behavior:"smooth",block:"start"});const n=el("denemeName");if(n)n.focus({preventScroll:true})}catch(e){}},40);
   return true;
 }
 function closeV315ExamForm(scrollDash){
   const c=el("v315ExamFormCard"),root=el("deneme"),b=el("v315AddExamBtn");if(!c)return false;
   c.classList.remove("open");if(root)root.classList.remove("v315-form-open");
-  if(b){b.textContent="+ Deneme Ekle";b.setAttribute("aria-expanded","false")}
+  if(b){b.textContent="+ Deneme";b.setAttribute("aria-expanded","false")}
   if(scrollDash){const d=el("v315Dashboard");if(d)try{d.scrollIntoView({behavior:"smooth",block:"start"})}catch(e){}}
   return true;
 }

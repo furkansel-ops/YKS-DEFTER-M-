@@ -1,0 +1,162 @@
+/* v106 · Deneme: kısa üst kısım, tek kartta son deneme, üç sayı, dolgulu grafik, çizgi simgeler.
+   İşaretlemeyi exam-hub-v73.ts çizer; burası yalnız görünüm. En son yüklenir ve #mainWrap ile eski
+   katmanların (ui-polish-exam, refined-study-screens, v67, v73, v99) önüne geçer.
+   Renkler tema belirteçlerinden (--d-*, --tone, --eh-*) gelir: Glassy, Gece ve Canlı aynı kurallarla boyanır. */
+:root{
+  --i106-cam:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 8h3l1.5-2.5h7L17 8h3v11H4z'/%3E%3Ccircle cx='12' cy='13' r='3.2'/%3E%3C/svg%3E");
+  --i106-pen:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 20l1-4L16 5l3 3L8 19z'/%3E%3C/svg%3E");
+  --i106-bin:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 7h14M10 7V4h4v3M7 7l1 13h8l1-13'/%3E%3C/svg%3E");
+  --i106-top:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 16l5-5 4 4 7-8M15 7h5v5'/%3E%3C/svg%3E");
+  --i106-aim:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2'%3E%3Ccircle cx='12' cy='12' r='8.5'/%3E%3Ccircle cx='12' cy='12' r='4.5'/%3E%3Ccircle cx='12' cy='12' r='.6'/%3E%3C/svg%3E");
+  --i106-go:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 6l6 6-6 6'/%3E%3C/svg%3E");
+  --i106-down:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+}
+[data-ic="cam"]{--eh-i:var(--i106-cam)}[data-ic="pen"]{--eh-i:var(--i106-pen)}[data-ic="bin"]{--eh-i:var(--i106-bin)}
+[data-ic="top"]{--eh-i:var(--i106-top)}[data-ic="aim"]{--eh-i:var(--i106-aim)}[data-ic="rep"]{--eh-i:var(--i105-rep)}
+:root[data-visual-system] #mainWrap #deneme .eh-ic{display:inline-block;flex:none;width:16px;height:16px;background:currentColor;-webkit-mask:var(--eh-i) center/contain no-repeat;mask:var(--eh-i) center/contain no-repeat;vertical-align:-3px}
+:root[data-visual-system] #mainWrap #deneme .eh-bar{display:block;height:5px;border-radius:9px;background:var(--d-track);overflow:hidden}
+:root[data-visual-system] #mainWrap #deneme .eh-bar i{display:block;height:100%;border-radius:inherit;background:var(--d-accent);transform-origin:left}
+
+/* ---------- Başlık: ad, ayarlar, ekle ---------- */
+:root[data-visual-system] #mainWrap #deneme .v315-dash-head{position:static;display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:end;gap:8px;margin:0 0 12px}
+:root[data-visual-system] #mainWrap #deneme .v315-dash-title{min-width:0;padding:0}
+:root[data-visual-system] #mainWrap #deneme .v315-dash-title h2{margin:0}
+:root[data-visual-system] #mainWrap #deneme .v315-dash-title .hint{margin:0;font-size:12.5px;font-weight:650;color:var(--d-muted)}
+:root[data-visual-system] #mainWrap #deneme .eh-gear{position:static;width:42px;min-width:42px;height:42px;margin:0;border-radius:14px;color:var(--d-chip-ink)}
+:root[data-visual-system] #mainWrap #deneme #v315AddExamBtn{width:auto;min-width:0;min-height:42px;margin:0;padding:0 14px;border:0;border-radius:14px;background:var(--d-hero);color:var(--d-hero-ink);font-size:13.5px;font-weight:800;white-space:nowrap}
+
+/* ---------- Tür seçimi ve bölüm sekmeleri ---------- */
+:root[data-visual-system] #mainWrap #deneme .v315-filterbar{display:block;margin:0 0 6px;padding:0;border:0;background:none;box-shadow:none}
+:root[data-visual-system] #mainWrap #deneme .v315-window-seg{display:none}
+:root[data-visual-system] #mainWrap #deneme .v315-type-seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:0;margin:0;padding:4px;border:1px solid var(--d-line);border-radius:16px;background:var(--d-surface)}
+:root[data-visual-system] #mainWrap #deneme .v315-type-seg button{min-height:40px;border-radius:12px;background:none;box-shadow:none;color:var(--d-muted);font-size:13.5px;font-weight:750;transition:color .3s,background .3s}
+:root[data-visual-system] #mainWrap #deneme .v315-type-seg button.on{background:var(--d-hero);color:var(--d-hero-ink)}
+:root[data-visual-system] #mainWrap #deneme .v315-type-seg button.on::after{display:none}
+:root[data-visual-system] #mainWrap #deneme .eh-tabs{gap:0;margin:0 0 12px;padding:0;border-bottom:1px solid var(--d-line);border-radius:0;background:none}
+:root[data-visual-system] #mainWrap #deneme .eh-tabs button{position:relative;min-height:44px;border-radius:0;background:none;box-shadow:none;color:var(--d-muted);font-size:14px;font-weight:750;transition:color .3s}
+:root[data-visual-system] #mainWrap #deneme .eh-tabs button[aria-selected="true"]{background:none;box-shadow:none;color:var(--d-accent)}
+:root[data-visual-system] #mainWrap #deneme .eh-tabs button[aria-selected="true"]::after{content:"";position:absolute;left:22%;right:22%;bottom:-1px;height:3px;border-radius:3px;background:var(--d-accent)}
+:root[data-visual-system] #mainWrap #deneme .eh-tabs em{display:inline-grid;place-items:center;min-width:18px;height:18px;margin-left:5px;padding:0 5px;border-radius:99px;background:var(--eh-warn-soft);color:var(--eh-warn);font-style:normal;font-size:11px;font-weight:800;vertical-align:1px}
+
+/* ---------- Son deneme ---------- */
+#deneme[data-exam-tab]:not([data-exam-tab="ozet"]) #examHubHero,#deneme.v315-form-open #examHubHero,#deneme .eh-hero-slot:empty{display:none}
+:root[data-visual-system] #mainWrap #deneme .eh-hero{margin:0 0 10px;padding:16px;border-radius:22px;background:var(--d-hero);color:var(--d-hero-ink);box-shadow:0 18px 34px -22px color-mix(in srgb,var(--d-accent) 70%,transparent)}
+:root[data-visual-system] #mainWrap #deneme .eh-hero-top{display:flex;justify-content:space-between;gap:12px}
+:root[data-visual-system] #mainWrap #deneme .eh-hero-top>div:first-child{min-width:0}
+:root[data-visual-system] #mainWrap #deneme .eh-hero small{display:block;color:inherit;font-size:12px;font-weight:650;opacity:.84}
+:root[data-visual-system] #mainWrap #deneme .eh-hero .eh-eyebrow{color:inherit!important}
+:root[data-visual-system] #mainWrap #deneme .eh-hero-top b{display:block;margin:2px 0;color:inherit;font-size:18px;font-weight:800;letter-spacing:-.01em;overflow-wrap:anywhere}
+:root[data-visual-system] #mainWrap #deneme .eh-hero .eh-big{flex:none;color:inherit;font-size:40px;font-weight:800;line-height:1;letter-spacing:-.04em;text-align:right;font-variant-numeric:tabular-nums}
+:root[data-visual-system] #mainWrap #deneme .eh-hero .eh-big em{display:table;margin:6px 0 0 auto;padding:3px 8px;border-radius:99px;background:color-mix(in srgb,currentColor 20%,transparent);color:inherit;font-size:12px;font-weight:800;line-height:1.2;letter-spacing:0;white-space:nowrap}
+:root[data-visual-system] #mainWrap #deneme .eh-hero .eh-bar{background:color-mix(in srgb,currentColor 24%,transparent)}
+:root[data-visual-system] #mainWrap #deneme .eh-hero .eh-bar i{background:currentColor}
+:root[data-visual-system] #mainWrap #deneme .eh-goal{margin:14px 0 0}
+:root[data-visual-system] #mainWrap #deneme .eh-goal .eh-bar{height:7px}
+:root[data-visual-system] #mainWrap #deneme .eh-goal small{margin-top:5px}
+:root[data-visual-system] #mainWrap #deneme .eh-goal small b{font-weight:800}
+:root[data-visual-system] #mainWrap #deneme .eh-hero .eh-nets{display:grid;grid-template-columns:repeat(auto-fit,minmax(68px,1fr));gap:6px;margin:12px 0 0}
+:root[data-visual-system] #mainWrap #deneme .eh-hero .eh-nets span{padding:8px 6px;border-radius:13px;background:color-mix(in srgb,currentColor 14%,transparent);color:inherit;text-align:center}
+:root[data-visual-system] #mainWrap #deneme .eh-hero .eh-nets b{display:block;color:inherit;font-size:15px;font-weight:800;font-variant-numeric:tabular-nums}
+:root[data-visual-system] #mainWrap #deneme .eh-hero .eh-nets .eh-bar{height:3px;margin-top:5px}
+:root[data-visual-system] #mainWrap #deneme .eh-hero .eh-btns{display:flex;gap:8px;margin:12px 0 0}
+:root[data-visual-system] #mainWrap #deneme .eh-hbtn{flex:1;min-width:0;min-height:44px;margin:0;padding:0 10px;border:0;border-radius:14px;background:color-mix(in srgb,currentColor 18%,transparent);box-shadow:none;color:inherit;font:800 13.5px/1 var(--font);white-space:nowrap;cursor:pointer}
+:root[data-visual-system] #mainWrap #deneme .eh-hbtn.is-main{flex:1.7;background:var(--d-hero-ink);color:var(--d-accent)}
+/* Gece'de vurgu rengi açık mavidir; açık düğmenin üstünde okunmaz. */
+:root[data-theme="night"][data-visual-system] #mainWrap #deneme .eh-hbtn.is-main{color:var(--d-on-accent)}
+
+/* ---------- Üç sayı ---------- */
+:root[data-visual-system] #mainWrap #deneme #v315Kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0 0 12px}
+:root[data-visual-system] #mainWrap #deneme #v315Kpis .v315-kpi{min-width:0;min-height:0;padding:10px;border-radius:16px}
+:root[data-visual-system] #mainWrap #deneme #v315Kpis .v315-kpi:first-child{display:none}
+:root[data-visual-system] #mainWrap #deneme #v315Kpis :is(.k,.s){display:block;color:var(--d-muted);font-size:11px;letter-spacing:0;text-transform:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+:root[data-visual-system] #mainWrap #deneme #v315Kpis .k{font-weight:750}
+:root[data-visual-system] #mainWrap #deneme #v315Kpis .v{display:block;font-size:19px;font-weight:800;line-height:1.3;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+
+/* ---------- Net trendi ve dönem seçimi ---------- */
+:root[data-visual-system] #mainWrap #deneme .v315-trend-card{margin:0 0 12px;padding:14px;border-radius:18px}
+:root[data-visual-system] #mainWrap #deneme .v315-trend-card .v315-card-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 8px}
+:root[data-visual-system] #mainWrap #deneme #v315TrendMeta{display:none}
+:root[data-visual-system] #mainWrap #deneme .eh-winbox{position:relative;display:inline-flex;color:var(--d-chip-ink)}
+:root[data-visual-system] #mainWrap #deneme .eh-winbox::after{content:"";position:absolute;right:8px;top:50%;width:14px;height:14px;margin-top:-7px;background:currentColor;-webkit-mask:var(--i106-down) center/contain no-repeat;mask:var(--i106-down) center/contain no-repeat;pointer-events:none}
+:root[data-visual-system] #mainWrap #deneme .eh-win{appearance:none;-webkit-appearance:none;width:auto;min-height:34px;margin:0;padding:0 28px 0 11px;border:0;border-radius:11px;background:var(--d-chip);box-shadow:none;color:inherit;font:750 12.5px/1 var(--font);cursor:pointer}
+:root[data-visual-system] #mainWrap #deneme .eh-trend .eh-a0{stop-color:var(--d-accent);stop-opacity:.26}
+:root[data-visual-system] #mainWrap #deneme .eh-trend .eh-a1{stop-color:var(--d-accent);stop-opacity:0}
+:root[data-visual-system] #mainWrap #deneme .eh-trend .eh-dot{fill:var(--d-surface);stroke:var(--d-accent);stroke-width:2.4}
+:root[data-visual-system] #mainWrap #deneme .eh-trend .eh-dot.is-last{fill:var(--d-accent);stroke:var(--d-surface)}
+
+/* ---------- Öğrenme döngüsü ---------- */
+:root[data-visual-system] #mainWrap #deneme .eh-loop{margin:0;padding:14px;border-radius:18px}
+:root[data-visual-system] #mainWrap #deneme .eh-loop-steps{position:relative;gap:0}
+:root[data-visual-system] #mainWrap #deneme .eh-loop-steps::before{content:"";position:absolute;top:19px;left:12.5%;right:12.5%;height:2px;background:var(--d-track)}
+:root[data-visual-system] #mainWrap #deneme .eh-loop-steps>span{display:flex;flex-direction:column-reverse;align-items:center;gap:4px;padding:0;background:none;font-size:11.5px;font-weight:700}
+:root[data-visual-system] #mainWrap #deneme .eh-loop-steps>span::after{display:none}
+:root[data-visual-system] #mainWrap #deneme .eh-loop-steps b{position:relative;display:grid;place-items:center;width:40px;height:40px;border:2px solid var(--d-track);border-radius:13px;background:var(--d-surface);font-size:15px;font-weight:800}
+:root[data-visual-system] #mainWrap #deneme .eh-loop-steps .is-due b{border-color:color-mix(in srgb,var(--eh-warn) 45%,transparent);background:var(--eh-warn-soft)}
+:root[data-visual-system] #mainWrap #deneme .eh-loop .eh-hint{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:10px}
+:root[data-visual-system] #mainWrap #deneme .eh-loop .eh-hint::after{content:"";flex:none;width:16px;height:16px;background:var(--d-accent);-webkit-mask:var(--i106-go) center/contain no-repeat;mask:var(--i106-go) center/contain no-repeat}
+
+/* ---------- Analiz ---------- */
+:root[data-visual-system] #mainWrap #deneme .eh-card-head{align-items:center}
+:root[data-visual-system] #mainWrap #deneme .eh-card-head+:is(.eh-subj,.eh-err,.eh-hist){padding-top:0;border-top:0}
+:root[data-visual-system] #mainWrap #deneme .eh-subj{display:grid;grid-template-columns:38px minmax(0,1fr);gap:10px;align-items:start}
+:root[data-visual-system] #mainWrap #deneme .eh-tile{display:grid;place-items:center;width:38px;height:38px;border-radius:12px;background:color-mix(in srgb,var(--tone,var(--d-accent)) 14%,var(--d-surface));color:var(--tone,var(--d-accent))}
+:root[data-visual-system] #mainWrap #deneme .eh-tile::before{content:"";width:20px;height:20px;background:currentColor;-webkit-mask:var(--v105-ic,var(--i105-kitap)) center/contain no-repeat;mask:var(--v105-ic,var(--i105-kitap)) center/contain no-repeat}
+:root[data-visual-system] #mainWrap #deneme .eh-dyb{height:7px;margin-top:6px}
+:root[data-visual-system] #mainWrap #deneme .eh-dyb i{transform-origin:left}
+:root[data-visual-system] #mainWrap #deneme .eh-legend em{margin-left:auto;font-style:normal}
+:root[data-visual-system] #mainWrap #deneme .eh-sw{grid-template-columns:repeat(2,minmax(0,1fr))}
+:root[data-visual-system] #mainWrap #deneme .eh-sw>div{display:grid;grid-template-columns:22px minmax(0,1fr);gap:10px;align-items:center;border-radius:16px}
+:root[data-visual-system] #mainWrap #deneme .eh-sw .eh-ic{width:22px;height:22px}
+:root[data-visual-system] #mainWrap #deneme .eh-sw b{overflow-wrap:anywhere}
+
+/* ---------- Hatalar ---------- */
+:root[data-visual-system] #mainWrap #deneme .eh-stats3{gap:8px;margin-top:0}
+:root[data-visual-system] #mainWrap #deneme .eh-stats3>span{min-width:0;padding:10px;border-radius:16px;font-size:11px;font-weight:750;text-align:left}
+:root[data-visual-system] #mainWrap #deneme .eh-stats3 b{font-size:19px;font-weight:800;line-height:1.3;font-variant-numeric:tabular-nums}
+:root[data-visual-system] #mainWrap #deneme .eh-stats3 .is-due{border-color:transparent;background:var(--eh-warn-soft);color:var(--eh-warn)}
+:root[data-visual-system] #mainWrap #deneme .eh-filters{flex-wrap:nowrap;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+:root[data-visual-system] #mainWrap #deneme .eh-filters>*{flex:none}
+:root[data-visual-system] #mainWrap #deneme .eh-chip{display:inline-flex;align-items:center;gap:6px}
+:root[data-visual-system] #mainWrap #deneme .eh-chip[aria-pressed="true"]{border-color:transparent;background:var(--d-hero);color:var(--d-hero-ink)}
+:root[data-visual-system] #mainWrap #deneme .eh-add-row{display:flex;gap:8px}
+:root[data-visual-system] #mainWrap #deneme .eh-add-row .btn{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;width:auto;min-width:0;min-height:44px;white-space:nowrap}
+:root[data-visual-system] #mainWrap #deneme .eh-err{grid-template-columns:46px minmax(0,1fr);gap:6px 10px;align-items:start}
+:root[data-visual-system] #mainWrap #deneme .eh-err-act{grid-column:2;display:flex;align-items:center;justify-content:space-between;gap:6px}
+:root[data-visual-system] #mainWrap #deneme .eh-ph{width:46px;height:46px;border-radius:13px}
+:root[data-visual-system] #mainWrap #deneme .eh-state{min-height:34px;padding:0 11px}
+:root[data-visual-system] #mainWrap #deneme .eh-del{display:grid;place-items:center;width:34px;min-width:34px;min-height:34px;padding:0;border-radius:10px}
+
+/* ---------- Geçmiş ---------- */
+:root[data-visual-system] #mainWrap #deneme .eh-hist-main .eh-bar{height:4px;margin-top:6px}
+:root[data-visual-system] #mainWrap #deneme .eh-pick{width:28px}
+:root[data-visual-system] #mainWrap #deneme .eh-pick input{width:22px;height:22px;min-width:22px}
+:root[data-visual-system] #mainWrap #deneme .eh-pick-hint{text-align:center}
+
+/* ---------- Geniş ekran: Özet'te solda son deneme, sağda grafik; sayılar ve ders tablosu altta tam genişlik ---------- */
+@media(min-width:1024px){
+  :root[data-visual-system] #mainWrap #deneme[data-exam-tab="ozet"]:not(.v315-form-open) #v315Dashboard>.card{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);column-gap:14px}
+  :root[data-visual-system] #mainWrap #deneme[data-exam-tab="ozet"]:not(.v315-form-open) #v315Dashboard>.card>*{grid-column:1/-1}
+  :root[data-visual-system] #mainWrap #deneme[data-exam-tab="ozet"]:not(.v315-form-open) #v315Dashboard>.card>#examHubHero{grid-column:1;grid-row:4}
+  :root[data-visual-system] #mainWrap #deneme[data-exam-tab="ozet"]:not(.v315-form-open) #v315Dashboard>.card>#examHubHero>.eh-hero{height:calc(100% - 10px)}
+  :root[data-visual-system] #mainWrap #deneme[data-exam-tab="ozet"]:not(.v315-form-open) #v315Dashboard>.card>#v315Kpis{grid-row:5}
+  /* Pano ızgarası çözülür: grafik ve (1280px üstünde burada kalan) ders tablosu doğrudan bu ızgaraya girer. */
+  :root[data-visual-system] #mainWrap #deneme[data-exam-tab="ozet"]:not(.v315-form-open) #v315Dashboard>.card>.v315-dash-grid{display:contents}
+  :root[data-visual-system] #mainWrap #deneme[data-exam-tab="ozet"]:not(.v315-form-open) #v315Dashboard>.card>.v315-dash-grid>.v315-trend-card{grid-column:2;grid-row:4;margin:0 0 10px}
+  :root[data-visual-system] #mainWrap #deneme[data-exam-tab="ozet"]:not(.v315-form-open) #v315Dashboard>.card>#examHubHero:empty~.v315-dash-grid>.v315-trend-card{grid-column:1/-1}
+  :root[data-visual-system] #mainWrap #deneme[data-exam-tab="ozet"]:not(.v315-form-open) #v315Dashboard>.card>.v315-dash-grid>.v315-subject-card{grid-column:1/-1;grid-row:auto;margin:0 0 12px}
+}
+
+/* ---------- Hareket: yalnız izin varken ve ekrana ya da sekmeye girişte ---------- */
+@keyframes v106-rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes v106-grow{from{transform:scaleX(0)}}
+@keyframes v106-draw{from{stroke-dashoffset:1}}
+@keyframes v106-fade{from{opacity:0}}
+@media(prefers-reduced-motion:no-preference){
+  :root[data-visual-system] #mainWrap #deneme[data-eh-enter] :is(#examHubHero,#v315Kpis,.v315-trend-card,.eh-pane>*){animation:v106-rise .5s var(--v105-ease) both}
+  :root[data-visual-system] #mainWrap #deneme[data-eh-enter] :is(#v315Kpis,.eh-pane>:nth-child(2)){animation-delay:.06s}
+  :root[data-visual-system] #mainWrap #deneme[data-eh-enter] :is(.v315-trend-card,.eh-pane>:nth-child(3)){animation-delay:.12s}
+  :root[data-visual-system] #mainWrap #deneme[data-eh-enter] :is(#examHub-ozet>*,.eh-pane>:nth-child(n+4)){animation-delay:.18s}
+  :root[data-visual-system] #mainWrap #deneme[data-eh-enter] :is(.eh-bar i,.eh-dyb i){animation:v106-grow .9s var(--v105-ease) .25s both}
+  :root[data-visual-system] #mainWrap #deneme[data-eh-enter] .eh-trend .eh-line{stroke-dasharray:1;animation:v106-draw 1.2s var(--v105-ease) .25s both}
+  :root[data-visual-system] #mainWrap #deneme[data-eh-enter] .eh-trend :is(.eh-area,.eh-dot,.eh-val){animation:v106-fade .6s ease .9s both}
+}

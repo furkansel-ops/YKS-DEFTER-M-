@@ -17,7 +17,7 @@ function renderKpis(analysis:ExamAnalysis):void{
     metric("Son net",analysis.latest?String(analysis.latest.net):"—",analysis.latest?.name??"Henüz kayıt yok"),
     metric(analysis.window?`Son ${analysis.count} ort.`:"Tüm ortalama",analysis.average==null?"—":String(analysis.average),`${analysis.count} deneme`),
     metric("En iyi",analysis.best?String(analysis.best.net):"—",analysis.best?.name??"Veri bekleniyor"),
-    metric("Dönem değişimi",signed(analysis.period.delta),analysis.period.delta==null?"Karşılaştırma için daha fazla deneme gerekli":`${analysis.period.currentCount} deneme ↔ önceki ${analysis.period.previousCount}`,tone(analysis.period.delta))
+    metric("Değişim",signed(analysis.period.delta),analysis.period.delta==null?"Karşılaştırma için daha fazla deneme gerekli":`${analysis.period.currentCount} deneme ↔ önceki ${analysis.period.previousCount}`,tone(analysis.period.delta))
   );
 }
 function renderInsights(analysis:ExamAnalysis):void{

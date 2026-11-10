@@ -27,7 +27,7 @@ function load(S,{fields={},kind="",journalAdd,reviews=[]}={}){
   const document={getElementById:id=>fields[id]??null,querySelector:sel=>sel.includes("ehErrKind")?{value:kind}:null,querySelectorAll:()=>[],documentElement:{dataset:{}}};
   const context={window,document,localStorage:{getItem:()=>null,setItem(){}},confirm:()=>true,console,requestAnimationFrame:fn=>fn(),setTimeout:()=>0,Date,Math,Number,String,Array,Object,JSON,Map,Set,Intl,Infinity,isNaN,parseInt};
   vm.createContext(context);
-  vm.runInContext(`${cycle}\nconst analyzeExams=()=>({count:0});\nconst shiftDay=(k,n)=>{const d=new Date(k+"T12:00:00");d.setDate(d.getDate()+n);return d.toISOString().slice(0,10);};\n${review}\n${hub}\n;globalThis.__t={errorRows,saveError,toggleError,deleteError,trendSvg,compareRows,loopStats,canonical,AYT_FIELD,curriculum};`,context);
+  vm.runInContext(`${cycle}\nconst analyzeExams=()=>({count:0});\nconst shiftDay=(k,n)=>{const d=new Date(k+"T12:00:00");d.setDate(d.getDate()+n);return d.toISOString().slice(0,10);};\n${review}\n${hub}\n;globalThis.__t={errorRows,saveError,toggleError,deleteError,trendSvg,compareRows,loopStats,canonical,AYT_FIELD,curriculum,heroHtml};`,context);
   return {t:context.__t,calls,journal};
 }
 const T=(n)=>{const d=new Date(Date.now()-n*864e5);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");};
@@ -159,4 +159,56 @@ test("v73 koça doğru/yanlış/boş da gider; yeni sürüm yükleyicide",()=>{
   assert.match(runtime,/subjectResults:list\(d\?\.subjectResults\)\.slice\(0,16\)\.map\(x=>\(\{name:text\(x\?\.name,60\),net:finite\(x\?\.net\),d:Math\.max\(0,Math\.floor\(finite\(x\?\.d\)\)\),y:Math\.max\(0,Math\.floor\(finite\(x\?\.y\)\)\),b:Math\.max\(0,Math\.floor\(finite\(x\?\.b\)\)\)\}\)\)/);
   assert.match(runtime,/version:"1.2.36"/);
   assert.match(loader,/"\.\/student-coaching-runtime\.js\?v=1.2.36"/);
+});
+
+test("v106 son deneme kartı: fark, hedefe kalan net, ders çubukları ve işlenmemiş yanlış sayısı",()=>{
+  const S={targetNetTYT:100,denemeler:[
+    {id:1,type:"TYT",name:"Eski",date:"2026-10-01",totalNet:80,subjectResults:[]},
+    {id:2,type:"TYT",name:"Limit <5>",date:"2026-10-08",dur:135,pub:"Limit",totalNet:86.5,subjectResults:[{name:"Türkçe",d:35,y:5,b:0,net:33.75},{name:"Temel Matematik",d:0,y:0,b:0,net:25.5},{name:"Fen Bilimleri",d:0,y:0,b:0,net:0}]},
+    {id:3,type:"AYT",name:"A",date:"2026-10-09",totalNet:40,subjectResults:[]}],
+    wrongLog:[{id:1,deneme:2,subject:"Türkçe",topic:"Paragraf",n:1}]};
+  const {t}=load(S),html=t.heroHtml("TYT");
+  assert.match(html,/Son TYT denemesi · 8 /);assert.match(html,/<b>Limit &lt;5&gt;<\/b><small>135 dk · Limit<\/small>/);
+  assert.match(html,/86\.5<em>▲ 6\.5 net<\/em>/);
+  assert.match(html,/<div class="eh-goal"><i class="eh-bar"><i style="width:87%"><\/i><\/i><small><b>Hedef 100<\/b> · 13\.5 net kaldı<\/small>/);
+  assert.match(html,/<small>Türkçe<\/small><b>33\.75<\/b><i class="eh-bar"><i style="width:84%"><\/i><\/i><\/span>/,"soru sayısı biliniyorsa çubuk");
+  assert.match(html,/<small>Mat<\/small><b>25\.5<\/b><\/span>/,"yalnız net girilmişse çubuk yok");
+  assert.doesNotMatch(html,/Fen/,"boş ders yazılmaz");
+  assert.match(html,/class="eh-hbtn is-main" data-act="wrongs" data-id="2">Yanlışları işle · 4</,"5 yanlışın 1'i işlendi");
+  assert.match(html,/class="eh-hbtn" data-act="detail" data-id="2">Ayrıntı</);
+  S.targetNetTYT=80;S.wrongLog[0].n=5;
+  const done=t.heroHtml("TYT");
+  assert.match(done,/width:100%.*hedefe ulaştın/);assert.match(done,/class="eh-hbtn" data-act="wrongs" data-id="2">Yanlışlar işlendi ✓</);assert.match(done,/class="eh-hbtn is-main" data-act="detail"/);
+  const first=t.heroHtml("AYT");
+  assert.match(first,/40<em>ilk deneme<\/em>/);assert.doesNotMatch(first,/eh-goal|eh-nets|data-act="wrongs"/,"hedef, ders ve yanlış yoksa o parçalar çizilmez");
+  assert.equal(t.heroHtml("YDT"),"","bu türde deneme yoksa kart yok");
+});
+
+test("v106 net grafiği: dolgu, çizilen çizgi ve vurgulu son nokta; tek denemede çizgi yok",()=>{
+  const exams=[68,74,79].map((n,i)=>({id:i+1,type:"TYT",name:"D"+i,date:`2026-10-0${i+1}`,totalNet:n}));
+  const {t}=load({}),svg=t.trendSvg(exams);
+  assert.match(svg,/<polygon class="eh-area" fill="url\(#ehArea\)" points="/);assert.match(svg,/<polyline class="eh-line" pathLength="1"/);
+  assert.equal(svg.match(/eh-dot is-last/g).length,1);assert.match(svg,/class="eh-dot is-last"[^>]*r="5\.5"><title>D2 · 79 net/);
+  assert.doesNotMatch(t.trendSvg(exams.slice(0,1)),/eh-area|eh-line/);
+});
+
+test("v106 kurulum: dönem seçimi kartların içinde, simgeler çizgi, görünüm en son yüklenir ve tema belirteçleriyle boyanır",()=>{
+  const v106=read("src/ui/exam-v106.css"),app=read("app.js");
+  assert.match(source,/<select class="eh-win" data-win aria-label="Analiz aralığı">/);
+  assert.match(source,/t\.dataset\.win!==undefined\)\{call\("setV315DashWindow",num\(t\.value\)\);return;\}/);
+  assert.match(source,/<b>Dersler<\/b>\$\{winSelect\(\)\}/);
+  assert.match(source,/hero\.id="examHubHero";hero\.className="eh-hero-slot";byId\("v315Kpis"\)\?\.before\(hero\);/);
+  assert.match(source,/for\(const id of \["v315Dashboard",\.\.\.TABS\.map\(tab=>`examHub-\$\{tab\}`\)\]\)/,"pano içindeki kart ve seçim de dinlenir");
+  assert.doesNotMatch(source,/📷|✎/,"emoji yerine çizgi simge");
+  for(const name of ["cam","pen","bin","rep","top","aim"]){assert.ok(source.includes(`ic("${name}")`),name);assert.ok(v106.includes(`[data-ic="${name}"]{--eh-i:var(--i10`),name+" stili");}
+  assert.match(v106,/#deneme \.v315-window-seg\{display:none\}/);assert.match(v106,/#v315Kpis \.v315-kpi:first-child\{display:none\}/,"son net yalnız kartta yazar");
+  assert.match(read("src/ui/exam-dashboard.ts"),/metric\("Değişim",/);assert.match(read("index.html"),/onclick="toggleV315ExamForm\(\)">\+ Deneme<\/button>/);
+  assert.match(read("src/main.ts"),/import "\.\/ui\/topics-v105\.css";\nimport "\.\/ui\/exam-v106\.css";\n\n/);
+  assert.deepEqual(v106.replace(/url\("data:[^"]*"\)/g,"").match(/#[0-9a-f]{3,8}\b/gi)||[],[],"ham renk yok");
+  const at=v106.indexOf("@media(prefers-reduced-motion:no-preference)");
+  for(const part of v106.slice(0,at).split("}"))assert.doesNotMatch(part,/[^-]animation:(?!none)/,"hareket izin bloğunun dışında: "+part.slice(0,60));
+  assert.match(v106.slice(at),/#deneme\[data-eh-enter\] /);assert.doesNotMatch(v106.slice(at).replace(/#deneme\[data-eh-enter\]/g,""),/#deneme /,"hareketler yalnız girişte");
+  // Deneme satırları grup adıyla tutulur; Konular'daki simge eşlemesi onları da tanır.
+  const icon=vm.runInNewContext("("+app.match(/function v105SubjectIcon\([^)]*\)\{[\s\S]*?\n\}/)[0]+")");
+  assert.equal(icon("Fen Bilimleri"),"kim");assert.equal(icon("Sosyal Bilimler"),"cog");assert.equal(icon("Temel Matematik"),"mat");assert.equal(icon("Felsefe Grubu"),"fel");
 });
