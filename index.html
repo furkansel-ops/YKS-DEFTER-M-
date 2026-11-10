@@ -606,12 +606,18 @@
     <div class="topic-filter-row" aria-label="Konu filtreleri">
       <button class="topic-filter on" id="tfAll" onclick="setTopicFilter('all')">Tümü</button>
       <button class="topic-filter" id="tfWork" onclick="setTopicFilter('work')">Çalışılıyor</button>
-      <button class="topic-filter" id="tfReview" onclick="setTopicFilter('review')">Tekrar bekleyen</button>
+      <button class="topic-filter" id="tfReview" onclick="setTopicFilter('review')">Tekrar</button>
       <button class="topic-filter" id="tfRisk" onclick="setTopicFilter('risk')">Riskli</button>
-      <button class="topic-filter" id="tfDone" onclick="setTopicFilter('done')">Tamamlanan</button>
+      <button class="topic-filter" id="tfDone" onclick="setTopicFilter('done')">Bitti</button>
+    </div>
+    <div class="v105-sort" id="v105TopicSortBox">
+      <select id="v105TopicSort" aria-label="Dersleri sırala" onchange="setTopicSort(this.value)">
+        <option value="curriculum">Müfredat sırası</option><option value="remaining">En çok kalan</option><option value="progress">İlerlemesi yüksek</option><option value="name">A–Z</option>
+      </select>
     </div>
     <p class="hint" id="searchInfo" style="margin-bottom:0;"></p>
   </div>
+  <div class="card v105-sum" id="v105TopicSummary"></div>
   <h2>Konular özeti</h2>
   <div class="card" id="v26TopicOverview"></div>
   <h2>Konu hedefleri</h2>

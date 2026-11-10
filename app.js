@@ -1933,6 +1933,23 @@ function v4RenderTopicGoals(){
 }
 function v26MatchesFilter(row,ctx){if(v26TopicFilter==="work")return row.t.st===1||row.t.st===2;if(v26TopicFilter==="review")return !!ctx.due[row.key];if(v26TopicFilter==="risk")return (ctx.priority[row.key]?.score||0)>=30;if(v26TopicFilter==="done")return row.t.st===3;return true;}
 function setTopicFilter(f){v26TopicFilter=["all","work","review","risk","done"].includes(f)?f:"all";renderSubjects();}
+// v105 Konular: açık ders ve ders sırası yalnız görünüm durumudur (kaydedilmez); her işaretlemede liste baştan çizildiği için burada tutulur.
+let v105OpenSubj="",v105TopicSort="curriculum";
+function setTopicSort(m){v105TopicSort=["curriculum","remaining","progress","name"].includes(m)?m:"curriculum";renderSubjects();}
+function v105SortSubjects(exam){
+  const rows=(CURRICULUM[exam]||[]).map((s,si)=>({s,si,st:subjStat(exam,s)})),m=v105TopicSort;
+  if(m==="remaining")rows.sort((a,b)=>(b.st.total-b.st.full)-(a.st.total-a.st.full)||a.st.pct-b.st.pct);
+  else if(m==="progress")rows.sort((a,b)=>b.st.pct-a.st.pct);
+  else if(m==="name")rows.sort((a,b)=>a.s.name.localeCompare(b.s.name,"tr"));
+  return rows;
+}
+function v105SubjectIcon(name){
+  const s=String(name||"").toLocaleLowerCase("tr-TR");
+  for(const [re,ic] of [[/türkçe/,"tr"],[/edebiyat/,"edb"],[/matematik/,"mat"],[/geometri/,"geo"],[/fizik/,"fiz"],[/kimya/,"kim"],[/biyoloji/,"biy"],[/tarih/,"tar"],[/coğrafya/,"cog"],[/felsefe/,"fel"],[/dil|ingilizce/,"dil"]])if(re.test(s))return ic;
+  return "kitap";
+}
+function v105OpenReviews(){const box=el("reviewBox");if(box)box.scrollIntoView({behavior:"smooth",block:"start"})}
+function v105SyncReviews(){const b=el("v105RevLink"),n=parseInt((el("revCount")||{}).textContent,10)||0;if(b){b.hidden=!n;b.textContent=n+" tekrar bekliyor"}}
 function setExamTab(t){
   examTab=["TYT","AYT","YDT"].indexOf(t)>=0?t:"TYT";
   el("segTYT").classList.toggle("on",examTab==="TYT");el("segAYT").classList.toggle("on",examTab==="AYT");const yd=el("segYDT");if(yd)yd.classList.toggle("on",examTab==="YDT");renderSubjects();
@@ -1940,7 +1957,11 @@ function setExamTab(t){
 function v26RenderOverview(ctx){
   const rows=v26ExamTopicRows(examTab),snap=v4ExamTopicProgress(examTab),total=snap.total,done=snap.done,work=snap.working,review=rows.filter(x=>ctx.due[x.key]).length,risk=rows.filter(x=>(ctx.priority[x.key]?.score||0)>=30).length,pct=snap.pct;
   const w=el("v26TopicOverview");if(w)w.innerHTML='<div class="v4-topic-progress-head"><div><small>'+examTab+' tamamlanma yüzdesi</small><strong>%'+pct+'</strong></div><span>'+snap.remainingSteps+' kademe kaldı</span></div><div class="v4-topic-progressbar"><i style="width:'+pct+'%"></i></div><div class="v26-topic-grid"><div class="v26-topic-kpi"><small>Tamamlanan</small><b>'+done+' / '+total+'</b></div><div class="v26-topic-kpi"><small>Çalışılıyor</small><b>'+work+'</b></div><div class="v26-topic-kpi"><small>Başlanmayan</small><b>'+snap.untouched+'</b></div><div class="v26-topic-kpi"><small>Tekrar / risk</small><b>'+review+' / '+risk+'</b></div></div><div class="v26-topic-summary">Yüzde, konu kademelerinden hesaplanır. Filtreler ve hedefler Programım tablosuna otomatik müdahale etmez.</div>';
-  const defs=[["tfAll","Tümü",total],["tfWork","Çalışılıyor",work],["tfReview","Tekrar bekleyen",review],["tfRisk","Riskli",risk],["tfDone","Tamamlanan",done]];defs.forEach(([id,n,c],i)=>{const b=el(id);if(b){b.innerHTML=n+' <b>'+c+'</b>';b.classList.toggle("on",["all","work","review","risk","done"][i]===v26TopicFilter)}});v4RenderTopicGoals();
+  // v105 özet iskeleti bir kez kurulur (index.html açılış bütçesi dolu); tekrar kısayolunu v105SyncReviews doldurur.
+  const sum=el("v105TopicSummary");if(sum&&!sum.firstChild)sum.innerHTML='<div class="v105-big" id="v105SumRing" role="img"><b></b></div><div><h3 id="v105SumTitle"></h3><p id="v105SumText"></p><button type="button" class="v105-rev" id="v105RevLink" hidden onclick="v105OpenReviews()"></button></div>';
+  const ring=el("v105SumRing");if(ring){ring.style.setProperty("--v105-p",pct);ring.setAttribute("aria-label",examTab+" ilerleme yüzde "+pct);ring.firstElementChild.textContent="%"+pct;el("v105SumTitle").textContent=done+" / "+total+" konu bitti";el("v105SumText").textContent=work?work+" konu üzerinde çalışıyorsun":done===total&&total?"Bütün konular bitti":"Bir konuyu işaretleyerek başla";}
+  const sub=document.querySelector("#refinedTopicsHeading p");if(sub)sub.textContent=examTab+" · "+total+" konu";
+  const defs=[["tfAll","Tümü",total],["tfWork","Çalışılıyor",work],["tfReview","Tekrar",review],["tfRisk","Riskli",risk],["tfDone","Bitti",done]];defs.forEach(([id,n,c],i)=>{const b=el(id);if(b){b.innerHTML=n+' <b>'+c+'</b>';b.classList.toggle("on",["all","work","review","risk","done"][i]===v26TopicFilter)}});v4RenderTopicGoals();
 }
 function v26RenderAttention(ctx){
   const w=el("v26TopicAttention");if(!w)return;const list=ctx.priorityList.filter(x=>x.exam===examTab&&x.score>=30).slice(0,3);
@@ -1949,25 +1970,33 @@ function v26RenderAttention(ctx){
 }
 function renderSubjects(){
   const wrap=el("subjectList");if(!wrap)return;wrap.innerHTML="";const q=(typeof topicQuery==="string")?topicQuery:"",ctx=v26BuildContext();v26RenderCtx=ctx;v26RenderOverview(ctx);v26RenderAttention(ctx);let shown=0;
-  ["TYT","AYT","YDT"].forEach(exam=>{if(!q&&exam!==examTab)return;(CURRICULUM[exam]||[]).forEach((s,si)=>{
+  ["TYT","AYT","YDT"].forEach(exam=>{if(!q&&exam!==examTab)return;v105SortSubjects(exam).forEach(({s,si,st})=>{
     const subjHit=q&&s.name.toLocaleLowerCase("tr").indexOf(q)>=0;let topics=s.topics.filter(tp=>{const hit=!q||subjHit||tp.toLocaleLowerCase("tr").indexOf(q)>=0;if(!hit)return false;return v26MatchesFilter({exam,subj:s.name,topic:tp,key:tkey(exam,s.name,tp),t:tget(tkey(exam,s.name,tp))},ctx)});if(!topics.length)return;shown+=topics.length;
-    const st=subjStat(exam,s),id=exam+si,att=ctx.priorityList.filter(x=>x.exam===exam&&x.subj===s.name&&x.score>=30).slice(0,3),div=document.createElement("div");div.className="card subj";div.dataset.tone=typeof planSubjectTone==="function"?planSubjectTone(s.name):"other";div.innerHTML='<div class="subj-head" onclick="toggleSubj(\''+id+'\')"><span class="nm">'+esc(s.name)+(q?' <small style="font-weight:400;color:var(--label-3)">'+exam+'</small>':'')+(att.length?'<small class="subj-sub">Dikkat: '+att.map(x=>esc(x.topic)).join(' · ')+'</small>':'')+'</span><span class="pct">'+st.full+'/'+st.total+' bitti · %'+st.pct+'</span></div><div class="bar"><i style="width:'+st.pct+'%"></i></div><div class="topics'+(q||v26TopicFilter!=="all"?' open':'')+'" id="tp'+id+'">'+topics.map(tp=>topicRow(exam,s.name,tp,ctx)).join('')+'</div>';wrap.appendChild(div);
+    const id=exam+si,open=!!q||v26TopicFilter!=="all"||v105OpenSubj===id,att=ctx.priorityList.filter(x=>x.exam===exam&&x.subj===s.name&&x.score>=30).slice(0,3),div=document.createElement("div");div.className="card subj";div.dataset.tone=typeof planSubjectTone==="function"?planSubjectTone(s.name):"other";div.innerHTML='<button type="button" class="subj-head" aria-expanded="'+open+'" aria-controls="tp'+id+'" onclick="toggleSubj(\''+id+'\')"><i class="v105-tile" data-v105-ic="'+v105SubjectIcon(s.name)+'" aria-hidden="true"></i><span class="nm">'+esc(s.name)+(q?' <small style="font-weight:400;color:var(--label-3)">'+exam+'</small>':'')+(att.length?'<small class="subj-sub">Dikkat: '+att.map(x=>esc(x.topic)).join(' · ')+'</small>':'<small class="subj-sub v105-left">'+(st.full<st.total?(st.total-st.full)+' konu kaldı':'Tamamlandı')+'</small>')+'<span class="bar"><i style="width:'+st.pct+'%"></i></span></span><span class="pct">'+st.full+'/'+st.total+'</span></button><div class="topics'+(open?' open':'')+'" id="tp'+id+'">'+topics.map(tp=>topicRow(exam,s.name,tp,ctx)).join('')+'</div>';wrap.appendChild(div);
   })});
   const info=el("searchInfo"),filterName={all:"",work:" · çalışılıyor",review:" · tekrar bekleyen",risk:" · riskli",done:" · tamamlanan"}[v26TopicFilter]||"";if(info)info.textContent=q?(shown?shown+" konu bulundu"+filterName:"Eşleşen konu yok"+filterName):(v26TopicFilter!=="all"?(shown+" konu gösteriliyor"+filterName):"");if(!shown)wrap.innerHTML='<div class="card"><div class="empty">Bu filtrede gösterilecek konu yok.</div></div>';
 }
 function topicRow(exam,subj,topic,ctx){
   ctx=ctx||v26RenderCtx||v26BuildContext();const key=tkey(exam,subj,topic),t=tget(key),k=v26Arg(key),study=ctx.study[key]||{total:0,last:"",days:[]},wrong=ctx.wrong[key]||{total:0,last:"",entries:0,rows:[],examMarked:0},due=ctx.due[key],risk=v26RiskInfo(ctx.priority[key]);let pills="",stars="";
-  for(let i=1;i<=3;i++)pills+='<button class="pill '+(t.st>=i?'on ':'')+'p'+i+'" onclick="cycleTopic(\''+k+'\','+i+')" title="'+esc(ST_LABEL[i])+'">'+i+'</button>';for(let i=1;i<=5;i++)stars+='<span class="star '+(t.conf>=i?'on':'')+'" onclick="setConf(\''+k+'\','+i+')">★</span>';
+  for(let i=1;i<=3;i++)pills+='<button class="pill '+(t.st>=i?'on ':'')+'p'+i+'" onclick="cycleTopic(\''+k+'\','+i+')" title="'+esc(ST_LABEL[i])+'" aria-pressed="'+(t.st>=i)+'">'+["İşledim","Soru","Pekişti"][i-1]+'</button>';for(let i=1;i<=5;i++)stars+='<button type="button" class="star '+(t.conf>=i?'on':'')+'" aria-label="Güven '+i+' / 5" aria-pressed="'+(t.conf>=i)+'" onclick="setConf(\''+k+'\','+i+')">★</button>';
   const rev=(t.rev||[]).length,wgt=(typeof topicWeight==="function")?topicWeight(key):1,wl=(typeof weightLabel==="function")?weightLabel(wgt):"",rn=(typeof resCount==="function")?resCount(key):0,subArg=v26Arg(subj),tpArg=v26Arg(topic),exArg=v26Arg(exam),resBadge='<button class="tres" title="Kaynaklar" onclick="event.stopPropagation();openRes(\''+subArg+'\',\''+tpArg+'\')">'+(rn?'🔗'+rn:'＋')+'</button>';
   let dlTxt="";if(t.dl){const left=diffKeys(todayKey(),t.dl),late=(left<0&&t.st!==3);dlTxt=' · <span style="color:'+(late?'var(--danger)':'var(--time)')+'">hedef '+parseKey(t.dl).toLocaleDateString('tr-TR',{day:'numeric',month:'short'})+(late?' (geçti)':'')+'</span>'}
-  const repeatTxt=t.st===3?(rev+'/3 tekrar'+(due?(due.late>0?' · '+due.late+' gün gecikmiş':' · bugün tekrar'):' · sırada yok')):'3–7–21 tamamlanınca başlar',studyTxt=study.total?(fmtHM(study.total)+' · son '+v26Ago(study.last)):'konu etiketli çalışma yok',wrongTxt=wrong.total?(wrong.total+' yanlış · son '+v26Ago(wrong.last)):'yanlış kaydı yok';
-  return '<div class="topic '+(t.st===3?'full':'')+'"><div class="tinfo"><div class="topic-title-row"><button class="topic-name-btn tn" onclick="openTopicDetail(\''+exArg+'\',\''+subArg+'\',\''+tpArg+'\')">'+esc(topic)+(wl?' <span class="twt w'+wgt+'">'+wl+'</span>':'')+'</button>'+resBadge+'</div><span class="tmeta"><span class="topic-state s'+t.st+'">'+esc(ST_LABEL[t.st])+'</span><span class="topic-risk-inline risk-badge '+risk.cls+'">'+risk.label+(risk.score?' · '+risk.score:'')+'</span>'+dlTxt+'</span><span class="tmeta v26-meta">'+esc(studyTxt)+' · '+esc(wrongTxt)+'<br>'+esc(repeatTxt)+'</span></div><div class="tctl"><div class="pills">'+pills+'</div><div class="stars" title="Güven">'+stars+'</div><button class="topic-open" onclick="openTopicDetail(\''+exArg+'\',\''+subArg+'\',\''+tpArg+'\')" aria-label="Konu ayrıntısı">›</button></div></div>';
+  // v105: yalnız var olan bilgi yazılır ("çalışma yok · yanlış yok · tekrar başlamadı" üçlüsü tek cümleye iner).
+  const repeatTxt=t.st===3?(rev+'/3 tekrar'+(due?(due.late>0?' · '+due.late+' gün gecikmiş':' · bugün tekrar'):'')):'',studyTxt=study.total?(fmtHM(study.total)+' · son '+v26Ago(study.last)):'',wrongTxt=wrong.total?(wrong.total+' yanlış · son '+v26Ago(wrong.last)):'',metaTxt=[studyTxt,wrongTxt,repeatTxt].filter(Boolean).join(' · ')||'Henüz çalışma yok';
+  return '<div class="topic '+(t.st===3?'full':'')+'" data-st="'+t.st+'"><i class="v105-ring" aria-hidden="true"></i><div class="tinfo"><div class="topic-title-row"><button class="topic-name-btn tn" onclick="openTopicDetail(\''+exArg+'\',\''+subArg+'\',\''+tpArg+'\')">'+esc(topic)+(wl?' <span class="twt w'+wgt+'">'+wl+'</span>':'')+'</button>'+resBadge+'</div><span class="tmeta"><span class="topic-state s'+t.st+'">'+esc(ST_LABEL[t.st])+'</span><span class="topic-risk-inline risk-badge '+risk.cls+'">'+risk.label+' risk</span>'+dlTxt+'<span class="v26-meta">'+esc(metaTxt)+'</span></span></div><div class="tctl"><div class="pills">'+pills+'</div><div class="stars" title="Güven">'+stars+'</div><button class="topic-open" onclick="openTopicDetail(\''+exArg+'\',\''+subArg+'\',\''+tpArg+'\')" aria-label="Konu ayrıntısı">›</button></div></div>';
 }
 function cycleTopic(key,lvl){const cur=tget(key).st;tsetStatus(key,cur===lvl?lvl-1:lvl);renderSubjects();renderReviewQueue();if(v26TopicOpen&&v26TopicOpen.key===key)renderTopicDetail();checkBadges(false)}
 function setConf(key,c){tsetConf(key,c);renderSubjects();if(v26TopicOpen&&v26TopicOpen.key===key)renderTopicDetail()}
-function toggleSubj(i){const e=el("tp"+i);if(e)e.classList.toggle("open")}
+function toggleSubj(i){
+  const e=el("tp"+i);if(!e)return;const open=!e.classList.contains("open"),solo=!topicQuery&&v26TopicFilter==="all";
+  const set=(x,on)=>{x.classList.toggle("open",on);x.toggleAttribute("data-v105-just",on);if(x.previousElementSibling)x.previousElementSibling.setAttribute("aria-expanded",String(on))};
+  // v105: aynı anda tek ders açık kalır; arama ve filtrede bütün dersler açık çizildiği için orada dokunulmaz.
+  if(solo&&open)document.querySelectorAll("#subjectList .topics.open").forEach(x=>set(x,false));
+  set(e,open);if(solo)v105OpenSubj=open?i:"";
+  if(open)e.parentElement.scrollIntoView({block:"start",behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"});
+}
 function renderReviewQueue(){
-  const w=el("reviewBox");if(!w)return;const plan=v4UpcomingReviews(),q=plan.filter(x=>x.status!=="upcoming"),upcoming=plan.filter(x=>x.status==="upcoming");el("revCount").textContent=q.length;
+  const w=el("reviewBox");if(!w)return;const plan=v4UpcomingReviews(),q=plan.filter(x=>x.status!=="upcoming"),upcoming=plan.filter(x=>x.status==="upcoming");el("revCount").textContent=q.length;v105SyncReviews();
   let html='<div class="v4-topic-section-head"><div><span>Tekrar planı</span><b>'+q.length+' şimdi gerekli · '+upcoming.length+' önümüzdeki 7 gün</b></div></div>';
   if(!q.length&&!upcoming.length){w.innerHTML=html+'<div class="empty">Şu an veya önümüzdeki 7 günde tekrar bekleyen konu yok.<br>Bir konuyu 3. kademeye aldığında 3., 7. ve 21. gün planı başlar.</div>';return}
   if(q.length)html+='<div class="v4-review-group"><small>Şimdi tekrar et</small>'+q.slice(0,30).map(r=>'<div class="revrow"><div><div class="rt">'+esc(r.subj)+' · '+esc(r.topic)+'</div><div class="rm">'+r.gap+'. gün tekrarı · '+parseKey(r.due).toLocaleDateString('tr-TR',{day:'numeric',month:'short'})+(r.status==="overdue"?' · '+r.late+' gün gecikmiş':' · bugün')+'</div></div><div class="rev-actions"><button class="btn ghost tiny" onclick="openTopicDetail(\''+v26Arg(r.exam)+'\',\''+v26Arg(r.subj)+'\',\''+v26Arg(r.topic)+'\')">Detay</button><button class="btn green tiny" onclick="doReview(\''+v26Arg(r.key)+'\','+r.gi+')">Yaptım</button></div></div>').join('')+'</div>';

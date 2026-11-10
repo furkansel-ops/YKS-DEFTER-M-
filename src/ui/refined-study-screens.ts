@@ -68,14 +68,18 @@ export function installRefinedStudyScreens():StudyApi{
     }
   }
   function arrangeTopics():void{
-    const tools=topicScreen.querySelector<HTMLElement>(".v26-topic-tools"),tabs=document.getElementById("segTYT")?.parentElement||null,subjects=document.getElementById("subjectList"),modal=document.getElementById("v26TopicModal");
-    const primary=new Set<HTMLElement>([title,topicMore.details,...[tools,tabs,subjects,modal].filter((item):item is HTMLElement=>!!item)]);
+    const tools=topicScreen.querySelector<HTMLElement>(".v26-topic-tools"),tabs=document.getElementById("segTYT")?.parentElement||null,summary=document.getElementById("v105TopicSummary"),sort=document.getElementById("v105TopicSortBox"),subjects=document.getElementById("subjectList"),modal=document.getElementById("v26TopicModal");
+    const primary=new Set<HTMLElement>([title,topicMore.details,...[tools,tabs,summary,subjects,modal].filter((item):item is HTMLElement=>!!item)]);
     for(const child of Array.from(topicScreen.children))if(child instanceof HTMLElement&&!primary.has(child))moveLive(topicMore.body,child);
+    // v105 sıra: başlık → sınav sekmesi → özet → arama ve filtre → dersler → "İlerleme ve hedefler".
     // Move only if needed; edits and active subject controls stay in place on refresh.
-    if(tools&&tools.previousElementSibling!==title)topicScreen.insertBefore(tools,title.nextSibling);
-    if(tabs&&tools&&tabs.previousElementSibling!==tools)topicScreen.insertBefore(tabs,tools.nextSibling);
-    if(tabs&&topicMore.details.previousElementSibling!==tabs)topicScreen.insertBefore(topicMore.details,tabs.nextSibling);
-    if(subjects&&subjects.previousElementSibling!==topicMore.details)topicScreen.insertBefore(subjects,topicMore.details.nextSibling);
+    let previous:HTMLElement=title;
+    for(const item of [tabs,summary,tools,subjects,topicMore.details]){
+      if(!item)continue;
+      if(item.previousElementSibling!==previous)topicScreen.insertBefore(item,previous.nextSibling);
+      previous=item;
+    }
+    if(sort&&sort.parentElement!==title)title.append(sort);
   }
   function arrangeExam():void{
     const dashboard=document.getElementById("v315Dashboard"),form=document.getElementById("v315ExamFormCard"),reflection=document.getElementById("reflBox");
@@ -125,7 +129,10 @@ export function installRefinedStudyScreens():StudyApi{
   window.addEventListener("yks:screen-render-before",()=>{renderDepth++;});
   const finishRender=()=>{renderDepth=Math.max(0,renderDepth-1);schedule();};
   window.addEventListener("yks:screen-render-after",finishRender);window.addEventListener("yks:screen-render-error",finishRender);
-  const onNavigation=(event:Event)=>{const detail=(event as CustomEvent<{to?:string;screen?:string}>).detail;if(["topics","deneme"].includes(detail?.to??detail?.screen??""))schedule();};
+  // v105: giriş hareketleri yalnız Konular'a gelince oynar. Her işaretlemede liste baştan çizildiği için süreyle sınırlanır.
+  let topicsEnterTimer=0;
+  const playTopicsEnter=()=>{topicScreen.toggleAttribute("data-v105-enter",true);window.clearTimeout(topicsEnterTimer);topicsEnterTimer=window.setTimeout(()=>topicScreen.removeAttribute("data-v105-enter"),1400);};
+  const onNavigation=(event:Event)=>{const detail=(event as CustomEvent<{to?:string;screen?:string}>).detail,to=detail?.to??detail?.screen??"";if(["topics","deneme"].includes(to))schedule();if(to==="topics")playTopicsEnter();};
   window.addEventListener("yks:navigation-after",onNavigation);document.addEventListener("yks:navigation-after",onNavigation);
   for(const {details} of disclosures)details.addEventListener("toggle",()=>{if(details.open){window.dispatchEvent(new Event("resize"));protectDeepLinks();}});
   refresh();api={installed:true,refresh,reveal:revealStudyTarget};return api;

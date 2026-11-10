@@ -160,7 +160,7 @@
     const root=$("reviewBox");if(!root)return;
     root.querySelector("#errorJournalReviewGroup")?.remove();
     const list=openReviews();if(!list.length)return;
-    const count=$("revCount");if(count){const base=parseInt(count.textContent,10)||0;count.textContent=String(base+list.length);}
+    const count=$("revCount");if(count){const base=parseInt(count.textContent,10)||0;count.textContent=String(base+list.length);window.v105SyncReviews?.();}
     const box=document.createElement("div");box.id="errorJournalReviewGroup";box.className="v4-review-group error-journal-review-group";
     box.innerHTML='<small>Hata Defteri tekrarları</small>'+list.slice(0,30).map(r=>'<div class="revrow"><div><div class="rt">'+esc(r.subject)+' · '+esc(r.topic)+'</div><div class="rm">Hata Defteri tekrarı · programı değiştirmez</div></div><div class="rev-actions"><button class="btn ghost tiny" onclick="errorJournalOpen(\''+jsArg(r.journalId||'')+'\')">Hata kaydı</button><button class="btn green tiny" onclick="errorJournalReviewDone(\''+jsArg(r.id)+'\')">Yaptım</button></div></div>').join('');
     root.appendChild(box);
