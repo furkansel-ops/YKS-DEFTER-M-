@@ -1,6 +1,7 @@
 import "./focus-smart-picker-v58.css";
 import {installFocusCompactV59} from "./focus-compact-v59";
 import {installFocusRefineV70} from "./focus-refine-v70";
+import {installFocusV107} from "./focus-v107";
 
 type PlanItem={id:string;text:string;subject:string;topic:string;done:boolean};
 
@@ -172,5 +173,6 @@ export function installFocusSmartPickerV58():{installed:boolean;validate():strin
   render();
   installFocusCompactV59(setup,section);
   installFocusRefineV70();
+  installFocusV107();
   return {installed:true,validate:()=>document.getElementById("v58PlanList")&&document.getElementById("v58RecentSubjects")?[]:["quick-pick-dom"]};
 }

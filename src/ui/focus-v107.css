@@ -1,0 +1,113 @@
+/* v107 · Odak: sayaç en üstte ve görünür halkayla, ders seçimi tek satır, bugünün oturumları ekranda,
+   araçlar çizgi simgeli kutular. Düğümleri focus-v107.ts ekler; sayaç kartı index.html'deki eski karttır.
+   En son yüklenir ve #mainWrap ile eski katmanların (v59, v65, v67, v70, v99) önüne geçer.
+   Renkler tema belirteçlerinden (--d-*, --tone) gelir: Glassy, Gece ve Canlı aynı kurallarla boyanır. */
+:root{
+  --i107-gear:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3Cpath d='M12 3v2.5M12 18.5V21M3 12h2.5M18.5 12H21M5.6 5.6l1.8 1.8M16.6 16.6l1.8 1.8M18.4 5.6l-1.8 1.8M7.4 16.6l-1.8 1.8'/%3E%3C/svg%3E");
+  --i107-full:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5'/%3E%3C/svg%3E");
+  --i107-plus:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M12 5v14M5 12h14'/%3E%3C/svg%3E");
+  --i107-air:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 9h10a3 3 0 1 0-3-3M3 14h14a3 3 0 1 1-3 3M3 19h6'/%3E%3C/svg%3E");
+  --i107-exam:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='5' y='4' width='14' height='17' rx='2.5'/%3E%3Cpath d='M9 4v3h6V4M9 12h6M9 16h4'/%3E%3C/svg%3E");
+  --i107-hist:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M4 20V10M10 20V4M16 20v-7M21 20H3'/%3E%3C/svg%3E");
+  --i107-list:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M8 7h12M8 12h12M8 17h12M4 7h.01M4 12h.01M4 17h.01'/%3E%3C/svg%3E");
+  --i107-more:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3' stroke-linecap='round'%3E%3Cpath d='M5 12h.01M12 12h.01M19 12h.01'/%3E%3C/svg%3E");
+  --i107-go:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 6l6 6-6 6'/%3E%3C/svg%3E");
+}
+
+/* ---------- Başlık: ad, ayarlar, Minimal ---------- */
+:root[data-visual-system] #mainWrap #pomo .v70-head-row{align-items:flex-end;gap:8px}
+:root[data-visual-system] #mainWrap #pomo .v70-head-row .rb-secondary-title{margin-right:auto!important}
+:root[data-visual-system] #mainWrap #pomo .v107-gear{display:grid;place-items:center;flex:none;width:42px;min-width:42px;height:42px;margin:0;padding:0;border:1px solid var(--d-line);border-radius:14px;background:var(--d-surface);box-shadow:none;color:var(--d-chip-ink);cursor:pointer}
+:root[data-visual-system] #mainWrap #pomo .v107-gear::before{content:"";width:20px;height:20px;background:currentColor;-webkit-mask:var(--i107-gear) center/contain no-repeat;mask:var(--i107-gear) center/contain no-repeat}
+:root[data-visual-system] #mainWrap #pomo .v70-minimal{display:inline-flex;align-items:center;gap:6px;min-height:42px!important;margin:0;padding:0 12px!important;border:1px solid var(--d-line);border-radius:14px!important;background:var(--d-surface);box-shadow:none;color:var(--d-chip-ink);font-size:12.5px!important;font-weight:800}
+:root[data-visual-system] #mainWrap #pomo .v70-minimal::before{content:"";width:18px;height:18px;background:currentColor;-webkit-mask:var(--i107-full) center/contain no-repeat;mask:var(--i107-full) center/contain no-repeat}
+:root[data-visual-system] #mainWrap #pomo .v70-today{margin:2px 0 12px;color:var(--d-muted);font-size:12.5px}
+
+/* ---------- Sayaç / Kronometre ---------- */
+:root[data-visual-system] #mainWrap #pomo>.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:0;margin:0 0 10px;padding:4px;border:1px solid var(--d-line);border-radius:16px;background:var(--d-surface)}
+:root[data-visual-system] #mainWrap #pomo>.seg button{min-height:38px;border-radius:12px;background:none;box-shadow:none;color:var(--d-muted);font-size:13.5px;font-weight:750;transition:color .3s,background .3s}
+:root[data-visual-system] #mainWrap #pomo>.seg button.on{background:var(--d-hero);color:var(--d-hero-ink)}
+:root[data-visual-system] #mainWrap #pomo>.seg button.on::after{display:none}
+
+/* ---------- Sıra: tek sütunda sayaç önce, ders seçimi ve bugün altında (980px üstü iki sütun aynen kalır) ---------- */
+@media(max-width:979px){
+  :root[data-visual-system] #mainWrap #pomo .desktop-focus-workspace>.desktop-focus-side.v70-setup-side{order:2}
+  :root[data-visual-system] #mainWrap #pomo .desktop-focus-workspace>.desktop-focus-side:not(.v70-setup-side){order:1}
+}
+
+/* ---------- Sayaç kartı ---------- */
+:root[data-visual-system] #mainWrap #pomo .focuscard .rtrack{stroke:var(--d-track);stroke-width:12}
+:root[data-visual-system] #mainWrap #pomo .focuscard .rprog{stroke-width:12}
+:root[data-visual-system] #mainWrap #pomo #pomoTime{font-family:var(--font);font-weight:800}
+:root[data-visual-system] #mainWrap #pomo #pomoDots{gap:6px;margin:2px 0 4px}
+:root[data-visual-system] #mainWrap #pomo #pomoDots i{width:22px;height:5px;border-radius:5px;background:var(--d-track);box-shadow:none}
+:root[data-visual-system] #mainWrap #pomo #pomoDots i.on{background:var(--d-accent)}
+:root[data-visual-system] #mainWrap #pomo .focuscard .cyclenote{margin:0 0 10px;color:var(--d-muted);font-size:12px;font-weight:650}
+:root[data-visual-system] #mainWrap #pomo .focuscard .fcctl{grid-template-columns:52px minmax(0,1fr) 52px;gap:10px;align-items:center}
+:root[data-visual-system] #mainWrap #pomo .focuscard .ctlbtn{width:52px;height:52px;border-radius:17px;color:var(--d-chip-ink)}
+:root[data-visual-system] #mainWrap #pomo .focuscard .playbtn{min-height:54px;border-radius:18px;font-size:16px;font-weight:800}
+:root[data-visual-system] #mainWrap #pomo #focusCard[data-phase="work"] .playbtn,
+:root[data-visual-system] #mainWrap #pomo #swCard .playbtn{background:var(--d-hero);color:var(--d-hero-ink)}
+/* Günlük hedef çubuğu Bugün kartında durur; sayaç kartındaki eşi gizlenir. */
+:root[data-visual-system] #mainWrap #pomo.v107-has-today #goalWrap{display:none!important}
+/* Kronometre: süre, sayaçtaki halkayla aynı ölçüde bir çemberin içinde. */
+:root[data-visual-system] #mainWrap #pomo #swCard .swface{display:grid;place-content:center;width:216px;height:216px;margin:8px auto 6px;border:12px solid var(--d-track);border-radius:50%;transition:border-color .4s}
+:root[data-visual-system] #mainWrap #pomo #swCard[data-run="running"] .swface{border-color:var(--d-accent)}
+
+/* ---------- Ne çalışıyorsun: tek satır, dokununca açılır ---------- */
+:root[data-visual-system] #mainWrap #pomo .v29-session-setup.v60-compact{padding:11px 12px;border-radius:18px}
+:root[data-visual-system] #mainWrap #pomo .v107-what{display:grid;grid-template-columns:42px minmax(0,1fr) 18px;gap:12px;align-items:center;width:100%;min-height:44px;margin:0;padding:0;border:0;background:none;box-shadow:none;color:inherit;font:inherit;text-align:left;cursor:pointer}
+:root[data-visual-system] #mainWrap #pomo .v107-tile{display:grid;place-items:center;width:42px;height:42px;border-radius:13px;background:color-mix(in srgb,var(--tone,var(--d-accent)) 14%,var(--d-surface));color:var(--tone,var(--d-accent))}
+:root[data-visual-system] #mainWrap #pomo .v107-tile::before{content:"";width:21px;height:21px;background:currentColor;-webkit-mask:var(--v105-ic,var(--i105-kitap)) center/contain no-repeat;mask:var(--v105-ic,var(--i105-kitap)) center/contain no-repeat}
+:root[data-visual-system] #mainWrap #pomo .v107-what-copy{min-width:0}
+:root[data-visual-system] #mainWrap #pomo .v107-what-copy b{display:block;font-size:15px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+:root[data-visual-system] #mainWrap #pomo .v107-what-copy small{display:block;color:var(--d-muted);font-size:12px;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+:root[data-visual-system] #mainWrap #pomo .v107-chev{width:18px;height:18px;background:var(--d-muted);-webkit-mask:var(--i107-go) center/contain no-repeat;mask:var(--i107-go) center/contain no-repeat;transition:transform .35s var(--v105-ease)}
+:root[data-visual-system] #mainWrap #pomo .v107-open .v107-chev{transform:rotate(90deg)}
+:root[data-visual-system] #mainWrap #pomo.v107-has-what .v29-session-setup.v60-compact:not(.v107-open)>:is(.v60-focus-toolbar,.v60-more){display:none}
+:root[data-visual-system] #mainWrap #pomo.v107-has-what .v60-head{display:none}
+:root[data-visual-system] #mainWrap #pomo .v107-open>.v60-focus-toolbar{margin-top:12px}
+
+/* ---------- Bugün ---------- */
+:root[data-visual-system] #mainWrap #pomo .v107-today{margin:10px 0 0;padding:14px;border-radius:18px}
+:root[data-visual-system] #mainWrap #pomo .v107-today-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin:0 0 8px}
+:root[data-visual-system] #mainWrap #pomo .v107-today-head b{font-size:15.5px;font-weight:800}
+:root[data-visual-system] #mainWrap #pomo .v107-today-head small{color:var(--d-muted);font-size:12px;font-weight:700}
+:root[data-visual-system] #mainWrap #pomo .v107-bar{display:block;height:7px;margin:0 0 8px;border-radius:9px;background:var(--d-track);overflow:hidden}
+:root[data-visual-system] #mainWrap #pomo .v107-bar[hidden]{display:none}
+:root[data-visual-system] #mainWrap #pomo .v107-bar i{display:block;height:100%;border-radius:inherit;background:var(--d-accent);transform-origin:left}
+:root[data-visual-system] #mainWrap #pomo .v107-session{display:grid;grid-template-columns:42px minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--d-line);font-size:13px}
+:root[data-visual-system] #mainWrap #pomo .v107-session small{color:var(--d-muted);font-size:12px;font-weight:700;font-variant-numeric:tabular-nums}
+:root[data-visual-system] #mainWrap #pomo .v107-session-name{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+:root[data-visual-system] #mainWrap #pomo .v107-session-name b{font-weight:750}
+:root[data-visual-system] #mainWrap #pomo .v107-session-name i{display:inline-block;width:8px;height:8px;margin-right:7px;border-radius:50%;background:var(--tone,var(--d-accent))}
+:root[data-visual-system] #mainWrap #pomo .v107-session em{font-style:normal;font-weight:800;font-variant-numeric:tabular-nums}
+:root[data-visual-system] #mainWrap #pomo .v107-empty{margin:0;color:var(--d-muted);font-size:12.5px}
+:root[data-visual-system] #mainWrap #pomo .v107-more{display:block;min-height:36px;margin:4px 0 -6px;padding:0;border:0;background:none;box-shadow:none;color:var(--d-chip-ink);font:800 12.5px/1 var(--font);cursor:pointer}
+:root[data-visual-system] #mainWrap #pomo .v107-more[hidden]{display:none}
+
+/* ---------- Araçlar: kutular, çizgi simge ---------- */
+[data-tool="sessions"]{--v107-i:var(--i107-list)}[data-tool="manual"]{--v107-i:var(--i107-plus)}[data-tool="breath"]{--v107-i:var(--i107-air)}
+[data-tool="exam"]{--v107-i:var(--i107-exam)}[data-tool="history"]{--v107-i:var(--i107-hist)}[data-tool="settings"]{--v107-i:var(--i107-gear)}[data-tool="other"]{--v107-i:var(--i107-more)}
+:root[data-visual-system] #mainWrap #pomo .v70-tools[data-v107="grid"]{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;border:0;border-radius:0;overflow:visible;background:none}
+:root[data-visual-system] #mainWrap #pomo .v70-tools[data-v107="grid"]>.v70-tool{min-width:0;border:1px solid var(--d-line);border-radius:18px;background:var(--d-surface);box-shadow:var(--d-shadow)}
+:root[data-visual-system] #mainWrap #pomo .v70-tools[data-v107="grid"]>.v70-tool[open]{grid-column:1/-1}
+:root[data-visual-system] #mainWrap #pomo.v107-has-gear .v70-tools[data-v107="grid"]>.v70-tool[data-tool="settings"]:not([open]),
+:root[data-visual-system] #mainWrap #pomo.v107-has-today .v70-tools[data-v107="grid"]>.v70-tool[data-tool="sessions"]:not([open]){display:none}
+:root[data-visual-system] #mainWrap #pomo .v70-tools[data-v107="grid"]>.v70-tool:not([open])>summary{display:grid;gap:8px;min-height:0;padding:12px}
+:root[data-visual-system] #mainWrap #pomo .v70-tools[data-v107="grid"]>.v70-tool:not([open])>summary .v70-chev{display:none}
+:root[data-visual-system] #mainWrap #pomo .v70-tools[data-v107="grid"] .v70-ic{width:36px;height:36px;border-radius:12px;background:var(--d-chip);color:var(--d-chip-ink);font-size:0}
+:root[data-visual-system] #mainWrap #pomo .v70-tools[data-v107="grid"] .v70-ic::before{content:"";width:18px;height:18px;background:currentColor;-webkit-mask:var(--v107-i) center/contain no-repeat;mask:var(--v107-i) center/contain no-repeat}
+:root[data-visual-system] #mainWrap #pomo .v70-tools[data-v107="grid"] .v70-tool-copy small{font-size:11.5px}
+:root[data-visual-system] #mainWrap #pomo .v70-tools[data-v107="grid"]>.v70-tool{scroll-margin-top:calc(var(--nav-h,66px) + 48px)}
+
+/* ---------- Hareket: yalnız izin varken ve ekrana girişte ---------- */
+@keyframes v107-rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes v107-grow{from{transform:scaleX(0)}}
+@media(prefers-reduced-motion:no-preference){
+  :root[data-visual-system] #mainWrap #pomo[data-v107-enter] :is(#v70FocusHead,.focuscard,.v29-session-setup,.v107-today,.v70-tool){animation:v107-rise .5s var(--v105-ease) both}
+  :root[data-visual-system] #mainWrap #pomo[data-v107-enter] .focuscard{animation-delay:.06s}
+  :root[data-visual-system] #mainWrap #pomo[data-v107-enter] .v29-session-setup{animation-delay:.12s}
+  :root[data-visual-system] #mainWrap #pomo[data-v107-enter] :is(.v107-today,.v70-tool){animation-delay:.18s}
+  :root[data-visual-system] #mainWrap #pomo[data-v107-enter] .v107-bar i{animation:v107-grow .9s var(--v105-ease) .35s both}
+}

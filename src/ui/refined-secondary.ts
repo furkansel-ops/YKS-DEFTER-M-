@@ -8,7 +8,7 @@ function disclosure(parent:HTMLElement,id:string,label:string){
 export function installRefinedSecondary(){
   const focus=document.getElementById("pomo");
   if(focus){
-    const title=document.createElement("h1");title.className="rb-secondary-title";title.textContent="Odaklan";
+    const title=document.createElement("h1");title.className="rb-secondary-title";title.textContent="Odak";
     focus.querySelector(".rb-back")?.insertAdjacentElement("afterend",title);
     const details=disclosure(focus,"refinedFocusDetails","Oturumlarım, egzersizler ve odak ayarları");
     for(const node of Array.from(focus.children)){
