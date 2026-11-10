@@ -4,9 +4,11 @@ import "./refined-program-v72.css";
 import "./refined-program-v103.css";
 import {renderSmartProgram} from "./smart-program";
 import {cardTitles,clock,durationText,nextTaskIndex,parseTimeRange,plannedMinutes,plannedText,rowTimeLabel,timelineGaps,timelineOrder} from "./refined-program-v103";
+import {etutSchedule,etutSummary,readEtutPlan,taskMinutes,withTaskMinutes,withoutMinutes,type EtutPlan} from "./program-etut";
+import {createEtutSheet,renderEtutTimeline} from "./program-etut-sheet";
 
 type ProgramBlock="r"|"s";
-type ProgramView="day"|"week"|"smart";
+type ProgramView="day"|"week"|"smart"|"etut";
 export type RefinedProgramTask={id:string;block:ProgramBlock;row:number;day:number;text:string;label:string;done:boolean};
 export type ProgramAddResult={ok:boolean;reason?:"invalid"|"full"|"save";days?:number[]};
 export interface RefinedProgramBridge{
@@ -19,6 +21,7 @@ export interface RefinedProgramBridge{
   addToDay(text:string,day:number,weekOffset:number):unknown;
   addToDays?(text:string,days:number[],weekOffset:number):ProgramAddResult;
   setDayOrder?(week:string,day:number,ids:string[]):unknown;
+  setEtut?(week:string,day:number,plan:EtutPlan|null):unknown;
   updateTask?(week:string,id:string,text:string):unknown;
   deleteTask?(week:string,id:string):unknown;
 }
@@ -306,6 +309,7 @@ export function createRefinedProgramController(bridge:RefinedProgramBridge,now=(
       if(!bridge.setDayOrder||unique.length!==expected.length||unique.some(id=>!expected.includes(id)))return false;
       return bridge.setDayOrder(current.week,current.day,unique)!==false;
     },
+    setEtut(plan:EtutPlan|null){const current=snapshot();return Boolean(bridge.setEtut)&&bridge.setEtut!(current.week,current.day,plan)!==false;},
     updateTask(id:string,text:string,week=bridge.visibleWeek()){const value=text.trim(),match=id.match(/^[rs]-\d+-([0-6])$/),dayIndex=match?Number(match[1]):-1,task=match&&parseDate(week)?refinedProgramTasks(bridge.readState(),week,dayIndex).find(item=>item.id===id):undefined;if(!task||!bridge.updateTask||!value||value.length>600)return false;return bridge.updateTask(week,id,value)!==false;},
     deleteTask(id:string,week=bridge.visibleWeek()){const match=id.match(/^[rs]-\d+-([0-6])$/),dayIndex=match?Number(match[1]):-1,task=match&&parseDate(week)?refinedProgramTasks(bridge.readState(),week,dayIndex).find(item=>item.id===id):undefined;if(!task||!bridge.deleteTask)return false;return bridge.deleteTask(week,id)!==false;}
   };
@@ -363,18 +367,19 @@ export function installRefinedProgram():ProgramApi{
     toggleCellDone:(week,id)=>call("toggleCellDone",week,id),addToDay:(text,day,offset)=>call("addToDay",text,day,offset),
     addToDays:(text,days,offset)=>call("addToDays",text,days,offset) as ProgramAddResult,
     setDayOrder:(week,day,ids)=>call("programSetDayOrder",week,day,ids),
+    setEtut:(week,day,plan)=>call("programSetEtut",week,day,plan),
     updateTask:(week,id,text)=>call("programUpdateTask",week,id,text),
     deleteTask:(week,id)=>call("programDeleteTask",week,id)
   });
   const heading=element("header","rb-program-heading"),weekSummary=element("div","rb-program-week-summary");heading.append(element("h1","","Programım"),weekSummary);
   const tabs=element("div","rb-program-tabs");tabs.setAttribute("role","group");tabs.setAttribute("aria-label","Program görünümü");
-  const daily=button("Günlük Plan"),weekly=button("Haftalık Bakış"),smart=button("Akıllı Plan");tabs.append(daily,weekly,smart);
+  const daily=button("Günlük Plan"),weekly=button("Haftalık Bakış"),smart=button("Akıllı Plan"),etutTab=button("Etüt");tabs.append(daily,weekly,smart,etutTab);
   const weekNav=element("div","rb-program-weeknav"),previous=button("‹"),next=button("›"),weekLabel=element("span"),today=button("Bugün","rb-program-today");
   previous.setAttribute("aria-label","Önceki hafta");next.setAttribute("aria-label","Sonraki hafta");weekNav.append(previous,weekLabel,next,today);
   const strip=element("div","rb-program-weekstrip");strip.setAttribute("role","group");strip.setAttribute("aria-label","Program günü");
   const dayButtons=SHORT_DAYS.map((label,index)=>{
     const node=button(""),name=element("span","",label),number=element("b"),marker=element("i");marker.setAttribute("aria-hidden","true");
-    node.append(name,number,marker);node.addEventListener("click",()=>{controller.selectDay(index);if(controller.snapshot().view!=="day")controller.setView("day");refresh();});strip.append(node);return {node,number,marker};
+    node.append(name,number,marker);node.addEventListener("click",()=>{controller.selectDay(index);const view=controller.snapshot().view;if(view!=="day"&&view!=="etut")controller.setView("day");refresh();});strip.append(node);return {node,number,marker};
   });
   const weekCard=element("div","rb-program-weekcard");weekCard.append(weekNav,strip);
   const dailyPanel=element("section","rb-program-day");dailyPanel.id="refinedProgramDay";dailyPanel.setAttribute("aria-label","Günlük çalışmalar");
@@ -438,6 +443,28 @@ export function installRefinedProgram():ProgramApi{
   dailyHero.append(dailyRing,dailyHeroCopy,dailyHeroCaption,dailyPlanned);
   const dailyTasksHeading=element("div","rb-v4-day-heading");dailyTasksHeading.append(element("span","","☀"),element("h3","","Bugünün Planı"));progress.max=100;progress.setAttribute("aria-label","Günlük görev tamamlama");completion.append(count,progress);dailyHeroHead.append(dayLabel,dailyHeroCount);dailyHeroCopy.append(dailyHeroHead,dailyHeroBar);
   const list=element("div","rb-program-tasks");dailyPanel.append(dailyHero,dailyTasksHeading,list);
+  // Etüt sekmesi (Günlük Plan'a karışmaz): süre görev metnine, sıra gün sırasına, başlangıç/mola güne özel kayda yazılır.
+  const etutPanel=element("section","rb-etut-panel");etutPanel.id="refinedProgramEtut";etutPanel.setAttribute("aria-label","Etüt planı");
+  const etutBar=element("div","rb-etut-bar"),etutText=element("p"),etutOpen=button("Etüt oluştur","rb-etut-open"),etutList=element("div","rb-program-tasks rb-etut-timeline");
+  etutBar.append(etutText,etutOpen);etutPanel.append(etutBar,etutList);
+  const etutTasks=(tasks:readonly RefinedProgramTask[])=>tasks.map(task=>{
+    const label=refinedProgramSubjectLabel(task.text,task.label),info=refinedProgramTaskDetail(stripCoach(refinedProgramSplitExtras(task.text).work),task.label),titles=cardTitles(label,info.title,withoutMinutes(info.meta===task.label?"":info.meta));
+    return {id:task.id,subject:titles.subject,title:titles.title,tone:refinedProgramGroupTone(refinedProgramDailyGroupKey(task)),text:task.text,done:task.done};
+  });
+  const etutSheet=createEtutSheet(({order,minutes,plan})=>{
+    const current=controller.snapshot();
+    for(const task of current.tasks){
+      const value=minutes.get(task.id)??0;
+      if(value!==taskMinutes(task.text)&&!controller.updateTask(task.id,withTaskMinutes(task.text,value),current.week)){call("toast","Süre kaydedilemedi.");return false;}
+    }
+    if(order.join()!==current.tasks.map(task=>task.id).join()&&!controller.reorder(order)){call("toast","Sıra kaydedilemedi.");return false;}
+    if(!controller.setEtut(plan)){call("toast","Etütler kaydedilemedi.");return false;}
+    call("toast",plan?"Etütler hazır ✓":"Etütler kaldırıldı.");refresh();return true;
+  });
+  etutOpen.addEventListener("click",()=>{
+    const state=controller.snapshot(),rawState=(window as unknown as ProgramWindow).S||window.YKSLegacyState?.readState?.();
+    etutSheet.open({date:dayLabel.textContent||"",tasks:etutTasks(state.tasks),plan:readEtutPlan(rawState,state.week,state.day),now:()=>new Date()});
+  });
   const actions=element("div","rb-program-actions"),toolbar=element("div","rb-program-toolbar"),add=button("","rb-program-add"),share=button("","rb-program-share"),shareStatus=element("p","rb-program-share-status");
   add.append(icon("plus"),document.createTextNode("Çalışma ekle"));add.setAttribute("aria-controls","refinedProgramAdd");add.setAttribute("aria-expanded","false");
   share.append(icon("share"),document.createTextNode("Koçla paylaş"));share.dataset.coachShareNow="";shareStatus.dataset.coachShareStatus="";shareStatus.setAttribute("role","status");
@@ -468,7 +495,7 @@ export function installRefinedProgram():ProgramApi{
   const draftButtons=SHORT_DAYS.map((label,index)=>{const node=button(label);node.setAttribute("aria-label",FULL_DAYS[index]!);node.addEventListener("click",()=>{if(draftDays.has(index))draftDays.delete(index);else draftDays.add(index);updatePreview();});dayOptions.append(node);return node;});
   for(const [label,days] of [["Seçili gün",null],["Hafta içi",[0,1,2,3,4]],["Her gün",[0,1,2,3,4,5,6]]] as const){const node=button(label);node.addEventListener("click",()=>{draftDays=new Set(days??[controller.snapshot().day]);updatePreview();});dayShortcuts.append(node);}
   daysField.append(element("legend","","Hangi günlere eklensin?"),dayOptions,dayShortcuts);preview.append(previewText,previewDays);form.append(formTabs,builder,custom,resourceField,daysField,preview,hint,formActions);
-  toolbar.append(tabs,add);actions.append(share,shareStatus);root.append(heading,toolbar,weekCard,form,feedback,dailyPanel,weeklyPanel,smartPanel,actions,detailDialog,editor);
+  toolbar.append(tabs,add);actions.append(share,shareStatus);root.append(heading,toolbar,weekCard,form,feedback,dailyPanel,weeklyPanel,smartPanel,actions,detailDialog,editor);smartPanel.after(etutPanel);root.append(etutSheet.element);
   let destroyed=false,queued=false;
   // v103: yalnız görünüm durumu. justToggled: işaretlenen kart bir kez "pop" oynar; viewKey değişince kartlar sırayla gelir.
   let justToggled="",viewKey="",enterTimer=0;
@@ -490,6 +517,7 @@ export function installRefinedProgram():ProgramApi{
     const state=controller.snapshot(),isDaily=state.view==="day",selected=parseDate(state.date),start=parseDate(state.week),end=parseDate(offsetDate(state.week,6));
     screen.dataset.refinedProgram=state.view;daily.setAttribute("aria-pressed",String(isDaily));weekly.setAttribute("aria-pressed",String(state.view==="week"));smart.setAttribute("aria-pressed",String(state.view==="smart"));
     daily.setAttribute("aria-controls",dailyPanel.id);weekly.setAttribute("aria-controls",weeklyPanel.id);smart.setAttribute("aria-controls",smartPanel.id);dailyPanel.hidden=!isDaily;weeklyPanel.hidden=state.view!=="week";smartPanel.hidden=state.view!=="smart";legacyPanel.hidden=true;
+    etutTab.setAttribute("aria-pressed",String(state.view==="etut"));etutTab.setAttribute("aria-controls",etutPanel.id);etutPanel.hidden=state.view!=="etut";
     const total=state.days.reduce((sum,item)=>sum+item.count,0),completed=state.days.reduce((sum,item)=>sum+item.done,0);
     weekSummary.textContent=total?`Bu hafta ${total} çalışma · ${completed} tamamlandı`:"Bu hafta henüz çalışma yok";
     weekLabel.textContent=start&&end?`${start.toLocaleDateString("tr-TR",{day:"numeric",month:"short"})} – ${end.toLocaleDateString("tr-TR",end.getFullYear()===new Date().getFullYear()?{day:"numeric",month:"short"}:{day:"numeric",month:"short",year:"numeric"})}`:"";
@@ -528,8 +556,10 @@ export function installRefinedProgram():ProgramApi{
       check.dataset.rbProgramFocus=task.id;
       check.setAttribute("aria-pressed",String(task.done));check.setAttribute("aria-label",`${task.text}: ${task.done?"tamamlanmadı olarak işaretle":"tamamla"}`);if(task.done)check.append(icon("check"));
       const extras=refinedProgramSplitExtras(task.text),plain=stripCoach(extras.work),info=refinedProgramTaskDetail(plain,task.label);
-      const titles=cardTitles(label,info.title,info.meta===task.label?"":info.meta);
-      const when=[time?time.label+" · "+durationText(time):"Saat yok",titles.meta,plain!==extras.work?"koçun ekledi":""].filter(Boolean).join(" · ");
+      const titles=cardTitles(label,info.title,withoutMinutes(info.meta===task.label?"":info.meta));
+      // Süre ("120 dk") başlık hesabına girmez; ek satırda tek başına yazılır.
+      const minutesOf=taskMinutes(task.text);
+      const when=[time?time.label+" · "+durationText(time):"Saat yok",minutesOf?minutesOf+" dk":"",titles.meta,plain!==extras.work?"koçun ekledi":""].filter(Boolean).join(" · ");
       if(titles.subject)copy.append(element("span","rb-v103-subject",titles.subject));
       copy.append(element("strong","",titles.title),element("small","",when));
       details.setAttribute("aria-label",`${label} çalışma detayını aç`);details.append(copy,openMark);
@@ -706,11 +736,20 @@ export function installRefinedProgram():ProgramApi{
         onAdd:()=>{add.click();}
       });
     }
+    if(state.view==="etut"){
+      const etutPlan=readEtutPlan(rawState,state.week,state.day);
+      const etut=etutPlan?etutSchedule(state.tasks.map(task=>({id:task.id,minutes:taskMinutes(task.text)})),etutPlan):null,etutLine=etut?etutSummary(etut):"";
+      etutBar.toggleAttribute("data-active",Boolean(etutLine));etutOpen.hidden=!state.tasks.length;
+      etutText.replaceChildren(element("b","",etutLine||"Etüt oluştur"),document.createTextNode(!state.tasks.length?"Bu gün için görev yok; önce Çalışma ekle.":etutLine?"Sırayı, süreyi ve molayı değiştirebilirsin":"Başlangıç ve molayı seç, dersler sırayla dizilsin"));
+      etutOpen.textContent=etutLine?"Düzenle":"Oluştur";
+      if(etut&&etutLine)renderEtutTimeline(etutList,etutTasks(state.tasks),etut,{toggle:id=>{controller.toggleTask(id);refresh();},open:id=>{const task=state.tasks.find(item=>item.id===id);if(task)openDetail(task,state.week);}});
+      else etutList.replaceChildren();
+    }
     const realShare=originalShare();share.hidden=!realShare;shareStatus.hidden=!realShare;
     if(realShare){share.disabled=realShare.disabled;const status=legacyPanel.querySelector("#studentCoachProgramShare [data-coach-share-status]")?.textContent;if(status)shareStatus.textContent=status;}
   }
   const showView=(view:ProgramView)=>{controller.setView(view);refresh();};
-  daily.addEventListener("click",()=>showView("day"));weekly.addEventListener("click",()=>showView("week"));smart.addEventListener("click",()=>showView("smart"));
+  daily.addEventListener("click",()=>showView("day"));weekly.addEventListener("click",()=>showView("week"));smart.addEventListener("click",()=>showView("smart"));etutTab.addEventListener("click",()=>showView("etut"));
   previous.addEventListener("click",()=>{controller.moveWeek(-1);refresh();});next.addEventListener("click",()=>{controller.moveWeek(1);refresh();});today.addEventListener("click",()=>{controller.today();refresh();});
   add.addEventListener("click",()=>{form.hidden=!form.hidden;add.setAttribute("aria-expanded",String(!form.hidden));hint.textContent="";feedback.textContent="";if(!form.hidden){const state=controller.snapshot();draftWeek=state.week;draftDays=new Set([state.day]);updatePreview();(quickMode?subject:input).focus();}});
   cancel.addEventListener("click",()=>{form.hidden=true;add.setAttribute("aria-expanded","false");add.focus();});

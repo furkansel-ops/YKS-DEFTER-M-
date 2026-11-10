@@ -16,13 +16,14 @@
 :root[data-visual-system]:not(#v) #mainWrap #program .rb-program-add[aria-expanded="true"] .rb-program-icon{transform:rotate(45deg)}
 
 /* Sekmeler: seçili olanın altında kayan mor gösterge */
-:root[data-visual-system]:not(#v) #mainWrap #program .rb-program-tabs{position:relative;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));max-width:none;padding:4px;gap:0}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-program-tabs{position:relative;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));max-width:none;padding:4px;gap:0}
 :root[data-visual-system]:not(#v) #mainWrap #program .rb-program-tabs::before{
-  content:"";position:absolute;top:4px;bottom:4px;left:4px;width:calc((100% - 8px)/3);border-radius:11px;
+  content:"";position:absolute;top:4px;bottom:4px;left:4px;width:calc((100% - 8px)/4);border-radius:11px;
   background:var(--d-hero,var(--d-accent));box-shadow:0 8px 16px -10px color-mix(in srgb,var(--d-accent) 90%,transparent);
   transition:transform .45s cubic-bezier(.22,.9,.28,1)}
 :root[data-visual-system]:not(#v) #mainWrap #program .rb-program-tabs:has(button:nth-child(2)[aria-pressed="true"])::before{transform:translateX(100%)}
 :root[data-visual-system]:not(#v) #mainWrap #program .rb-program-tabs:has(button:nth-child(3)[aria-pressed="true"])::before{transform:translateX(200%)}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-program-tabs:has(button:nth-child(4)[aria-pressed="true"])::before{transform:translateX(300%)}
 :root[data-visual-system]:not(#v) #mainWrap #program .rb-program-tabs button{position:relative;z-index:1;background:transparent;box-shadow:none;color:var(--d-muted);transition:color .3s}
 :root[data-visual-system]:not(#v) #mainWrap #program .rb-program-tabs button[aria-pressed="true"]{background:transparent;box-shadow:none;color:var(--d-hero-ink,#fff)}
 

@@ -1,0 +1,105 @@
+/* Etüt oluştur/düzenle · yalnız tema değişkenleri; yazı uygulamanın --font'u (Plus Jakarta Sans). Hareketler yalnız hareket tercihi açıkken. */
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut[hidden]{display:none!important}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut{position:fixed;inset:0;z-index:10050;display:grid;align-items:end;justify-items:center;padding:0;background:color-mix(in srgb,var(--d-ink) 38%,transparent);backdrop-filter:blur(6px)}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut :where(button,input){font:inherit}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-card{position:relative;width:min(560px,100%);max-height:calc(100dvh - 16px);overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:10px;padding:0 12px;border:1px solid var(--d-line);border-radius:26px 26px 0 0;background:var(--d-bg,var(--d-surface));color:var(--d-ink);box-shadow:0 -20px 60px -20px color-mix(in srgb,var(--d-ink) 45%,transparent)}
+@media(min-width:720px){:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut{align-items:center;padding:18px}:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-card{max-height:calc(100dvh - 36px);border-radius:26px}}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-grab{flex:none;width:42px;height:5px;margin:8px auto 0;border-radius:9px;background:var(--d-line)}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:0 4px}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-head small{display:block;font-size:12.5px;font-weight:650;color:var(--d-muted)}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-head h2{margin:0;font-size:22px;font-weight:800;letter-spacing:-.02em}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-close{display:grid;place-items:center;width:38px;height:38px;min-height:0;padding:0;border:1px solid var(--d-line);border-radius:12px;background:var(--d-surface);color:var(--d-muted);font-size:22px;line-height:1}
+/* Sabit özet */
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-sum{position:sticky;top:0;z-index:3;padding:12px 14px;border-radius:20px;background:var(--d-hero,var(--d-accent));color:var(--d-hero-ink,var(--d-on-accent));box-shadow:0 16px 28px -16px color-mix(in srgb,var(--d-accent) 90%,transparent)}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-big{display:flex;align-items:baseline;gap:8px;font-variant-numeric:tabular-nums}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-big b{display:inline-block;font-size:28px;font-weight:800;letter-spacing:-.02em}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-big span{opacity:.7;font-weight:700}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-meta{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 10px}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-meta span{padding:2px 9px;border-radius:99px;background:color-mix(in srgb,currentColor 18%,transparent);font-size:12px;font-weight:750}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-daybar{display:flex;gap:2px;height:12px;border-radius:99px;overflow:hidden;background:color-mix(in srgb,currentColor 16%,transparent)}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-daybar:empty{display:none}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-daybar i{display:block;min-width:3px;transform-origin:left;transition:flex-grow .35s cubic-bezier(.22,.9,.28,1)}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-seg-task{background:color-mix(in srgb,var(--tone,var(--d-accent)) 55%,currentColor)}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-seg-rest{background:repeating-linear-gradient(135deg,color-mix(in srgb,currentColor 40%,transparent) 0 3px,transparent 3px 6px)}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-ticks{display:flex;justify-content:space-between;margin-top:4px;font-size:11px;font-weight:700;opacity:.85;font-variant-numeric:tabular-nums}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-warn{margin:8px 0 0;padding:6px 10px;border-radius:10px;background:color-mix(in srgb,currentColor 18%,transparent);font-size:12.5px;font-weight:700}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-warn[hidden]{display:none}
+/* Kutular */
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-box{display:grid;gap:8px;padding:12px;border:1px solid var(--d-line);border-radius:18px;background:var(--d-surface)}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-label{display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--d-muted)}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-label em{font-style:normal;text-transform:none;letter-spacing:0;font-weight:700;color:var(--d-accent)}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-start{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-time-field{display:flex;align-items:center;gap:6px;padding:4px 10px;border-radius:14px;background:var(--d-soft);color:var(--d-accent)}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-time-field svg{width:20px;height:20px;flex:none}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-time-field input{width:118px;min-height:0;padding:2px 0;border:0;border-radius:0;background:transparent!important;box-shadow:none!important;color:var(--d-ink);font-size:26px;font-weight:800;font-variant-numeric:tabular-nums}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-chips{display:flex;flex-wrap:wrap;gap:6px}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-chips button{min-height:36px;padding:0 11px;border:0;border-radius:11px;background:var(--d-soft);color:var(--d-accent);font-size:13px;font-weight:750;transition:background .25s,color .25s,transform .2s}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-chips button[aria-pressed="true"]{background:var(--d-hero,var(--d-accent));color:var(--d-hero-ink,var(--d-on-accent))}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:4px;padding:4px;border-radius:14px;background:var(--d-soft)}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-seg button{min-height:40px;padding:0;border:0;border-radius:11px;background:transparent;color:var(--d-muted);font-size:14px;font-weight:800;transition:background .3s,color .3s,transform .2s}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-seg button[aria-pressed="true"]{background:var(--d-hero,var(--d-accent));color:var(--d-hero-ink,var(--d-on-accent));box-shadow:0 10px 18px -10px color-mix(in srgb,var(--d-accent) 90%,transparent)}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-seg-sm button{min-height:32px;font-size:12px}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-seg-sm button[aria-pressed="true"]{background:var(--d-surface);color:var(--d-accent);box-shadow:0 4px 10px -6px color-mix(in srgb,var(--d-accent) 60%,transparent)}
+/* Satırlar */
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-list{display:grid;gap:8px;margin:0;padding:0;list-style:none}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-row{position:relative;display:grid;grid-template-columns:28px 26px minmax(0,1fr) auto;grid-template-areas:"grip inc name step" "grip inc name quick" "grip inc mid mid";align-items:center;column-gap:8px;margin:0;padding:8px 10px 8px 4px;border:1px solid var(--d-line);border-left:4px solid var(--tone,var(--d-accent));border-radius:15px;background:var(--d-surface);transition:opacity .25s,transform .2s,box-shadow .2s}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-row[data-loose]{grid-template-areas:"grip inc name name" "grip inc quick quick" "grip inc mid mid"}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-row[data-off]{opacity:.6;border-left-style:dashed}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-row[data-lift]{z-index:2;transform:scale(1.02) rotate(-.5deg);box-shadow:0 18px 30px -16px color-mix(in srgb,var(--d-accent) 60%,transparent)}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-row[data-done] .rb-etut-name b{text-decoration:line-through;color:var(--d-muted)}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-grip{grid-area:grip;display:grid;place-items:center;width:28px;height:44px;min-height:0;padding:0;border:0;border-radius:10px;background:transparent;color:var(--d-muted);cursor:grab;touch-action:none}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-row[data-lift] .rb-etut-grip{cursor:grabbing;color:var(--d-accent)}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-grip svg{width:18px;height:18px}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-inc{grid-area:inc;display:grid;place-items:center;width:26px;height:26px;min-height:0;padding:0;border:2px solid var(--tone,var(--d-accent));border-radius:8px;background:var(--tone,var(--d-accent));color:var(--d-on-accent,var(--d-surface))}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-inc[aria-pressed="false"]{border-color:var(--d-line);background:var(--d-surface)}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-inc svg{width:15px;height:15px;stroke-width:3}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-name{grid-area:name;min-width:0}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-name small{display:block;font-size:11px;font-weight:700;color:var(--d-muted)}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-name b{display:block;overflow:hidden;font-size:14.5px;font-weight:800;line-height:1.25;text-overflow:ellipsis;white-space:nowrap}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-name em{display:block;font-style:normal;font-size:12px;font-weight:800;color:var(--tone,var(--d-accent));font-variant-numeric:tabular-nums}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-row:is([data-off],[data-loose]) .rb-etut-name em{color:var(--d-muted);font-weight:650}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-step{grid-area:step;display:flex;align-items:center;border-radius:12px;background:var(--d-soft)}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-step[hidden],:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-quick[hidden],:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-midbox[hidden]{display:none}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-step>button{display:grid;place-items:center;width:32px;height:38px;min-height:0;padding:0;border:0;border-radius:12px;background:transparent;color:var(--d-accent);font-size:19px;font-weight:800}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-step-value{display:flex;align-items:baseline;gap:1px}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-step-value input{width:38px;min-height:0;height:auto;padding:0;border:0;border-radius:0;background:transparent!important;box-shadow:none!important;color:var(--d-ink);font-size:15px;font-weight:800;text-align:right;font-variant-numeric:tabular-nums;-moz-appearance:textfield;appearance:textfield}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-step-value input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-step-value small{font-size:10.5px;font-weight:700;color:var(--d-muted)}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-quick{grid-area:quick;display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-quick button{min-height:30px;padding:0 9px;border:0;border-radius:9px;background:var(--d-soft);color:var(--d-accent);font-size:12px;font-weight:800}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-midbox{grid-area:mid;display:grid;gap:6px;margin-top:4px}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-midtoggle{justify-self:start;display:inline-flex;align-items:center;gap:5px;min-height:28px;padding:0 2px;border:0;background:transparent;color:var(--d-accent);font-size:12px;font-weight:750}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-midtoggle svg{width:15px;height:15px}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-midbox:not([data-open])>.rb-etut-seg{display:none}
+/* Alt çubuk */
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-foot{position:sticky;bottom:0;z-index:3;display:flex;gap:8px;margin-top:auto;padding:12px 0 calc(14px + env(safe-area-inset-bottom));background:linear-gradient(transparent,var(--d-bg,var(--d-surface)) 30%)}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-remove{min-height:50px;padding:0 16px;border:1px solid var(--d-line);border-radius:15px;background:var(--d-surface);color:var(--d-muted);font-size:14px;font-weight:750}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-remove[hidden]{display:none}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-submit{flex:1;min-height:50px;border:0;border-radius:15px;background:var(--d-hero,var(--d-accent));color:var(--d-hero-ink,var(--d-on-accent));font-size:15.5px;font-weight:800;box-shadow:0 14px 24px -14px color-mix(in srgb,var(--d-accent) 95%,transparent)}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-submit:disabled{opacity:.5;box-shadow:none}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-loose{margin:0;padding:10px;border:1px dashed var(--d-line);border-radius:14px;color:var(--d-muted);font-size:13px}
+/* Etüt sekmesi: özet satırı ve molalar */
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-bar{display:flex;align-items:center;gap:10px;margin:0 0 12px;padding:10px 10px 10px 14px;border:1px solid var(--d-line);border-radius:16px;background:var(--d-surface)}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-bar[hidden]{display:none}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-bar p{flex:1;min-width:0;margin:0;color:var(--d-muted);font-size:13px;font-weight:650}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-bar p b{display:block;color:var(--d-ink);font-size:14px;font-weight:800;font-variant-numeric:tabular-nums}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-open{flex:none;min-height:42px;padding:0 14px;border:0;border-radius:12px;background:var(--d-hero,var(--d-accent));color:var(--d-hero-ink,var(--d-on-accent));font:inherit;font-size:13.5px;font-weight:800}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-bar[data-active] .rb-etut-open{background:var(--d-soft);color:var(--d-accent)}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v103-free.rb-etut-break{margin-left:0;border-style:solid;border-color:transparent;background:repeating-linear-gradient(135deg,var(--d-soft) 0 8px,transparent 8px 16px);color:var(--d-accent)}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-timeline:empty{display:none}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-panel[hidden]{display:none}
+@keyframes rb-etut-up{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:none}}
+@keyframes rb-etut-fade{from{opacity:0}to{opacity:1}}
+@keyframes rb-etut-rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes rb-etut-grow{from{transform:scaleX(0)}to{transform:none}}
+@keyframes rb-etut-flash{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--tone,var(--d-accent)) 55%,transparent)}100%{box-shadow:0 0 0 10px transparent}}
+@keyframes rb-etut-bump{0%{transform:scale(1)}40%{transform:scale(1.08)}100%{transform:scale(1)}}
+@media(prefers-reduced-motion:no-preference){
+  :root[data-visual-system]:not(#v) #mainWrap #program .rb-etut:not([hidden]){animation:rb-etut-fade .25s ease both}
+  :root[data-visual-system]:not(#v) #mainWrap #program .rb-etut:not([hidden]) .rb-etut-card{animation:rb-etut-up .45s cubic-bezier(.22,.9,.28,1) both}
+  :root[data-visual-system]:not(#v) #mainWrap #program .rb-etut:not([hidden]) .rb-etut-row{animation:rb-etut-rise .4s cubic-bezier(.22,.9,.28,1) both;animation-delay:calc(var(--i,0)*45ms + .12s)}
+  :root[data-visual-system]:not(#v) #mainWrap #program .rb-etut:not([hidden]) .rb-etut-daybar i{animation:rb-etut-grow .5s cubic-bezier(.22,.9,.28,1) both;animation-delay:calc(var(--i,0)*30ms + .2s)}
+  :root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-row[data-moved]{animation:rb-etut-flash .6s ease-out both!important}
+  :root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-big b.rb-etut-bump{animation:rb-etut-bump .35s ease}
+  :root[data-visual-system]:not(#v) #mainWrap #program .rb-etut :is(.rb-etut-seg button,.rb-etut-chips button,.rb-etut-step>button,.rb-etut-quick button,.rb-etut-inc,.rb-etut-submit):active{transform:scale(.94)}
+}

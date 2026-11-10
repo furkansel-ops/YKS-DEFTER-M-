@@ -22,11 +22,11 @@ function harness(){
   for(const name of ["keyOf","parseKey","addDaysKey","dowOf","mondayOf","thisWeek","clone"]){
     const definition=app.match(new RegExp(`^function ${name}\\([^\\n]+$`,"m"));assert.ok(definition,name);vm.runInContext(definition[0],context);
   }
-  for(const name of ["validDateKey","blankWeek","normWeek","getWeek","programTaskCompleted","programSetCellDone","toggleCellDone","programDayTaskIds","programSetDayOrder","programUpdateTask","programDeleteTask","shiftWeek","addToDay","addToDays"]){
+  for(const name of ["validDateKey","blankWeek","normWeek","getWeek","programTaskCompleted","programSetCellDone","toggleCellDone","programDayTaskIds","programSetDayOrder","programSetEtut","programUpdateTask","programDeleteTask","shiftWeek","addToDay","addToDays"]){
     const definition=app.match(new RegExp(`function ${name}\\([^\\n]*\\)\\{[\\s\\S]*?\\r?\\n}`));assert.ok(definition,name);vm.runInContext(definition[0],context);
   }
   const controller=api.createRefinedProgramController({readState:()=>state,visibleWeek:()=>context.keyOf(context.curWeek),shiftWeek:context.shiftWeek,thisWeek:context.thisWeek,
-    setProgTab:tab=>calls.push(["setProgTab",tab]),toggleCellDone:context.toggleCellDone,addToDay:context.addToDay,addToDays:context.addToDays,setDayOrder:context.programSetDayOrder,
+    setProgTab:tab=>calls.push(["setProgTab",tab]),toggleCellDone:context.toggleCellDone,addToDay:context.addToDay,addToDays:context.addToDays,setDayOrder:context.programSetDayOrder,setEtut:context.programSetEtut,
     updateTask:context.programUpdateTask,deleteTask:context.programDeleteTask},()=>fixed);
   return {state,calls,controller,context};
 }
@@ -38,6 +38,18 @@ test("daily cards read only real cells, preserve their identity and never mutate
   assert.deepEqual(tasks,[{id:"r-0-4",block:"r",row:0,day:4,text:"Paragraf · 20 soru",label:"Sabah rutini",done:true},{id:"s-1-4",block:"s",row:1,day:4,text:"AYT Biyoloji\nHücre",label:"AYT Biyoloji",done:false}]);
   assert.equal(JSON.stringify(h.state),before);assert.equal(h.controller.snapshot().date,"2026-09-25");
   assert.deepEqual(plain(h.controller.snapshot().days[4]),{label:"Cum",date:"2026-09-25",count:2,done:1});
+});
+
+test("etüt ayarı seçili güne yazılır, doğrulanır, kaldırılır; kayıt olmazsa geri alınır",()=>{
+  const h=harness(),data=h.state.weeks["2026-09-21"];data.s[0][4]="Matematik · 120 dk";data.s[1][4]="Paragraf · 60 dk";
+  assert.equal(h.controller.setEtut({start:600,gap:15,mid:{"s-0-4":10,"bad":3,"s-1-4":99},skip:["s-1-4","s-1-4","x"]}),true);
+  assert.deepEqual(plain(data.mv["etut-4"]),{start:600,gap:15,mid:{"s-0-4":10},skip:["s-1-4"]});
+  assert.equal(h.controller.setEtut({start:1500,gap:15}),false);assert.equal(h.controller.setEtut({start:600,gap:90}),false);
+  assert.deepEqual(plain(data.mv["etut-4"]),{start:600,gap:15,mid:{"s-0-4":10},skip:["s-1-4"]},"geçersiz ayar eskisini bozmaz");
+  h.context.save=()=>false;assert.equal(h.controller.setEtut(null),false);assert.ok(data.mv["etut-4"],"kayıt olmazsa silinmez");
+  h.context.save=()=>true;assert.equal(h.controller.setEtut(null),true);assert.equal("etut-4" in data.mv,false);
+  // Etüt sırası mevcut gün sırasıdır; reorder tüm görevleri ister.
+  assert.equal(h.controller.reorder(["s-1-4","s-0-4"]),true);assert.deepEqual(plain(data.mv["order-4"]),["s-1-4","s-0-4"]);
 });
 
 test("day and week selection use the same legacy week hooks and preserve every task",()=>{

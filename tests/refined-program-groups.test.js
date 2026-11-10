@@ -85,6 +85,7 @@ test("daily groups are a derived presentation and do not modify original week da
 });
 
 test("v103 zaman çizelgesi kartları mevcut görev eylemlerini kullanır; senkrona yanlış yazmaz",()=>{
+  // Günlük Plan saati yalnız satır etiketinden (etütler ayrı "Etüt" sekmesinde).
   assert.match(source,/timelineOrder\(state\.tasks\.map\(task=>\(\{task,time:parseTimeRange\(rowTimeLabel\(rawState,task\)\)\}\)\)\)/);
   assert.match(source,/slot\.append\(card\);list\.append\(slot\)/);
   assert.match(source,/card\.append\(check,details\);/);

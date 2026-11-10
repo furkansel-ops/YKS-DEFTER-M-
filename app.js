@@ -1485,6 +1485,30 @@ function programSetDayOrder(wk,day,ids){
   if(el("home")?.classList.contains("active"))renderTodayPlan();
   return true;
 }
+/* Etüt oluştur: güne özel başlangıç/mola/ara mola (dakika). null kaldırır. Biçim src/ui/program-etut.ts ile aynı. */
+function programSetEtut(wk,day,plan){
+  if(!validDateKey(wk)||!Number.isInteger(day)||day<0||day>6)return false;
+  const w=getWeek(wk,false);if(!w)return false;
+  let next=null;
+  if(plan!==null){
+    const start=Number(plan?.start),gap=Number(plan?.gap),mid={};
+    if(!Number.isInteger(start)||start<0||start>1439||!Number.isInteger(gap)||gap<0||gap>60)return false;
+    Object.entries(plan?.mid&&typeof plan.mid==="object"?plan.mid:{}).forEach(([id,v])=>{const n=Number(v);if(/^[rs]-\d+-[0-6]$/.test(id)&&Number.isInteger(n)&&n>0&&n<=30)mid[id]=n;});
+    // skip: o gün etüde katılmayan görevler (metin ve süre silinmez).
+    const skip=[...new Set((Array.isArray(plan?.skip)?plan.skip:[]).filter(id=>typeof id==="string"&&/^[rs]-\d+-[0-6]$/.test(id)))].slice(0,60);
+    next={start,gap,mid,skip};
+  }
+  const key="etut-"+day,had=Object.prototype.hasOwnProperty.call(w.mv,key),previous=w.mv[key];
+  if(next)w.mv[key]=next;else delete w.mv[key];
+  let saved=false;try{saved=save()===true;}catch(e){}
+  if(!saved){
+    if(had)w.mv[key]=previous;else delete w.mv[key];
+    if(typeof perfInvalidateState==="function")perfInvalidateState();
+    return false;
+  }
+  if(el("program")?.classList.contains("active"))renderPlan();
+  return true;
+}
 function programUpdateTask(wk,id,text){
   if(!validDateKey(wk)||typeof id!=="string"||!/^[rs]-\d+-[0-6]$/.test(id))return false;
   const value=String(text||"").trim();if(!value||value.length>600)return false;
