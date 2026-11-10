@@ -1,4 +1,5 @@
 import "./progress-hub-v74.css";
+import "./progress-v108.css";
 import {analyzeExams} from "../domain/exam-analysis-service.ts";
 import {errorRows,openExamTab} from "./exam-hub-v73";
 
@@ -18,7 +19,8 @@ type TopicState="done"|"review"|"active"|"missing";
 const L=window as unknown as LegacyWindow;
 const PERIOD_KEY="yks_progress_period_v74";
 const PERIOD_LABEL:Record<Period,string>={gun:"Bugün",hafta:"Bu hafta",ay:"Bu ay"};
-const VS_TEXT:Record<Period,string>={gun:"Dünle karşılaştırılıyor",hafta:"Geçen haftanın aynı günleriyle karşılaştırılıyor",ay:"Geçen ayın aynı günleriyle karşılaştırılıyor"};
+const VS_TEXT:Record<Period,string>={gun:"düne göre",hafta:"geçen haftanın aynı günlerine göre",ay:"geçen ayın aynı günlerine göre"};
+const PREV_LABEL:Record<Period,string>={gun:"dün",hafta:"geçen hafta",ay:"geçen ay"};
 const DAY_SHORT=["Paz","Pzt","Sal","Çar","Per","Cum","Cmt"];
 /* Ders adı → deneme satırı (Temel Matematik, analiz servisinde "Matematik" olur). */
 const TYT_ROW:Record<string,string>={"Türkçe":"Türkçe","Matematik":"Matematik","Geometri":"Matematik","Fizik":"Fen Bilimleri","Kimya":"Fen Bilimleri","Biyoloji":"Fen Bilimleri","Tarih":"Sosyal Bilimler","Coğrafya":"Sosyal Bilimler","Felsefe":"Sosyal Bilimler","Din Kültürü":"Sosyal Bilimler"};
@@ -147,18 +149,28 @@ function arrangeLegacy():void{
 }
 
 /* ---------- çizim ---------- */
-function tiles(s:Loose,cur:Range,prev:Range):string{
-  const tile=(label:string,value:string,d:{text:string;tone:string})=>`<div class="ph-tile"><small>${label}</small><b>${value}</b><em class="${d.tone}">${esc(d.text)}</em></div>`;
+function ic(name:string):string{return `<i class="ph-ic" data-ic="${name}" aria-hidden="true"></i>`;}
+/* Ders simgesi ve rengi Konular'daki takımdan (app.js v105SubjectIcon, YKSTaskText.subjectTone) gelir. */
+function subjectIcon(name:string):string{return String(call("v105SubjectIcon",name)||"kitap");}
+function subjectTone(name:string):string{try{return String(L.YKSTaskText?.subjectTone?.(name)||"other");}catch{return "other";}}
+/* Haftanın yedi günü: çalışılan gün dolu, bugün halkalı, gelecek günler boş. */
+function weekDots(s:Loose,today=todayKey()):string{
+  const mon=mondayOf(today);
+  return `<span class="ph-dots" aria-hidden="true">${Array.from({length:7},(_,i)=>{const k=add(mon,i),on=k<=today&&(minutesOn(s,k)>0||questionsOn(s,k)>0);return `<i class="${[on?"on":"",k===today?"now":""].filter(Boolean).join(" ")}"></i>`;}).join("")}</span>`;
+}
+/* v108 özet kartı: Odak ve Soru büyük; altında aktif gün/seri (bugünde tekrar) ve pekişen konu. */
+function hero(s:Loose,cur:Range,prev:Range):string{
+  const big=(label:string,value:string,d:{text:string;tone:string})=>`<div><small>${label}</small><b>${value}</b><em>${esc(d.text)}</em></div>`;
   const m=sum(s,cur,minutesOn),pm=sum(s,prev,minutesOn),q=sum(s,cur,questionsOn),pq=sum(s,prev,questionsOn),st=settledTopics(s,cur),pst=settledTopics(s,prev);
-  let html=tile("Odak",hm(m),deltaText(m,pm,true))+tile("Soru",String(q),deltaText(q,pq));
+  let foot:string;
   if(period==="gun"){
     const done=reviewsDoneOn(s,cur.to),due=dueReviews().length;
-    html+=`<div class="ph-tile"><small>Tekrar</small><b>${done} / ${done+due}</b><em class="${due?"down":"up"}">${due?due+" bekliyor":"hepsi tamam"}</em></div>`;
+    foot=`${ic("done")}Tekrar ${done} / ${done+due} · ${due?due+" bekliyor":"hepsi tamam"}`;
   }else{
     const a=activeDays(s,cur),total=daysIn(cur).length,sk=streak(s);
-    html+=`<div class="ph-tile"><small>Aktif gün</small><b>${a} / ${total}</b><em class="${sk?"up":""}">${sk?sk+" günlük seri":"seri yok"}</em></div>`;
+    foot=`${period==="hafta"?weekDots(s):""}${a} / ${total} aktif gün · ${sk?sk+" günlük seri":"seri yok"}`;
   }
-  return html+tile("Pekişen konu",String(st),deltaText(st,pst));
+  return `<div class="ph-hero"><div class="ph-two">${big("Odak",hm(m),deltaText(m,pm,true))}${big("Soru",String(q),deltaText(q,pq))}</div><hr><div class="ph-days">${foot}</div><div class="ph-pek">${ic("star")}${st} konu pekişti · ${PREV_LABEL[period]} ${pst}</div></div>`;
 }
 function chart(s:Loose):string{
   const today=todayKey(),fn=metric==="min"?minutesOn:questionsOn,fmt=(v:number)=>metric==="min"?short(v):String(Math.round(v));
@@ -176,25 +188,31 @@ function chart(s:Loose):string{
   }
   const max=Math.max(1,...bars.flatMap(b=>[b.cur,b.prev]));
   const label=period==="ay"?["Bu ay","Geçen ay"]:period==="hafta"?["Bu hafta","Geçen hafta"]:["Son 7 gün","Bir hafta önce"];
-  return `<div class="card ph-chart"><div class="ph-head"><b>${period==="ay"?"Haftalık çalışma":"Günlük çalışma"}</b><span class="ph-mini" role="group" aria-label="Grafik ölçüsü"><button type="button" data-metric="min" aria-pressed="${metric==="min"}">Odak</button><button type="button" data-metric="q" aria-pressed="${metric==="q"}">Soru</button></span></div>
-    <div class="ph-bars" style="grid-template-columns:repeat(${bars.length},minmax(0,1fr))" role="img" aria-label="${esc(label[0]+": "+bars.map(b=>b.label+" "+fmt(b.cur)).join(", "))}">${bars.map(b=>`<div class="ph-bar${b.now?" is-now":""}${b.future?" is-future":""}"><s style="height:${b.prev/max*100}%"></s><i style="height:${b.future?0:Math.max(b.cur?3:0,b.cur/max*100)}%"></i><u style="bottom:calc(${b.future?0:b.cur/max*100}% + 3px)">${b.future||!b.cur?"":fmt(b.cur)}</u></div>`).join("")}</div>
-    <div class="ph-labels" style="grid-template-columns:repeat(${bars.length},minmax(0,1fr))">${bars.map(b=>`<span>${b.label}</span>`).join("")}</div>
+  const head=`<div class="card ph-chart"><div class="ph-head"><b>${period==="ay"?"Haftalık çalışma":"Günlük çalışma"}</b><span class="ph-mini" role="group" aria-label="Grafik ölçüsü"><button type="button" data-metric="min" aria-pressed="${metric==="min"}">Odak</button><button type="button" data-metric="q" aria-pressed="${metric==="q"}">Soru</button></span></div>`;
+  // İki dönemde de kayıt yoksa boş çubuk alanı yerine kısa bir yazı çıkar.
+  if(!bars.some(b=>b.cur||b.prev))return head+`<p class="ph-empty">Bu dönemde ${metric==="min"?"odak":"soru"} kaydı yok. Çalıştıkça çubuklar burada dolar.</p></div>`;
+  return head+`
+    <div class="ph-bars"style="grid-template-columns:repeat(${bars.length},minmax(0,1fr))" role="img" aria-label="${esc(label[0]+": "+bars.map(b=>b.label+" "+fmt(b.cur)).join(", "))}">${bars.map(b=>`<div class="ph-bar${b.now?" is-now":""}${b.future?" is-future":""}"><s style="height:${b.prev/max*100}%"></s><i style="height:${b.future?0:Math.max(b.cur?3:0,b.cur/max*100)}%"></i><u style="bottom:calc(${b.future?0:b.cur/max*100}% + 3px)">${b.future||!b.cur?"":fmt(b.cur)}</u></div>`).join("")}</div>
+    <div class="ph-labels" style="grid-template-columns:repeat(${bars.length},minmax(0,1fr))">${bars.map(b=>`<span${b.now?' class="is-now"':""}>${b.label}</span>`).join("")}</div>
     <div class="ph-legend"><span><i class="cur"></i>${label[0]}</span><span><i class="prev"></i>${label[1]}</span></div></div>`;
 }
 function subjectsCard(rows:SubjectRow[]):string{
   const active=rows.filter(r=>r.minutes||r.questions||r.openWrong);
   const list=allSubjects?rows:(active.length?active:rows.filter(r=>r.tyt!=null||r.ayt!=null)).slice(0,8),hidden=rows.length-list.length;
-  return `<div class="card ph-subjects"><div class="ph-head"><b>Dersler</b><small>${allSubjects?"tüm dersler":"bu dönem çalıştıkların"} · dokun: konular</small></div>${list.map(r=>{
-    const pct=r.total?Math.round(r.done/r.total*100):0,chips=[r.questions?`<span>${r.questions} soru</span>`:"",`<span>Konu ${r.done}/${r.total}</span>`,r.tyt!=null?`<span class="x">TYT ${esc(r.tytLabel)} %${r.tyt}</span>`:"",r.ayt!=null?`<span class="x">AYT %${r.ayt}</span>`:"",r.openWrong?`<span class="w">${r.openWrong} açık yanlış</span>`:""].join("");
-    return `<button type="button" class="ph-subj" data-subject="${esc(r.name)}"><span class="ph-subj-top"><b>${esc(r.name)}</b><small>${r.minutes?hm(r.minutes):"—"}</small></span><span class="ph-prog" aria-label="Konuların %${pct}'i tamamlandı"><i style="width:${pct}%"></i></span><span class="ph-chips">${chips}</span></button>`;
+  return `<div class="card ph-subjects"><div class="ph-head"><b>Dersler</b><small>${allSubjects?"tüm dersler":"bu dönem çalıştıkların"}</small></div>${list.map(r=>{
+    const pct=r.total?Math.round(r.done/r.total*100):0,meta=[r.questions?`${r.questions} soru`:"",`Konu ${r.done}/${r.total}`,r.tyt!=null?`TYT ${esc(r.tytLabel)} %${r.tyt}`:"",r.ayt!=null?`AYT %${r.ayt}`:"",r.openWrong?`<b>${r.openWrong} açık yanlış</b>`:""].filter(Boolean).join(" · ");
+    return `<button type="button" class="ph-subj" data-subject="${esc(r.name)}" data-tone="${esc(subjectTone(r.name))}"><i class="ph-tile" data-v105-ic="${esc(subjectIcon(r.name))}" aria-hidden="true"></i><span class="ph-subj-body"><span class="ph-subj-top"><b>${esc(r.name)}</b><small>${r.minutes?hm(r.minutes):"—"}</small></span><span class="ph-prog" aria-label="Konuların %${pct}'i tamamlandı"><i style="width:${pct}%"></i></span><small class="ph-meta">${meta}</small></span></button>`;
   }).join("")||'<p class="hint">Ders çalıştıkça burada görünür.</p>'}${hidden>0||allSubjects?`<button type="button" class="ph-more" data-all-subjects>${allSubjects?"Yalnız çalıştıklarım":`Tüm dersler (${hidden} daha)`}</button>`:""}</div>`;
 }
 function topicsCard(s:Loose):string{
   const due=dueReviews(),dueKeys=new Set(due.map(x=>String(x.key))),wrongSet=openWrongSet(),counts={done:0,review:0,active:0,missing:0};
   for(const c of trackSubjects(s))for(const topic of c.topics)counts[topicState(s,`${c.exam}|${c.name}|${topic}`,dueKeys,wrongSet)]++;
-  const rows=due.slice(0,3).map(x=>{const late=num(x.late),label=`${num(x.gap)}. gün tekrarı · ${late>0?late+" gün gecikti":"bugün"}`;return `<div class="ph-rev"><div><b>${esc(String(x.subj||"")+" · "+String(x.topic||""))}</b><small class="${late>0?"late":""}">${esc(label)}</small></div><button type="button" class="btn ghost tiny" data-review="${esc(x.key)}" data-gi="${esc(x.gi)}">Yaptım</button></div>`;}).join("");
+  const rows=due.slice(0,3).map(x=>{const late=num(x.late),label=`${num(x.gap)}. gün tekrarı · ${late>0?late+" gün gecikti":"bugün"}`;return `<div class="ph-rev"><div><b>${esc(String(x.subj||"")+" · "+String(x.topic||""))}</b><small class="${late>0?"late":""}">${esc(label)}</small></div><button type="button" class="ph-did" data-review="${esc(x.key)}" data-gi="${esc(x.gi)}">${ic("done")}Yaptım</button></div>`;}).join("");
+  // Dört durum tek çubukta; altındaki sayılar aynı sırada.
+  const STATES:[TopicState,string][]=[["done","Bitti"],["review","Tekrar"],["active","Sürüyor"],["missing","Eksik"]],total=Math.max(1,counts.done+counts.review+counts.active+counts.missing);
   return `<div class="card ph-topics"><div class="ph-head"><b>Konular</b><button type="button" class="ph-link" data-go="topics">Tümü ›</button></div>
-    <div class="ph-states"><span class="s-done">Tamamlandı<b>${counts.done}</b></span><span class="s-review">Tekrar gerekli<b>${counts.review}</b></span><span>Devam ediyor<b>${counts.active}</b></span><span>Eksik<b>${counts.missing}</b></span></div>
+    <div class="ph-stack" role="img" aria-label="${STATES.map(([k,l])=>`${l} ${counts[k]}`).join(", ")}">${STATES.map(([k])=>`<i class="s-${k}" style="width:${counts[k]/total*100}%"></i>`).join("")}</div>
+    <div class="ph-states">${STATES.map(([k,l])=>`<span class="s-${k}"><i></i>${l}<b>${counts[k]}</b></span>`).join("")}</div>
     ${rows?`<div class="ph-revs">${rows}${due.length>3?`<p class="hint">${due.length-3} tekrar daha bekliyor.</p>`:""}</div>`:'<p class="hint">Bugün tekrarı gelen konu yok.</p>'}</div>`;
 }
 function attentionCard(s:Loose,rows:SubjectRow[]):string{
@@ -209,7 +227,7 @@ function attentionCard(s:Loose,rows:SubjectRow[]):string{
   if(r.openWrong)parts.push(`${r.openWrong} açık yanlış${r.topWrong?` (en çok ${r.topWrong})`:""}`);
   let time=minutesNow?`Bu hafta ${hm(minutesNow)} çalıştın`:"Bu hafta bu derse çalışma kaydı yok";
   if(minutesNow&&minutesPrev&&minutesNow!==minutesPrev)time+=`; geçen haftadan ${hm(Math.abs(minutesNow-minutesPrev))} ${minutesNow<minutesPrev?"az":"fazla"}`;
-  return `<div class="card ph-alert-card"><div class="ph-head"><b>Dikkat</b></div><div class="ph-alert"><b>${esc(r.name)}</b><p>${esc(parts.join(", "))}. ${esc(time)}.</p>
+  return `<div class="card ph-alert-card"><i class="ph-alert-ic" aria-hidden="true"></i><div class="ph-alert"><small class="ph-eye">Dikkat</small><b>${esc(r.name)}</b><p>${esc(parts.join(", "))}. ${esc(time)}.</p>
     <div class="ph-alert-btns"><button type="button" class="btn green tiny" data-plan="${esc((r.name+" "+(r.topWrong||"")).trim()+" tekrar")}">Programa ekle</button><button type="button" class="btn ghost tiny" data-errors="1">Hatalara git</button></div></div></div>`;
 }
 function reportsCard():string{
@@ -222,16 +240,21 @@ function render():void{
   // Rapor kartları taşındıysa yeniden çizimde kaybolmasın diye önce geri alınır.
   const parked=document.createDocumentFragment();for(const [,,id] of REPORTS){const card=byId(id);if(card&&hub.contains(card))parked.append(card);}
   const rows=subjectRows(s,cur);
-  hub.innerHTML=`<header class="ph-title"><h1>İlerleme</h1><p>Ne kadar çalıştın, nerede ilerledin, neye odaklanmalısın.</p></header>
+  hub.innerHTML=`<header class="ph-title"><h1>İlerleme</h1><p>${PERIOD_LABEL[period]} · ${VS_TEXT[period]}</p></header>
     <div class="ph-period" role="tablist" aria-label="Dönem">${(Object.keys(PERIOD_LABEL) as Period[]).map(p=>`<button type="button" role="tab" data-period="${p}" aria-selected="${period===p}">${PERIOD_LABEL[p]}</button>`).join("")}</div>
-    <p class="ph-vs">${VS_TEXT[period]}</p>
-    <div class="ph-tiles">${tiles(s,cur,prev)}</div>
+    ${hero(s,cur,prev)}
     ${chart(s)}${subjectsCard(rows)}${topicsCard(s)}${attentionCard(s,rows)}
-    <button type="button" class="card ph-exam-link" data-go="deneme"><b>Deneme gelişimi</b><small>Deneme sekmesinde ›</small></button>
+    <button type="button" class="card ph-exam-link" data-go="deneme"><i class="ph-go-ic" aria-hidden="true"></i><span><b>Deneme gelişimi</b><small>Netler ve analiz Deneme sekmesinde</small></span><i class="ph-chev" aria-hidden="true"></i></button>
     ${reportsCard()}`;
   for(const [code,,id] of REPORTS){const card=parked.querySelector<HTMLElement>(`#${id}`)||byId(id),pane=byId(`phReport-${code}`);if(card&&pane)pane.append(card);}
   arrangeLegacy();
   if(openSubject)renderSubjectSheet(openSubject);
+}
+/* Giriş hareketi yalnız ekrana girişte oynar; veri değişip ekran yeniden çizilince tekrarlanmaz. */
+let enterTimer:ReturnType<typeof setTimeout>|undefined;
+function playEnter():void{
+  const root=byId("progress");if(!root)return;root.dataset.phEnter="";
+  clearTimeout(enterTimer);enterTimer=setTimeout(()=>{delete root.dataset.phEnter;},1300);
 }
 function schedule():void{if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;if(byId("progress")?.classList.contains("active")||openSubject)render();});}
 
@@ -281,7 +304,7 @@ function onClick(event:Event):void{
 export function installProgressHubV74():boolean{
   if(installed)return true;if(!ensureSkeleton())return false;installed=true;
   for(const event of ["yks:data-changed","yks:data-primary-ready"])window.addEventListener(event,schedule);
-  const onNav=(event:Event)=>{const d=(event as CustomEvent<{screen?:string;to?:string}>).detail;if((d?.screen??d?.to)==="progress")queueMicrotask(render);};
+  const onNav=(event:Event)=>{const d=(event as CustomEvent<{screen?:string;to?:string}>).detail;if((d?.screen??d?.to)==="progress"){playEnter();queueMicrotask(render);}};
   window.addEventListener("yks:navigation-after",onNav);document.addEventListener("yks:navigation-after",onNav);
   window.addEventListener("yks:screen-render-after",event=>{if((event as CustomEvent<{screen?:string}>).detail?.screen==="progress")schedule();});
   render();document.documentElement.dataset.progressHubV74="ready";

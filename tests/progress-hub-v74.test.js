@@ -25,7 +25,7 @@ function load(S,{errors=[],queue=[]}={}){
   const window={YKSLegacyState:{readState:()=>S,subjects:()=>CURRICULUM},reviewQueue:()=>queue,doReview:(...a)=>calls.push(["doReview",...a]),addToToday:t=>calls.push(["addToToday",t]),toast(){}};
   const context={window,document:{getElementById:()=>null,querySelector:()=>null,querySelectorAll:()=>[],documentElement:{dataset:{},classList:{add(){},remove(){}}}},localStorage:{getItem:()=>null,setItem(){}},console,requestAnimationFrame:fn=>fn(),setTimeout:()=>0,queueMicrotask:fn=>fn(),Date,Math,Number,String,Array,Object,JSON,Map,Set,Intl,Infinity};
   vm.createContext(context);
-  vm.runInContext(`${strip(read("src/domain/exam-analysis-service.ts"))}\nconst errorRows=()=>__errors;const openExamTab=()=>{};\n${strip(source)}\n;globalThis.__t={ranges,streak,subjectRows,topicState,trackSubjects,deltaText,attentionCard,hm,settledTopics,reviewsDoneOn};`,Object.assign(context,{__errors:errors}));
+  vm.runInContext(`${strip(read("src/domain/exam-analysis-service.ts"))}\nconst errorRows=()=>__errors;const openExamTab=()=>{};\n${strip(source)}\n;globalThis.__t={ranges,streak,subjectRows,topicState,trackSubjects,deltaText,attentionCard,hm,settledTopics,reviewsDoneOn,hero,weekDots,chart,subjectsCard,topicsCard};`,Object.assign(context,{__errors:errors}));
   return {t:context.__t,calls};
 }
 const plain=v=>JSON.parse(JSON.stringify(v));
@@ -113,4 +113,55 @@ test("v74 kurulum: eski ekran gizlenir (silinmez), geri düğmesi üstte, raporl
   for(const title of ["Net değişimi","Ders bazlı durum","Haftalık gelişim","Tekrarlayan yanlışlar"])assert.ok(source.includes(`"${title}"`),title);
   assert.doesNotMatch(source,/\.remove\(\)/,"eski bölümler silinmez");
   assert.doesNotMatch(source,/S\.(pomoMin|solved|topics)\s*=|\.st\s*=|localStorage\.setItem\("yks"/,"öğrenci verisine doğrudan yazılmaz");
+});
+
+test("v108 özet kartı: Odak ve Soru büyük, aktif gün ve seri, pekişen konu; hafta noktaları çalışılan günleri doldurur",()=>{
+  const S={pomoMin:{"2026-10-26":60,"2026-10-27":30,"2026-10-19":45},solved:{"2026-10-27":20,"2026-10-28":5,"2026-10-20":10},topics:{a:{st:3,ts:"2026-10-27"},b:{st:3,ts:"2026-10-20"}}};
+  const {t}=load(S),html=t.hero(S,{from:"2026-10-26",to:"2026-10-28"},{from:"2026-10-19",to:"2026-10-21"});
+  assert.match(html,/<div class="ph-two"><div><small>Odak<\/small><b>1 sa 30 dk<\/b><em>▲ 45 dk<\/em><\/div><div><small>Soru<\/small><b>25<\/b><em>▲ 15<\/em><\/div><\/div>/);
+  assert.match(html,/3 \/ 3 aktif gün · seri yok/);assert.match(html,/1 konu pekişti · geçen hafta 1/);
+  assert.doesNotMatch(html,/class="(up|down)"/,"mor kartta fark renkle değil okla anlatılır");
+  const dots=t.weekDots(S,"2026-10-28");
+  assert.equal((dots.match(/<i /g)||[]).length,7);assert.equal((dots.match(/class="on"/g)||[]).length,2,"pazartesi ve salı");
+  assert.equal((dots.match(/class="on now"/g)||[]).length,1,"bugün (yalnız soru çözülmüş) dolu ve halkalı");
+  assert.equal((t.weekDots({pomoMin:{"2026-10-30":40}},"2026-10-28").match(/on/g)||[]).length,0,"gelecek gün dolmaz");
+});
+
+test("v108 grafik: kayıt yokken yazı, varken bugün vurgulu; dersler tek satır yazı ve simgeyle",()=>{
+  const today=new Date(),key=today.getFullYear()+"-"+String(today.getMonth()+1).padStart(2,"0")+"-"+String(today.getDate()).padStart(2,"0");
+  let {t}=load({});
+  const empty=t.chart({});
+  assert.match(empty,/<p class="ph-empty">Bu dönemde odak kaydı yok\. Çalıştıkça çubuklar burada dolar\.<\/p><\/div>$/);assert.doesNotMatch(empty,/ph-bars/);
+  const full=t.chart({pomoMin:{[key]:50}});
+  assert.match(full,/class="ph-bar is-now"/);assert.match(full,/<span class="is-now">/);assert.doesNotMatch(full,/ph-empty/);
+  const S={puanTuru:"SAY",pomoSubj:{"2026-10-27":{"Matematik":60}},solvedTopic:{"2026-10-27":{"TYT|Matematik|Problemler":25}},topics:{"TYT|Matematik|Problemler":{st:3,ts:"2026-10-20"}},
+    denemeler:[1,2].map(i=>({id:i,type:"TYT",name:"D"+i,date:"2026-10-1"+i,totalNet:60,subjectResults:[{name:"Temel Matematik",d:20,y:8,b:12,net:18,cap:40}]}))};
+  ({t}=load(S,{errors:[{subject:"Matematik",topic:"Problemler",n:7,resolved:false}]}));
+  const card=t.subjectsCard(t.subjectRows(S,{from:"2026-10-26",to:"2026-11-01"}));
+  assert.match(card,/<button type="button" class="ph-subj" data-subject="Matematik" data-tone="other"><i class="ph-tile" data-v105-ic="kitap" aria-hidden="true"><\/i>/);
+  assert.match(card,/<small class="ph-meta">25 soru · Konu 1\/4 · TYT Mat %45 · <b>7 açık yanlış<\/b><\/small>/);
+  assert.doesNotMatch(card,/ph-chips|dokun: konular/);
+});
+
+test("v108 konular: dört durum tek çubukta ve aynı sırayla sayılarda; tekrar satırında Yaptım düğmesi",()=>{
+  const S={puanTuru:"SAY",topics:{"TYT|Matematik|Problemler":{st:3},"TYT|Matematik|Fonksiyonlar":{st:1}}};
+  const {t}=load(S,{queue:[{key:"TYT|Türkçe|Paragraf",subj:"Türkçe",topic:"Paragraf",gap:3,late:2,gi:0}]});
+  const html=t.topicsCard(S);
+  assert.match(html,/<div class="ph-stack" role="img" aria-label="Bitti 1, Tekrar 1, Sürüyor 1, Eksik 5"><i class="s-done" style="width:12\.5%"><\/i><i class="s-review" style="width:12\.5%"><\/i><i class="s-active" style="width:12\.5%"><\/i><i class="s-missing" style="width:62\.5%"><\/i><\/div>/);
+  assert.match(html,/<span class="s-missing"><i><\/i>Eksik<b>5<\/b><\/span>/);
+  assert.match(html,/<small class="late">3\. gün tekrarı · 2 gün gecikti<\/small><\/div><button type="button" class="ph-did" data-review="TYT\|Türkçe\|Paragraf" data-gi="0">/);
+});
+
+test("v108 kurulum: görünüm v74 stilinden sonra yüklenir, tema belirteçleriyle boyanır, hareket yalnız girişte",()=>{
+  const v108=read("src/ui/progress-v108.css");
+  assert.match(source,/^import "\.\/progress-hub-v74\.css";\nimport "\.\/progress-v108\.css";\n/);
+  assert.match(source,/<header class="ph-title"><h1>İlerleme<\/h1><p>\$\{PERIOD_LABEL\[period\]\} · \$\{VS_TEXT\[period\]\}<\/p><\/header>/);
+  assert.match(source,/\$\{hero\(s,cur,prev\)\}/);assert.doesNotMatch(source,/ph-tiles|ph-vs/);
+  assert.match(source,/if\(\(d\?\.screen\?\?d\?\.to\)==="progress"\)\{playEnter\(\);queueMicrotask\(render\);\}/);
+  assert.match(v108,/@media\(min-width:1024px\)\{\s*:root\[data-visual-system\] #mainWrap #progress \.ph-hub\{display:grid;grid-template-columns:repeat\(2,minmax\(0,1fr\)\);grid-auto-flow:dense/);
+  assert.deepEqual(v108.replace(/url\("data:[^"]*"\)/g,"").match(/#[0-9a-f]{3,8}\b/gi)||[],[],"ham renk yok");
+  const at=v108.indexOf("@media(prefers-reduced-motion:no-preference)");
+  for(const part of v108.slice(0,at).split("}"))assert.doesNotMatch(part,/[^-]animation:(?!none)/,"hareket izin bloğunun dışında: "+part.slice(0,60));
+  assert.match(v108.slice(at),/#progress\[data-ph-enter\] /);assert.doesNotMatch(v108.slice(at).replace(/#progress\[data-ph-enter\]/g,""),/#progress /,"hareketler yalnız girişte");
+  assert.doesNotMatch(v108,/#phSubjectSheet \./,"ders sayfasına dokunulmaz");
 });

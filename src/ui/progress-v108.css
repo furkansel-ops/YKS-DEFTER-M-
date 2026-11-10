@@ -1,0 +1,111 @@
+/* v108 · İlerleme: tek özet kartı, vurgulu grafik, simgeli dersler, tek çubuklu konular, turuncu dikkat kartı.
+   İşaretlemeyi progress-hub-v74.ts çizer; burası yalnız görünüm ve v74 stilinden sonra yüklenir.
+   #mainWrap ile eski katmanların önüne geçer. Renkler tema belirteçlerinden (--d-*, --tone, --ph-*) gelir:
+   Glassy, Gece ve Canlı aynı kurallarla boyanır. Ders sayfası (#phSubjectSheet) bu dosyanın dışındadır. */
+:root{
+  --i108-done:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E");
+  --i108-star:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linejoin='round'%3E%3Cpath d='M12 4l2.4 5 5.6.8-4 3.9.9 5.5L12 16.6 7.1 19.2l.9-5.5-4-3.9 5.6-.8z'/%3E%3C/svg%3E");
+  --i108-chart:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 4v16h16M8 15l4-5 3 3 4-6'/%3E%3C/svg%3E");
+}
+[data-ic="done"]{--eh-i:var(--i108-done)}[data-ic="star"]{--eh-i:var(--i108-star)}
+:root[data-visual-system] #mainWrap #progress .ph-ic{display:inline-block;flex:none;width:16px;height:16px;background:currentColor;-webkit-mask:var(--eh-i) center/contain no-repeat;mask:var(--eh-i) center/contain no-repeat}
+
+/* ---------- Başlık ve dönem ---------- */
+:root[data-visual-system] #mainWrap #progress .ph-title h1{margin:0}
+:root[data-visual-system] #mainWrap #progress .ph-title p{margin:0 0 12px;color:var(--d-muted);font-size:12.5px;font-weight:650}
+:root[data-visual-system] #mainWrap #progress .ph-period{gap:0;margin:0 0 10px;padding:4px;border:1px solid var(--d-line);border-radius:16px;background:var(--d-surface)}
+:root[data-visual-system] #mainWrap #progress .ph-period button{min-height:38px;border-radius:12px;background:none;box-shadow:none;color:var(--d-muted);font-size:13.5px;font-weight:750;transition:color .3s,background .3s}
+:root[data-visual-system] #mainWrap #progress .ph-period button[aria-selected="true"]{background:var(--d-hero);box-shadow:none;color:var(--d-hero-ink)}
+
+/* ---------- Özet ---------- */
+:root[data-visual-system] #mainWrap #progress .ph-hero{margin:0 0 10px;padding:16px;border-radius:22px;background:var(--d-hero);color:var(--d-hero-ink);box-shadow:0 18px 34px -22px color-mix(in srgb,var(--d-accent) 70%,transparent)}
+:root[data-visual-system] #mainWrap #progress .ph-two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+:root[data-visual-system] #mainWrap #progress .ph-two small{display:block;color:inherit;font-size:12px;font-weight:650;opacity:.84}
+:root[data-visual-system] #mainWrap #progress .ph-two b{display:block;margin:2px 0 4px;color:inherit;font-size:27px;font-weight:800;line-height:1.1;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+:root[data-visual-system] #mainWrap #progress .ph-two em{display:inline-block;padding:2px 8px;border-radius:99px;background:color-mix(in srgb,currentColor 20%,transparent);color:inherit;font-style:normal;font-size:11.5px;font-weight:800}
+:root[data-visual-system] #mainWrap #progress .ph-hero hr{height:1px;margin:14px 0 12px;border:0;background:color-mix(in srgb,currentColor 22%,transparent)}
+:root[data-visual-system] #mainWrap #progress :is(.ph-days,.ph-pek){display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700}
+:root[data-visual-system] #mainWrap #progress .ph-pek{margin-top:8px}
+:root[data-visual-system] #mainWrap #progress .ph-dots{display:flex;gap:5px;margin-right:2px}
+:root[data-visual-system] #mainWrap #progress .ph-dots i{width:14px;height:14px;border:2px solid color-mix(in srgb,currentColor 50%,transparent);border-radius:50%}
+:root[data-visual-system] #mainWrap #progress .ph-dots i.on{border-color:currentColor;background:currentColor}
+:root[data-visual-system] #mainWrap #progress .ph-dots i.now{box-shadow:0 0 0 3px color-mix(in srgb,currentColor 28%,transparent)}
+
+/* ---------- Kartlar ve grafik ---------- */
+:root[data-visual-system] #mainWrap #progress .ph-hub .card{margin:0 0 10px;border-radius:18px}
+:root[data-visual-system] #mainWrap #progress .ph-head b{font-size:15.5px;font-weight:800}
+:root[data-visual-system] #mainWrap #progress .ph-mini{gap:4px;padding:3px;border-radius:11px;background:var(--d-chip)}
+:root[data-visual-system] #mainWrap #progress .ph-mini button{min-height:28px;padding:0 10px;border-radius:8px;background:none;box-shadow:none;color:var(--d-chip-ink)}
+:root[data-visual-system] #mainWrap #progress .ph-mini button[aria-pressed="true"]{background:var(--d-surface);box-shadow:0 1px 3px color-mix(in srgb,var(--d-accent) 22%,transparent)}
+:root[data-visual-system] #mainWrap #progress .ph-bar i{background:color-mix(in srgb,var(--d-accent) 38%,var(--d-surface));transform-origin:bottom}
+:root[data-visual-system] #mainWrap #progress .ph-bar.is-now i{background:var(--d-hero)}
+:root[data-visual-system] #mainWrap #progress .ph-labels .is-now{color:var(--d-chip-ink);font-weight:800}
+:root[data-visual-system] #mainWrap #progress .ph-empty{margin:0;padding:22px 8px;color:var(--d-muted);font-size:13px;text-align:center}
+
+/* ---------- Dersler ---------- */
+:root[data-visual-system] #mainWrap #progress .ph-subj{grid-template-columns:38px minmax(0,1fr);gap:10px;align-items:start;padding:10px 0}
+:root[data-visual-system] #mainWrap #progress .ph-head+.ph-subj{padding-top:0;border-top:0}
+:root[data-visual-system] #mainWrap #progress .ph-tile{display:grid;place-items:center;width:38px;height:38px;border-radius:12px;background:color-mix(in srgb,var(--tone,var(--d-accent)) 14%,var(--d-surface));color:var(--tone,var(--d-accent))}
+:root[data-visual-system] #mainWrap #progress .ph-tile::before{content:"";width:20px;height:20px;background:currentColor;-webkit-mask:var(--v105-ic,var(--i105-kitap)) center/contain no-repeat;mask:var(--v105-ic,var(--i105-kitap)) center/contain no-repeat}
+:root[data-visual-system] #mainWrap #progress .ph-subj-body{display:grid;gap:5px;min-width:0}
+:root[data-visual-system] #mainWrap #progress .ph-subj-top small{color:var(--d-ink);font-variant-numeric:tabular-nums}
+:root[data-visual-system] #mainWrap #progress .ph-prog{height:5px}
+:root[data-visual-system] #mainWrap #progress .ph-prog i{background:var(--tone,var(--d-accent));transform-origin:left}
+:root[data-visual-system] #mainWrap #progress .ph-meta{color:var(--d-muted);font-size:12px}
+:root[data-visual-system] #mainWrap #progress .ph-meta b{color:var(--ph-warn);font-weight:750}
+:root[data-visual-system] #mainWrap #progress .ph-more{min-height:38px;border:0;background:var(--d-chip);color:var(--d-chip-ink);font-size:12.5px}
+
+/* ---------- Konular ---------- */
+:root[data-visual-system] #mainWrap #progress :is(.ph-stack,.ph-states) .s-done{--ph-c:var(--d-ok)}
+:root[data-visual-system] #mainWrap #progress :is(.ph-stack,.ph-states) .s-review{--ph-c:var(--ph-warn)}
+:root[data-visual-system] #mainWrap #progress :is(.ph-stack,.ph-states) .s-active{--ph-c:color-mix(in srgb,var(--d-accent) 55%,var(--d-surface))}
+:root[data-visual-system] #mainWrap #progress :is(.ph-stack,.ph-states) .s-missing{--ph-c:color-mix(in srgb,var(--d-muted) 28%,var(--d-surface))}
+:root[data-visual-system] #mainWrap #progress .ph-stack{display:flex;height:10px;margin:0 0 10px;border-radius:9px;background:var(--d-track);overflow:hidden}
+:root[data-visual-system] #mainWrap #progress .ph-stack i{height:100%;background:var(--ph-c);transform-origin:left}
+:root[data-visual-system] #mainWrap #progress .ph-states span{padding:0;border-radius:0;background:none;color:var(--d-muted);font-size:11px;font-weight:700;text-align:left}
+:root[data-visual-system] #mainWrap #progress .ph-states span i{display:inline-block;width:8px;height:8px;margin-right:5px;border-radius:50%;background:var(--ph-c)}
+:root[data-visual-system] #mainWrap #progress .ph-states b{color:var(--d-ink);font-size:17px;font-weight:800}
+:root[data-visual-system] #mainWrap #progress .ph-rev small.late{color:var(--ph-warn)}
+:root[data-visual-system] #mainWrap #progress .ph-did{display:inline-flex;align-items:center;gap:5px;min-height:34px;margin:0;padding:0 12px;border:0;border-radius:99px;background:var(--d-chip);box-shadow:none;color:var(--d-chip-ink);font:800 12px/1 var(--font);cursor:pointer}
+:root[data-visual-system] #mainWrap #progress .ph-did .ph-ic{width:14px;height:14px}
+
+/* ---------- Dikkat ve Deneme gelişimi ---------- */
+:root[data-visual-system] #mainWrap #progress .ph-alert-card{display:grid;grid-template-columns:38px minmax(0,1fr);gap:10px;border-color:color-mix(in srgb,var(--ph-warn) 30%,transparent);background:var(--ph-warn-soft)}
+:root[data-visual-system] #mainWrap #progress :is(.ph-alert-ic,.ph-go-ic){display:grid;place-items:center;width:38px;height:38px;border-radius:12px}
+:root[data-visual-system] #mainWrap #progress :is(.ph-alert-ic,.ph-go-ic)::before{content:"";width:20px;height:20px;background:currentColor;-webkit-mask:var(--i106-aim) center/contain no-repeat;mask:var(--i106-aim) center/contain no-repeat}
+:root[data-visual-system] #mainWrap #progress .ph-alert-ic{background:color-mix(in srgb,var(--ph-warn) 22%,var(--d-surface));color:var(--ph-warn)}
+:root[data-visual-system] #mainWrap #progress .ph-alert{padding:0;border-radius:0;background:none}
+:root[data-visual-system] #mainWrap #progress .ph-eye{display:block;color:var(--ph-warn);font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+:root[data-visual-system] #mainWrap #progress .ph-alert b{color:var(--d-ink)}
+:root[data-visual-system] #mainWrap #progress .ph-alert-btns .btn{flex:1;min-height:38px}
+:root[data-visual-system] #mainWrap #progress .ph-exam-link{display:grid;grid-template-columns:38px minmax(0,1fr) 18px;gap:10px;align-items:center;padding:12px 14px}
+:root[data-visual-system] #mainWrap #progress .ph-go-ic{background:var(--d-chip);color:var(--d-chip-ink)}
+:root[data-visual-system] #mainWrap #progress .ph-go-ic::before{-webkit-mask-image:var(--i108-chart);mask-image:var(--i108-chart)}
+:root[data-visual-system] #mainWrap #progress .ph-exam-link small{display:block;color:var(--d-muted);font-size:12px;font-weight:650}
+:root[data-visual-system] #mainWrap #progress .ph-chev{width:18px;height:18px;background:var(--d-muted);-webkit-mask:var(--i106-go) center/contain no-repeat;mask:var(--i106-go) center/contain no-repeat}
+
+/* ---------- Raporlar ---------- */
+:root[data-visual-system] #mainWrap #progress .ph-report-chips{flex-wrap:nowrap;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+:root[data-visual-system] #mainWrap #progress .ph-report-chips button{flex:none}
+:root[data-visual-system] #mainWrap #progress .ph-report-chips button[aria-selected="true"]{border-color:transparent;background:var(--d-hero);color:var(--d-hero-ink)}
+
+/* ---------- Geniş ekran: solda özet, grafik ve Dikkat; sağda Dersler ve Konular ---------- */
+@media(min-width:1024px){
+  :root[data-visual-system] #mainWrap #progress .ph-hub{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-flow:dense;column-gap:14px;align-items:start}
+  :root[data-visual-system] #mainWrap #progress .ph-hub>*{grid-column:1/-1;min-width:0}
+  :root[data-visual-system] #mainWrap #progress .ph-hub>:is(.ph-hero,.ph-chart,.ph-alert-card,.ph-exam-link){grid-column:1}
+  :root[data-visual-system] #mainWrap #progress .ph-hub>:is(.ph-subjects,.ph-topics){grid-column:2;grid-row:span 2;align-self:stretch}
+}
+
+/* ---------- Hareket: yalnız izin varken ve ekrana girişte ---------- */
+@keyframes v108-rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes v108-grow-x{from{transform:scaleX(0)}}
+@keyframes v108-grow-y{from{transform:scaleY(0)}}
+@media(prefers-reduced-motion:no-preference){
+  :root[data-visual-system] #mainWrap #progress[data-ph-enter] .ph-hub>*{animation:v108-rise .5s var(--v105-ease) both}
+  :root[data-visual-system] #mainWrap #progress[data-ph-enter] .ph-hub>:nth-child(3){animation-delay:.05s}
+  :root[data-visual-system] #mainWrap #progress[data-ph-enter] .ph-hub>:nth-child(4){animation-delay:.1s}
+  :root[data-visual-system] #mainWrap #progress[data-ph-enter] .ph-hub>:nth-child(n+5){animation-delay:.15s}
+  :root[data-visual-system] #mainWrap #progress[data-ph-enter] :is(.ph-prog i,.ph-stack i){animation:v108-grow-x .9s var(--v105-ease) .3s both}
+  :root[data-visual-system] #mainWrap #progress[data-ph-enter] .ph-bar i{animation:v108-grow-y .7s var(--v105-ease) .25s both}
+}
