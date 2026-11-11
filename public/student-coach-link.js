@@ -65,7 +65,9 @@ async function activeCoachLinks(){
 async function coachProfile(uid){try{const snap=await getDoc(doc(state.db,PROFILE_COLLECTION,uid));return snap.exists()?snap.data():null}catch{return null}}
 async function disconnectCoach(linkId){
   if(!state.db)return;await updateDoc(doc(state.db,LINK_COLLECTION,linkId),{active:false,endedAt:serverTimestamp(),updatedAt:serverTimestamp()});
-  await renderStudentSettings();toast("Koç bağlantısı kesildi");
+  // Eski kod geçerli kalırsa bağlantısı kesilen koç aynı kodla sessizce yeniden bağlanabilir; bu yüzden kod yenilenir.
+  let rotated=true;try{await createOrRotateCode(true)}catch(error){rotated=false;console.error("Koç kodu yenilenemedi",error)}
+  await renderStudentSettings();toast(rotated?"Koç bağlantısı kesildi · kodun yenilendi":"Koç bağlantısı kesildi. Kod yenilenemedi; “Kodu yenile”ye bas.");
 }
 async function copyCode(code,button){
   try{await navigator.clipboard.writeText(formatCode(code));button.textContent="Kopyalandı ✓";setTimeout(()=>button.textContent="Kodu kopyala",1400)}catch{alert("Kod kopyalanamadı. Kodu seçip elle kopyalayabilirsin.")}

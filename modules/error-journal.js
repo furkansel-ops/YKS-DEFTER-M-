@@ -9,7 +9,7 @@
   const $=id=>document.getElementById(id);
   const norm=v=>String(v||"").trim();
   const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-  const jsArg=v=>String(v??"").replace(/\\/g,"\\\\").replace(/'/g,"\\'").replace(/\r?\n/g," ");
+  const jsArg=v=>esc(String(v??"").replace(/\\/g,"\\\\").replace(/'/g,"\\'").replace(/\r?\n/g," "));
   const nowKey=()=>{try{return typeof todayKey==="function"?todayKey():new Date().toISOString().slice(0,10);}catch(e){return new Date().toISOString().slice(0,10);}};
 
   function journal(){

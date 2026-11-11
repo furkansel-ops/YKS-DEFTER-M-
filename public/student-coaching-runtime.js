@@ -5,6 +5,11 @@ const rt={auth:null,db:null,user:null,profile:null,stops:[],shareTimer:null,shar
 const text=(v,n=160)=>String(v??"").trim().slice(0,n);
 const list=v=>Array.isArray(v)?v:[];
 const finite=(v,fallback=0)=>Number.isFinite(Number(v))?Number(v):fallback;
+// Koçtan gelen eylemler öğrencinin onayı olmadan uygulanır; bu yüzden biçim ve sayı sınırı burada denetlenir.
+const TOPIC_KEY_RE=/^[A-ZÇĞİÖŞÜ]{2,5}\|[^|<>]{1,80}\|[^|<>]{1,120}$/;
+const MAX_COACH_TOPICS=3000,MAX_COACH_BOOKS=300;
+// Küçük resim tarayıcıda kendiliğinden yüklenir: yalnızca YouTube adresi kabul edilir (başka adres öğrencinin IP'sini sızdırabilir).
+const safeThumb=v=>{const t=text(v,600);return/^https:\/\/(?:i\d?\.ytimg\.com|img\.youtube\.com)\//.test(t)?t:""};
 const state=()=>{try{return window.S||window.YKSLegacyState?.readState?.()||null}catch{return window.S||null}};
 const save=()=>{try{return window.save?.()??window.YKSLegacyState?.save?.()}catch{return false}};
 const toast=m=>{try{window.toast?.(m)}catch{console.info(m)}};
@@ -375,9 +380,13 @@ function applyAction(a){
   }else if(a.type==="topic_deadline"){
     const k=text(p.key,220),d=text(p.date,10);if(!k||!/^\d{4}-\d{2}-\d{2}$/.test(d))throw new Error("Konu hedefi geçersiz");
     dateInfo(d);
-    s.topics??={};s.topics[k]??={st:0,conf:0,ts:null,rev:[]};s.topics[k].dl=d;save();
+    // Anahtar koçtan gelir: yalnızca "SINAV|ders|konu" biçimi (böylece __proto__ gibi adlar da elenir) ve sınırlı sayıda yeni konu.
+    if(!TOPIC_KEY_RE.test(k))throw new Error("Konu hedefi geçersiz");
+    s.topics??={};
+    if(!Object.hasOwn(s.topics,k)&&Object.keys(s.topics).length>=MAX_COACH_TOPICS)throw new Error("Konu listesi dolu");
+    s.topics[k]??={st:0,conf:0,ts:null,rev:[]};s.topics[k].dl=d;save();
   }else if(a.type==="coach_note"&&p.operation==="resource_recommendation"){
-    const kind=text(p.kind,20),resourceId=text(p.id,120),title=text(p.title,180),url=text(p.url,600),teacher=text(p.teacher,100),subject=text(p.subject,80),topic=text(p.topic,120),scope=text(p.scope,10),thumb=text(p.thumb,600);
+    const kind=text(p.kind,20),resourceId=text(p.id,120),title=text(p.title,180),url=text(p.url,600),teacher=text(p.teacher,100),subject=text(p.subject,80),topic=text(p.topic,120),scope=text(p.scope,10),thumb=safeThumb(p.thumb);
     if(!["video","playlist"].includes(kind)||!resourceId||!title||!/^https?:\/\//i.test(url))throw new Error("Kaynak önerisi geçersiz");
     s.coachRecommendations=Array.isArray(s.coachRecommendations)?s.coachRecommendations:[];
     const key=kind+":"+resourceId,now=Date.now(),next={key,id:resourceId,kind,title,url,teacher,subject,topic,scope,thumb,coachUid:text(a.coachUid,120),at:now};
@@ -391,6 +400,7 @@ function applyAction(a){
     if(!name||!(total>=1&&total<=2000)||!(perTest>=1&&perTest<=400))throw new Error("Kitap bilgisi geçersiz");
     const books=list(s.books),same=name.toLocaleLowerCase("tr-TR");
     if(books.some(b=>text(b?.name,120).toLocaleLowerCase("tr-TR")===same))return"Kitap zaten Kitaplarım'da";
+    if(books.length>=MAX_COACH_BOOKS)throw new Error("Kitap listesi dolu");
     let id=Date.now();while(books.some(b=>Number(b?.id)===id))id++;
     s.books=[...books,{id,name,subject:text(p.subject,40)||"Matematik",total,done:0,log:[],topic:"",pub:text(p.pub,40),exam:text(p.exam,8),kind:text(p.kind,40),perTest,createdAt:id,
       ...(/^https:\/\/cdn\.kitapsec\.com\/image\/urun\/[A-Za-z0-9/_.-]+\.(?:jpe?g|png|webp|gif)$/i.test(coverUrl)?{coverUrl}:{})}];
@@ -399,7 +409,7 @@ function applyAction(a){
   }else if(a.type==="coach_note"){
     const v=text(p.text,500);if(!v)throw new Error("Not boş");s.coachNotes??=[];s.coachNotes.push({id:`coach-${Date.now()}`,at:Date.now(),coachUid:a.coachUid,text:v});s.coachNotes=s.coachNotes.slice(-80);save();
   }else if(a.type==="resource_recommendation"){
-    const kind=text(p.kind,20),resourceId=text(p.id,120),title=text(p.title,180),url=text(p.url,600),teacher=text(p.teacher,100),subject=text(p.subject,80),topic=text(p.topic,120),scope=text(p.scope,10),thumb=text(p.thumb,600);
+    const kind=text(p.kind,20),resourceId=text(p.id,120),title=text(p.title,180),url=text(p.url,600),teacher=text(p.teacher,100),subject=text(p.subject,80),topic=text(p.topic,120),scope=text(p.scope,10),thumb=safeThumb(p.thumb);
     if(!["video","playlist"].includes(kind)||!resourceId||!title||!/^https?:\/\//i.test(url))throw new Error("Kaynak önerisi geçersiz");
     s.coachRecommendations=Array.isArray(s.coachRecommendations)?s.coachRecommendations:[];
     const key=kind+":"+resourceId,now=Date.now(),next={key,id:resourceId,kind,title,url,teacher,subject,topic,scope,thumb,coachUid:text(a.coachUid,120),at:now};

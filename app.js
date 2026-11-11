@@ -98,10 +98,6 @@ function perfRAF(key,fn){
 function perfAfterPaint(key,fn){
   perfRAF("paint:"+key,()=>setTimeout(()=>{try{fn();}catch(e){if(typeof infraError==="function")infraError("paint:"+key,e);}},0));
 }
-function perfVisible(id){
-  const e=typeof el==="function"?el(id):document.getElementById(id);
-  return !!(e&&e.classList&&e.classList.contains("active"));
-}
 let perfInfraTimer=null;
 function scheduleInfraHealth(force){
   if(!force){
@@ -281,6 +277,11 @@ function bigInt(v){
   const n=Math.floor(Number(v));
   return isFinite(n)&&n>0?n:0;
 }
+/* Fotoğraflar yedekten ya da eşitlemeden de gelebilir ve src niteliğine yazılır:
+   yalnızca base64 görsel verisi kabul edilir (tırnak içeren değer nitelikten taşamaz). */
+function safeImgData(v){
+  return typeof v==="string"&&v.length>16&&/^data:image\/[a-z0-9.+-]+;base64,[A-Za-z0-9+/=]+$/i.test(v);
+}
 function normalize(o){
   if(!o.weeks)o.weeks={};
   if(!o.rowLabels)o.rowLabels={r:[],s:[]};
@@ -293,7 +294,7 @@ function normalize(o){
   const sm=o.simulMin|0;
   o.simulMin=(sm>=1&&sm<=600)?sm:165;
   if(!Array.isArray(o.qbank))o.qbank=[];
-  o.qbank=o.qbank.filter(q=>q&&typeof q==="object"&&typeof q.img==="string"&&q.img.length>16);
+  o.qbank=o.qbank.filter(q=>q&&typeof q==="object"&&safeImgData(q.img));
   o.qbank.forEach(q=>{
     q.id=bigInt(q.id)||Date.now();
     q.subject=typeof q.subject==="string"?q.subject:"";
@@ -529,7 +530,7 @@ function normalize(o){
     if(["bilmiyordum","dikkat","sure"].indexOf(x.kind)<0)delete x.kind;
     const legacy=typeof x.questionImg==="string"&&x.questionImg.length>16?[x.questionImg]:[];
     const current=Array.isArray(x.questionImgs)?x.questionImgs:[];
-    x.questionImgs=[...legacy,...current].filter(img=>typeof img==="string"&&img.indexOf("data:image")===0&&img.length>16).slice(0,x.n);
+    x.questionImgs=[...legacy,...current].filter(safeImgData).slice(0,x.n);
     if(x.questionImg)delete x.questionImg;
   });
   if(!Array.isArray(o.books))o.books=[];
@@ -709,6 +710,12 @@ function net(d,y){ return Math.round((d-y/4)*100)/100; }
 function r2(n){ return Math.round(n*100)/100; }
 function daysUntil(iso){ const e=parseKey(iso),t=new Date(); t.setHours(0,0,0,0); return Math.ceil((e-t)/86400000); }
 function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+/* Satır içi olay niteliğinde tek tırnaklı JS argümanı: önce JS dizesi, sonra HTML niteliği olarak kaçırılır.
+   Yalnızca tek tırnağı kaçırmak çift tırnak ve &#39; ile nitelikten taşmaya izin veriyordu. */
+/* ?selftest=… geliştirme sınamaları S'yi sınama verisiyle değiştirir; canlı sitede hazırlanmış bir bağlantıyla
+   tetiklenmesin diye yerel adres dışında parametre daha okunmadan adresten silinir. */
+try{if(!/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname)&&/[?&]selftest=/.test(location.search)){const u=new URL(location.href);u.searchParams.delete("selftest");history.replaceState(null,"",u);}}catch(e){}
+function jsq(v){ return esc(String(v==null?"":v).replace(/\\/g,"\\\\").replace(/'/g,"\\'").replace(/\r?\n/g," ")); }
 function fmtHM(min){ const h=Math.floor(min/60),m=min%60; return h?(h+" sa "+m+" dk"):(m+" dk"); }
 function sumVals(o){ return Object.keys(o).reduce((a,k)=>a+(+o[k]||0),0); }
 function el(id){ return document.getElementById(id); }
@@ -822,10 +829,6 @@ function setTheme(value){
   const saved=save();
   if(saved===false){try{toast("Tema uygulandı fakat kaydedilemedi");}catch(e){}}
   return saved!==false;
-}
-function cycleTheme(){
-  const index=YKS_THEME_IDS.indexOf(yksThemeValue(S.theme));
-  return setTheme(YKS_THEME_IDS[(index+1)%YKS_THEME_IDS.length]);
 }
 
 /* ================= SES ================= */
@@ -1030,7 +1033,7 @@ function renderSuggest(){
     plan:st.subj+" · "+st.topic});
   if(!out.length){ wrap.innerHTML='<div class="empty">Veri biriktikçe burada öneri çıkacak.</div>'; return; }
   wrap.innerHTML=out.slice(0,4).map(o=>{
-    const plan=o.plan?`<button class="btn ghost tiny sugadd" onclick="event.stopPropagation();addToToday('${String(o.plan).replace(/'/g,"\\'")}')">Plana ekle</button>`:"";
+    const plan=o.plan?`<button class="btn ghost tiny sugadd" onclick="event.stopPropagation();addToToday('${jsq(o.plan)}')">Plana ekle</button>`:"";
     return `<div class="sug" onclick="go('${o.go}')"><span class="si">${o.i}</span>
       <div style="flex:1;min-width:0"><div class="st">${esc(o.t)}</div><div class="sd">${esc(o.d)}</div></div>${plan}</div>`;
   }).join("");
@@ -1140,7 +1143,6 @@ function smartInsights(){
   });
 }
 function renderSmartInsights(){ const w=el("smartInsightBox"); if(!w)return; const list=smartInsights(); w.innerHTML=list.map(x=>`<div class="smart-insight ${x.c||""}"><span class="ii">${esc(x.i)}</span><div><div class="it">${esc(x.t)}</div><div class="id">${esc(x.d)}</div></div></div>`).join("")+'<div class="smart-foot"><button class="btn ghost tiny" onclick="go(\'deneme\');setAnaTab(\'verim\')">Detaylı analize git</button></div>'; }
-function reviewScheduleHTML(t){ if(!t||t.st!==3||!t.ts)return ""; const now=todayKey(); return '<span class="review-schedule">'+REVIEW_GAPS.map((gap,gi)=>{ const done=(t.rev||[]).indexOf(gi)>=0,due=addDaysKey(t.ts,gap),isDue=!done&&due<=now; return '<span class="review-step '+(done?'done':isDue?'due':'')+'">'+gap+'. gün'+(done?' ✓':'')+'</span>'; }).join('')+'</span>'; }
 
 function renderHome(){
   const hr=new Date().getHours(),hi=hr>=5&&hr<12?"Günaydın":hr>=12&&hr<18?"İyi günler":"İyi akşamlar";
@@ -1184,9 +1186,6 @@ function renderHome(){
   if(typeof renderEffective==="function")renderEffective();
   if(typeof renderCoachBoard==="function"){renderCoachBoard();renderCoachNotes();}
   if(typeof renderMorning==="function"){renderMorning();renderDenemeReminder();renderContract();}
-}
-function renderHomeBadges(){
-  return false;
 }
 function saveSolved(){
   if(typeof coachBlock==="function"&&coachBlock("soru kaydı"))return;
@@ -1328,7 +1327,7 @@ function cellVideo(txt){
     {subject:c.subj,topic:c.topic});
 }
 function cellVidBtn(txt){
-  const esc3=v=>String(v).replace(/'/g,"\\'");
+  const esc3=v=>jsq(v);
   const l=cellLink(txt);
   if(l){
     return '<button class="cvid on" title="Videoyu aç" '+
@@ -1337,7 +1336,7 @@ function cellVidBtn(txt){
   }
   const c=cellTopic(txt);
   if(!c)return "";
-  const esc2=v=>String(v).replace(/'/g,"\\'");
+  const esc2=v=>jsq(v);
   return '<button class="cvid'+(c.hoca?" on":"")+'" title="'+
     (c.hoca?esc(c.hoca)+" videosu":"Konu videosu")+
     '" onclick="event.stopPropagation();cellVideo(\''+esc2(txt)+'\')">▶</button>';
@@ -1886,7 +1885,7 @@ function renderDayDetail(){
 /* ================= KONULAR · v2.6.0 KONULAR 2.0 ================= */
 const V26_VERSION="2.6.0";
 let examTab="TYT",v26TopicFilter="all",v26TopicOpen=null,v26RenderCtx=null;
-function v26Arg(v){return String(v||"").replace(/\\/g,"\\\\").replace(/'/g,"\\'");}
+function v26Arg(v){return jsq(v||"");}
 function v26ResolveKey(subj,topic){
   let k=(typeof topicKeyOf==="function")?topicKeyOf(subj,topic):null;if(k)return k;
   const tl=String(topic||"").trim().toLocaleLowerCase("tr");
@@ -2264,7 +2263,7 @@ function renderSubjPicker(){
     : DENEME_SUBJECTS[denemeType].map(x=>x[0]);
   if(!names.length){ w.innerHTML='<span class="hint">Branş denemesi ekleyince dersler burada listelenir.</span>'; subjSel=null; return; }
   if(!subjSel||names.indexOf(subjSel)<0)subjSel=names[0];
-  w.innerHTML=names.map(n=>`<button class="chip ${n===subjSel?"on":""}" onclick="pickSubj('${n.replace(/'/g,"\\'")}')">${esc(n)}</button>`).join("");
+  w.innerHTML=names.map(n=>`<button class="chip ${n===subjSel?"on":""}" onclick="pickSubj('${jsq(n)}')">${esc(n)}</button>`).join("");
 }
 function pickSubj(n){ subjSel=n; renderSubjPicker(); drawSubjChart(); }
 function drawSubjChart(){
@@ -2606,7 +2605,7 @@ function renderExamWrongArchive(){
   root.innerHTML=list.map(row=>{
     const w=row.wrong,exam=row.exam,label=labels[w.kind]||"Sebep yok";
     return '<button class="exam-wrong-card" type="button" onclick="wrongPhotoOpen('+w.id+','+row.index+')">'+
-      '<span class="exam-wrong-img"><img src="'+row.img+'" alt="'+esc(w.subject)+' yanlış soru" loading="lazy"></span>'+
+      '<span class="exam-wrong-img"><img src="'+esc(row.img)+'" alt="'+esc(w.subject)+' yanlış soru" loading="lazy"></span>'+
       '<span class="exam-wrong-copy"><b>'+esc(w.subject)+(w.topic?' · '+esc(w.topic):'')+'</b><small>'+esc(exam&&exam.name?exam.name:"Deneme")+' · '+esc(label)+'</small>'+(w.note?'<em>'+esc(w.note)+'</em>':'')+'</span>'+
       '<span class="exam-wrong-open">Aç ›</span></button>';
   }).join("");
@@ -2630,7 +2629,7 @@ function renderWrongTopics(){
   html+='</div><p class="eyebrow" style="margin:16px 0 6px;">Son kayıtlar</p>';
   html+=S.wrongLog.slice(-12).reverse().map(x=>{
     const photos=wrongPhotosFor(x.id),limit=Math.max(1,Number(x.n)||1);
-    const thumbs=photos.map((img,i)=>`<span class="wrong-photo-item"><button class="wrong-photo-thumb" onclick="wrongPhotoOpen(${x.id},${i})" title="${i+1}. soruyu aç"><img src="${img}" alt="${i+1}. soru fotoğrafı"></button><button class="wrong-photo-delete" onclick="wrongPhotoRemove(${x.id},${i})" title="${i+1}. fotoğrafı sil">×</button></span>`).join("");
+    const thumbs=photos.map((img,i)=>`<span class="wrong-photo-item"><button class="wrong-photo-thumb" onclick="wrongPhotoOpen(${x.id},${i})" title="${i+1}. soruyu aç"><img src="${esc(img)}" alt="${i+1}. soru fotoğrafı"></button><button class="wrong-photo-delete" onclick="wrongPhotoRemove(${x.id},${i})" title="${i+1}. fotoğrafı sil">×</button></span>`).join("");
     const add=photos.length<limit?`<button class="wrong-photo-add" onclick="wrongPhotoPick(${x.id})" title="Soru fotoğrafı ekle">📷 <span>Soru ekle (${photos.length}/${limit})</span></button>`:"";
     const photoUi=thumbs+add;
     return `<div class="dayrow wrong-log-row"><span class="k">${esc(x.subject)} · ${esc(x.topic)}</span>
@@ -2732,7 +2731,7 @@ function setPomoTask(v){ pomoTask=v||""; }
 function renderPomoSubjects(){
   const w=el("pomoSubjPick"); if(!w)return;
   if(!pomoSubject)pomoSubject=SUBJ_NAMES[0];
-  w.innerHTML=SUBJ_NAMES.map(n=>`<button class="chip ${n===pomoSubject?"on":""}" onclick="setPomoSubject('${n.replace(/'/g,"\\'")}')">${esc(n)}</button>`).join("");
+  w.innerHTML=SUBJ_NAMES.map(n=>`<button class="chip ${n===pomoSubject?"on":""}" onclick="setPomoSubject('${jsq(n)}')">${esc(n)}</button>`).join("");
 }
 function setPomoSubject(n){ pomoSubject=n; renderPomoSubjects(); }
 
@@ -3583,7 +3582,7 @@ function renderDeadlines(){
     return `<div class="dayrow"><span class="k">${esc(x.subj)} · ${esc(x.topic)}<br>
       <small style="color:var(--ink3)">${parseKey(x.dl).toLocaleDateString("tr-TR",{day:"numeric",month:"long"})}</small></span>
       <span class="v" style="color:${col}">${st}
-      <button class="del" onclick="clearDeadline('${x.key.replace(/'/g,"\\'")}')">sil</button></span></div>`;
+      <button class="del" onclick="clearDeadline('${jsq(x.key)}')">sil</button></span></div>`;
   }).join("");
 }
 
@@ -4232,7 +4231,7 @@ function renderQbank(){
   }
   g.innerHTML=list.map((q,i)=>
     `<button class="qacard ${q.done?"qdone":""}" onclick="qaOpen(${q.id})">
-       <img src="${q.img}" alt="${esc(q.subject)}" loading="lazy">
+       <img src="${esc(q.img)}" alt="${esc(q.subject)}" loading="lazy">
        <span class="qmeta">${esc(q.subject)}${q.topic?" · "+esc(q.topic):""}</span>
        ${q.done?'<span class="qtick">✓</span>':""}
      </button>`).join("");
@@ -5015,7 +5014,7 @@ function renderTopicRes(){
     const isLink=/^https:\/\//.test(x.res);
     const val=isLink?'<a href="'+esc(x.res)+'" target="_blank" rel="noopener">'+esc(x.res.slice(0,44))+'</a>':esc(x.res);
     return `<div class="dayrow"><span class="k">${esc(x.subj)} · ${esc(x.topic)}<br><small>${val}</small></span>
-      <span class="v"><button class="del" onclick="clearTopicRes('${x.key.replace(/'/g,"\\'")}')">sil</button></span></div>`;
+      <span class="v"><button class="del" onclick="clearTopicRes('${jsq(x.key)}')">sil</button></span></div>`;
   }).join("");
 }
 
@@ -5070,12 +5069,6 @@ function shiftScreen(n){
   if(i<0)return;
   const j=Math.max(0,Math.min(SCREEN_ORDER.length-1,i+n));
   if(j!==i)go(SCREEN_ORDER[j]);
-}
-function anyOverlayOpen(){
-  if(document.body.classList.contains("teacher-open"))return true;
-  return ["dayPick","playOverlay","vidOverlay","anaOverlay","examDetailOverlay","resOverlay","simOverlay","qaViewer","wizOverlay","brOverlay"].some(id=>{
-    const e=el(id); return e&&e.style.display&&e.style.display!=="none";
-  });
 }
 function closeTopOverlay(){
   if(document.body.classList.contains("teacher-open")){ closeTeacher(); return true; }
@@ -6033,7 +6026,7 @@ function teacherCard(t){
   const open=thOpen===t.a;
   const fav=(S.favTeachers||[]).indexOf(t.a)>=0;
   const subj=thSubj||t.d[0]||"";
-  const esc2=v=>String(v).replace(/'/g,"\\'");
+  const esc2=v=>jsq(v);
   let body="";
   if(open){
     body='<div class="thb">'+
@@ -6063,7 +6056,7 @@ function teacherCard(t){
 function renderTeachers(){
   const sc=el("thSubjChips");
   if(sc)sc.innerHTML='<button class="chip '+(thSubj?"":"on")+'" onclick="setThSubj(\'\')">Tüm dersler</button>'+
-    TEACH_SUBJECTS.map(s=>'<button class="chip '+(thSubj===s?"on":"")+'" onclick="setThSubj(\''+s.replace(/'/g,"\\'")+'\')">'+esc(s)+'</button>').join("");
+    TEACH_SUBJECTS.map(s=>'<button class="chip '+(thSubj===s?"on":"")+'" onclick="setThSubj(\''+jsq(s)+'\')">'+esc(s)+'</button>').join("");
   const lc=el("thLvlChips");
   if(lc)lc.innerHTML='<button class="chip '+(thLvl?"":"on")+'" onclick="setThLvl(\'\')">Tüm seviyeler</button>'+
     ["baslangic","orta","ileri"].map(k=>'<button class="chip '+(thLvl===k?"on":"")+'" onclick="setThLvl(\''+k+'\')">'+LEVELS[k]+'</button>').join("");
@@ -6113,7 +6106,7 @@ function renderVideoSuggest(){
   const w=el("tvSuggest"); if(!w)return;
   const s=videoForWeakTopic();
   if(!s){ w.innerHTML='<div class="empty">Konu ve deneme verin biriktikçe burada "şu konuyu izle" önerisi çıkar.</div>'; return; }
-  const esc2=v=>String(v).replace(/'/g,"\\'");
+  const esc2=v=>jsq(v);
   w.innerHTML='<div class="dayrow"><span class="k"><b style="color:var(--label)">'+esc(s.subj)+' · '+esc(s.topic)+'</b><br><small>'+esc(s.why)+'</small></span></div>'+
     '<div class="rowtools" style="margin:12px 0 0;">'+
       '<button class="btn ghost tiny" onclick="openYt(\''+esc2(s.subj+" "+s.topic+" konu anlatımı YKS")+'\')">Konu anlatımı</button>'+
@@ -6142,10 +6135,6 @@ const YT_BUILTIN_KEY="";
 function ytKey(){
   const c=ytCfg();
   return (c.key&&c.key.trim())?c.key.trim():YT_BUILTIN_KEY;
-}
-function ytUsingBuiltin(){
-  const c=ytCfg();
-  return !(c.key&&c.key.trim())&&!!YT_BUILTIN_KEY;
 }
 function ytCfg(){
   if(!S.yt||typeof S.yt!=="object")S.yt={};
@@ -6509,9 +6498,6 @@ function renderVidChips(){
     (vidChannel?'<span class="vidch">kanal kısıtlı</span>':'<span class="vidch off">kanal bulunamadı</span>');
 }
 /* test ve hata ayıklama için: liste içeriğini dışarıdan doldur */
-function setVidItems(list){ vidAll=(list||[]).slice(); vidItems=vidAll.slice(); vidNote="";
-  try{ window.vidItems=vidItems; }catch(e){} }
-function setVidLists(list){ vidListsAll=(list||[]).slice(); vidLists=vidListsAll.slice(); vidNote=""; }
 function renderVidList(){
   const w=el("vidList"); if(!w)return;
   if(!vidItems.length){ w.innerHTML='<div class="empty">Sonuç bulunamadı. Aramayı YouTube\'da deneyebilirsin.</div>'; return; }
@@ -7692,7 +7678,7 @@ function renderMorning(){
   const kalan=tasks.filter(t=>m.done.indexOf(t.id)<0);
   if(m.hidden||!tasks.length||!kalan.length){ w.style.display="none"; return; }
   w.style.display="block";
-  const esc2=v=>String(v).replace(/'/g,"\\'");
+  const esc2=v=>jsq(v);
   w.innerHTML='<div class="mrnhead"><span class="mrnt">Bugüne başla</span>'+
     '<button class="btn ghost tiny" onclick="hideMorning()">Gizle</button></div>'+
     kalan.map(t=>
@@ -8241,7 +8227,7 @@ function renderGun(){
     (t.etiket?'<div class="gunlbl">'+esc(t.etiket)+'</div>':"")+
     '<div class="guntxt'+(t.done?" done":"")+'">'+esc(t.txt)+'</div>'+
     ((cellLink(t.txt)||cellTopic(t.txt))?'<button class="btn ghost small" onclick="cellVideo(\''+
-      String(t.txt).replace(/'/g,"\\'")+'\')">▶ '+(cellLink(t.txt)?"Videoyu aç":"Konu videosu")+'</button>':"")+
+      jsq(t.txt)+'\')">▶ '+(cellLink(t.txt)?"Videoyu aç":"Konu videosu")+'</button>':"")+
     '<button class="gunbtn'+(t.done?" on":"")+'" onclick="gunToggle()">'+
       (t.done?"✓ Yapıldı":"Yaptım olarak işaretle")+'</button>';
   const dots=el("gunDots");
@@ -8886,7 +8872,6 @@ function v27CopyToForm(){const d=S.denemeler.find(x=>x.id===v27DetailId);if(!d)r
 function v27StartEdit(){const d=S.denemeler.find(x=>x.id===v27DetailId);if(!d)return false;el("v27DetailView").style.display="none";el("v27EditView").style.display="block";el("v27EditSub").textContent=(d.type==="BRANS"?"Branş":d.type)+" · sonuçları da düzeltebilirsin";el("v27EditName").value=d.name||"";el("v27EditDate").value=d.date||todayKey();el("v27EditDur").value=d.dur||"";el("v27EditPub").value=d.pub||"";el("v27EditDiff").value=d.difficulty||"normal";el("v27EditNote").value=d.note||"";const w=el("v27EditSubjects");if(d.netOnly){w.innerHTML='<p class="hint">Bu kayıt doğrudan net ile girildi.</p>'+(d.subjectResults||[]).map((r,i)=>'<div class="row2" style="margin-bottom:6px"><div style="flex:1"><label>'+esc(r.name)+' net</label><input type="number" step="0.25" min="0" max="'+(r.cap||999)+'" id="v27en'+i+'" value="'+r.net+'"></div></div>').join('');}else{w.innerHTML='<div class="v27-edit-grid"><div class="nm">Ders</div><small>D</small><small>Y</small><small>B</small></div>'+(d.subjectResults||[]).map((r,i)=>'<div class="v27-edit-grid"><div class="nm">'+esc(r.name)+'</div><input type="number" min="0" id="v27ed'+i+'" value="'+(r.d||0)+'"><input type="number" min="0" id="v27ey'+i+'" value="'+(r.y||0)+'"><input type="number" min="0" id="v27eb'+i+'" value="'+(r.b||0)+'"></div>').join('');}return true;}
 function v27CancelEdit(){const a=el("v27DetailView"),b=el("v27EditView");if(a)a.style.display="block";if(b)b.style.display="none";}
 function v27SaveEdit(){const d=S.denemeler.find(x=>x.id===v27DetailId);if(!d)return false;const name=(el("v27EditName").value||"").trim();if(!name){toast("Deneme adı boş olamaz");return false;}d.name=name.slice(0,140);d.date=el("v27EditDate").value||todayKey();d.dur=Math.max(0,parseInt(el("v27EditDur").value,10)||0);d.pub=(el("v27EditPub").value||"").trim().slice(0,100);d.difficulty=el("v27EditDiff").value||"normal";d.note=(el("v27EditNote").value||"").trim().slice(0,240);if(d.netOnly){let total=0;(d.subjectResults||[]).forEach((r,i)=>{let v=parseFloat((el("v27en"+i)||{}).value)||0;v=Math.max(0,Math.min(r.cap||999,v));r.net=r2(v);total+=r.net;});d.totalNet=r2(total);}else{let total=0;for(let i=0;i<(d.subjectResults||[]).length;i++){const r=d.subjectResults[i],dd=parseInt((el("v27ed"+i)||{}).value,10)||0,y=parseInt((el("v27ey"+i)||{}).value,10)||0,b=parseInt((el("v27eb"+i)||{}).value,10)||0;if(dd<0||y<0||b<0||dd+y+b>(r.cap||999)){toast(r.name+": D+Y+B soru sayısını aşamaz");return false;}r.d=dd;r.y=y;r.b=b;r.net=net(dd,y);total+=r.net;}d.totalNet=r2(total);}save();if(typeof logAdd==="function")logAdd("duzen","Deneme düzeltildi: "+d.name,null);renderDenemeHistory();renderExam2();drawChart();drawSubjChart();renderCompareOpts();renderScore();renderBlankWrong();if(typeof renderPublishers==="function")renderPublishers();v27CancelEdit();renderExamDetail();toast("Deneme güncellendi ✓");return true;}
-function runV27SelfTest(){const out=[];try{const a={id:1,type:"TYT",date:"2026-01-01",totalNet:50,dur:100,difficulty:"zor",subjectResults:[{name:"Matematik",d:20,y:4,b:16,net:19,cap:40}]};const t=v27Totals(a);out.push(t.known&&t.d===20&&t.y===4&&t.b===16&&t.sec===150);out.push(v27Difficulty("zor").t==="Zor");out.push(Array.isArray(v27SubjectRows(a,null))&&v27SubjectRows(a,null).length===1);}catch(e){out.push(false);}return out.every(Boolean)?"YKS_V27_SELFTEST_OK":"YKS_V27_SELFTEST_FAIL";}
 
 /* ==================================================================
    KONUYA KAYNAK BAĞLAMA
@@ -8966,11 +8951,11 @@ function renderResPanel(){
     return;
   }
   w.innerHTML=list.map(r=>
-    '<div class="dayrow" style="cursor:pointer" onclick="openResItem(\''+resKey.replace(/'/g,"\\'")+'\','+r.id+')">'+
+    '<div class="dayrow" style="cursor:pointer" onclick="openResItem(\''+jsq(resKey)+'\','+r.id+')">'+
     '<span class="k">'+(ikon[r.tur]||"•")+' '+esc(r.ad)+(r.hoca?' <small style="color:var(--accent)">hoca</small>':"")+
     (r.deger?'<br><small>'+esc(r.deger.slice(0,60))+'</small>':"")+'</span>'+
     '<span class="v"><button class="del" onclick="event.stopPropagation();delRes(\''+
-      resKey.replace(/'/g,"\\'")+'\','+r.id+')">sil</button></span></div>').join("");
+      jsq(resKey)+'\','+r.id+')">sil</button></span></div>').join("");
 }
 function resCount(key){ return resList(key).length; }
 
@@ -9233,7 +9218,7 @@ function renderCamps(){
      '<div class="dayrow"><span class="k">Gereken satır</span><span class="v">'+campRowsNeeded(p)+'</span></div>';
   h+='<p class="eyebrow" style="margin:14px 0 6px;">Ders ağırlıkları ve hocalar</p>';
   h+='<p class="hint" style="margin:0 0 10px;">İstersen her derse bir hoca seç. Kamp uygulanınca o dersin konularına hocanın anlatımı kaynak olarak bağlanır — konuya dokunduğunda doğrudan videosuna gidersin.</p>';
-  const esc3=v=>String(v).replace(/'/g,"\\'");
+  const esc3=v=>jsq(v);
   h+=Object.keys(c.agirlik).map(k=>{
     const hocalar=campTeachersFor(k);
     const secili=campHoca[k]||"";
@@ -9788,7 +9773,7 @@ function renderWeak(){
         return '<div class="dayrow"><span class="k">'+esc(m.ad)+
           '<br><small>son 30 gün: '+m.yeni+' yanlış · '+durum+'</small></span>'+
           '<span class="v">'+(m.key?'<button class="btn ghost tiny" onclick="weakGoTopic(\''+
-            String(m.subject).replace(/'/g,"\\'")+'\',\''+String(m.topic).replace(/'/g,"\\'")+'\')">videolar</button>':"")+
+            jsq(m.subject)+'\',\''+jsq(m.topic)+'\')">videolar</button>':"")+
           '</span></div>';
       }).join("");
     h+='<p class="hint">Bu konular tekrar edilmesine rağmen yanlış üretmeye devam ediyor. '+
@@ -10033,7 +10018,7 @@ function renderWrongDist(){
   if(chips){
     chips.innerHTML=dersler.length
       ? dersler.map(d=>'<button class="chip '+(wdSubject===d.ad?"on":"")+
-          '" onclick="setWdSubject(\''+String(d.ad).replace(/'/g,"\\'")+'\')">'+
+          '" onclick="setWdSubject(\''+jsq(d.ad)+'\')">'+
           esc(d.ad)+' <b>'+d.n+'</b></button>').join("")
       : "";
   }
@@ -10112,7 +10097,7 @@ function renderRepeat(){
       (x.araGun>0?' · '+x.araGun+' gün aralıkla':'')+'</small></span>'+
       '<span class="v">'+x.kez+'×'+
       (x.key?' <button class="btn ghost tiny" onclick="repGoTopic(\''+
-        String(x.subject).replace(/'/g,"\\'")+'\',\''+String(x.topic).replace(/'/g,"\\'")+'\')">video</button>':"")+
+        jsq(x.subject)+'\',\''+jsq(x.topic)+'\')">video</button>':"")+
       '</span></div>';
   }).join("");
   const inatci=list.filter(x=>x.st===3&&x.kez>=3);
@@ -10130,16 +10115,6 @@ function repGoTopic(subject,topic){
   if(typeof openVideos!=="function")return false;
   return openVideos(subject+" "+topic+" konu anlatımı YKS",subject+" · "+topic,
     {subject:subject,topic:topic});
-}
-function reopenTopic(subject,topic){
-  const key=(typeof topicKeyOf==="function")?topicKeyOf(subject,topic):null;
-  if(!key){ toast("Konu bulunamadı"); return false; }
-  if(typeof tsetStatus!=="function")return false;
-  tsetStatus(key,2);
-  toast(topic+" yeniden \"işledim\" seviyesine alındı");
-  renderRepeat();
-  if(el("topics")&&el("topics").classList.contains("active"))renderSubjects();
-  return true;
 }
 
 /* ==================================================================
@@ -10367,7 +10342,6 @@ let v2ProgressDays=30,pomoTopic="";
 const v2ActionLocks=new Map();
 NAV_TITLES.progress="İlerleme";
 
-function v2Num(v,min,max,def){v=Number(v);if(!Number.isFinite(v))v=def||0;return Math.max(min,Math.min(max,v));}
 function v2SubjectAliases(name){
   const m={"Matematik":["Matematik","Temel Matematik"],"Temel Matematik":["Matematik","Temel Matematik"],"Türkçe":["Türkçe"],"Fizik":["Fizik"],"Kimya":["Kimya"],"Biyoloji":["Biyoloji"],"Edebiyat":["Edebiyat"],"Tarih-1":["Tarih-1","Tarih"],"Tarih-2":["Tarih-2","Tarih"],"Coğrafya-1":["Coğrafya-1","Coğrafya"],"Coğrafya-2":["Coğrafya-2","Coğrafya"],"Yabancı Dil":["Yabancı Dil"]};
   return m[name]||[name];
@@ -10428,7 +10402,7 @@ function toggleExamTask(id){const x=(S.examTasks||[]).find(t=>String(t.id)===Str
 function renderExamTasks(){
   const w=el("examTasksBox");if(!w)return;const list=(S.examTasks||[]).slice().sort((a,b)=>b.at-a.at),open=list.filter(x=>!x.done).slice(0,8);
   if(!open.length){w.innerHTML='<div class="empty">Deneme eklediğinde yanlış dağılımına göre telafi görevleri burada oluşacak.</div>';return;}
-  w.innerHTML=open.map(x=>'<div class="exam-task-row"><button class="task-check" onclick="toggleExamTask('+x.id+')">✓</button><div class="task-main"><div class="task-title">'+esc(x.label)+'</div><div class="task-meta">'+esc(x.kind==="analysis"?'Deneme analizi':x.kind==="review"?'Konu tekrarı':'Telafi çalışması')+'</div></div>'+(x.subj?'<button class="btn ghost tiny" onclick="addToToday(\''+String(x.label).replace(/'/g,"\\'")+'\')">Plana</button>':'')+'</div>').join('');
+  w.innerHTML=open.map(x=>'<div class="exam-task-row"><button class="task-check" onclick="toggleExamTask('+x.id+')">✓</button><div class="task-main"><div class="task-title">'+esc(x.label)+'</div><div class="task-meta">'+esc(x.kind==="analysis"?'Deneme analizi':x.kind==="review"?'Konu tekrarı':'Telafi çalışması')+'</div></div>'+(x.subj?'<button class="btn ghost tiny" onclick="addToToday(\''+jsq(x.label)+'\')">Plana</button>':'')+'</div>').join('');
 }
 function v2RecurringWrongTopics(){return v2WrongAgg(90).filter(x=>x.sum>=3||x.occ>=2).sort((a,b)=>b.sum-a.sum||b.occ-a.occ).slice(0,12);}
 function v2EnsureWeakTask(){
@@ -10454,7 +10428,7 @@ function renderProgress(){
   const comp=el("progressCompare");if(comp)comp.innerHTML='<div class="dayrow"><span class="k">Çalışma</span><span class="v '+(a.min>=b.min?'trend-up':'trend-down')+'">'+fmtHM(a.min)+' · '+v2DeltaText(a.min,b.min)+'</span></div><div class="dayrow"><span class="k">Soru</span><span class="v '+(a.q>=b.q?'trend-up':'trend-down')+'">'+a.q+' · '+v2DeltaText(a.q,b.q)+'</span></div><div class="dayrow"><span class="k">Aktif gün</span><span class="v">'+a.active+' / '+days+'</span></div>';
   const ds=S.denemeler.filter(d=>d.type!=="BRANS"&&d.date>=addDaysKey(todayKey(),-days)).sort((x,y)=>(x.date||"").localeCompare(y.date||""));const net=el("progressNet");if(net){if(!ds.length)net.innerHTML='<div class="empty">Bu aralıkta genel deneme yok.</div>';else{const first=ds.slice(0,Math.max(1,Math.ceil(ds.length/2))),last=ds.slice(Math.floor(ds.length/2)),fa=r2(first.reduce((z,d)=>z+d.totalNet,0)/first.length),la=r2(last.reduce((z,d)=>z+d.totalNet,0)/last.length),dif=r2(la-fa),chg=v2ExamSubjectChange();net.innerHTML='<div class="dayrow"><span class="k">'+ds.length+' genel deneme</span><span class="v">'+la+' son dönem ort.</span></div><div class="dayrow"><span class="k">Net eğilimi</span><span class="v '+(dif>0?'trend-up':dif<0?'trend-down':'trend-flat')+'">'+(dif>0?'+':'')+dif+' net</span></div>'+(chg.length?'<div class="dayrow"><span class="k">En belirgin ders değişimi</span><span class="v '+(chg[0].diff>0?'trend-up':chg[0].diff<0?'trend-down':'')+'">'+esc(chg[0].name)+' '+(chg[0].diff>0?'+':'')+chg[0].diff+' puan</span></div>':'');}}
   const subs=v2SubjectRange(days),sw=el("progressSubjects");if(sw){if(!subs.length)sw.innerHTML='<div class="empty">Odak oturumlarında ders seçtikçe burada dağılım oluşur.</div>';else{const max=subs[0].min||1,total=subs.reduce((z,x)=>z+x.min,0);sw.innerHTML=subs.slice(0,10).map(x=>'<div class="progress-bar-row"><div class="progress-bar-line"><b>'+esc(x.name)+'</b><span>'+fmtHM(x.min)+' · %'+Math.round(x.min/Math.max(1,total)*100)+'</span></div><div class="v2bar"><i style="width:'+Math.round(x.min/max*100)+'%"></i></div></div>').join('');}}
-  const wr=v2RecurringWrongTopics(),ww=el("progressWrong");if(ww)ww.innerHTML=wr.length?wr.map(x=>'<div class="dayrow"><span class="k"><b>'+esc(x.subject+' · '+x.topic)+'</b><br><small>'+x.occ+' kayıt · son '+esc(x.last)+'</small></span><span class="v">'+x.sum+' yanlış <button class="btn ghost tiny" onclick="addToToday(\''+String(x.subject+' · '+x.topic+' tekrar + 15 soru').replace(/'/g,"\\'")+'\')">Plana</button></span></div>').join(''):'<div class="empty">Tekrarlayan yanlış görünmüyor.</div>';
+  const wr=v2RecurringWrongTopics(),ww=el("progressWrong");if(ww)ww.innerHTML=wr.length?wr.map(x=>'<div class="dayrow"><span class="k"><b>'+esc(x.subject+' · '+x.topic)+'</b><br><small>'+x.occ+' kayıt · son '+esc(x.last)+'</small></span><span class="v">'+x.sum+' yanlış <button class="btn ghost tiny" onclick="addToToday(\''+jsq(x.subject+' · '+x.topic+' tekrar + 15 soru')+'\')">Plana</button></span></div>').join(''):'<div class="empty">Tekrarlayan yanlış görünmüyor.</div>';
   const f=v2Forecast(),fw=el("progressForecast");if(fw){if(!f)fw.innerHTML='<div class="empty">Tahmin için aynı türden en az 3 genel deneme gerekli.</div>';else fw.innerHTML='<div class="dayrow"><span class="k">Model</span><span class="v">'+f.type+' · son '+f.n+' deneme</span></div><div class="dayrow"><span class="k">4 hafta sonrası tahmini bant</span><span class="v">'+f.low+' – '+f.high+' net</span></div><div class="dayrow"><span class="k">Merkez tahmin</span><span class="v">'+f.pred+' net</span></div><div class="dayrow"><span class="k">Haftalık eğilim</span><span class="v '+(f.slope>0?'trend-up':f.slope<0?'trend-down':'trend-flat')+'">'+(f.slope>0?'+':'')+f.slope+' net/hafta</span></div><p class="hint">Bu bir sonuç garantisi değildir; yalnız kayıtlı denemelerindeki doğrusal eğilimi ve oynaklığı gösterir.</p>';}
 }
 
@@ -11126,7 +11100,7 @@ function v25RenderNext(){
   if(!p.next){w.className="today-next done-all";w.innerHTML='<div class="next-eyebrow">Program</div><div class="next-title">Bugünün tüm görevleri tamamlandı ✓</div><div class="next-meta">İstersen günü tamamlandı olarak işaretleyebilirsin.</div>';return;}
   const m=v25TaskMeta(p.next),sub=m.subj||p.next.lbl;w.className="today-next";w.innerHTML='<div class="next-eyebrow">Sıradaki görev</div><div class="next-title">'+esc(p.next.txt)+'</div><div class="next-meta">'+esc(sub)+(m.topic?' · '+esc(m.topic):'')+'</div><div class="next-actions"><button class="btn green tiny" onclick="v25StartTask()">▶ Kronometreyi başlat</button><button class="btn ghost tiny" onclick="v25DoneNext()">Tamamlandı</button><button class="btn ghost tiny" onclick="v25TomorrowNext()">→ Yarına</button></div>';
 }
-function v25RenderReviews(){const w=el("todayReviews"),wrap=el("todayReviewWrap");if(!w||!wrap)return;const a=v25UniqueReviews();if(!a.length){w.innerHTML='<div class="today-review-empty">Bugün bekleyen 3–7–21 tekrarı yok ✓</div>';return;}w.innerHTML=a.slice(0,3).map(r=>'<div class="today-review-row"><div class="today-review-main"><b>'+esc(r.subj)+' · '+esc(r.topic)+'</b><span>'+r.gap+'. gün tekrarı'+(r.late>0?' · '+r.late+' gün gecikmiş':' · bugün')+'</span></div><button class="btn green tiny" onclick="doReview(\''+String(r.key).replace(/'/g,"\\'")+'\','+r.gi+')">Yaptım</button></div>').join('')+(a.length>3?'<div class="today-review-empty">+'+(a.length-3)+' tekrar daha · Konular bölümünde</div>':'');}
+function v25RenderReviews(){const w=el("todayReviews"),wrap=el("todayReviewWrap");if(!w||!wrap)return;const a=v25UniqueReviews();if(!a.length){w.innerHTML='<div class="today-review-empty">Bugün bekleyen 3–7–21 tekrarı yok ✓</div>';return;}w.innerHTML=a.slice(0,3).map(r=>'<div class="today-review-row"><div class="today-review-main"><b>'+esc(r.subj)+' · '+esc(r.topic)+'</b><span>'+r.gap+'. gün tekrarı'+(r.late>0?' · '+r.late+' gün gecikmiş':' · bugün')+'</span></div><button class="btn green tiny" onclick="doReview(\''+jsq(r.key)+'\','+r.gi+')">Yaptım</button></div>').join('')+(a.length>3?'<div class="today-review-empty">+'+(a.length-3)+' tekrar daha · Konular bölümünde</div>':'');}
 function v25RenderSubjects(){const w=el("todaySubjectDist");if(!w)return;const m=S.pomoSubj[todayKey()]||{},a=Object.keys(m).map(n=>({n,m:+m[n]||0})).filter(x=>x.m>0).sort((x,y)=>y.m-x.m),mx=a[0]?.m||1;if(!a.length){w.innerHTML='<div class="today-review-empty">Ders etiketli çalışma henüz yok.</div>';return;}w.innerHTML=a.slice(0,5).map(x=>'<div class="today-subj-row"><span class="name">'+esc(x.n)+'</span><span class="mins">'+fmtHM(x.m)+'</span><div class="today-subj-bar"><i style="width:'+Math.round(x.m/mx*100)+'%"></i></div></div>').join('');}
 function v25RenderLast(){const w=el("todayLastSession"),when=el("todayLastWhen");if(!w||!when)return;const x=v25LatestFocus();v25LastFocus=x;if(!x){when.textContent="—";w.innerHTML='<div class="today-review-empty">Henüz çalışma oturumu yok.</div>';return;}const d=new Date(x.at),hh=d.toLocaleTimeString("tr-TR",{hour:"2-digit",minute:"2-digit"});when.textContent=hh;w.innerHTML='<div class="today-last-title">'+esc(x.subj||"Ders")+(x.topic?' · '+esc(x.topic):'')+'</div><div class="today-last-meta">'+fmtHM(Math.max(1,Math.round(x.min)))+' çalışma</div><div class="today-last-actions"><button class="btn ghost tiny" onclick="v25ContinueLast()">Devam et</button></div>'; }
 function v25RenderTimeline(){const w=el("todayTimeline");if(!w)return;const a=v25FocusEvents(),b=[{n:"Sabah",from:0,to:12,m:0,c:0},{n:"Öğlen",from:12,to:18,m:0,c:0},{n:"Akşam",from:18,to:24,m:0,c:0}];a.forEach(x=>{const h=new Date(x.at).getHours(),z=b.find(y=>h>=y.from&&h<y.to)||b[2];z.m+=x.min;z.c++;});w.innerHTML=b.map(x=>'<div class="today-timeblock"><b>'+x.n+'</b><strong>'+fmtHM(Math.round(x.m))+'</strong><small>'+x.c+' odak kaydı</small></div>').join('');}
@@ -11746,7 +11720,6 @@ function v31Debounce(key,fn,delay){
   const id=setTimeout(()=>{v31DebounceTimers.delete(key);try{fn()}catch(e){infraError("debounce:"+key,e)}},delay|0||100);
   v31DebounceTimers.set(key,id);return id;
 }
-function v31TeacherSearch(){v31Debounce("teacher-search",()=>renderTeachers(),110)}
 
 /* Konu ve global arama, her tuşta bütün veri setini yeniden kurmaz. */
 setTopicQuery=function(v){
@@ -12056,7 +12029,6 @@ function v315AllExams(type){
   if(typeof S==="undefined"||!S||!Array.isArray(S.denemeler))return[];
   return S.denemeler.filter(d=>d&&d.type===type).slice().sort((a,b)=>String(a.date||"").localeCompare(String(b.date||""))||((a.id||0)-(b.id||0)));
 }
-function v315WindowExams(type,win){const all=v315AllExams(type);return win>0?all.slice(-win):all;}
 function v315Subjects(d){return d&&Array.isArray(d.subjectResults)?d.subjectResults:[];}
 function v315Fmt(v){return Number.isFinite(+v)?String(r2(+v)):"—";}
 function v315KpiHTML(k,v,s,c){return '<div class="v315-kpi '+(c||'')+'"><span class="k">'+esc(k)+'</span><span class="v">'+esc(String(v))+'</span><span class="s">'+esc(s||'')+'</span></div>';}
@@ -12350,7 +12322,6 @@ function v319RenderYearHeat(){
   if(w.dataset.sig!==sig){w.innerHTML=a.map(x=>'<span class="v319-heat-cell l'+v319HeatLevel(x.score)+'" title="'+esc(parseKey(x.k).toLocaleDateString("tr-TR",{day:"numeric",month:"short",year:"numeric"})+" · "+x.m+" dk · "+x.q+" soru")+'"></span>').join("");w.dataset.sig=sig}
   if(st){const active=a.filter(x=>x.score>0).length,totalM=a.reduce((z,x)=>z+x.m,0),totalQ=a.reduce((z,x)=>z+x.q,0);st.textContent=active+" aktif gün · "+fmtHM(totalM)+" · "+totalQ+" soru"}return true;
 }
-function v319RenderDecorations(){const w=el("v319Decorations");if(!w)return false;const d=v319RewardData(),a=v319DecorData(d);w.innerHTML='<div class="v319-decor-grid">'+a.map(x=>'<div class="v319-decor-item '+(x.unlocked?'on':'')+'"><div class="v319-decor-icon">'+x.ic+'</div><div><b>'+esc(x.name)+(x.unlocked?' ✓':'')+'</b><span>'+esc(x.desc)+'</span></div></div>').join('')+'</div>';return true}
 function v319RenderRewardCenter(){
   v319RenderYearHeat();return true;
 }

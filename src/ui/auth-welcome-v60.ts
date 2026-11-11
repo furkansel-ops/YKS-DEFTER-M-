@@ -374,7 +374,7 @@ export function installAuthWelcomeV60():{installed:boolean;reason:string}{
       else{
         // Doğrulama e-postası oturum gerektirir: kısa süreli giriş, gönderim, çıkış.
         const credential=await api.m.signInWithEmailAndPassword(api.auth,lastEmail,lastPassword);
-        if(credential.user.emailVerified){finish("account");return;}
+        if(credential.user.emailVerified){lastPassword="";finish("account");return;}
         await sendVerification(api,credential.user);
         try{await api.m.signOut(api.auth);}catch{}
       }
