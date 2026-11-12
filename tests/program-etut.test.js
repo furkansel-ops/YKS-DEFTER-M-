@@ -8,7 +8,10 @@ const root=path.resolve(__dirname,"..");
 const read=p=>fs.readFileSync(path.join(root,p),"utf8");
 const source=read("src/ui/program-etut.ts");
 const h=vm.runInNewContext(stripTypeScriptTypes(source.replace(/^export /gm,""),{mode:"strip"})+
-  "\n({taskMinutes,withTaskMinutes,withoutMinutes,normalizeEtutPlan,readEtutPlan,etutSchedule,etutSummary,etutSegments,ETUT_KEY})",{});
+  "\n({taskMinutes,withTaskMinutes,withoutMinutes,normalizeEtutPlan,readEtutPlan,etutSchedule,etutSummary,etutSegments,etutLongShift,etutLongLabel,ETUT_KEY})",{});
+const clock=m=>String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStart(2,"0");
+// Array.from: VM içindeki dizi başka bir ortamdan geldiği için deepEqual'da eşit sayılmaz.
+const lines=out=>Array.from(out.items,x=>x.kind+" "+x.id+" "+clock(x.start)+"–"+clock(x.end));
 const plain=value=>JSON.parse(JSON.stringify(value));
 
 test("etüt: süre görev metnindeki ' · N dk' parçasından okunur",()=>{
@@ -62,6 +65,19 @@ test("etüt: Program kaydı mevcut eylemlerle yapar; CSS hareketleri yalnız har
   assert.match(css,/#program \.rb-etut :where\(button,input\)\{font:inherit\}/,"uygulama yazı tipi");
 });
 
+test("etüt: boş etütte yalnız \"Ders\" yazar, ders seçilmez; etüt Odak'a işlenmez",()=>{
+  const program=read("src/ui/refined-program.ts"),sheet=read("src/ui/program-etut-sheet.ts"),app=read("app.js");
+  assert.match(sheet,/export const ETUT_FREE_TITLE="Ders";/);
+  assert.doesNotMatch(sheet,/Hangi dersi çalıştın|Ders seç"|Ders seçilmedi|subjects\.names/,"ders seçimi yok");
+  assert.doesNotMatch(sheet+program,/Odak'a işle|logEtut|etutLog|programEtutSubjects/,"Odak bağlantısı yok");
+  assert.doesNotMatch(app,/function programEtutLog\(|function programEtutSubjects\(|Etütten işlendi/,"Odak'a yazan kod kaldırıldı");
+  // Boş etüt kartında tik kutusu yok; görevli etütte tik yalnız görevi tamamlar.
+  const timeline=sheet.slice(sheet.indexOf("export function renderEtutTimeline("),sheet.indexOf("export function createEtutSheet("));
+  const freeBranch=timeline.slice(timeline.indexOf("if(!task){"),timeline.indexOf("continue;\n    }")+1);
+  assert.ok(freeBranch.length>20);assert.doesNotMatch(freeBranch,/rb-program-check/);
+  assert.match(program,/toggle:id=>\{controller\.toggleTask\(id\);refresh\(\);\}/);
+});
+
 test("etüt: dersler sırayla dizilir, aralara mola, uzun etüde ara mola; süresiz görev atlanır",()=>{
   const tasks=[{id:"s-0-1",minutes:120},{id:"s-1-1",minutes:120},{id:"s-4-1",minutes:0},{id:"s-2-1",minutes:120},{id:"s-3-1",minutes:120}];
   const plan={start:600,gap:15,mid:{"s-1-1":10}};
@@ -89,4 +105,49 @@ test("etüt: bugün katılmayan görev atlanır, sonrakiler kayar; şerit ders/m
     {kind:"rest",minutes:15,id:"s-1-1"},{kind:"task",minutes:60,id:"s-2-1"}]);
   const total=h.etutSegments(out).reduce((sum,part)=>sum+part.minutes,0);
   assert.equal(total,out.end-out.start,"şerit toplamı günün süresi");
+});
+
+test("etüt v110: bitiş seçilince kalan süre boş etütlerle dolar, uzun mola ortaya en yakın araya girer",()=>{
+  const tasks=[{id:"s-0-1",minutes:120},{id:"s-1-1",minutes:90}];
+  const out=h.etutSchedule(tasks,{start:600,gap:15,mid:{},skip:[],end:1200,block:60,long:60});
+  assert.deepEqual(lines(out),[
+    "task s-0-1 10:00–12:00","gap s-0-1 12:00–12:15","task s-1-1 12:15–13:45","gap s-1-1 13:45–14:00",
+    "free f1 14:00–15:00","long f1 15:00–16:00","free f2 16:00–17:00","gap f2 17:00–17:15",
+    "free f3 17:15–18:15","gap f3 18:15–18:30","free f4 18:30–20:00"]);
+  assert.equal(out.end,1200,"son etüt bitiş saatine denk gelir");
+  assert.equal(h.etutSummary(out),"10:00 → 20:00 · 8 sa ders · 5 mola");
+  assert.equal(h.etutSegments(out).reduce((sum,part)=>sum+part.minutes,0),600,"şerit toplamı başlangıç–bitiş");
+  assert.deepEqual(plain(h.etutSegments(out).filter(part=>part.kind==="long"||part.kind==="free").slice(0,2)),[{kind:"free",minutes:60,id:"f1"},{kind:"long",minutes:60,id:"f1"}]);
+  // Uzun mola bir önceki / sonraki araya kaydırılır; hedef saat kayıtta longAt olarak durur.
+  const shift=h.etutLongShift(out,15);
+  assert.deepEqual(plain(shift),{earlier:13*60+45,later:16*60+15});
+  const earlier=h.etutSchedule(tasks,{start:600,gap:15,mid:{},skip:[],end:1200,block:60,long:60,longAt:shift.earlier});
+  assert.deepEqual(plain(earlier.long),{kind:"long",id:"s-1-1",start:13*60+45,end:14*60+45});
+  assert.equal(earlier.end,1200);
+  assert.equal(h.etutLongShift(h.etutSchedule(tasks,{start:600,gap:15,mid:{},skip:[]}),15).earlier,null,"uzun mola yoksa kayma yok");
+});
+
+test("etüt v110: ders bağlamadan da oluşur; kısa aralıkta uzun mola girmez; dersler bitişi aşarsa silinmez",()=>{
+  const empty=h.etutSchedule([],{start:600,gap:10,mid:{},skip:[],end:840,block:40});
+  assert.deepEqual(lines(empty),["free f1 10:00–10:40","gap f1 10:40–10:50","free f2 10:50–11:30","gap f2 11:30–11:40","free f3 11:40–12:20","gap f3 12:20–12:30","free f4 12:30–13:10","gap f4 13:10–13:20","free f5 13:20–14:00"]);
+  assert.equal(empty.study,200);
+  const tiny=h.etutSchedule([],{start:600,gap:15,mid:{},skip:[],end:640,block:60,long:60});
+  assert.deepEqual(lines(tiny),["free f1 10:00–10:40"]);assert.equal(tiny.long,null);
+  assert.equal(h.etutSchedule([],{start:600,gap:15,mid:{},skip:[],end:610,block:60}).slots.size,0,"20 dk'dan kısa aralıkta etüt açılmaz");
+  const over=h.etutSchedule([{id:"s-0-1",minutes:120},{id:"s-1-1",minutes:90}],{start:600,gap:15,mid:{},skip:[],end:780,block:60});
+  assert.deepEqual(lines(over),["task s-0-1 10:00–12:00","gap s-0-1 12:00–12:15","task s-1-1 12:15–13:45"]);
+  assert.equal(over.end,13*60+45,"bitişi aşan ders yerinde kalır");
+  // Ara mola (dersin ortasında) yeni planda da çalışır.
+  const mid=h.etutSchedule([{id:"s-0-1",minutes:120}],{start:600,gap:15,mid:{"s-0-1":10},skip:[],end:780,block:60});
+  assert.deepEqual(lines(mid),["task s-0-1 10:00–12:10","gap s-0-1 12:10–12:25","free f1 12:25–13:00"]);
+  assert.equal(h.etutLongLabel(60),"1 sa");assert.equal(h.etutLongLabel(90),"1,5 sa");assert.equal(h.etutLongLabel(120),"2 sa");
+});
+
+test("etüt v110: yeni alanlar doğrulanır; bozuk olanlar atılır, eski kayıt bozulmaz",()=>{
+  // Boş etüde ders (free) ve Odak izi (log) artık yok: eski kayıtta kalsalar da okunmaz.
+  const full=h.normalizeEtutPlan({start:600,gap:15,mid:{},skip:[],end:1200,block:50,long:90,longAt:810,
+    free:{f1:"Matematik"},log:{"s-0-1":{m:120,subj:"Türkçe",t:1700000000000}}});
+  assert.deepEqual(plain(full),{start:600,gap:15,mid:{},skip:[],end:1200,block:50,long:90,longAt:810});
+  assert.deepEqual(plain(h.normalizeEtutPlan({start:600,gap:15,end:500,block:5,long:999,longAt:null,free:[],log:"x"})),{start:600,gap:15,mid:{},skip:[]},"geçersiz ek alanlar yok sayılır");
+  assert.deepEqual(plain(h.normalizeEtutPlan({start:600,gap:15,end:"1200",longAt:"810"})),{start:600,gap:15,mid:{},skip:[]},"metin sayı kabul edilmez");
 });

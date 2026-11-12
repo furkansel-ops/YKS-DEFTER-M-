@@ -1487,7 +1487,8 @@ function programSetDayOrder(wk,day,ids){
 /* Etüt oluştur: güne özel başlangıç/mola/ara mola (dakika). null kaldırır. Biçim src/ui/program-etut.ts ile aynı. */
 function programSetEtut(wk,day,plan){
   if(!validDateKey(wk)||!Number.isInteger(day)||day<0||day>6)return false;
-  const w=getWeek(wk,false);if(!w)return false;
+  // Hiç görevi olmayan haftada da etüt oluşturulur (ders bağlamak zorunlu değil): hafta kaydı yoksa geçerli planla birlikte açılır.
+  const hadWeek=Boolean(S.weeks[wk]),w=getWeek(wk,false)||(plan!==null?normWeek(blankWeek()):null);if(!w)return false;
   let next=null;
   if(plan!==null){
     const start=Number(plan?.start),gap=Number(plan?.gap),mid={};
@@ -1496,12 +1497,21 @@ function programSetEtut(wk,day,plan){
     // skip: o gün etüde katılmayan görevler (metin ve süre silinmez).
     const skip=[...new Set((Array.isArray(plan?.skip)?plan.skip:[]).filter(id=>typeof id==="string"&&/^[rs]-\d+-[0-6]$/.test(id)))].slice(0,60);
     next={start,gap,mid,skip};
+    // v110 (isteğe bağlı): bitiş saati, boş etüt süresi, uzun mola ve hedef saati.
+    // Boş etüde ders seçilmez, etüt Odak'a işlenmez; eski kayıtta kalan free/log alanları yazılmaz.
+    const within=(v,min,max)=>Number.isInteger(v)&&v>=min&&v<=max;
+    if(within(plan.end,start+1,1439))next.end=plan.end;
+    if(within(plan.block,20,180))next.block=plan.block;
+    if(within(plan.long,30,180))next.long=plan.long;
+    if(within(plan.longAt,0,1439))next.longAt=plan.longAt;
   }
   const key="etut-"+day,had=Object.prototype.hasOwnProperty.call(w.mv,key),previous=w.mv[key];
+  if(!hadWeek)S.weeks[wk]=w;
   if(next)w.mv[key]=next;else delete w.mv[key];
   let saved=false;try{saved=save()===true;}catch(e){}
   if(!saved){
-    if(had)w.mv[key]=previous;else delete w.mv[key];
+    if(!hadWeek)delete S.weeks[wk];
+    else if(had)w.mv[key]=previous;else delete w.mv[key];
     if(typeof perfInvalidateState==="function")perfInvalidateState();
     return false;
   }

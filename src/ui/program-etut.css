@@ -88,6 +88,25 @@
 :root[data-visual-system]:not(#v) #mainWrap #program .rb-v103-free.rb-etut-break{margin-left:0;border-style:solid;border-color:transparent;background:repeating-linear-gradient(135deg,var(--d-soft) 0 8px,transparent 8px 16px);color:var(--d-accent)}
 :root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-timeline:empty{display:none}
 :root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-panel[hidden]{display:none}
+/* v110 · bitiş saati, boş etüt (yalnız "Ders" yazar; ders seçilmez, tik yok), uzun mola */
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-seg-free{background:color-mix(in srgb,currentColor 55%,transparent)}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-seg-long{background:currentColor}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-longline{display:flex;flex-wrap:wrap;align-items:center;gap:8px;color:var(--d-muted);font-size:13px;font-weight:650}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-longline b{padding:6px 10px;border-radius:11px;background:var(--d-chip,var(--d-soft));color:var(--d-chip-ink,var(--d-accent));font-size:14px;font-weight:800;font-variant-numeric:tabular-nums}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-longline button{min-height:34px;padding:0 10px;border:0;border-radius:11px;background:var(--d-soft);color:var(--d-accent);font-size:12.5px;font-weight:800}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-longline button:disabled{opacity:.4}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-longline :is(b,button)[hidden],:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-longline span:empty{display:none}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-row.rb-etut-free{border-left-color:var(--d-accent)}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-row.rb-etut-free .rb-etut-name em{color:var(--d-muted)}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-dot{grid-area:inc;display:grid;place-items:center;width:26px;height:26px;box-sizing:border-box;border:0;border-radius:8px;background:var(--d-soft);color:var(--d-chip-ink,var(--d-accent))}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-dot svg{width:20px;height:20px}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-row.rb-etut-meal{border-color:transparent;border-left-color:var(--d-chip-ink,var(--d-accent));background:var(--d-chip,var(--d-soft))}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-meal .rb-etut-dot{border:0}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-meal .rb-etut-name :is(b,em){color:var(--d-chip-ink,var(--d-accent))}
+/* Etüt sekmesi: boş etüt kartı (tik yok, yalnız "Ders" ve saat) ve uzun mola satırı */
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v103-slot>.rb-program-task[data-etut-free]{grid-template-columns:minmax(0,1fr);grid-template-areas:"body"}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v103-slot .rb-program-task div.rb-program-task-details{grid-template-columns:minmax(0,1fr);cursor:default}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v103-free.rb-etut-break.rb-etut-meal{padding:13px 12px;background:var(--d-chip,var(--d-soft));color:var(--d-chip-ink,var(--d-accent));font-size:13.5px;font-weight:800}
 @keyframes rb-etut-up{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:none}}
 @keyframes rb-etut-fade{from{opacity:0}to{opacity:1}}
 @keyframes rb-etut-rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
@@ -98,6 +117,8 @@
   :root[data-visual-system]:not(#v) #mainWrap #program .rb-etut:not([hidden]){animation:rb-etut-fade .25s ease both}
   :root[data-visual-system]:not(#v) #mainWrap #program .rb-etut:not([hidden]) .rb-etut-card{animation:rb-etut-up .45s cubic-bezier(.22,.9,.28,1) both}
   :root[data-visual-system]:not(#v) #mainWrap #program .rb-etut:not([hidden]) .rb-etut-row{animation:rb-etut-rise .4s cubic-bezier(.22,.9,.28,1) both;animation-delay:calc(var(--i,0)*45ms + .12s)}
+  /* Boş etüt ve uzun mola satırları her güncellemede yeniden kurulur; beliriş her seferinde oynamasın. */
+  :root[data-visual-system]:not(#v) #mainWrap #program .rb-etut:not([hidden]) .rb-etut-row[data-extra]{animation:none}
   :root[data-visual-system]:not(#v) #mainWrap #program .rb-etut:not([hidden]) .rb-etut-daybar i{animation:rb-etut-grow .5s cubic-bezier(.22,.9,.28,1) both;animation-delay:calc(var(--i,0)*30ms + .2s)}
   :root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-row[data-moved]{animation:rb-etut-flash .6s ease-out both!important}
   :root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-big b.rb-etut-bump{animation:rb-etut-bump .35s ease}

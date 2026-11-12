@@ -309,8 +309,7 @@ export function createRefinedProgramController(bridge:RefinedProgramBridge,now=(
       if(!bridge.setDayOrder||unique.length!==expected.length||unique.some(id=>!expected.includes(id)))return false;
       return bridge.setDayOrder(current.week,current.day,unique)!==false;
     },
-    setEtut(plan:EtutPlan|null){const current=snapshot();return Boolean(bridge.setEtut)&&bridge.setEtut!(current.week,current.day,plan)!==false;},
-    updateTask(id:string,text:string,week=bridge.visibleWeek()){const value=text.trim(),match=id.match(/^[rs]-\d+-([0-6])$/),dayIndex=match?Number(match[1]):-1,task=match&&parseDate(week)?refinedProgramTasks(bridge.readState(),week,dayIndex).find(item=>item.id===id):undefined;if(!task||!bridge.updateTask||!value||value.length>600)return false;return bridge.updateTask(week,id,value)!==false;},
+    setEtut(plan:EtutPlan|null){const current=snapshot();return Boolean(bridge.setEtut)&&bridge.setEtut!(current.week,current.day,plan)!==false;},    updateTask(id:string,text:string,week=bridge.visibleWeek()){const value=text.trim(),match=id.match(/^[rs]-\d+-([0-6])$/),dayIndex=match?Number(match[1]):-1,task=match&&parseDate(week)?refinedProgramTasks(bridge.readState(),week,dayIndex).find(item=>item.id===id):undefined;if(!task||!bridge.updateTask||!value||value.length>600)return false;return bridge.updateTask(week,id,value)!==false;},
     deleteTask(id:string,week=bridge.visibleWeek()){const match=id.match(/^[rs]-\d+-([0-6])$/),dayIndex=match?Number(match[1]):-1,task=match&&parseDate(week)?refinedProgramTasks(bridge.readState(),week,dayIndex).find(item=>item.id===id):undefined;if(!task||!bridge.deleteTask)return false;return bridge.deleteTask(week,id)!==false;}
   };
 }
@@ -367,8 +366,7 @@ export function installRefinedProgram():ProgramApi{
     toggleCellDone:(week,id)=>call("toggleCellDone",week,id),addToDay:(text,day,offset)=>call("addToDay",text,day,offset),
     addToDays:(text,days,offset)=>call("addToDays",text,days,offset) as ProgramAddResult,
     setDayOrder:(week,day,ids)=>call("programSetDayOrder",week,day,ids),
-    setEtut:(week,day,plan)=>call("programSetEtut",week,day,plan),
-    updateTask:(week,id,text)=>call("programUpdateTask",week,id,text),
+    setEtut:(week,day,plan)=>call("programSetEtut",week,day,plan),    updateTask:(week,id,text)=>call("programUpdateTask",week,id,text),
     deleteTask:(week,id)=>call("programDeleteTask",week,id)
   });
   const heading=element("header","rb-program-heading"),weekSummary=element("div","rb-program-week-summary");heading.append(element("h1","","Programım"),weekSummary);
@@ -739,10 +737,15 @@ export function installRefinedProgram():ProgramApi{
     if(state.view==="etut"){
       const etutPlan=readEtutPlan(rawState,state.week,state.day);
       const etut=etutPlan?etutSchedule(state.tasks.map(task=>({id:task.id,minutes:taskMinutes(task.text)})),etutPlan):null,etutLine=etut?etutSummary(etut):"";
-      etutBar.toggleAttribute("data-active",Boolean(etutLine));etutOpen.hidden=!state.tasks.length;
-      etutText.replaceChildren(element("b","",etutLine||"Etüt oluştur"),document.createTextNode(!state.tasks.length?"Bu gün için görev yok; önce Çalışma ekle.":etutLine?"Sırayı, süreyi ve molayı değiştirebilirsin":"Başlangıç ve molayı seç, dersler sırayla dizilsin"));
+      // Görev olmayan günde de etüt oluşturulur (ders bağlamak zorunlu değil).
+      etutBar.toggleAttribute("data-active",Boolean(etutLine));
+      etutText.replaceChildren(element("b","",etutLine||"Etüt oluştur"),document.createTextNode(!etutLine?"Başlangıç ve bitişi seç, etütler dizilsin":"Saatleri ve molaları değiştirebilirsin"));
       etutOpen.textContent=etutLine?"Düzenle":"Oluştur";
-      if(etut&&etutLine)renderEtutTimeline(etutList,etutTasks(state.tasks),etut,{toggle:id=>{controller.toggleTask(id);refresh();},open:id=>{const task=state.tasks.find(item=>item.id===id);if(task)openDetail(task,state.week);}});
+      if(etut&&etutLine)renderEtutTimeline(etutList,etutTasks(state.tasks),etut,{
+        // Görevli etüt: tik yalnız görevi tamamlar; Odak'a bir şey yazılmaz.
+        toggle:id=>{controller.toggleTask(id);refresh();},
+        open:id=>{const task=state.tasks.find(item=>item.id===id);if(task)openDetail(task,state.week);}
+      });
       else etutList.replaceChildren();
     }
     const realShare=originalShare();share.hidden=!realShare;shareStatus.hidden=!realShare;

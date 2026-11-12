@@ -19,3 +19,11 @@ test("visual stability hotfix removes continuous transform shimmer",()=>{
   assert.match(css,/\.screen\.active>\*[\s\S]*animation:none\s*!important/);
   assert.match(css,/@media \(pointer:coarse\)/);
 });
+
+test("ekran açılış animasyonu bitince katman bırakmaz; ekran içi pencereler alt menünün önünde kalır",()=>{
+  const css=read("src/ui/visual-stability-hotfix.css");
+  const rule=css.match(/\.screen\.active\{([^}]*)\}/)[1];
+  // "both"/"forwards" opacity'yi kalıcı tutar → stacking context → Etüt penceresinin düğmesi .tabbar arkasında kalır.
+  assert.match(rule,/yks-stable-screen-in[^;]*\bbackwards\b/);
+  assert.doesNotMatch(rule,/yks-stable-screen-in[^;]*\b(both|forwards)\b/);
+});

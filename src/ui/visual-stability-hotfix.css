@@ -8,8 +8,11 @@ body::before{
   will-change:auto !important;
 }
 
+/* backwards (both değil): bitince animasyon etkisi kalmaz. "both" opacity'yi kalıcı tuttuğu için ekran
+   ayrı katman (stacking context) oluyor, ekran içindeki pencereler (Etüt, görev ayrıntısı) alt menünün
+   (.tabbar) arkasında kalıyor ve alttaki "Etütleri oluştur" düğmesine dokunulamıyordu. */
 .screen.active{
-  animation:yks-stable-screen-in .16s ease-out both !important;
+  animation:yks-stable-screen-in .16s ease-out backwards !important;
   transform:none !important;
 }
 

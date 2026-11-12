@@ -52,6 +52,27 @@ test("etüt ayarı seçili güne yazılır, doğrulanır, kaldırılır; kayıt 
   assert.equal(h.controller.reorder(["s-1-4","s-0-4"]),true);assert.deepEqual(plain(data.mv["order-4"]),["s-1-4","s-0-4"]);
 });
 
+test("etüt v110: hiç görevi olmayan (kaydı açılmamış) haftada da etüt kaydedilir; kayıt olmazsa hafta açık kalmaz",()=>{
+  const h=harness(),plan={start:540,gap:15,mid:{},skip:[],end:720};delete h.state.weeks["2026-09-21"];
+  assert.equal(h.controller.setEtut({start:5000,gap:15}),false);assert.equal(h.controller.setEtut(null),false);
+  h.context.save=()=>false;assert.equal(h.controller.setEtut(plan),false);
+  assert.equal("2026-09-21" in h.state.weeks,false,"geçersiz ya da kaydedilemeyen plan hafta açmaz");
+  h.context.save=()=>true;assert.equal(h.controller.setEtut(plan),true);
+  assert.deepEqual(plain(h.state.weeks["2026-09-21"].mv["etut-4"]),plan);
+  assert.deepEqual(plain(h.controller.snapshot().tasks),[],"görev eklenmez");
+});
+
+test("etüt v110: pencereden gelen eski ders/Odak alanları kaydedilmez; görev tiki Odak'a yazmaz",()=>{
+  const h=harness(),data=h.state.weeks["2026-09-21"];
+  Object.assign(h.state,{pomoMin:{},pomoSubj:{},sessions:{}});
+  data.s[0][4]="Matematik · 60 dk";
+  assert.equal(h.controller.setEtut({start:540,gap:15,mid:{},skip:[],end:720,block:60,long:60,longAt:600,free:{f1:"Türkçe"},log:{f1:{m:60,subj:"Türkçe",t:0}}}),true);
+  assert.deepEqual(plain(data.mv["etut-4"]),{start:540,gap:15,mid:{},skip:[],end:720,block:60,long:60,longAt:600});
+  assert.equal(typeof h.context.programEtutLog,"undefined","Odak'a yazan fonksiyon yok");
+  assert.equal(h.controller.toggleTask("s-0-4"),true);assert.equal(h.controller.snapshot().tasks.find(task=>task.id==="s-0-4").done,true);
+  assert.deepEqual(plain([h.state.pomoMin,h.state.pomoSubj,h.state.sessions]),[{},{},{}],"tik Odak'a dakika eklemez");
+});
+
 test("day and week selection use the same legacy week hooks and preserve every task",()=>{
   const h=harness();h.state.weeks["2026-09-28"].s[0][1]="Gelecek salı";const before=JSON.stringify(h.state);
   assert.equal(h.controller.moveWeek(1),true);assert.equal(h.controller.selectDay(1),true);assert.equal(h.controller.snapshot().date,"2026-09-29");assert.equal(h.controller.snapshot().tasks[0].text,"Gelecek salı");
