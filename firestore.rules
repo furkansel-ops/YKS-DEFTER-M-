@@ -582,6 +582,8 @@ service cloud.firestore {
             && !request.resource.data.diff(resource.data).affectedKeys().hasAny(photoCoachKeys())
             && request.resource.data.thumb is string
             && request.resource.data.thumb.size() <= 60000
+            && request.resource.data.get('note', '') is string
+            && request.resource.data.get('note', '').size() <= 600
             && request.resource.data.updatedAt == request.time)
           ||
           (request.auth.uid == resource.data.coachUid

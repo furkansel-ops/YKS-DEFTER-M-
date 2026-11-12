@@ -69,6 +69,7 @@ test("v82 kurallar: iki koleksiyon; okuma yalnız öğrenci ve koç; koç yalnı
   assert.match(meta,/!request\.resource\.data\.diff\(resource\.data\)\.affectedKeys\(\)\.hasAny\(photoCoachKeys\(\)\)/,"öğrenci koç alanını değiştiremez");
   assert.match(meta,/request\.resource\.data\.diff\(resource\.data\)\.affectedKeys\(\)\.hasOnly\(photoCoachKeys\(\)\)/,"koç yalnız yorum/durum");
   assert.match(meta,/coachStatus in \['', 'review', 'solved'\]/);assert.match(meta,/thumb\.size\(\) <= 60000/);
+  assert.match(meta,/get\('note', ''\)\.size\(\) <= 600\s*&& request\.resource\.data\.updatedAt/,"güncellemede de not sınırı");
   assert.match(images,/image\.size\(\) <= 900000/);assert.match(images,/profileRole\(request\.auth\.uid, 'student'\)/);
   assert.match(read("src/ui/profile-page-v62.ts"),/for\(const name of \["coachingErrorPhotos","coachingErrorPhotoImages"\]\)/,"hesap silinince fotoğraflar da silinir");
 });
