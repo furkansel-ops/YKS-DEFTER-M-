@@ -7467,9 +7467,12 @@ async function fireReview(){
   if(c.lastReview===day||reviewDeliveryDay===day)return false;
   const n=(typeof reviewQueue==="function")?reviewQueue().length:0;
   const od=(typeof overdueTopics==="function")?overdueTopics().length:0;
-  if(!n&&!od)return false;
+  /* v113: Hata Defteri'nde sırası gelen fotoğraflı yanlışlar da sayılır. */
+  let w=0;try{ w=Number(window.YKSReviewReminder?.dueWrongsToday?.())||0; }catch(e){}
+  if(!n&&!od&&!w)return false;
   reviewDeliveryDay=day;
   const parts=[];
+  if(w)parts.push(w+" yanlış sorunun tekrar günü geldi");
   if(n)parts.push(n+" konunun tekrar zamanı geldi");
   if(od)parts.push(od+" konu hedef tarihini aştı");
   try{
