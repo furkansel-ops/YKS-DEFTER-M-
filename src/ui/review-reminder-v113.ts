@@ -68,7 +68,7 @@ function mountTimeRow():void{
 export function installReviewReminderV113():void{
   if(installed)return;installed=true;
   L.YKSReviewReminder={dueWrongsToday,schedule:scheduleReviewReminders};
-  mountTimeRow();
+  if(native())mountTimeRow(); // saat yalnız Android planlamasını etkiler; web'de gösterilmez
   L.saveReviewAt=()=>{
     const v=String((document.getElementById("notifReviewTime") as HTMLInputElement|null)?.value||"").trim();
     if(reminderTime(v)!==v){toast("Saat 00:00 ile 23:59 arasında olmalı");return false;}

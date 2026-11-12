@@ -53,5 +53,5 @@ test("v113 bağlantı: Android'de cihaz bildirimi planlanır, web açılış bil
   assert.doesNotMatch(read("android/app/src/main/AndroidManifest.xml"),/SCHEDULE_EXACT_ALARM|USE_EXACT_ALARM/,"tam saat alarmı izni istenmez");
   assert.match(app,/let w=0;try\{ w=Number\(window\.YKSReviewReminder\?\.dueWrongsToday\?\.\(\)\)\|\|0; \}catch\(e\)\{\}\s*if\(!n&&!od&&!w\)return false;/);
   assert.match(html,/id="notifReview" onclick="toggleNotif\('review'\)"/);
-  assert.match(ui,/input\.id="notifReviewTime"/);assert.match(ui,/toggle\.after\(label,row\)/,"saat satırı Tekrar zamanı düğmesinin altında");
+  assert.match(ui,/input\.id="notifReviewTime"/);assert.match(ui,/if\(native\(\)\)mountTimeRow\(\);/,"saat satırı web'de gösterilmez");assert.match(ui,/toggle\.after\(label,row\)/,"saat satırı Tekrar zamanı düğmesinin altında");
 });
