@@ -217,8 +217,10 @@ service cloud.firestore {
         && validAccountProfile(request.resource.data, userId)
         && request.resource.data.createdAt == request.time
         && request.resource.data.updatedAt == request.time
+        // v112 · Koç hesabı yalnız açık bir koç kayıt davetiyle açılır; öğrenci hesabı davetsiz açılır.
         && (
-          !request.resource.data.keys().hasAny(['registrationInvite'])
+          (request.resource.data.role == 'student'
+            && !request.resource.data.keys().hasAny(['registrationInvite']))
           ||
           (request.resource.data.role == 'coach'
             && request.resource.data.keys().hasAll(['registrationInvite'])

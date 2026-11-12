@@ -78,6 +78,14 @@ test("Koçluk hesap rolü Firestore seviyesinde kilitlidir",()=>{
   assert.match(rules,/allow list: if false/);
 });
 
+test("v112 koç hesabı yalnız açık kayıt davetiyle açılır; öğrenci davetsiz açılır",()=>{
+  const rules=read("firestore.rules"),block=rules.slice(rules.indexOf("match /accountProfiles/{userId}"),rules.indexOf("allow update",rules.indexOf("match /accountProfiles/{userId}")));
+  assert.match(block,/\(request\.resource\.data\.role == 'student'\s*&& !request\.resource\.data\.keys\(\)\.hasAny\(\['registrationInvite'\]\)\)/);
+  assert.match(block,/\(request\.resource\.data\.role == 'coach'\s*&& request\.resource\.data\.keys\(\)\.hasAll\(\['registrationInvite'\]\)\s*&& validCoachRegistrationInvite\(userId, request\.resource\.data\.registrationInvite\)\)/);
+  assert.doesNotMatch(block,/\(\s*!request\.resource\.data\.keys\(\)\.hasAny\(\['registrationInvite'\]\)\s*\|\|/,"davetsiz koç yolu kapalı");
+  assert.match(rules,/match \/coachRegistrationInvites\/\{inviteCode\}[\s\S]*?allow list, create, delete: if false;/,"davet istemciden oluşturulamaz");
+});
+
 test("Koç daveti 24 saatlik ve transaction içinde tek bağlantıya dönüşür",()=>{
   const rules=read("firestore.rules");
   assert.match(rules,/match \/coachInvites\/\{inviteCode\}/);
