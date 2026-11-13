@@ -47,11 +47,11 @@ test("Android CI paket ve kilit dosyasıyla aynı Capacitor sürümünden imzal�
   assert.match(workflow,/bundleRelease/);
   assert.match(workflow,/ANDROID_KEYSTORE_BASE64/);
   assert.match(workflow,/jarsigner -verify/);
-  assert.match(workflow,/actions\/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1/);
-  assert.match(workflow,/actions\/setup-node@820762786026740c76f36085b0efc47a31fe5020/);
-  assert.match(workflow,/actions\/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c/);
-  assert.match(workflow,/android-actions\/setup-android@40fd30fb8d7440372e1316f5d1809ec01dcd3699/);
-  assert.match(workflow,/actions\/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a/);
+  assert.match(workflow,/actions\/checkout@[0-9a-f]{40}/);
+  assert.match(workflow,/actions\/setup-node@[0-9a-f]{40}/);
+  assert.match(workflow,/actions\/setup-java@[0-9a-f]{40}/);
+  assert.match(workflow,/android-actions\/setup-android@[0-9a-f]{40}/);
+  assert.match(workflow,/actions\/upload-artifact@[0-9a-f]{40}/);
   assert.doesNotMatch(workflow,/uses:\s+[^\s#]+@v\d+/);
   assert.match(workflow,/github\.ref_protected/);
   assert.match(workflow,/bundletool\.jar" validate/);

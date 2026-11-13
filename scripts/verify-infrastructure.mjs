@@ -13,8 +13,9 @@ const [pkgText,versionText,tsconfigText,srcPkgText,ci,deploy,nvmrc,firestoreRule
 ]);
 const pkg=JSON.parse(pkgText),version=JSON.parse(versionText),tsconfig=JSON.parse(tsconfigText),srcPkg=JSON.parse(srcPkgText);
 const firebaseConfig=JSON.parse(firebaseConfigText),firebaseRc=JSON.parse(firebaseRcText);
-const checkoutPin="actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1";
-const setupNodePin="actions/setup-node@820762786026740c76f36085b0efc47a31fe5020";
+// Belirli SHA değil, tam 40 haneli SHA şartı: Dependabot sürüm güncellerken denetim bozulmaz.
+const checkoutPin=/actions\/checkout@[0-9a-f]{40}\b/;
+const setupNodePin=/actions\/setup-node@[0-9a-f]{40}\b/;
 
 must(pkg.private===true,"paket public npm yayınına açık olmamalı");
 must(pkg.version===version.version,"package.json ve version.json sürümleri eşleşmiyor");
@@ -59,8 +60,8 @@ must(/hash=await cloudHash\(json\)/.test(cloudHardener),"Yeni Firebase snapshot'
 must(/storedHash\.length===64\?await cloudHash\(json\):infraHash\(json\)/.test(cloudHardener),"Eski 8 haneli bulut hash geçiş uyumluluğu eksik");
 
 for(const [name,text] of [["CI",ci],["Pages",deploy]]){
-  must(text.includes(checkoutPin),`${name} değişmez checkout SHA'sını kullanmıyor`);
-  must(text.includes(setupNodePin),`${name} değişmez Node kurulum SHA'sını kullanmıyor`);
+  must(checkoutPin.test(text),`${name} değişmez checkout SHA'sını kullanmıyor`);
+  must(setupNodePin.test(text),`${name} değişmez Node kurulum SHA'sını kullanmıyor`);
   must(text.includes("node-version: 22"),`${name} ana doğrulamayı Node 22 ile yapmıyor`);
   must(text.includes("persist-credentials: false"),`${name} checkout kimlik bilgilerini gereksiz yere kalıcı tutuyor`);
   must(text.includes("npm ci --no-audit --no-fund"),`${name} deterministik/hafif npm ci komutunu kullanmıyor`);
