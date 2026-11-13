@@ -22,3 +22,4 @@ android/captures/
 android/yks-release-metadata.json
 work/
 google-services.json
+rules-tests/*.log
