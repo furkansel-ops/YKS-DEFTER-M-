@@ -131,7 +131,7 @@ jobs:
     timeout-minutes: 35
     environment: google-play-internal
     env:
-      CAPACITOR_VERSION: "8.5.2"
+      CAPACITOR_VERSION: "8.6.0"
       BUNDLETOOL_VERSION: "1.18.3"
       BUNDLETOOL_SHA256: "a099cfa1543f55593bc2ed16a70a7c67fe54b1747bb7301f37fdfd6d91028e29"
     steps:
