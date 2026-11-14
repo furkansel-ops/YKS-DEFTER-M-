@@ -1,0 +1,18 @@
+/* v117 · Hata analizi kartı (Deneme › Hatalar). Renkler exam-hub-v73 değişkenlerinden gelir. */
+#deneme .ei-card{margin-top:12px}
+#deneme .ei-reasons{display:grid;gap:8px}
+#deneme .ei-reason{display:grid;grid-template-columns:minmax(84px,30%) 1fr auto;align-items:center;gap:10px}
+#deneme .ei-reason small{color:var(--d-muted,#5f6b80);font-size:12.5px;font-weight:800}
+#deneme .ei-reason b{font-size:12.5px;white-space:nowrap}
+#deneme .ei-sub{margin-top:16px}
+#deneme .ei-heat{display:grid;gap:10px}
+#deneme .ei-row{display:grid;gap:6px}
+#deneme .ei-subject{justify-self:start;min-height:32px;padding:0;border:0;background:none;color:var(--d-ink,#121a2b);font:inherit;font-size:13px;font-weight:850;cursor:pointer}
+#deneme .ei-subject small{color:var(--d-muted,#5f6b80);font-weight:800}
+#deneme .ei-cells{display:flex;flex-wrap:wrap;gap:6px}
+#deneme .ei-cell,#deneme .ei-more{padding:6px 10px;border-radius:10px;border:1px solid var(--d-line,#e3e9f2);color:var(--d-ink,#121a2b);font-size:12px;font-weight:700}
+#deneme .ei-cell[data-level="1"]{background:color-mix(in srgb,var(--eh-bad) 10%,var(--d-surface,#fff))}
+#deneme .ei-cell[data-level="2"]{background:color-mix(in srgb,var(--eh-bad) 20%,var(--d-surface,#fff))}
+#deneme .ei-cell[data-level="3"]{background:color-mix(in srgb,var(--eh-bad) 32%,var(--d-surface,#fff))}
+#deneme .ei-cell[data-level="4"]{background:color-mix(in srgb,var(--eh-bad) 45%,var(--d-surface,#fff))}
+#deneme .ei-more{color:var(--d-muted,#5f6b80);border-style:dashed}
