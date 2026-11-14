@@ -336,3 +336,34 @@ test("v95 kitap sayıları: öğrenci bir kez yazar; koç yazamaz; değiştirile
   await assertFails(stu.collection("bookCounts").get(),"listelenemez");
   await assertSucceeds(verified(COACH).doc("bookCounts/ks1").get());
 });
+test("v127 yönetici davetleri: yalnız yönetici üretir, listeler, açık daveti iptal eder",async()=>{
+  const ADMIN="admin1",CODE="D".repeat(24),CODE2="E".repeat(24),USED="F".repeat(24);
+  const T=firebase.firestore.Timestamp,inDays=d=>T.fromMillis(Date.now()+d*864e5);
+  await env.withSecurityRulesDisabled(async ctx=>{
+    const db=ctx.firestore();
+    await db.doc(`admins/${ADMIN}`).set({note:"proje sahibi"});
+    await db.doc(`coachRegistrationInvites/${USED}`).set({status:"used",expiresAt:inDays(3),createdAt:T.now(),updatedAt:T.now(),usedBy:"x"});
+  });
+  const admin=verified(ADMIN),invite=(uid,extra={})=>({status:"open",expiresAt:inDays(7),createdAt:TS(),updatedAt:TS(),createdBy:uid,...extra});
+  await assertSucceeds(admin.doc(`admins/${ADMIN}`).get(),"yönetici kendi kaydını görür");
+  await assertFails(verified(COACH).doc(`admins/${ADMIN}`).get(),"başkasının kaydı görülmez");
+  await assertFails(verified(COACH).doc(`admins/${COACH}`).set({}),"istemci yönetici olamaz");
+  await assertFails(verified(COACH).doc(`coachRegistrationInvites/${CODE}`).set(invite(COACH)),"yönetici olmayan koç üretemez");
+  await assertFails(unverified(ADMIN).doc(`coachRegistrationInvites/${CODE}`).set(invite(ADMIN)),"doğrulanmamış e-posta");
+  await assertFails(admin.doc(`coachRegistrationInvites/${CODE}`).set(invite(ADMIN,{expiresAt:inDays(91)})),"en çok 90 gün");
+  await assertFails(admin.doc(`coachRegistrationInvites/${CODE}`).set(invite(ADMIN,{status:"used"})),"açık olmalı");
+  await assertFails(admin.doc(`coachRegistrationInvites/${CODE}`).set(invite(COACH)),"oluşturan kendisi olmalı");
+  await assertFails(admin.doc(`coachRegistrationInvites/${CODE}`).set(invite(ADMIN,{usedBy:"x"})),"fazla alan");
+  await assertFails(admin.doc(`coachRegistrationInvites/abc`).set(invite(ADMIN)),"kod biçimi");
+  await assertSucceeds(admin.doc(`coachRegistrationInvites/${CODE}`).set(invite(ADMIN)));
+  await assertSucceeds(admin.doc(`coachRegistrationInvites/${CODE2}`).set(invite(ADMIN,{expiresAt:inDays(90)})));
+  await assertSucceeds(admin.collection("coachRegistrationInvites").get(),"yönetici listeler");
+  await assertFails(verified(COACH).collection("coachRegistrationInvites").get(),"koç listeleyemez");
+  await assertFails(verified(COACH).doc(`coachRegistrationInvites/${CODE}`).delete(),"koç iptal edemez");
+  await assertFails(admin.doc(`coachRegistrationInvites/${USED}`).delete(),"kullanılmış davet silinmez");
+  await assertSucceeds(admin.doc(`coachRegistrationInvites/${CODE2}`).delete(),"açık davet iptal");
+  const NEWC="newc",db=verified(NEWC),b=db.batch();
+  b.update(db.doc(`coachRegistrationInvites/${CODE}`),{status:"used",usedBy:NEWC,usedAt:TS(),updatedAt:TS()});
+  b.set(db.doc(`accountProfiles/${NEWC}`),{uid:NEWC,role:"coach",displayName:"Yeni",coachTitle:"",specialization:"",registrationInvite:CODE,createdAt:TS(),updatedAt:TS()});
+  await assertSucceeds(b.commit(),"panelden üretilen davetle koç kaydı açılır");
+});

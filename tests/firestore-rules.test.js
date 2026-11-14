@@ -83,7 +83,12 @@ test("v112 koç hesabı yalnız açık kayıt davetiyle açılır; öğrenci dav
   assert.match(block,/\(request\.resource\.data\.role == 'student'\s*&& !request\.resource\.data\.keys\(\)\.hasAny\(\['registrationInvite'\]\)\)/);
   assert.match(block,/\(request\.resource\.data\.role == 'coach'\s*&& request\.resource\.data\.keys\(\)\.hasAll\(\['registrationInvite'\]\)\s*&& validCoachRegistrationInvite\(userId, request\.resource\.data\.registrationInvite\)\)/);
   assert.doesNotMatch(block,/\(\s*!request\.resource\.data\.keys\(\)\.hasAny\(\['registrationInvite'\]\)\s*\|\|/,"davetsiz koç yolu kapalı");
-  assert.match(rules,/match \/coachRegistrationInvites\/\{inviteCode\}[\s\S]*?allow list, create, delete: if false;/,"davet istemciden oluşturulamaz");
+  // v127: davet istemciden yalnız yönetici (admins/{uid}) tarafından üretilir, listelenir, açıkken iptal edilir.
+  const invites=rules.slice(rules.indexOf("match /coachRegistrationInvites/{inviteCode}"),rules.indexOf("match /coachInvites/{inviteCode}"));
+  assert.match(invites,/allow list: if isAdmin\(\);/);
+  assert.match(invites,/allow create: if isAdmin\(\)[\s\S]*?expiresAt <= request\.time \+ duration\.value\(90, 'd'\)[\s\S]*?createdBy == request\.auth\.uid;/);
+  assert.match(invites,/allow delete: if isAdmin\(\) && resource\.data\.status == 'open';/);
+  assert.match(rules,/match \/admins\/\{userId\} \{[\s\S]*?allow get: if verifiedUser\(\) && request\.auth\.uid == userId;\s*allow list, create, update, delete: if false;/,"yönetici listesi istemciden yazılamaz");
 });
 
 test("Koç daveti 24 saatlik ve transaction içinde tek bağlantıya dönüşür",()=>{

@@ -60,6 +60,12 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/studentCoachCodes/$(accessCode)).data.active == true;
     }
 
+    // v127: yönetici listesi (admins/{uid}) yalnız proje sahibi tarafından konsoldan ya da IAM ile yazılır.
+    function isAdmin() {
+      return verifiedUser()
+        && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
     function validAccountRole(roleName) {
       return roleName == 'student' || roleName == 'coach';
     }
@@ -237,10 +243,29 @@ service cloud.firestore {
       allow delete: if ownsUserSpace(userId);
     }
 
+    match /admins/{userId} {
+      // Panel yalnız kendi kaydına bakarak yönetici ekranını açar; istemci hiçbir zaman yazamaz.
+      allow get: if verifiedUser() && request.auth.uid == userId;
+      allow list, create, update, delete: if false;
+    }
+
     match /coachRegistrationInvites/{inviteCode} {
       allow get: if verifiedUser()
         && inviteCode.matches('^[A-Z2-9]{24}$');
-      allow list, create, delete: if false;
+      // v127: yönetici panelden davet üretir, listeler ve açık daveti iptal eder.
+      allow list: if isAdmin();
+      allow create: if isAdmin()
+        && inviteCode.matches('^[A-Z2-9]{24}$')
+        && request.resource.data.keys().hasOnly(['status', 'expiresAt', 'createdAt', 'updatedAt', 'createdBy'])
+        && request.resource.data.keys().hasAll(['status', 'expiresAt', 'createdAt', 'updatedAt', 'createdBy'])
+        && request.resource.data.status == 'open'
+        && request.resource.data.expiresAt is timestamp
+        && request.resource.data.expiresAt > request.time
+        && request.resource.data.expiresAt <= request.time + duration.value(90, 'd')
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time
+        && request.resource.data.createdBy == request.auth.uid;
+      allow delete: if isAdmin() && resource.data.status == 'open';
       allow update: if verifiedUser()
         && inviteCode.matches('^[A-Z2-9]{24}$')
         && resource.data.status == 'open'
