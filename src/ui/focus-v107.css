@@ -50,9 +50,8 @@
 :root[data-visual-system] #mainWrap #pomo #swCard .playbtn{background:var(--d-hero);color:var(--d-hero-ink)}
 /* Günlük hedef çubuğu Bugün kartında durur; sayaç kartındaki eşi gizlenir. */
 :root[data-visual-system] #mainWrap #pomo.v107-has-today #goalWrap{display:none!important}
-/* Kronometre: süre, sayaçtaki halkayla aynı ölçüde bir çemberin içinde. */
-:root[data-visual-system] #mainWrap #pomo #swCard .swface{display:grid;place-content:center;width:216px;height:216px;margin:8px auto 6px;border:12px solid var(--d-track);border-radius:50%;transition:border-color .4s}
-:root[data-visual-system] #mainWrap #pomo #swCard[data-run="running"] .swface{border-color:var(--d-accent)}
+/* Kronometre: çembersiz, süre kartın ortasında düz yazılır (v124). */
+:root[data-visual-system] #mainWrap #pomo #swCard .fcglow{display:none}
 
 /* ---------- Ne çalışıyorsun: tek satır, dokununca açılır ---------- */
 :root[data-visual-system] #mainWrap #pomo .v29-session-setup.v60-compact{padding:11px 12px;border-radius:18px}
