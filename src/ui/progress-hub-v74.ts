@@ -243,7 +243,7 @@ function render():void{
   hub.innerHTML=`<header class="ph-title"><h1>İlerleme</h1><p>${PERIOD_LABEL[period]} · ${VS_TEXT[period]}</p></header>
     <div class="ph-period" role="tablist" aria-label="Dönem">${(Object.keys(PERIOD_LABEL) as Period[]).map(p=>`<button type="button" role="tab" data-period="${p}" aria-selected="${period===p}">${PERIOD_LABEL[p]}</button>`).join("")}</div>
     ${hero(s,cur,prev)}
-    ${chart(s)}${subjectsCard(rows)}${topicsCard(s)}${attentionCard(s,rows)}
+    ${chart(s)}${(L as Loose).YKSMoodChart?.html(s)??""}${subjectsCard(rows)}${topicsCard(s)}${attentionCard(s,rows)}
     <button type="button" class="card ph-exam-link" data-go="deneme"><i class="ph-go-ic" aria-hidden="true"></i><span><b>Deneme gelişimi</b><small>Netler ve analiz Deneme sekmesinde</small></span><i class="ph-chev" aria-hidden="true"></i></button>
     ${reportsCard()}`;
   for(const [code,,id] of REPORTS){const card=parked.querySelector<HTMLElement>(`#${id}`)||byId(id),pane=byId(`phReport-${code}`);if(card&&pane)pane.append(card);}

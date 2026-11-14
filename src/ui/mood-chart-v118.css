@@ -1,0 +1,14 @@
+/* v118 · Ruh hali grafiği (İlerleme). 30 sütun × 3 satır: İyi üstte, Orta ortada, Zor altta. */
+#progress .mc-plot{display:grid;grid-template-columns:22px repeat(30,minmax(0,1fr));grid-template-rows:repeat(3,22px);align-items:center;justify-items:center;column-gap:2px}
+#progress .mc-plot [data-mood="good"]{grid-row:1}
+#progress .mc-plot [data-mood="mid"]{grid-row:2}
+#progress .mc-plot [data-mood="hard"]{grid-row:3}
+#progress .mc-y{grid-column:1;font-size:13px;line-height:1}
+#progress .mc-line{grid-column:2/-1;justify-self:stretch;height:1px;background:var(--d-line,#e3e9f2)}
+#progress .mc-dot{width:min(10px,100%);aspect-ratio:1;border-radius:50%;z-index:1}
+#progress .mc-dot[data-mood="good"]{background:var(--d-ok,#13906b)}
+#progress .mc-dot[data-mood="mid"]{background:var(--ph-warn)}
+#progress .mc-dot[data-mood="hard"]{background:var(--ph-bad)}
+#progress .mc-axis{display:flex;justify-content:space-between;margin:4px 0 0 24px;color:var(--d-muted,#5f6b80);font-size:11px;font-weight:700}
+#progress .mc-sum{display:flex;flex-wrap:wrap;gap:6px 14px;margin:10px 0 0;color:var(--d-muted,#5f6b80);font-size:12.5px;font-weight:700}
+#progress .mc-sum b{color:var(--d-ink,#121a2b)}

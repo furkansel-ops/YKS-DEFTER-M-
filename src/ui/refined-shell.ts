@@ -8,6 +8,7 @@ import {installBooksV89} from "./books-v89";
 import {installWrongReviewV96} from "./wrong-review-v96";
 import {installReviewReminderV113} from "./review-reminder-v113";
 import {installErrorInsightsV117} from "./error-insights-v117";
+import {installMoodChartV118} from "./mood-chart-v118";
 
 type ShellWindow=Window&{go?:(screen:string)=>void;v30Action?:(action:string)=>void;setMoreTab?:(panel:string)=>void};
 const legacy=()=>window as ShellWindow;
@@ -58,6 +59,7 @@ export function installRefinedShell(){
   try{installBooksV89();}catch(error){console.error("v89 kitaplarım",error);}
   try{installWrongReviewV96();}catch(error){console.error("v96 tekrar çöz",error);}
   try{installErrorInsightsV117();}catch(error){console.error("v117 hata analizi",error);}
+  try{installMoodChartV118();}catch(error){console.error("v118 ruh hali grafiği",error);}
   try{installReviewReminderV113();}catch(error){console.error("v113 tekrar hatırlatması",error);}
   try{installProgressHubV74();}catch(error){console.error("v74 ilerleme ekranı",error);}
   try{installAboutV78();}catch(error){console.error("v78 Hakkında",error);}
