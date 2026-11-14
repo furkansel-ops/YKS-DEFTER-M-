@@ -1099,6 +1099,19 @@ h2::after{
   background:var(--time-soft);color:var(--ochre-ink);
 }
 .twt.w3{background:var(--danger-soft);color:var(--danger);}
+/* v126 müfredat haritası: konu başına bir kare; renk konu durumundan (Başlanmadı → Pekiştirdim) */
+.cov-legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin:0 0 6px;font-size:12px;color:var(--d-muted,var(--ink2));}
+.cov-legend span{display:inline-flex;align-items:center;gap:6px;}
+.cov-row{padding:10px 0 8px;border-top:1px solid var(--d-line,var(--line));}
+.cov-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin:0 0 6px;font-size:13px;}
+.cov-head small{color:var(--d-muted,var(--ink2));font-weight:700;}
+.cov-grid{display:flex;flex-wrap:wrap;gap:4px;}
+.cov-sq{display:inline-block;width:22px;height:22px;padding:0;border:0;border-radius:6px;cursor:pointer;background:var(--d-track,var(--line));}
+.cov-legend .cov-sq{width:12px;height:12px;border-radius:3px;cursor:default;}
+.cov-sq.s1{background:color-mix(in srgb,var(--d-ok,var(--green)) 30%,var(--d-track,var(--line)));}
+.cov-sq.s2{background:color-mix(in srgb,var(--d-ok,var(--green)) 62%,var(--d-track,var(--line)));}
+.cov-sq.s3{background:var(--d-ok,var(--green));}
+button.cov-sq:focus-visible{outline:2px solid var(--d-accent,var(--accent));outline-offset:2px;}
 /* v122 tam ekran pencere açıkken arka sayfa kaymaz (src/ui/scroll-lock-v122.ts) */
 html[data-overlay-open],html[data-overlay-open] body{overflow:hidden;}
 /* v121 konu zorluk etiketi */
