@@ -22,6 +22,7 @@
 #deneme .eh-card-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin:0 0 10px}
 #deneme .eh-card-head b{font-size:15px}
 #deneme .eh-card-head small{color:var(--d-muted,#5f6b80);font-size:12px;font-weight:700;text-align:right}
+#deneme .eh-head-side{display:flex;align-items:center;gap:10px}
 #deneme .eh-eyebrow{display:block;color:var(--d-accent,#2f6bea)!important;font-size:11px!important;font-weight:850!important;letter-spacing:.06em;text-transform:uppercase}
 #deneme .eh-empty{color:var(--d-muted,#5f6b80);font-size:14px}
 #deneme .eh-linkbtn{border:0;background:none;padding:2px 4px;color:var(--d-accent,#2f6bea);font:inherit;font-size:13px;font-weight:800;cursor:pointer}

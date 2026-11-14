@@ -13,6 +13,7 @@ import {installReviewGapsV119} from "./review-gaps-v119";
 import {installExamCalendarV120} from "./exam-calendar-v120";
 import {installScrollLockV122} from "./scroll-lock-v122";
 import {installBreakReminderV123} from "./break-reminder-v123";
+import {installReviewSheetV125} from "./review-sheet-v125";
 
 type ShellWindow=Window&{go?:(screen:string)=>void;v30Action?:(action:string)=>void;setMoreTab?:(panel:string)=>void};
 const legacy=()=>window as ShellWindow;
@@ -68,6 +69,7 @@ export function installRefinedShell(){
   try{installExamCalendarV120();}catch(error){console.error("v120 deneme takvimi",error);}
   try{installScrollLockV122();}catch(error){console.error("v122 kaydırma kilidi",error);}
   try{installBreakReminderV123();}catch(error){console.error("v123 mola uyarısı",error);}
+  try{installReviewSheetV125();}catch(error){console.error("v125 tekrar föyü",error);}
   try{installReviewReminderV113();}catch(error){console.error("v113 tekrar hatırlatması",error);}
   try{installProgressHubV74();}catch(error){console.error("v74 ilerleme ekranı",error);}
   try{installAboutV78();}catch(error){console.error("v78 Hakkında",error);}

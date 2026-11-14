@@ -335,7 +335,7 @@ function renderHata(pane:HTMLElement):void{
   html+=`<div class="eh-add-row">${due?`<button type="button" class="btn" data-act="wrong-review">${ic("rep")}Tekrar çöz · ${due} soru</button>`:""}<button type="button" class="btn green" data-act="err-form" aria-expanded="${errFormOpen}">${errFormOpen?"Formu kapat":"+ Hata ekle"}</button></div>`;
   if(errFormOpen)html+=errorForm();
   html+=(L as Loose).YKSErrorInsights?.html(rows)??""; // v117 neden dağılımı + konu ısı haritası
-  html+=`<div class="card eh-errors"><div class="eh-card-head"><b>Hata Defteri</b><small>${shown.length} kayıt</small></div>`;
+  html+=`<div class="card eh-errors"><div class="eh-card-head"><b>Hata Defteri</b><span class="eh-head-side"><small>${shown.length} kayıt</small>${open.length?`<button type="button" class="btn ghost small" data-act="print-sheet">Föy yazdır</button>`:""}</span></div>`;
   html+=shown.length?shown.slice(0,errLimit).map(r=>{
     const meta=[r.n>1||r.kind==="wrong"?`${r.n} yanlış`:"",r.exam,r.question?`Soru ${r.question}`:"",r.reason,r.date?dayLabel(r.date):""].filter(Boolean).join(" · ");
     const coach=r.coach?`<div class="eh-coach-note${r.coach.status?" is-"+r.coach.status:""}"><b>KOÇUN NOTU${r.coach.status==="review"?" · TEKRAR GEREKLİ":r.coach.status==="solved"?" · ÇÖZÜLDÜ":""}</b>${r.coach.comment?esc(r.coach.comment):""}</div>`:"";
@@ -495,6 +495,7 @@ function onPaneClick(event:Event):void{
   else if(a==="more-errors"){errLimit+=40;render();}
   else if(a==="heat"){errSubject=act.dataset.subject||"";errFilter="all";errLimit=40;render();byId("examHub-hata")?.querySelector(".eh-errors")?.scrollIntoView({block:"start"});}
   else if(a==="wrong-review")(L as Loose).YKSWrongReview?.open();
+  else if(a==="print-sheet"){const rows=errorRows().filter(r=>!r.resolved&&(!errSubject||r.subject===errSubject)&&(errFilter!=="photo"||r.photos>0));(L as Loose).YKSReviewSheet?.open(rows,errSubject?errSubject+" · tekrar föyü":"Tekrar föyü");}
   else if(a==="photo-share"){const s=state();s.coachPhotoShare=(act as HTMLInputElement).checked;save();window.dispatchEvent(new CustomEvent("yks:data-changed",{detail:{source:"coach-photo-share"}}));toast(s.coachPhotoShare?"Soru fotoğrafların koçunla paylaşılacak":"Fotoğraf paylaşımı kapatıldı; paylaşılanlar koçtan silinecek");}
   else if(a==="clear-pick"){picked.length=0;render();}
 }
