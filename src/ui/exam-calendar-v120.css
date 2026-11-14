@@ -1,0 +1,9 @@
+/* v120 · Deneme takvimi kartı (Deneme › Özet). Satır düzeni exam-hub-v73'ün eh-hist ızgarasını kullanır. */
+#deneme .ec-card{margin-top:12px}
+#deneme .ec-when{display:grid;justify-items:center;min-width:44px;color:var(--d-ink,#121a2b);line-height:1.1}
+#deneme .ec-when b{font-size:17px}
+#deneme .ec-when small{color:var(--d-muted,#5f6b80);font-size:11px;font-weight:700}
+#deneme .ec-row.is-due .ec-when b{font-size:13px;color:var(--eh-warn)}
+#deneme .ec-act{display:flex;align-items:center;gap:6px}
+#deneme .ec-act .btn{margin:0;width:auto}
+#deneme .ec-form{margin-top:10px;padding-top:10px;border-top:1px solid var(--d-line,#e3e9f2)}

@@ -38,6 +38,11 @@ const MONTHS=["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağust
 const DEF_R=2, DEF_S=4;
 const ST_LABEL=["Başlanmadı","İşledim","Soru çözdüm","Pekiştirdim"];
 const REVIEW_GAPS=[3,7,21];
+/* v119 · Tekrar aralıkları ayarlanabilir: 3 adım sabit kalır, gün değerleri S.studyPrefs.reviewGaps'ten gelir. */
+function reviewGapsValid(g){return Array.isArray(g)&&g.length===3&&g.every((n,i)=>Number.isInteger(n)&&n>=1&&n<=120&&(i===0||n>g[i-1]));}
+function syncReviewGaps(){try{const g=S&&S.studyPrefs&&S.studyPrefs.reviewGaps,v=reviewGapsValid(g)?g:[3,7,21];for(let i=0;i<3;i++)REVIEW_GAPS[i]=v[i];}catch(e){}}
+function reviewGapsText(){return REVIEW_GAPS[0]+"., "+REVIEW_GAPS[1]+". ve "+REVIEW_GAPS[2]+". gün";}
+function setReviewGaps(g){if(!reviewGapsValid(g))return false;if(!S.studyPrefs||typeof S.studyPrefs!=="object")S.studyPrefs={};S.studyPrefs.reviewGaps=g.slice();perfInvalidateState();save();renderAll();return true;}
 const DENEME_SUBJECTS={
   TYT:[["Türkçe",40],["Sosyal Bilimler",20],["Temel Matematik",40],["Fen Bilimleri",20]],
   AYT:[["Matematik",40],["Fizik",14],["Kimya",13],["Biyoloji",13],["Edebiyat",24],["Tarih-1",10],["Coğrafya-1",6],["Tarih-2",11],["Coğrafya-2",11],["Felsefe Grubu",12],["Din Kültürü",6]],
@@ -64,6 +69,7 @@ const perfIdleJobs=new Map(),perfRafJobs=new Map(),perfMemoCache=new Map();
 let perfMemoStateRef=null,perfStateEpoch=0;
 
 function perfInvalidateState(){
+  syncReviewGaps();
   perfStateEpoch++;
   perfMemoCache.clear();
   perfMemoStateRef=S;
@@ -230,7 +236,7 @@ const DEF={
   puanTuru:"SAY",hedefSira:0,morning:{day:"",done:[],hidden:false},
   contracts:[],denemeGun:6,log:[],targets:[],templates:[],
   topicRes:{},camp:null,
-  smartPlan:{},/* legacy v3.1.1: yalnız eski veriyi kayıpsız taşımak için */examTasks:[],studyPrefs:{autoPlan:false},
+  smartPlan:{},/* legacy v3.1.1: yalnız eski veriyi kayıpsız taşımak için */examTasks:[],examPlans:[],studyPrefs:{autoPlan:false},
   learning:{cards:[],formulaFav:[],reviewLog:[]},
   lab:{paragraphLog:[],elementFav:[],timelineFav:[],topicFav:[]},
   notif:{on:false,pomo:true,review:true,evening:true,eveningAt:"21:00",lastEvening:"",lastReview:""},
@@ -240,6 +246,7 @@ const DEF={
   coef:{tytBase:100,tytK:3.33,ayBase:100,ayTyt:1.40,ayAyt:1.80,obpK:0.60}
 };
 var S=load();
+syncReviewGaps();
 let lastPersistedJSON="";
 try{
   const __raw=localStorage.getItem(STORAGE_KEY)||"";
@@ -381,6 +388,8 @@ function normalize(o){
   o.hedefSira=(o.hedefSira|0)>0&&(o.hedefSira|0)<=1000000?(o.hedefSira|0):0;
   if(!o.smartPlan||typeof o.smartPlan!=="object"||Array.isArray(o.smartPlan))o.smartPlan={}; /* legacy: yalnız kayıpsız uyumluluk */
   if(!Array.isArray(o.examTasks))o.examTasks=[];
+  /* v120 deneme takvimi: yalnız geçerli tarihli planlar, en çok 60 */
+  o.examPlans=(Array.isArray(o.examPlans)?o.examPlans:[]).filter(x=>x&&typeof x==="object"&&/^\d{4}-\d{2}-\d{2}$/.test(x.date)).slice(-60).map((x,i)=>({id:bigInt(x.id)||i+1,date:x.date,name:String(x.name||"Deneme").slice(0,80),type:["TYT","AYT","YDT","BRANS"].includes(x.type)?x.type:"TYT"}));
   o.examTasks=o.examTasks.filter(x=>x&&typeof x==="object"&&typeof x.label==="string"&&x.label.trim()).slice(-100).map((x,i)=>({
     id:bigInt(x.id)||Date.now()+i,examId:bigInt(x.examId),at:bigInt(x.at)||Date.now(),
     kind:["analysis","review","questions","weak"].includes(x.kind)?x.kind:"analysis",
@@ -752,6 +761,7 @@ function overallPct(){
 }
 /* Aralıklı tekrar kuyruğu */
 function reviewQueue(){
+  syncReviewGaps(); // S doğrudan değiştirilmişse (öz sınama, geri yükleme) aralık yine güncel olsun
   return perfMemo("reviewQueue:"+todayKey(),()=>{
     const t0=todayKey(),out=[];
     Object.keys(S.topics).forEach(k=>{
@@ -2007,7 +2017,7 @@ function toggleSubj(i){
 function renderReviewQueue(){
   const w=el("reviewBox");if(!w)return;const plan=v4UpcomingReviews(),q=plan.filter(x=>x.status!=="upcoming"),upcoming=plan.filter(x=>x.status==="upcoming");el("revCount").textContent=q.length;v105SyncReviews();
   let html='<div class="v4-topic-section-head"><div><span>Tekrar planı</span><b>'+q.length+' şimdi gerekli · '+upcoming.length+' önümüzdeki 7 gün</b></div></div>';
-  if(!q.length&&!upcoming.length){w.innerHTML=html+'<div class="empty">Şu an veya önümüzdeki 7 günde tekrar bekleyen konu yok.<br>Bir konuyu 3. kademeye aldığında 3., 7. ve 21. gün planı başlar.</div>';return}
+  if(!q.length&&!upcoming.length){w.innerHTML=html+'<div class="empty">Şu an veya önümüzdeki 7 günde tekrar bekleyen konu yok.<br>Bir konuyu 3. kademeye aldığında '+reviewGapsText()+' planı başlar.</div>';return}
   if(q.length)html+='<div class="v4-review-group"><small>Şimdi tekrar et</small>'+q.slice(0,30).map(r=>'<div class="revrow"><div><div class="rt">'+esc(r.subj)+' · '+esc(r.topic)+'</div><div class="rm">'+r.gap+'. gün tekrarı · '+parseKey(r.due).toLocaleDateString('tr-TR',{day:'numeric',month:'short'})+(r.status==="overdue"?' · '+r.late+' gün gecikmiş':' · bugün')+'</div></div><div class="rev-actions"><button class="btn ghost tiny" onclick="openTopicDetail(\''+v26Arg(r.exam)+'\',\''+v26Arg(r.subj)+'\',\''+v26Arg(r.topic)+'\')">Detay</button><button class="btn green tiny" onclick="doReview(\''+v26Arg(r.key)+'\','+r.gi+')">Yaptım</button></div></div>').join('')+'</div>';
   if(upcoming.length)html+='<div class="v4-review-group"><small>Sıradaki 7 gün</small>'+upcoming.slice(0,12).map(r=>'<div class="revrow"><div><div class="rt">'+esc(r.subj)+' · '+esc(r.topic)+'</div><div class="rm">'+r.gap+'. gün tekrarı · '+parseKey(r.due).toLocaleDateString('tr-TR',{day:'numeric',month:'short'})+'</div></div><button class="btn ghost tiny" onclick="openTopicDetail(\''+v26Arg(r.exam)+'\',\''+v26Arg(r.subj)+'\',\''+v26Arg(r.topic)+'\')">Detay</button></div>').join('')+'</div>';w.innerHTML=html;
 }
@@ -2023,7 +2033,7 @@ function openTopicDetail(exam,subj,topic){const key=tkey(exam,subj,topic);v26Top
 function closeTopicDetail(){const m=el("v26TopicModal");if(m){m.classList.remove("open");m.setAttribute("aria-hidden","true")}v26TopicOpen=null}
 function renderTopicDetail(){
   if(!v26TopicOpen)return;const {exam,subj,topic,key}=v26TopicOpen,w=el("v26TopicDetail");if(!w)return;const ctx=v26BuildContext(),t=tget(key),study=ctx.study[key]||{total:0,last:"",days:[]},wrong=ctx.wrong[key]||{total:0,last:"",entries:0,rows:[],examMarked:0},pr=ctx.priority[key],risk=v26RiskInfo(pr),due=ctx.due[key],rev=(t.rev||[]).length;
-  let rep='<div class="v26-mini-empty">Konu pekiştirildiğinde 3., 7. ve 21. gün tekrarları burada görünür.</div>';if(t.st===3&&t.ts){rep='<div class="v26-review-steps">'+REVIEW_GAPS.map((gap,gi)=>{const done=(t.rev||[]).includes(gi),date=addDaysKey(t.ts,gap),delta=diffKeys(date,todayKey()),isDue=!done&&delta>=0,cls=done?'done':(isDue?(delta>0?'late':'due'):''),status=done?'Tamamlandı':(isDue?(delta>0?delta+' gün gecikti':'Bugün'):'Planlı');return '<div class="v26-review-step '+cls+'"><b>'+gap+'. gün</b>'+parseKey(date).toLocaleDateString('tr-TR',{day:'numeric',month:'short'})+' · '+status+'</div>'}).join('')+'</div>'}
+  let rep='<div class="v26-mini-empty">Konu pekiştirildiğinde '+reviewGapsText()+' tekrarları burada görünür.</div>';if(t.st===3&&t.ts){rep='<div class="v26-review-steps">'+REVIEW_GAPS.map((gap,gi)=>{const done=(t.rev||[]).includes(gi),date=addDaysKey(t.ts,gap),delta=diffKeys(date,todayKey()),isDue=!done&&delta>=0,cls=done?'done':(isDue?(delta>0?'late':'due'):''),status=done?'Tamamlandı':(isDue?(delta>0?delta+' gün gecikti':'Bugün'):'Planlı');return '<div class="v26-review-step '+cls+'"><b>'+gap+'. gün</b>'+parseKey(date).toLocaleDateString('tr-TR',{day:'numeric',month:'short'})+' · '+status+'</div>'}).join('')+'</div>'}
   const studyRows=study.days.length?study.days.slice(0,8).map(x=>'<div class="dayrow"><span class="k">'+parseKey(x.date).toLocaleDateString('tr-TR',{day:'numeric',month:'short',year:'numeric'})+'</span><span class="v">'+fmtHM(x.min)+'</span></div>').join(''):'<div class="v26-mini-empty">Bu konu seçilerek kaydedilmiş çalışma oturumu yok.</div>';
   const kindName={bilmiyordum:'Bilgi eksiği',dikkat:'Dikkatsizlik',sure:'Süre'};const wrongRows=wrong.rows.length?wrong.rows.slice(0,8).map(x=>'<div class="dayrow"><span class="k">'+parseKey(x.date||todayKey()).toLocaleDateString('tr-TR',{day:'numeric',month:'short'})+(x.kind?' · '+esc(kindName[x.kind]||x.kind):'')+(x.deneme?' · deneme':'')+'</span><span class="v">'+Math.max(1,+x.n||1)+' yanlış</span></div>').join(''):'<div class="v26-mini-empty">Bu konu için yanlış kaydı yok.</div>';
   const why=pr&&pr.reasons.length?pr.reasons.join(' · '):'Belirgin risk nedeni yok';
@@ -3417,6 +3427,7 @@ function renderAfterExternalState(){
   perfIdle("external-full-refresh",()=>renderAll(),1400);
 }
 function renderAll(){
+  syncReviewGaps();
   safeRender("home",()=>renderHome());
   safeRender("plan",()=>renderPlan()); safeRender("calendar",()=>renderCalendar()); safeRender("day-detail",()=>renderDayDetail()); safeRender("procrast",()=>renderProcrast());
   safeRender("subjects",()=>renderSubjects()); safeRender("reviews",()=>renderReviewQueue());

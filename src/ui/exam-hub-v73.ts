@@ -229,6 +229,7 @@ function renderOzet(pane:HTMLElement):void{
   html+=`<button type="button" class="card eh-loop" data-act="tab" data-tab="hata"><span class="eh-card-head"><b>Öğrenme döngüsü</b><small>yanlıştan kontrole</small></span>
     <span class="eh-loop-steps"><span>Kayıt<b>${loop.records}</b></span><span>Eksik konu<b>${loop.topics}</b></span><span class="${loop.reviews?"is-due":""}">Tekrar<b>${loop.reviews}</b></span><span>Kontrol<b>${loop.check}</b></span></span>
     <span class="eh-hint">${esc(loop.hint)}</span></button>`;
+  html+=(L as Loose).YKSExamCalendar?.html()??""; // v120 deneme takvimi
   pane.innerHTML=html;
 }
 function loopStats():{records:number;topics:number;reviews:number;check:number;hint:string}{
