@@ -1099,6 +1099,8 @@ h2::after{
   background:var(--time-soft);color:var(--ochre-ink);
 }
 .twt.w3{background:var(--danger-soft);color:var(--danger);}
+/* v122 tam ekran pencere açıkken arka sayfa kaymaz (src/ui/scroll-lock-v122.ts) */
+html[data-overlay-open],html[data-overlay-open] body{overflow:hidden;}
 /* v121 konu zorluk etiketi */
 .topic-diff{font-weight:750;}
 .topic-diff.d1{color:var(--d-ok,var(--success));}
