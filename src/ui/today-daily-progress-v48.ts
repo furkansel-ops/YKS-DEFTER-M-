@@ -120,7 +120,7 @@ export function installTodayDailyProgressV48():{installed:boolean}{
           (safe(due.late)>0?" · "+safe(due.late)+" gün gecikmiş":""));
         box.append(info);
       }else if(safe(snapshot.dueCount)===0){
-        box.append(create("p","today-daily-insight-note","Şu an bekleyen 3–7–21 tekrarı yok."));
+        box.append(create("p","today-daily-insight-note","Şu an bekleyen konu tekrarı yok."));
       }
       const gap=tracker.rows.find(row=>row.state!=="verified");
       if(gap){

@@ -1099,6 +1099,11 @@ h2::after{
   background:var(--time-soft);color:var(--ochre-ink);
 }
 .twt.w3{background:var(--danger-soft);color:var(--danger);}
+/* v121 konu zorluk etiketi */
+.topic-diff{font-weight:750;}
+.topic-diff.d1{color:var(--d-ok,var(--success));}
+.topic-diff.d3{color:var(--danger);}
+.v121-diff .v{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;}
 button.tres{
   font-size:11px;margin-left:6px;padding:2px 7px;border-radius:999px;cursor:pointer;
   border:.5px solid var(--glass-line);background:var(--fill);color:var(--label-3);
