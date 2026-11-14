@@ -1,0 +1,4 @@
+/* v123 uzun oturum mola uyarısı (kronometre kartının üstünde) */
+.v123-break{margin:0 0 12px;padding:12px 14px;border-radius:14px;background:var(--time-soft);color:var(--ink,inherit);display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;}
+.v123-break p{margin:0;flex:1 1 220px;font-size:14px;line-height:1.45;}
+.v123-break-actions{display:flex;gap:8px;flex-wrap:wrap;}
