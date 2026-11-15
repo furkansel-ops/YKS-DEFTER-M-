@@ -196,11 +196,11 @@ test("v106 kurulum: dönem seçimi kartların içinde, simgeler çizgi, görün�
   const v106=read("src/ui/exam-v106.css"),app=read("app.js");
   assert.match(source,/<select class="eh-win" data-win aria-label="Analiz aralığı">/);
   assert.match(source,/t\.dataset\.win!==undefined\)\{call\("setV315DashWindow",num\(t\.value\)\);return;\}/);
-  assert.match(source,/<b>Dersler<\/b>\$\{winSelect\(\)\}/);
+  assert.match(source,/<b>Gidişat<\/b>\$\{winSelect\(\)\}/);
   assert.match(source,/hero\.id="examHubHero";hero\.className="eh-hero-slot";byId\("v315Kpis"\)\?\.before\(hero\);/);
   assert.match(source,/for\(const id of \["v315Dashboard",\.\.\.TABS\.map\(tab=>`examHub-\$\{tab\}`\)\]\)/,"pano içindeki kart ve seçim de dinlenir");
   assert.doesNotMatch(source,/📷|✎/,"emoji yerine çizgi simge");
-  for(const name of ["cam","pen","bin","rep","top","aim"]){assert.ok(source.includes(`ic("${name}")`),name);assert.ok(v106.includes(`[data-ic="${name}"]{--eh-i:var(--i10`),name+" stili");}
+  for(const name of ["cam","pen","bin","rep"]){assert.ok(source.includes(`ic("${name}")`),name);assert.ok(v106.includes(`[data-ic="${name}"]{--eh-i:var(--i10`),name+" stili");}
   assert.match(v106,/#deneme \.v315-window-seg\{display:none\}/);assert.match(v106,/#v315Kpis \.v315-kpi:first-child\{display:none\}/,"son net yalnız kartta yazar");
   assert.match(read("src/ui/exam-dashboard.ts"),/metric\("Değişim",/);assert.match(read("index.html"),/onclick="toggleV315ExamForm\(\)">\+ Deneme<\/button>/);
   assert.match(read("src/main.ts"),/import "\.\/ui\/topics-v105\.css";\nimport "\.\/ui\/exam-v106\.css";\n\n/);

@@ -12,7 +12,7 @@
   --i106-down:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
 }
 [data-ic="cam"]{--eh-i:var(--i106-cam)}[data-ic="pen"]{--eh-i:var(--i106-pen)}[data-ic="bin"]{--eh-i:var(--i106-bin)}
-[data-ic="top"]{--eh-i:var(--i106-top)}[data-ic="aim"]{--eh-i:var(--i106-aim)}[data-ic="rep"]{--eh-i:var(--i105-rep)}
+[data-ic="rep"]{--eh-i:var(--i105-rep)}
 :root[data-visual-system] #mainWrap #deneme .eh-ic{display:inline-block;flex:none;width:16px;height:16px;background:currentColor;-webkit-mask:var(--eh-i) center/contain no-repeat;mask:var(--eh-i) center/contain no-repeat;vertical-align:-3px}
 :root[data-visual-system] #mainWrap #deneme .eh-bar{display:block;height:5px;border-radius:9px;background:var(--d-track);overflow:hidden}
 :root[data-visual-system] #mainWrap #deneme .eh-bar i{display:block;height:100%;border-radius:inherit;background:var(--d-accent);transform-origin:left}

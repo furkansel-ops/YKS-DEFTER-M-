@@ -2,6 +2,7 @@ import "./exam-hub-v73.css";
 import {analyzeExams,type ExamAnalysisType,type ExamAnalysisWindow} from "../domain/exam-analysis-service.ts";
 import {analyzeLearningCycle} from "../domain/learning-cycle-analysis-service";
 import {isDue} from "../domain/wrong-review.ts";
+import {subjectLosses,topTopics,reasonShares,examsToTarget,reportActions} from "../domain/exam-report.ts";
 
 /* v73 · Deneme ekranı: Özet · Analiz · Hatalar · Geçmiş sekmeleri, adım adım deneme ekleme,
    tek Hata Defteri listesi, iki deneme karşılaştırma ve ayarlar sayfası.
@@ -251,21 +252,25 @@ function renderAnaliz(pane:HTMLElement):void{
   const type=selectedType(),win=selectedWindow(),a=analyzeExams(state() as never,type,win);
   if(!a.count){pane.innerHTML=`<div class="card eh-empty">Analiz için önce bir ${esc(typeLabel(type))} denemesi ekle.</div>`;return;}
   const s=state(),range=exams(type).slice(win>0?-win:0),inList=new Set(range.map(d=>String(d.id)));
-  const counts=new Map<string,Map<string,number>>();
-  for(const w of list(s.wrongLog)){if(!inList.has(String(w.deneme??"")))continue;const subject=canonical(w.subject),topic=String(w.topic||"Konu");const m=counts.get(subject)??new Map<string,number>();m.set(topic,(m.get(topic)??0)+Math.max(1,num(w.n)));counts.set(subject,m);}
-  const topFor=(name:string)=>{let best:{topic:string;n:number}|undefined;for(const subject of [name,...(GROUP[name]??[])])for(const [topic,n] of counts.get(subject)??[])if(!best||n>best.n)best={topic,n};return best;};
-  const dyb=new Map<string,{d:number;y:number;b:number}>();
-  for(const exam of range)for(const r of results(exam)){const name=canonical(r.name);const cur=dyb.get(name)??{d:0,y:0,b:0};cur.d+=num(r.d);cur.y+=num(r.y);cur.b+=num(r.b);dyb.set(name,cur);}
-  const subjectHtml=a.subjects.map(sub=>{
-    const avgCap=sub.successPercent!=null&&sub.successPercent>0?sub.averageNet/sub.successPercent*100:0,c=dyb.get(sub.name),q=c?c.d+c.y+c.b:0,top=topFor(sub.name);
-    const bar=q?`<span class="eh-dyb" aria-label="Doğru %${Math.round(c!.d/q*100)}, yanlış %${Math.round(c!.y/q*100)}, boş %${Math.round(c!.b/q*100)}"><i class="c" style="width:${c!.d/q*100}%"></i><i class="w" style="width:${c!.y/q*100}%"></i><i class="e" style="width:${c!.b/q*100}%"></i></span>`:"";
-    const d=sub.latestDelta;
-    return `<div class="eh-subj">${tile(sub.name)}<div><div class="eh-subj-row"><b>${esc(sub.name)}</b><small>${fmt(sub.averageNet)}${avgCap?" / "+Math.round(avgCap):""}${d!=null&&d!==0?` <span class="${tone(d)}">${d>0?"▲":"▼"} ${fmt(Math.abs(d))}</span>`:""}</small></div>${bar}${top?`<small class="eh-subj-top">En çok yanlış: <b>${esc(top.topic)}</b> (${top.n})</small>`:""}</div></div>`;
-  }).join("");
-  const st=a.strongest,att=a.needsAttention;
-  let html=`<div class="card eh-subjects"><div class="eh-card-head"><b>Dersler</b>${winSelect()}</div>${subjectHtml||'<p class="hint">Ders bazlı sonuç girdikçe burada görünür.</p>'}<div class="eh-legend"><span><i class="c"></i>Doğru</span><span><i class="w"></i>Yanlış</span><span><i class="e"></i>Boş</span><em>${a.count} deneme ortalaması</em></div></div>`;
-  if(st||att)html+=`<div class="eh-sw">${st?`<div class="eh-good">${ic("top")}<span><small>En güçlü</small><b>${esc(st.name)}</b><small>%${st.successPercent??0} başarı</small></span></div>`:""}${att?`<div class="eh-bad">${ic("aim")}<span><small>Odaklan</small><b>${esc(att.name)}</b><small>%${att.successPercent??0} başarı${att.periodDelta!=null&&att.periodDelta<0?` · ${fmt(att.periodDelta)} net`:""}</small></span></div>`:""}</div>`;
-  if(a.insights.length)html+=`<div class="card eh-insights"><div class="eh-card-head"><b>Kısa değerlendirme</b></div><ul>${a.insights.map(line=>`<li>${esc(line)}</li>`).join("")}</ul></div>`;
+  const wrongs=list(s.wrongLog).filter(w=>inList.has(String(w.deneme??"")));
+  const losses=subjectLosses(range),topics=topTopics(wrongs.map(w=>({...w,subject:canonical(w.subject)}))),reasons=reasonShares(wrongs);
+  /* v128 · 1 Gidişat */
+  const latest=a.latest?.net??0,slope=a.trend.slopePerExam,target=targetFor(type),eta=examsToTarget(latest,slope,target);
+  const dir=a.trend.direction==="up"?"up":a.trend.direction==="down"?"down":"";
+  let html=`<div class="card eh-rep"><div class="eh-card-head"><b>Gidişat</b>${winSelect()}</div><div class="eh-rep-kpis"><span><small>Son net</small><b>${fmt(latest)}</b></span><span><small>${a.count} deneme ort.</small><b>${fmt(a.average)}</b></span><span><small>Deneme başına</small><b class="${dir}">${slope==null?"veri az":`${dir==="up"?"▲ ":dir==="down"?"▼ ":""}${signed(slope)}`}</b></span></div>`;
+  if(target>0)html+=`<p class="eh-rep-note">Hedef ${fmt(target)} · ${latest>=target?"hedefe ulaştın":fmt(target-latest)+" net kaldı"+(eta?` · bu hızla yaklaşık ${eta} deneme sonra`:"")}</p>`;
+  html+="</div>";
+  /* 2 Net nereden gidiyor */
+  const maxLost=Math.max(1,...losses.map(l=>l.lost));
+  const topFor=(name:string)=>{const c=canonical(name);return topics.find(t=>t.subject===c||(GROUP[c]??[]).includes(t.subject));};
+  const lossHtml=losses.map(l=>{const top=topFor(l.name);
+    return `<div class="eh-subj">${tile(l.name)}<div><div class="eh-subj-row"><b>${esc(l.name)}</b><small><span class="down">−${fmt(l.lost)} net</span> · ort. ${fmt(l.net)} / ${fmt(l.cap)}</small></div><span class="eh-dyb" role="img" aria-label="Yanlıştan ${fmt(l.fromWrong)}, boştan ${fmt(l.fromBlank)} net kayıp"><i class="w" style="width:${l.fromWrong/maxLost*100}%"></i><i class="e" style="width:${l.fromBlank/maxLost*100}%"></i></span>${top?`<small class="eh-subj-top">En çok yanlış: <b>${esc(top.topic)}</b> (${top.n})</small>`:""}</div></div>`;}).join("");
+  const reasonHtml=reasons.length?`<div class="eh-why"><small>Yanlış nedenleri</small>${reasons.map(r=>`<span data-kind="${esc(r.kind)}">${esc(r.label)} <b>%${r.pct}</b></span>`).join("")}</div>`:`<p class="hint">Yanlışlarını nedeniyle işaretledikçe burada neden payları çıkar.</p>`;
+  html+=`<div class="card eh-rep"><div class="eh-card-head"><b>Net nereden gidiyor</b></div>${lossHtml||'<p class="hint">Doğru, yanlış ve boşları ders ders girdiğinde kayıp burada görünür.</p>'}<div class="eh-legend"><span><i class="w"></i>Yanlıştan</span><span><i class="e"></i>Boştan</span><em>1 yanlış 1.25 · 1 boş 1 net</em></div>${reasonHtml}</div>`;
+  /* 3 Ne yapmalı */
+  const best=type==="TYT"||type==="AYT"?list<Loose>(call("marginalGain")).find(x=>x.exam===type)?.name:undefined;
+  const actions=reportActions({topics,losses,reasons,bestHour:best?String(best):undefined});
+  html+=`<div class="card eh-rep"><div class="eh-card-head"><b>Ne yapmalı</b></div>${actions.length?`<ol class="eh-acts">${actions.map(x=>`<li><span>${esc(x.text)}</span>${x.plan?`<button type="button" class="btn ghost small" data-act="plan" data-plan="${esc(x.plan)}">Plana ekle</button>`:""}</li>`).join("")}</ol>`:'<p class="hint">Yanlışlarını konu ve nedeniyle işledikçe burada öneriler çıkar.</p>'}</div>`;
   html+=compareCard(type,"analiz");
   pane.innerHTML=html;
 }
@@ -485,6 +490,7 @@ function onPaneClick(event:Event):void{
   if(!act)return;const a=act.dataset.act,id=num(act.dataset.id);
   if(a==="detail")call("openExamDetail",id);
   else if(a==="wrongs")call("openAnalysis",id,true);
+  else if(a==="plan")call("addToToday",act.dataset.plan||"");
   else if(a==="tab")setTab((act.dataset.tab as Tab)||"ozet");
   else if(a==="err-form"){errFormOpen=!errFormOpen;render();if(errFormOpen)byId("ehErrSubject")?.focus();}
   else if(a==="err-save")saveError();
