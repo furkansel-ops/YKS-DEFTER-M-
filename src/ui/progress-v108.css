@@ -70,14 +70,8 @@
 :root[data-visual-system] #mainWrap #progress .ph-did .ph-ic{width:14px;height:14px}
 
 /* ---------- Dikkat ve Deneme gelişimi ---------- */
-:root[data-visual-system] #mainWrap #progress .ph-alert-card{display:grid;grid-template-columns:38px minmax(0,1fr);gap:10px;border-color:color-mix(in srgb,var(--ph-warn) 30%,transparent);background:var(--ph-warn-soft)}
-:root[data-visual-system] #mainWrap #progress :is(.ph-alert-ic,.ph-go-ic){display:grid;place-items:center;width:38px;height:38px;border-radius:12px}
-:root[data-visual-system] #mainWrap #progress :is(.ph-alert-ic,.ph-go-ic)::before{content:"";width:20px;height:20px;background:currentColor;-webkit-mask:var(--i106-aim) center/contain no-repeat;mask:var(--i106-aim) center/contain no-repeat}
-:root[data-visual-system] #mainWrap #progress .ph-alert-ic{background:color-mix(in srgb,var(--ph-warn) 22%,var(--d-surface));color:var(--ph-warn)}
-:root[data-visual-system] #mainWrap #progress .ph-alert{padding:0;border-radius:0;background:none}
-:root[data-visual-system] #mainWrap #progress .ph-eye{display:block;color:var(--ph-warn);font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
-:root[data-visual-system] #mainWrap #progress .ph-alert b{color:var(--d-ink)}
-:root[data-visual-system] #mainWrap #progress .ph-alert-btns .btn{flex:1;min-height:38px}
+:root[data-visual-system] #mainWrap #progress .ph-go-ic{display:grid;place-items:center;width:38px;height:38px;border-radius:12px}
+:root[data-visual-system] #mainWrap #progress .ph-go-ic::before{content:"";width:20px;height:20px;background:currentColor;-webkit-mask:var(--i106-aim) center/contain no-repeat;mask:var(--i106-aim) center/contain no-repeat}
 :root[data-visual-system] #mainWrap #progress .ph-exam-link{display:grid;grid-template-columns:38px minmax(0,1fr) 18px;gap:10px;align-items:center;padding:12px 14px}
 :root[data-visual-system] #mainWrap #progress .ph-go-ic{background:var(--d-chip);color:var(--d-chip-ink)}
 :root[data-visual-system] #mainWrap #progress .ph-go-ic::before{-webkit-mask-image:var(--i108-chart);mask-image:var(--i108-chart)}
@@ -93,7 +87,7 @@
 @media(min-width:1024px){
   :root[data-visual-system] #mainWrap #progress .ph-hub{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-flow:dense;column-gap:14px;align-items:start}
   :root[data-visual-system] #mainWrap #progress .ph-hub>*{grid-column:1/-1;min-width:0}
-  :root[data-visual-system] #mainWrap #progress .ph-hub>:is(.ph-hero,.ph-chart,.ph-alert-card,.ph-exam-link){grid-column:1}
+  :root[data-visual-system] #mainWrap #progress .ph-hub>:is(.ph-hero,.ph-chart,.ph-acts-card,.ph-exam-link){grid-column:1}
   :root[data-visual-system] #mainWrap #progress .ph-hub>:is(.ph-subjects,.ph-topics){grid-column:2;grid-row:span 2;align-self:stretch}
 }
 

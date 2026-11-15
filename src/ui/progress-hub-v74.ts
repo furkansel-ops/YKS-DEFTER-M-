@@ -4,7 +4,7 @@ import {analyzeExams} from "../domain/exam-analysis-service.ts";
 import {errorRows,openExamTab} from "./exam-hub-v73";
 
 /* v74 · İlerleme: Bugün · Bu hafta · Bu ay karşılaştırması, günlük grafik, ders listesi ve ders sayfası,
-   konu durumları, tek "Dikkat" kartı ve süzgeçli raporlar.
+   konu durumları, "Ne yapmalı" önerileri (v129) ve süzgeçli raporlar.
    Veri yazmaz; yalnız eski fonksiyonları çağırır (doReview, addToToday, openTopicDetail, go).
    Eski Analiz Merkezi ve tekrar eden raporlar gizlenir, silinmez. */
 
@@ -13,7 +13,7 @@ type Period="gun"|"hafta"|"ay";
 type Metric="min"|"q";
 type LegacyWindow=Window&Record<string,any>&{YKSLegacyState?:{readState?:()=>Loose;subjects?:()=>unknown}};
 type Range={from:string;to:string};
-type SubjectRow={name:string;minutes:number;questions:number;done:number;total:number;tyt:number|null;tytLabel:string;ayt:number|null;openWrong:number;topWrong:string;samples:number};
+type SubjectRow={name:string;minutes:number;questions:number;done:number;total:number;tyt:number|null;tytLabel:string;ayt:number|null;openWrong:number;topWrong:string;samples:number;due:number};
 type TopicState="done"|"review"|"active"|"missing";
 
 const L=window as unknown as LegacyWindow;
@@ -93,12 +93,13 @@ function topicState(s:Loose,k:string,due:Set<string>,openWrong:Set<string>):Topi
 function openWrongSet():Set<string>{return new Set(errorRows().filter(r=>!r.resolved).map(r=>(canonical(r.subject)+"|"+r.topic).toLocaleLowerCase("tr-TR")));}
 function subjectRows(s:Loose,r:Range):SubjectRow[]{
   const subjects=trackSubjects(s),rows=new Map<string,SubjectRow>(),due=new Set(dueReviews().map(x=>String(x.key))),wrongSet=openWrongSet();
-  const ensure=(name:string)=>{let row=rows.get(name);if(!row){row={name,minutes:0,questions:0,done:0,total:0,tyt:null,tytLabel:"",ayt:null,openWrong:0,topWrong:"",samples:0};rows.set(name,row);}return row;};
+  const ensure=(name:string)=>{let row=rows.get(name);if(!row){row={name,minutes:0,questions:0,done:0,total:0,tyt:null,tytLabel:"",ayt:null,openWrong:0,topWrong:"",samples:0,due:0};rows.set(name,row);}return row;};
   for(const c of subjects){const row=ensure(canonical(c.name));for(const topic of c.topics){row.total++;if(num(s.topics?.[`${c.exam}|${c.name}|${topic}`]?.st)===3)row.done++;}}
   for(const k of daysIn(r)){
     for(const [name,v] of Object.entries(s.pomoSubj?.[k]??{})){const n=canonical(name);if(rows.has(n))rows.get(n)!.minutes+=Math.max(0,num(v));}
     for(const [tk,v] of Object.entries(s.solvedTopic?.[k]??{})){const n=canonical(String(tk).split("|")[1]);if(rows.has(n))rows.get(n)!.questions+=Math.max(0,num(v));}
   }
+  for(const x of dueReviews()){const n=canonical(x.subj);if(rows.has(n))rows.get(n)!.due++;}
   const tyt=analyzeExams(s as never,"TYT",10),ayt=analyzeExams(s as never,"AYT",10);
   const tytMap=new Map(tyt.subjects.map(x=>[x.name,x])),aytMap=new Map(ayt.subjects.map(x=>[x.name,x]));
   const wrongCount=new Map<string,Map<string,number>>();
@@ -129,7 +130,7 @@ function ensureSkeleton():HTMLElement|null{
 }
 function arrangeLegacy():void{
   const details=byId<HTMLDetailsElement>("refinedProgressDetails");
-  const summary=details?.querySelector("summary");if(summary&&!summary.dataset.v74){summary.dataset.v74="1";summary.textContent="Diğer raporlar";}
+  const summary=details?.querySelector("summary");if(summary&&!summary.dataset.v74){summary.dataset.v74="1";summary.textContent="Detaylı raporlar";}
   if(!details)return;
   for(const id of ["v4ProgressOverview"])byId(id)?.classList.add("ph-dup");
   details.querySelector(".progress-head")?.classList.add("ph-dup");
@@ -200,7 +201,7 @@ function subjectsCard(rows:SubjectRow[]):string{
   const active=rows.filter(r=>r.minutes||r.questions||r.openWrong);
   const list=allSubjects?rows:(active.length?active:rows.filter(r=>r.tyt!=null||r.ayt!=null)).slice(0,8),hidden=rows.length-list.length;
   return `<div class="card ph-subjects"><div class="ph-head"><b>Dersler</b><small>${allSubjects?"tüm dersler":"bu dönem çalıştıkların"}</small></div>${list.map(r=>{
-    const pct=r.total?Math.round(r.done/r.total*100):0,meta=[r.questions?`${r.questions} soru`:"",`Konu ${r.done}/${r.total}`,r.tyt!=null?`TYT ${esc(r.tytLabel)} %${r.tyt}`:"",r.ayt!=null?`AYT %${r.ayt}`:"",r.openWrong?`<b>${r.openWrong} açık yanlış</b>`:""].filter(Boolean).join(" · ");
+    const pct=r.total?Math.round(r.done/r.total*100):0,meta=[r.questions?`${r.questions} soru`:"",`Konu ${r.done}/${r.total}`,r.tyt!=null?`TYT ${esc(r.tytLabel)} %${r.tyt}`:"",r.ayt!=null?`AYT %${r.ayt}`:"",r.due?`${r.due} tekrar`:"",r.openWrong?`<b>${r.openWrong} açık yanlış</b>`:""].filter(Boolean).join(" · ");
     return `<button type="button" class="ph-subj" data-subject="${esc(r.name)}" data-tone="${esc(subjectTone(r.name))}"><i class="ph-tile" data-v105-ic="${esc(subjectIcon(r.name))}" aria-hidden="true"></i><span class="ph-subj-body"><span class="ph-subj-top"><b>${esc(r.name)}</b><small>${r.minutes?hm(r.minutes):"—"}</small></span><span class="ph-prog" aria-label="Konuların %${pct}'i tamamlandı"><i style="width:${pct}%"></i></span><small class="ph-meta">${meta}</small></span></button>`;
   }).join("")||'<p class="hint">Ders çalıştıkça burada görünür.</p>'}${hidden>0||allSubjects?`<button type="button" class="ph-more" data-all-subjects>${allSubjects?"Yalnız çalıştıklarım":`Tüm dersler (${hidden} daha)`}</button>`:""}</div>`;
 }
@@ -215,20 +216,36 @@ function topicsCard(s:Loose):string{
     <div class="ph-states">${STATES.map(([k,l])=>`<span class="s-${k}"><i></i>${l}<b>${counts[k]}</b></span>`).join("")}</div>
     ${rows?`<div class="ph-revs">${rows}${due.length>3?`<p class="hint">${due.length-3} tekrar daha bekliyor.</p>`:""}</div>`:'<p class="hint">Bugün tekrarı gelen konu yok.</p>'}</div>`;
 }
-function attentionCard(s:Loose,rows:SubjectRow[]):string{
+/* v129 · Ne yapmalı: en fazla 3 öneri. Riskli ders (deneme başarısı + açık yanlış), geciken tekrar, bu hafta hiç çalışılmayan ders. */
+type Action={text:string;plan?:string;errors?:boolean};
+function minutesFor(s:Loose,r:Range,name:string):number{return daysIn(r).reduce((t,k)=>t+Object.entries(s.pomoSubj?.[k]??{}).filter(([n])=>canonical(n)===name).reduce((x,[,v])=>x+Math.max(0,num(v)),0),0);}
+function riskAction(s:Loose,rows:SubjectRow[]):(Action&{name:string})|null{
   const {cur,prev}=ranges("hafta");
   const scored=rows.filter(r=>(r.samples>=2&&(r.tyt!=null||r.ayt!=null))||r.openWrong>=3).map(r=>({r,risk:(100-Math.min(r.tyt??100,r.ayt??100))+r.openWrong*2})).sort((a,b)=>b.risk-a.risk);
-  const top=scored[0];if(!top||top.risk<50)return "";
-  const r=top.r,minutesNow=daysIn(cur).reduce((t,k)=>t+Math.max(0,num(Object.entries(s.pomoSubj?.[k]??{}).filter(([n])=>canonical(n)===r.name).reduce((x,[,v])=>x+num(v),0))),0);
-  const minutesPrev=daysIn(prev).reduce((t,k)=>t+Math.max(0,num(Object.entries(s.pomoSubj?.[k]??{}).filter(([n])=>canonical(n)===r.name).reduce((x,[,v])=>x+num(v),0))),0);
-  const parts:string[]=[];
+  const top=scored[0];if(!top||top.risk<50)return null;
+  const r=top.r,minutesNow=minutesFor(s,cur,r.name),minutesPrev=minutesFor(s,prev,r.name),parts:string[]=[];
   const pct=r.tyt!=null?`TYT ${r.tytLabel} %${r.tyt}`:r.ayt!=null?`AYT %${r.ayt}`:"";
   if(pct&&r.samples)parts.push(`${r.samples} denemede ${pct} başarı`);
   if(r.openWrong)parts.push(`${r.openWrong} açık yanlış${r.topWrong?` (en çok ${r.topWrong})`:""}`);
   let time=minutesNow?`Bu hafta ${hm(minutesNow)} çalıştın`:"Bu hafta bu derse çalışma kaydı yok";
   if(minutesNow&&minutesPrev&&minutesNow!==minutesPrev)time+=`; geçen haftadan ${hm(Math.abs(minutesNow-minutesPrev))} ${minutesNow<minutesPrev?"az":"fazla"}`;
-  return `<div class="card ph-alert-card"><i class="ph-alert-ic" aria-hidden="true"></i><div class="ph-alert"><small class="ph-eye">Dikkat</small><b>${esc(r.name)}</b><p>${esc(parts.join(", "))}. ${esc(time)}.</p>
-    <div class="ph-alert-btns"><button type="button" class="btn green tiny" data-plan="${esc((r.name+" "+(r.topWrong||"")).trim()+" tekrar")}">Programa ekle</button><button type="button" class="btn ghost tiny" data-errors="1">Hatalara git</button></div></div></div>`;
+  return {name:r.name,text:`${r.name}: ${parts.join(", ")}. ${time}.`,plan:(r.name+" "+(r.topWrong||"")).trim()+" tekrar",errors:r.openWrong>0};
+}
+function actions(s:Loose,rows:SubjectRow[]):Action[]{
+  const out:Action[]=[],risk=riskAction(s,rows);if(risk)out.push(risk);
+  const late=dueReviews().filter(x=>num(x.late)>0);
+  if(late[0])out.push({text:`${late.length} tekrar gecikti; en eskisi ${String(late[0].subj||"")} · ${String(late[0].topic||"")} (${num(late[0].late)} gün).`,plan:`${String(late[0].subj||"")} · ${String(late[0].topic||"")} tekrarı`});
+  // Hafta boş geçtiyse her ders "çalışılmadı" görünür; öneri yalnız bu hafta çalışmaya başlanmışsa çıkar.
+  const week=period==="hafta"?rows:subjectRows(s,ranges("hafta").cur);
+  if(week.some(r=>r.minutes>0)){
+    const idle=week.filter(r=>!r.minutes&&r.total>0&&r.done/r.total<0.6&&r.name!==risk?.name).sort((a,b)=>b.openWrong-a.openWrong||a.done/a.total-b.done/b.total)[0];
+    if(idle)out.push({text:`${idle.name}: bu hafta çalışma kaydı yok; konularda ilerleme %${Math.round(idle.done/idle.total*100)}.`,plan:`${idle.name} çalış`});
+  }
+  return out.slice(0,3);
+}
+function actionsCard(s:Loose,rows:SubjectRow[]):string{
+  const list=actions(s,rows);if(!list.length)return "";
+  return `<div class="card ph-acts-card"><div class="ph-head"><b>Ne yapmalı</b></div><ol class="ph-acts">${list.map(a=>`<li><span>${esc(a.text)}</span><span class="ph-act-btns">${a.plan?`<button type="button" class="btn green tiny" data-plan="${esc(a.plan)}">Plana ekle</button>`:""}${a.errors?`<button type="button" class="btn ghost tiny" data-errors="1">Hatalara git</button>`:""}</span></li>`).join("")}</ol></div>`;
 }
 function reportsCard():string{
   return `<div class="card ph-reports"><div class="ph-head"><b>Raporlar</b></div><div class="ph-report-chips" role="tablist" aria-label="Raporlar">${REPORTS.map(([code,label])=>`<button type="button" role="tab" data-report="${code}" aria-selected="${report===code}">${label}</button>`).join("")}</div>
@@ -243,7 +260,7 @@ function render():void{
   hub.innerHTML=`<header class="ph-title"><h1>İlerleme</h1><p>${PERIOD_LABEL[period]} · ${VS_TEXT[period]}</p></header>
     <div class="ph-period" role="tablist" aria-label="Dönem">${(Object.keys(PERIOD_LABEL) as Period[]).map(p=>`<button type="button" role="tab" data-period="${p}" aria-selected="${period===p}">${PERIOD_LABEL[p]}</button>`).join("")}</div>
     ${hero(s,cur,prev)}
-    ${chart(s)}${(L as Loose).YKSMoodChart?.html(s)??""}${subjectsCard(rows)}${topicsCard(s)}${attentionCard(s,rows)}
+    ${chart(s)}${(L as Loose).YKSMoodChart?.html(s)??""}${subjectsCard(rows)}${topicsCard(s)}${actionsCard(s,rows)}
     <button type="button" class="card ph-exam-link" data-go="deneme"><i class="ph-go-ic" aria-hidden="true"></i><span><b>Deneme gelişimi</b><small>Netler ve analiz Deneme sekmesinde</small></span><i class="ph-chev" aria-hidden="true"></i></button>
     ${reportsCard()}`;
   for(const [code,,id] of REPORTS){const card=parked.querySelector<HTMLElement>(`#${id}`)||byId(id),pane=byId(`phReport-${code}`);if(card&&pane)pane.append(card);}

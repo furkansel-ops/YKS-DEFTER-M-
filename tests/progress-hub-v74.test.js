@@ -25,7 +25,7 @@ function load(S,{errors=[],queue=[]}={}){
   const window={YKSLegacyState:{readState:()=>S,subjects:()=>CURRICULUM},reviewQueue:()=>queue,doReview:(...a)=>calls.push(["doReview",...a]),addToToday:t=>calls.push(["addToToday",t]),toast(){}};
   const context={window,document:{getElementById:()=>null,querySelector:()=>null,querySelectorAll:()=>[],documentElement:{dataset:{},classList:{add(){},remove(){}}}},localStorage:{getItem:()=>null,setItem(){}},console,requestAnimationFrame:fn=>fn(),setTimeout:()=>0,queueMicrotask:fn=>fn(),Date,Math,Number,String,Array,Object,JSON,Map,Set,Intl,Infinity};
   vm.createContext(context);
-  vm.runInContext(`${strip(read("src/domain/exam-analysis-service.ts"))}\nconst errorRows=()=>__errors;const openExamTab=()=>{};\n${strip(source)}\n;globalThis.__t={ranges,streak,subjectRows,topicState,trackSubjects,deltaText,attentionCard,hm,settledTopics,reviewsDoneOn,hero,weekDots,chart,subjectsCard,topicsCard};`,Object.assign(context,{__errors:errors}));
+  vm.runInContext(`${strip(read("src/domain/exam-analysis-service.ts"))}\nconst errorRows=()=>__errors;const openExamTab=()=>{};\n${strip(source)}\n;globalThis.__t={ranges,streak,subjectRows,topicState,trackSubjects,deltaText,actionsCard,hm,settledTopics,reviewsDoneOn,hero,weekDots,chart,subjectsCard,topicsCard};`,Object.assign(context,{__errors:errors}));
   return {t:context.__t,calls};
 }
 const plain=v=>JSON.parse(JSON.stringify(v));
@@ -90,17 +90,25 @@ test("v74 pekişen konu ve tamamlanan tekrar tarihleri dönemden sayılır",()=>
   assert.equal(t.reviewsDoneOn(S,"2026-11-01"),1);
 });
 
-test("v74 dikkat kartı: tek ders, tek cümle; eylem düğmeleri programa ekler ve Hatalar'a gider",()=>{
-  const S={puanTuru:"SAY",pomoSubj:{},solvedTopic:{},topics:{},
-    denemeler:[1,2,3].map(i=>({id:i,type:"TYT",name:"D"+i,date:"2026-10-1"+i,totalNet:60,subjectResults:[{name:"Temel Matematik",d:15,y:10,b:15,net:12.5,cap:40},{name:"Türkçe",d:34,y:4,b:2,net:33,cap:40}]}))};
-  const {t}=load(S,{errors:[{subject:"Matematik",topic:"Problemler",n:7,resolved:false}]});
-  const rows=t.subjectRows(S,{from:"2026-10-26",to:"2026-11-01"}),html=t.attentionCard(S,rows);
-  assert.match(html,/<b>Matematik<\/b><p>3 denemede TYT Mat %31 başarı, 7 açık yanlış \(en çok Problemler\)\. Bu hafta bu derse çalışma kaydı yok\.<\/p>/);
-  assert.equal((html.match(/Matematik/g)||[]).length,2,"başlık + programa ekle metni; tekrar yok");
-  assert.match(html,/data-plan="Matematik Problemler tekrar"/);
-  assert.match(html,/data-errors="1"/);
-  const calm=load({puanTuru:"SAY",denemeler:[1,2].map(i=>({id:i,type:"TYT",date:"2026-10-1"+i,totalNet:110,subjectResults:[{name:"Türkçe",d:39,y:0,b:1,net:39,cap:40}]}))}).t;
-  assert.equal(calm.attentionCard({puanTuru:"SAY"},calm.subjectRows({puanTuru:"SAY",denemeler:[]},{from:"2026-10-26",to:"2026-11-01"})),"","iyi gidiyorsa kart yok");
+test("v129 Ne yapmalı: riskli ders, geciken tekrar, bu hafta boş kalan ders; en fazla 3 öneri",()=>{
+  const d=new Date(),today=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+  const exams=[1,2,3].map(i=>({id:i,type:"TYT",name:"D"+i,date:"2026-10-1"+i,totalNet:60,subjectResults:[{name:"Temel Matematik",d:15,y:10,b:15,net:12.5,cap:40},{name:"Türkçe",d:34,y:4,b:2,net:33,cap:40}]}));
+  const S={puanTuru:"SAY",pomoSubj:{[today]:{"Türkçe":30}},solvedTopic:{},topics:{},denemeler:exams};
+  const queue=[{key:"TYT|Fizik|Optik",gi:0,gap:3,subj:"Fizik",topic:"Optik",late:4},{key:"TYT|Matematik|Problemler",gi:1,gap:7,subj:"Matematik",topic:"Problemler",late:0}];
+  const errors=[{subject:"Matematik",topic:"Problemler",n:7,resolved:false}];
+  const {t}=load(S,{errors,queue}),rows=t.subjectRows(S,t.ranges("hafta").cur),html=t.actionsCard(S,rows);
+  const items=html.match(/<li>[\s\S]*?<\/li>/g);
+  assert.equal(items.length,3);
+  assert.match(items[0],/<span>Matematik: 3 denemede TYT Mat %31 başarı, 7 açık yanlış \(en çok Problemler\)\. Bu hafta bu derse çalışma kaydı yok\.<\/span>/);
+  assert.match(items[0],/data-plan="Matematik Problemler tekrar"/);assert.match(items[0],/data-errors="1"/);
+  assert.match(items[1],/1 tekrar gecikti; en eskisi Fizik · Optik \(4 gün\)\./);assert.match(items[1],/data-plan="Fizik · Optik tekrarı"/);assert.doesNotMatch(items[1],/data-errors/);
+  assert.match(items[2],/Fizik: bu hafta çalışma kaydı yok; konularda ilerleme %0\./,"riskli ders ikinci kez önerilmez");
+  assert.match(t.subjectsCard(rows),/Konu 0\/4 · TYT Mat %31 · 1 tekrar · <b>7 açık yanlış<\/b>/,"ders satırında bekleyen tekrar");
+  // Hafta boş geçtiyse "çalışma kaydı yok" önerisi her derse çıkmasın
+  const idle={...S,pomoSubj:{}},a=load(idle,{errors,queue}).t;
+  assert.equal(a.actionsCard(idle,a.subjectRows(idle,a.ranges("hafta").cur)).match(/<li>/g).length,2);
+  const calm=load({puanTuru:"SAY",denemeler:[]}).t;
+  assert.equal(calm.actionsCard({puanTuru:"SAY"},calm.subjectRows({puanTuru:"SAY",denemeler:[]},calm.ranges("hafta").cur)),"","öneri yoksa kart yok");
 });
 
 test("v74 kurulum: eski ekran gizlenir (silinmez), geri düğmesi üstte, raporlar kimlikleriyle taşınır",()=>{
