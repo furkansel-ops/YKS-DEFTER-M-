@@ -56,6 +56,12 @@
   border:1px dashed var(--d-line);border-radius:14px;background:transparent;color:var(--d-muted);font:inherit;font-size:13px;font-weight:800;cursor:pointer}
 :root[data-visual-system]:not(#v) #mainWrap #home #todayFreshStart .v101-fold[hidden]{display:none}
 
+/* v138 · Sıradaki görüşme kartı Sıradaki çalışma ile aynı yazı düzeni; temanın soluk "small" rengi mor zeminde okunmuyordu. */
+:root[data-visual-system]:not(#v) #mainWrap #home #todayFreshStart>#studentNextAppointment{padding:18px;gap:6px}
+:root[data-visual-system]:not(#v) #mainWrap #home #todayFreshStart>#studentNextAppointment small{color:var(--d-hero-ink,#fff);opacity:.82;font-size:11px;font-weight:800;letter-spacing:.08em}
+:root[data-visual-system]:not(#v) #mainWrap #home #todayFreshStart>#studentNextAppointment b{color:var(--d-hero-ink,#fff);font-size:22px;font-weight:790;letter-spacing:-.02em;line-height:1.2}
+:root[data-visual-system]:not(#v) #mainWrap #home #todayFreshStart>#studentNextAppointment>span{color:var(--d-hero-ink,#fff);opacity:.88;font-size:13.5px;line-height:1.45}
+
 /* Bilgisayar: solda sıradaki + görevler, sağda koç, sayılar, gün sonu, kariyer */
 @media(min-width:1024px){
   :root[data-visual-system]:not(#v) #mainWrap #home #todayFreshStart{grid-template-columns:minmax(0,1.5fr) minmax(300px,1fr)}

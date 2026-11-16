@@ -38,6 +38,23 @@ test("v85 Canlı daha doygun; vurgu üstünde beyaz yazı okunur",()=>{
   assert.equal(token(css,':root[data-visual-system="refined-blue"]{',"--d-bg"),"#f5f7fb","Sade Mavi değişmez");
 });
 
+test("v138 taramada okunmayan yazılar düzeltildi; her biri zemininde ≥4,5",()=>{
+  const night=':root[data-theme="night"]{',vivid=':root[data-theme="vivid"]{';
+  assert.ok(css.includes(':root:is([data-theme="vivid"],[data-theme="glassy"]) #mainWrap #topics :is(.risk-badge.risk-mid,.subj-sub){color:#a14e00}'));
+  assert.ok(ratio("#a14e00","#ffffff")>=4.5,"Dikkat satırı beyaz kartta");
+  assert.ok(css.includes(':root[data-theme="night"] #mainWrap #program .rb-v5-week-create{color:var(--d-on-accent)}'));
+  assert.ok(css.includes(':root[data-theme="night"] #mainWrap #deneme :is(.v315-kpi.bad .v,.v315-change.bad){color:#ff8a9c}'));
+  assert.ok(ratio("#ff8a9c",token(css,night,"--d-surface"))>=4.5,"Gece kırmızı düşüş");
+  assert.ok(css.includes(':root[data-theme="vivid"] .v43-more-sync:not([data-tone="warn"]){color:#06663f}'));
+  assert.ok(ratio("#06663f",token(css,vivid,"--d-bg"))>=4.5,"Canlı eşitleme satırı");
+});
+
+test("v138 Sıradaki görüşme kartı Sıradaki çalışma yazı düzeninde; etiket temanın soluk rengini almaz",()=>{
+  const v101=read("src/ui/today-v101.css"),card=":root[data-visual-system]:not(#v) #mainWrap #home #todayFreshStart>#studentNextAppointment";
+  assert.ok(v101.includes(card+" small{color:var(--d-hero-ink,#fff);opacity:.82;font-size:11px;font-weight:800;letter-spacing:.08em}"));
+  assert.ok(v101.includes(card+" b{color:var(--d-hero-ink,#fff);font-size:22px;font-weight:790;"));
+});
+
 test("v85 gün sonu notu Gece ve Canlı'da temanın renklerini alır; Sade Mavi'ye dokunmaz",()=>{
   const scope=':root:is([data-theme="night"],[data-theme="vivid"]) #mainWrap #home #todayFreshStart';
   assert.ok(css.includes(scope+' #todayFreshReflectionInput{background:var(--d-soft)!important;color:var(--d-ink);border-color:var(--d-line)}'));

@@ -221,4 +221,9 @@
 :root[data-theme="night"] #mainWrap :is(#topics,#progress) :is(.trend-down,.risk-badge.risk-high){color:#ff8a9c!important}
 :root[data-theme="night"] #mainWrap :is([style^="color:var(--danger)"],[style*=";color:var(--danger)"]){color:#ff8a9c!important}
 :root[data-theme="night"] #mainWrap :is([style^="color:var(--ochre-ink)"],[style*=";color:var(--ochre-ink)"]){color:#f3b860!important}
-:root[data-theme="vivid"] #mainWrap #topics :is(.risk-badge.risk-mid,.subj-sub){color:#a14e00}
+/* v138: Glassy'de de turuncu "Dikkat" satırı beyaz kartta okunmuyordu (#e07c00 · 2,9). */
+:root:is([data-theme="vivid"],[data-theme="glassy"]) #mainWrap #topics :is(.risk-badge.risk-mid,.subj-sub){color:#a14e00}
+/* v138 · okunmayan yazılar: Gece açık mavi düğmede beyaz yazı ve koyu zeminde kırmızı düşüş; Canlı'da yeşil eşitleme satırı. */
+:root[data-theme="night"] #mainWrap #program .rb-v5-week-create{color:var(--d-on-accent)}
+:root[data-theme="night"] #mainWrap #deneme :is(.v315-kpi.bad .v,.v315-change.bad){color:#ff8a9c}
+:root[data-theme="vivid"] .v43-more-sync:not([data-tone="warn"]){color:#06663f}
