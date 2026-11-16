@@ -12,7 +12,7 @@ export function installRefinedSecondary(){
     focus.querySelector(".rb-back")?.insertAdjacentElement("afterend",title);
     const details=disclosure(focus,"refinedFocusDetails","Oturumlarım, egzersizler ve odak ayarları");
     for(const node of Array.from(focus.children)){
-      if(node instanceof HTMLElement&&!node.matches(".rb-back,.rb-secondary-title,.seg,.desktop-focus-workspace,#refinedFocusDetails"))details.append(node);
+      if(node instanceof HTMLElement&&!node.matches(".rb-back,.rb-secondary-title,.seg,#denemeModePanel,.desktop-focus-workspace,#refinedFocusDetails"))details.append(node);
     }
   }
   function progress(){

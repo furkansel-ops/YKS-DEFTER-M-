@@ -775,6 +775,22 @@ tr:last-child td{border-bottom:none;}
 .simbar>i{display:block;height:100%;border-radius:999px;background:var(--time);transition:width .6s linear;}
 .simhint{font-size:14.5px;color:var(--label-2);margin-top:18px;line-height:1.45;min-height:44px;}
 @media (max-width:400px){.simtime{font-size:52px;}}
+/* v130 deneme modu: Odak'ta üçüncü sekme; sayaç ve oturum hazırlığı gizlenir */
+#denemeModePanel[hidden]{display:none!important;}
+#pomo.is-deneme .v29-session-setup,#pomo.is-deneme #v29Dashboard{display:none!important;}
+/* v130 deneme modu: o anki bölüm ve biten bölümler */
+.simsec{margin-top:18px;padding:14px;border-radius:16px;background:var(--fill-2);}
+.simsec[hidden]{display:none;}
+.simsec-name{margin:0;font-size:15px;font-weight:700;}
+.simsec-time{margin:4px 0 12px;font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--time);}
+.simsec-time.over{color:var(--danger);}
+.simsec .btn{width:100%;margin:0;}
+.simsec .btn[hidden]{display:none;}
+.simsplits{margin:12px 0 0;padding:0;list-style:none;text-align:left;font-size:13px;}
+.simsplits:empty{display:none;}
+.simsplits li{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:baseline;padding:6px 0;border-top:1px solid var(--fill-2);}
+.simsplits b{font-variant-numeric:tabular-nums;}
+.simsplits small{color:var(--label-2);}
 
 /* ==================================================================
    BİLDİRİM

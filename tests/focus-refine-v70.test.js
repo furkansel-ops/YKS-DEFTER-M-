@@ -70,7 +70,7 @@ test("v70 3: çalışma evresi uygulamanın mavisi; gece temasında Başlat yaz�
 
 test("v70 4 · 6: bildirim kontrolü Odak ayarlarında; kapalı kutu açık araç listesi, hiçbir bölüm kaybolmaz",()=>{
   assert.match(source,/settings\.prepend\(panel\)/);
-  for(const title of ["Bugünün oturumları","Elle süre ekle","Nefes egzersizi","Sınav provası","Geçmiş ve analiz","Odak ayarları","Diğer odak araçları"])assert.ok(source.includes('title:"'+title+'"'),title);
+  for(const title of ["Bugünün oturumları","Elle süre ekle","Nefes egzersizi","Deneme modu","Geçmiş ve analiz","Odak ayarları","Diğer odak araçları"])assert.ok(source.includes('title:"'+title+'"'),title);
   assert.match(source,/if\(tool\.fold\)row\.addEventListener\("toggle",\(\)=>\{if\(row\.open\)win\.openFold\?\.\(tool\.fold!\);\}\)/);
   assert.match(source,/details\.open=true;details\.dataset\.v70="list";/);
   assert.match(source,/body\("other"\)\.append\(node\)/,"sonradan eklenen bölüm Diğer'e gider");

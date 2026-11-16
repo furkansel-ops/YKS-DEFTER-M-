@@ -6,7 +6,7 @@ import "./focus-refine-v70.css";
  * 4 bildirimden kontrol Odak ayarlarında · 5 bugünkü toplam başlığın altında · 6 araçlar açık liste
  * 7 Minimal başlığın yanında · 8 çalışırken süre ayarları gizli, soru sayacı görünür */
 
-type FocusWindow=Window&{v29SessionList?:(days:number)=>unknown;openFold?:(name:string)=>void};
+type FocusWindow=Window&{v29SessionList?:(days:number)=>unknown;openFold?:(name:string)=>void;setFocusMode?:(mode:string)=>void};
 type ToolKey="sessions"|"manual"|"breath"|"exam"|"history"|"settings"|"other";
 
 const QUESTION_KEY="yks_v70_focus_questions";
@@ -14,7 +14,7 @@ const TOOLS:{key:ToolKey;icon:string;title:string;sub:string;fold?:string}[]=[
   {key:"sessions",icon:"▤",title:"Bugünün oturumları",sub:"Oturumlar ve gün sonu özeti"},
   {key:"manual",icon:"＋",title:"Elle süre ekle",sub:"Sayaçsız çalıştıysan süreyi yaz"},
   {key:"breath",icon:"◌",title:"Nefes egzersizi",sub:"1 · 2 · 5 dakika"},
-  {key:"exam",icon:"✎",title:"Sınav provası",sub:"TYT 165 · AYT 180 · YDT 80 dk"},
+  {key:"exam",icon:"✎",title:"Deneme modu",sub:"TYT 165 · AYT 180 · YDT 80 dk · süre Odak'a eklenir"},
   {key:"history",icon:"▥",title:"Geçmiş ve analiz",sub:"Zaman çizelgesi, aylık özet, derse göre",fold:"odak2"},
   {key:"settings",icon:"⚙",title:"Odak ayarları",sub:"Ses, molalar, bildirimden kontrol",fold:"odakayar"},
   {key:"other",icon:"…",title:"Diğer odak araçları",sub:"Odak ekranındaki diğer bölümler"}
@@ -44,11 +44,12 @@ function toolFor(node:HTMLElement,current:ToolKey|null):ToolKey{
   if(node.matches(".focus-manual-entry"))return "manual";
   if(node.matches("#fh_odak2,#fb_odak2,.focus-month-card"))return "history";
   if(node.matches("#fh_odakayar,#fb_odakayar"))return "settings";
+  if(node.matches("#denemeModePanel,#denemeModeCard"))return "exam";
   if(node.tagName==="H2"){
     const text=node.textContent||"";
     if(/Bugünün oturumları|Gün sonu/.test(text))return "sessions";
     if(/Nefes/.test(text))return "breath";
-    if(/Sınav/.test(text))return "exam";
+    if(/Sınav|Deneme modu/.test(text))return "exam";
     if(/Aylık|Derse göre/.test(text))return "history";
     return "other";
   }
@@ -132,6 +133,11 @@ export function installFocusRefineV70():boolean{
       row.append(summary,inner);
       // İç katlanır bölüm (geçmiş, ayarlar) satır açılınca kendiliğinden açılır; tek dokunuş yeter.
       if(tool.fold)row.addEventListener("toggle",()=>{if(row.open)win.openFold?.(tool.fold!);});
+      // Deneme modu kartı üstteki Deneme sekmesinde yaşar; satır açılmaz, o sekmeye götürür.
+      if(key==="exam")summary.addEventListener("click",event=>{
+        event.preventDefault();win.setFocusMode?.("deneme");
+        document.getElementById("segDeneme")?.scrollIntoView({behavior:"smooth",block:"center"});
+      });
       bodies.set(key,inner);return inner;
     };
     let current:ToolKey|null=null;
@@ -139,6 +145,7 @@ export function installFocusRefineV70():boolean{
       if(!(node instanceof HTMLElement)||node.tagName==="SUMMARY")continue;
       current=toolFor(node,current);body(current).append(node);
     }
+    body("exam"); // kart o an sekmede olsa da Deneme modu satırı hep görünür
     for(const tool of TOOLS){const inner=bodies.get(tool.key);if(inner)list.append(inner.parentElement!);}
     details.append(list);details.open=true;details.dataset.v70="list";
     // Sonradan bu kutuya eklenen bölümler kaybolmaz, "Diğer" satırına gider.

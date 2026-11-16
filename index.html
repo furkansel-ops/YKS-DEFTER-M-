@@ -1273,9 +1273,9 @@
       <button class="btn ghost tiny" onclick="startBreath(300)">5 dakika</button>
     </div>
   </div>
-  <h2>Sınav simülasyonu</h2>
-  <div class="card">
-    <p class="lead" style="font-size:14.5px;margin:0 0 14px;">Gerçek sınav süresiyle tam ekran geri sayım.</p>
+  <h2>Deneme modu</h2>
+  <div class="card" id="denemeModeCard">
+    <p class="lead" style="font-size:14.5px;margin:0 0 14px;">Gerçek sınav süresiyle tam ekran deneme. Geçen süre Odak'a eklenir.</p>
     <div class="rowtools" style="margin:0 0 12px;">
       <button class="btn ghost tiny" onclick="startSim(165)">TYT · 165 dk</button>
       <button class="btn ghost tiny" onclick="startSim(180)">AYT · 180 dk</button>
@@ -1285,7 +1285,7 @@
       <div><label>Özel süre (dk)</label><input type="number" id="simMin" min="1" placeholder="165"></div>
       <div style="display:flex;align-items:flex-end;"><button class="btn green small" style="width:100%;" onclick="simCustom()">Başlat</button></div>
     </div>
-    <p class="hint">TYT, AYT ve YDT sürelerinde bölüm bölüm süre takibi yapılır: her bölümün süresi dolunca uyarı verir. Özel sürelerde tek geri sayım çalışır.</p>
+    <p class="hint">Bölümü bitirince <b>Sonraki bölüm</b>'e bas; ekranda hep o bölümün süresi görünür.</p>
   </div>
   <button class="foldhead" id="fh_odakayar" onclick="toggleFold('odakayar')">
     <span class="ft">Odak ayarları</span>
@@ -1866,9 +1866,10 @@
 
 <div class="simov" id="simOverlay">
   <div class="simbox">
-    <p class="eyebrow" style="color:var(--time);">Sınav simülasyonu</p>
+    <p class="eyebrow" style="color:var(--time);">Deneme modu</p>
     <div class="simtime" id="simTime">00:00</div>
     <div class="simbar"><i id="simBar" style="width:0%"></i></div>
+    <div class="simsec" id="simSec" hidden></div>
     <p class="simhint" id="simHint"></p>
     <div class="row2" style="margin-top:20px;">
       <button class="btn green small" onclick="finishSim()">Bitir ve net gir</button>

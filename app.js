@@ -3904,66 +3904,143 @@ function renderReflList(){
 }
 
 /* ==================================================================
-   10) SINAV SİMÜLASYONU
+   10) DENEME MODU
    ================================================================== */
-let simTimer=null,simLeft=0,simTotal=0,simWarned={},simSec=-1;
+/* v130 · Deneme modu: saat damgasıyla geri sayım (arka planda kaymaz), bölüme "Sonraki bölüm" ile geçilir,
+   bitince/kapatınca geçen süre Odak'a "Deneme" oturumu olarak yazılır; sayfa yenilenirse kaldığı yerden sürer. */
+const SIM_KEY="yks_deneme_modu_v130";
+let simTimer=null,simRun=null;
+function simClock(sec){
+  const t=Math.max(0,Math.round(sec)),h=Math.floor(t/3600),m=Math.floor((t%3600)/60),s=t%60;
+  return (h?h+":":"")+String(m).padStart(2,"0")+":"+String(s).padStart(2,"0");
+}
+function simView(run,now){
+  const elapsed=Math.max(0,Math.floor((now-run.start)/1000)),left=Math.max(0,run.total-elapsed);
+  let sec=null;
+  if(run.plan&&run.plan.length){
+    const p=run.plan[run.sec],se=Math.max(0,Math.floor((now-run.secStart)/1000)),planned=p[1]*60;
+    sec={i:run.sec,count:run.plan.length,name:p[0],elapsed:se,planned:planned,left:planned-se,last:run.sec>=run.plan.length-1};
+  }
+  return {elapsed:elapsed,left:left,sec:sec};
+}
+function simAdvance(run,now){
+  if(!run.plan||run.sec>=run.plan.length-1)return false;
+  run.splits.push({name:run.plan[run.sec][0],sec:Math.max(0,Math.floor((now-run.secStart)/1000)),plan:run.plan[run.sec][1]});
+  run.sec++; run.secStart=now;
+  return true;
+}
+// shortcut: süre bittikten sonra açık unutulursa en fazla 15 dk fazlası sayılır; duraklatma eklenirse buna göre düzelt.
+function simFocusMin(run,now){ return Math.max(0,Math.min(Math.round((now-run.start)/60000),Math.round(run.total/60)+15)); }
+function simPersist(){ try{ if(simRun)localStorage.setItem(SIM_KEY,JSON.stringify(simRun)); else localStorage.removeItem(SIM_KEY); }catch(e){} }
 function startSim(min){
   const m=Math.max(1,parseInt(min,10)||0);
   if(!m)return;
+  if(simRun){ simOpen(); return; }
   S.simulMin=m; save();
-  simTotal=m*60; simLeft=simTotal; simWarned={}; simSec=-1;
+  const now=Date.now();
+  simRun={min:m,total:m*60,start:now,plan:SIM_PLANS[m]||null,sec:0,secStart:now,splits:[],warned:{}};
+  simPersist(); simOpen();
+}
+function simOpen(){
   el("simOverlay").style.display="flex";
   ensureAudio();
   renderSim();
   clearInterval(simTimer);
-  simTimer=setInterval(()=>{
-    simLeft--;
-    if(simLeft<=0){
-      clearInterval(simTimer); simTimer=null;
-      beep(4); try{ if(navigator.vibrate)navigator.vibrate([300,120,300]); }catch(e){}
-      el("simTime").textContent="00:00";
-      el("simHint").textContent="Süre bitti. Kalemleri bırak.";
-      return;
-    }
-    const passed=simTotal-simLeft;
-    if(!simWarned.half&&passed>=simTotal/2){ simWarned.half=1; beep(1); }
-    if(!simWarned.last15&&simLeft<=900){ simWarned.last15=1; beep(2); }
-    if(!simWarned.last5&&simLeft<=300){ simWarned.last5=1; beep(3); }
-    renderSim();
-  },1000);
+  simTimer=setInterval(simTick,1000);
+}
+function simTick(){
+  if(!simRun)return;
+  const v=simView(simRun,Date.now()),w=simRun.warned;
+  if(!w.end&&v.left<=0){ w.end=1; beep(4); try{ if(navigator.vibrate)navigator.vibrate([300,120,300]); }catch(e){} }
+  else if(!w.half&&v.elapsed>=simRun.total/2){ w.half=1; beep(1); }
+  else if(!w.last15&&v.left<=900&&v.left>300){ w.last15=1; beep(2); }
+  else if(!w.last5&&v.left<=300&&v.left>0){ w.last5=1; beep(3); }
+  if(v.sec&&v.sec.left<=0&&!w["s"+v.sec.i]){ w["s"+v.sec.i]=1; beep(2); toast(v.sec.name+" için planladığın süre doldu"); }
+  simPersist(); renderSim();
 }
 function renderSim(){
-  const h=Math.floor(simLeft/3600),m=Math.floor((simLeft%3600)/60),s=simLeft%60;
-  el("simTime").textContent=(h?String(h)+":":"")+String(m).padStart(2,"0")+":"+String(s).padStart(2,"0");
-  const pct=simTotal?Math.round((simTotal-simLeft)/simTotal*100):0;
-  el("simBar").style.width=pct+"%";
-  let hint="Kalan süreyi bölümlere böl, tıkandığın soruda durma.";
-  const sec=(typeof simCurrentSection==="function")?simCurrentSection(simTotal-simLeft):null;
-  if(sec){
-    const m=Math.floor(sec.leftInSection/60),ss=sec.leftInSection%60;
-    if(sec.over)hint="Planladığın bölüm süreleri doldu — kalan zamanı boşlara ayır.";
-    else hint=(sec.i+1)+"/"+sec.total+" · "+sec.name+" için "+
-      (m?m+" dk ":"")+String(ss).padStart(2,"0")+" sn kaldı";
-    if(!simWarned["s"+sec.i]&&sec.leftInSection<=0){ simWarned["s"+sec.i]=1; beep(2); }
-    if(simSec!==sec.i){ if(simSec>=0){ beep(2); toast(sec.name+" bölümüne geç"); } simSec=sec.i; }
+  if(!simRun)return;
+  const v=simView(simRun,Date.now());
+  el("simTime").textContent=simClock(v.left);
+  el("simBar").style.width=Math.min(100,Math.round(v.elapsed/simRun.total*100))+"%";
+  const box=el("simSec");
+  // index.html bütçesi için bölüm kutusunun içi burada kurulur.
+  if(box&&!el("simSecName"))box.innerHTML='<p class="simsec-name" id="simSecName"></p><p class="simsec-time" id="simSecTime"></p><button class="btn small" id="simNext" type="button" onclick="simNext()">Sonraki bölüm ›</button><ol class="simsplits" id="simSplits"></ol>';
+  if(box){
+    box.hidden=!v.sec;
+    if(v.sec){
+      el("simSecName").textContent=(v.sec.i+1)+"/"+v.sec.count+" · "+v.sec.name;
+      const st=el("simSecTime");
+      st.textContent=(v.sec.left>=0?simClock(v.sec.left)+" kaldı":simClock(-v.sec.left)+" fazla")+" · plan "+(v.sec.planned/60)+" dk";
+      st.classList.toggle("over",v.sec.left<0);
+      const next=el("simNext");
+      next.hidden=v.sec.last;
+      if(!v.sec.last)next.textContent="Sonraki bölüm: "+simRun.plan[v.sec.i+1][0]+" ›";
+      el("simSplits").innerHTML=simRun.splits.map(s=>'<li><span>'+esc(s.name)+'</span><b>'+simClock(s.sec)+'</b><small>plan '+s.plan+' dk</small></li>').join("");
+    }
   }
-  if(simLeft<=300)hint="Son 5 dakika — optiği kontrol et.";
-  else if(simLeft<=900&&!sec)hint="Son 15 dakika — boş bıraktıklarına dön.";
-  el("simHint").textContent=hint;
+  el("simHint").textContent=v.left<=0?"Süre bitti. Kalemleri bırak."
+    :v.left<=300?"Son 5 dakika — optiği kontrol et."
+    :v.sec&&v.sec.left<0?"Bu bölümün planı doldu; hazır olduğunda sonraki bölüme geç."
+    :"Tıkandığın soruda durma, işaretle ve geç.";
 }
-function stopSim(){
+function simNext(){
+  if(!simRun||!simAdvance(simRun,Date.now()))return;
+  beep(1); simPersist(); renderSim();
+}
+function simRecordFocus(run,m,now){
+  if(m<1||(typeof coachBlock==="function"&&coachBlock("deneme modu kaydı")))return false;
+  const day=todayKey(),prevTotal=Number(S.pomoMin[day]||0),prevSubject=Number(S.pomoSubj?.[day]?.["Deneme"]||0);
+  if(!S.pomoSubj[day])S.pomoSubj[day]={};
+  if(!S.sessions[day])S.sessions[day]=[];
+  const previousSessions=S.sessions[day].slice();
+  const parts=run.splits.map(s=>s.name+" "+Math.round(s.sec/60)+" dk");
+  const lastMin=Math.round((now-run.secStart)/60000);
+  if(run.plan&&lastMin)parts.push(run.plan[run.sec][0]+" "+lastMin+" dk");
+  S.pomoMin[day]=prevTotal+m;
+  S.pomoSubj[day]["Deneme"]=prevSubject+m;
+  S.sessions[day].push({t:run.start,end:now,m:m,subj:"Deneme",topic:run.min+" dk deneme",task:"",type:"work",done:true,note:parts.join(" · "),source:"deneme"});
+  if(S.sessions[day].length>40)S.sessions[day]=S.sessions[day].slice(-40);
+  if(!save()){ S.pomoMin[day]=prevTotal; S.pomoSubj[day]["Deneme"]=prevSubject; S.sessions[day]=previousSessions; toast("Deneme süresi kaydedilemedi"); return false; }
+  if(typeof renderPomo==="function")renderPomo();
+  if(typeof renderTimeDist==="function")renderTimeDist();
+  return true;
+}
+function simEnd(){
   clearInterval(simTimer); simTimer=null;
   el("simOverlay").style.display="none";
+  if(!simRun)return 0;
+  const run=simRun,now=Date.now(),m=simFocusMin(run,now);
+  simRun=null; simPersist();
+  return simRecordFocus(run,m,now)?m:0;
+}
+function stopSim(){
+  if(simRun){
+    const m=simFocusMin(simRun,Date.now());
+    if(m>=1&&!confirm("Deneme modu kapatılsın mı? Geçen "+m+" dk odak süresine eklenecek."))return;
+  }
+  const m=simEnd();
+  if(m)toast("Deneme süresi Odak'a eklendi · "+m+" dk");
 }
 function finishSim(){
-  stopSim(); go("deneme");
-  toast("Netlerini şimdi gir");
+  const m=simEnd(); go("deneme");
+  if(m&&el("denemeDur"))el("denemeDur").value=m;
+  toast(m?"Süre ("+m+" dk) Odak'a eklendi; şimdi netlerini gir":"Netlerini şimdi gir");
 }
 function simCustom(){
   const v=parseInt(el("simMin").value,10);
   if(!v||v<1){ toast("Süre gir"); return; }
   startSim(v);
 }
+function simResume(){
+  try{
+    const run=JSON.parse(localStorage.getItem(SIM_KEY)||"null");
+    if(!run||!run.start||!run.total)return;
+    if(Date.now()>run.start+run.total*1000+6*3600000){ localStorage.removeItem(SIM_KEY); return; }
+    simRun=run; simOpen();
+  }catch(e){}
+}
+setTimeout(simResume,1500);
 
 /* ==================================================================
    11) CSV DIŞA AKTARIM
@@ -4388,7 +4465,28 @@ function boot4(){
    ================================================================== */
 
 /* ---------- odak ekranı kipi ---------- */
+/* v130: Sayaç · Kronometre · Deneme. Deneme sekmesi kayıtlı kip değildir; sayaç yerine Deneme modu kartını gösterir. */
+let focusDenemeTab=false;
+function v130DenemeTab(){
+  const seg=document.querySelector("#pomo > .seg"),card=el("denemeModeCard");if(!seg||!card)return;
+  let b=el("segDeneme");
+  if(!b){b=document.createElement("button");b.id="segDeneme";b.type="button";b.textContent="Deneme";b.onclick=()=>setFocusMode("deneme");seg.append(b);}
+  let panel=el("denemeModePanel");
+  if(!panel){panel=document.createElement("div");panel.id="denemeModePanel";}
+  // Odak araç listesi kendine eklenenleri toplar; panel hep sekmelerin altında durur.
+  if(panel.previousElementSibling!==seg)seg.after(panel);
+  if(card.parentElement!==panel)panel.append(card);
+  panel.hidden=!focusDenemeTab;b.classList.toggle("on",focusDenemeTab);
+  el("pomo").classList.toggle("is-deneme",focusDenemeTab);
+}
 function setFocusMode(m,noSave){
+  if(m==="deneme"){
+    focusDenemeTab=true;
+    for(const id of ["segPomo","segStop"])el(id)?.classList.remove("on");
+    for(const id of ["focusPomo","focusStop"]){const x=el(id);if(x)x.style.display="none";}
+    v130DenemeTab();return;
+  }
+  focusDenemeTab=false;
   S.focus.mode=(m==="sw")?"sw":"pomo";
   if(!noSave)save();
   const sp=el("segPomo"),ss=el("segStop");
@@ -4398,6 +4496,7 @@ function setFocusMode(m,noSave){
   if(a)a.style.display=S.focus.mode==="pomo"?"block":"none";
   if(b)b.style.display=S.focus.mode==="sw"?"block":"none";
   if(S.focus.mode==="sw")renderSw(); else renderPomo();
+  v130DenemeTab();
 }
 
 /* ---------- hızlı süre ayarı ---------- */
@@ -5528,29 +5627,13 @@ function runSearch(){
 }
 
 /* ==================================================================
-   7) BÖLÜMLÜ SINAV SİMÜLASYONU
+   7) DENEME MODU BÖLÜM PLANLARI
    ================================================================== */
 const SIM_PLANS={
   165:[["Türkçe",40],["Sosyal Bilimler",25],["Temel Matematik",60],["Fen Bilimleri",40]],
   180:[["Matematik",75],["Fen Bilimleri",45],["Edebiyat-Sosyal",60]],
   80:[["Yabancı Dil",80]]
 };
-function simSections(){
-  const plan=SIM_PLANS[S.simulMin];
-  if(plan)return plan.map(p=>({name:p[0],min:p[1]}));
-  return null;
-}
-function simCurrentSection(elapsedSec){
-  const secs=simSections();
-  if(!secs)return null;
-  let acc=0;
-  for(let i=0;i<secs.length;i++){
-    acc+=secs[i].min*60;
-    if(elapsedSec<acc)return {i:i,name:secs[i].name,leftInSection:acc-elapsedSec,total:secs.length};
-  }
-  return {i:secs.length-1,name:secs[secs.length-1].name,leftInSection:0,total:secs.length,over:true};
-}
-
 /* ==================================================================
    8) NEFES EGZERSİZİ (4-4-4-4)
    ================================================================== */
@@ -5621,7 +5704,7 @@ const TACTICS=[
    when:c=>c.timeShort>=1||c.blankRate>0.2?"Süre baskısı verinde görünüyor":null,pri:8},
 
   {id:"t-bolum",cat:"sure",title:"Bölüm bölüm süre tut",
-   body:"TYT'de Türkçe 40, Sosyal 25, Matematik 60, Fen 40 dakika iyi bir başlangıç dağılımıdır. Kendi denemende hangi bölümde taştığını görmeden düzeltemezsin. Odak sekmesindeki sınav simülasyonu bunu bölüm bölüm sayar.",
+   body:"TYT'de Türkçe 40, Sosyal 25, Matematik 60, Fen 40 dakika iyi bir başlangıç dağılımıdır. Kendi denemende hangi bölümde taştığını görmeden düzeltemezsin. Odak sekmesindeki deneme modu bunu bölüm bölüm sayar.",
    when:c=>c.timeShort>=2?"Süre sorunu tekrar ediyor":null,pri:7},
 
   {id:"t-siralama",cat:"secim",title:"Kendi sıranı kur",
@@ -7882,7 +7965,7 @@ function renderDenemeGun(){
   } else if(tarih===bugun){
     html+='<p class="hint" style="color:var(--time)"><b>Bugün deneme günü.</b></p>'+
       '<div class="rowtools" style="margin:10px 0 0;">'+
-      '<button class="btn green small" onclick="startSim(S.simulMin)">Simülasyonu başlat</button>'+
+      '<button class="btn green small" onclick="startSim(S.simulMin)">Deneme modunu başlat</button>'+
       '<button class="btn ghost small" onclick="go(\'deneme\')">Sonucu gir</button></div>';
   } else if(tarih<bugun){
     html+='<p class="hint" style="color:var(--danger)">Deneme günün geçti ve bu hafta deneme kaydı yok.</p>'+
@@ -7905,10 +7988,10 @@ function renderDenemeReminder(){
   w.className="restcard"+(tarih<bugun?" lvl2":"");
   w.innerHTML='<div class="rt">'+(tarih===bugun?"Bugün deneme günü":"Deneme günün geçti")+'</div>'+
     '<p class="rp">'+(tarih===bugun
-      ? "Haftanın denemesini bugün çöz. Simülasyon bölüm bölüm süre tutar."
+      ? "Haftanın denemesini bugün çöz. Deneme modu bölüm bölüm süre tutar ve süreyi Odak'a ekler."
       : "Bu hafta henüz deneme çözmedin. Geç kalmak, ölçmeden ilerlemek demek.")+'</p>'+
     '<div class="rowtools" style="margin:0;">'+
-    '<button class="btn ghost tiny" onclick="startSim(S.simulMin)">Simülasyonu başlat</button>'+
+    '<button class="btn ghost tiny" onclick="startSim(S.simulMin)">Deneme modunu başlat</button>'+
     '<button class="btn ghost tiny" onclick="go(\'deneme\')">Sonucu gir</button></div>';
 }
 
