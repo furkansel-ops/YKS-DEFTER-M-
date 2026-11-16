@@ -22,14 +22,14 @@
     "android:verify": "node --test tests/android-release.test.js"
   },
   "devDependencies": {
-    "@capacitor/cli": "8.6.0",
+    "@capacitor/cli": "8.6.2",
     "@types/three": "0.187.0",
     "typescript": "^7.0.2",
     "vite": "^8.3.0"
   },
   "dependencies": {
-    "@capacitor/android": "8.6.0",
-    "@capacitor/core": "8.6.0",
+    "@capacitor/android": "8.6.2",
+    "@capacitor/core": "8.6.2",
     "@capacitor/local-notifications": "8.3.1",
     "dexie": "^4.4.7",
     "three": "0.187.0"
