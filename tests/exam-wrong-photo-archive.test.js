@@ -60,7 +60,15 @@ test("iPad deneme fotoğrafı HEIC yerine uygulama içi kameradan JPEG yakalar",
   assert.match(app,/facingMode:\{ideal:"environment"\}/);
   assert.match(app,/cv\.toDataURL\("image\/jpeg",QA_QUALITY\)/);
   assert.match(app,/function wrongPhotoStore/);
-  assert.match(app,/if\(qaIsIPadLike\(\)\)\{void openWrongPhotoCamera\(id\);return;\}/);
+  // v134: her cihazda önce kamera; kamera açılmazsa galeriye kendiliğinden düşmez, telefonun kamerası önerilir.
+  const pick=app.match(/function wrongPhotoPick\(id\)\{[\s\S]*?\n\}/)[0];
+  assert.match(pick,/void openWrongPhotoCamera\(id\);\n\}$/);assert.doesNotMatch(pick,/wrongPhotoPickFile|qaIsIPadLike/);
+  const open=app.match(/async function openWrongPhotoCamera\(id\)\{[\s\S]*?\n\}/)[0];
+  assert.doesNotMatch(open,/wrongPhotoPickFile/,"hata olunca galeri açılmaz");
+  assert.match(open,/wrongPhotoCameraNative=true;/);
+  assert.match(app,/if\(wrongPhotoCameraNative\)\{const id=wrongPhotoCameraId;closeWrongPhotoCamera\(\);wrongPhotoPickFile\(id,true\);return;\}/);
+  assert.match(app,/if\(camera\)\{inp\.setAttribute\("capture","environment"\);inp\.multiple=false;\}/);
+  assert.match(app,/id="wrongPhotoCameraFallback">Galeriden seç</,"galeri ikinci seçenek olarak durur");
   assert.match(app,/inp\.accept="image\/\*"/);
   assert.match(css,/\.wrong-photo-camera::backdrop/);
   assert.match(css,/\.wrong-photo-camera-stage video/);

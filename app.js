@@ -2494,7 +2494,7 @@ function wrongPhotoStore(id,dataUrl){
   list.push(dataUrl);save();renderWrongTopics();if(typeof renderAnaList==="function")renderAnaList();if(typeof renderExamWrongArchive==="function")renderExamWrongArchive();
   toast("Fotoğraf eklendi · "+list.length+"/"+limit);return true;
 }
-let wrongPhotoCameraStream=null,wrongPhotoCameraId=0;
+let wrongPhotoCameraStream=null,wrongPhotoCameraId=0,wrongPhotoCameraNative=false;
 function closeWrongPhotoCamera(){
   const dlg=el("wrongPhotoCamera");
   if(wrongPhotoCameraStream){try{wrongPhotoCameraStream.getTracks().forEach(track=>track.stop())}catch{}wrongPhotoCameraStream=null;}
@@ -2514,6 +2514,7 @@ function ensureWrongPhotoCamera(){
   dlg.addEventListener("cancel",event=>{event.preventDefault();closeWrongPhotoCamera()});
   el("wrongPhotoCameraFallback").addEventListener("click",()=>{const id=wrongPhotoCameraId;closeWrongPhotoCamera();wrongPhotoPickFile(id)});
   el("wrongPhotoCameraShot").addEventListener("click",()=>{
+    if(wrongPhotoCameraNative){const id=wrongPhotoCameraId;closeWrongPhotoCamera();wrongPhotoPickFile(id,true);return;}
     const video=el("wrongPhotoCameraVideo");if(!video||!video.videoWidth||!video.videoHeight){toast("Kamera henüz hazır değil");return;}
     try{
       const cv=document.createElement("canvas"),sc=Math.min(1,QA_MAXPX/Math.max(video.videoWidth,video.videoHeight));
@@ -2532,20 +2533,26 @@ async function openWrongPhotoCamera(id){
   const dlg=ensureWrongPhotoCamera(),video=el("wrongPhotoCameraVideo"),status=el("wrongPhotoCameraStatus");
   dlg.style.display="block";try{if(typeof dlg.showModal==="function"&&!dlg.open)dlg.showModal();else dlg.setAttribute("open","")}catch{dlg.setAttribute("open","")}
   if(status)status.textContent="Kamera hazırlanıyor…";
+  wrongPhotoCameraNative=false;const shot=el("wrongPhotoCameraShot");if(shot)shot.textContent="📷 Fotoğrafı çek";
   try{
     if(!navigator.mediaDevices||typeof navigator.mediaDevices.getUserMedia!=="function")throw new Error("camera-api");
     wrongPhotoCameraStream=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:"environment"}}});
     if(video){video.srcObject=wrongPhotoCameraStream;video.setAttribute("playsinline","");await Promise.resolve(video.play()).catch(()=>{});}
     if(status)status.textContent="";
   }catch(e){
-    closeWrongPhotoCamera();toast("iPad kamerası açılamadı · Galeriden seçim açılıyor");wrongPhotoPickFile(id);
+    // Galeriye kendiliğinden geçilmez: tarayıcı kamerası açılmadıysa telefonun kendi kamerası tek dokunuşla açılır.
+    if(wrongPhotoCameraStream){try{wrongPhotoCameraStream.getTracks().forEach(track=>track.stop())}catch{}wrongPhotoCameraStream=null;}
+    wrongPhotoCameraNative=true;
+    if(status)status.textContent="Kamera burada açılamadı. Aşağıdan telefonun kamerasıyla çekebilirsin.";
+    const shot=el("wrongPhotoCameraShot");if(shot)shot.textContent="📷 Telefon kamerasıyla çek";
   }
 }
-function wrongPhotoPickFile(id){
+function wrongPhotoPickFile(id,camera){
   const wrong=(S.wrongLog||[]).find(x=>Number(x.id)===Number(id));if(!wrong)return;
   const photos=wrongPhotosFor(id),limit=Math.max(1,Number(wrong.n)||1),remaining=Math.max(0,limit-photos.length);
   if(!remaining){toast("Bu kayıttaki tüm yanlış sorular eklendi ✓");return;}
   const inp=document.createElement("input");inp.type="file";inp.accept="image/*";inp.multiple=!qaIsIPadLike();
+  if(camera){inp.setAttribute("capture","environment");inp.multiple=false;}
   inp.onchange=async()=>{
     const files=Array.from(inp.files||[]).slice(0,remaining);if(!files.length)return;
     toast(files.length>1?files.length+" fotoğraf işleniyor…":"Soru fotoğrafı işleniyor…");
@@ -2561,8 +2568,8 @@ function wrongPhotoPick(id){
   const photos=wrongPhotosFor(id),limit=Math.max(1,Number(wrong.n)||1);
   if(photos.length>=limit){toast("Bu kayıttaki tüm yanlış sorular eklendi ✓");return;}
   if(storageBytes()>QA_BLOCK){toast("Depolama dolu — önce eski soru fotoğraflarını sil");return;}
-  if(qaIsIPadLike()){void openWrongPhotoCamera(id);return;}
-  wrongPhotoPickFile(id);
+  // v134: her cihazda önce kamera açılır; galeri kamera penceresindeki ikinci seçenektir.
+  void openWrongPhotoCamera(id);
 }
 let wrongPhotoViewerState={id:0,index:0};
 function ensureWrongPhotoViewer(){
