@@ -176,6 +176,10 @@ function ppGoals(s){const g=s?.paragraphProblem?.goals,out={};if(!g||typeof g!==
 const BOOK_COVER_MAX=12000,BOOK_COVER_BUDGET=240000,BOOK_COVER_RE=/^data:image\/jpeg;base64,[A-Za-z0-9+/]+=*$/;
 /* v92: katalogdan seçilen kitabın Kitapseç kapak adresi (kısa; bütçeye girmez). */
 const BOOK_COVER_URL_RE=/^https:\/\/cdn\.kitapsec\.com\/image\/urun\/[A-Za-z0-9/_.-]+\.(?:jpe?g|png|webp|gif)$/i;
+/* v139 · Deneme takvimi koçla paylaşılır (progress içinde; Firestore kuralı değişmez) ve koç takvime deneme ekleyebilir. */
+const EXAM_PLAN_TYPES=["TYT","AYT","YDT","BRANS"],MAX_EXAM_PLANS=60;
+function examPlansShare(s){return list(s?.examPlans).filter(p=>/^\d{4}-\d{2}-\d{2}$/.test(text(p?.date,10))).slice(-MAX_EXAM_PLANS).map(p=>({id:Math.floor(finite(p.id)),date:text(p.date,10),name:text(p.name,80)||"Deneme",type:EXAM_PLAN_TYPES.includes(p.type)?p.type:"TYT"}))}
+function examPlanFromCoach(p,plans,now){const date=text(p?.date,10),type=text(p?.type,8),name=text(p?.name,80)||type+" denemesi";if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||new Date(date+"T12:00:00Z").toISOString().slice(0,10)!==date||date<now)throw new Error("Deneme tarihi geçersiz");if(!EXAM_PLAN_TYPES.includes(type))throw new Error("Deneme türü geçersiz");if(list(plans).some(x=>x?.date===date&&text(x?.name,80).toLocaleLowerCase("tr-TR")===name.toLocaleLowerCase("tr-TR")))return null;if(list(plans).length>=MAX_EXAM_PLANS)throw new Error("Deneme takvimi dolu");let id=Date.now();while(list(plans).some(x=>Number(x?.id)===id))id++;return{id,date,name,type}}
 function booksShare(s){let budget=BOOK_COVER_BUDGET;return list(s?.books).slice(0,60).map(b=>{const total=Math.max(0,Math.min(2000,Math.floor(finite(b?.total)))),done=Math.max(0,Math.min(total,Math.floor(finite(b?.done)))),log=list(b?.log).map(x=>text(x?.d,10)).filter(d=>/^\d{4}-\d{2}-\d{2}$/.test(d)).sort(),out={id:text(b?.id,40),name:text(b?.name,120),subject:text(b?.subject,40),pub:text(b?.pub,40),exam:text(b?.exam,8),kind:text(b?.kind,40),total,done,perTest:Math.max(0,Math.min(400,Math.floor(finite(b?.perTest)))),last:log.at(-1)||""},c=typeof b?.cover==="string"?b.cover:"";if(c.length<=BOOK_COVER_MAX&&c.length<=budget&&BOOK_COVER_RE.test(c)){out.cover=c;budget-=c.length}const u=typeof b?.coverUrl==="string"?b.coverUrl:"";if(u.length<=200&&BOOK_COVER_URL_RE.test(u))out.coverUrl=u;return out}).filter(b=>b.id&&b.name&&b.total>0)}
 /* v97 · Tekrar çöz sonuçları koça: açık fotoğraflı yanlışların doğru serisi, yanlış sayısı ve sıradaki tarihi (en fazla 150) ile öğrenilen/bekleyen sayıları. Fotoğraf gitmez. */
 function wrongReviewShare(s,day){const resolved=new Set(list(s?.errorJournal).filter(x=>x?.resolved&&String(x?.sourceRef||"").startsWith("wrong:")).map(x=>String(x.sourceRef).slice(6))),items={},out={learned:0,due:0,waiting:0,items};let n=0;for(const w of list(s?.wrongLog).slice().reverse()){const id=text(w?.id,40);if(!id)continue;const r=w?.rep&&typeof w.rep==="object"?w.rep:null,due=/^\d{4}-\d{2}-\d{2}$/.test(String(r?.due||""))?String(r.due):"",ok=Math.max(0,Math.min(3,Math.floor(finite(r?.ok)))),miss=Math.max(0,Math.min(999,Math.floor(finite(r?.miss))));if(w.resolved||resolved.has(String(w.id))){if(due&&ok>=3)out.learned++;continue}if(!list(w.questionImgs).some(img=>typeof img==="string"&&img.startsWith("data:image/")))continue;if(!due||due<=day)out.due++;else out.waiting++;if(due&&n<150){items[id]={ok,miss,due};n++}}return out}
@@ -188,7 +192,7 @@ function sharePayload(s,u){
   const daily14=progressDaily(s,14),subjects7=progressSubjects(s,daily14.slice(-7));
   // v83: koçun gün/hafta/ay raporu ve ders süzgeci için son 31 gün, gün gün ders kırılımıyla.
   const daily31=progressDaily(s,31).map(day=>({...day,subjects:progressSubjects(s,[day]).slice(0,8)}));
-  return{studentUid:u.uid,version:1,profile:{name:text(s.name||u.displayName,80),track:text(s.puanTuru,8),targetNetTYT:Number(s.targetNetTYT??s.targetNet??0),targetNetAYT:Number(s.targetNetAYT||0),targetUniversity:text(s.targetUniversity,120),targetDepartment:text(s.targetDepartment,120),career:careerShare(),reading:readingShare(s)},program:buildProgramShare(s),exams,progress:{minutes7:sum(s.pomoMin,7),questions7:sum(s.solved,7),daily14,daily31,subjects7,completedTopics:topics.filter(x=>x.st>=3).length,activeTopics:topics.filter(x=>x.st>0&&x.st<3).length,overdueTopics:topics.filter(x=>x.deadline&&x.deadline<today()&&x.st<3).length,books:booksShare(s),wrongReview:wrongReviewShare(s,today()),dayReview:{entries:dayReviews}},paragraphProblem:ppGoals(s)?{entries:pp,goals:ppGoals(s)}:{entries:pp},topics:topicShare,errorJournal:errors,updatedAt:serverTimestamp()};
+  return{studentUid:u.uid,version:1,profile:{name:text(s.name||u.displayName,80),track:text(s.puanTuru,8),targetNetTYT:Number(s.targetNetTYT??s.targetNet??0),targetNetAYT:Number(s.targetNetAYT||0),targetUniversity:text(s.targetUniversity,120),targetDepartment:text(s.targetDepartment,120),career:careerShare(),reading:readingShare(s)},program:buildProgramShare(s),exams,progress:{minutes7:sum(s.pomoMin,7),questions7:sum(s.solved,7),daily14,daily31,subjects7,completedTopics:topics.filter(x=>x.st>=3).length,activeTopics:topics.filter(x=>x.st>0&&x.st<3).length,overdueTopics:topics.filter(x=>x.deadline&&x.deadline<today()&&x.st<3).length,books:booksShare(s),wrongReview:wrongReviewShare(s,today()),dayReview:{entries:dayReviews},examPlans:examPlansShare(s)},paragraphProblem:ppGoals(s)?{entries:pp,goals:ppGoals(s)}:{entries:pp},topics:topicShare,errorJournal:errors,updatedAt:serverTimestamp()};
 }
 async function publishShare(options={}){
   const manual=options?.manual===true,session=rt.session;
@@ -394,6 +398,14 @@ function applyAction(a){
     s.coachRecommendations.push(next);s.coachRecommendations=s.coachRecommendations.slice(-40);
     if(save()===false)throw new Error("Kaynak önerisi kaydedilemedi");
     window.dispatchEvent(new CustomEvent("yks:coach-recommendations-changed",{detail:{key}}));
+  }else if(a.type==="coach_note"&&p.operation==="exam_plan_add"){
+    // v139: koçun planladığı deneme öğrencinin Deneme takvimine eklenir (eski sürüm bunu not olarak kaydeder).
+    const plans=list(s.examPlans),plan=examPlanFromCoach(p,plans,today());
+    if(!plan)return"Deneme zaten takvimde";
+    s.examPlans=[...plans,plan];
+    if(save()===false){s.examPlans=plans;throw new Error("Deneme takvime kaydedilemedi")}
+    try{window.renderV315Dashboard?.()}catch{}
+    window.dispatchEvent(new CustomEvent("yks:data-changed",{detail:{source:"coach-exam-plan"}}));
   }else if(a.type==="coach_note"&&p.operation==="book_add"){
     // v98: koçun seçtiği kitap Kitaplarım'a eklenir (kural değişmesin diye coach_note; eski sürüm bunu not olarak kaydeder).
     const name=text(p.name,120),total=Math.floor(finite(p.total)),perTest=Math.floor(finite(p.perTest)),coverUrl=text(p.coverUrl,200);
@@ -436,7 +448,7 @@ async function handleAction(change,session=rt.session){
     requireSession(session);
     await updateDoc(change.doc.ref,{status:"applied",updatedAt:serverTimestamp(),handledAt:serverTimestamp(),result});
     if(session!==rt.session)return;
-    toast(a.type==="resource_recommendation"||(a.type==="coach_note"&&a.payload?.operation==="resource_recommendation")?"Koçundan yeni video önerisi geldi ✓":a.payload?.operation==="book_add"?"Koçun Kitaplarım'a kitap ekledi 📚":"Koçundan yeni görev/not geldi ✓");scheduleShare(60);
+    toast(a.type==="resource_recommendation"||(a.type==="coach_note"&&a.payload?.operation==="resource_recommendation")?"Koçundan yeni video önerisi geldi ✓":a.payload?.operation==="book_add"?"Koçun Kitaplarım'a kitap ekledi 📚":a.payload?.operation==="exam_plan_add"?"Koçun Deneme takvimine deneme ekledi 📅":"Koçundan yeni görev/not geldi ✓");scheduleShare(60);
   }catch(error){
     if(session!==rt.session)return;
     try{await updateDoc(change.doc.ref,{status:"rejected",updatedAt:serverTimestamp(),handledAt:serverTimestamp(),result:text(error?.message||"Uygulanamadı",500)})}catch{}
@@ -491,7 +503,7 @@ async function bookCountPropose(bookId,tests,perTest){
   try{if((await getDoc(doc(rt.db,"bookCounts",bookId))).exists())return false;await setDoc(doc(rt.db,"bookCounts",bookId),{tests:t,perTest:q,createdAt:serverTimestamp()});return true}
   catch(error){console.warn("Kitap sayıları paylaşılamadı",error?.code||error);return false}
 }
-window.YKSAccountAuth={version:"1.2.36",beforeSignIn,onSignedIn,onSignedOut,publishShare,bookCounts:{get:bookCountGet,propose:bookCountPropose}};
+window.YKSAccountAuth={version:"1.2.37",beforeSignIn,onSignedIn,onSignedOut,publishShare,bookCounts:{get:bookCountGet,propose:bookCountPropose}};
 try{resolveAccountReady?.(window.YKSAccountAuth)}catch{}
 document.documentElement.dataset.studentCoachingBridge="ready";
-window.dispatchEvent(new CustomEvent("yks:student-coaching-ready",{detail:{version:"1.2.36"}}));
+window.dispatchEvent(new CustomEvent("yks:student-coaching-ready",{detail:{version:"1.2.37"}}));
