@@ -6,7 +6,7 @@ import "./focus-refine-v70.css";
  * 4 bildirimden kontrol Odak ayarlarında · 5 bugünkü toplam başlığın altında · 6 araçlar açık liste
  * 7 Minimal başlığın yanında · 8 çalışırken süre ayarları gizli, soru sayacı görünür */
 
-type FocusWindow=Window&{v29SessionList?:(days:number)=>unknown;openFold?:(name:string)=>void;setFocusMode?:(mode:string)=>void};
+type FocusWindow=Window&{v29SessionList?:(days:number)=>unknown;openFold?:(name:string)=>void;v130DenemeTab?:()=>void};
 type ToolKey="sessions"|"manual"|"breath"|"exam"|"history"|"settings"|"other";
 
 const QUESTION_KEY="yks_v70_focus_questions";
@@ -133,11 +133,8 @@ export function installFocusRefineV70():boolean{
       row.append(summary,inner);
       // İç katlanır bölüm (geçmiş, ayarlar) satır açılınca kendiliğinden açılır; tek dokunuş yeter.
       if(tool.fold)row.addEventListener("toggle",()=>{if(row.open)win.openFold?.(tool.fold!);});
-      // Deneme modu kartı üstteki Deneme sekmesinde yaşar; satır açılmaz, o sekmeye götürür.
-      if(key==="exam")summary.addEventListener("click",event=>{
-        event.preventDefault();win.setFocusMode?.("deneme");
-        document.getElementById("segDeneme")?.scrollIntoView({behavior:"smooth",block:"center"});
-      });
+      // Deneme sekmesi kapalıyken kart bu satırda durur (app.js v130DenemeTab).
+      if(key==="exam")row.addEventListener("toggle",()=>{if(row.open)win.v130DenemeTab?.();});
       bodies.set(key,inner);return inner;
     };
     let current:ToolKey|null=null;

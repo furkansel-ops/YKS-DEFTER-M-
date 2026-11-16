@@ -4475,7 +4475,9 @@ function v130DenemeTab(){
   if(!panel){panel=document.createElement("div");panel.id="denemeModePanel";}
   // Odak araç listesi kendine eklenenleri toplar; panel hep sekmelerin altında durur.
   if(panel.previousElementSibling!==seg)seg.after(panel);
-  if(card.parentElement!==panel)panel.append(card);
+  // Kart sekme açıkken sekmede, değilken araç listesindeki Deneme modu satırında durur.
+  const home=focusDenemeTab?panel:document.querySelector('#v70FocusTools [data-tool="exam"] .v70-tool-body');
+  if(home&&card.parentElement!==home)home.append(card);
   panel.hidden=!focusDenemeTab;b.classList.toggle("on",focusDenemeTab);
   el("pomo").classList.toggle("is-deneme",focusDenemeTab);
 }
