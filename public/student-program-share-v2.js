@@ -64,9 +64,16 @@ function programPayload(s){
 function payloadHash(value){
   try{return JSON.stringify(value)}catch{return""}
 }
+/* v141: Firestore haritaları anahtar sırasına dizerek döndürür; sıraya bağlı karşılaştırma kendi yazmasını hep
+   "farklı" görüp saniyede birkaç kez yeniden yazıyordu (16 Kasım'da günlük yazma kotası doldu). Anahtarlar sıralanır. */
+function canonical(value){
+  if(Array.isArray(value))return value.map(canonical);
+  if(!value||typeof value!=="object")return value;
+  return Object.fromEntries(Object.keys(value).sort().map(key=>[key,canonical(value[key])]));
+}
 function stableProgramHash(program){
   if(!program||typeof program!=="object")return"";
-  return payloadHash({...program,syncedAt:0});
+  return payloadHash(canonical({...program,syncedAt:0}));
 }
 async function ensureShareDocument(){
   if(rt.shareReady)return true;
@@ -217,5 +224,5 @@ if(auth&&!auth.__programShareV2){
   auth.onSignedOut=(...args)=>{stop();return previousSignOut?.(...args)};
   auth.__programShareV2=true;
 }
-window.YKSStudentProgramShareV2={version:"3.6.3",publish:force=>publishProgram(Boolean(force)),build:programPayload};
+window.YKSStudentProgramShareV2={version:"3.6.4",publish:force=>publishProgram(Boolean(force)),build:programPayload};
 document.documentElement.dataset.studentProgramSync="v3";

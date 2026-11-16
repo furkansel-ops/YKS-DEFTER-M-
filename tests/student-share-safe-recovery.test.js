@@ -87,5 +87,5 @@ test("update stays compatible with strict coachingShares rules and cache busts t
   assert.match(rules,/match \/coachingShares\/\{studentUid\}/);
   assert.match(rules,/request\.resource\.data\.exams is list/);
   assert.match(rules,/request\.auth\.uid == studentUid/);
-  assert.match(loader,/student-program-share-v2\.js\?v=3\.6\.3-safe/);
+  assert.match(loader,/student-program-share-v2\.js\?v=3.6.4-safe/);
 });

@@ -105,7 +105,7 @@ export function installStudentAccountLoader():boolean{
     if(!linkReady)return false;
     // Randevular isteğe bağlı: yüklenemezse hesap ve koç bağlantısı yine çalışır.
     await loadModuleScript(STUDENT_APPOINTMENTS_ID,"./student-appointments.js?v=1.3.1");
-    const programShareReady=await loadModuleScript(STUDENT_PROGRAM_SHARE_V2_SCRIPT_ID,"./student-program-share-v2.js?v=3.6.3-safe");
+    const programShareReady=await loadModuleScript(STUDENT_PROGRAM_SHARE_V2_SCRIPT_ID,"./student-program-share-v2.js?v=3.6.4-safe");
     if(!programShareReady)return false;
     const authReady=await loadModuleScript(AUTH_SCRIPT_ID,"./auth-session-runtime.js?v=1.6.0");
     if(!authReady)return false;

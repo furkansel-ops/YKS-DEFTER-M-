@@ -19,7 +19,7 @@ test("öğrenci hesap köprüleri auth başlamadan önce güvenli sırada yükle
   const loader=read("src/ui/student-account-loader.ts");
   const bridgeAt=loader.indexOf("student-coaching-runtime.js?v=1.2.37");
   const linkAt=loader.indexOf("student-coach-link.js?v=1.5.0");
-  const programAt=loader.indexOf("student-program-share-v2.js?v=3.6.3");
+  const programAt=loader.indexOf("student-program-share-v2.js?v=3.6.4");
   const authAt=loader.indexOf("auth-session-runtime.js?v=1.6.0");
   assert.ok(bridgeAt>=0&&linkAt>bridgeAt&&programAt>linkAt&&authAt>programAt);
 });
@@ -112,7 +112,7 @@ test("Programım v3 koç aynası için değişiklikleri canlı ve tekrarsız yay
 
 test("Programım paylaşımı yerel değişiklikleri event olmasa da izler",()=>{
   const runtime=read("public/student-program-share-v2.js");
-  for(const token of["watchLocalProgram","setInterval(watchLocalProgram,1500)","localProgramHash","version:\"3.6.3\""])assert.ok(runtime.includes(token),token);
+  for(const token of["watchLocalProgram","setInterval(watchLocalProgram,1500)","localProgramHash","version:\"3.6.4\""])assert.ok(runtime.includes(token),token);
   assert.match(runtime,/remoteHash!==currentHash/);
 });
 
@@ -173,7 +173,7 @@ test("öğrenci koça bilgileri manuel paylaşabilir ve program paylaşımı zor
   assert.match(link,/studentCoachProgramShare/);
   assert.match(program,/async function publishProgram\(force=false\)/);
   assert.match(program,/if\(!manual&&hash&&hash===rt\.lastHash\)return true/);
-  assert.match(program,/version:"3\.6\.3"/);
+  assert.match(program,/version:"3.6.4"/);
 });
 
 
@@ -186,7 +186,7 @@ test("manuel koç paylaşımı devam eden otomatik yazımı bekler ve gerçek Fi
   assert.match(runtime,/dataset\.coachShareError/);
   assert.match(program,/if\(manual&&rt\.inFlight\)await rt\.inFlight/);
   assert.match(program,/dataset\.studentProgramShareError/);
-  assert.match(program,/version:"3\.6\.3"/);
+  assert.match(program,/version:"3.6.4"/);
 });
 
 
