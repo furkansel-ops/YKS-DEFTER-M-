@@ -72,7 +72,6 @@
 .dm-type b{font-size:16px;}
 .dm-type small{font-size:12px;color:var(--label-2);}
 .dm-type.on{border-color:var(--time);background:var(--time-soft);}
-.dm-type.on small{color:var(--time);}
 #simCustomBox{margin:0 0 12px;}
 #simCustomBox[hidden]{display:none;}
 .dm-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin:0 0 4px;font-size:13px;font-weight:700;}

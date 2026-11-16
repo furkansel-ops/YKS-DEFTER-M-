@@ -25,9 +25,9 @@
 :root[data-theme="vivid"]{
   --d-bg:#fff0e4;--d-surface:#fff;--d-soft:#f3eaff;--d-ink:#1c1433;--d-muted:#5a4f74;--d-line:#f0dccd;
   --d-accent:#6a2cff;--d-on-accent:#fff;--d-chip:#ebe0ff;--d-chip-ink:#4f17d9;--d-track:#f7dcc8;--d-ok:#0b9a62;
-  --d-hero:linear-gradient(135deg,#6a2cff 0%,#c13bf0 52%,#ff6a48 100%);--d-hero-ink:#fff;--d-hero-btn:#fff;--d-hero-btn-ink:#4f17d9;--d-hero-ghost:rgba(255,255,255,.24);
-  --d-launch:linear-gradient(160deg,#6a2cff 0%,#b83cec 50%,#ff6a48 100%);
-  --d-r:22px;--d-r-sm:16px;--d-shadow:0 8px 20px rgba(120,60,20,.08);--d-nav:rgba(255,255,255,.95);
+  --d-hero:linear-gradient(135deg,#6a2cff 0%,#b62fd6 52%,#d6336c 100%);--d-hero-ink:#fff;--d-hero-btn:#fff;--d-hero-btn-ink:#4f17d9;--d-hero-ghost:rgba(255,255,255,.24);
+  --d-launch:linear-gradient(160deg,#6a2cff 0%,#b62fd6 50%,#d6336c 100%);
+  --d-r:22px;--d-r-sm:16px;--d-shadow:0 8px 20px rgba(120,60,20,.08);--d-nav:rgba(255,246,239,.96);
   --d-math:#6a2cff;--d-physics:#f06a00;--d-chemistry:#00a06a;--d-biology:#d22fc0;--d-reading:#f0386b;--d-social:#b8730f;--d-other:#6c6784;
 }
 :root[data-theme="night"],:root[data-theme="vivid"]{background:var(--d-bg)}
@@ -171,6 +171,8 @@
 :root[data-visual-system] body .tabbar{background:var(--d-nav);border-color:var(--d-line);backdrop-filter:blur(14px)}
 :root[data-visual-system][data-theme] body .tabbar .tab.active{color:var(--d-accent)}
 :root[data-theme="night"] body .navbar,:root[data-theme="vivid"] body .navbar{background:color-mix(in srgb,var(--d-bg) 92%,transparent);border-color:var(--d-line)}
+/* v136: Canlı'da sol panel ve üst çubuk düz beyaz değil, zeminle aynı şeftali ailesinde (eski v45 kuralı beyaza çekiyordu). */
+:root[data-visual-system][data-theme="vivid"]:not(#v) body :is(.navbar,.tabbar){background:var(--d-nav);border-color:var(--d-line)}
 
 /* ---------- Açılış ekranı temaya uyar ---------- */
 :root[data-visual-system] .yl-root{background:var(--d-launch)}
@@ -186,7 +188,7 @@
 /* Açılış ekranının alt düğme şeridi gradyanın son rengine kaynar. */
 :root[data-visual-system="refined-blue"]{--d-launch-end:#0A2F7A}
 :root[data-theme="night"]{--d-launch-end:#121a33}
-:root[data-theme="vivid"]{--d-launch-end:#ff6a48}
+:root[data-theme="vivid"]{--d-launch-end:#d6336c}
 @media(max-width:759px){
   :root[data-visual-system] .yl-root .yl-acts{background:linear-gradient(to top,var(--d-launch-end) 0%,var(--d-launch-end) 62%,transparent 100%)}
 }

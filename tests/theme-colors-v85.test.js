@@ -25,7 +25,12 @@ test("v85 Gece bir ton açık; iki tema katmanı aynı paleti kullanır",()=>{
 test("v85 Canlı daha doygun; vurgu üstünde beyaz yazı okunur",()=>{
   const vivid=':root[data-theme="vivid"]{';
   assert.equal(token(css,vivid,"--d-bg"),"#fff0e4");assert.equal(token(css,vivid,"--d-accent"),"#6a2cff");
-  assert.match(token(css,vivid,"--d-hero"),/#6a2cff 0%,#c13bf0 52%,#ff6a48 100%/);
+  // v136: turuncu uç (#ff6a48) beyaz yazıyla 2,84'tü; düğme, sekme ve kart yazıları okunmuyordu.
+  assert.match(token(css,vivid,"--d-hero"),/#6a2cff 0%,#b62fd6 52%,#d6336c 100%/);
+  for(const name of ["--d-hero","--d-launch"])for(const stop of token(css,vivid,name).match(/#[0-9a-f]{6}/gi))
+    assert.ok(ratio("#ffffff",stop)>=4.5,`${name} ${stop} üstünde beyaz yazı okunur`);
+  // Sol panel ve üst çubuk zeminle aynı şeftali ailesinde (düz beyaz değil).
+  assert.equal(token(css,vivid,"--d-nav"),"rgba(255,246,239,.96)");
   for(const [d,y] of [["--d-bg","--yks-theme-bg"],["--d-soft","--yks-theme-soft"],["--d-ink","--yks-theme-ink"],["--d-muted","--yks-theme-muted"],["--d-line","--yks-theme-line"],["--d-accent","--yks-theme-accent"]])
     assert.equal(token(legacy,vivid,y),token(css,vivid,d),y);
   assert.ok(ratio("#ffffff",token(css,vivid,"--d-accent"))>=4.5);
