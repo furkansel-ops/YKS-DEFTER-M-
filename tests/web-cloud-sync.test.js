@@ -7,13 +7,14 @@ const root=path.resolve(__dirname,"..");
 const read=file=>fs.readFileSync(path.join(root,file),"utf8");
 
 test("Firebase eşitleme kaynağı kaynak HTML içinde kayıpsız korunur ve görünür kutu shell tarafından oluşturulur",()=>{
-  const index=read("index.html");
-  assert.match(index,/type="application\/json" id="legacyFirebaseSyncModule"/);
-  assert.match(index,/apiKey:\s*""/);
-  assert.match(index,/signInWithPopup/);
-  assert.match(index,/onAuthStateChanged/);
-  assert.match(index,/runTransaction\(db/);
-  assert.match(index,/SYNC_CONFLICT/);
+  // v135: kaynak index.html açılış bütçesinden ayrı dosyaya taşındı; içerik aynı.
+  const index=read("index.html"),source=read("legacy/firebase-sync-source.js");
+  assert.doesNotMatch(index,/legacyFirebaseSyncModule|firebasejs/);
+  assert.match(source,/apiKey:\s*""/);
+  assert.match(source,/signInWithPopup/);
+  assert.match(source,/onAuthStateChanged/);
+  assert.match(source,/runTransaction\(db/);
+  assert.match(source,/SYNC_CONFLICT/);
   assert.doesNotMatch(index,/<div id="cloudSyncBox"/);
 });
 
@@ -21,7 +22,7 @@ test("Production build eski Firebase kodunu gerçek web modülüne çıkarır",(
   const vite=read("vite.config.mts");
   assert.match(vite,/prepareWebCloudRuntime/);
   assert.match(vite,/apply:"build"/);
-  assert.match(vite,/legacyFirebaseSyncModule/);
+  assert.match(vite,/FIREBASE_RUNTIME_SOURCE="legacy\/firebase-sync-source\.js"/);
   assert.match(vite,/firebase-sync-runtime\.js/);
   assert.match(vite,/emitFile/);
   assert.match(vite,/FIREBASE_WEB_API_KEY="AIza/);

@@ -3,7 +3,9 @@ import {resolve} from "node:path";
 import {defineConfig,type Plugin} from "vite";
 
 const FIREBASE_WEB_API_KEY="AIzaSyA0UMRKwah3Ji9Z8Sd3ZvgLJUKiC40fVSc";
-const FIREBASE_RUNTIME_RE=/<script type="application\/json" id="legacyFirebaseSyncModule"[^>]*>([\s\S]*?)<\/script>\s*/u;
+// v135: web bulut eşitleme kaynağı index.html açılış bütçesinden (180 KB) ayrı dosyaya taşındı. Tarayıcı bu dosyayı
+// doğrudan yüklemez; derlemede okunur, sağlamlaştırılır ve dist/firebase-sync-runtime.js olarak yazılır.
+const FIREBASE_RUNTIME_SOURCE="legacy/firebase-sync-source.js";
 
 function replaceRequired(source:string,needle:string,replacement:string,label:string):string{
   if(!source.includes(needle))throw new Error(`Firebase eşitleme sağlamlaştırması uygulanamadı: ${label}`);
@@ -67,10 +69,8 @@ function hardenFirebaseRuntime(source:string):string{
   return next;
 }
 
-function extractFirebaseRuntime(html:string):string{
-  const runtimeMatch=html.match(FIREBASE_RUNTIME_RE);
-  const sourceText=runtimeMatch?.[1];
-  if(!runtimeMatch||!sourceText)throw new Error("Legacy Firebase eşitleme kaynağı index.html içinde bulunamadı");
+function extractFirebaseRuntime(sourceText:string):string{
+  if(!sourceText||!sourceText.trim())throw new Error(`Firebase eşitleme kaynağı boş: ${FIREBASE_RUNTIME_SOURCE}`);
   const keyed=sourceText.replace(/\r\n/g,"\n").replace(/apiKey:\s*"[^"]*"/,`apiKey:"${FIREBASE_WEB_API_KEY}"`);
   const source=hardenFirebaseRuntime(keyed);
   if(!source.includes("signInWithPopup")||!source.includes("onAuthStateChanged")||!source.includes("runTransaction"))throw new Error("Firebase eşitleme çalışma zamanı eksik veya bozuk");
@@ -78,16 +78,13 @@ function extractFirebaseRuntime(html:string):string{
 }
 
 function prepareWebCloudRuntime():Plugin{
-  let runtimeSource=extractFirebaseRuntime(readFileSync(resolve(process.cwd(),"index.html"),"utf8"));
+  const runtimeSource=extractFirebaseRuntime(readFileSync(resolve(process.cwd(),FIREBASE_RUNTIME_SOURCE),"utf8"));
   return {
     name:"prepare-web-cloud-runtime",
     apply:"build",
     transformIndexHtml(html:string){
-      const runtimeMatch=html.match(FIREBASE_RUNTIME_RE);
-      if(!runtimeMatch)throw new Error("Legacy Firebase eşitleme kaynağı index.html içinde bulunamadı");
-      runtimeSource=extractFirebaseRuntime(html);
-      const withoutRuntime=html.replace(runtimeMatch[0],"");
-      return withoutRuntime.replace(/<div id="cloudSyncBox"[\s\S]*?<\/div>\s*/u,"");
+      if(html.includes('id="legacyFirebaseSyncModule"'))throw new Error(`Firebase eşitleme kaynağı index.html'e geri dönmemeli; ${FIREBASE_RUNTIME_SOURCE} kullanılır`);
+      return html.replace(/<div id="cloudSyncBox"[\s\S]*?<\/div>\s*/u,"");
     },
     generateBundle(){
       if(!runtimeSource)throw new Error("Firebase eşitleme çalışma zamanı build sırasında hazırlanamadı");

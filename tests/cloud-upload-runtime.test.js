@@ -8,9 +8,9 @@ const {stripTypeScriptTypes}=require("node:module");
 
 const root=path.resolve(__dirname,"..");
 const read=file=>fs.readFileSync(path.join(root,file),"utf8");
-const rawRuntime=read("index.html").match(/<script type="application\/json" id="legacyFirebaseSyncModule"[^>]*>([\s\S]*?)<\/script>/)[1];
+const SOURCE="legacy/firebase-sync-source.js",rawRuntime=read(SOURCE);
 
-function productionRuntime(html=read("index.html")){
+function productionRuntime(html=read(SOURCE)){
   const vite=read("vite.config.mts"),helpers=vite.slice(vite.indexOf("const FIREBASE_WEB_API_KEY"),vite.indexOf("function prepareWebCloudRuntime"));
   const compiled=stripTypeScriptTypes(helpers);
   const transformed=vm.runInNewContext(compiled+"\nextractFirebaseRuntime(input)",{input:html});
@@ -164,6 +164,6 @@ test("production: hesap yükleme zinciri beklemesi 2500 ms sonra mevcut köprüy
 });
 
 test("production Firebase çıkarımı Windows CRLF ve LF girdilerinde aynı kodu üretir",()=>{
-  const lf=read("index.html").replace(/\r\n/g,"\n");
+  const lf=read(SOURCE).replace(/\r\n/g,"\n");
   assert.equal(productionRuntime(lf.replace(/\n/g,"\r\n")),productionRuntime(lf));
 });

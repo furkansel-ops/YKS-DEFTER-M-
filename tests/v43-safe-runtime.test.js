@@ -50,7 +50,7 @@ test("tek özellik arızası çekirdek bootstrap veya yerel veri katmanını blo
   assert.match(main,/document\.documentElement\.dataset\.v4Runtime="ready"/);
   assert.match(safe,/her özellik kendi fail-open sınırında kalır/);
   assert.doesNotMatch(html,/type="module" id="firebaseSyncModule"/);
-  assert.match(html,/type="application\/json" id="legacyFirebaseSyncModule" data-disabled="play-store-release"/);
+  assert.doesNotMatch(html,/legacyFirebaseSyncModule/,"eşitleme kaynağı index.html'de çalışmaz; legacy/firebase-sync-source.js");
   assert.match(vite,/prepare-web-cloud-runtime/);
   assert.match(vite,/waitAccountRuntime/);
 });
