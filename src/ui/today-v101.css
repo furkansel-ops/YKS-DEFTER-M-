@@ -66,6 +66,8 @@
   /* Sağ sütun sırası; randevu kartı v71'deki eski hücresinde (6/1, 4/2) görevlerin ya da sayıların üstüne biniyordu. */
   :root[data-visual-system]:not(#v) #mainWrap #home #todayFreshStart>#v101Coach{grid-column:2;grid-row:3}
   :root[data-visual-system]:not(#v) #mainWrap #home #todayFreshStart>:is(#studentNextAppointment,#studentApptEntry){grid-area:auto;grid-column:2;grid-row:4;align-self:start}
+  /* v137: koç mesajı yokken görüşme kartı Sıradaki çalışma ile aynı satırları kaplar; üstü ve altı hizalı, boyu eşit. */
+  :root[data-visual-system]:not(#v) #mainWrap #home #todayFreshStart:has(>#v101Coach[hidden])>:is(#studentNextAppointment,#studentApptEntry){grid-row:3 / span 2;align-self:stretch;align-content:center}
   :root[data-visual-system]:not(#v) #mainWrap #home #todayFreshStart .today-fresh-stats{grid-column:2;grid-row:5}
   :root[data-visual-system]:not(#v) #mainWrap #home #todayFreshStart>#v71Rows{grid-column:2;grid-row:6}
   :root[data-visual-system]:not(#v) #mainWrap #home #todayFreshStart>#todayAchievementShortcut{grid-column:2;grid-row:7}

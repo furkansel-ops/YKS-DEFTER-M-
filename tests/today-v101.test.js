@@ -78,4 +78,6 @@ test("v101 bilgisayarda randevu kartı sağ sütunda kendi satırında; görevle
   assert.match(wide,/>:is\(#studentNextAppointment,#studentApptEntry\)\{grid-area:auto;grid-column:2;grid-row:4;align-self:start\}/);
   assert.match(wide,/\.today-fresh-stats\{grid-column:2;grid-row:5\}/);
   assert.match(wide,/\.today-fresh-tasks\{grid-column:1;grid-row:5 \/ span 4\}/);
+  // v137: koç mesajı yokken Sıradaki çalışma (3 / span 2) ile aynı satırlar, eşit boy.
+  assert.match(wide,/#todayFreshStart:has\(>#v101Coach\[hidden\]\)>:is\(#studentNextAppointment,#studentApptEntry\)\{grid-row:3 \/ span 2;align-self:stretch;align-content:center\}/);
 });

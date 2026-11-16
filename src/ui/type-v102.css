@@ -49,7 +49,8 @@
 :root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-stat:has(#todayFreshQuestions)>span:first-child::before{display:inline-block;--i102:var(--i102-check);color:var(--d-accent)}
 :root[data-visual-system] #mainWrap #home #todayFreshStart .today-fresh-stat:has(#todayFreshMinutes)>span:first-child::before{display:inline-block;--i102:var(--i102-timer);color:var(--d-accent)}
 :root[data-visual-system] #mainWrap #home #todayFreshStart #v71Rows .v71-chev{--i102:var(--i102-chev);width:16px;height:16px}
-:root[data-visual-system] #mainWrap #home #todayFreshStart #todayFreshReview .v71-ic{font-size:0}
+/* #v71Rows: today-refine-v71.css aynı özgüllükte font-size:15px veriyor; ☾ karakteri simgenin üstüne biniyordu (v137). */
+:root[data-visual-system] #mainWrap #home #todayFreshStart #v71Rows #todayFreshReview .v71-ic{font-size:0}
 :root[data-visual-system] #mainWrap #home #todayFreshStart #todayFreshReview .v71-ic::before{--i102:var(--i102-moon);width:19px;height:19px}
 :root[data-visual-system] #mainWrap #home #todayFreshStart #todayFreshAllTasks{display:inline-flex;align-items:center;gap:4px}
 :root[data-visual-system] #mainWrap #home #todayFreshStart #todayFreshAllTasks>span{--i102:var(--i102-out);width:15px;height:15px}

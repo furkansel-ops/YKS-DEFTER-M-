@@ -17,6 +17,8 @@ test("v102 simgeler maskeyle çizilir; sözde öğeler :is() içinde değil (ge�
   assert.match(css,/-webkit-mask:var\(--i102\) center\/contain no-repeat;mask:var\(--i102\) center\/contain no-repeat/);
   for(const name of ["chev","out","moon","play","done","check","timer","plus","chat","cal","trophy"])assert.ok(css.includes("--i102-"+name+':url("data:image/svg+xml,'),name);
   for(const used of css.match(/var\(--i102-[a-z]+\)/g)||[])assert.ok(css.includes(used.slice(4,-1)+":url("),"tanımsız simge: "+used);
+  // v137: v71'in "#v71Rows .v71-ic{font-size:15px}" kuralını yenmeli; yoksa ☾ karakteri de görünür.
+  assert.ok(css.includes("#todayFreshStart #v71Rows #todayFreshReview .v71-ic{font-size:0}"));
 });
 
 test("v102 metinlerdeki karakter simgeler kalktı; logo mor kutu, arama çizgi simge",()=>{
