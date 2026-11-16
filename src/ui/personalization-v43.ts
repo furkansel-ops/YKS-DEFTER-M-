@@ -42,9 +42,9 @@ const HOME_TARGETS:Record<V43HomeCard,string[]>={
 };
 
 const EXAM_TARGETS:Record<V43ExamType,string[]>={
-  TYT:["#segTYT","#v315tTYT","#dSegTYT","#v320ExamTYT",'button[onclick="startSim(165)"]'],
-  AYT:["#segAYT","#v315tAYT","#dSegAYT","#v320ExamAYT",'button[onclick="startSim(180)"]'],
-  YDT:["#segYDT","#v315tYDT","#dSegYDT","#v320ExamYDT",'button[onclick="startSim(80)"]']
+  TYT:["#segTYT","#v315tTYT","#dSegTYT","#v320ExamTYT",'button[onclick="simPick(165)"]'],
+  AYT:["#segAYT","#v315tAYT","#dSegAYT","#v320ExamAYT",'button[onclick="simPick(180)"]'],
+  YDT:["#segYDT","#v315tYDT","#dSegYDT","#v320ExamYDT",'button[onclick="simPick(80)"]']
 };
 
 const EXAM_GROUPS:Array<{ids:Record<V43ExamType,string>;activate:(type:V43ExamType)=>void}>=[

@@ -1275,17 +1275,16 @@
   </div>
   <h2>Deneme modu</h2>
   <div class="card" id="denemeModeCard">
-    <p class="lead" style="font-size:14.5px;margin:0 0 14px;">Gerçek sınav süresiyle tam ekran deneme. Geçen süre Odak'a eklenir.</p>
-    <div class="rowtools" style="margin:0 0 12px;">
-      <button class="btn ghost tiny" onclick="startSim(165)">TYT · 165 dk</button>
-      <button class="btn ghost tiny" onclick="startSim(180)">AYT · 180 dk</button>
-      <button class="btn ghost tiny" onclick="startSim(80)">YDT · 80 dk</button>
+    <div class="dm-types" role="group" aria-label="Sınav türü">
+      <button type="button" class="dm-type" data-sim="165" onclick="simPick(165)"><b>TYT</b><small>165 dk</small></button>
+      <button type="button" class="dm-type" data-sim="180" onclick="simPick(180)"><b>AYT</b><small>180 dk</small></button>
+      <button type="button" class="dm-type" data-sim="80" onclick="simPick(80)"><b>YDT</b><small>80 dk</small></button>
+      <button type="button" class="dm-type" data-sim="0" onclick="simPick(0)"><b>Özel</b><small>süre seç</small></button>
     </div>
-    <div class="row2">
-      <div><label>Özel süre (dk)</label><input type="number" id="simMin" min="1" placeholder="165"></div>
-      <div style="display:flex;align-items:flex-end;"><button class="btn green small" style="width:100%;" onclick="simCustom()">Başlat</button></div>
-    </div>
-    <p class="hint">Bölümü bitirince <b>Sonraki bölüm</b>'e bas; ekranda hep o bölümün süresi görünür.</p>
+    <div id="simCustomBox" hidden><label for="simMin">Süre (dk)</label><input type="number" id="simMin" min="1" placeholder="165"></div>
+    <div id="simPlanBox"></div>
+    <button class="btn green dm-start" type="button" onclick="simStartPicked()">Başlat</button>
+    <div id="simLastBox"></div>
   </div>
   <button class="foldhead" id="fh_odakayar" onclick="toggleFold('odakayar')">
     <span class="ft">Odak ayarları</span>

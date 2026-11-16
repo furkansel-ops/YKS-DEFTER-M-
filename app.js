@@ -300,6 +300,9 @@ function normalize(o){
   if(typeof o.fontScale!=="number"||!(o.fontScale>=0.8&&o.fontScale<=1.5))o.fontScale=1;
   const sm=o.simulMin|0;
   o.simulMin=(sm>=1&&sm<=600)?sm:165;
+  if(!o.simPlans||typeof o.simPlans!=="object"||Array.isArray(o.simPlans))o.simPlans={};
+  Object.keys(o.simPlans).forEach(k=>{ const a=o.simPlans[k]; if(!Array.isArray(a)||!a.every(n=>Number.isInteger(n)&&n>=1&&n<=600))delete o.simPlans[k]; });
+  if(o.simLast!==undefined&&(!o.simLast||typeof o.simLast!=="object"||!Array.isArray(o.simLast.splits)))delete o.simLast;
   if(!Array.isArray(o.qbank))o.qbank=[];
   o.qbank=o.qbank.filter(q=>q&&typeof q==="object"&&safeImgData(q.img));
   o.qbank.forEach(q=>{
@@ -3918,17 +3921,22 @@ function simView(run,now){
   const elapsed=Math.max(0,Math.floor((now-run.start)/1000)),left=Math.max(0,run.total-elapsed);
   let sec=null;
   if(run.plan&&run.plan.length){
-    const p=run.plan[run.sec],se=Math.max(0,Math.floor((now-run.secStart)/1000)),planned=p[1]*60;
+    const p=run.plan[run.sec],se=simSpent(run,now)[run.sec],planned=p[1]*60;
     sec={i:run.sec,count:run.plan.length,name:p[0],elapsed:se,planned:planned,left:planned-se,last:run.sec>=run.plan.length-1};
   }
   return {elapsed:elapsed,left:left,sec:sec};
 }
-function simAdvance(run,now){
-  if(!run.plan||run.sec>=run.plan.length-1)return false;
+// v133: bölümler alttaki kutulardan istenen sırayla açılır; aynı bölüme dönülürse süresi üstüne eklenir.
+function simJump(run,i,now){
+  if(!run.plan||i===run.sec||!run.plan[i])return false;
   run.splits.push({name:run.plan[run.sec][0],sec:Math.max(0,Math.floor((now-run.secStart)/1000)),plan:run.plan[run.sec][1]});
-  run.sec++; run.secStart=now;
+  run.sec=i; run.secStart=now;
   return true;
 }
+function simSpent(run,now){
+  return run.plan.map((p,i)=>run.splits.reduce((a,s)=>a+(s.name===p[0]?s.sec:0),0)+(i===run.sec?Math.max(0,Math.floor((now-run.secStart)/1000)):0));
+}
+function simShort(name){ return String(name).replace(/ Bilimleri?$/,"").replace(/^Temel /,""); }
 // shortcut: süre bittikten sonra açık unutulursa en fazla 15 dk fazlası sayılır; duraklatma eklenirse buna göre düzelt.
 function simFocusMin(run,now){ return Math.max(0,Math.min(Math.round((now-run.start)/60000),Math.round(run.total/60)+15)); }
 function simPersist(){ try{ if(simRun)localStorage.setItem(SIM_KEY,JSON.stringify(simRun)); else localStorage.removeItem(SIM_KEY); }catch(e){} }
@@ -3938,7 +3946,7 @@ function startSim(min){
   if(simRun){ simOpen(); return; }
   S.simulMin=m; save();
   const now=Date.now();
-  simRun={min:m,total:m*60,start:now,plan:SIM_PLANS[m]||null,sec:0,secStart:now,splits:[],warned:{}};
+  simRun={min:m,total:m*60,start:now,plan:simPlanFor(m),sec:0,secStart:now,splits:[],warned:{}};
   simPersist(); simOpen();
 }
 function simOpen(){
@@ -3965,27 +3973,31 @@ function renderSim(){
   el("simBar").style.width=Math.min(100,Math.round(v.elapsed/simRun.total*100))+"%";
   const box=el("simSec");
   // index.html bütçesi için bölüm kutusunun içi burada kurulur.
-  if(box&&!el("simSecName"))box.innerHTML='<p class="simsec-name" id="simSecName"></p><p class="simsec-time" id="simSecTime"></p><button class="btn small" id="simNext" type="button" onclick="simNext()">Sonraki bölüm ›</button><ol class="simsplits" id="simSplits"></ol>';
+  if(box&&!el("simSecName"))box.innerHTML='<p class="simsec-name" id="simSecName"></p><p class="simsec-time" id="simSecTime"></p><div class="simtabs" id="simTabs" role="group" aria-label="Bölümler"></div>';
   if(box){
     box.hidden=!v.sec;
     if(v.sec){
       el("simSecName").textContent=(v.sec.i+1)+"/"+v.sec.count+" · "+v.sec.name;
       const st=el("simSecTime");
-      st.textContent=(v.sec.left>=0?simClock(v.sec.left)+" kaldı":simClock(-v.sec.left)+" fazla")+" · plan "+(v.sec.planned/60)+" dk";
+      st.textContent=v.sec.left>=0?simClock(v.sec.left)+" kaldı":simClock(-v.sec.left)+" fazla"; // plan alttaki kutuda yazar
       st.classList.toggle("over",v.sec.left<0);
-      const next=el("simNext");
-      next.hidden=v.sec.last;
-      if(!v.sec.last)next.textContent="Sonraki bölüm: "+simRun.plan[v.sec.i+1][0]+" ›";
-      el("simSplits").innerHTML=simRun.splits.map(s=>'<li><span>'+esc(s.name)+'</span><b>'+simClock(s.sec)+'</b><small>plan '+s.plan+' dk</small></li>').join("");
+      // Kutular bir kez kurulur, her saniye yalnız süreleri yazılır (dokunuş yarıda kalmasın).
+      const tabs=el("simTabs"),spent=simSpent(simRun,Date.now());
+      if(tabs.children.length!==simRun.plan.length)tabs.innerHTML=simRun.plan.map((p,i)=>'<button type="button" class="simtab" onclick="simGoto('+i+')"><b>'+esc(simShort(p[0]))+'</b><small></small></button>').join("");
+      Array.from(tabs.children).forEach((b,i)=>{
+        const on=i===v.sec.i;b.classList.toggle("on",on);b.setAttribute("aria-pressed",on?"true":"false");
+        b.classList.toggle("over",spent[i]>simRun.plan[i][1]*60);
+        b.lastChild.textContent=Math.floor(spent[i]/60)+" / "+simRun.plan[i][1]+" dk";
+      });
     }
   }
   el("simHint").textContent=v.left<=0?"Süre bitti. Kalemleri bırak."
     :v.left<=300?"Son 5 dakika — optiği kontrol et."
-    :v.sec&&v.sec.left<0?"Bu bölümün planı doldu; hazır olduğunda sonraki bölüme geç."
+    :v.sec&&v.sec.left<0?"Bu bölümün planı doldu; hazır olduğunda alttan sonraki bölüme geç."
     :"Tıkandığın soruda durma, işaretle ve geç.";
 }
-function simNext(){
-  if(!simRun||!simAdvance(simRun,Date.now()))return;
+function simGoto(i){
+  if(!simRun||!simJump(simRun,i|0,Date.now()))return;
   beep(1); simPersist(); renderSim();
 }
 function simRecordFocus(run,m,now){
@@ -3994,9 +4006,7 @@ function simRecordFocus(run,m,now){
   if(!S.pomoSubj[day])S.pomoSubj[day]={};
   if(!S.sessions[day])S.sessions[day]=[];
   const previousSessions=S.sessions[day].slice();
-  const parts=run.splits.map(s=>s.name+" "+Math.round(s.sec/60)+" dk");
-  const lastMin=Math.round((now-run.secStart)/60000);
-  if(run.plan&&lastMin)parts.push(run.plan[run.sec][0]+" "+lastMin+" dk");
+  const parts=run.plan?simSpent(run,now).map((s,i)=>[run.plan[i][0],Math.round(s/60)]).filter(x=>x[1]>0).map(x=>x[0]+" "+x[1]+" dk"):[];
   S.pomoMin[day]=prevTotal+m;
   S.pomoSubj[day]["Deneme"]=prevSubject+m;
   S.sessions[day].push({t:run.start,end:now,m:m,subj:"Deneme",topic:run.min+" dk deneme",task:"",type:"work",done:true,note:parts.join(" · "),source:"deneme"});
@@ -4012,7 +4022,11 @@ function simEnd(){
   if(!simRun)return 0;
   const run=simRun,now=Date.now(),m=simFocusMin(run,now);
   simRun=null; simPersist();
-  return simRecordFocus(run,m,now)?m:0;
+  // Sonuç bölüm başına toplanır (bir bölüme birkaç kez dönülmüş olabilir). Kayıt simRecordFocus'taki save() ile gider.
+  if(m>=1&&run.plan){ const spent=simSpent(run,now); S.simLast={at:now,min:run.min,m:m,splits:run.plan.map((p,i)=>({name:p[0],sec:spent[i],plan:p[1]}))}; }
+  const ok=simRecordFocus(run,m,now);
+  renderSimCard();
+  return ok?m:0;
 }
 function stopSim(){
   if(simRun){
@@ -4041,6 +4055,59 @@ function simResume(){
   }catch(e){}
 }
 setTimeout(simResume,1500);
+
+/* v132 · Deneme modu kartı: sınav türü seçilir, bölüm planı görünür ve dakikaları değiştirilebilir,
+   bitince son denemenin bölüm bölüm plan/gerçek süresi kartta kalır. */
+const SIM_NAMES={165:"TYT",180:"AYT",80:"YDT"};
+let simPicked=null; // ilk çizimde son kullanılan süreden seçilir (SIM_PLANS bu satırdan sonra tanımlı)
+function simPlanFor(m){
+  const base=SIM_PLANS[m];if(!base)return null;
+  const own=S.simPlans&&S.simPlans[m];
+  return base.map((p,i)=>[p[0],own&&own[i]>=1?own[i]:p[1]]);
+}
+function simPick(m){ simPicked=m|0; renderSimCard(); if(!simPicked)el("simMin")?.focus(); }
+function simStartPicked(){ if(simPicked)startSim(simPicked); else simCustom(); }
+function simPlanSet(i,v){
+  const m=simPicked,base=SIM_PLANS[m];if(!base||!base[i])return;
+  const own=simPlanFor(m).map(p=>p[1]);
+  own[i]=Math.max(1,Math.min(m,parseInt(v,10)||base[i][1]));
+  if(!S.simPlans)S.simPlans={};
+  if(own.every((n,k)=>n===base[k][1]))delete S.simPlans[m]; else S.simPlans[m]=own;
+  save(); renderSimCard();
+}
+function simPlanReset(){ if(S.simPlans)delete S.simPlans[simPicked]; save(); renderSimCard(); }
+function simPlanHtml(m,plan){
+  if(!plan||plan.length<2)return "";
+  const sum=plan.reduce((a,p)=>a+p[1],0),own=!!(S.simPlans&&S.simPlans[m]);
+  return '<div class="dm-plan"><p class="dm-h">Bölüm planı <small class="'+(sum>m?"over":"")+'">'+sum+' / '+m+' dk</small></p>'+
+    plan.map((p,i)=>'<div class="dm-row"><span>'+esc(p[0])+'</span><input type="number" min="1" max="'+m+'" value="'+p[1]+'" aria-label="'+esc(p[0])+' dakika" onchange="simPlanSet('+i+',this.value)"><small>dk</small></div>').join("")+
+    (own?'<button type="button" class="dm-link" onclick="simPlanReset()">Önerilen plana dön</button>':'')+'</div>';
+}
+function simLastHtml(r){
+  if(!r||!Array.isArray(r.splits)||!r.splits.length)return "";
+  let worst=null,worstOver=0;
+  const rows=r.splits.map(s=>{
+    const real=Math.round((Number(s.sec)||0)/60),plan=Number(s.plan)||0,d=real-plan;
+    if(d>worstOver){worstOver=d;worst=s;}
+    return '<li><span>'+esc(s.name)+'</span><b>'+real+' dk</b><small class="'+(d>0?"over":"")+'">'+(d>0?"+"+d:d<0?String(d):"±0")+' · plan '+plan+'</small></li>';
+  }).join("");
+  const day=new Date(Number(r.at)||0).toLocaleDateString("tr-TR",{day:"numeric",month:"short"});
+  return '<div class="dm-last"><p class="dm-h">Son deneme · '+esc(SIM_NAMES[r.min]||r.min+" dk")+' <small>'+day+' · '+(Number(r.m)||0)+' dk</small></p><ol class="simsplits">'+rows+'</ol>'+
+    (worst?'<p class="hint">En çok <b>'+esc(worst.name)+'</b> taştı (+'+worstOver+' dk).</p>':'<p class="hint">Bütün bölümler planın içinde kaldı.</p>')+'</div>';
+}
+function renderSimCard(){
+  const card=el("denemeModeCard");if(!card)return;
+  if(simPicked===null)simPicked=SIM_PLANS[S.simulMin]?S.simulMin:0;
+  const types=Array.from(card.querySelectorAll(".dm-type"));
+  // Kişiselleştirme bir sınavı gizlediyse seçim görünen ilk türe kayar.
+  const shown=types.filter(b=>!b.hasAttribute("data-v43-scope-hidden"));
+  if(!shown.some(b=>+b.dataset.sim===simPicked)&&shown[0])simPicked=+shown[0].dataset.sim;
+  types.forEach(b=>{const on=+b.dataset.sim===simPicked;b.classList.toggle("on",on);b.setAttribute("aria-pressed",on?"true":"false");});
+  el("simCustomBox").hidden=simPicked!==0;
+  // İpucu index.html açılış bütçesi (180 KB) dolu olduğu için burada yazılır.
+  el("simPlanBox").innerHTML=simPlanHtml(simPicked,simPlanFor(simPicked))+'<p class="hint">Tam ekran açılır, ilk bölümden başlar; bölüm değiştirmek için alttaki kutulara dokun. Geçen süre Odak\'a eklenir.</p>';
+  el("simLastBox").innerHTML=simLastHtml(S.simLast);
+}
 
 /* ==================================================================
    11) CSV DIŞA AKTARIM
@@ -4479,6 +4546,7 @@ function v130DenemeTab(){
   const home=focusDenemeTab?panel:document.querySelector('#v70FocusTools [data-tool="exam"] .v70-tool-body');
   if(home&&card.parentElement!==home)home.append(card);
   panel.hidden=!focusDenemeTab;b.classList.toggle("on",focusDenemeTab);
+  renderSimCard();
   el("pomo").classList.toggle("is-deneme",focusDenemeTab);
 }
 function setFocusMode(m,noSave){

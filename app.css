@@ -777,6 +777,15 @@ tr:last-child td{border-bottom:none;}
 @media (max-width:400px){.simtime{font-size:52px;}}
 /* v130 deneme modu: Odak'ta üçüncü sekme; sayaç ve oturum hazırlığı gizlenir */
 #denemeModePanel[hidden]{display:none!important;}
+/* v133 tam ekran denemede bölüm kutuları */
+.simtabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
+.simtab:last-child:nth-child(odd){grid-column:span 2;}
+.simtab{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0;padding:10px 6px;border-radius:14px;border:1.5px solid var(--fill-2);background:var(--glass);color:inherit;font:inherit;cursor:pointer;}
+.simtab b{font-size:14px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.simtab small{font-size:12px;color:var(--label-2);font-variant-numeric:tabular-nums;}
+.simtab.on{border-color:var(--time);background:var(--time-soft);}
+.simtab.on small{color:var(--time);}
+.simtab.over small{color:var(--danger);}
 #pomo.is-deneme .v29-session-setup,#pomo.is-deneme #v29Dashboard{display:none!important;}
 /* v130 deneme modu: o anki bölüm ve biten bölümler */
 .simsec{margin-top:18px;padding:14px;border-radius:16px;background:var(--fill-2);}
