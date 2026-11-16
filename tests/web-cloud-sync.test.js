@@ -79,3 +79,9 @@ test("Bulut yardımcı katmanı hata verirse ana uygulama açılışı devam ede
   assert.match(main,/installOptional\([\s\S]*"play-store-shell"[\s\S]*installPlayStoreShell/);
   assert.match(main,/v4OptionalErrors/);
 });
+
+test("v140 yerel önizleme (localhost) hesaba ve Firestore'a bağlanmaz; kota yalnız gerçek kullanıma gider",()=>{
+  const shell=read("src/ui/play-store-shell.ts");
+  assert.ok(shell.includes(String.raw`const LOCAL_PREVIEW=/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);`));
+  assert.match(shell,/function activateAccountAwareCloudSync\(\):boolean\{\n  if\(LOCAL_PREVIEW\)\{document\.documentElement\.dataset\.webCloudSync="local-preview";return true;\}/);
+});

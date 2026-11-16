@@ -189,7 +189,10 @@ function activateWebCloudSync():boolean{
   return true;
 }
 
+/* v140: yerel önizleme (localhost) hesaba ve Firestore'a hiç bağlanmaz; geliştirme denemeleri gerçek hesaba yazıp kotayı yiyordu. */
+const LOCAL_PREVIEW=/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
 function activateAccountAwareCloudSync():boolean{
+  if(LOCAL_PREVIEW){document.documentElement.dataset.webCloudSync="local-preview";return true;}
   const native=isNativeApp();
   void import("./student-account-loader")
     .then(({installStudentAccountLoader})=>{installStudentAccountLoader();if(!native)activateWebCloudSync();})
