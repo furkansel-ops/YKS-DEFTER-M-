@@ -28,9 +28,6 @@ test("Üst senkron göstergesi mevcut cloudSync state sözleşmesini renk duruml
 test("Üst senkron noktasının renkleri yeşil turuncu kırmızı ve küçük tutulur",()=>{
   const css=read("src/ui/top-sync-indicator.css");
   assert.match(css,/width:9px;height:9px/);
-  assert.match(css,/data-sync-state="active"[^\n]*var\(--success\)/);
-  assert.match(css,/data-sync-state="syncing"[^\n]*var\(--time\)/);
-  assert.match(css,/data-sync-state="off"[^\n]*var\(--danger\)/);
   assert.match(css,/prefers-reduced-motion:reduce/);
 });
 
@@ -42,4 +39,12 @@ test("Gösterge ve başarımlar küçük isteğe bağlı başlangıç modülünd
   assert.match(extras,/installTopSyncIndicator/);
   assert.match(extras,/dataset\.topSyncIndicator="loading"/);
   assert.doesNotMatch(main,/^import \{installTopSyncIndicator\}/m);
+});
+
+test("v142 eşitleme noktası temadan bağımsız: yeşil güncel, turuncu eşitleniyor, kırmızı kapalı",()=>{
+  const css=require("node:fs").readFileSync(require("node:path").join(__dirname,"..","src/ui/top-sync-indicator.css"),"utf8");
+  assert.match(css,/\[data-sync-state="active"\]\{--sync-dot:#16a34a\}/);
+  assert.match(css,/\[data-sync-state="syncing"\]\{--sync-dot:#f59e0b;/);
+  assert.match(css,/\[data-sync-state="off"\]\{--sync-dot:#dc2626\}/);
+  assert.doesNotMatch(css,/var\(--(danger|success|time)\)/,"tema değişkeni yok");
 });
