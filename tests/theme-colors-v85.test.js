@@ -61,7 +61,8 @@ test("v85 gün sonu notu Gece ve Canlı'da temanın renklerini alır; Sade Mavi'
   assert.ok(css.includes(scope+' #todayFreshReflectionInput::placeholder{color:var(--d-muted);opacity:1}'));
   assert.ok(css.includes(scope+' :is(.today-fresh-review-label,.today-fresh-review-title strong){color:var(--d-ink)}'));
   assert.ok(css.includes(scope+' .today-fresh-review-body{border-top-color:var(--d-line)}'));
-  assert.ok(css.includes(':root[data-theme="night"] #mainWrap #topics :is(.topic-filter.on,.topic-filter.on b,#revCount){color:var(--d-on-accent)}'));
+  // v144: seçili filtre zemini koyu degrade (topics-v105), yazısı onun açık rengini alır; burada yalnız #revCount kalır.
+  assert.ok(css.includes(':root[data-theme="night"] #mainWrap #topics #revCount{color:var(--d-on-accent)}'));
 });
 
 test("v85 açılış ekranı ve tarayıcı çubuğu yeni zemin rengiyle açılır",()=>{

@@ -81,7 +81,7 @@
   border:1px solid var(--d-line);border-radius:var(--d-r-sm,16px);background:var(--d-surface);box-shadow:var(--d-shadow);
   transition:transform .22s cubic-bezier(.22,.9,.28,1),box-shadow .22s ease,opacity .3s ease}
 :root[data-visual-system]:not(#v) #mainWrap #program .rb-v103-slot>.rb-program-task[data-v103-next]{box-shadow:0 0 0 2px color-mix(in srgb,var(--d-accent) 40%,transparent),var(--d-shadow)}
-:root[data-visual-system]:not(#v) #mainWrap #program .rb-v103-slot>.rb-program-task[data-done]{opacity:.74}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v103-slot>.rb-program-task[data-done]{opacity:.86}
 :root[data-visual-system]:not(#v) #mainWrap #program .rb-v103-slot .rb-program-check{
   grid-area:check;position:relative;display:grid;place-items:center;width:34px;min-width:34px;height:40px;min-height:40px;margin:0;padding:0;border:0;background:transparent;color:var(--d-on-accent,#fff)}
 :root[data-visual-system]:not(#v) #mainWrap #program .rb-v103-slot .rb-program-check::before{

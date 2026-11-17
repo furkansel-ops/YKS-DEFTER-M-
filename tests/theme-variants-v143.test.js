@@ -36,3 +36,11 @@ test("v143 her yeni temanın renkleri ve seçici kartı var",()=>{
   }
   assert.match(read("src/main.ts"),/import "\.\/ui\/theme-variants-v143\.css";/);
 });
+
+test("v144 soluk renkler koyulaştırıldı: degrade başları beyaz yazıyı taşır, ikincil yazılar koyu",()=>{
+  const css=read("src/ui/theme-variants-v143.css")+read("src/ui/glassy-v99.css");
+  for(const light of["#9b6bff","#0891b2","#16a34a","#ea580c","#5c5478","#48606e","#4b6354","#6e5148"])assert.ok(!css.includes(light),light+" kalmadı");
+  assert.ok(read("src/ui/refined-program-v103.css").includes(".rb-program-task[data-done]{opacity:.86}"),"biten görev silik değil");
+  assert.ok(!read("src/ui/design-trio-v66.css").includes(":is(.topic-filter.on,.topic-filter.on b,#revCount)"),"Gece'de seçili filtre koyu üstüne koyu olmaz");
+  assert.ok(css.includes('#cloudLoginBtn{color:var(--d-on-accent)}'));
+});

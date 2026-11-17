@@ -23,12 +23,12 @@
   --d-math:#7aa2ff;--d-physics:#f3b860;--d-chemistry:#5fdcaa;--d-biology:#c3a2ff;--d-reading:#ff8fbf;--d-social:#e0b98a;--d-other:#9aa7bd;
 }
 :root[data-theme="vivid"]{
-  --d-bg:#fff0e4;--d-surface:#fff;--d-soft:#f3eaff;--d-ink:#1c1433;--d-muted:#5a4f74;--d-line:#f0dccd;
+  --d-bg:#fff0e4;--d-surface:#fff;--d-soft:#f3eaff;--d-ink:#1c1433;--d-muted:#4a4063;--d-line:#f0dccd;
   --d-accent:#6a2cff;--d-on-accent:#fff;--d-chip:#ebe0ff;--d-chip-ink:#4f17d9;--d-track:#f7dcc8;--d-ok:#0b9a62;
   --d-hero:linear-gradient(135deg,#6a2cff 0%,#b62fd6 52%,#d6336c 100%);--d-hero-ink:#fff;--d-hero-btn:#fff;--d-hero-btn-ink:#4f17d9;--d-hero-ghost:rgba(255,255,255,.24);
   --d-launch:linear-gradient(160deg,#6a2cff 0%,#b62fd6 50%,#d6336c 100%);
   --d-r:22px;--d-r-sm:16px;--d-shadow:0 8px 20px rgba(120,60,20,.08);--d-nav:rgba(255,246,239,.96);
-  --d-math:#6a2cff;--d-physics:#f06a00;--d-chemistry:#00a06a;--d-biology:#d22fc0;--d-reading:#f0386b;--d-social:#b8730f;--d-other:#6c6784;
+  --d-math:#6a2cff;--d-physics:#f06a00;--d-chemistry:#00a06a;--d-biology:#d22fc0;--d-reading:#c81e5a;--d-social:#b8730f;--d-other:#6c6784;
 }
 :root[data-theme="night"],:root[data-theme="vivid"]{background:var(--d-bg)}
 :root[data-theme="night"] body,:root[data-theme="vivid"] body{background:var(--d-bg)}
@@ -215,7 +215,7 @@
 /* v85 · Gece'nin açık vurgu ve yeşil renkleri üstünde beyaz yazı okunmuyordu. */
 :root[data-theme="night"] #mainWrap #home #todayFreshStart .today-fresh-task.is-done .today-fresh-task-check{color:var(--d-on-accent)}
 :root[data-visual-system] #mainWrap #program .rb-program-weekstrip>:is([aria-current="date"],[aria-pressed="true"],.is-selected,.active) *{color:inherit}
-:root[data-theme="night"] #mainWrap #topics :is(.topic-filter.on,.topic-filter.on b,#revCount){color:var(--d-on-accent)}
+:root[data-theme="night"] #mainWrap #topics #revCount{color:var(--d-on-accent)}
 :root[data-theme="night"] #mainWrap #home #todayFreshStart #todayFreshRecentFocus{color:var(--d-accent)}
 /* Kırmızı ve hardal uyarı yazıları (bir kısmı !important ya da satır içi renk) Gece'de açık tonunu alır. */
 :root[data-theme="night"] #mainWrap :is(#topics,#progress) :is(.trend-down,.risk-badge.risk-high){color:#ff8a9c!important}

@@ -2,35 +2,35 @@
    data-theme temel temada kalır (okunurluk düzeltmeleri aynen geçerli), data-theme-variant renkleri seçer. */
 :root[data-theme="glassy"][data-theme-variant="okyanus"]{
   --yks-theme-bg:#e8f4fa;--yks-theme-surface:#fbfeff;--yks-theme-soft:#e3f3fa;
-  --yks-theme-ink:#0c2a3a;--yks-theme-muted:#48606e;--yks-theme-line:#cfe6f1;
-  --yks-theme-accent:#0e7490;--yks-theme-deep:#155e75;--yks-theme-on:#fff;
-  --g-grad:linear-gradient(135deg,#0891b2 0%,#0e7490 50%,#164e63 100%);
+  --yks-theme-ink:#0c2a3a;--yks-theme-muted:#3a4f5c;--yks-theme-line:#cfe6f1;
+  --yks-theme-accent:#0b627a;--yks-theme-deep:#155e75;--yks-theme-on:#fff;
+  --g-grad:linear-gradient(135deg,#0e7490 0%,#0b627a 50%,#164e63 100%);
   --g-shadow:0 12px 32px -18px rgba(14,116,144,.34);--g-tint-1:rgba(56,189,248,.42);--g-tint-2:rgba(14,116,144,.24);--g-glow:rgba(14,116,144,.6);
-  --d-bg:#e8f4fa;--d-surface:#fbfeff;--d-soft:#e3f3fa;--d-ink:#0c2a3a;--d-muted:#48606e;--d-line:#cfe6f1;
-  --d-accent:#0e7490;--d-chip:#d5eef7;--d-chip-ink:#155e75;--d-track:#d3e9f2;
-  --d-hero-btn-ink:#155e75;--d-launch:linear-gradient(160deg,#0891b2 0%,#0e7490 48%,#164e63 100%);
+  --d-bg:#e8f4fa;--d-surface:#fbfeff;--d-soft:#e3f3fa;--d-ink:#0c2a3a;--d-muted:#3a4f5c;--d-line:#cfe6f1;
+  --d-accent:#0b627a;--d-chip:#d5eef7;--d-chip-ink:#155e75;--d-track:#d3e9f2;
+  --d-hero-btn-ink:#155e75;--d-launch:linear-gradient(160deg,#0e7490 0%,#0b627a 48%,#164e63 100%);
   --d-math:#0369a1;background:#e8f4fa;
 }
 :root[data-theme="glassy"][data-theme-variant="orman"]{
   --yks-theme-bg:#edf5ee;--yks-theme-surface:#fbfefb;--yks-theme-soft:#e6f3e8;
-  --yks-theme-ink:#11281a;--yks-theme-muted:#4b6354;--yks-theme-line:#d3e8d7;
-  --yks-theme-accent:#15803d;--yks-theme-deep:#166534;--yks-theme-on:#fff;
-  --g-grad:linear-gradient(135deg,#16a34a 0%,#15803d 50%,#14532d 100%);
+  --yks-theme-ink:#11281a;--yks-theme-muted:#3d5446;--yks-theme-line:#d3e8d7;
+  --yks-theme-accent:#11692f;--yks-theme-deep:#166534;--yks-theme-on:#fff;
+  --g-grad:linear-gradient(135deg,#15803d 0%,#11692f 50%,#14532d 100%);
   --g-shadow:0 12px 32px -18px rgba(21,128,61,.32);--g-tint-1:rgba(74,222,128,.38);--g-tint-2:rgba(21,128,61,.22);--g-glow:rgba(21,128,61,.6);
-  --d-bg:#edf5ee;--d-surface:#fbfefb;--d-soft:#e6f3e8;--d-ink:#11281a;--d-muted:#4b6354;--d-line:#d3e8d7;
-  --d-accent:#15803d;--d-chip:#dcf0e0;--d-chip-ink:#166534;--d-track:#d6eadb;
-  --d-hero-btn-ink:#166534;--d-launch:linear-gradient(160deg,#16a34a 0%,#15803d 48%,#14532d 100%);
+  --d-bg:#edf5ee;--d-surface:#fbfefb;--d-soft:#e6f3e8;--d-ink:#11281a;--d-muted:#3d5446;--d-line:#d3e8d7;
+  --d-accent:#11692f;--d-chip:#dcf0e0;--d-chip-ink:#166534;--d-track:#d6eadb;
+  --d-hero-btn-ink:#166534;--d-launch:linear-gradient(160deg,#15803d 0%,#11692f 48%,#14532d 100%);
   --d-math:#0f766e;background:#edf5ee;
 }
 :root[data-theme="glassy"][data-theme-variant="gunbatimi"]{
   --yks-theme-bg:#fdf0e8;--yks-theme-surface:#fffdfb;--yks-theme-soft:#fdebe0;
-  --yks-theme-ink:#2e1610;--yks-theme-muted:#6e5148;--yks-theme-line:#f6dccd;
-  --yks-theme-accent:#c2410c;--yks-theme-deep:#9a3412;--yks-theme-on:#fff;
-  --g-grad:linear-gradient(135deg,#ea580c 0%,#dc2626 55%,#be123c 100%);
+  --yks-theme-ink:#2e1610;--yks-theme-muted:#5a4038;--yks-theme-line:#f6dccd;
+  --yks-theme-accent:#a3360a;--yks-theme-deep:#9a3412;--yks-theme-on:#fff;
+  --g-grad:linear-gradient(135deg,#c2410c 0%,#b91c1c 55%,#9f1239 100%);
   --g-shadow:0 12px 32px -18px rgba(194,65,12,.32);--g-tint-1:rgba(251,146,60,.4);--g-tint-2:rgba(225,29,72,.2);--g-glow:rgba(194,65,12,.6);
-  --d-bg:#fdf0e8;--d-surface:#fffdfb;--d-soft:#fdebe0;--d-ink:#2e1610;--d-muted:#6e5148;--d-line:#f6dccd;
-  --d-accent:#c2410c;--d-chip:#fde2d2;--d-chip-ink:#9a3412;--d-track:#f8dccb;
-  --d-hero-btn-ink:#9a3412;--d-launch:linear-gradient(160deg,#ea580c 0%,#dc2626 50%,#9f1239 100%);
+  --d-bg:#fdf0e8;--d-surface:#fffdfb;--d-soft:#fdebe0;--d-ink:#2e1610;--d-muted:#5a4038;--d-line:#f6dccd;
+  --d-accent:#a3360a;--d-chip:#fde2d2;--d-chip-ink:#9a3412;--d-track:#f8dccb;
+  --d-hero-btn-ink:#9a3412;--d-launch:linear-gradient(160deg,#c2410c 0%,#b91c1c 50%,#9f1239 100%);
   --d-math:#6d28d9;background:#fdf0e8;
 }
 /* Glassy'deki sabit mor ışık ve gölgeler temanın rengini alır. */
@@ -60,3 +60,10 @@
 /* Genel label boşluğu (ilk kart hariç 14px) kartları kaydırıyordu. */
 #appearancePreferences .yks-theme-grid.yks-theme-trio .yks-theme-choice{margin:0}
 @media(max-width:360px){#appearancePreferences .yks-theme-grid.yks-theme-trio{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* v144: tüm temalarda soluk kalan risk etiketleri koyulaştırıldı (açık zeminde kırmızı, koyu zeminde turuncu okunur). */
+:root:is([data-theme="glassy"],[data-theme="vivid"]):not(#v) #mainWrap #topics .risk-badge.risk-high{color:#b42318}
+:root[data-theme="night"]:not(#v) #mainWrap #topics .risk-badge.risk-mid{color:#f5a524}
+/* v144: renkli kartlardaki küçük beyaz etiketler yarı saydamdı; her temada daha net okunur. */
+:root[data-visual-system]:not(#v):not(#w):not(#x) #mainWrap :is(#deneme .eh-hero small,#home .today-fresh-card-eyebrow,#home .today-fresh-next p,#home #studentNextAppointment small,#home #studentNextAppointment>span,#progress .ph-two small){opacity:.95}
+:root[data-theme="night"]:not(#v) #cloudLoginBtn{color:var(--d-on-accent)}

@@ -7,7 +7,7 @@
 }
 :root[data-theme="vivid"]{
  --yks-theme-bg:#fff0e4;--yks-theme-surface:#fff;--yks-theme-soft:#f3eaff;
- --yks-theme-ink:#1c1433;--yks-theme-muted:#5a4f74;--yks-theme-line:#f0dccd;
+ --yks-theme-ink:#1c1433;--yks-theme-muted:#4a4063;--yks-theme-line:#f0dccd;
  --yks-theme-accent:#6a2cff;--yks-theme-deep:#4f17d9;--yks-theme-on:#fff;
 }
 :root[data-visual-system="refined-blue"][data-theme]:not([data-theme="refined-blue"]){
