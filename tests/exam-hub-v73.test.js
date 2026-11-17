@@ -203,7 +203,7 @@ test("v106 kurulum: dönem seçimi kartların içinde, simgeler çizgi, görün�
   for(const name of ["cam","pen","bin","rep"]){assert.ok(source.includes(`ic("${name}")`),name);assert.ok(v106.includes(`[data-ic="${name}"]{--eh-i:var(--i10`),name+" stili");}
   assert.match(v106,/#deneme \.v315-window-seg\{display:none\}/);assert.match(v106,/#v315Kpis \.v315-kpi:first-child\{display:none\}/,"son net yalnız kartta yazar");
   assert.match(read("src/ui/exam-dashboard.ts"),/metric\("Değişim",/);assert.match(read("index.html"),/onclick="toggleV315ExamForm\(\)">\+ Deneme<\/button>/);
-  assert.match(read("src/main.ts"),/import "\.\/ui\/topics-v105\.css";\nimport "\.\/ui\/exam-v106\.css";\n\n/);
+  assert.match(read("src/main.ts"),/import "\.\/ui\/topics-v105\.css";\nimport "\.\/ui\/exam-v106\.css";\n/);
   assert.deepEqual(v106.replace(/url\("data:[^"]*"\)/g,"").match(/#[0-9a-f]{3,8}\b/gi)||[],[],"ham renk yok");
   const at=v106.indexOf("@media(prefers-reduced-motion:no-preference)");
   for(const part of v106.slice(0,at).split("}"))assert.doesNotMatch(part,/[^-]animation:(?!none)/,"hareket izin bloğunun dışında: "+part.slice(0,60));

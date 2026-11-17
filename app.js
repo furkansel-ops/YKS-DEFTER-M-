@@ -601,7 +601,7 @@ function normalize(o){
   // Önceki tema seçimini koru; geçmiş sürümdeki açık/koyu takma adlarını eşleştir.
   // Üç tema kaldı: Sade Mavi, Gece, Canlı. Eski koyu seçimler Gece'ye, diğerleri Sade Mavi'ye taşınır.
   if(o.theme==="dark"||o.theme==="graphite")o.theme="night";
-  if(!["refined-blue","night","vivid"].includes(o.theme))o.theme="refined-blue";
+  if(!["refined-blue","night","vivid","okyanus","orman","gunbatimi","geceyarisi"].includes(o.theme))o.theme="refined-blue";
   if(["none","white","brown"].indexOf(o.focusSound)<0)o.focusSound="none";
   /* v1 -> v2: konular boolean idi, artık {st,conf,ts,rev} */
   if((o.v|0)<2){
@@ -792,15 +792,18 @@ function markReview(key,gi){
 /* ================= GÖRÜNÜM / ÜÇ TEMA =================
    Sade Mavi (refined-blue), Gece (night) ve Canlı (vivid). Renkler yalnız görsel
    belirteçleri değiştirir; program, deneme ve koç kayıtları için ayrı yazma yoktur. */
-const YKS_THEME_IDS=["refined-blue","night","vivid"];
-const YKS_THEME_NAMES={"refined-blue":"Glassy",night:"Gece",vivid:"Canlı"}; // v99: kimlik aynı, görünüm Glassy
-const YKS_THEME_META={"refined-blue":"#f1ecfb",night:"#192134",vivid:"#fff0e4"};
+const YKS_THEME_IDS=["refined-blue","night","vivid","okyanus","orman","gunbatimi","geceyarisi"];
+const YKS_THEME_NAMES={"refined-blue":"Glassy",night:"Gece",vivid:"Canlı",okyanus:"Okyanus",orman:"Orman",gunbatimi:"Gün batımı",geceyarisi:"Gece yarısı"}; // v99: kimlik aynı, görünüm Glassy
+const YKS_THEME_META={"refined-blue":"#f1ecfb",night:"#192134",vivid:"#fff0e4",okyanus:"#e8f4fa",orman:"#edf5ee",gunbatimi:"#fdf0e8",geceyarisi:"#000000"};
+/* v143: yeni temalar okunurluk düzeltmeleri hazır bir temanın (Glassy/Gece) üstüne yalnız renk değiştirir. */
+const YKS_THEME_BASE={okyanus:"glassy",orman:"glassy",gunbatimi:"glassy",geceyarisi:"night"};
+function yksThemeBase(active){ return YKS_THEME_BASE[active]||(active==="refined-blue"?"glassy":active); }
 let yksThemeLastApplied="";
 function yksThemeValue(value){
   if(value==="dark"||value==="graphite")return "night";
   return YKS_THEME_IDS.includes(value)?value:"refined-blue";
 }
-function isDarkNow(){ return yksThemeValue(S.theme)==="night"; }
+function isDarkNow(){ return yksThemeBase(yksThemeValue(S.theme))==="night"; }
 function updateThemeGrid(){
   const selected=yksThemeValue(S.theme);
   document.querySelectorAll('input[name="yksTheme"]').forEach(input=>{
@@ -818,14 +821,17 @@ function applyTheme(){
   const root=document.documentElement;
   root.dataset.visualSystem="refined-blue"; // Ortak yerleşim; tema paleti ve vurguları değiştirir.
   // v99: açık tema ekranda "glassy" adını alır; Gece/Canlı'nın eski ekran düzeltmeleri ona da uygulanır. Kayıt "refined-blue" kalır.
-  root.dataset.theme=active==="refined-blue"?"glassy":active;
+  const base=yksThemeBase(active);
+  root.dataset.theme=base;
+  if(YKS_THEME_BASE[active])root.dataset.themeVariant=active;else delete root.dataset.themeVariant;
   root.dataset.themeControl="multiple";
-  root.style.colorScheme=active==="night"?"dark":"light";
+  root.style.colorScheme=base==="night"?"dark":"light";
   const mt=el("metaTheme");
   if(mt)mt.setAttribute("content",YKS_THEME_META[active]);
   // Açılış ekranının rengi için cihaz ipucu (index.html#yksThemeHint); kayıt verisi değildir.
-  root.dataset.bootTheme=active;
-  try{localStorage.setItem("yks_theme_hint_v1",active);}catch(e){}
+  const boot=base==="night"?"night":active;
+  root.dataset.bootTheme=boot;
+  try{localStorage.setItem("yks_theme_hint_v1",boot);}catch(e){}
   updateThemeGrid();
   if(yksThemeLastApplied!==active){
     yksThemeLastApplied=active;

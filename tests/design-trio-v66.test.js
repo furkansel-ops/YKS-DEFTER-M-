@@ -89,7 +89,7 @@ test("v66 Gece/Canlı açılışta açık renk parlaması olmaz: ayrı ipucu bet
   assert.doesNotThrow(()=>run(null,true),"depolama kapalıysa sessizce geçer");
   assert.match(html,/html\[data-boot-theme="night"\] #yksBootShell\{background:#192134/);
   const apply=app.slice(app.indexOf("function applyTheme()"),app.indexOf("function setTheme("));
-  assert.match(apply,/root\.dataset\.bootTheme=active;\n  try\{localStorage\.setItem\("yks_theme_hint_v1",active\);\}catch\(e\)\{\}/);
+  assert.match(apply,/const boot=base==="night"\?"night":active;\n  root\.dataset\.bootTheme=boot;\n  try\{localStorage\.setItem\("yks_theme_hint_v1",boot\);\}catch\(e\)\{\}/);
   const controller=html.match(/<script id="yksBootController">([\s\S]*?)<\/script>/)[1];
   assert.doesNotMatch(controller,/localStorage/);
 });

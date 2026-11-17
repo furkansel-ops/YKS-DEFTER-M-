@@ -15,8 +15,9 @@ test("v99 Glassy en son yüklenir ve yalnız açık temayı boyar",()=>{
 
 test("v99 kayıtta tema refined-blue kalır, ekranda glassy olur; ad Glassy",()=>{
   const app=read("app.js"),html=read("index.html");
-  assert.match(app,/root\.dataset\.theme=active==="refined-blue"\?"glassy":active;/);
-  assert.match(app,/const YKS_THEME_IDS=\["refined-blue","night","vivid"\];/,"kayıt kimlikleri değişmez");
+  assert.match(app,/return YKS_THEME_BASE\[active\]\|\|\(active==="refined-blue"\?"glassy":active\);/);
+  assert.match(app,/root\.dataset\.theme=base;/);
+  assert.match(app,/const YKS_THEME_IDS=\["refined-blue","night","vivid","okyanus","orman","gunbatimi","geceyarisi"\];/,"kayıt kimlikleri değişmez");
   assert.match(app,/"refined-blue":"Glassy"/);
   assert.match(html,/value="refined-blue"[^\n]*<strong>Glassy<\/strong>/);
   assert.match(html,/id="metaTheme" content="#f1ecfb"/);

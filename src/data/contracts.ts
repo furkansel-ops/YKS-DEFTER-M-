@@ -208,7 +208,7 @@ export interface YksState extends UnknownRecord{
   weeks:Record<string,WeekPlan>;
   rows:{r:number;s:number};
   rowLabels:{r:string[];s:string[]};
-  theme:"refined-blue"|"night"|"vivid";
+  theme:"refined-blue"|"night"|"vivid"|"okyanus"|"orman"|"gunbatimi"|"geceyarisi";
   sound:boolean;
   focusSound:"none"|"white"|"brown";
   lastBackup:string|null;

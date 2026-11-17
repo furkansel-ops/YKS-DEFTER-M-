@@ -37,6 +37,7 @@ import "./ui/glassy-v99.css";
 import "./ui/type-v102.css";
 import "./ui/topics-v105.css";
 import "./ui/exam-v106.css";
+import "./ui/theme-variants-v143.css";
 
 type BootstrapState={
   version:typeof RELEASE_VERSION;
