@@ -67,3 +67,9 @@
 /* v144: renkli kartlardaki küçük beyaz etiketler yarı saydamdı; her temada daha net okunur. */
 :root[data-visual-system]:not(#v):not(#w):not(#x) #mainWrap :is(#deneme .eh-hero small,#home .today-fresh-card-eyebrow,#home .today-fresh-next p,#home #studentNextAppointment small,#home #studentNextAppointment>span,#progress .ph-two small){opacity:.95}
 :root[data-theme="night"]:not(#v) #cloudLoginBtn{color:var(--d-on-accent)}
+/* v145: açılır pencere ve alt sayfa taraması: açık temalarda turuncu/amber uyarı yazıları, koyu temalarda vurgu zeminli düğmeler. */
+:root:is([data-theme="glassy"],[data-theme="vivid"]):not(#v):not(#w) body #mrp_tak .tacwhy{color:#9a4a00}
+:root[data-theme="night"]:not(#v):not(#w) body :is(.chip.on,#gunOverlay .gunbtn){color:var(--d-on-accent)}
+:root[data-theme="night"]:not(#v):not(#w) body #examDetailOverlay .v27-badge.normal{color:#f3b860}
+:root[data-theme="night"]:not(#v):not(#w) body #mrp_kay .del{color:#ff8a9c}
+:root:is([data-theme="glassy"],[data-theme="vivid"]){--danger:#c92a2a;--red:#c92a2a}

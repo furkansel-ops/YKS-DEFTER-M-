@@ -1,6 +1,6 @@
 /* v74 · İlerleme: dönem karşılaştırması, günlük grafik, dersler, konu durumları, dikkat kartı, raporlar.
    Renkler tema belirteçlerinden (--d-*); kırmızı ve turuncu her temada ayrıca tanımlı. */
-#progress,#phSubjectSheet{--ph-bad:#d6455f;--ph-bad-soft:#fdecef;--ph-warn:#b7791f;--ph-warn-soft:#fff4de}
+#progress,#phSubjectSheet{--ph-bad:#b8304a;--ph-bad-soft:#fdecef;--ph-warn:#8f5b0e;--ph-warn-soft:#fff4de}
 :root[data-theme="night"] #progress,:root[data-theme="night"] #phSubjectSheet{--ph-bad:#ff8a9c;--ph-bad-soft:#3a1d29;--ph-warn:#f3b860;--ph-warn-soft:#3a2d16}
 
 /* eski Analiz Merkezi ve tekrar eden raporlar gizlenir (silinmez) */

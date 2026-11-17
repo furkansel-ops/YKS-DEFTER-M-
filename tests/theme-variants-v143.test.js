@@ -44,3 +44,11 @@ test("v144 soluk renkler koyulaştırıldı: degrade başları beyaz yazıyı ta
   assert.ok(!read("src/ui/design-trio-v66.css").includes(":is(.topic-filter.on,.topic-filter.on b,#revCount)"),"Gece'de seçili filtre koyu üstüne koyu olmaz");
   assert.ok(css.includes('#cloudLoginBtn{color:var(--d-on-accent)}'));
 });
+
+test("v145 açılır pencere ve alt sayfalarda soluk uyarı ve düğme renkleri düzeltildi",()=>{
+  const css=read("src/ui/theme-variants-v143.css");
+  assert.ok(css.includes("body #mrp_tak .tacwhy{color:#9a4a00}"),"Taktik açıklaması açık temalarda koyu turuncu");
+  assert.ok(css.includes(":is(.chip.on,#gunOverlay .gunbtn){color:var(--d-on-accent)}"),"Gece'de açık vurgu üstüne koyu yazı");
+  assert.ok(css.includes('{--danger:#c92a2a;--red:#c92a2a}'));
+  for(const f of["src/ui/progress-hub-v74.css","src/ui/exam-hub-v73.css"]){const s=read(f);assert.ok(!s.includes("#d6455f")&&!s.includes("#b7791f"),f+" açık kırmızı/amber kalmadı");}
+});

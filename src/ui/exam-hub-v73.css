@@ -1,6 +1,6 @@
 /* v73 · Deneme ekranı: sekmeler, adım adım ekleme, tek Hata Defteri, karşılaştırma, ayarlar.
    Renkler tema belirteçlerinden (--d-*) gelir; kırmızı ve turuncu tonlar her temada ayrıca tanımlı. */
-#deneme,#examHubSettings{--eh-bad:#d6455f;--eh-bad-soft:#fdecef;--eh-warn:#b7791f;--eh-warn-soft:#fff4de;--eh-blank:#c7d0dd}
+#deneme,#examHubSettings{--eh-bad:#b8304a;--eh-bad-soft:#fdecef;--eh-warn:#8f5b0e;--eh-warn-soft:#fff4de;--eh-blank:#c7d0dd}
 :root[data-theme="night"] #deneme,:root[data-theme="night"] #examHubSettings{--eh-bad:#ff8a9c;--eh-bad-soft:#3a1d29;--eh-warn:#f3b860;--eh-warn-soft:#3a2d16;--eh-blank:#4a5778}
 
 /* ---------- sekmeler ve görünürlük ---------- */
