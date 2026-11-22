@@ -1,4 +1,4 @@
-import{addDoc,collection,doc,getDoc,getDocs,onSnapshot,query,where,runTransaction,serverTimestamp,setDoc,updateDoc}from"https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
+import{addDoc,collection,doc,getDoc,getDocs,onSnapshot,query,where,runTransaction,serverTimestamp,setDoc,updateDoc}from"https://www.gstatic.com/firebasejs/13.4.0/firebase-firestore.js";
 
 const CODE_LENGTH=12;
 const CODE_RE=/^[A-Z2-9]{12}$/;

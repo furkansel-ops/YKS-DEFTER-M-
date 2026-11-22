@@ -9,7 +9,7 @@ import {installLaunchScreenV63} from "./launch-screen-v63";
 const ENTRY_KEY="yks_entry_choice_v1";
 const GUEST_BANNER_KEY="yks_guest_banner_hidden_v1";
 const PENDING_ROLE="yks_account_role_pending";
-const FIREBASE="https://www.gstatic.com/firebasejs/12.17.1/";
+const FIREBASE="https://www.gstatic.com/firebasejs/13.4.0/";
 const ROOT_ID="yksWelcome";
 const GUEST_ID="yksGuestBanner";
 

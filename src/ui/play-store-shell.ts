@@ -180,7 +180,7 @@ function activateWebCloudSync():boolean{
     runtime.textContent=source.textContent.replace(/apiKey:\s*"[^"]*"/,`apiKey:"${FIREBASE_WEB_API_KEY}"`);
     source.dataset.activated="1";
   }else{
-    runtime.src="./firebase-sync-runtime.js";
+    runtime.src="./firebase-sync-runtime.js?v=13.4.0";
   }
 
   runtime.addEventListener("error",()=>setCloudRuntimeError("Uygulamayı yenileyip tekrar dene"));

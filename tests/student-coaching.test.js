@@ -17,9 +17,9 @@ test("öğrenci uygulaması yalnız öğrenci hesabı olarak açılır ve koç p
 
 test("öğrenci hesap köprüleri auth başlamadan önce güvenli sırada yüklenir",()=>{
   const loader=read("src/ui/student-account-loader.ts");
-  const bridgeAt=loader.indexOf("student-coaching-runtime.js?v=1.2.37");
-  const linkAt=loader.indexOf("student-coach-link.js?v=1.5.0");
-  const programAt=loader.indexOf("student-program-share-v2.js?v=3.6.4");
+  const bridgeAt=loader.indexOf("student-coaching-runtime.js?v=1.2.38");
+  const linkAt=loader.indexOf("student-coach-link.js?v=1.5.1");
+  const programAt=loader.indexOf("student-program-share-v2.js?v=3.6.5");
   const authAt=loader.indexOf("auth-session-runtime.js?v=1.6.0");
   assert.ok(bridgeAt>=0&&linkAt>bridgeAt&&programAt>linkAt&&authAt>programAt);
 });
@@ -112,7 +112,7 @@ test("Programım v3 koç aynası için değişiklikleri canlı ve tekrarsız yay
 
 test("Programım paylaşımı yerel değişiklikleri event olmasa da izler",()=>{
   const runtime=read("public/student-program-share-v2.js");
-  for(const token of["watchLocalProgram","setInterval(watchLocalProgram,1500)","localProgramHash","version:\"3.6.4\""])assert.ok(runtime.includes(token),token);
+  for(const token of["watchLocalProgram","setInterval(watchLocalProgram,1500)","localProgramHash","version:\"3.6.5\""])assert.ok(runtime.includes(token),token);
   assert.match(runtime,/remoteHash!==currentHash/);
 });
 
@@ -133,8 +133,8 @@ test("Koç eşitleme runtime web ve native açılışta garanti edilir ve save s
   assert.match(shell,/import\("\.\/student-account-loader"\)/);
   assert.match(shell,/installStudentAccountLoader\(\)/);
   assert.match(shell,/const native=isNativeApp\(\)/);
-  assert.match(loader,/student-coaching-runtime\.js\?v=1.2.37/);
-  assert.match(runtime,/version:\"1.2.37\"/);
+  assert.match(loader,/student-coaching-runtime\.js\?v=1.2.38/);
+  assert.match(runtime,/version:\"1.2.38\"/);
   assert.match(app,/CustomEvent\(\"yks:data-changed\"/);
   assert.match(app,/source:\"save\"/);
 });
@@ -173,7 +173,7 @@ test("öğrenci koça bilgileri manuel paylaşabilir ve program paylaşımı zor
   assert.match(link,/studentCoachProgramShare/);
   assert.match(program,/async function publishProgram\(force=false\)/);
   assert.match(program,/if\(!manual&&hash&&hash===rt\.lastHash\)return true/);
-  assert.match(program,/version:"3.6.4"/);
+  assert.match(program,/version:"3.6.5"/);
 });
 
 
@@ -186,7 +186,7 @@ test("manuel koç paylaşımı devam eden otomatik yazımı bekler ve gerçek Fi
   assert.match(runtime,/dataset\.coachShareError/);
   assert.match(program,/if\(manual&&rt\.inFlight\)await rt\.inFlight/);
   assert.match(program,/dataset\.studentProgramShareError/);
-  assert.match(program,/version:"3.6.4"/);
+  assert.match(program,/version:"3.6.5"/);
 });
 
 
@@ -203,7 +203,7 @@ test("Program paylaşımı Firestore için iç içe array üretmez",()=>{
 test("koç program görevleri video bağlantısı ve ayrıntılar için 600 karaktere kadar korunur",()=>{
   const runtime=read("public/student-coaching-runtime.js");
   assert.match(runtime,/text\(p\.text,600\)/);
-  assert.match(runtime,/version:"1.2.37"/);
+  assert.match(runtime,/version:"1.2.38"/);
 });
 
 

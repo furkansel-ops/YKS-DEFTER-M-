@@ -15,6 +15,6 @@ test("v141 program karşılaştırması anahtar sırasından bağımsız: Firest
 });
 
 test("v141 düzeltilmiş dosya yeni sürüm etiketiyle yüklenir (tarayıcı eski dosyayı önbellekten kullanmaz)",()=>{
-  assert.match(fs.readFileSync(path.join(__dirname,"..","src/ui/student-account-loader.ts"),"utf8"),/student-program-share-v2\.js\?v=3\.6\.4-safe/);
-  assert.match(src,/window\.YKSStudentProgramShareV2=\{version:"3\.6\.4"/);
+  assert.match(fs.readFileSync(path.join(__dirname,"..","src/ui/student-account-loader.ts"),"utf8"),/student-program-share-v2\.js\?v=3\.6\.5-safe/);
+  assert.match(src,/window\.YKSStudentProgramShareV2=\{version:"3\.6\.5"/);
 });

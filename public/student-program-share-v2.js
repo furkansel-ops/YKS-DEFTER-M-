@@ -1,4 +1,4 @@
-import{doc,getDoc,onSnapshot,setDoc,serverTimestamp}from"https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
+import{doc,getDoc,onSnapshot,setDoc,serverTimestamp}from"https://www.gstatic.com/firebasejs/13.4.0/firebase-firestore.js";
 
 const PROGRAM_VERSION=3;
 const MAX_PROGRAM_WEEKS=80;
@@ -224,5 +224,5 @@ if(auth&&!auth.__programShareV2){
   auth.onSignedOut=(...args)=>{stop();return previousSignOut?.(...args)};
   auth.__programShareV2=true;
 }
-window.YKSStudentProgramShareV2={version:"3.6.4",publish:force=>publishProgram(Boolean(force)),build:programPayload};
+window.YKSStudentProgramShareV2={version:"3.6.5",publish:force=>publishProgram(Boolean(force)),build:programPayload};
 document.documentElement.dataset.studentProgramSync="v3";

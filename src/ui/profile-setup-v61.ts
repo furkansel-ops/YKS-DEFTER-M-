@@ -22,7 +22,7 @@ type LegacyWindow=Window&{
 
 const ROOT_ID="yksProfileSetup";
 const TYT_DATE="2027-06-19";
-const FIREBASE="https://www.gstatic.com/firebasejs/12.17.1/";
+const FIREBASE="https://www.gstatic.com/firebasejs/13.4.0/";
 const runtime=window as LegacyWindow;
 const TRACKS:{id:Track;name:string;lessons:string;ayt:string}[]=[
   {id:"SAY",name:"Sayısal",lessons:"Mat · Fizik · Kimya · Biyoloji",ayt:"AYT · Sayısal"},

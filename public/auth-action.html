@@ -23,8 +23,8 @@
   <div class="fine">Bu sayfa yalnızca YKS Defterim hesap doğrulama ve şifre yenileme işlemleri içindir.</div>
 </main>
 <script type="module">
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js';
-import { getAuth, applyActionCode, verifyPasswordResetCode, confirmPasswordReset, checkActionCode } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js';
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/13.4.0/firebase-app.js';
+import { getAuth, applyActionCode, verifyPasswordResetCode, confirmPasswordReset, checkActionCode } from 'https://www.gstatic.com/firebasejs/13.4.0/firebase-auth.js';
 const q=new URLSearchParams(location.search),mode=q.get('mode')||'',oobCode=q.get('oobCode')||'',apiKey=q.get('apiKey')||'';
 const title=document.getElementById('title'),desc=document.getElementById('desc'),eyebrow=document.getElementById('eyebrow'),status=document.getElementById('status'),resetForm=document.getElementById('resetForm'),resetButton=document.getElementById('resetButton');
 function showStatus(message,kind=''){status.textContent=message;status.className=`status ${kind}`.trim()}

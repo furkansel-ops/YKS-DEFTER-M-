@@ -1,4 +1,4 @@
-import{collection,doc,getDoc,getDocs,onSnapshot,query,serverTimestamp,where,writeBatch}from"https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
+import{collection,doc,getDoc,getDocs,onSnapshot,query,serverTimestamp,where,writeBatch}from"https://www.gstatic.com/firebasejs/13.4.0/firebase-firestore.js";
 
 // YKS Defterim · Koçunla görüşme (v69). Koçun uygun saatleri coachAvailability/{koçUid};
 // her randevu coachAppointments/{koçUid_YYYYMMDD_SSDD} ve aynı kimlikte bir saat kilidi

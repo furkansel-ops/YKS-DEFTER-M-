@@ -16,7 +16,7 @@ type LegacyWindow=Window&{
 };
 
 const ROOT_ID="yksProfilePage";
-const FIREBASE="https://www.gstatic.com/firebasejs/12.17.1/";
+const FIREBASE="https://www.gstatic.com/firebasejs/13.4.0/";
 const TYT_DATE="2027-06-19";
 const ENTRY_KEY="yks_entry_choice_v1";
 const runtime=window as LegacyWindow;

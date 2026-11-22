@@ -99,13 +99,13 @@ export function installStudentAccountLoader():boolean{
   const settingsReady=loadModuleScript(SETTINGS_SCRIPT_ID,"./settings-profile-runtime.js?v=3.0.4-tema");
   document.documentElement.dataset.studentAccountRuntime="loading";
   const ready=(async()=>{
-    const bridgeReady=await loadModuleScript(STUDENT_COACHING_RUNTIME_ID,"./student-coaching-runtime.js?v=1.2.37");
+    const bridgeReady=await loadModuleScript(STUDENT_COACHING_RUNTIME_ID,"./student-coaching-runtime.js?v=1.2.38");
     if(!bridgeReady||!forceStudentOnlyRegistration(win))return false;
-    const linkReady=await loadModuleScript(STUDENT_COACH_LINK_ID,"./student-coach-link.js?v=1.5.0");
+    const linkReady=await loadModuleScript(STUDENT_COACH_LINK_ID,"./student-coach-link.js?v=1.5.1");
     if(!linkReady)return false;
     // Randevular isteğe bağlı: yüklenemezse hesap ve koç bağlantısı yine çalışır.
-    await loadModuleScript(STUDENT_APPOINTMENTS_ID,"./student-appointments.js?v=1.3.1");
-    const programShareReady=await loadModuleScript(STUDENT_PROGRAM_SHARE_V2_SCRIPT_ID,"./student-program-share-v2.js?v=3.6.4-safe");
+    await loadModuleScript(STUDENT_APPOINTMENTS_ID,"./student-appointments.js?v=1.3.2");
+    const programShareReady=await loadModuleScript(STUDENT_PROGRAM_SHARE_V2_SCRIPT_ID,"./student-program-share-v2.js?v=3.6.5-safe");
     if(!programShareReady)return false;
     const authReady=await loadModuleScript(AUTH_SCRIPT_ID,"./auth-session-runtime.js?v=1.6.0");
     if(!authReady)return false;

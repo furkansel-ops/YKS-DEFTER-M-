@@ -1,4 +1,4 @@
-import{collection,deleteDoc,doc,getDoc,getDocs,onSnapshot,query,where,setDoc,updateDoc,serverTimestamp}from"https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
+import{collection,deleteDoc,doc,getDoc,getDocs,onSnapshot,query,where,setDoc,updateDoc,serverTimestamp}from"https://www.gstatic.com/firebasejs/13.4.0/firebase-firestore.js";
 
 const PENDING_ROLE="yks_account_role_pending",ROLE_HINT="yks_account_role_hint",DAY=86400000;
 const rt={auth:null,db:null,user:null,profile:null,stops:[],shareTimer:null,shareInterval:null,sharing:false,pending:false,inFlight:null,actionQueue:Promise.resolve(),session:0};
@@ -503,7 +503,7 @@ async function bookCountPropose(bookId,tests,perTest){
   try{if((await getDoc(doc(rt.db,"bookCounts",bookId))).exists())return false;await setDoc(doc(rt.db,"bookCounts",bookId),{tests:t,perTest:q,createdAt:serverTimestamp()});return true}
   catch(error){console.warn("Kitap sayıları paylaşılamadı",error?.code||error);return false}
 }
-window.YKSAccountAuth={version:"1.2.37",beforeSignIn,onSignedIn,onSignedOut,publishShare,bookCounts:{get:bookCountGet,propose:bookCountPropose}};
+window.YKSAccountAuth={version:"1.2.38",beforeSignIn,onSignedIn,onSignedOut,publishShare,bookCounts:{get:bookCountGet,propose:bookCountPropose}};
 try{resolveAccountReady?.(window.YKSAccountAuth)}catch{}
 document.documentElement.dataset.studentCoachingBridge="ready";
-window.dispatchEvent(new CustomEvent("yks:student-coaching-ready",{detail:{version:"1.2.37"}}));
+window.dispatchEvent(new CustomEvent("yks:student-coaching-ready",{detail:{version:"1.2.38"}}));
