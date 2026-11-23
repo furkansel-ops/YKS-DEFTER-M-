@@ -448,7 +448,7 @@ async function handleAction(change,session=rt.session){
     requireSession(session);
     await updateDoc(change.doc.ref,{status:"applied",updatedAt:serverTimestamp(),handledAt:serverTimestamp(),result});
     if(session!==rt.session)return;
-    toast(a.type==="resource_recommendation"||(a.type==="coach_note"&&a.payload?.operation==="resource_recommendation")?"Koçundan yeni video önerisi geldi ✓":a.payload?.operation==="book_add"?"Koçun Kitaplarım'a kitap ekledi 📚":a.payload?.operation==="exam_plan_add"?"Koçun Deneme takvimine deneme ekledi 📅":"Koçundan yeni görev/not geldi ✓");scheduleShare(60);
+    toast(a.type==="resource_recommendation"||(a.type==="coach_note"&&a.payload?.operation==="resource_recommendation")?"Koçundan yeni video önerisi geldi ✓":a.payload?.operation==="book_add"?"Koçun Kitaplarım'a kitap ekledi 📚":a.payload?.operation==="exam_plan_add"?"Koçun Deneme takvimine deneme ekledi 📅":a.type==="program_task"&&a.payload?.operation==="delete"?"Koçun bir görevi kaldırdı":a.type==="program_task"&&a.payload?.operation==="move"?"Koçun bir görevi başka güne taşıdı":a.type==="program_task"&&a.payload?.operation==="edit"?"Koçun bir görevi güncelledi ✓":"Koçundan yeni görev/not geldi ✓");scheduleShare(60);
   }catch(error){
     if(session!==rt.session)return;
     try{await updateDoc(change.doc.ref,{status:"rejected",updatedAt:serverTimestamp(),handledAt:serverTimestamp(),result:text(error?.message||"Uygulanamadı",500)})}catch{}
@@ -503,7 +503,7 @@ async function bookCountPropose(bookId,tests,perTest){
   try{if((await getDoc(doc(rt.db,"bookCounts",bookId))).exists())return false;await setDoc(doc(rt.db,"bookCounts",bookId),{tests:t,perTest:q,createdAt:serverTimestamp()});return true}
   catch(error){console.warn("Kitap sayıları paylaşılamadı",error?.code||error);return false}
 }
-window.YKSAccountAuth={version:"1.2.38",beforeSignIn,onSignedIn,onSignedOut,publishShare,bookCounts:{get:bookCountGet,propose:bookCountPropose}};
+window.YKSAccountAuth={version:"1.2.39",beforeSignIn,onSignedIn,onSignedOut,publishShare,bookCounts:{get:bookCountGet,propose:bookCountPropose}};
 try{resolveAccountReady?.(window.YKSAccountAuth)}catch{}
 document.documentElement.dataset.studentCoachingBridge="ready";
-window.dispatchEvent(new CustomEvent("yks:student-coaching-ready",{detail:{version:"1.2.38"}}));
+window.dispatchEvent(new CustomEvent("yks:student-coaching-ready",{detail:{version:"1.2.39"}}));
