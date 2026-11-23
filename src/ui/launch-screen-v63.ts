@@ -10,6 +10,7 @@ type LaunchDeps={
   signInWithGoogle:()=>Promise<void>;
   openWelcome:(view:"login"|"register")=>void;
   authErrorText:(error:unknown)=>string;
+  showAuthError:(node:Element|null,text:string)=>void;
   entryKey:string;
 };
 type DailySnapshot={focusMin:number;focusGoal:number;questions:number;questionGoal:number;tasks:number;done:number};
@@ -220,7 +221,7 @@ export function installLaunchScreenV63(deps:LaunchDeps):{installed:boolean}{
     if(hello)hello.innerHTML=`${esc(greeting(new Date().getHours()))}${name?`,<br>${esc(name)}`:""}`;
   };
 
-  const showError=(text:string)=>{const node=root.querySelector("[data-error]");if(node)node.textContent=text;};
+  const showError=(text:string)=>deps.showAuthError(root.querySelector("[data-error]"),text);
 
   root.addEventListener("click",event=>{
     const target=(event.target as HTMLElement).closest<HTMLElement>("button");

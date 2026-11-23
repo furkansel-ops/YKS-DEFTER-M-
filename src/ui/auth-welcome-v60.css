@@ -58,6 +58,7 @@
 .yw-root .yw-check input:focus-visible{outline:3px solid rgba(10,108,255,.3);outline-offset:2px}
 .yw-error{font-size:13px;line-height:1.4;color:var(--danger,#E03131);background:rgba(224,49,49,.08);border-radius:10px;padding:9px 11px;margin:0}
 .yw-error:empty{display:none}
+.yw-reload{display:block;margin-top:8px;min-height:36px;padding:0 14px;border:0;border-radius:9px;background:#B42318;color:#fff;font:inherit;font-weight:700;cursor:pointer}
 .yw-spacer{flex:1;min-height:20px}
 .yw-or{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--label-3,rgba(20,24,40,.42));margin:14px 0 10px}
 .yw-or::before,.yw-or::after{content:"";flex:1;height:1px;background:var(--sep,rgba(20,24,40,.10))}

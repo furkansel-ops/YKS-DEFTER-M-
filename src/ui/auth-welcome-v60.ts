@@ -69,10 +69,23 @@ export function firebaseAuth():Promise<FirebaseAuthApi|null>{
   return firebasePromise;
 }
 
+/* v149: Firebase açılamadıysa (çoğu zaman güncelleme sonrası tarayıcıda kalan eski dosyalar) internet değil
+   yenileme çözer; hata kutusuna "Sayfayı yenile" düğmesi eklenir. */
+export const NO_AUTH_SERVICE="Hesap servisi açılamadı. Sayfayı yenilemek genelde düzeltir.";
+export function showAuthError(node:Element|null,text:string):void{
+  if(!node)return;
+  node.textContent=text;
+  if(text!==NO_AUTH_SERVICE)return;
+  const button=document.createElement("button");
+  button.type="button";button.className="yw-reload";button.textContent="Sayfayı yenile";
+  button.addEventListener("click",()=>window.location.reload());
+  node.appendChild(button);
+}
+
 /* Karşılama ve açılış ekranının ortak Google girişi; hata çağırana fırlatılır. */
 export async function signInWithGoogle():Promise<void>{
   const api=await firebaseAuth();
-  if(!api)throw Object.assign(new Error("Hesap servisi yok"),{code:"auth/network-request-failed"});
+  if(!api)throw Object.assign(new Error("Hesap servisi yok"),{code:"yks/no-auth-service"});
   const provider=new api.m.GoogleAuthProvider();
   provider.setCustomParameters({prompt:"select_account"});
   try{sessionStorage.setItem(PENDING_ROLE,"student");}catch{}
@@ -95,6 +108,7 @@ export function authErrorText(error:unknown):string{
     "auth/weak-password":"Şifre en az 8 karakter olmalı.",
     "auth/too-many-requests":"Çok fazla deneme yapıldı. Biraz bekleyip tekrar dene.",
     "auth/network-request-failed":"İnternet bağlantısı yok gibi görünüyor.",
+    "yks/no-auth-service":NO_AUTH_SERVICE,
     "auth/operation-not-allowed":"E-posta ile giriş henüz açılmadı. Şimdilik Google ile devam edebilirsin.",
     "auth/popup-closed-by-user":"Google penceresi kapatıldı.",
     "auth/cancelled-popup-request":"Google girişi iptal edildi.",
@@ -213,7 +227,7 @@ export function installAuthWelcomeV60():{installed:boolean;reason:string}{
   let mode:EmailMode="login",busy=false,resendAt=0,resendTimer:number|undefined,sentKind:"reset"|"verify"="reset";
   let lastEmail="",lastPassword="",entryView:"welcome"|EmailMode="welcome";
 
-  const setError=(scope:string,message:string)=>{const node=q(`[data-error="${scope}"]`);if(node)node.textContent=message;};
+  const setError=(scope:string,message:string)=>showAuthError(q(`[data-error="${scope}"]`),message);
   const clearErrors=()=>qa("[data-error]").forEach(node=>{node.textContent="";});
 
   const show=(view:View)=>{
@@ -328,7 +342,7 @@ export function installAuthWelcomeV60():{installed:boolean;reason:string}{
     }
     setBusy(true);
     const api=await firebaseAuth();
-    if(!api){setBusy(false);setError("email","Hesap servisine ulaşılamadı. İnternet bağlantını kontrol et.");return;}
+    if(!api){setBusy(false);setError("email",NO_AUTH_SERVICE);return;}
     try{
       const {auth,m}=api;
       if(mode==="reset"){
@@ -368,7 +382,7 @@ export function installAuthWelcomeV60():{installed:boolean;reason:string}{
     if(Date.now()<resendAt)return;
     setError("sent","");
     const api=await firebaseAuth();
-    if(!api){setError("sent","Hesap servisine ulaşılamadı.");return;}
+    if(!api){setError("sent",NO_AUTH_SERVICE);return;}
     try{
       if(sentKind==="reset")await api.m.sendPasswordResetEmail(api.auth,lastEmail);
       else{
@@ -449,7 +463,7 @@ export function installAuthWelcomeV60():{installed:boolean;reason:string}{
 
   // İlk kurulumdan sonraki her açılışta v63 açılış ekranı gelir (tek dokunuşla giriş).
   const launch=()=>{
-    try{installLaunchScreenV63({firebaseAuth,signInWithGoogle,openWelcome:view=>open(view),authErrorText,entryKey:ENTRY_KEY});}
+    try{installLaunchScreenV63({firebaseAuth,signInWithGoogle,openWelcome:view=>open(view),authErrorText,showAuthError,entryKey:ENTRY_KEY});}
     catch(error){console.error("Açılış ekranı başlatılamadı",error);}
   };
 
