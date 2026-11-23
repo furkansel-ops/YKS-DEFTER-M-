@@ -4,8 +4,8 @@
   "type": "module",
   "dependencies": {
     "@firebase/rules-unit-testing": "^6.0.0",
-    "firebase": "^13.2.0",
-    "firebase-tools": "^15.35.0"
+    "firebase": "^13.4.0",
+    "firebase-tools": "^15.37.0"
   },
   "scripts": {
     "test": "firebase emulators:exec --only firestore --project demo-yks-rules \"node --test rules.test.mjs\""
