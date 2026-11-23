@@ -54,3 +54,34 @@ export function reportActions(o:{topics:TopicCount[];losses:SubjectLoss[];reason
   if(o.bestHour&&out.length<3)out.push({text:`1 saatin en çok ${o.bestHour} dersinde net getirir.`,plan:`${o.bestHour} çalış`});
   return out.slice(0,3);
 }
+
+/* v152 · Süre analizi: yeni veri istemeden ders ders boş, "süre yetmedi" yanlışları ve girilmiş toplam süre. */
+export interface TimeRow{name:string;avgBlank:number;sureWrongs:number;trend:"up"|"down"|"";}
+export interface TimeReport{rows:TimeRow[];worst:string|null;duration:{avg:number;count:number;limit:number}|null;}
+/** exams eskiden yeniye; matches(sonuçDersi, yanlışDersi) alt dersleri eşler (Fen ← Fizik). limit 0 (branş) ya da veri yoksa null. */
+export function timeReport(exams:Loose[],wrongs:Loose[],limit:number,matches:(name:string,subject:string)=>boolean):TimeReport|null{
+  if(!(limit>0))return null;
+  const blanks=new Map<string,number[]>();let examCount=0;
+  for(const exam of exams){
+    const results=Array.isArray(exam?.subjectResults)?exam.subjectResults:[];let used=false;
+    for(const r of results){
+      const d=num(r?.d),y=num(r?.y),b=num(r?.b);if(d+y+b===0)continue;
+      const name=String(r.name||"Ders");blanks.set(name,[...(blanks.get(name)??[]),b]);used=true;
+    }
+    if(used)examCount++;
+  }
+  const sure=(Array.isArray(wrongs)?wrongs:[]).filter(w=>w?.kind==="sure"&&w.subject);
+  const avg=(xs:number[])=>xs.reduce((a,x)=>a+x,0)/xs.length;
+  const rows=[...blanks].map(([name,bs])=>{
+    const half=Math.ceil(bs.length/2),diff=bs.length>=4?avg(bs.slice(half))-avg(bs.slice(0,half)):0;
+    const sureWrongs=sure.filter(w=>matches(name,String(w.subject))).reduce((a,w)=>a+Math.max(1,Math.floor(num(w.n)||1)),0);
+    return {name,avgBlank:r1(avg(bs)),sureWrongs,trend:(diff>=1?"up":diff<=-1?"down":"") as TimeRow["trend"]};
+  });
+  const score=(r:TimeRow)=>r.avgBlank+r.sureWrongs/Math.max(1,examCount);
+  rows.sort((a,b)=>score(b)-score(a));
+  const durs=exams.map(e=>num(e?.dur)).filter(x=>x>0);
+  const duration=durs.length?{avg:r1(avg(durs)),count:durs.length,limit}:null;
+  if(!rows.some(r=>r.avgBlank>0||r.sureWrongs>0)&&!duration)return null;
+  const top=rows[0];
+  return {rows,worst:top&&score(top)>0?top.name:null,duration};
+}

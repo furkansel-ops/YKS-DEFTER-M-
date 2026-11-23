@@ -2,7 +2,7 @@ import "./exam-hub-v73.css";
 import {analyzeExams,type ExamAnalysisType,type ExamAnalysisWindow} from "../domain/exam-analysis-service.ts";
 import {analyzeLearningCycle} from "../domain/learning-cycle-analysis-service";
 import {isDue} from "../domain/wrong-review.ts";
-import {subjectLosses,topTopics,reasonShares,examsToTarget,reportActions} from "../domain/exam-report.ts";
+import {subjectLosses,topTopics,reasonShares,examsToTarget,reportActions,timeReport} from "../domain/exam-report.ts";
 
 /* v73 · Deneme ekranı: Özet · Analiz · Hatalar · Geçmiş sekmeleri, adım adım deneme ekleme,
    tek Hata Defteri listesi, iki deneme karşılaştırma ve ayarlar sayfası.
@@ -247,6 +247,17 @@ function loopStats():{records:number;topics:number;reviews:number;check:number;h
   return {records,topics,reviews:reviews.length,check,hint};
 }
 
+/* v152 · Süre kartı: ders ders boş, "süre yetmedi" yanlışları ve girilmiş toplam süre (yeni veri istemez). */
+const TIME_LIMIT:Record<string,number>={TYT:165,AYT:180,YDT:180};
+function timeCard(range:Loose[],wrongs:Loose[],type:string):string{
+  const r=timeReport(range,wrongs,TIME_LIMIT[type]??0,(name,subject)=>{const c=canonical(name),s=canonical(subject);return c===s||(GROUP[c]??[]).includes(s);});
+  if(!r)return "";
+  const rows=r.rows.map(x=>`<div class="eh-time-row"><b>${esc(x.name)}</b><span>ort. ${fmt(x.avgBlank)} boş${x.sureWrongs?` · ${x.sureWrongs} "süre yetmedi"`:""}</span>${x.trend==="up"?'<em class="down">▲ artıyor</em>':x.trend==="down"?'<em class="up">▼ azalıyor ✓</em>':"<em></em>"}</div>`).join("");
+  const head=r.worst?`<p class="eh-time-top">⏱ Süre sana en çok bu derste kaybettiriyor: <b>${esc(r.worst)}</b></p>`:"";
+  const dur=r.duration?`Toplam süre: ortalama ${fmt(r.duration.avg)} dk / ${r.duration.limit} (${r.duration.count} denemede girilmiş)`:"Ek bilgiler'e süre girersen burada görünür";
+  return `<div class="card eh-rep eh-time"><div class="eh-card-head"><b>Süre</b><small>boşlar ve süre yanlışları</small></div>${head}${rows}<p class="eh-rep-note">${dur}</p></div>`;
+}
+
 /* ---------- Analiz ---------- */
 function renderAnaliz(pane:HTMLElement):void{
   const type=selectedType(),win=selectedWindow(),a=analyzeExams(state() as never,type,win);
@@ -267,6 +278,7 @@ function renderAnaliz(pane:HTMLElement):void{
     return `<div class="eh-subj">${tile(l.name)}<div><div class="eh-subj-row"><b>${esc(l.name)}</b><small><span class="down">−${fmt(l.lost)} net</span> · ort. ${fmt(l.net)} / ${fmt(l.cap)}</small></div><span class="eh-dyb" role="img" aria-label="Yanlıştan ${fmt(l.fromWrong)}, boştan ${fmt(l.fromBlank)} net kayıp"><i class="w" style="width:${l.fromWrong/maxLost*100}%"></i><i class="e" style="width:${l.fromBlank/maxLost*100}%"></i></span>${top?`<small class="eh-subj-top">En çok yanlış: <b>${esc(top.topic)}</b> (${top.n})</small>`:""}</div></div>`;}).join("");
   const reasonHtml=reasons.length?`<div class="eh-why"><small>Yanlış nedenleri</small>${reasons.map(r=>`<span data-kind="${esc(r.kind)}">${esc(r.label)} <b>%${r.pct}</b></span>`).join("")}</div>`:`<p class="hint">Yanlışlarını nedeniyle işaretledikçe burada neden payları çıkar.</p>`;
   html+=`<div class="card eh-rep"><div class="eh-card-head"><b>Net nereden gidiyor</b></div>${lossHtml||'<p class="hint">Doğru, yanlış ve boşları ders ders girdiğinde kayıp burada görünür.</p>'}<div class="eh-legend"><span><i class="w"></i>Yanlıştan</span><span><i class="e"></i>Boştan</span><em>1 yanlış 1.25 · 1 boş 1 net</em></div>${reasonHtml}</div>`;
+  html+=timeCard(range,wrongs,type);
   /* 3 Ne yapmalı */
   const best=type==="TYT"||type==="AYT"?list<Loose>(call("marginalGain")).find(x=>x.exam===type)?.name:undefined;
   const actions=reportActions({topics,losses,reasons,bestHour:best?String(best):undefined});
