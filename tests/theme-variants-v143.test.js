@@ -52,3 +52,9 @@ test("v145 açılır pencere ve alt sayfalarda soluk uyarı ve düğme renkleri 
   assert.ok(css.includes('{--danger:#c92a2a;--red:#c92a2a}'));
   for(const f of["src/ui/progress-hub-v74.css","src/ui/exam-hub-v73.css"]){const s=read(f);assert.ok(!s.includes("#d6455f")&&!s.includes("#b7791f"),f+" açık kırmızı/amber kalmadı");}
 });
+
+test("v148 İlerleme özetindeki değişim etiketi koyu ton üstünde (açık ton beyaz yazıyı 3.5:1'e düşürüyordu)",()=>{
+  const css=read("src/ui/progress-v108.css");
+  assert.match(css,/#progress \.ph-two em\{[^}]*background:rgba\(0,0,0,\.15\);[^}]*color:inherit/);
+  assert.doesNotMatch(css,/\.ph-two em\{[^}]*currentColor 20%/);
+});
