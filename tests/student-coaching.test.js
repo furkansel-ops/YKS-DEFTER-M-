@@ -17,7 +17,7 @@ test("öğrenci uygulaması yalnız öğrenci hesabı olarak açılır ve koç p
 
 test("öğrenci hesap köprüleri auth başlamadan önce güvenli sırada yüklenir",()=>{
   const loader=read("src/ui/student-account-loader.ts");
-  const bridgeAt=loader.indexOf("student-coaching-runtime.js?v=1.2.39");
+  const bridgeAt=loader.indexOf("student-coaching-runtime.js?v=1.2.40");
   const linkAt=loader.indexOf("student-coach-link.js?v=1.5.1");
   const programAt=loader.indexOf("student-program-share-v2.js?v=3.6.5");
   const authAt=loader.indexOf("auth-session-runtime.js?v=1.6.0");
@@ -133,8 +133,8 @@ test("Koç eşitleme runtime web ve native açılışta garanti edilir ve save s
   assert.match(shell,/import\("\.\/student-account-loader"\)/);
   assert.match(shell,/installStudentAccountLoader\(\)/);
   assert.match(shell,/const native=isNativeApp\(\)/);
-  assert.match(loader,/student-coaching-runtime\.js\?v=1.2.39/);
-  assert.match(runtime,/version:\"1.2.39\"/);
+  assert.match(loader,/student-coaching-runtime\.js\?v=1.2.40/);
+  assert.match(runtime,/version:\"1.2.40\"/);
   assert.match(app,/CustomEvent\(\"yks:data-changed\"/);
   assert.match(app,/source:\"save\"/);
 });
@@ -203,7 +203,7 @@ test("Program paylaşımı Firestore için iç içe array üretmez",()=>{
 test("koç program görevleri video bağlantısı ve ayrıntılar için 600 karaktere kadar korunur",()=>{
   const runtime=read("public/student-coaching-runtime.js");
   assert.match(runtime,/text\(p\.text,600\)/);
-  assert.match(runtime,/version:"1.2.39"/);
+  assert.match(runtime,/version:"1.2.40"/);
 });
 
 
@@ -321,4 +321,19 @@ test("v150 koç görevi silince/taşıyınca/düzenleyince öğrenciye doğru bi
   assert.match(runtime,/a\.type==="program_task"&&a\.payload\?\.operation==="delete"\?"Koçun bir görevi kaldırdı"/);
   assert.match(runtime,/a\.type==="program_task"&&a\.payload\?\.operation==="move"\?"Koçun bir görevi başka güne taşıdı"/);
   assert.match(runtime,/a\.type==="program_task"&&a\.payload\?\.operation==="edit"\?"Koçun bir görevi güncelledi ✓":"Koçundan yeni görev\/not geldi ✓"/);
+});
+
+test("v151 haftalık değerlendirme koç paylaşımına gider; geçilen hafta ve bozuk kayıt gitmez",()=>{
+  const runtime=fs.readFileSync(path.join(__dirname,"..","public/student-coaching-runtime.js"),"utf8");
+  const start=runtime.indexOf("function weeklyReviewsShare("),end=runtime.indexOf("\n",start);
+  assert.ok(start>0,"weeklyReviewsShare var");
+  const text=(v,max)=>String(v??"").trim().slice(0,max),finite=v=>Number.isFinite(Number(v))?Number(v):0;
+  const fn=new Function("text","finite",runtime.slice(start,end)+";return weeklyReviewsShare;")(text,finite);
+  const weeks={};for(let i=1;i<=9;i++)weeks["2026-0"+i+"-05"]={good:"g"+i,hard:"",focus:"",at:i};
+  weeks["2026-10-05"]={good:"",hard:"",focus:"",at:10,skipped:true};weeks.bozuk={good:"x"};weeks["2026-11-23"]={good:"<b>iyi</b>",hard:"z".repeat(400),focus:"odak",at:11};
+  const out=fn({weeklyReviews:weeks});
+  assert.equal(out.length,8);assert.deepEqual(out.at(-1),{week:"2026-11-23",good:"<b>iyi</b>",hard:"z".repeat(300),focus:"odak",at:11});
+  assert.ok(!out.some(r=>r.week==="2026-10-05"),"geçilen hafta gitmez");
+  assert.deepEqual(fn({}),[]);assert.deepEqual(fn({weeklyReviews:"x"}),[]);
+  assert.match(runtime,/dayReview:\{entries:dayReviews\},examPlans:examPlansShare\(s\),weeklyReviews:weeklyReviewsShare\(s\)\}/);
 });

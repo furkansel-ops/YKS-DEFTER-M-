@@ -202,6 +202,8 @@ export interface YksState extends UnknownRecord{
   pauses:NumberMap;
   journal:Record<string,unknown>;
   dayReview:Record<string,DayReview>;
+  /** v151 haftalık değerlendirme; anahtar haftanın Pazartesi'si. */
+  weeklyReviews?:Record<string,{good:string;hard:string;focus:string;at:number;skipped?:true}>;
   books:LegacyEntity[];
   workMin:number;
   breakMin:number;
