@@ -7621,6 +7621,10 @@ function eveningText(){
   const k=todayKey();
   const done=dayDone(k);
   const q=S.solved[k]||0,m=S.pomoMin[k]||0;
+  /* v153: plan varsa görev sayısı; kalanlar Bugün › Günü kapat'tan tek dokunuşla yarına taşınır. */
+  let p={filled:0,done:0};try{if(typeof v25PlanToday==="function")p=v25PlanToday();}catch(e){} // plan okunamazsa bildirim eski metinle yine gider
+  if(p.filled){const head="Bugün "+p.done+"/"+p.filled+" görev",rest=q+" soru · "+fmtHM(m);
+    return p.done<p.filled?head+" · "+rest+". "+(p.filled-p.done)+" görev kaldı.":head+" ✓ · "+rest+". Yarının planına bakabilirsin.";}
   if(done)return "Bugünü tamamladın · "+fmtHM(m)+" · "+q+" soru. Yarının planına bakabilirsin.";
   return "Bugünü işaretlemedin. "+(m||q?fmtHM(m)+" · "+q+" soru kaydı var.":"Bugün için kayıt yok.");
 }
@@ -10825,8 +10829,16 @@ function movePlanCellTomorrow(wk,blk,i,d){
   if(planMoveLocks.has(lockKey)){toast("Bu görev zaten taşınıyor");return false;}
   const c=planCellData(wk,blk,i,d);if(!c){toast("Taşınacak görev bulunamadı");return false;}
   planMoveLocks.add(lockKey);setTimeout(()=>planMoveLocks.delete(lockKey),900);
-  const nextKey=addDaysKey(c.wk,c.d+1),nextDate=parseKey(nextKey),targetWk=keyOf(mondayOf(nextDate)),targetD=dowOf(nextDate);
-  const bk=planWeekBackup([c.wk,targetWk]),tw=getWeek(targetWk,true);
+  const bk=planWeekBackup([c.wk,planNextWeekKey(c.wk,c.d)]);
+  planMoveCellCore(c);
+  pushUndo("Görev yarına taşındı",()=>restorePlanWeekBackup(bk));save();closePlanCellMenu();planRefreshViews();
+  toast("Yarına taşındı ✓");return true;
+}
+function planNextWeekKey(wk,d){return keyOf(mondayOf(parseKey(addDaysKey(wk,d+1))));}
+/* Hücreyi ertesi güne yazar, kaynağı boşaltır; kayıt, geri al ve bildirim çağırana kalır. */
+function planMoveCellCore(c){
+  const nextDate=parseKey(addDaysKey(c.wk,c.d+1)),targetWk=keyOf(mondayOf(nextDate)),targetD=dowOf(nextDate);
+  const tw=getWeek(targetWk,true);
   let ti=c.i;
   if(!tw[c.blk]||!tw[c.blk][ti]||String(tw[c.blk][ti][targetD]||"").trim())ti=planFindEmpty(tw,c.blk,targetD,-1);
   if(ti<0)ti=planAppendRow(tw,c.blk);
@@ -10836,8 +10848,20 @@ function movePlanCellTomorrow(wk,blk,i,d){
   if(!tw.mv||typeof tw.mv!=="object")tw.mv={};tw.mv[targetCid]={from:addDaysKey(c.wk,c.d),at:Date.now()};
   c.w[c.blk][c.i][c.d]="";delete c.w.dn[c.cid];if(c.w.mv)delete c.w.mv[c.cid];
   if(c.blk==="s"&&!String(S.rowLabels.s[ti]||"").trim())S.rowLabels.s[ti]=S.rowLabels.s[c.i]||"";
-  pushUndo("Görev yarına taşındı",()=>restorePlanWeekBackup(bk));save();closePlanCellMenu();planRefreshViews();
-  toast("Yarına taşındı ✓");return true;
+}
+/* v153 · Günü kapat: bugünün bitmemiş bütün görevleri yarına; tek yedek, tek geri al. */
+function moveUnfinishedTomorrow(){
+  const lockKey="all|"+todayKey();
+  if(planMoveLocks.has(lockKey))return 0;
+  const p=v25PlanToday(),left=p.items.filter(x=>!x.done);
+  if(!left.length){toast("Taşınacak görev yok");return 0;}
+  planMoveLocks.add(lockKey);setTimeout(()=>planMoveLocks.delete(lockKey),900);
+  const bk=planWeekBackup([p.wk,planNextWeekKey(p.wk,p.d)]);
+  let n=0;left.forEach(x=>{const c=planCellData(x.wk,x.blk,x.i,x.d);if(c){planMoveCellCore(c);n++;}});
+  if(!n)return 0;
+  pushUndo(n+" görev yarına taşındı",()=>restorePlanWeekBackup(bk));save();planRefreshViews();
+  try{renderV25Today();}catch(e){}
+  toast(n+" görev yarına taşındı ✓");return n;
 }
 function planTomorrowSelected(){const c=planMenuCtx;if(c)movePlanCellTomorrow(c.wk,c.blk,c.i,c.d);}
 function bindPlanLongPress(){
@@ -11329,7 +11353,13 @@ function saveTodayReflection(){
 function v25RenderClose(){
   const box=el("todayClose"),inp=el("todayReflectionInput");if(!box||!inp)return;
   const h=new Date().getHours(),k=todayKey(),r=(S.dayReview&&S.dayReview[k])||{},saved=el("todayCloseSaved"),draftMood=todayMoodDraft.date===k?todayMoodDraft.mood:"",mood=draftMood||r.mood||"",dirty=!!draftMood&&draftMood!==String(r.mood||"");
-  box.classList.toggle("soft",h<18&&!v25PlanToday().dayDone);
+  const plan=v25PlanToday(),left=plan.filled-plan.done;
+  box.classList.toggle("soft",h<18&&!plan.dayDone);
+  let carry=el("todayCarryBtn");
+  if(!carry){carry=document.createElement("button");carry.type="button";carry.id="todayCarryBtn";carry.className="btn ghost small today-carry";carry.addEventListener("click",()=>moveUnfinishedTomorrow());
+    /* Yeni Bugün ekranında eski Günü kapat kartı gizli: düğme Bugünün Programı listesinin altına. */
+    const list=el("todayFreshTaskList");if(list)list.after(carry);else box.querySelector(".today-close-copy")?.after(carry);}
+  carry.hidden=!(h>=18&&left>0);if(!carry.hidden)carry.textContent="Kalan "+left+" görevi yarına taşı";
   el("todayCloseTitle").textContent=h>=18?"Günü kapat":"Gün sonu değerlendirmesi";
   el("todayCloseHint").textContent=h>=18?"Bugün nasıldı?":"Akşam istersen doldur";
   if(document.activeElement!==inp&&!draftMood)inp.value=r.note||"";

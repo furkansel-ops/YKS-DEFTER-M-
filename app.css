@@ -2759,6 +2759,8 @@ body > .qaviewer{
 #home .today-close-saved{justify-self:end;padding:5px 8px;border-radius:999px;background:var(--fill);color:var(--label-3);font-size:9.5px;font-weight:700;white-space:nowrap}
 #home .today-close-saved[data-saved="true"]{background:var(--success-soft);color:var(--success)}
 #home .today-close-copy{margin:10px 0 0;color:var(--label-2);font-size:11.5px;line-height:1.55}
+#home .today-carry{display:flex;width:100%;justify-content:center;margin-top:10px;min-height:40px;border-radius:12px!important;font-weight:700}
+#home .today-carry[hidden]{display:none}
 #home .today-moods{gap:8px;margin-top:12px}
 #home .today-moods button{display:flex;align-items:center;justify-content:center;gap:7px;min-height:46px;padding:8px 10px!important;border-radius:13px!important}
 #home .today-moods button>span{font-size:16px}
