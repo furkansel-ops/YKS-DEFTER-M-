@@ -1378,7 +1378,7 @@ function renderTodayPlan(){
       const cid=blk+"-"+i+"-"+dw,isDone=!!w.dn[cid];
       if(isDone)done++;
       const lbl=blk==="r"?(S.rowLabels.r[i]||"Rutin"):((typeof planCellLabel==="function"?planCellLabel(S.rowLabels.s[i],txt):S.rowLabels.s[i])||"—");
-      html+=`<div class="plancell ${isDone?"pd":""}" onclick="toggleCellDone('${wk}','${cid}')">
+      html+=`<div class="plancell ${isDone?"pd":""}" data-time="${esc((S.rowLabels[blk]||[])[i]||"")}" onclick="toggleCellDone('${wk}','${cid}')">
         <span class="pl">${esc(lbl)}</span><span class="pt">${esc(txt)}</span>${cellVidBtn(txt)}<button class="plan-tomorrow" title="Yarına taşı" onclick="event.stopPropagation();movePlanCellTomorrow('${wk}','${blk}',${i},${dw})">→ Yarına</button></div>`;
     });
   });
@@ -11058,7 +11058,11 @@ let v25LastFocus=null;
 function v25PlanToday(){
   const now=new Date(),d=dowOf(now),wk=keyOf(mondayOf(now)),w=getWeek(wk,false),items=[];
   if(w){["r","s"].forEach(blk=>(w[blk]||[]).forEach((row,i)=>{const txt=String((row||[])[d]||"").trim();if(!txt)return;const cid=blk+"-"+i+"-"+d,lbl=blk==="r"?(S.rowLabels.r[i]||"Rutin"):((typeof planCellLabel==="function"?planCellLabel(S.rowLabels.s[i],txt):S.rowLabels.s[i])||"Görev");items.push({wk,blk,i,d,cid,txt,lbl,done:!!w.dn[cid]});}));}
-  const done=items.filter(x=>x.done).length;return {wk,d,w,items,filled:items.length,done,pct:items.length?Math.round(done/items.length*100):0,next:items.find(x=>!x.done)||null,dayDone:!!(w&&w.done&&w.done[d])};
+  /* v158 · Sıradaki, Program'daki Şimdi/Sırada kartıyla aynı: saatli görevler başlangıca göre, saati geçenler atlanır
+     (hepsi geçtiyse ilk bitmemiş). Saat yoksa eski sıra aynen. Etiket biçimi "09:00-10:30". */
+  const nowMin=now.getHours()*60+now.getMinutes(),span=x=>{const m=/^\s*(\d{1,2})[:.](\d{2})\s*[-–—]\s*(\d{1,2})[:.](\d{2})\s*$/.exec(String((S.rowLabels[x.blk]||[])[x.i]||""));if(!m)return null;const s=+m[1]*60+ +m[2],e=+m[3]*60+ +m[4];return +m[1]<24&&+m[3]<=24&&+m[2]<60&&+m[4]<60&&e>s?{s,e}:null;};
+  const open=items.filter(x=>!x.done).map(x=>({x,t:span(x)})),timed=open.filter(o=>o.t).sort((a,b)=>a.t.s-b.t.s),next=(timed.concat(open.filter(o=>!o.t)).find(o=>!o.t||o.t.e>nowMin)||open[0]||{x:null}).x;
+  const done=items.filter(x=>x.done).length;return {wk,d,w,items,filled:items.length,done,pct:items.length?Math.round(done/items.length*100):0,next,dayDone:!!(w&&w.done&&w.done[d])};
 }
 function v25TaskMeta(item){
   if(!item)return {subj:"",topic:""};

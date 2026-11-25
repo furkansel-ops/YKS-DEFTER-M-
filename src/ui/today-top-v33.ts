@@ -193,6 +193,13 @@ export function installTodayTopV33():{installed:boolean}{
       document.documentElement.dataset.todayV101="deferred";
       console.error("Yeni Bugün yüklenemedi",error);
     });
+  // v158: sıradaki kart ders renginde + saat, saati geçen görev, akşam Gün sonu/Kariyer yan yana.
+  if(document.documentElement)void import("./today-v158")
+    .then(({installTodayV158})=>{
+      try{document.documentElement.dataset.todayV158=installTodayV158().installed?"ready":"deferred";}
+      catch(error){document.documentElement.dataset.todayV158="deferred";console.error("Bugün v158 başlatılamadı",error);}
+    })
+    .catch(error=>{document.documentElement.dataset.todayV158="deferred";console.error("Bugün v158 yüklenemedi",error);});
   // v40: independent optional display chunk; a failure cannot block boot.
   if(document.documentElement)void import("./today-activity-v40")
     .then(({installTodayActivityV40})=>{

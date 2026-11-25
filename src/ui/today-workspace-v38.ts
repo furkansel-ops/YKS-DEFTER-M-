@@ -1,5 +1,6 @@
 /* Today v38: presentation-only mirror of existing focus + program renderers.
    The legacy controls continue to own timers, task completion and persistence. */
+import {clock,parseTimeRange} from "./refined-program-v103";
 type W38=Window&{go?:(page:string)=>unknown;v25StartTask?:()=>unknown;v25DoneNext?:()=>unknown};
 
 /* Koç öneki ve ders rengi app.js'deki tek kaynaktan gelir (globalThis.YKSTaskText). */
@@ -103,7 +104,7 @@ export function installTodayWorkspaceV38():{installed:boolean}{
       :"Program ekleyebilirsin");
     const signature=rows.map(node=>[
       text(node.querySelector(".pl")),text(node.querySelector(".pt")),
-      node.classList.contains("pd")?"1":"0"
+      node.classList.contains("pd")?"1":"0",node.dataset.time||""
     ].join("::")).join("|");
     const sameSource=rows.length===lastTaskRows.length&&
       rows.every((row,index)=>row===lastTaskRows[index]);
@@ -132,6 +133,8 @@ export function installTodayWorkspaceV38():{installed:boolean}{
       // v66: "Koç ·" öneki rozet olur; başlık dersten, alt satır konudan oluşur.
       const title=stripCoach(raw),coach=title!==raw,cut=title.indexOf(" · ");
       task.dataset.tone=taskText()?.subjectTone(subjectText+" "+title)??"other";
+      // v158: satırın saat etiketi ("09:00-10:30"); saat ve "Saati geçti" today-v158'de.
+      const range=parseTimeRange(row.dataset.time||"");if(range)task.dataset.time=range.label;
       button.setAttribute("aria-label",raw+(done?" tamamlandı, geri al":" tamamla"));
       button.addEventListener("click",()=>{
         if((row.getAttribute("onclick")||"").includes("toggleCellDone"))row.click();
@@ -139,7 +142,7 @@ export function installTodayWorkspaceV38():{installed:boolean}{
       const copy=document.createElement("div");copy.className="today-fresh-task-copy";
       const b=document.createElement("strong");b.className="today-fresh-task-title";b.textContent=cut>0?title.slice(0,cut):title;
       const small=document.createElement("small");small.className="today-fresh-task-sub";
-      small.textContent=cut>0?title.slice(cut+3):subjectText&&subjectText!=="—"?subjectText:(done?"Tamamlandı":"Program görevi");
+      small.textContent=(range?clock(range.start)+" · ":"")+(cut>0?title.slice(cut+3):subjectText&&subjectText!=="—"?subjectText:(done?"Tamamlandı":"Program görevi"));
       copy.append(b,small);task.append(button,copy);
       if(coach){const tag=document.createElement("span");tag.className="today-fresh-task-coach";tag.textContent="Koç";task.append(tag);}
       children.push(task);

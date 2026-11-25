@@ -1,0 +1,33 @@
+/* v158 · Bugün küçük dokunuşlar. Renkler tema belirteçlerinden (--tone v66'da ders rengi); :not(#v) yalnız özgüllük içindir. */
+
+/* Sıradaki kart dersin renginde (Program'daki Şimdi kartıyla aynı karışım) */
+:root[data-visual-system]:not(#v) #mainWrap #home #todayFreshStart .today-fresh-work-card.today-fresh-next[data-tone]{
+  background:linear-gradient(140deg,color-mix(in srgb,var(--tone) 62%,black),color-mix(in srgb,var(--tone) 42%,black));
+  box-shadow:0 16px 30px -18px color-mix(in srgb,var(--tone) 75%,transparent)}
+:root[data-visual-system]:not(#v) #mainWrap #home #todayFreshStart .today-fresh-next .v158-when{font-weight:700;opacity:.9}
+
+/* Listede saati geçen görev (Program'daki "Saati geçti" kutusunun turuncusu, v154) */
+:root[data-visual-system]:not(#v) #mainWrap #home #todayFreshStart .today-fresh-task .v158-late-tag{
+  --late:#d97706;flex:none;margin-left:auto;align-self:center;padding:3px 8px;border-radius:999px;font-size:11px;font-weight:800;white-space:nowrap;
+  background:color-mix(in srgb,var(--late) 14%,var(--d-surface));color:color-mix(in srgb,var(--late) 70%,var(--d-ink))}
+:root[data-visual-system]:not(#v) #mainWrap #home #todayFreshStart .today-fresh-task .v71-next~.v158-late-tag{margin-left:6px}
+
+/* Odak kutusunda "Odak ekranı" (Soru'daki "Soru ekle" gibi) */
+:root[data-visual-system]:not(#v) #mainWrap #home #todayFreshStart .v158-focus::before{--i102:var(--i102-play)}
+
+/* Akşam (Gün sonu görünürken) telefonda Gün sonu ile Kariyer yan yana; Gün sonu açılınca tam genişlik. */
+@media(max-width:1023px){
+  :root[data-visual-system]:not(#v) #mainWrap #home #todayFreshStart.v101-eve{flex-flow:row wrap}
+  :root[data-visual-system]:not(#v) #mainWrap #home #todayFreshStart.v101-eve>*,
+  :root[data-visual-system]:not(#v) #mainWrap #home #todayFreshStart.v101-eve :is(.today-fresh-welcome,.today-fresh-daily,#todayFreshProgress,#todayFreshWorkCenter,.today-fresh-work-pair)>*{flex:0 0 100%;min-width:0}
+  :root[data-visual-system]:not(#v) #mainWrap #home #todayFreshStart.v101-eve>:is(#v71Rows,#todayAchievementShortcut){flex:1 1 40%}
+  :root[data-visual-system]:not(#v) #mainWrap #home #todayFreshStart.v101-eve>#v71Rows:has(details[open]){flex-basis:100%}
+  :root[data-visual-system]:not(#v) #mainWrap #home #todayFreshStart.v101-eve>#v71Rows>#todayFreshReview{flex:1 1 auto}
+  /* Yarım kartta Gün sonu satırı alt alta: simge + ok üstte, başlık ve durum altta */
+  :root[data-visual-system]:not(#v) #mainWrap #home #todayFreshStart.v101-eve>#v71Rows #todayFreshReview:not([open])>summary{grid-template-columns:34px minmax(0,1fr) 16px;row-gap:6px}
+  :root[data-visual-system]:not(#v) #mainWrap #home #todayFreshStart.v101-eve>#v71Rows #todayFreshReview:not([open])>summary>.v71-ic{grid-column:1;grid-row:1}
+  :root[data-visual-system]:not(#v) #mainWrap #home #todayFreshStart.v101-eve>#v71Rows #todayFreshReview:not([open])>summary>.v71-chev{grid-column:3;grid-row:1}
+  :root[data-visual-system]:not(#v) #mainWrap #home #todayFreshStart.v101-eve>#v71Rows #todayFreshReview:not([open])>summary>:is(.today-fresh-review-title,.today-fresh-review-side){grid-column:1/-1;min-width:0}
+  :root[data-visual-system]:not(#v) #mainWrap #home #todayFreshStart.v101-eve>#v71Rows #todayFreshReview:not([open])>summary>.today-fresh-review-title{grid-row:2}
+  :root[data-visual-system]:not(#v) #mainWrap #home #todayFreshStart.v101-eve>#v71Rows #todayFreshReview:not([open])>summary>.today-fresh-review-side{grid-row:3;justify-self:start}
+}

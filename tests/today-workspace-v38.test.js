@@ -102,8 +102,8 @@ test("v38 focus/next/task cards mirror legacy state and dispatch existing handle
     observe(){}
   }
   const source=stripTypeScriptTypes(read("src/ui/today-workspace-v38.ts"))
-    .replace("export function installTodayWorkspaceV38","function installTodayWorkspaceV38");
-  const context=vm.createContext({document,window:{go:page=>routes.push(page)},MutationObserver:Observer,console,requestAnimationFrame:fn=>fn()});
+    .replace("export function installTodayWorkspaceV38","function installTodayWorkspaceV38").replace(/^import[^\n]*\n/m,"");
+  const context=vm.createContext({parseTimeRange:()=>null,clock:String,document,window:{go:page=>routes.push(page)},MutationObserver:Observer,console,requestAnimationFrame:fn=>fn()});
   vm.runInContext(source+"\nthis.install=installTodayWorkspaceV38;",context);
   assert.equal(context.install().installed,true);
   assert.equal(rootCard.dataset.workReady,"true");

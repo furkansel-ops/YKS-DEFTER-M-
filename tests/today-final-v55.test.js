@@ -62,8 +62,8 @@ function harness(){
   observe(node,opts){this.observed.push({id:node.id,opts})}
  }
  const script=stripTypeScriptTypes(read("src/ui/today-workspace-v38.ts"))
-  .replace("export function installTodayWorkspaceV38","function installTodayWorkspaceV38");
- const ctx=vm.createContext({document:doc,window:{go:page=>routes.push(page)},
+  .replace("export function installTodayWorkspaceV38","function installTodayWorkspaceV38").replace(/^import[^\n]*\n/m,"");
+ const ctx=vm.createContext({parseTimeRange:()=>null,clock:String,document:doc,window:{go:page=>routes.push(page)},
   MutationObserver:Observer,console,requestAnimationFrame:fn=>fn()});
  vm.runInContext(script+"\nthis.install=installTodayWorkspaceV38;",ctx);
  return{ctx,nodes,rows,observers,routes,rootEl,plan,stop,swTime};
