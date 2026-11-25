@@ -1,0 +1,33 @@
+/* v157 · Kaydırmalı saat tekerleği. Renkler tema belirteçlerinden (--d-*); :not(#tw) yalnız özgüllük içindir
+   (sayfaların genel button/input kurallarının önüne geçmek için). */
+:root:not(#tw) .tw-wheels{position:relative;display:flex;justify-content:center;align-items:center;gap:4px;height:200px;margin:0;border-radius:18px;background:var(--d-soft);overflow:hidden}
+:root:not(#tw) .tw-wheels::before{content:"";position:absolute;left:14px;right:14px;top:80px;height:40px;border-radius:12px;background:var(--d-surface);box-shadow:0 6px 16px -10px color-mix(in srgb,var(--d-accent) 55%,transparent);pointer-events:none}
+:root:not(#tw) .tw-wheels::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(var(--d-soft),transparent 32%,transparent 68%,var(--d-soft))}
+:root:not(#tw) .tw-col{position:relative;width:84px;height:200px;padding:80px 0;overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none;overscroll-behavior:contain;outline:0;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
+:root:not(#tw) .tw-col::-webkit-scrollbar{display:none}
+:root:not(#tw) .tw-col:focus-visible{box-shadow:inset 0 0 0 2px var(--d-accent);border-radius:12px}
+:root:not(#tw) .tw-item{display:grid;place-items:center;height:40px;scroll-snap-align:center;color:var(--d-muted);font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;cursor:pointer}
+:root:not(#tw) .tw-item.tw-off{color:color-mix(in srgb,var(--d-muted) 45%,transparent);text-decoration:line-through;text-decoration-thickness:1.5px}
+:root:not(#tw) .tw-item.tw-on{color:var(--d-accent);font-size:26px;font-weight:800}
+:root:not(#tw) .tw-colon{position:relative;z-index:1;color:var(--d-accent);font-size:24px;font-weight:800}
+
+:root:not(#tw) .tw-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+:root:not(#tw) .tw-tabs .tw-tab{display:block;min-height:0;margin:0;padding:8px 12px;border:2px solid transparent;border-radius:16px;background:var(--d-soft);color:var(--d-ink);text-align:left;box-shadow:none;cursor:pointer}
+:root:not(#tw) .tw-tab small{display:block;color:var(--d-muted);font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase}
+:root:not(#tw) .tw-tab b{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums}
+:root:not(#tw) .tw-tabs .tw-tab[aria-pressed="true"]{border-color:var(--d-accent);background:var(--d-surface);box-shadow:0 8px 18px -12px color-mix(in srgb,var(--d-accent) 70%,transparent)}
+
+:root:not(#tw) .tw-chips{display:flex;flex-wrap:wrap;gap:6px}
+:root:not(#tw) .tw-chips button{min-height:36px;margin:0;padding:0 11px;border:0;border-radius:11px;background:var(--d-soft);color:var(--d-accent);font:inherit;font-size:13px;font-weight:750;box-shadow:none;cursor:pointer}
+:root:not(#tw) .tw-chips button[aria-pressed="true"]{background:var(--d-hero,var(--d-accent));color:var(--d-hero-ink,var(--d-on-accent))}
+
+/* Tekerleğin yerine geçtiği eski alanlar (yerinde kalır, değerleri tekerlek yazar) */
+:root:not(#tw) [data-tw-hide]{display:none!important}
+/* Odak › Şu saate kadar çalış: alan tam genişlik, tekerlek + kısayollar + başlat düğmesi alt alta */
+:root:not(#tw) #pomo .focus-custom-field.tw-field{grid-column:1/-1;gap:10px}
+:root:not(#tw) #pomo .tw-go{width:100%;min-height:46px}
+/* Odak › Süre ekle */
+:root:not(#tw) #pomo .tw-manual{display:grid;gap:10px}
+:root:not(#tw) #pomo .tw-manual-label{margin:0;color:var(--label-3,var(--d-muted));font-size:10.5px;font-weight:720}
+/* Ayarlar › Akşam hatırlatma saati */
+:root:not(#tw) .tw-evening{display:grid;gap:10px;margin:6px 0 4px}

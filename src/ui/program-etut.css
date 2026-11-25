@@ -28,10 +28,6 @@
 :root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-box{display:grid;gap:8px;padding:12px;border:1px solid var(--d-line);border-radius:18px;background:var(--d-surface)}
 :root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-label{display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--d-muted)}
 :root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-label em{font-style:normal;text-transform:none;letter-spacing:0;font-weight:700;color:var(--d-accent)}
-:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-start{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
-:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-time-field{display:flex;align-items:center;gap:6px;padding:4px 10px;border-radius:14px;background:var(--d-soft);color:var(--d-accent)}
-:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-time-field svg{width:20px;height:20px;flex:none}
-:root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-time-field input{width:118px;min-height:0;padding:2px 0;border:0;border-radius:0;background:transparent!important;box-shadow:none!important;color:var(--d-ink);font-size:26px;font-weight:800;font-variant-numeric:tabular-nums}
 :root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-chips{display:flex;flex-wrap:wrap;gap:6px}
 :root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-chips button{min-height:36px;padding:0 11px;border:0;border-radius:11px;background:var(--d-soft);color:var(--d-accent);font-size:13px;font-weight:750;transition:background .25s,color .25s,transform .2s}
 :root[data-visual-system]:not(#v) #mainWrap #program .rb-etut-chips button[aria-pressed="true"]{background:var(--d-hero,var(--d-accent));color:var(--d-hero-ink,var(--d-on-accent))}

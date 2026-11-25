@@ -2,6 +2,7 @@
    sürükle-bırak sıra (klavyede ok tuşları), süre +/−, "bugün katma" ve ara mola. Boş etüde ders seçilmez.
    Kaydetmeyi çağıran yapar (Program'daki mevcut updateTask/reorder + programSetEtut). */
 import "./program-etut.css";
+import {createTimeWheel,createWheelTabs} from "./time-wheel-v157";
 import {ETUT_BLOCKS,ETUT_GAPS,ETUT_LONGS,ETUT_LONG_FROM,ETUT_MIDS,ETUT_MID_MIN,etutClock,etutLongLabel,etutLongShift,etutSchedule,etutSegments,etutSpan,taskMinutes,type EtutItem,type EtutPlan,type EtutSchedule} from "./program-etut";
 
 export type EtutSheetTask={id:string;subject:string;title:string;tone:string;text:string;done:boolean};
@@ -69,16 +70,30 @@ export function createEtutSheet(onSave:(result:EtutSheetResult)=>boolean){
   // Üstte sabit özet: başlangıç → bitiş, ders/mola/toplam, günün şeridi.
   const sum=make("section","rb-etut-sum"),big=make("div","rb-etut-big"),bigStart=make("b"),bigEnd=make("b"),meta=make("div","rb-etut-meta"),bar=make("div","rb-etut-daybar"),ticks=make("div","rb-etut-ticks"),warn=make("p","rb-etut-warn");
   sum.setAttribute("aria-live","polite");bar.setAttribute("aria-hidden","true");big.append(bigStart,make("span","","→"),bigEnd);sum.append(big,meta,bar,ticks,warn);
-  // Saatler: başlangıç ve bitişi kullanıcı seçer; "Toplam" kısayolu bitişi başlangıca göre ayarlar.
-  const startBox=make("section","rb-etut-box"),startLabel=make("label","rb-etut-label","Başlangıç"),startRow=make("div","rb-etut-start"),startField=make("span","rb-etut-time-field"),startInput=make("input"),startChips=make("div","rb-etut-chips");
-  startInput.type="time";startInput.step="300";startInput.id="rbEtutStart";startInput.required=true;startLabel.htmlFor=startInput.id;startField.append(startInput);
-  const endLabel=make("label","rb-etut-label","Bitiş"),endRow=make("div","rb-etut-start"),endField=make("span","rb-etut-time-field"),endInput=make("input"),lengthChips=make("div","rb-etut-chips");
-  endInput.type="time";endInput.step="300";endInput.id="rbEtutEnd";endInput.required=true;endLabel.htmlFor=endInput.id;endField.append(endInput);
+  // v157: başlangıç ve bitiş tek kaydırmalı tekerlekle seçilir (Başlangıç/Bitiş düğmesi hangisini ayarladığını seçer).
+  // Değerler eskisi gibi iki saat alanında tutulur; alanlar ekrana konmaz. "Toplam" kısayolu bitişi başlangıca göre ayarlar.
+  const startBox=make("section","rb-etut-box"),startInput=make("input"),endInput=make("input"),chipLabel=make("span","rb-etut-label"),startChips=make("div","rb-etut-chips"),lengthChips=make("div","rb-etut-chips");
+  startInput.type="time";endInput.type="time";
+  startChips.setAttribute("role","group");startChips.setAttribute("aria-label","Hızlı başlangıç");
   lengthChips.setAttribute("role","group");lengthChips.setAttribute("aria-label","Toplam etüt süresi");
-  const nowChip=btn("Şimdi");nowChip.addEventListener("click",()=>{const date=now(),total=Math.ceil((date.getHours()*60+date.getMinutes())/5)*5%1440;startInput.value=etutClock(total);changed();});
-  const timeChips=START_CHIPS.map(minutes=>{const node=btn(etutClock(minutes));node.addEventListener("click",()=>{startInput.value=etutClock(minutes);changed();});return {node,minutes};});
+  // Başlangıç kayınca toplam süre korunur; bitiş de birlikte kayar.
+  const setStart=(minutes:number)=>{const start=toTime(startInput.value),end=toTime(endInput.value),length=start>=0&&end>start?end-start:DEFAULT_LENGTH;startInput.value=etutClock(minutes);endInput.value=etutClock(Math.min(MAX_END,minutes+length));changed();};
+  const nowChip=btn("Şimdi");nowChip.addEventListener("click",()=>{const date=now();setStart(Math.min(MAX_END-30,Math.ceil((date.getHours()*60+date.getMinutes())/5)*5));});
+  const timeChips=START_CHIPS.map(minutes=>{const node=btn(etutClock(minutes));node.addEventListener("click",()=>setStart(minutes));return {node,minutes};});
   const lengthButtons=LENGTHS.map(minutes=>{const node=btn(etutSpan(minutes));node.addEventListener("click",()=>{const start=toTime(startInput.value);if(start<0)return;endInput.value=etutClock(Math.min(MAX_END,start+minutes));changed();});lengthChips.append(node);return {node,minutes};});
-  startChips.append(nowChip,...timeChips.map(chip=>chip.node));startRow.append(startField,startChips);endRow.append(endField,lengthChips);startBox.append(startLabel,startRow,endLabel,endRow);
+  startChips.append(nowChip,...timeChips.map(chip=>chip.node));
+  let which:"start"|"end"="start";
+  const tabs=createWheelTabs([["start","Başlangıç"],["end","Bitiş"]] as const,key=>{which=key;paintPicker(true);});
+  const wheel=createTimeWheel({label:"Etüt saati",
+    get:()=>Math.max(0,toTime(which==="start"?startInput.value:endInput.value)),
+    set:value=>{if(which==="start")setStart(value);else{endInput.value=etutClock(value);changed();}},
+    ok:value=>which==="start"?value<=MAX_END-30:value>=toTime(startInput.value)+30&&value<=MAX_END,
+    fix:value=>which==="start"?MAX_END-30:Math.min(MAX_END,Math.max(toTime(startInput.value)+30,value))});
+  function paintPicker(smooth:boolean){
+    chipLabel.textContent=which==="start"?"Hızlı başlangıç":"Süreye göre bitiş";startChips.hidden=which!=="start";lengthChips.hidden=which!=="end";
+    tabs.paint({start:Math.max(0,toTime(startInput.value)),end:Math.max(0,toTime(endInput.value))});wheel.sync(smooth);
+  }
+  startBox.append(tabs.element,wheel.element,chipLabel,startChips,lengthChips);
   const segment=(label:string,values:readonly number[],text:(value:number)=>string,choose:(value:number)=>void)=>{
     const row=make("div","rb-etut-seg");row.setAttribute("role","group");row.setAttribute("aria-label",label);
     return {row,buttons:values.map(value=>{const node=btn(text(value));node.addEventListener("click",()=>choose(value));row.append(node);return {node,value};})};
@@ -183,6 +198,7 @@ export function createEtutSheet(onSave:(result:EtutSheetResult)=>boolean){
     const meal=schedule?.long||null;
     longTime.hidden=longEarly.hidden=longLate.hidden=!meal;longTime.textContent=meal?clockOf(meal):"";
     longEarly.disabled=shift.earlier===null;longLate.disabled=shift.later===null;
+    paintPicker(true);
     longHint.textContent=!long?`${ETUT_LONG_FROM/60} saat ve üstü etütte 1 saatlik mola kendiliğinden önerilir.`:meal?"":"Uzun mola için yer yok.";
   }
   const syncOrder=()=>{const byItem=new Map(rows.map(row=>[row.view!.item,row]));rows=[...list.children].map(node=>byItem.get(node as HTMLLIElement)!).filter(Boolean);};
@@ -233,7 +249,6 @@ export function createEtutSheet(onSave:(result:EtutSheetResult)=>boolean){
   close.addEventListener("click",hide);
   root.addEventListener("click",event=>{if(event.target===root)hide();});
   root.addEventListener("keydown",event=>{if(event.key==="Escape")hide();});
-  startInput.addEventListener("input",changed);endInput.addEventListener("input",changed);
   const finish=(value:EtutPlan|null)=>{
     if(onSave({order:rows.map(row=>row.task.id),minutes:new Map(rows.map(row=>[row.task.id,row.minutes])),plan:value}))hide();
   };
@@ -259,7 +274,7 @@ export function createEtutSheet(onSave:(result:EtutSheetResult)=>boolean){
       dateLabel.textContent=options.date;title.textContent=saved?"Etütleri düzenle":"Etüt oluştur";
       remove.hidden=!saved;submit.textContent=saved?"Kaydet":"Etütleri oluştur";
       list.replaceChildren(...rows.map(buildRow));update();root.hidden=false;card.scrollTop=0;
-      requestAnimationFrame(()=>startInput.focus({preventScroll:true}));
+      requestAnimationFrame(()=>tabs.element.querySelector("button")?.focus({preventScroll:true}));
     },
     close:hide
   };

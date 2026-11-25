@@ -4621,13 +4621,17 @@ function applyCustomFocusMinutes(){
 }
 function applyFocusUntilTime(){
   const input=el("focusUntilTime"),raw=String(input&&input.value||"");
-  if(!/^\d{2}:\d{2}$/.test(raw)){setFocusCustomStatus("Bitiş saatini seç.",true);return;}
+  if(!/^\d{2}:\d{2}$/.test(raw)){setFocusCustomStatus("Bitiş saatini seç.",true);return false;}
   const parts=raw.split(":").map(Number),now=new Date(),end=new Date(now);
   end.setHours(parts[0],parts[1],0,0);
-  if(end<=now){setFocusCustomStatus("Bugün için şu andan daha ileri bir saat seç.",true);return;}
+  if(end<=now){setFocusCustomStatus("Bugün için şu andan daha ileri bir saat seç.",true);return false;}
   const minutes=Math.max(1,Math.ceil((end-now)/60000));
-  if(setPhaseMin(minutes))setFocusCustomStatus(clockText(end)+"'e kadar "+minutes+" dk çalışma ayarlandı.",false);
+  if(!setPhaseMin(minutes))return false;
+  setFocusCustomStatus("Bitiş "+clockText(end)+" · "+minutes+" dk çalışma ayarlandı.",false);
+  return true;
 }
+// v157: saat tekerleğindeki "Başlat" düğmesi. Süre yalnız sayaç boştayken ayarlanır (setPhaseMin), o zaman başlatılır.
+function startFocusUntil(){ if(applyFocusUntilTime())togglePomo(); }
 function renderQuick(){
   const w=el("quickMins"); if(!w)return;
   const cur=currentPhaseMin();
