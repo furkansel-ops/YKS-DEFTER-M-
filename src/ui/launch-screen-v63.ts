@@ -89,9 +89,6 @@ function daysLeft():number{
 function firstName():string{
   try{return String(legacy.YKSLegacyState?.readState?.()?.name||"").trim().split(/\s+/)[0]||"";}catch{return "";}
 }
-function initials(text:string):string{
-  return text.split(/[\s@.]+/).filter(Boolean).slice(0,2).map(part=>part.charAt(0).toLocaleUpperCase("tr-TR")).join("")||"?";
-}
 /* Mevcut motivasyon modülünün #sozBox çıktısından okur. */
 function readQuote():{text:string;by:string}|null{
   const box=document.getElementById("sozBox");
@@ -109,7 +106,6 @@ const taskText=():YksTaskText|undefined=>(globalThis as {YKSTaskText?:YksTaskTex
 const stripCoach=(value:string):string=>taskText()?.stripCoachPrefix(value)??value;
 export function installLaunchScreenV63(deps:LaunchDeps):{installed:boolean}{
   if(document.getElementById(ROOT_ID))return {installed:true};
-  document.documentElement.dataset.launchQuote="moved";
   // Oturum başına bir kez: sayfa yenilemede tekrar gelmez, uygulama kapatılıp açılınca gelir.
   try{
     if(sessionStorage.getItem(SESSION_KEY)){document.documentElement.dataset.launch="skipped";return {installed:false};}
@@ -121,11 +117,14 @@ export function installLaunchScreenV63(deps:LaunchDeps):{installed:boolean}{
   root.setAttribute("role","dialog");
   root.setAttribute("aria-modal","true");
   root.setAttribute("aria-labelledby","ylHello");
+  // v155: hesap kontrol edilirken görünmez; hesabı açıksa hiç açılmadan kapanır (doğrudan Bugün).
+  // Yalnız giriş yapılmamışsa (misafir, oturum düşmüş) giriş seçenekleriyle görünür.
+  root.hidden=true;
   document.body.append(root);
-  document.documentElement.dataset.launch="open";
+  document.documentElement.dataset.launch="checking";
 
-  type Mode="wait"|"in"|"out";
-  let mode:Mode="wait",email="",displayName="",busy=false;
+  type Mode="wait"|"out";
+  let mode:Mode="wait",busy=false;
 
   const close=()=>{
     root.remove();
@@ -133,12 +132,7 @@ export function installLaunchScreenV63(deps:LaunchDeps):{installed:boolean}{
   };
 
   const actions=()=>{
-    if(mode==="wait")return `<div class="yl-wait" role="status">Hesabın kontrol ediliyor…</div>`;
-    if(mode==="in"){
-      const who=email||displayName||"Hesabın";
-      return `<button class="yl-btn yl-white" type="button" data-enter>Uygulamaya gir</button>
-        <div class="yl-acct"><span class="yl-av" aria-hidden="true">${esc(initials(displayName||email))}</span><span>${esc(who)}</span><button class="yl-link" type="button" data-switch>Hesap değiştir</button></div>`;
-    }
+    if(mode==="wait")return "";
     return `<p class="yl-error" role="alert" data-error></p>
       <button class="yl-btn yl-white" type="button" data-login>${ICON_MAIL}Giriş yap</button>
       <button class="yl-btn yl-glass" type="button" data-google>${ICON_GOOGLE}Google ile devam et</button>
@@ -182,7 +176,7 @@ export function installLaunchScreenV63(deps:LaunchDeps):{installed:boolean}{
   };
 
   const render=()=>{
-    const name=firstName()||(displayName.split(/\s+/)[0]||"");
+    const name=firstName();
     const date=new Date().toLocaleDateString("tr-TR",{day:"numeric",month:"long",weekday:"long"});
     root.innerHTML=`<div class="yl-shell">
       <div class="yl-brand"><span class="yl-mark">${ICON_BOOK}</span>YKS Defterim</div>
@@ -208,17 +202,13 @@ export function installLaunchScreenV63(deps:LaunchDeps):{installed:boolean}{
         if(++tries>30){window.clearInterval(timer);const slot=root.querySelector("[data-today]");if(slot)slot.innerHTML="";}
       },250);
     }
-    (root.querySelector<HTMLElement>("[data-enter]")||root.querySelector<HTMLElement>("[data-login]"))?.focus({preventScroll:true});
   };
 
   const setMode=(next:Mode)=>{
     mode=next;
     const acts=root.querySelector("[data-acts]");
-    if(acts){acts.innerHTML=actions();(root.querySelector<HTMLElement>("[data-enter]")||root.querySelector<HTMLElement>("[data-login]"))?.focus({preventScroll:true});}
-    else render();
-    const hello=root.querySelector("#ylHello");
-    const name=firstName()||(displayName.split(/\s+/)[0]||"");
-    if(hello)hello.innerHTML=`${esc(greeting(new Date().getHours()))}${name?`,<br>${esc(name)}`:""}`;
+    if(acts)acts.innerHTML=actions();else render();
+    root.querySelector<HTMLElement>("[data-login]")?.focus({preventScroll:true});
   };
 
   const showError=(text:string)=>deps.showAuthError(root.querySelector("[data-error]"),text);
@@ -226,8 +216,7 @@ export function installLaunchScreenV63(deps:LaunchDeps):{installed:boolean}{
   root.addEventListener("click",event=>{
     const target=(event.target as HTMLElement).closest<HTMLElement>("button");
     if(!target||busy)return;
-    if(target.hasAttribute("data-enter"))close();
-    else if(target.hasAttribute("data-guest")){try{localStorage.setItem(deps.entryKey,"guest");}catch{}close();}
+    if(target.hasAttribute("data-guest")){try{localStorage.setItem(deps.entryKey,"guest");}catch{}close();}
     else if(target.hasAttribute("data-login"))deps.openWelcome("login");
     else if(target.hasAttribute("data-register"))deps.openWelcome("register");
     else if(target.hasAttribute("data-new-quote")){
@@ -240,17 +229,7 @@ export function installLaunchScreenV63(deps:LaunchDeps):{installed:boolean}{
       catch(error){showError(deps.authErrorText(error));}
       finally{busy=false;target.removeAttribute("disabled");}
     })();
-    else if(target.hasAttribute("data-switch"))void(async()=>{
-      if(!window.confirm("Bu hesaptan çıkıp başka bir hesapla giriş yapılsın mı? Bu cihazdaki çalışmaların kalır."))return;
-      busy=true;
-      const logout=document.getElementById("cloudLogoutBtn");
-      if(logout)logout.click();
-      else{const api=await deps.firebaseAuth();if(api)await api.m.signOut(api.auth);}
-      busy=false;email="";displayName="";
-      setMode("out");
-    })();
   });
-  root.addEventListener("keydown",event=>{if(event.key==="Escape"&&mode==="in")close();});
   // Karşılama ekranından giriş veya misafir seçimi tamamlanınca açılış da kapanır.
   window.addEventListener("yks:entry-finished",()=>{if(root.isConnected)close();});
 
@@ -258,8 +237,11 @@ export function installLaunchScreenV63(deps:LaunchDeps):{installed:boolean}{
 
   const settle=(user:any)=>{
     if(!root.isConnected)return;
-    if(user){email=String(user.email||"");displayName=String(user.displayName||"");setMode("in");}
-    else setMode("out");
+    if(user){close();return;}
+    // Söz yalnız ekran görünürken buraya taşınır; hesabı açık kullanıcı onu Bugün'de görür.
+    document.documentElement.dataset.launchQuote="moved";
+    document.documentElement.dataset.launch="open";
+    root.hidden=false;setMode("out");
   };
   const timeout=new Promise<"timeout">(resolve=>window.setTimeout(()=>resolve("timeout"),6000));
   void Promise.race([

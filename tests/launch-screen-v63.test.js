@@ -17,10 +17,14 @@ test("v63 açılış ekranı ilk kurulumdan sonra her açılışta karşılama m
   assert.match(welcome,/try\{installLaunchScreenV63\([\s\S]*?\}\s*catch\(error\)\{console\.error\("Açılış ekranı başlatılamadı"/);
 });
 
-test("v63 giriş yapmış kullanıcıya şifre sormaz, tek dokunuşla girer",()=>{
-  assert.match(launch,/data-enter>Uygulamaya gir</);
-  assert.doesNotMatch(launch,/type="password"|reauthenticate/);
-  assert.match(launch,/if\(target\.hasAttribute\("data-enter"\)\)close\(\)/);
+test("v155 giriş yapmış kullanıcı açılış ekranını görmez; ekran yalnız giriş yoksa açılır",()=>{
+  assert.match(launch,/root\.hidden=true;\n  document\.body\.append\(root\);/,"hesap kontrolü sürerken görünmez");
+  assert.match(launch,/if\(user\)\{close\(\);return;\}/,"hesabı açıksa doğrudan uygulama");
+  assert.match(launch,/root\.hidden=false;setMode\("out"\);/);
+  assert.doesNotMatch(launch,/Uygulamaya gir|data-enter|data-switch|type="password"|reauthenticate/);
+  const app=read("app.js"),boot=app.slice(app.indexOf("function boot19(){"),app.indexOf("\n}",app.indexOf("function boot19(){")));
+  assert.doesNotMatch(boot,/openBrief\(/,"günlük özet penceresi açılışta kendiliğinden gelmez");
+  assert.match(read("index.html"),/onclick="openBrief\(true\)">Günün özeti</,"düğmeyle açılır");
 });
 
 test("v63 günün sözünü mevcut #sozBox kaynağından okur ve Bugün kartını yalnız kurulunca gizler",()=>{
@@ -42,8 +46,8 @@ test("v63 oturum başına bir kez gösterilir: yenilemede gelmez, uygulama yenid
   assert.match(launch,/SESSION_KEY="yks_launch_seen_v1"/);
   assert.match(launch,/if\(sessionStorage\.getItem\(SESSION_KEY\)\)\{[^}]*return \{installed:false\};\}/);
   assert.match(launch,/sessionStorage\.setItem\(SESSION_KEY,"1"\)/);
-  // Söz atlanan açılışta da Bugün'de görünmez.
-  assert.ok(launch.indexOf('dataset.launchQuote="moved"')<launch.indexOf("sessionStorage.getItem(SESSION_KEY)"));
+  // v155: söz yalnız açılış ekranı görünürken taşınır; hesabı açık kullanıcı onu Bugün'de görür.
+  assert.ok(launch.indexOf('dataset.launchQuote="moved"')>launch.indexOf("if(user){close();return;}"));
 });
 
 test("v63 orta alan Bugün ve son 7 gün verisini salt okunur gösterir",()=>{

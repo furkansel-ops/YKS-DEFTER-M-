@@ -10065,7 +10065,7 @@ function boot19(){
   boot18();
   perfIdle("boot-auto-backup",()=>autoBackupRun(false),1000);
   perfIdle("boot-round18",()=>renderRound18(),1350);
-  setTimeout(()=>{ try{ openBrief(false); }catch(e){} },900);
+  /* v155: günlük özet penceresi açılışta kendiliğinden gelmez (Bugün aynı bilgiyi gösteriyor); "Günün özeti" düğmesi açar. */
 }
 /* boot çağrısı ek modülün sonunda */
 
