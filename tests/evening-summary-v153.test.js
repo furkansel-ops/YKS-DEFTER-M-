@@ -16,7 +16,7 @@ test("v153 toplu yarına taşıma tek yedek ve tek geri al kullanır; tek görev
   assert.match(body("movePlanCellTomorrow"),/planMoveCellCore\(c\)/);
   const m=body("moveUnfinishedTomorrow");
   assert.match(m,/v25PlanToday\(\)/);
-  assert.match(m,/items\.filter\(x=>!x\.done\)/);
+  assert.ok(m.includes("items.filter(x=>!x.done&&(!Array.isArray(ids)||ids.includes(x.cid)))"),"ids verilirse yalnız onlar (v154)");
   assert.match(m,/planWeekBackup\(\[p\.wk,/,"bugünün ve yarının haftası birlikte yedeklenir");
   assert.equal((m.match(/pushUndo\(/g)||[]).length,1);
   assert.ok(!m.includes("movePlanCellTomorrow("),"döngüde tek tek taşıma (her biri ayrı geri al) yok");

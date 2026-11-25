@@ -2,8 +2,9 @@ import "./refined-program.css";
 import "./refined-program-v4.css";
 import "./refined-program-v72.css";
 import "./refined-program-v103.css";
+import "./refined-program-v154.css";
 import {renderSmartProgram} from "./smart-program";
-import {cardTitles,clock,durationText,nextTaskIndex,parseTimeRange,plannedMinutes,plannedText,rowTimeLabel,timelineGaps,timelineOrder} from "./refined-program-v103";
+import {cardTitles,clock,daySections,durationText,nowStatus,parseTimeRange,plannedMinutes,plannedText,rowTimeLabel,shortDuration,timelineGaps,timelineOrder,type TimelineItem} from "./refined-program-v103";
 import {etutSchedule,etutSummary,readEtutPlan,taskMinutes,withTaskMinutes,withoutMinutes,type EtutPlan} from "./program-etut";
 import {createEtutSheet,renderEtutTimeline} from "./program-etut-sheet";
 
@@ -337,6 +338,16 @@ export function refinedProgramMarkVideoWatched(week:string,taskId:string,url:str
   try{localStorage.setItem(VIDEO_WATCH_KEY,JSON.stringify(Object.fromEntries(keep)));}catch{}
 }
 const clockOf=(at:number)=>new Date(at).toLocaleTimeString("tr-TR",{hour:"2-digit",minute:"2-digit"});
+/** v154 · Günün şeridi: saatli görevler renkli bölüm, bitenler dolu; bugünse şu anki saat çizgisi. Yalnız görsel. */
+function dayStrip(items:readonly TimelineItem<RefinedProgramTask>[],now:number|null):HTMLElement{
+  const timed=items.filter(item=>item.time),from=Math.min(7*60,...timed.map(item=>item.time!.start)),to=Math.max(23*60,...timed.map(item=>item.time!.end));
+  const left=Math.floor(from/60)*60,right=Math.ceil(to/60)*60,pos=(minutes:number)=>(minutes-left)/(right-left)*100;
+  const strip=element("div","rb-v154-strip"),track=element("div","rb-v154-track"),axis=element("div","rb-v154-axis");strip.setAttribute("aria-hidden","true");
+  timed.forEach(({task,time})=>{const part=element("i");part.dataset.v4Tone=refinedProgramGroupTone(refinedProgramDailyGroupKey(task));part.toggleAttribute("data-done",task.done);part.style.left=pos(time!.start)+"%";part.style.width=(pos(time!.end)-pos(time!.start))+"%";track.append(part);});
+  if(now!==null&&now>=left&&now<=right){const line=element("span","rb-v154-nowline");line.style.left=pos(now)+"%";track.append(line);}
+  for(let step=0;step<=4;step++)axis.append(element("span","",String(Math.round((left+(right-left)*step/4)/60)).padStart(2,"0")));
+  strip.append(track,axis);return strip;
+}
 function icon(name:"check"|"plus"|"share"|"arrow"):HTMLElement{
   const paths={check:'<path d="m5 12 4 4L19 6"/>',plus:'<path d="M12 5v14M5 12h14"/>',share:'<path d="M12 16V3m-4 4 4-4 4 4M7 10H5v11h14V10h-2"/>',arrow:'<path d="m9 5 7 7-7 7"/>'};
   const node=element("span","rb-program-icon");node.setAttribute("aria-hidden","true");node.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${paths[name]}</svg>`;return node;
@@ -496,7 +507,7 @@ export function installRefinedProgram():ProgramApi{
   toolbar.append(tabs,add);actions.append(share,shareStatus);root.append(heading,toolbar,weekCard,form,feedback,dailyPanel,weeklyPanel,smartPanel,actions,detailDialog,editor);smartPanel.after(etutPanel);root.append(etutSheet.element);
   let destroyed=false,queued=false;
   // v103: yalnız görünüm durumu. justToggled: işaretlenen kart bir kez "pop" oynar; viewKey değişince kartlar sırayla gelir.
-  let justToggled="",viewKey="",enterTimer=0;
+  let justToggled="",viewKey="",enterTimer=0,doneOpen=false;
   const quickText=()=>{const item=subject.value===""?undefined:subjects[Number(subject.value)];return item?refinedProgramQuickText(`${item.exam} ${item.name.replace(/\s*\(AYT\)$/,"")}`,topic.value,questions.value,minutes.value):null;};
   function syncTopics(){topic.replaceChildren(new Option("Genel çalışma",""));const item=subject.value===""?undefined:subjects[Number(subject.value)];item?.topics.forEach(name=>topic.append(new Option(name,name)));topic.disabled=!item;updatePreview();}
   function updatePreview(){
@@ -535,19 +546,22 @@ export function installRefinedProgram():ProgramApi{
     const focused=document.activeElement instanceof HTMLElement?document.activeElement.dataset.rbProgramFocus:undefined;
     const nextKey=state.week+"|"+state.day+"|"+state.view;
     if(nextKey!==viewKey){viewKey=nextKey;root.toggleAttribute("data-v103-enter",true);window.clearTimeout(enterTimer);enterTimer=window.setTimeout(()=>root.removeAttribute("data-v103-enter"),900);}
-    list.replaceChildren();
+    list.replaceChildren();list.classList.toggle("rb-v154",state.tasks.length>0);
     if(!state.tasks.length){const empty=element("div","rb-program-empty");empty.append(element("strong","","Bu günün planı henüz boş"),element("p","","Çalışma ekle’ye dokun; dersini ve konunu seç. Aynı çalışmayı birden fazla güne de ekleyebilirsin."));list.append(empty);}
     // v103: zaman çizelgesi. Saatliler (satır etiketi "09:00-11:00") saat sırasıyla, saatsizler kayıtlı sırasıyla sonda.
     // Ders rengi karttaki şeritten gelir; görev kimliği, kayıt ve tamamlama aynı.
     const rawState=(window as unknown as ProgramWindow).S||window.YKSLegacyState?.readState?.();
     const timeline=timelineOrder(state.tasks.map(task=>({task,time:parseTimeRange(rowTimeLabel(rawState,task))})));
-    const clockNow=new Date(),nextAt=nextTaskIndex(timeline,state.date===todayKey?clockNow.getHours()*60+clockNow.getMinutes():null);
-    const gaps=new Map(timelineGaps(timeline).map(gap=>[gap.after,gap]));
+    const clockNow=new Date(),isToday=state.date===todayKey,nowMin=isToday?clockNow.getHours()*60+clockNow.getMinutes():null;
     dailyPlanned.textContent=plannedText(plannedMinutes(timeline));dailyPlanned.hidden=!dailyPlanned.textContent;
-    timeline.forEach(({task,time},index)=>{
+    // v154: bugün Şimdi/Sırada kartı + saati geçenler + Sonra listesi; bitenler kapalı kutuda. Başka gün: liste + bitenler.
+    const sections=daySections(timeline,nowMin),allDone=isToday&&timeline.length>0&&sections.done.length===timeline.length;
+    if(timeline.some(item=>item.time))list.append(dayStrip(timeline,nowMin));
+    const slotFor=({task,time}:TimelineItem<RefinedProgramTask>)=>{
       const tone=refinedProgramGroupTone(refinedProgramDailyGroupKey(task));
       const slot=element("div","rb-v103-slot");slot.dataset.v4Tone=tone;
-      slot.append(element("time","rb-v103-time",time?clock(time.start):task.block==="r"?"Rutin":"—"));
+      const at=element("time","rb-v103-time",time?clock(time.start):task.block==="r"?"Rutin":"—");if(time)at.append(element("span","rb-v154-dur",shortDuration(time)));
+      slot.append(at);
       const card=element("article","rb-program-task");card.toggleAttribute("data-done",task.done);card.dataset.taskId=task.id;card.dataset.v4Tone=tone;
       const label=refinedProgramSubjectLabel(task.text,task.label);
       const check=button("","rb-program-check"),details=button("","rb-program-task-details"),copy=element("span","rb-program-task-copy"),openMark=element("span","rb-program-task-open","›");
@@ -555,11 +569,11 @@ export function installRefinedProgram():ProgramApi{
       check.setAttribute("aria-pressed",String(task.done));check.setAttribute("aria-label",`${task.text}: ${task.done?"tamamlanmadı olarak işaretle":"tamamla"}`);if(task.done)check.append(icon("check"));
       const extras=refinedProgramSplitExtras(task.text),plain=stripCoach(extras.work),info=refinedProgramTaskDetail(plain,task.label);
       const titles=cardTitles(label,info.title,withoutMinutes(info.meta===task.label?"":info.meta));
-      // Süre ("120 dk") başlık hesabına girmez; ek satırda tek başına yazılır.
+      // Saat ve süre soldaki sütunda; alt satırda yalnız süre/soru ve koç notu.
       const minutesOf=taskMinutes(task.text);
-      const when=[time?time.label+" · "+durationText(time):"Saat yok",minutesOf?minutesOf+" dk":"",titles.meta,plain!==extras.work?"koçun ekledi":""].filter(Boolean).join(" · ");
+      const when=[minutesOf?minutesOf+" dk":"",titles.meta,plain!==extras.work?"koçun ekledi":""].filter(Boolean).join(" · ");
       if(titles.subject)copy.append(element("span","rb-v103-subject",titles.subject));
-      copy.append(element("strong","",titles.title),element("small","",when));
+      copy.append(element("strong","",titles.title));if(when)copy.append(element("small","",when));
       details.setAttribute("aria-label",`${label} çalışma detayını aç`);details.append(copy,openMark);
       // Kayıt sonrası ikinci bir yeniden çizim gelir; işaret kısa süre tutulur ki "pop" kaybolmasın.
       check.addEventListener("click",()=>{justToggled=task.id;window.setTimeout(()=>{if(justToggled===task.id)justToggled="";},700);controller.toggleTask(task.id);refresh();});
@@ -583,12 +597,59 @@ export function installRefinedProgram():ProgramApi{
         chips.append(materialChip);
       }
       if(chips.childElementCount)card.append(chips);
-      if(index===nextAt){card.toggleAttribute("data-v103-next",true);card.append(element("span","rb-v103-next","Sırada"));}
       if(task.id===justToggled)card.toggleAttribute("data-v103-just",true);
-      slot.append(card);list.append(slot);
-      const gap=gaps.get(index);
-      if(gap)list.append(element("div","rb-v103-free",clock(gap.start)+"–"+clock(gap.end)+" boş · mola ya da ekstra çalışma"));
-    });
+      slot.append(card);return slot;
+    };
+    const rows=(items:readonly TimelineItem<RefinedProgramTask>[],className:string)=>{
+      const box=element("div",("rb-v154-list "+className).trim()),gaps=new Map(timelineGaps(items).map(gap=>[gap.after,gap]));
+      items.forEach((item,index)=>{
+        box.append(slotFor(item));
+        const gap=gaps.get(index);if(gap)box.append(element("div","rb-v103-free",clock(gap.start)+"–"+clock(gap.end)+" boş"));
+      });
+      return box;
+    };
+    if(sections.current&&nowMin!==null){
+      const {task,time}=sections.current,status=nowStatus(time,nowMin),label=refinedProgramSubjectLabel(task.text,task.label);
+      const info=refinedProgramTaskDetail(stripCoach(refinedProgramSplitExtras(task.text).work),task.label),titles=cardTitles(label,info.title,withoutMinutes(info.meta===task.label?"":info.meta));
+      const now=element("section","rb-v154-now");now.dataset.v4Tone=refinedProgramGroupTone(refinedProgramDailyGroupKey(task));now.toggleAttribute("data-live",status.live);
+      now.setAttribute("aria-label",(status.live?"Şimdi: ":"Sırada: ")+label);
+      const head=element("div","rb-v154-now-head");head.append(element("span","",(status.live?"Şimdi":"Sırada")+(time?" · "+time.label:"")));if(status.text)head.append(element("span","",status.text));
+      now.append(head);if(titles.subject)now.append(element("span","rb-v154-now-subject",titles.subject));now.append(element("h3","",titles.title));
+      const minutesOf=taskMinutes(task.text),pills=element("div","rb-v154-now-pills");
+      [...titles.meta.split(" · "),time?durationText(time):minutesOf?minutesOf+" dk":""].filter(Boolean).forEach(text=>pills.append(element("span","",text)));
+      if(info.url){const video=button("Video","rb-v154-now-video");video.addEventListener("click",()=>openDetail(task,state.week));pills.append(video);}
+      if(pills.childElementCount)now.append(pills);
+      if(status.live){const bar=element("div","rb-v154-now-bar"),fill=element("b");fill.style.width=status.percent+"%";bar.append(fill);now.append(bar);}
+      const actions=element("div","rb-v154-now-actions"),go=button("Odak başlat","rb-v154-go"),ok=button("Bitirdim","rb-v154-ok"),more=button("⋯","rb-v154-more");
+      more.setAttribute("aria-label",label+" çalışma detayını aç");
+      go.addEventListener("click",()=>call("programStartTask",task.id));
+      ok.addEventListener("click",()=>{justToggled=task.id;controller.toggleTask(task.id);refresh();});
+      more.addEventListener("click",()=>openDetail(task,state.week));
+      actions.append(go,ok,more);now.append(actions);list.append(now);
+    }else if(allDone){
+      const all=element("section","rb-v154-alldone"),next=button("Yarının planına bak ›","rb-v154-tomorrow");
+      next.addEventListener("click",()=>{if(state.day<6)controller.selectDay(state.day+1);else{controller.moveWeek(1);controller.selectDay(0);}refresh();});
+      all.append(element("strong","","Bugünü bitirdin ✓"),element("p","",timeline.length+" görevin hepsi tamam."),next);list.append(all);
+    }
+    if(sections.late.length){
+      const late=element("section","rb-v154-late"),head=element("div","rb-v154-late-head"),carry=button("Yarına taşı","rb-v154-carry");
+      carry.setAttribute("aria-label","Saati geçen "+sections.late.length+" görevi yarına taşı");
+      carry.addEventListener("click",()=>{call("moveUnfinishedTomorrow",sections.late.map(item=>item.task.id));refresh();});
+      head.append(element("span","","Saati geçti · "+sections.late.length+" görev"),carry);
+      late.append(head,rows(sections.late,"rb-v154-late-list"));list.append(late);
+    }
+    if(sections.rest.length){
+      const title=element("div","rb-v154-title");title.append(element("span","",sections.current?"Sonra":"Görevler"),element("span","",sections.rest.length+" görev"));
+      list.append(title,rows(sections.rest,""));
+    }
+    if(sections.done.length){
+      const box=document.createElement("details");box.className="rb-v154-done";box.open=doneOpen;
+      box.addEventListener("toggle",()=>{doneOpen=box.open;});
+      const summary=document.createElement("summary"),dots=element("span","rb-v154-dots");
+      sections.done.forEach(item=>{const dot=element("i");dot.dataset.v4Tone=refinedProgramGroupTone(refinedProgramDailyGroupKey(item.task));dots.append(dot);});
+      summary.append(element("span","","✓ "+sections.done.length+" görev tamamlandı"),dots);
+      box.append(summary,rows(sections.done,"rb-v154-done-list"));list.append(box);
+    }
     // Checkbox remains keyboard-focusable after the legacy save triggers a full refresh.
     if(focused){
       const replacement=[...list.querySelectorAll<HTMLButtonElement>("[data-rb-program-focus]")].find(node=>node.dataset.rbProgramFocus===focused);

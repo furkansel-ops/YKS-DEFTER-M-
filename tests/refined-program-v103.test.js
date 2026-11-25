@@ -43,7 +43,7 @@ test("v103 kart başlıkları tekrar yazmaz",()=>{
 });
 
 test("v103 Program yalnız görünümü değiştirir; kayıt biçimi ve eylemler aynı",()=>{
-  assert.match(program,/import \{cardTitles,clock,durationText,nextTaskIndex,parseTimeRange,plannedMinutes,plannedText,rowTimeLabel,timelineGaps,timelineOrder\} from "\.\/refined-program-v103";/);
+  assert.ok(program.includes('import {cardTitles,clock,daySections,durationText,nowStatus,parseTimeRange,plannedMinutes,plannedText,rowTimeLabel,shortDuration,timelineGaps,timelineOrder,type TimelineItem} from "./refined-program-v103";'));
   assert.doesNotMatch(helpers,/localStorage|save\(|setDoc|S\.weeks/);
   assert.match(program,/check\.addEventListener\("click",\(\)=>\{justToggled=task\.id;.*controller\.toggleTask\(task\.id\);refresh\(\);\}\);/);
   assert.match(program,/item\.marker\.style\.setProperty\("--v103-p"/);

@@ -1,0 +1,80 @@
+/* Program v154 · Günlük Plan: Şimdi/Sırada kartı, saati geçenler, sıkı liste, bitenler kapalı kutuda.
+   Görev kartlarının DOM'u ve eylemleri v103 ile aynı; yalnız yerleşim değişir. */
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-program-tasks.rb-v154{padding-left:0}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-program-tasks.rb-v154::before{display:none}
+
+/* Günün şeridi */
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v154-strip{margin:0 2px 14px}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v154-track{position:relative;height:10px;border-radius:6px;background:var(--d-track,var(--d-soft));overflow:hidden}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v154-track>i{position:absolute;top:0;bottom:0;border-radius:3px;background:color-mix(in srgb,var(--tone,var(--d-accent)) 35%,var(--d-surface))}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v154-track>i[data-done]{background:var(--tone,var(--d-accent))}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v154-nowline{position:absolute;top:0;bottom:0;width:2px;margin-left:-1px;background:var(--d-ink)}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v154-axis{display:flex;justify-content:space-between;margin-top:4px;font-size:10.5px;font-weight:700;color:var(--d-muted);font-variant-numeric:tabular-nums}
+
+/* Şimdi / Sırada kartı: dersin rengi, beyaz yazı için koyulaştırılmış */
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v154-now{--now:var(--tone,var(--d-accent));margin:0 0 12px;padding:16px;border-radius:22px;color:#fff;
+  background:linear-gradient(140deg,color-mix(in srgb,var(--now) 60%,black),color-mix(in srgb,var(--now) 40%,black));box-shadow:0 16px 30px -18px color-mix(in srgb,var(--now) 75%,transparent)}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v154-now-head{display:flex;justify-content:space-between;gap:10px;font-size:11.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;opacity:.92}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v154-now-head>span:last-child{text-transform:none;letter-spacing:0;white-space:nowrap}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v154-now-subject{display:block;margin-top:9px;font-size:12.5px;font-weight:700;opacity:.86}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v154-now h3{margin:1px 0 9px;font-size:20px;font-weight:800;line-height:1.25;color:inherit;overflow-wrap:anywhere}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v154-now-pills{display:flex;flex-wrap:wrap;gap:6px}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v154-now-pills>*{padding:3px 10px;border:0;border-radius:99px;background:rgba(255,255,255,.2);color:inherit;font:inherit;font-size:12px;font-weight:700}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v154-now-video{cursor:pointer}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v154-now-video::before{content:"▶ "}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v154-now-bar{height:6px;margin-top:12px;border-radius:4px;background:rgba(255,255,255,.25);overflow:hidden}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v154-now-bar>b{display:block;height:100%;border-radius:4px;background:#fff}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v154-now-actions{display:flex;gap:8px;margin-top:14px}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v154-now-actions>button{min-height:44px;margin:0;padding:0 12px;border:0;border-radius:13px;font:inherit;font-size:13.5px;font-weight:800;cursor:pointer;box-shadow:none}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v154-go{flex:1.3;background:#fff;color:color-mix(in srgb,var(--now) 55%,black)}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v154-go::before{content:"▶ "}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v154-ok{flex:1;background:rgba(255,255,255,.2);color:#fff}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v154-ok::before{content:"✓ "}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v154-more{flex:0 0 46px;background:rgba(255,255,255,.14);color:#fff;font-size:18px!important}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v154-now-actions>button:focus-visible{outline:3px solid #fff;outline-offset:2px}
+
+/* Hepsi bitti */
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v154-alldone{margin:0 0 12px;padding:20px 16px;border:1px solid var(--d-line);border-radius:22px;background:var(--d-surface);box-shadow:var(--d-shadow);text-align:center}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v154-alldone>strong{display:block;font-size:18px;color:var(--d-ink)}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v154-alldone>p{margin:4px 0 12px;font-size:13px;color:var(--d-muted)}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v154-tomorrow{margin:0;padding:10px 14px;border:0;border-radius:12px;background:var(--d-chip,var(--d-soft));color:var(--d-chip-ink,var(--d-accent));font:inherit;font-weight:800;cursor:pointer}
+
+/* Saati geçti */
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v154-late{--late:#d97706;margin:0 0 12px;padding:10px 10px 10px;border:1px solid color-mix(in srgb,var(--late) 35%,var(--d-line));border-radius:18px;background:color-mix(in srgb,var(--late) 10%,var(--d-surface))}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v154-late-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 2px 8px;font-size:13px;font-weight:800;color:color-mix(in srgb,var(--late) 70%,var(--d-ink))}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v154-carry{min-height:34px;margin:0;padding:0 12px;border:0;border-radius:10px;background:var(--late);color:#fff;font:inherit;font-size:12.5px;font-weight:800;cursor:pointer}
+
+/* Başlık ve sıkı liste */
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v154-title{display:flex;justify-content:space-between;margin:16px 4px 8px;font-size:12px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--d-muted)}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v154-list{border:1px solid var(--d-line);border-radius:18px;background:var(--d-surface);box-shadow:var(--d-shadow);overflow:hidden}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v154-list>*{border-top:1px solid var(--d-line)}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v154-list>:first-child{border-top:0}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v154-list .rb-v103-slot{display:grid;grid-template-columns:52px minmax(0,1fr);align-items:center;margin:0}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v154-list .rb-v103-slot::before{display:none}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v154-list .rb-v103-time{position:static;width:auto;padding-left:12px;text-align:left;font-size:13px;color:var(--d-ink)}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v154-dur{display:block;margin-top:1px;font-size:10.5px;font-weight:650;color:var(--d-muted)}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v154-list .rb-v103-slot>.rb-program-task{grid-template-columns:minmax(0,1fr) 36px;grid-template-areas:"body check";margin:0;padding:9px 8px 9px 14px!important;border:0;border-radius:0;background:transparent;box-shadow:none;opacity:1}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v154-list .rb-v103-slot>.rb-program-task:is(:hover,:active){transform:none;box-shadow:none}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v154-list .rb-program-task::before{top:9px;bottom:9px}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v154-list .rb-program-task-details{grid-template-columns:minmax(0,1fr)}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v154-list .rb-program-task-open{display:none}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v154-list .rb-v103-subject{font-size:10.5px}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v154-list .rb-program-task-copy>strong{font-size:14.5px}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v154-list .rb-program-task-copy>small{font-size:12px}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v154-list .rb-program-check::before{width:28px;height:28px;border-radius:50%}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v154-list .rb-v4-task-chips{grid-column:1}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v154-list .rb-v103-free{margin:0;padding:6px 12px 6px 66px;border:0;border-top:1px solid var(--d-line);border-radius:0;font-size:11.5px;background:repeating-linear-gradient(135deg,var(--d-surface) 0 6px,var(--d-soft) 6px 12px)}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v154-list .rb-v103-free::before{width:13px;height:13px}
+
+/* Bitenler kapalı kutuda; üstü çizilmez, soluk durur */
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v154-done{margin-top:12px;border:1px solid var(--d-line);border-radius:18px;background:var(--d-surface);box-shadow:var(--d-shadow);overflow:hidden}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v154-done>summary{display:flex;align-items:center;gap:10px;min-height:46px;padding:0 14px;list-style:none;font-size:13.5px;font-weight:800;color:var(--d-ink);cursor:pointer}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v154-done>summary::-webkit-details-marker{display:none}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v154-done>summary::after{content:"▾";color:var(--d-muted);transition:transform .2s}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v154-done[open]>summary::after{transform:rotate(180deg)}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v154-done>summary:focus-visible{outline:3px solid var(--d-accent);outline-offset:-3px}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v154-dots{display:flex;flex-wrap:wrap;gap:3px;margin-left:auto}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v154-dots>i{width:8px;height:8px;border-radius:50%;background:var(--tone,var(--d-accent))}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v154-done .rb-v154-list{border:0;border-top:1px solid var(--d-line);border-radius:0;box-shadow:none}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v154-done .rb-program-task-copy>strong{color:var(--d-muted)}
+:root[data-visual-system]:not(#v) #mainWrap #program .rb-v154-done .rb-program-task-copy>strong::after{display:none}

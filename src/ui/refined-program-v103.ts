@@ -77,6 +77,30 @@ export function cardTitles(subject:string,title:string,meta=""):{subject:string;
   return {subject:s,title:t,meta:parts.join(" · ")};
 }
 
+/** v154 · Satırın saat sütunu için kısa süre: "45 dk", "1,5 sa". */
+export function shortDuration(range:TimeRange):string{
+  const total=range.end-range.start;
+  return total<60?total+" dk":(Math.round(total/6)/10).toLocaleString("tr-TR")+" sa";
+}
+
+/** v154 · Bugün (now dakika) için: Şimdi/Sırada kartı, saati geçmiş bitmemişler, sonrakiler, bitenler.
+ *  Başka gün (now null): kart ve "saati geçti" yok; bitmemişlerin hepsi listede. Sıra korunur. */
+export function daySections<T extends {done:boolean}>(items:readonly TimelineItem<T>[],now:number|null){
+  const open=items.filter(item=>!item.task.done);
+  const late=now===null?[]:open.filter(item=>item.time!==null&&item.time.end<=now);
+  const upcoming=open.filter(item=>!late.includes(item));
+  const current=now===null?undefined:upcoming[0];
+  return {current,late,rest:current?upcoming.slice(1):upcoming,done:items.filter(item=>item.task.done)};
+}
+
+/** v154 · Kartın sağ üstü: sürüyorsa "50 dk kaldı" + ilerleme, başlamadıysa "1 sa sonra"; saatsizse boş. */
+export function nowStatus(range:TimeRange|null,now:number):{live:boolean;text:string;percent:number}{
+  if(!range)return {live:false,text:"",percent:0};
+  const span=(minutes:number)=>durationText({start:0,end:Math.max(1,minutes),label:""});
+  if(range.start<=now)return {live:true,text:span(range.end-now)+" kaldı",percent:Math.min(100,Math.round((now-range.start)/(range.end-range.start)*100))};
+  return {live:false,text:span(range.start-now)+" sonra",percent:0};
+}
+
 /** Günün planlı süresi (yalnız saatli görevler). */
 export function plannedMinutes<T>(items:readonly TimelineItem<T>[]):number{
   return items.reduce((sum,item)=>sum+(item.time?item.time.end-item.time.start:0),0);

@@ -7,7 +7,7 @@ const root=path.resolve(__dirname,"..");
 function programSource(){
   const main=fs.readFileSync(path.join(root,"src/ui/refined-program.ts"),"utf8");
   const helper=file=>fs.readFileSync(path.join(root,file),"utf8").replace(/^export /gm,"");
-  return main.replace(/^import "\.\/refined-program-v103\.css";\r?\n/m,"")
+  return main.replace(/^import "\.\/refined-program-v103\.css";\r?\n/m,"").replace(/^import "\.\/refined-program-v154\.css";\r?\n/m,"")
     .replace(/^import \{[^}]*\} from "\.\/refined-program-v103";\r?\n/m,()=>"")
     .replace(/^import \{[^}]*\} from "\.\/program-etut";\r?\n/m,()=>"")
     .replace(/^import \{[^}]*\} from "\.\/program-etut-sheet";\r?\n/m,()=>"")+"\n"+helper("src/ui/refined-program-v103.ts")+"\n"+helper("src/ui/program-etut.ts");

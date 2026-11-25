@@ -87,7 +87,8 @@ test("daily groups are a derived presentation and do not modify original week da
 test("v103 zaman çizelgesi kartları mevcut görev eylemlerini kullanır; senkrona yanlış yazmaz",()=>{
   // Günlük Plan saati yalnız satır etiketinden (etütler ayrı "Etüt" sekmesinde).
   assert.match(source,/timelineOrder\(state\.tasks\.map\(task=>\(\{task,time:parseTimeRange\(rowTimeLabel\(rawState,task\)\)\}\)\)\)/);
-  assert.match(source,/slot\.append\(card\);list\.append\(slot\)/);
+  assert.match(source,/slot\.append\(card\);return slot;/);
+  assert.match(source,/box\.append\(slotFor\(item\)\)/,"v154: kartlar bölüm listelerine");
   assert.match(source,/card\.append\(check,details\);/);
   assert.match(source,/controller\.toggleTask\(task\.id\)/);
   assert.match(source,/openDetail\(task,state\.week\)/);
@@ -132,7 +133,7 @@ test("abbreviated subjects are grouped without reading an incidental topic keywo
 
 test("v103: görünüm durumu yalnız arayüzde; işaretlenen kutunun odağı yenilemeden sonra korunur",()=>{
   // Ders katlama v103'te kalktı (zaman çizelgesi); justToggled/viewKey yalnız hareket içindir, kayda yazılmaz.
-  assert.match(source,/let justToggled="",viewKey="",enterTimer=0;/);
+  assert.match(source,/let justToggled="",viewKey="",enterTimer=0,doneOpen=false;/,"v154: bitenler kutusunun açıklığı da yalnız arayüzde");
   assert.doesNotMatch(source,/collapsedDailyGroups/);
   assert.match(source,/check\.dataset\.rbProgramFocus=task\.id/);
   assert.match(source,/replacement\?\.focus\(\{preventScroll:true\}\)/);

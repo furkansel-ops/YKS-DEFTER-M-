@@ -10850,10 +10850,11 @@ function planMoveCellCore(c){
   if(c.blk==="s"&&!String(S.rowLabels.s[ti]||"").trim())S.rowLabels.s[ti]=S.rowLabels.s[c.i]||"";
 }
 /* v153 · Günü kapat: bugünün bitmemiş bütün görevleri yarına; tek yedek, tek geri al. */
-function moveUnfinishedTomorrow(){
+/* ids verilirse yalnız o görevler (v154 Program "Saati geçti" kutusu). */
+function moveUnfinishedTomorrow(ids){
   const lockKey="all|"+todayKey();
   if(planMoveLocks.has(lockKey))return 0;
-  const p=v25PlanToday(),left=p.items.filter(x=>!x.done);
+  const p=v25PlanToday(),left=p.items.filter(x=>!x.done&&(!Array.isArray(ids)||ids.includes(x.cid)));
   if(!left.length){toast("Taşınacak görev yok");return 0;}
   planMoveLocks.add(lockKey);setTimeout(()=>planMoveLocks.delete(lockKey),900);
   const bk=planWeekBackup([p.wk,planNextWeekKey(p.wk,p.d)]);
@@ -11302,6 +11303,14 @@ window.yksTodayDailyProgressSnapshot=function(){
 };
 function v25StartTask(){
   const p=v25PlanToday(),item=p.next;if(!item){toast(p.filled?"Bugünkü program tamamlandı ✓":"Bugün için program görevi yok");return false;}
+  return v25StartItem(item);
+}
+/* v154 · Program'daki Şimdi/Sırada kartı belirli bir görevle başlatır; görev yoksa (başka günde bitmiş vb.) sıradakiyle. */
+function programStartTask(cid){
+  const item=v25PlanToday().items.find(x=>x.cid===cid&&!x.done);
+  return item?v25StartItem(item):v25StartTask();
+}
+function v25StartItem(item){
   if(sw().run){go("pomo");setFocusMode("sw");toast("Kronometre zaten çalışıyor");return true;}
   const m=v25TaskMeta(item);if(m.subj)setPomoSubject(m.subj);pomoTopic=m.topic||"";pomoTask=item.cid;setFocusMode("sw");go("pomo");swStart();toast("Kronometre başladı · "+(m.subj||item.lbl));return true;
 }
