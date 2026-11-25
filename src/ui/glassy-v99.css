@@ -24,10 +24,11 @@
     radial-gradient(620px 620px at 100% 100%,rgba(124,58,237,.28),transparent 70%),#f1ecfb;
   background-attachment:fixed;
 }
-/* Cam kartlar: yalnız ana kartlar bulanık arka planlı; iç satırlar ve pencereler opak kalır (okunurluk). */
+/* Cam kartlar: yarı saydam zemin; iç satırlar ve pencereler opak kalır (okunurluk).
+   v156: kartlarda backdrop-filter yok — arkalarında yalnız yumuşak degrade var, bulanıklık görünmüyordu ama
+   telefonda her kaydırma karesinde 20+ katman yeniden bulanıklaştırılıyordu. Bulanıklık yalnız üst/alt çubukta. */
 :root[data-theme="glassy"]:not(#g) body :is(.card,.hero,.stat,.focuscard,.streaks .sk,.yms-card,.yms-category-list){
   background:var(--g-glass);border-color:var(--g-edge);box-shadow:var(--g-shadow);
-  -webkit-backdrop-filter:blur(18px) saturate(140%);backdrop-filter:blur(18px) saturate(140%);
 }
 :root[data-theme="glassy"]:not(#g) body :is(.navbar,.tabbar){
   background:rgba(255,255,255,.62);border-color:var(--g-edge);

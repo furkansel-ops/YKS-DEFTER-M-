@@ -117,10 +117,10 @@ small{font-size:12px;}
 /* ==================================================================
    CAM YÜZEYLER
    ================================================================== */
+/* v156: sayfa içinde kayan kartlarda backdrop-filter yok (telefonda kaydırmayı yavaşlatıyordu); yalnız sabit çubuklarda. */
 .card{
   position:relative;background:var(--glass);border-radius:var(--r-lg);
   padding:16px 18px;margin-bottom:12px;box-shadow:var(--shadow-2);
-  -webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);
   border:.5px solid var(--glass-line);
   transition:transform .24s cubic-bezier(.2,.8,.3,1),box-shadow .24s ease,
              border-color .24s ease,background-color .3s ease;
@@ -435,7 +435,6 @@ label:first-child{margin-top:0;}
 .hero{
   position:relative;overflow:hidden;border-radius:var(--r-xl);padding:22px 22px 20px;margin-bottom:12px;
   background:var(--glass);box-shadow:var(--shadow-2);border:.5px solid var(--glass-line);
-  -webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);
 }
 .hero::after{
   content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;
@@ -906,7 +905,6 @@ h2::after{
   position:relative;overflow:hidden;border-radius:var(--r-xl);
   padding:20px 20px 22px;margin-bottom:12px;
   background:var(--glass);border:.5px solid var(--glass-line);box-shadow:var(--shadow-2);
-  -webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);
   --phase:var(--success);--phase-2:var(--accent);
 }
 .focuscard[data-phase="break"]{--phase:var(--time);--phase-2:#FF6B8A;}
@@ -1890,8 +1888,6 @@ h2{
   background:color-mix(in srgb,var(--glass) 96%,transparent);
   border:.5px solid var(--glass-line);
   box-shadow:var(--shadow-2);
-  -webkit-backdrop-filter:var(--blur);
-  backdrop-filter:var(--blur);
 }
 .home-overview::before{
   content:"";
