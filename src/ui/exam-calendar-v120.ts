@@ -22,6 +22,8 @@ function commit():void{try{L.YKSLegacyState?.save?.();}catch(error){console.erro
 export function examCalendarHtml(now=today()):string{
   const rows=planRows(plans(),now),next=rows.find(r=>r.daysLeft>=0);
   const head=next?(next.daysLeft===0?"bugün deneme var":`sıradaki ${next.daysLeft} gün sonra`):"planlı deneme yok";
+  // v160: plan yokken tek satır; "+ Planla" aynı formu açar.
+  if(!rows.length&&!formOpen)return `<div class="card ec-card ec-line"><div class="eh-card-head"><b>Deneme takvimi</b><small>${head}</small></div><button type="button" class="btn ghost" data-plan-act="form" aria-expanded="false">+ Planla</button></div>`;
   let html=`<div class="card ec-card"><div class="eh-card-head"><b>Deneme takvimi</b><small>${head}</small></div>`;
   html+=rows.map(r=>{
     const due=r.daysLeft<=0,when=r.daysLeft>0?`<b>${r.daysLeft}</b><small>gün</small>`:r.daysLeft===0?`<b>Bugün</b>`:`<b>Geçti</b>`;

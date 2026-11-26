@@ -122,6 +122,8 @@ function ensureSkeleton():boolean{
   }
   // v106: son deneme kartı sayı kutularının üstünde durur; dönem seçimi Net trendi başlığına girer.
   if(!byId("examHubHero")){const hero=document.createElement("div");hero.id="examHubHero";hero.className="eh-hero-slot";byId("v315Kpis")?.before(hero);}
+  // v160: "En çok nereden kazanırsın?" son deneme kartının hemen altında.
+  if(!byId("examHubGain")){const gain=document.createElement("div");gain.id="examHubGain";gain.className="eh-gain-slot";byId("examHubHero")?.after(gain);}
   if(!byId("examHubWin")){const box=document.createElement("span");box.id="examHubWin";dash.querySelector(".v315-trend-card .v315-card-head")?.append(box);}
   let anchor:Element|null=byId("reflBox")||byId("v315ExamFormCard")||dash;
   for(const tab of TABS){
@@ -212,22 +214,50 @@ function trendSvg(rows:Loose[]):string{
 
 /* ---------- Özet ---------- */
 /* v106 son deneme kartı: net, önceki denemeye göre fark, hedefe kalan net, ders netleri ve yanlışları işleme. */
-function heroHtml(type:string):string{
+/* v160 · Ders netinde bir önceki denemeye göre fark (aynı ad); fark yoksa ya da ders öncekinde yoksa boş. */
+export function subjectDelta(row:Loose,prevRows:Loose[]):number|null{
+  const p=prevRows.find(x=>String(x.name)===String(row.name));if(!p)return null;
+  const d=Math.round((num(row.net)-num(p.net))*100)/100;return d===0?null:d;
+}
+/* v160 · Yanlış ve boşlar doğru olsaydı kazanılacak net (4 yanlış 1 doğruyu götürür: yanlış başına 1,25, boş başına 1). */
+export function gainRows(rows:Loose[]):{name:string;y:number;b:number;gain:number}[]{
+  return rows.map(r=>({name:String(r.name||""),y:Math.max(0,num(r.y)),b:Math.max(0,num(r.b))}))
+    .map(r=>({...r,gain:Math.round((r.y*1.25+r.b)*100)/100})).filter(r=>r.gain>0).sort((a,b)=>b.gain-a.gain).slice(0,4);
+}
+function heroButtons(last:Loose):string{
+  const wrong=wrongTotal(last),open=Math.max(0,wrong-markedWrong(last));
+  return `<div class="eh-btns">${wrong?`<button type="button" class="eh-hbtn${open?" is-main":""}" data-act="wrongs" data-id="${esc(last.id)}">${open?`Yanlışları işle · ${open}`:"Yanlışlar işlendi ✓"}</button>`:""}<button type="button" class="eh-hbtn${wrong&&open?"":" is-main"}" data-act="detail" data-id="${esc(last.id)}">Ayrıntı</button></div>`;
+}
+function gainHtml(type:string):string{
+  const last=exams(type).at(-1);if(!last)return "";
+  const rows=gainRows(results(last));if(!rows.length)return "";
+  return `<div class="card eh-gain"><div class="eh-card-head"><b>En çok nereden kazanırsın?</b><small>son denemeden</small></div>${rows.map(r=>`<div class="eh-gain-row"><b>${esc(shortName(r.name))}</b><small>${[r.y?r.y+" yanlış":"",r.b?r.b+" boş":""].filter(Boolean).join(" · ")}</small><em>+${fmt(r.gain)}</em></div>`).join("")}${heroButtons(last)}</div>`;
+}
+function heroHtml(type:string,buttons=true):string{
   const all=exams(type),last=all.at(-1),prev=all.at(-2);if(!last)return "";
-  const net=num(last.totalNet),delta=prev?net-num(prev.totalNet):null,wrong=wrongTotal(last),open=Math.max(0,wrong-markedWrong(last)),target=targetFor(type);
+  const net=num(last.totalNet),delta=prev?net-num(prev.totalNet):null,target=targetFor(type),prevRows=results(prev);
   const meta=[num(last.dur)?num(last.dur)+" dk":"",last.pub?String(last.pub):""].filter(Boolean).join(" · ");
   let html=`<div class="eh-hero"><div class="eh-hero-top"><div><small class="eh-eyebrow">${esc(["Son "+typeLabel(type)+" denemesi",dayLabel(String(last.date||""))].filter(Boolean).join(" · "))}</small><b>${esc(last.name||"Deneme")}</b>${meta?`<small>${esc(meta)}</small>`:""}</div><div class="eh-big">${fmt(net)}<em>${delta==null?"ilk deneme":`${delta>0?"▲ ":delta<0?"▼ ":""}${fmt(Math.abs(delta))} net`}</em></div></div>`;
   if(target>0)html+=`<div class="eh-goal">${bar(net/target*100)}<small><b>Hedef ${fmt(target)}</b> · ${net>=target?"hedefe ulaştın":fmt(target-net)+" net kaldı"}</small></div>`;
   const rows=results(last).filter(r=>num(r.d)+num(r.y)+num(r.b)>0||num(r.net)!==0);
   // Soru sayısı doğru+yanlış+boştan bilinir; yalnız net girilmişse çubuk çizilmez.
-  if(rows.length)html+=`<div class="eh-nets">${rows.slice(0,8).map(r=>{const q=num(r.d)+num(r.y)+num(r.b);return `<span><small>${esc(shortName(String(r.name||"")))}</small><b>${fmt(num(r.net))}</b>${q>0?bar(num(r.net)/q*100):""}</span>`;}).join("")}</div>`;
-  return html+`<div class="eh-btns">${wrong?`<button type="button" class="eh-hbtn${open?" is-main":""}" data-act="wrongs" data-id="${esc(last.id)}">${open?`Yanlışları işle · ${open}`:"Yanlışlar işlendi ✓"}</button>`:""}<button type="button" class="eh-hbtn${wrong&&open?"":" is-main"}" data-act="detail" data-id="${esc(last.id)}">Ayrıntı</button></div></div>`;
+  if(rows.length)html+=`<div class="eh-nets">${rows.slice(0,8).map(r=>{const q=num(r.d)+num(r.y)+num(r.b),dn=subjectDelta(r,prevRows);return `<span><small>${esc(shortName(String(r.name||"")))}</small><b>${fmt(num(r.net))}</b>${q>0?bar(num(r.net)/q*100):""}${dn==null?"":`<em class="eh-dn ${dn>0?"up":"down"}">${dn>0?"▲":"▼"} ${fmt(Math.abs(dn))}</em>`}</span>`;}).join("")}</div>`;
+  // v160: üç sayı kutusu (ortalama, en iyi, değişim) kartın altında tek satır; eski kutular CSS ile gizlenir.
+  if(all.length>1){const recent=all.slice(-5).map(d=>num(d.totalNet));html+=`<div class="eh-kline"><span>Son ${recent.length} ort.<b>${fmt(recent.reduce((a,b)=>a+b,0)/recent.length)}</b></span><span>En iyi<b>${fmt(Math.max(...all.map(d=>num(d.totalNet))))}</b></span><span>İlk denemeden<b>${signed(net-num(all[0]?.totalNet))}</b></span></div>`;}
+  return html+(buttons?heroButtons(last):"")+`</div>`;
 }
 function renderOzet(pane:HTMLElement):void{
-  const hero=byId("examHubHero");if(hero)hero.innerHTML=heroHtml(selectedType());
+  const type=selectedType(),gain=gainHtml(type),hero=byId("examHubHero"),gainSlot=byId("examHubGain");
+  // Kazanç kartı varsa "Yanlışları işle / Ayrıntı" onun altında, yoksa son deneme kartında.
+  if(hero)hero.innerHTML=heroHtml(type,!(gain&&gainSlot));
+  if(gainSlot)gainSlot.innerHTML=gain;
   let html="";
   const loop=loopStats();
-  html+=`<button type="button" class="card eh-loop" data-act="tab" data-tab="hata"><span class="eh-card-head"><b>Öğrenme döngüsü</b><small>yanlıştan kontrole</small></span>
+  // v160: döngü boşken tek satırlık kısayol; dolunca dört adım eskisi gibi.
+  if(!loop.records&&!loop.topics&&!loop.reviews&&!loop.check){
+    const last=exams(type).at(-1),open=last?Math.max(0,wrongTotal(last)-markedWrong(last)):0;
+    html+=`<button type="button" class="card eh-loop eh-line" data-act="tab" data-tab="hata"><b>Öğrenme döngüsü</b><small>${open?open+" yanlış işlenmedi":"henüz kayıt yok"}</small><em>Hatalar ›</em></button>`;
+  }else html+=`<button type="button" class="card eh-loop" data-act="tab" data-tab="hata"><span class="eh-card-head"><b>Öğrenme döngüsü</b><small>yanlıştan kontrole</small></span>
     <span class="eh-loop-steps"><span>Kayıt<b>${loop.records}</b></span><span>Eksik konu<b>${loop.topics}</b></span><span class="${loop.reviews?"is-due":""}">Tekrar<b>${loop.reviews}</b></span><span>Kontrol<b>${loop.check}</b></span></span>
     <span class="eh-hint">${esc(loop.hint)}</span></button>`;
   html+=(L as Loose).YKSExamCalendar?.html()??""; // v120 deneme takvimi

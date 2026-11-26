@@ -146,6 +146,36 @@
   :root[data-visual-system] #mainWrap #deneme[data-exam-tab="ozet"]:not(.v315-form-open) #v315Dashboard>.card>.v315-dash-grid>.v315-subject-card{grid-column:1/-1;grid-row:auto;margin:0 0 12px}
 }
 
+/* ---------- v160 · Özet: 1 + 3 karışık ----------
+   Son deneme kartında ders değişimi ve özet satırı (eski üç kutu gizli), altında "En çok nereden kazanırsın?",
+   boş döngü ve takvim tek satır. Hedef çubuğu ve grafikteki hedef çizgisi zaten vardı (v106). */
+:root[data-visual-system] #mainWrap #deneme .eh-hero .eh-nets .eh-dn{display:block;margin-top:3px;font-size:10.5px;font-style:normal;font-weight:800;opacity:.9}
+:root[data-visual-system] #mainWrap #deneme .eh-kline{display:flex;justify-content:space-between;gap:8px;margin-top:12px;padding-top:10px;border-top:1px solid color-mix(in srgb,currentColor 22%,transparent);font-size:11.5px;font-weight:700}
+:root[data-visual-system] #mainWrap #deneme .eh-kline b{display:block;margin-top:2px;font-size:15px;font-weight:800;font-variant-numeric:tabular-nums}
+:root[data-visual-system] #mainWrap #deneme:has(#examHubHero .eh-kline) #v315Kpis{display:none}
+#deneme[data-exam-tab]:not([data-exam-tab="ozet"]) #examHubGain,#deneme.v315-form-open #examHubGain,#deneme #examHubGain:empty{display:none}
+:root[data-visual-system] #mainWrap #deneme .eh-gain{margin:0 0 10px}
+:root[data-visual-system] #mainWrap #deneme .eh-gain .eh-card-head{margin-bottom:4px}
+:root[data-visual-system] #mainWrap #deneme .eh-gain-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:baseline;gap:8px;padding:9px 0;border-top:1px solid var(--d-line)}
+:root[data-visual-system] #mainWrap #deneme .eh-gain-row b{font-size:14px;font-weight:800}
+:root[data-visual-system] #mainWrap #deneme .eh-gain-row small{color:var(--d-muted);font-size:12px;font-weight:650;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+:root[data-visual-system] #mainWrap #deneme .eh-gain-row em{font-style:normal;font-weight:800;color:var(--d-ok);font-variant-numeric:tabular-nums}
+/* Beyaz kartta düğmeler: ana düğme vurgu renginde, ikincisi yumuşak */
+:root[data-visual-system] #mainWrap #deneme .eh-gain .eh-hbtn{background:var(--d-soft);color:var(--d-accent)}
+:root[data-visual-system] #mainWrap #deneme .eh-gain .eh-hbtn.is-main{background:var(--d-accent);color:var(--d-on-accent)}
+:root[data-visual-system] #mainWrap #deneme :is(.eh-loop.eh-line,.ec-card.ec-line){display:flex;align-items:center;gap:10px}
+:root[data-visual-system] #mainWrap #deneme .eh-loop.eh-line small{flex:1;min-width:0;color:var(--d-muted);font-size:12px;font-weight:650}
+:root[data-visual-system] #mainWrap #deneme .eh-loop.eh-line em{font-style:normal;font-weight:800;font-size:12.5px;color:var(--d-accent)}
+:root[data-visual-system] #mainWrap #deneme .ec-card.ec-line .eh-card-head{flex:1;min-width:0;margin:0;justify-content:flex-start}
+:root[data-visual-system] #mainWrap #deneme .ec-card.ec-line .btn{flex:none;width:auto;min-height:36px;margin:0;padding:0 12px}
+@media(min-width:1024px){
+  :root[data-visual-system] #mainWrap #deneme[data-exam-tab="ozet"]:not(.v315-form-open) #v315Dashboard>.card>#examHubGain{grid-column:1;grid-row:5}
+}
+:root[data-visual-system] #mainWrap #deneme :is(.eh-loop.eh-line>b,.ec-card.ec-line .eh-card-head b){flex:none;font-size:14.5px;font-weight:800;white-space:nowrap}
+:root[data-visual-system] #mainWrap #deneme :is(.eh-loop.eh-line small,.ec-card.ec-line .eh-card-head small){white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:left}
+:root[data-visual-system] #mainWrap #deneme .ec-card.ec-line .eh-card-head{align-items:center;gap:10px}
+:root[data-visual-system] #mainWrap #deneme .ec-card.ec-line .btn{font-size:13px}
+
 /* ---------- Hareket: yalnız izin varken ve ekrana ya da sekmeye girişte ---------- */
 @keyframes v106-rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 @keyframes v106-grow{from{transform:scaleX(0)}}
@@ -160,3 +190,4 @@
   :root[data-visual-system] #mainWrap #deneme[data-eh-enter] .eh-trend .eh-line{stroke-dasharray:1;animation:v106-draw 1.2s var(--v105-ease) .25s both}
   :root[data-visual-system] #mainWrap #deneme[data-eh-enter] .eh-trend :is(.eh-area,.eh-dot,.eh-val){animation:v106-fade .6s ease .9s both}
 }
+
