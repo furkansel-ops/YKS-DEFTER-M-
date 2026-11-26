@@ -49,15 +49,14 @@ test("ders kartı erişilebilir düğmedir ve açık ders yeniden çizimde hatı
   assert.match(toggle,/setAttribute\("aria-expanded",String\(on\)\)/);
 });
 
-test("konu satırı yazılı adımlar, durum halkası ve düğme yıldızlarla çizilir",()=>{
+test("konu satırı yazılı adımlar, durum halkası ve tek güven düğmesiyle çizilir (v159)",()=>{
   const row=fn("topicRow");
   assert.match(row,/\["İşledim","Soru","Pekişti"\]\[i-1\]/);
   assert.match(row,/aria-pressed="'\+\(t\.st>=i\)\+'"/);
-  assert.match(row,/<button type="button" class="star /);
-  assert.match(row,/aria-label="Güven '\+i\+' \/ 5"/);
+  assert.match(row,/class="v159-conf" aria-label="Güven '\+\(t\.conf\|\|0\)\+' \/ 5, artırmak için dokun"/);
+  assert.match(row,/setConf\(\\''\+k\+'\\','\+\(t\.conf>=5\?5:\(t\.conf\|\|0\)\+1\)\+'\)/,"5'ten sonra aynı değer → sıfır");
   assert.match(row,/data-st="'\+t\.st\+'"><i class="v105-ring" aria-hidden="true"><\/i>/);
-  assert.match(row,/\.filter\(Boolean\)\.join\(' · '\)\|\|'Henüz çalışma yok'/);
-  assert.doesNotMatch(row,/konu etiketli çalışma yok|yanlış kaydı yok|3–7–21 tamamlanınca/);
+  assert.doesNotMatch(row,/class="star |topic-risk-inline|Henüz çalışma yok|topic-open/,"yıldızlar, risk ve bilgi satırı kalktı");
   // Eski işleyiciler aynı: veri yolu değişmedi.
   assert.match(row,/onclick="cycleTopic\(/);assert.match(row,/onclick="setConf\(/);assert.match(row,/onclick="openTopicDetail\(/);assert.match(row,/openRes\(/);
 });

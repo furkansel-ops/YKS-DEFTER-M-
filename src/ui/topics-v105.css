@@ -156,3 +156,31 @@
 }
 /* "N tekrar bekliyor" kısayolu tekrar kutusuna iner; üstteki sabit çubuk ve "Tekrar zamanı" başlığı için pay. */
 :root[data-visual-system] #mainWrap #topics #reviewBox{scroll-margin-top:calc(var(--nav-h,66px) + 48px)}
+
+/* ---------- v159 · Aşama çubuğu ----------
+   Özet ve ders kartında konuların kaçı Pekişti (yeşil) / Soru (vurgu) / İşledim (açık vurgu). Konu satırında adımlar
+   tam genişlik ve konunun aşamasının renginde; beş yıldız yerine "güven 2/5" düğmesi. */
+:root[data-visual-system] #mainWrap #topics .v159-stage{display:flex;height:8px;margin:10px 0 0;border-radius:9px;background:var(--d-track);overflow:hidden}
+:root[data-visual-system] #mainWrap #topics .card.subj .subj-head .bar.v159-stage{display:flex;height:6px;margin:6px 0 0}
+:root[data-visual-system] #mainWrap #topics .v159-stage>i,
+:root[data-visual-system] #mainWrap #topics .card.subj .subj-head .bar.v159-stage>i{display:block;flex:none;height:100%;border-radius:0}
+:root[data-visual-system] #mainWrap #topics .v159-stage>i.s3,
+:root[data-visual-system] #mainWrap #topics .card.subj .subj-head .bar.v159-stage>i.s3{background:var(--d-ok)}
+:root[data-visual-system] #mainWrap #topics .v159-stage>i.s2,
+:root[data-visual-system] #mainWrap #topics .card.subj .subj-head .bar.v159-stage>i.s2{background:var(--d-accent)}
+:root[data-visual-system] #mainWrap #topics .v159-stage>i.s1,
+:root[data-visual-system] #mainWrap #topics .card.subj .subj-head .bar.v159-stage>i.s1{background:color-mix(in srgb,var(--d-accent) 40%,var(--d-surface))}
+:root[data-visual-system] #mainWrap #topics .v159-legend{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:8px;font-size:12px;font-weight:750;color:var(--d-muted)}
+:root[data-visual-system] #mainWrap #topics .v159-legend>span::before{content:"";display:inline-block;width:8px;height:8px;margin-right:5px;border-radius:50%;background:var(--d-ok)}
+:root[data-visual-system] #mainWrap #topics .v159-legend>.s2::before{background:var(--d-accent)}
+:root[data-visual-system] #mainWrap #topics .v159-legend>.s1::before{background:color-mix(in srgb,var(--d-accent) 40%,var(--d-surface))}
+
+:root[data-visual-system] #mainWrap #topics .topic .tctl{display:block}
+:root[data-visual-system] #mainWrap #topics .topic .pills{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));width:100%}
+:root[data-visual-system] #mainWrap #topics .topic .pill{min-height:34px;padding:0 4px}
+:root[data-visual-system] #mainWrap #topics .topic[data-st="1"] .pill.on{background:color-mix(in srgb,var(--d-accent) 40%,var(--d-surface));color:var(--d-ink)}
+:root[data-visual-system] #mainWrap #topics .topic[data-st="2"] .pill.on{background:var(--d-accent);color:var(--d-on-accent)}
+:root[data-visual-system] #mainWrap #topics .topic[data-st="3"] .pill.on{background:var(--d-ok);color:var(--d-on-accent)}
+:root[data-visual-system] #mainWrap #topics .topic .v159-conf{flex:none;min-height:32px;margin:0;padding:0 8px;border:0;border-radius:9px;background:none;color:var(--d-muted);font:750 12px/1 var(--font);white-space:nowrap;cursor:pointer}
+:root[data-visual-system] #mainWrap #topics .topic .v159-conf:focus-visible{outline:3px solid var(--d-accent);outline-offset:1px}
+:root[data-visual-system] #mainWrap #topics .topic .v159-due{--late:var(--time,var(--d-accent));flex:none;padding:3px 8px;border-radius:99px;background:color-mix(in srgb,var(--late) 14%,var(--d-surface));color:color-mix(in srgb,var(--late) 70%,var(--d-ink));font-size:11px;font-weight:800;white-space:nowrap}

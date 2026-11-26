@@ -18,7 +18,8 @@ test("v121 zorluk: yalnız 1-3 saklanır, aynı seçime basmak etiketi kaldırı
 test("v121 bağlantı: içe aktarım doğrular; detay ve konu satırı etiketi gösterir",()=>{
   assert.match(app,/if\(!\[1,2,3\]\.includes\(t\.df\)\)delete t\.df;/);
   assert.match(app,/aria-pressed="'\+\(t\.df===d\)\+'" onclick="setTopicDiff\(/);
-  assert.match(app,/\(t\.df\?' · <span class="topic-diff d'\+t\.df\+'">'\+DIFF_LABEL\[t\.df\]\+'<\/span>':''\)/);
+  // v159: zorluk etiketi satırın alt bilgisinde (hedef tarihiyle birlikte).
+  assert.match(app,/if\(t\.df\)dlTxt='<span class="topic-diff d'\+t\.df\+'">'\+DIFF_LABEL\[t\.df\]\+'<\/span>'/);
   assert.match(app,/'\+REVIEW_GAPS\.join\('–'\)\+' tekrar · '/,"detay başlığı ayarlanan aralıkları yazar");
   assert.doesNotMatch(app,/v4TopicGoalDate|v26StartTopic/,"konu detayında bitiş hedefi ve kronometre düğmesi yok");
 });
