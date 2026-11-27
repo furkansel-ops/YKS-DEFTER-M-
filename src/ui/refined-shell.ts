@@ -2,6 +2,7 @@ import {installRefinedProgram} from "./refined-program";
 import {installRefinedSecondary} from "./refined-secondary";
 import {installRefinedStudyScreens} from "./refined-study-screens";
 import {installExamHubV73} from "./exam-hub-v73";
+import {installExamStepsV162} from "./exam-steps-v162";
 import {installProgressHubV74} from "./progress-hub-v74";
 import {installAboutV78} from "./about-v78";
 import {installBooksV89} from "./books-v89";
@@ -63,6 +64,7 @@ export function installRefinedShell(){
   installRefinedSecondary();
   installRefinedStudyScreens();
   try{installExamHubV73();}catch(error){console.error("v73 deneme ekranı",error);}
+  try{installExamStepsV162();}catch(error){console.error("v162 sıralı deneme girişi",error);}
   try{installBooksV89();}catch(error){console.error("v89 kitaplarım",error);}
   try{installWrongReviewV96();}catch(error){console.error("v96 tekrar çöz",error);}
   try{installErrorInsightsV117();}catch(error){console.error("v117 hata analizi",error);}

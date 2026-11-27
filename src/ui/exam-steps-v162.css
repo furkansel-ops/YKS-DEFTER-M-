@@ -1,0 +1,40 @@
+/* v162 · Deneme sonucu dersler sırayla. Renkler tema belirteçlerinden (--d-*, --eh-bad). */
+#v315ExamFormCard .es-box[hidden]{display:none!important}
+#v315ExamFormCard.es-on #esBox+label,#v315ExamFormCard.es-on #subjGrid{display:none!important}
+#v315ExamFormCard.es-on:not(.es-sum)>.btn.green.eh-s2{display:none}
+#v315ExamFormCard .es-prog{display:flex;justify-content:space-between;align-items:baseline;margin:4px 0 6px}
+#v315ExamFormCard .es-prog b{font-size:12px;font-weight:800;letter-spacing:.04em;color:var(--d-muted,#5f6b80)}
+#v315ExamFormCard .es-bar{height:6px;border-radius:6px;background:var(--d-track,#e8edf5);overflow:hidden;margin:0 0 12px}
+#v315ExamFormCard .es-bar i{display:block;height:100%;border-radius:6px;background:var(--d-accent,#2f6bea);transition:width .2s}
+#v315ExamFormCard .es-chips{display:flex;flex-wrap:wrap;gap:5px;margin:0 0 14px}
+#v315ExamFormCard .es-chips button{min-height:32px;padding:4px 10px;border:1px solid var(--d-line,#e3e9f2);border-radius:999px;background:var(--d-surface,#fff);color:var(--d-muted,#5f6b80);font:inherit;font-size:12px;font-weight:750;cursor:pointer}
+#v315ExamFormCard .es-chips button.f{background:var(--d-chip,#e9f0fe);border-color:var(--d-chip,#e9f0fe);color:var(--d-chip-ink,#2453b8)}
+#v315ExamFormCard .es-chips button.on{background:var(--d-accent,#2f6bea);border-color:var(--d-accent,#2f6bea);color:var(--d-on-accent,#fff)}
+#v315ExamFormCard .es-lesson{text-align:center;margin:2px 0 14px}
+#v315ExamFormCard .es-lesson small{display:block;color:var(--d-muted,#5f6b80);font-size:12px;font-weight:700}
+#v315ExamFormCard .es-lesson h3{margin:2px 0 0;font-size:26px;color:var(--d-ink,#121a2b)}
+#v315ExamFormCard .es-pair{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+#v315ExamFormCard .es-in{display:block;margin:0;padding:10px;border:1px solid var(--d-line,#e3e9f2);border-radius:var(--d-r-sm,14px);text-align:center}
+#v315ExamFormCard .es-in span{display:block;margin-bottom:6px;font-size:13px;font-weight:800}
+#v315ExamFormCard .es-in.is-d span{color:var(--d-ok,#13906b)}
+#v315ExamFormCard .es-in.is-y span{color:var(--eh-bad,#b8304a)}
+#v315ExamFormCard .es-in input{width:100%;height:56px;margin:0;text-align:center;font-size:26px;font-weight:800}
+#v315ExamFormCard .es-live{display:flex;justify-content:space-around;margin:12px 0 6px;padding:10px;border-radius:var(--d-r-sm,14px);background:var(--d-soft,#eef3fb);color:var(--d-muted,#5f6b80);font-size:13px;font-weight:700;text-align:center}
+#v315ExamFormCard .es-live b{display:block;color:var(--d-ink,#121a2b);font-size:18px}
+#v315ExamFormCard .es-warn{min-height:18px;margin:0 0 6px;color:var(--eh-bad,#b8304a);font-size:12.5px;font-weight:700;text-align:center}
+#v315ExamFormCard .es-nav{display:grid;grid-template-columns:1fr 2fr;gap:8px}
+#v315ExamFormCard .es-nav .btn{width:100%;margin:0}
+#v315ExamFormCard .es-nav .btn:disabled{opacity:.4;cursor:default}
+#v315ExamFormCard .es-next{background:var(--d-accent,#2f6bea);color:var(--d-on-accent,#fff)}
+#v315ExamFormCard .es-hint{margin:8px 0 4px;color:var(--d-muted,#5f6b80);font-size:12.5px}
+#v315ExamFormCard .es-big{text-align:center;margin:0 0 8px}
+#v315ExamFormCard .es-big small{color:var(--d-muted,#5f6b80);font-size:12px;font-weight:700}
+#v315ExamFormCard .es-big b{display:block;font-size:34px;color:var(--d-ink,#121a2b)}
+#v315ExamFormCard .es-sum-list{border:1px solid var(--d-line,#e3e9f2);border-radius:var(--d-r-sm,14px);overflow:hidden}
+#v315ExamFormCard .es-sr{display:grid;grid-template-columns:minmax(0,1fr) auto auto 44px;gap:10px;align-items:center;min-height:40px;padding:6px 12px;border-top:1px solid var(--d-line,#e3e9f2);font-size:13.5px}
+#v315ExamFormCard .es-sr:first-child{border-top:0}
+#v315ExamFormCard .es-sr.es-g{background:var(--d-soft,#eef3fb);font-weight:800;font-size:13px}
+#v315ExamFormCard .es-sr small{color:var(--d-muted,#5f6b80);font-weight:600}
+#v315ExamFormCard .es-sr b{text-align:right}
+#v315ExamFormCard .es-sr .eh-linkbtn{justify-self:start;padding:0;text-align:left}
+#v315ExamFormCard .es-back{width:100%;margin:10px 0 8px}
