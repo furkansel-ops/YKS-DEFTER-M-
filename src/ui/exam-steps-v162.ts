@@ -5,7 +5,7 @@ import "./exam-steps-v162.css";
    boş = grup sorusu − doğru − yanlış. Kayıt biçimi değişmez; Kaydet yine eski addDeneme'yi çağırır. */
 type Loose=Record<string,any>;
 type LegacyWindow=Window&Record<string,any>;
-export type Lesson={name:string;cap:number;group:string};
+export type Lesson={name:string;cap:number;group:string;approx?:boolean};
 type Step=Lesson&{row:number};
 type Vals=Record<string,{d:string;y:string}>;
 const L=window as unknown as LegacyWindow;
@@ -14,9 +14,11 @@ const L=window as unknown as LegacyWindow;
 export const TYT_LESSONS:Lesson[]=[
   {name:"Türkçe",cap:40,group:"Türkçe"},
   {name:"Tarih",cap:5,group:"Sosyal Bilimler"},{name:"Coğrafya",cap:5,group:"Sosyal Bilimler"},{name:"Felsefe",cap:5,group:"Sosyal Bilimler"},{name:"Din Kültürü",cap:5,group:"Sosyal Bilimler"},
-  {name:"Matematik",cap:30,group:"Temel Matematik"},{name:"Geometri",cap:10,group:"Temel Matematik"},
+  {name:"Matematik",cap:30,group:"Temel Matematik",approx:true},{name:"Geometri",cap:10,group:"Temel Matematik",approx:true},
   {name:"Fizik",cap:7,group:"Fen Bilimleri"},{name:"Kimya",cap:7,group:"Fen Bilimleri"},{name:"Biyoloji",cap:6,group:"Fen Bilimleri"}
 ];
+// AYT Matematik satırı (40) da Matematik + Geometri diye iki adımda sorulur.
+export const AYT_SPLIT:Record<string,Lesson[]>={Matematik:[{name:"Matematik",cap:30,group:"Matematik",approx:true},{name:"Geometri",cap:10,group:"Matematik",approx:true}]};
 const SHORT:Record<string,string>={"Din Kültürü":"Din","Felsefe Grubu":"Felsefe"};
 
 let installed=false,index=0,type="";
@@ -34,10 +36,10 @@ function rows():HTMLElement[]{return Array.from(byId("dybRows")?.querySelectorAl
 function rowName(row:HTMLElement):string{return (row.querySelector(".snm")?.childNodes[0]?.textContent||"").trim();}
 function rowCap(row:HTMLElement):number{return int(row.querySelector("input")?.getAttribute("max")||"");}
 
-/* Eski tablonun satırlarından adım listesi: TYT'de 10 ders grup satırına bağlanır, AYT'de alan satırları tek tek. */
+/* Eski tablonun satırlarından adım listesi: TYT'de 10 ders grup satırına bağlanır, AYT'de alan satırları tek tek (Matematik ikiye bölünür). */
 export function buildSteps(type:string,table:{name:string;cap:number;hidden?:boolean}[]):Step[]{
   if(type==="TYT"){const at=(g:string)=>table.findIndex(r=>r.name===g||(g==="Temel Matematik"&&r.name==="Matematik"));return TYT_LESSONS.map(l=>({...l,row:at(l.group)})).filter(s=>s.row>=0);}
-  if(type==="AYT")return table.map((r,row)=>({name:r.name,cap:r.cap,group:r.name,row,hidden:r.hidden})).filter(s=>!s.hidden).map(({hidden:_h,...s})=>s);
+  if(type==="AYT")return table.flatMap((r,row)=>r.hidden?[]:(AYT_SPLIT[r.name]??[{name:r.name,cap:r.cap,group:r.name}]).map(l=>({...l,row})));
   return [];
 }
 function steps():Step[]{
@@ -84,9 +86,9 @@ function render(focus=false):void{
   const bar=`<div class="es-bar"><i style="width:${Math.round(Math.min(index+1,list.length)/list.length*100)}%"></i></div>`;
   if(index>=list.length){b.innerHTML=`<div class="es-prog"><b>ÖZET</b></div>${bar}${chips}${summary(list)}<button type="button" class="btn ghost es-back" data-go="${list.length-1}">‹ Geri</button>`;return;}
   const s=list[index]!,v=vals[s.name]??{d:"",y:""},d=int(v.d),y=int(v.y),next=list[index+1];
-  const sub=type==="TYT"&&s.group!==s.name?`${type} · ${s.group}`:type;
+  const sub=s.group!==s.name?`${type} · ${s.group}`:type;
   b.innerHTML=`<div class="es-prog"><b>${index+1} / ${list.length}</b></div>${bar}${chips}
-  <div class="es-lesson"><small>${esc(sub)} · ${type==="TYT"&&s.group==="Temel Matematik"?"~":""}${s.cap} soru</small><h3 id="esTitle">${esc(s.name)}</h3></div>
+  <div class="es-lesson"><small>${esc(sub)} · ${s.approx?"~":""}${s.cap} soru</small><h3 id="esTitle">${esc(s.name)}</h3></div>
   <div class="es-pair" role="group" aria-labelledby="esTitle"><label class="es-in is-d"><span>Doğru</span><input id="esD" type="number" inputmode="numeric" min="0" max="${s.cap}" value="${esc(v.d)}"></label><label class="es-in is-y"><span>Yanlış</span><input id="esY" type="number" inputmode="numeric" min="0" max="${s.cap}" value="${esc(v.y)}"></label></div>
   <div class="es-live"><span>Boş<b id="esB">${Math.max(0,s.cap-d-y)}</b></span><span>Net<b id="esN">${net(d,y)}</b></span><span>Toplam net<b id="esT">${total()}</b></span></div>
   <p class="es-warn" id="esW" role="alert">${warn(list,s)}</p>
@@ -95,7 +97,7 @@ function render(focus=false):void{
   // Hemen odaklanır: ders geçişinde hızlı yazılan ilk rakam kaybolmasın.
   if(focus)byId<HTMLInputElement>("esD")?.focus({preventScroll:true});
 }
-function warn(list:Step[],s:Step):string{const cap=groupOver(list,s.group);return cap?`${s.group===s.name?"Doğru + yanlış":s.group+" toplamı"} ${cap} soruyu geçmesin`:"";}
+function warn(list:Step[],s:Step):string{const cap=groupOver(list,s.group);return cap?`${list.filter(l=>l.group===s.group).length>1?s.group+" toplamı":"Doğru + yanlış"} ${cap} soruyu geçmesin`:"";}
 function summary(list:Step[]):string{
   const groups=[...new Set(list.map(s=>s.group))];let html="";
   for(const g of groups){

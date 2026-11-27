@@ -25,10 +25,10 @@ test("v162 TYT dersleri istenen sırada ve doğru grup satırına bağlı",()=>{
   assert.deepEqual([0,1,2,3].map(caps),[40,20,40,20],"ders soru sayıları grup toplamına eşit");
 });
 
-test("v162 AYT gizli alan satırlarını atlar; YDT ve Branş adımsız",()=>{
+test("v162 AYT: Matematik satırı Matematik + Geometri diye iki adım, gizli alan satırları atlanır; YDT ve Branş adımsız",()=>{
   const {buildSteps}=load();
   const steps=buildSteps("AYT",[{name:"Matematik",cap:40},{name:"Fizik",cap:14},{name:"Edebiyat",cap:24,hidden:true}]);
-  assert.deepEqual(Array.from(steps,s=>[s.name,s.row,s.cap]),[["Matematik",0,40],["Fizik",1,14]]);
+  assert.deepEqual(Array.from(steps,s=>[s.name,s.row,s.cap,s.group]),[["Matematik",0,30,"Matematik"],["Geometri",0,10,"Matematik"],["Fizik",1,14,"Fizik"]]);
   assert.equal(buildSteps("YDT",[{name:"Yabancı Dil",cap:80}]).length,0);
   assert.equal(buildSteps("BRANS",[]).length,0);
 });
