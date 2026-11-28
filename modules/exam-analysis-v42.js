@@ -92,7 +92,7 @@
       const box=doc.getElementById("intelExamAnalysis2");if(!box){if(retries++<30)root.setTimeout(render,100);return false;}if(rendering)return false;rendering=true;
       try{
         injectStyle();const s=state(),types=examTypes(s),storedType=readPref(TYPE_KEY,""),storedWindow=Number(readPref(WINDOW_KEY,"5"))===10?10:5,a=buildExamAnalysis(s,storedType,storedWindow),heading=doc.querySelector('h2[data-intel-for="intelExamAnalysis2"]');if(heading)heading.textContent="Deneme Analizi 3.0";
-        if(!a.hasData){box.dataset.examV42="ready";box.innerHTML='<div class="empty">En az bir genel deneme kaydı geldiğinde Deneme Analizi 3.0 burada açılır.</div>';return true;}
+        if(!a.hasData){box.dataset.examV42="ready";box.innerHTML='<div class="empty" data-exam-v42-empty>En az bir genel deneme kaydı geldiğinde Deneme Analizi 3.0 burada açılır.</div>';return true;}
         if(storedType!==a.type)writePref(TYPE_KEY,a.type);
         const typeButtons=a.types.map(type=>`<button type="button" data-exam-v42-type="${safe(type)}" class="${type===a.type?'on':''}" aria-pressed="${type===a.type?'true':'false'}">${safe(type)}</button>`).join("");
         const windowButtons=[5,10].map(size=>`<button type="button" data-exam-v42-window="${size}" class="${size===a.size?'on':''}" aria-pressed="${size===a.size?'true':'false'}">Son ${size}</button>`).join("");
@@ -105,8 +105,8 @@
         doc.documentElement.dataset.examAnalysisV42="ready";return true;
       }finally{rendering=false;}
     }
-    function schedule(force){if(pending&&!force)return;pending=true;const run=()=>{pending=false;const box=doc.getElementById("intelExamAnalysis2");if(!force&&box&&box.dataset.examV42==="ready"&&box.querySelector(".v42-exam3-shell"))return;render();};if(typeof root.requestAnimationFrame==="function")root.requestAnimationFrame(run);else root.setTimeout(run,0);}
-    function bindObserver(){const box=doc.getElementById("intelExamAnalysis2");if(!box){if(retries++<30)root.setTimeout(bindObserver,120);return false;}if(observer)return true;observer=new root.MutationObserver(()=>{if(rendering)return;if(!box.querySelector(".v42-exam3-shell"))schedule(true);});observer.observe(box,{childList:true,subtree:true});schedule(true);return true;}
+    function schedule(force){if(pending&&!force)return;pending=true;const run=()=>{pending=false;const box=doc.getElementById("intelExamAnalysis2");if(!force&&box&&box.dataset.examV42==="ready"&&box.querySelector(".v42-exam3-shell,[data-exam-v42-empty]"))return;render();};if(typeof root.requestAnimationFrame==="function")root.requestAnimationFrame(run);else root.setTimeout(run,0);}
+    function bindObserver(){const box=doc.getElementById("intelExamAnalysis2");if(!box){if(retries++<30)root.setTimeout(bindObserver,120);return false;}if(observer)return true;observer=new root.MutationObserver(()=>{if(rendering)return;/* Boş durum da kendi çizimimiz; yoksa her karede yeniden çizer. */if(!box.querySelector(".v42-exam3-shell,[data-exam-v42-empty]"))schedule(true);});observer.observe(box,{childList:true,subtree:true});schedule(true);return true;}
     root.__YKS_EXAM_ANALYSIS_V42__=true;root.YKSExamAnalysisV42=Object.assign(root.YKSExamAnalysisV42||{},{version:VERSION,render:()=>schedule(true),selfTest,getAnalysis:(type,size)=>buildExamAnalysis(state(),type,size)});
     doc.addEventListener("yks:navigation-after",event=>{if(!event.detail||event.detail.screen==="deneme")schedule(true);});root.addEventListener("storage",event=>{if(!event.key||event.key==="yks")schedule(true);});
     if(doc.readyState==="loading")doc.addEventListener("DOMContentLoaded",()=>{bindObserver();root.setTimeout(bindObserver,300);},{once:true});else{bindObserver();root.setTimeout(bindObserver,300);}return true;

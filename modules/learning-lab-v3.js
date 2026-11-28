@@ -58,11 +58,11 @@
     syncFavoriteProxy();
   }
 
-  function syncFavoriteProxy(){const source=$("v320ElementFavOnly"),proxy=$("v4PeriodicFavProxy");if(!proxy)return;const on=!!source?.checked;proxy.classList.toggle("on",on);proxy.textContent=on?"★ Favoriler açık":"☆ Favoriler";}
+  function syncFavoriteProxy(){const source=$("v320ElementFavOnly"),proxy=$("v4PeriodicFavProxy");if(!proxy)return;const on=!!source?.checked;proxy.classList.toggle("on",on);const label=on?"★ Favoriler açık":"☆ Favoriler";/* Aynı metni yeniden yazmak gözlemciyi tetikler, her karede döngü olur. */if(proxy.textContent!==label)proxy.textContent=label;}
   function applyPeriodicFilters(){
     const grid=$("v320ElementGrid");if(!grid)return;
     let visible=0,total=0;grid.querySelectorAll('.v320-element').forEach(btn=>{const z=Number(btn.querySelector('small')?.textContent),x=elementData(z);if(!x)return;total++;const show=(periodicType==="Tümü"||x.type===periodicType)&&(!periodicYksOnly||YKS_FOCUS.has(z));btn.hidden=!show;if(show)visible++;});
-    const meta=$("v4PeriodicFilterMeta");if(meta)meta.textContent=visible+" / "+total+" element"+(periodicYksOnly?" · YKS odak":"")+(periodicType!=="Tümü"?" · "+periodicType:"");
+    const meta=$("v4PeriodicFilterMeta");const metaText=visible+" / "+total+" element"+(periodicYksOnly?" · YKS odak":"")+(periodicType!=="Tümü"?" · "+periodicType:"");if(meta&&meta.textContent!==metaText)meta.textContent=metaText;
     syncFavoriteProxy();enhancePeriodicDetail();
   }
   function enhancePeriodicDetail(){

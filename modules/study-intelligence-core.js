@@ -11,7 +11,10 @@
   function dayNumber(key){const d=iso(key);if(!d)return null;const [y,m,day]=d.split("-").map(Number);return Date.UTC(y,m-1,day)/86400000;}
   function daysAgo(key,today){const a=dayNumber(key),b=dayNumber(today);return a==null||b==null?null:Math.max(0,b-a);}
   function escText(v){return String(v==null?"":v).trim();}
-  function topicKey(subject,topic){return escText(subject).toLocaleLowerCase("tr-TR")+"|"+escText(topic).toLocaleLowerCase("tr-TR");}
+  /* toLocaleLowerCase("tr-TR") yavaş; aynı metin için sonucu sakla. */
+  const lowerCache=new Map();
+  function lowerTr(value){let out=lowerCache.get(value);if(out===undefined){out=value.toLocaleLowerCase("tr-TR");if(lowerCache.size>5000)lowerCache.clear();lowerCache.set(value,out);}return out;}
+  function topicKey(subject,topic){return lowerTr(escText(subject))+"|"+lowerTr(escText(topic));}
   function wrongGroups(state){
     const map=new Map();
     for(const w of (state&&state.wrongLog)||[]){

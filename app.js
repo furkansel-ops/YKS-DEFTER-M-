@@ -12578,10 +12578,12 @@ function v319RenderGardenDecor(){const w=el("v319GardenDecor");if(!w)return fals
 
 function v319DayActivity(k){const m=Math.max(0,Number((S.pomoMin||{})[k])||0),q=Math.max(0,Number((S.solved||{})[k])||0);return {m,q,score:m+q*.45}}
 function v319YearCells(){const end=todayKey(),start=addDaysKey(end,-364),out=[];for(let i=0;i<365;i++){const k=addDaysKey(start,i),a=v319DayActivity(k);out.push({k,...a})}return out}
+/* toLocaleDateString her çağrıda yeni biçimlendirici kurar; 365 hücrede açılışı yavaşlatıyordu. Çıktı aynı. */
+const V319_HEAT_DATE=new Intl.DateTimeFormat("tr-TR",{day:"numeric",month:"short",year:"numeric"});
 function v319HeatLevel(score){if(score<=0)return 0;if(score<45)return 1;if(score<100)return 2;if(score<190)return 3;return 4}
 function v319RenderYearHeat(){
   const w=el("v319YearHeat"),st=el("v319YearStats");if(!w)return false;const a=v319YearCells(),sig=a.map(x=>x.m+":"+x.q).join("|");
-  if(w.dataset.sig!==sig){w.innerHTML=a.map(x=>'<span class="v319-heat-cell l'+v319HeatLevel(x.score)+'" title="'+esc(parseKey(x.k).toLocaleDateString("tr-TR",{day:"numeric",month:"short",year:"numeric"})+" · "+x.m+" dk · "+x.q+" soru")+'"></span>').join("");w.dataset.sig=sig}
+  if(w.dataset.sig!==sig){w.innerHTML=a.map(x=>'<span class="v319-heat-cell l'+v319HeatLevel(x.score)+'" title="'+esc(V319_HEAT_DATE.format(parseKey(x.k))+" · "+x.m+" dk · "+x.q+" soru")+'"></span>').join("");w.dataset.sig=sig}
   if(st){const active=a.filter(x=>x.score>0).length,totalM=a.reduce((z,x)=>z+x.m,0),totalQ=a.reduce((z,x)=>z+x.q,0);st.textContent=active+" aktif gün · "+fmtHM(totalM)+" · "+totalQ+" soru"}return true;
 }
 function v319RenderRewardCenter(){

@@ -14,7 +14,10 @@
   function dayNumber(value){const key=iso(value);if(!key)return null;const [y,m,d]=key.split("-").map(Number);return Date.UTC(y,m-1,d)/86400000;}
   function daysBetween(from,to){const a=dayNumber(from),b=dayNumber(to);return a==null||b==null?null:b-a;}
   function addDays(value,amount){const n=dayNumber(value);if(n==null)return "";return new Date((n+Math.trunc(num(amount))) * 86400000).toISOString().slice(0,10);}
-  function topicKey(subject,topic){return text(subject).toLocaleLowerCase("tr-TR")+"|"+text(topic).toLocaleLowerCase("tr-TR");}
+  /* toLocaleLowerCase("tr-TR") yavaş; aynı metin için sonucu sakla. */
+  const lowerCache=new Map();
+  function lowerTr(value){let out=lowerCache.get(value);if(out===undefined){out=value.toLocaleLowerCase("tr-TR");if(lowerCache.size>5000)lowerCache.clear();lowerCache.set(value,out);}return out;}
+  function topicKey(subject,topic){return lowerTr(text(subject))+"|"+lowerTr(text(topic));}
   function latestGeneralExam(state){
     const rows=Array.isArray(state&&state.denemeler)?state.denemeler.filter(x=>x&&x.type!=="BRANS"&&iso(x.date)):[];
     rows.sort((a,b)=>iso(a.date).localeCompare(iso(b.date))||num(a.id)-num(b.id));
