@@ -9,6 +9,8 @@ test("PWA manifest proje kapsamından güvenli biçimde başlar",()=>{
   assert.equal(manifest.start_url,"./index.html");
   assert.equal(manifest.scope,"./");
   assert.equal(manifest.id,"./index.html");
+  // Vite manifest'i assets/ içine taşırsa göreli simge ve başlangıç yolları 404 olur; Chrome yalnız "kısayol" sunar.
+  assert.match(fs.readFileSync(path.join(root,"index.html"),"utf8"),/<link rel="manifest" vite-ignore href="manifest\.webmanifest\?v=4\.1\.0-r20">/);
 });
 
 test("service worker eski veya derin ana ekran yolunu uygulama köküne kurtarır",()=>{
