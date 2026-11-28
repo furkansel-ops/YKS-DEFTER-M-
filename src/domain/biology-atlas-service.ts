@@ -14,7 +14,7 @@ export function answerAtlas(topic: AtlasTopic, picked: number) {
   return {correct: picked === topic.quiz.answer, picked, answer: topic.quiz.answer, explanation: topic.quiz.why};
 }
 export function atlasAsset(path: string): string {
-  // A relative path is intentional: GitHub Pages lives below /YKS-DEFTER-M-/.
+  // A relative path is intentional: GitHub Pages lives below /YKS-DEFTERIM/.
   if (!/^(models|images|thumbs)\/[a-z]+\.(glb|webp)$/.test(path)) throw new Error("Geçersiz anatomi varlığı");
   return "./anatomy/" + path;
 }

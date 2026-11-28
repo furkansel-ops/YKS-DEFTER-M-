@@ -1,7 +1,7 @@
 /* v78 · Hakkında sayfasının saf bilgileri: son yenilikler, destek adresi, veri durumu metni,
    sürüm tarihi ve kişisel veri içermeyen tanılama özeti. DOM'a ve öğrenci verisine dokunmaz. */
 
-export const SUPPORT_URL="https://github.com/furkansel-ops/YKS-DEFTER-M-/issues";
+export const SUPPORT_URL="https://github.com/furkansel-ops/YKS-DEFTERIM/issues";
 
 export type AboutNews={when:string;title:string;text:string};
 export const ABOUT_NEWS:readonly AboutNews[]=[

@@ -5,7 +5,7 @@ const path = require("node:path");
 const vm = require("node:vm");
 
 const source = fs.readFileSync(path.resolve(__dirname, "../modules/focus-notification-worker.js"), "utf8");
-const scope = "https://example.test/YKS-DEFTER-M-/";
+const scope = "https://example.test/YKS-DEFTERIM/";
 const epoch = Date.UTC(2026, 9, 8, 12);
 const clone = value => value === undefined ? undefined : JSON.parse(JSON.stringify(value));
 
@@ -237,9 +237,9 @@ test("malformed snapshots and foreign client origins or sibling paths are reject
     assert.equal(result.ok, false); assert.equal(result.error, "invalid_snapshot");
   }
   for (const origin of [
-    { source: { url: "https://foreign.test/YKS-DEFTER-M-/" } },
-    { source: { url: "https://example.test/YKS-DEFTER-M-/../another-app/" } },
-    { source: { url: "https://example.test/YKS-DEFTER-M-other/" } },
+    { source: { url: "https://foreign.test/YKS-DEFTERIM/" } },
+    { source: { url: "https://example.test/YKS-DEFTERIM/../another-app/" } },
+    { source: { url: "https://example.test/YKS-DEFTERIMother/" } },
     { source: { type: "serviceworker" } }, { origin: "https://foreign.test" }
   ]) assert.equal((await app.request({ operation: "read" }, origin)).error, "invalid_client");
   assert.equal(app.storage.value(), undefined); assert.equal(app.notices.length, 0);

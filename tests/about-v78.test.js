@@ -22,7 +22,7 @@ test("v78 Hakkında bilgileri: veri durumu doğru; misafirde yalnız cihaz; tan�
     'const text=diagnosticsText({version:"4.4.0",build:"4.4.0-r27",channel:"Kararlı",schema:"21",install:"installed",sync:"synced",online:false,screen:"430×900",userAgent:"UA",date:"2026-11-01T10:00:00.000Z"});',
     'assert.equal(text.split("\\n").length,8);assert.match(text,/Sürüm: 4\\.4\\.0 \\(4\\.4\\.0-r27\\) · Kararlı/);assert.match(text,/Kurulum: kurulu/);assert.match(text,/Eşitleme: synced · çevrimdışı/);',
     'assert.doesNotMatch(text,/@|uid|e-posta/i);',
-    'assert.ok(ABOUT_NEWS.length>NEWS_VISIBLE);assert.equal(SUPPORT_URL,"https://github.com/furkansel-ops/YKS-DEFTER-M-/issues");',
+    'assert.ok(ABOUT_NEWS.length>NEWS_VISIBLE);assert.equal(SUPPORT_URL,"https://github.com/furkansel-ops/YKS-DEFTERIM/issues");',
     'console.log("OK about info");'
   ],"OK about info");
 });

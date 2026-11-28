@@ -5,7 +5,7 @@ const path = require("node:path");
 const vm = require("node:vm");
 
 const source = fs.readFileSync(path.resolve(__dirname, "../modules/focus-notifications.js"), "utf8");
-const scope = "https://example.test/YKS-DEFTER-M-/";
+const scope = "https://example.test/YKS-DEFTERIM/";
 const key = "yks-focus-notification-link-v1";
 const epoch = Date.UTC(2026, 9, 8, 12);
 const clone = value => value === undefined ? undefined : JSON.parse(JSON.stringify(value));

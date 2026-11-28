@@ -7,7 +7,7 @@ import {readFileSync,writeFileSync} from "node:fs";
 import {fileURLToPath} from "node:url";
 
 export const SOURCE="https://www.kitapsec.com/Products/YKS-Kitaplari/";
-const UA="YKS-Defterim-katalog/1.0 (+https://furkansel-ops.github.io/YKS-DEFTER-M-/)";
+const UA="YKS-Defterim-katalog/1.0 (+https://furkansel-ops.github.io/YKS-DEFTERIM/)";
 const COVER_RE=/^https:\/\/cdn\.kitapsec\.com\/image\/urun\/[A-Za-z0-9/_.-]+\.(?:jpe?g|png|webp|gif)$/i;
 /* v94: [ders, ders adının kendisi, yalnız ders adı yoksa bakılan konu adları]. Önce ders adı aranır ("AYT Biyoloji Sistemler"
    Biyolojidir); konu adı ancak hiçbir ders adı yoksa sayılır ("AYT Limit Soru Bankası" Matematiktir). */

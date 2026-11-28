@@ -5,7 +5,7 @@ const path=require("node:path");
 const vm=require("node:vm");
 
 const source=fs.readFileSync(path.resolve(__dirname,"../sw.js"),"utf8");
-const scope="https://example.test/YKS-DEFTER-M-/";
+const scope="https://example.test/YKS-DEFTERIM/";
 const cacheName="yks-core-v4.4.0-r27";
 const guard='<html data-ui-shell="refined-v1"><style id="yksBootGuard"></style>';
 const oldHtml=guard+'<script src="./assets/index-old.js"></script>';
@@ -75,7 +75,7 @@ test("shell dependency discovery includes local legacy scripts and preserves que
   const runtime=harness();
   const html=`${newHtml}
     <script src="./modules/study-intelligence-core.js?v=4.1.0-r1"></script>
-    <script src="/YKS-DEFTER-M-/modules/study-intelligence-core.js?v=4.1.0-r1"></script>
+    <script src="/YKS-DEFTERIM/modules/study-intelligence-core.js?v=4.1.0-r1"></script>
     <script src="./modules/study-intelligence-v5.js?v=4.1.0-r1"></script>
     <link rel="manifest" href="./manifest.webmanifest?v=4.1.0-r20">
     <script src="https://cdn.example.test/remote.js"></script>

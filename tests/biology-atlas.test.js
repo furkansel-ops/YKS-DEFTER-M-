@@ -329,7 +329,7 @@ test("Model önbelleği indirilmiş GLB'yi arka planda yeniden indirmez; çevrim
   const context={self:{location:{origin:"https://example.test"},addEventListener(type,fn){handlers[type]=fn;}},URL,Response,AbortController,setTimeout,clearTimeout,caches:{open:async()=>({match:async request=>map.get(request.url)||null,put:async(request,response)=>map.set(request.url,response)})},fetch:async()=>{fetches++;return new Response("glTF");}};
   context.importScripts=()=>{};
   vm.runInNewContext(read("sw.js"),context);
-  const request={method:"GET",url:"https://example.test/YKS-DEFTER-M-/anatomy/models/heart.glb",mode:"cors"};
+  const request={method:"GET",url:"https://example.test/YKS-DEFTERIM/anatomy/models/heart.glb",mode:"cors"};
   let result;const event={request,waitUntil(p){waits.push(p);},respondWith(p){result=p;}};
   handlers.fetch(event);assert.equal((await result).status,200);await Promise.all(waits);
   handlers.fetch(event);assert.equal((await result).status,200);assert.equal(fetches,1);

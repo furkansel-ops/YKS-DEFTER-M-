@@ -36,7 +36,7 @@ Android projesi repoda sabitlenir; her CI çalışmasında geçici olarak yenide
 - Gelen özel deep link özelliği yoktur. Manifestte `MAIN` / `LAUNCHER` dışında `VIEW` / `BROWSABLE` intent-filter ancak gerçek bir yönlendirme akışı ve doğrulanmış alan adı eklendiğinde tanımlanır.
 - Gereksiz hassas Android izni eklenmez. Son AAB'nin merged manifest ve Play Console izin listesi elle kontrol edilir.
 
-GitHub Pages'in proje yolu `/YKS-DEFTER-M-/` altında olduğu için bu paket TWA yerine Capacitor kullanır; kök alan adına Digital Asset Links yerleştirme zorunluluğu yoktur.
+GitHub Pages'in proje yolu `/YKS-DEFTERIM/` altında olduğu için bu paket TWA yerine Capacitor kullanır; kök alan adına Digital Asset Links yerleştirme zorunluluğu yoktur.
 
 ## Güvenli upload key hazırlığı
 
@@ -91,8 +91,8 @@ Internal Testing'e yalnız **signed** workflow'un başarılı çıktısı yükle
 
 Beklenen Pages adresleri (yayınlanmadan önce mutlaka açılıp kontrol edilir):
 
-- `https://furkansel-ops.github.io/YKS-DEFTER-M-/privacy.html`
-- `https://furkansel-ops.github.io/YKS-DEFTER-M-/data-deletion.html`
+- `https://furkansel-ops.github.io/YKS-DEFTERIM/privacy.html`
+- `https://furkansel-ops.github.io/YKS-DEFTERIM/data-deletion.html`
 
 ## Play Console ve mağaza içeriği
 

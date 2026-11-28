@@ -38,8 +38,8 @@ Uygulama bağımsız bir eğitim aracıdır; ÖSYM, MEB veya başka bir resmî k
 - Etiket yaklaşımı: YKS, TYT, AYT, çalışma planı, deneme analizi, odak, biyoloji, fizik, kimya
 - App access: Giriş gerekmez
 - Reklam: Son AAB'de reklam SDK'sı bulunmadığı ayrıca doğrulanırsa “Hayır”
-- Gizlilik politikası: `https://furkansel-ops.github.io/YKS-DEFTER-M-/privacy.html` (canlılığı doğrulanmadan forma girilmez)
-- Veri silme açıklaması: `https://furkansel-ops.github.io/YKS-DEFTER-M-/data-deletion.html` (hesap silme URL'si değildir; uygulama hesap oluşturmaz)
+- Gizlilik politikası: `https://furkansel-ops.github.io/YKS-DEFTERIM/privacy.html` (canlılığı doğrulanmadan forma girilmez)
+- Veri silme açıklaması: `https://furkansel-ops.github.io/YKS-DEFTERIM/data-deletion.html` (hesap silme URL'si değildir; uygulama hesap oluşturmaz)
 
 ## Ekran görüntüsü anlatı planı
 

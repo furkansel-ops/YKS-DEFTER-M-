@@ -9,7 +9,7 @@ const TIMEOUT_MS=9000;
 const CONCURRENCY=8;
 
 function defaultBase(){
-  const repository=String(process.env.GITHUB_REPOSITORY||"furkansel-ops/YKS-DEFTER-M-");
+  const repository=String(process.env.GITHUB_REPOSITORY||"furkansel-ops/YKS-DEFTERIM");
   const [owner,repo]=repository.split("/");
   if(!owner||!repo)throw new Error("GitHub repository bilgisi çözülemedi");
   return `https://${owner}.github.io/${repo}/`;

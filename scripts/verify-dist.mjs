@@ -100,7 +100,7 @@ if(!progress.includes("studyNetRelation")||!progress.includes("bestImprovingSubj
 if(!labV2.includes("PARAGRAPH_TIPS")||!labV2.includes("fetchElementMedia")||!labV2.includes("DEEP_DIVES")||!labV2.includes("ERA_CARDS")||!/const group=groupOf\(z\)/.test(labV2))throw new Error("Öğrenme Laboratuvarı v2 üretim paketinde eksik veya blok hesabı kararsız");
 if(!labV3.includes("v320TabParagraph")||!labV3.includes("Bilim Kartları")||!labV3.includes("v4SetScienceSubject")||!labV3.includes("deepDives")||!labV3.includes("v4PeriodicSetType")||!labV3.includes("YKS trend paneli")||!labV3.includes("Kronoloji timeline")||!labV3.includes("decorateTimeline")||!labV3.includes("bindMainTabs")||!labV3.includes('version:"3.4.0"'))throw new Error("Öğrenme Laboratuvarı v3 / periyodik ve kronoloji çalışma katmanı üretim paketinde eksik");
 if(!sw.includes("Response.redirect(appRootUrl(),302)")||!sw.includes("self.registration.scope"))throw new Error("PWA eski başlangıç yolu kurtarma mantığı üretim paketinde yok");
-if(!recovery.includes('/YKS-DEFTER-M-/')||!recovery.includes('location.replace'))throw new Error("GitHub Pages 404 kurtarma sayfası doğru uygulama köküne yönlendirmiyor");
+if(!recovery.includes('/YKS-DEFTERIM/')||!recovery.includes('location.replace'))throw new Error("GitHub Pages 404 kurtarma sayfası doğru uygulama köküne yönlendirmiyor");
 let version;
 try{version=JSON.parse(versionText);}catch{throw new Error("Kopyalanan version.json geçerli JSON değil");}
 if(version?.version!==localRelease.version||version?.build!==localRelease.build||version?.schema!==21)throw new Error("Kopyalanan version.json v4.4 kararlı sürümle eşleşmiyor");
