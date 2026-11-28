@@ -163,6 +163,8 @@ function installMinimal(win:FocusWindow,state:()=>Loose,tone:(name:string)=>stri
   const paint=():void=>{
     const subject=(byId("v29MinimalSubject")?.textContent||"").split(" · ")[0]!.trim();
     setData(overlay,"v161Tone",tone(subject));
+    // 1 saati geçen süre "1:23:45" olur; saat hanesi gelince yazı küçülür, ekrandan taşmaz.
+    setData(overlay,"v161Long",(clock.textContent||"").split(":").length>2?"1":"");
     const stopwatch=isStopwatch(),running=overlay.dataset.running==="1";
     const endText=(byId("pomoEnds")?.textContent||"").replace(/^Başlatırsan\s*/,"").trim();
     setText(ends,!stopwatch&&overlay.dataset.phase==="work"&&running&&endText?endText:(byId("v29MinimalState")?.textContent||""));

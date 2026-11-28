@@ -80,6 +80,7 @@
 .v29-minimal-overlay[data-v161] .v29-minimal-secondary,
 .v29-minimal-overlay[data-v161] .v29-minimal-hint{display:none}
 .v29-minimal-overlay[data-v161] .v29-minimal-ring-inner::after{display:none}
+.v29-minimal-overlay[data-v161-long] .v29-minimal-clock{font-size:clamp(44px,15vw,92px);letter-spacing:-.035em}
 .v29-minimal-overlay[data-v161] .v161-min-ends{margin:8px 0 0;color:var(--label-2);font-size:13px;font-weight:700}
 .v29-minimal-overlay[data-v161] .v161-tours{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:6px;width:min(340px,78vw);margin:18px auto 0}
 .v29-minimal-overlay[data-v161] .v161-tours[hidden]{display:none}
