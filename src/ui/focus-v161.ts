@@ -163,6 +163,7 @@ function installMinimal(win:FocusWindow,state:()=>Loose,tone:(name:string)=>stri
   const paint=():void=>{
     const subject=(byId("v29MinimalSubject")?.textContent||"").split(" · ")[0]!.trim();
     setData(overlay,"v161Tone",tone(subject));
+    setData(overlay,"v161Long",(clock.textContent||"").trim().length>5?"1":"");
     const stopwatch=isStopwatch(),running=overlay.dataset.running==="1";
     const endText=(byId("pomoEnds")?.textContent||"").replace(/^Başlatırsan\s*/,"").trim();
     setText(ends,!stopwatch&&overlay.dataset.phase==="work"&&running&&endText?endText:(byId("v29MinimalState")?.textContent||""));

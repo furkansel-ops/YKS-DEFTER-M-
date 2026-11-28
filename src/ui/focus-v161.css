@@ -89,3 +89,6 @@
 .v29-minimal-overlay[data-v161] .v161-min-side{min-width:0;min-height:52px;padding:0;border:1px solid var(--sep);border-radius:14px;background:var(--fill);color:var(--label);font:850 17px/1 var(--font);cursor:pointer}
 .v29-minimal-overlay[data-v161] .v161-min-side[hidden]{visibility:hidden;display:block}
 .v29-minimal-overlay[data-v161] .v161-min-side:active{transform:scale(.97)}
+/* Süre 1 saati geçince (1:25:30) saat haneleri tablet/masaüstünde taşmasın: yazı halka genişliğine göre küçülür. */
+.v29-minimal-overlay[data-v161][data-v161-long] .v29-minimal-ring{container-type:inline-size}
+.v29-minimal-overlay[data-v161][data-v161-long] .v29-minimal-clock{font-size:clamp(48px,15vw,92px);font-size:min(clamp(48px,17vw,104px),21cqi);letter-spacing:-.04em}
