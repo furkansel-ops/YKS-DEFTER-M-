@@ -1,5 +1,6 @@
 import "./profile-page-v62.css";
 import {authErrorText,firebaseAuth,type FirebaseAuthApi} from "./auth-welcome-v60";
+import {installAccountSignOut,signOutAndClear} from "./account-sign-out";
 
 /* v62 — sağ üstteki profil simgesinin açtığı Profil sayfası.
  * Var olan Ayarlar sayfası olduğu gibi kalır ("Tüm ayarlar"). Hesap silme,
@@ -139,6 +140,7 @@ async function deleteCloudData(api:FirebaseAuthApi,uid:string,progress:(text:str
 
 export function installProfilePageV62():{installed:boolean}{
   if(document.getElementById(ROOT_ID))return {installed:true};
+  installAccountSignOut();
   const root=document.createElement("div");
   root.id=ROOT_ID;
   root.className="ypg-root";
@@ -293,15 +295,7 @@ export function installProfilePageV62():{installed:boolean}{
       try{await api.m.sendPasswordResetEmail(api.auth,user.email);toast("Şifre değiştirme bağlantısı e-postana gönderildi");}
       catch(error){toast(authErrorText(error));}
     })();
-    else if(action==="signout")void(async()=>{
-      if(!window.confirm("Çıkış yapılsın mı? Bu cihazdaki çalışmaların kalır."))return;
-      const logout=document.getElementById("cloudLogoutBtn");
-      if(logout)logout.click();
-      else{const api=await firebaseAuth();await api?.m.signOut(api.auth);}
-      try{localStorage.setItem(ENTRY_KEY,"guest");}catch{}
-      close();
-      toast("Çıkış yapıldı");
-    })();
+    else if(action==="signout"){close();void signOutAndClear();}
     else if(action==="profile-settings"){close();openSettings("profile");}
     else if(action==="appearance"||action==="notifications"||action==="coach"){close();openSettings(action);}
     else if(action==="settings"){close();openSettings("");}
